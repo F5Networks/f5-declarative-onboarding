@@ -9,7 +9,7 @@
             "description": "DNS settings",
             "type": "object",
             "properties": {
-                "nameservers": {
+                "nameServers": {
                     "description": "IP addresses of nameservers to use for DNS",
                     "type": "array",
                     "items": {

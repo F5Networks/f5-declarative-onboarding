@@ -40,7 +40,7 @@ describe('valid', () => {
                     "schemaVersion": "0.1.0",
                     "system": {
                         "dns": {
-                            "nameservers": [
+                            "nameServers": [
                                 "1.2.3.4",
                                 "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
                             ],
@@ -59,12 +59,12 @@ describe('valid', () => {
 describe('invalid', () => {
     describe('system', () => {
         describe('dns', () => {
-            it('should invalidate nameservers that are not ipv4 or ipv6', () => {
+            it('should invalidate name servers that are not ipv4 or ipv6', () => {
                 const data = {
                     "schemaVersion": "0.1.0",
                     "system": {
                         "dns": {
-                            "nameservers": ["foo"]
+                            "nameServers": ["foo"]
                         }
                     }
                 };
