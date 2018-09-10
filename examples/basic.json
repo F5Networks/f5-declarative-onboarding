@@ -1,0 +1,14 @@
+{
+    "schemaVersion": "0.1.0",
+    "system": {
+        "dns": {
+            "nameServers": [
+                "1.2.3.4",
+                "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+            ],
+            "search": [
+                "f5.com"
+            ]
+        }
+    }
+}
