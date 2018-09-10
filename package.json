@@ -1,0 +1,34 @@
+{
+  "name": "f5-decon",
+  "version": "0.1.0",
+  "description": "F5 Declarative Onboarding",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --recursive"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/F5Networks/f5-decon.git"
+  },
+  "keywords": [
+    "f5",
+    "declarative",
+    "onboarding",
+    "bigip",
+    "big-ip",
+    "bigiq",
+    "big-iq"
+  ],
+  "author": "F5 Networks",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "ajv": "^6.5.3",
+    "winston": "^3.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.4.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "mocha": "^5.2.0"
+  }
+}

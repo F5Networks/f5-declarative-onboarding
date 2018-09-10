@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/base.schema.json",
+    "title": "F5 Declarative Onboarding base declaration",
+    "description": "Top level schema for onboarding a BIG-IP.",
+    "type": "object",
+    "required": ["schemaVersion"],
+    "properties": {
+        "schemaVersion": {
+            "description": "Version of Declarative Onboarding schema this declaration uses",
+            "type": "string",
+            "$comment": "IMPORTANT: In enum array, please put current schema version first, oldest-supported version last.  Keep enum array sorted most-recent-first.",
+            "enum": ["0.1.0"]
+        },
+        "label": {
+            "description": "Arbitrary label",
+            "type": "string"
+        },
+        "system": {
+            "description": "System level configuration",
+            "$ref": "system.schema.json"
+        },
+        "network": {
+            "description": "Network level configuration",
+            "$ref": "network.schema.json"
+        }
+    }
+}
