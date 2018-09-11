@@ -1,0 +1,16 @@
+stages:
+    - test
+    - package
+
+test:
+    image: node6
+    stage: test
+    script:
+        - npm test
+
+build_rpm:
+    image: centos7
+    stage: package
+    script:
+        - yum install -y rpm-build
+        - rpmbuild -bb

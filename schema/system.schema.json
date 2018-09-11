@@ -10,7 +10,7 @@
             "type": "object",
             "properties": {
                 "nameServers": {
-                    "description": "IP addresses of nameservers to use for DNS",
+                    "description": "IP addresses of name servers to use for DNS",
                     "type": "array",
                     "items": {
                         "type": "string",
@@ -27,6 +27,27 @@
                         "type": "string",
                         "format": "hostname"
                     }
+                }
+            }
+        },
+        "ntp": {
+            "description": "NTP settings",
+            "type": "object",
+            "properties": {
+                "servers": {
+                    "description": "IP addresses of servers to use for NTP",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    }
+                },
+                "timezone": {
+                    "description": "The timezone to set",
+                    "type": "string"
                 }
             }
         }

@@ -53,6 +53,22 @@ describe('valid', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
         });
+
+        it('should validate ntp data', () => {
+            const data = {
+                "schemaVersion": "0.1.0",
+                "system": {
+                    "ntp": {
+                        "servers": [
+                            "1.2.3.4",
+                            "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+                        ],
+                        "timezone": "UTC"
+                    }
+                }
+            };
+            assert.ok(validate(data), getErrorString(validate));
+        });
     });
 });
 
@@ -83,6 +99,21 @@ describe('invalid', () => {
                 };
                 assert.strictEqual(validate(data), false, 'non ip address should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"format": "hostname"'), -1);
+            });
+        });
+
+        describe('ntp', () => {
+            it('should invalidate ntp servers that are not ipv4 or ipv6', () => {
+                const data = {
+                    "schemaVersion": "0.1.0",
+                    "system": {
+                        "ntp": {
+                            "servers": ["foo"]
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'non ip address should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"format": "ipv4"'), -1);
             });
         });
     });
