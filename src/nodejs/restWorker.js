@@ -18,13 +18,16 @@
 
 const fs = require('fs');
 const Ajv = require('ajv');
-const Logger = require('f5-logger');
+const logger = require('./logger');
+
+const baseSchemaFile = `${__dirname}/../schema/base.schema.json`;
+const systemSchemaFile = `${__dirname}/../schema/system.schema.json`;
+const networkSchemaFile = `${__dirname}/../schema/network.schema.json`;
 
 class RestWorker {
     constructor() {
         this.WORKER_URI_PATH = 'shared/decon';
         this.isPublic = true;
-        this.logger = Logger.getInstance();
     }
 
     /**
@@ -38,9 +41,9 @@ class RestWorker {
     onStart(success, error) {
         try {
             const ajv = new Ajv({ allErrors: true });
-            const baseSchema = JSON.parse(fs.readFileSync('../../schema/base.schema.json').toString());
-            const systemSchema = JSON.parse(fs.readFileSync('../../schema/system.schema.json').toString());
-            const networkSchema = JSON.parse(fs.readFileSync('../../schema/network.schema.json').toString());
+            const baseSchema = JSON.parse(fs.readFileSync(baseSchemaFile).toString());
+            const systemSchema = JSON.parse(fs.readFileSync(systemSchemaFile).toString());
+            const networkSchema = JSON.parse(fs.readFileSync(networkSchemaFile).toString());
 
             this.state = {};
 
@@ -48,12 +51,13 @@ class RestWorker {
                 .addSchema(systemSchema)
                 .addSchema(networkSchema)
                 .compile(baseSchema);
+
+            logger.info('Created Declarative onboarding worker');
+            success();
         } catch (err) {
-            this.logger.severe('Error creating declarative onboarding worker', err);
+            logger.error('Error creating declarative onboarding worker', err);
             error();
         }
-        this.logger.info('Created Declarative onboarding worker');
-        success();
     }
 
     /**
@@ -62,15 +66,9 @@ class RestWorker {
      * @returns {void}
      */
     onGet(restOperation) {
-        const path = restOperation.getUri().pathname.split('/');
-        const urlpath = restOperation.getUri().href;
-
-        this.logger.info(`path: ${path}`);
-        this.logger.info(`urlPath: ${urlpath}`);
         restOperation.setBody(this.state);
         this.completeRestOperation(restOperation);
     }
-
 
     /**
      * Handles Post requests.
@@ -78,8 +76,18 @@ class RestWorker {
      * @returns {void}
      */
     onPost(restOperation) {
-        this.state = restOperation.getBody();
-        restOperation.setBody(this.state);
+        const declaration = restOperation.getBody();
+        const valid = this.validate(declaration);
+        if (!valid) {
+            const message = `Bad declaration: ${JSON.stringify(this.validate.errors)}`;
+            logger.info(message);
+            restOperation.setStatusCode(400);
+            restOperation.setBody({ message });
+        } else {
+            this.state = declaration;
+            restOperation.setBody(this.state);
+        }
+
         this.completeRestOperation(restOperation);
     }
 }

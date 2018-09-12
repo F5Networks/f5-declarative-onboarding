@@ -23,8 +23,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@f5devcentral/f5-cloud-libs": "^4.3.0",
-    "ajv": "^6.5.3",
-    "winston": "^3.0.0"
+    "ajv": "^6.5.3"
   },
   "devDependencies": {
     "eslint": "^5.4.0",
