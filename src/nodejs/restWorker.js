@@ -18,6 +18,10 @@
 
 const logger = require('./logger');
 const Validator = require('./validator');
+const DeclarationHandler = require('./declarationHandler');
+
+const STATUS_OK = 'OK';
+const STATUS_ERROR = 'ERROR';
 
 class RestWorker {
     constructor() {
@@ -63,19 +67,39 @@ class RestWorker {
     onPost(restOperation) {
         const declaration = restOperation.getBody();
         const isValid = this.validator.isValid(declaration);
+        this.state = declaration;
+
         if (!isValid.valid) {
             const message = `Bad declaration: ${JSON.stringify(isValid.errors)}`;
+            updateState.call(this, STATUS_ERROR, message);
             logger.info(message);
-            this.state = {};
-            restOperation.setStatusCode(400);
-            restOperation.setBody({ message });
+            completeRestOperation.call(this, restOperation, 400);
         } else {
-            this.state = declaration;
-            restOperation.setBody(this.state);
+            const declarationHandler = new DeclarationHandler(declaration);
+            declarationHandler.process()
+                .then(() => {
+                    updateState.call(STATUS_OK);
+                    completeRestOperation.call(this, restOperation, 200);
+                })
+                .catch((err) => {
+                    updateState.call(this, STATUS_ERROR, err.message);
+                    completeRestOperation.call(this, restOperation, 500);
+                });
         }
-
-        this.completeRestOperation(restOperation);
     }
+}
+
+function completeRestOperation(restOperation, code) {
+    restOperation.setStatusCode(code);
+    restOperation.setBody(this.state);
+    this.completeRestOperation(restOperation);
+}
+
+function updateState(status, error) {
+    this.state.status = {
+        code: status,
+        message: error
+    };
 }
 
 module.exports = RestWorker;
