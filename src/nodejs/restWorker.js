@@ -66,6 +66,7 @@ class RestWorker {
         if (!isValid.valid) {
             const message = `Bad declaration: ${JSON.stringify(isValid.errors)}`;
             logger.info(message);
+            this.state = {};
             restOperation.setStatusCode(400);
             restOperation.setBody({ message });
         } else {
