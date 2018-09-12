@@ -16,13 +16,8 @@
 
 'use strict';
 
-const fs = require('fs');
-const Ajv = require('ajv');
 const logger = require('./logger');
-
-const baseSchemaFile = `${__dirname}/../schema/base.schema.json`;
-const systemSchemaFile = `${__dirname}/../schema/system.schema.json`;
-const networkSchemaFile = `${__dirname}/../schema/network.schema.json`;
+const Validator = require('./validator');
 
 class RestWorker {
     constructor() {
@@ -40,18 +35,8 @@ class RestWorker {
      */
     onStart(success, error) {
         try {
-            const ajv = new Ajv({ allErrors: true });
-            const baseSchema = JSON.parse(fs.readFileSync(baseSchemaFile).toString());
-            const systemSchema = JSON.parse(fs.readFileSync(systemSchemaFile).toString());
-            const networkSchema = JSON.parse(fs.readFileSync(networkSchemaFile).toString());
-
             this.state = {};
-
-            this.validate = ajv
-                .addSchema(systemSchema)
-                .addSchema(networkSchema)
-                .compile(baseSchema);
-
+            this.validator = new Validator();
             logger.info('Created Declarative onboarding worker');
             success();
         } catch (err) {
@@ -77,9 +62,9 @@ class RestWorker {
      */
     onPost(restOperation) {
         const declaration = restOperation.getBody();
-        const valid = this.validate(declaration);
-        if (!valid) {
-            const message = `Bad declaration: ${JSON.stringify(this.validate.errors)}`;
+        const isValid = this.validator.isValid(declaration);
+        if (!isValid.valid) {
+            const message = `Bad declaration: ${JSON.stringify(isValid.errors)}`;
             logger.info(message);
             restOperation.setStatusCode(400);
             restOperation.setBody({ message });
