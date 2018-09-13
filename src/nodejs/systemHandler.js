@@ -26,18 +26,35 @@ class SystemHandler {
 
     process() {
         let promise;
-        if (this.declaration.dns) {
-            promise = this.bigIp.modify(
-                '/tm/sys/dns',
-                {
-                    'name-servers': this.declaration.dns.nameServers,
-                    search: this.declaration.dns.search
-                }
-            );
-        } else {
+        if (this.declaration.licsene) {
+            if (this.declaration.license.regKey) {
+                promise = this.bigIp.onboard.license(
+                    {
+                        registrationKey: this.declaration.license.regKey,
+                        addOnKeys: this.declaration.license.addOnKeys
+                    }
+                );
+            }
+        }
+
+        if (!promise) {
             promise = Promise.resolve();
         }
+
         return promise
+            .then(() => {
+                if (this.declaration.dns) {
+                    promise = this.bigIp.modify(
+                        '/tm/sys/dns',
+                        {
+                            'name-servers': this.declaration.dns.nameServers,
+                            search: this.declaration.dns.search
+                        }
+                    );
+                } else {
+                    promise = Promise.resolve();
+                }
+            })
             .then(() => {
                 if (this.declaration.ntp) {
                     promise = this.bigIp.modify(
