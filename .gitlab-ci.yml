@@ -6,12 +6,16 @@ stages:
 
 test:
     stage: test
+    tags:
+        - docker-executor
     script:
         - npm install
         - npm test
 
 build_rpm:
     stage: package
+    tags:
+        - docker-executor
     only:
         - /^release-.*/
     script:
