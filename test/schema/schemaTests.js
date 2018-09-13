@@ -75,6 +75,19 @@ describe('valid', () => {
 
 describe('invalid', () => {
     describe('system', () => {
+        it('should invalidate additional properties', () => {
+            const data = {
+                "schemaVersion": "0.1.0",
+                "system": {
+                    "foo": "bar"
+                }
+            };
+            assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+            assert.notDeepStrictEqual(
+                getErrorString().indexOf('should NOT have additional properties'), -1
+            );
+        });
+
         describe('dns', () => {
             it('should invalidate name servers that are not ipv4 or ipv6', () => {
                 const data = {
@@ -101,6 +114,21 @@ describe('invalid', () => {
                 assert.strictEqual(validate(data), false, 'non ip address should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"format": "hostname"'), -1);
             });
+
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "schemaVersion": "0.1.0",
+                    "system": {
+                        "dns": {
+                            "foo": "bar"
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notDeepStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1
+                );
+            });
         });
 
         describe('ntp', () => {
@@ -115,6 +143,21 @@ describe('invalid', () => {
                 };
                 assert.strictEqual(validate(data), false, 'non ip address should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"format": "ipv4"'), -1);
+            });
+
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "schemaVersion": "0.1.0",
+                    "system": {
+                        "ntp": {
+                            "foo": "bar"
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notDeepStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1
+                );
             });
         });
     });

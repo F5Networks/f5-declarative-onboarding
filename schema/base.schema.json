@@ -23,6 +23,26 @@
         "network": {
             "description": "Network level configuration",
             "$ref": "network.schema.json"
+        },
+        "status": {
+            "description": "Status of current request. This is set by the system.",
+            "type": "object",
+            "readOnly": true,
+            "required": ["code"],
+            "properties": {
+                "code": {
+                    "description": "Status code",
+                    "type": "string",
+                    "readOnly": true,
+                    "enum": ["OK", "ERROR"]
+                },
+                "message": {
+                    "description": "Further detail about the status.",
+                    "type": "string",
+                    "readOnly": true
+                }
+            }
         }
-    }
+    },
+    "additionalProperties": false
 }
