@@ -31,6 +31,34 @@
             },
             "additionalProperties": false
         },
+        "license": {
+            "description": "Licensing info",
+            "type": "object",
+            "oneOf": [
+                {
+                    "properties": {
+                        "regKey": {
+                            "type": "string"
+                        },
+                        "addOnKeys": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "uniqueItems": true
+                            }
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "bigIq": {
+                            "type": "object"
+                        }
+                    }
+                }
+            ],
+            "additionalProperties": false
+        },
         "ntp": {
             "description": "NTP settings",
             "type": "object",
