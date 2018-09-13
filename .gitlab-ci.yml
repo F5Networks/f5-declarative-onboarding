@@ -1,16 +1,19 @@
+image: node:8-alpine
+
 stages:
     - test
     - package
 
 test:
-    image: node6
     stage: test
     script:
+        - npm install
         - npm test
 
 build_rpm:
-    image: centos7
     stage: package
+    only:
+        - /^release-.*/
     script:
-        - yum install -y rpm-build
-        - rpmbuild -bb
+        - apk add rpm bash
+        - build/buildRpm.sh
