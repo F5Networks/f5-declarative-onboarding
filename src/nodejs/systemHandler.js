@@ -16,7 +16,7 @@
 
 'use strict';
 
-const logger = require('./logger');
+const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
 
 class SystemHandler {
     constructor(declaration, bigIp) {
@@ -53,7 +53,7 @@ class SystemHandler {
                 return promise;
             })
             .catch((err) => {
-                logger.error(`Error processing system declaration: ${err.message}`);
+                logger.severe(`Error processing system declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }

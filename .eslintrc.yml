@@ -51,3 +51,9 @@ rules:
         - functions: false
           variables: true
           classes: true
+
+    # node 4 does not support destructuring
+    prefer-destructuring:
+        - error
+        - array: false
+          object: false

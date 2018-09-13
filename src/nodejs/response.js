@@ -16,14 +16,23 @@
 
 'use strict';
 
-class NetworkHandler {
-    constructor(declaration) {
-        this.declaration = declaration;
-    }
+class Response {
+    static getResponseBody(state) {
+        const body = Object.assign({}, state);
+        const code = body.status.code;
+        const message = body.status.message;
+        delete body.status;
 
-    process() {
-        return Promise.resolve();
+        return {
+            result: {
+                code,
+                message
+            },
+            declaration: {
+                body
+            }
+        };
     }
 }
 
-module.exports = NetworkHandler;
+module.exports = Response;

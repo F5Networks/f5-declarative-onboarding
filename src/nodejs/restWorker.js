@@ -16,9 +16,10 @@
 
 'use strict';
 
-const logger = require('./logger');
+const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
 const Validator = require('./validator');
 const DeclarationHandler = require('./declarationHandler');
+const response = require('./response');
 
 const STATUS_OK = 'OK';
 const STATUS_ERROR = 'ERROR';
@@ -44,7 +45,7 @@ class RestWorker {
             logger.info('Created Declarative onboarding worker');
             success();
         } catch (err) {
-            logger.error('Error creating declarative onboarding worker', err);
+            logger.severe('Error creating declarative onboarding worker', err);
             error();
         }
     }
@@ -56,7 +57,7 @@ class RestWorker {
      */
     onGet(restOperation) {
         restOperation.setBody(this.state);
-        this.completeRestOperation(restOperation);
+        this.sendResponse(restOperation);
     }
 
     /**
@@ -71,35 +72,36 @@ class RestWorker {
 
         if (!isValid.valid) {
             const message = `Bad declaration: ${JSON.stringify(isValid.errors)}`;
-            updateState.call(this, STATUS_ERROR, message);
+            this.updateState(STATUS_ERROR, message);
             logger.info(message);
-            completeRestOperation.call(this, restOperation, 400);
+            this.sendResponse(restOperation, 400);
         } else {
             const declarationHandler = new DeclarationHandler(declaration);
             declarationHandler.process()
                 .then(() => {
-                    updateState.call(this, STATUS_OK);
-                    completeRestOperation.call(this, restOperation, 200);
+                    logger.debug('Declaration processing complete');
+                    this.updateState(STATUS_OK);
+                    this.sendResponse(restOperation, 200);
                 })
                 .catch((err) => {
-                    updateState.call(this, STATUS_ERROR, err.message);
-                    completeRestOperation.call(this, restOperation, 500);
+                    this.updateState(STATUS_ERROR, err.message);
+                    this.sendResponse(restOperation, 500);
                 });
         }
     }
-}
 
-function completeRestOperation(restOperation, code) {
-    restOperation.setStatusCode(code);
-    restOperation.setBody(this.state);
-    this.completeRestOperation(restOperation);
-}
+    sendResponse(restOperation, code) {
+        restOperation.setStatusCode(code);
+        restOperation.setBody(response.getResponseBody(this.state));
+        this.completeRestOperation(restOperation);
+    }
 
-function updateState(status, error) {
-    this.state.status = {
-        code: status,
-        message: error
-    };
+    updateState(status, error) {
+        this.state.status = {
+            code: status,
+            message: error
+        };
+    }
 }
 
 module.exports = RestWorker;

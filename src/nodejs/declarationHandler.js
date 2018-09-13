@@ -16,14 +16,18 @@
 
 'use strict';
 
+const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
-const logger = require('./logger');
 
 class DeclarationHandler {
     constructor(declaration) {
         this.declaration = declaration;
+        logger.silly = logger.finest;
+        logger.verbose = logger.finer;
+        logger.debug = logger.fine;
+        logger.error = logger.severe;
     }
 
     process() {

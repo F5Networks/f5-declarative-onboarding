@@ -129,7 +129,6 @@ const log = function (info, level, stack) {
             }
         } else if (!Object.keys(info).length) {
             tmp = new Error(`log.${levelName}() given empty object`);
-            log(tmp, 'error', true);
             data.message = '(empty object)';
         } else {
             try {
