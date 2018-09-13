@@ -44,7 +44,7 @@ class SystemHandler {
                         '/tm/sys/ntp',
                         {
                             servers: this.declaration.ntp.servers,
-                            timezone: this.declaration.tnp.timezone
+                            timezone: this.declaration.ntp.timezone
                         }
                     );
                 } else {
@@ -53,7 +53,7 @@ class SystemHandler {
                 return promise;
             })
             .catch((err) => {
-                logger.severe(`Error processing system declaration: ${err.message}`);
+                logger.error(`Error processing system declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }

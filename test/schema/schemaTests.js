@@ -61,7 +61,8 @@ describe('valid', () => {
                     "ntp": {
                         "servers": [
                             "1.2.3.4",
-                            "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+                            "FE80:0000:0000:0000:0202:B3FF:FE1E:8329",
+                            "0.pool.ntp.org"
                         ],
                         "timezone": "UTC"
                     }
@@ -103,12 +104,12 @@ describe('invalid', () => {
         });
 
         describe('ntp', () => {
-            it('should invalidate ntp servers that are not ipv4 or ipv6', () => {
+            it('should invalidate ntp servers that are not ipv4, ipv6, or hostname', () => {
                 const data = {
                     "schemaVersion": "0.1.0",
                     "system": {
                         "ntp": {
-                            "servers": ["foo"]
+                            "servers": ["foo@bar"]
                         }
                     }
                 };

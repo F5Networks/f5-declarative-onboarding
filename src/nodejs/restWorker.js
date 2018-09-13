@@ -65,7 +65,7 @@ class RestWorker {
      * @returns {void}
      */
     onPost(restOperation) {
-        const declaration = restOperation.getBody();
+        const declaration = Object.assign({}, restOperation.getBody());
         const isValid = this.validator.isValid(declaration);
         this.state = declaration;
 
@@ -78,7 +78,7 @@ class RestWorker {
             const declarationHandler = new DeclarationHandler(declaration);
             declarationHandler.process()
                 .then(() => {
-                    updateState.call(STATUS_OK);
+                    updateState.call(this, STATUS_OK);
                     completeRestOperation.call(this, restOperation, 200);
                 })
                 .catch((err) => {
