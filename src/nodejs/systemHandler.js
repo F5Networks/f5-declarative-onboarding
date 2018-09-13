@@ -27,11 +27,12 @@ class SystemHandler {
     process() {
         let promise;
         if (this.declaration.licsene) {
-            if (this.declaration.license.regKey) {
+            if (this.declaration.license.regKey || this.declaration.license.addOnKeys) {
                 promise = this.bigIp.onboard.license(
                     {
                         registrationKey: this.declaration.license.regKey,
-                        addOnKeys: this.declaration.license.addOnKeys
+                        addOnKeys: this.declaration.license.addOnKeys,
+                        overwrite: true
                     }
                 );
             }
