@@ -94,6 +94,19 @@ describe('dns', () => {
     });
 });
 
+describe('license', () => {
+    describe('valid', () => {
+        it('should validate license data', () => {
+            const data = {
+                "license": {
+                    "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ"
+                }
+            };
+            assert.ok(validate(data), getErrorString(validate));
+        });
+    });
+});
+
 describe('ntp', () => {
     describe('valid', () => {
         it('should validate ntp data', () => {

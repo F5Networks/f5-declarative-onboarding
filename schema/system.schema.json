@@ -36,9 +36,11 @@
             "type": "object",
             "oneOf": [
                 {
+                    "required": ["regKey"],
                     "properties": {
                         "regKey": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7}$"
                         },
                         "addOnKeys": {
                             "type": "array",
@@ -50,14 +52,14 @@
                     }
                 },
                 {
+                    "required": ["bigIq"],
                     "properties": {
                         "bigIq": {
                             "type": "object"
                         }
                     }
                 }
-            ],
-            "additionalProperties": false
+            ]
         },
         "ntp": {
             "description": "NTP settings",
