@@ -51,7 +51,9 @@ class RestWorker {
     }
 
     /**
-     * Handles Get requests
+     * Handles Get requests.
+     *
+     * @public
      * @param {object} restOperation
      * @returns {void}
      */
@@ -62,6 +64,8 @@ class RestWorker {
 
     /**
      * Handles Post requests.
+     *
+     * @public
      * @param {object} restOperation
      * @returns {void}
      */
@@ -90,16 +94,31 @@ class RestWorker {
         }
     }
 
+    /**
+     * Sends a response for a restOperation
+     *
+     * @private
+     * @param {Object} restOperation - The restOperation to send the response for
+     * @param {Number} code - The HTTP status code
+     */
     sendResponse(restOperation, code) {
         restOperation.setStatusCode(code);
         restOperation.setBody(response.getResponseBody(this.state));
         this.completeRestOperation(restOperation);
     }
 
-    updateState(status, error) {
+    /**
+     * Updates the current persisted state
+     *
+     * @private
+     * @param {String} status - The f5-decon status code
+     * @param {String} message - The user friendly message if there is one. This should
+     *                           be the error message if the code does not indicate success.
+     */
+    updateState(status, message) {
         this.state.status = {
-            code: status,
-            message: error
+            message,
+            code: status
         };
     }
 }
