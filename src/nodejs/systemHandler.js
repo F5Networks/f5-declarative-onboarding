@@ -26,19 +26,16 @@ class SystemHandler {
 
     process() {
         let promise;
-        if (this.declaration.license) {
-            if (this.declaration.license.regKey || this.declaration.license.addOnKeys) {
-                promise = this.bigIp.onboard.license(
-                    {
-                        registrationKey: this.declaration.license.regKey,
-                        addOnKeys: this.declaration.license.addOnKeys,
-                        overwrite: this.declaration.license.overwrite
-                    }
-                );
-            }
-        }
 
-        if (!promise) {
+        if (this.declaration.ntp) {
+            promise = this.bigIp.modify(
+                '/tm/sys/ntp',
+                {
+                    servers: this.declaration.ntp.servers,
+                    timezone: this.declaration.ntp.timezone
+                }
+            );
+        } else {
             promise = Promise.resolve();
         }
 
@@ -55,19 +52,25 @@ class SystemHandler {
                 } else {
                     promise = Promise.resolve();
                 }
+                return promise;
             })
             .then(() => {
-                if (this.declaration.ntp) {
-                    promise = this.bigIp.modify(
-                        '/tm/sys/ntp',
-                        {
-                            servers: this.declaration.ntp.servers,
-                            timezone: this.declaration.ntp.timezone
-                        }
-                    );
-                } else {
+                if (this.declaration.license) {
+                    if (this.declaration.license.regKey || this.declaration.license.addOnKeys) {
+                        promise = this.bigIp.onboard.license(
+                            {
+                                registrationKey: this.declaration.license.regKey,
+                                addOnKeys: this.declaration.license.addOnKeys,
+                                overwrite: this.declaration.license.overwrite
+                            }
+                        );
+                    }
+                }
+
+                if (!promise) {
                     promise = Promise.resolve();
                 }
+
                 return promise;
             })
             .catch((err) => {

@@ -20,3 +20,7 @@ build_rpm:
     script:
         - apk add rpm bash
         - build/buildRpm.sh
+    artifacts:
+        name: f5-decon-$CI_BUILD_REF
+        paths:
+            - build/rpmBuild/RPMS/
