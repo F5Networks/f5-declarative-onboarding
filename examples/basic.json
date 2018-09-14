@@ -10,6 +10,7 @@
                 "f5.com"
             ]
         },
+        "hostname": "bigip.example.com",
         "license": {
             "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ"
         },

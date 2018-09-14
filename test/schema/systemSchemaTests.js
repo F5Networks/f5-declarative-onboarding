@@ -94,6 +94,27 @@ describe('dns', () => {
     });
 });
 
+describe('hostname', () => {
+    describe('valid', () => {
+        it('should validate hostname', () => {
+            const data = {
+                "hostname": "my.foo.com"
+            };
+            assert.ok(validate(data), getErrorString(validate));
+        });
+    });
+
+    describe('invalid', () => {
+        it('should invalidate bad hostname', () => {
+            const data = {
+                "hostname": "foo@bar"
+            };
+            assert.strictEqual(validate(data), false, 'bad hostname should not be valid');
+            assert.notStrictEqual(getErrorString().indexOf('"format": "hostname"'), -1);
+        });
+    });
+});
+
 describe('license', () => {
     describe('valid', () => {
         it('should validate license data', () => {
@@ -118,9 +139,7 @@ describe('license', () => {
                 }
             };
             assert.strictEqual(validate(data), false, 'bad reg keys should not be valid');
-            assert.notDeepStrictEqual(
-                getErrorString().indexOf('should match pattern'), -1
-            );
+            assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
         });
 
         it('should invalidate bad addOnKeys', () => {

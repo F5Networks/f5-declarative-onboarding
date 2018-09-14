@@ -42,22 +42,26 @@ class SystemHandler {
         return promise
             .then(() => {
                 if (this.declaration.dns) {
-                    promise = this.bigIp.modify(
+                    return this.bigIp.modify(
                         '/tm/sys/dns',
                         {
                             'name-servers': this.declaration.dns.nameServers,
                             search: this.declaration.dns.search
                         }
                     );
-                } else {
-                    promise = Promise.resolve();
                 }
-                return promise;
+                return Promise.resolve();
+            })
+            .then(() => {
+                if (this.declaration.hostname) {
+                    return this.bigIp.onboard.hostname(this.declaration.hostname);
+                }
+                return Promise.resolve();
             })
             .then(() => {
                 if (this.declaration.license) {
                     if (this.declaration.license.regKey || this.declaration.license.addOnKeys) {
-                        promise = this.bigIp.onboard.license(
+                        return this.bigIp.onboard.license(
                             {
                                 registrationKey: this.declaration.license.regKey,
                                 addOnKeys: this.declaration.license.addOnKeys,
@@ -66,12 +70,7 @@ class SystemHandler {
                         );
                     }
                 }
-
-                if (!promise) {
-                    promise = Promise.resolve();
-                }
-
-                return promise;
+                return Promise.resolve();
             })
             .catch((err) => {
                 logger.severe(`Error processing system declaration: ${err.message}`);
