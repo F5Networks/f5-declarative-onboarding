@@ -96,6 +96,45 @@
                 }
             },
             "additionalProperties": false
+        },
+        "users": {
+            "description": "Modify/create user configuration",
+            "type": "object",
+            "properties": {
+                "root": {
+                    "description": "New and old passwords for the root user",
+                    "type": "object",
+                    "required": ["newPassword", "oldPassword"],
+                    "properties": {
+                        "newPassword": {
+                            "description": "Password to set for the root user",
+                            "type": "string"
+                        },
+                        "oldPassword": {
+                            "description": "Old password for the root user",
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "admin": {
+                    "description": "Configuration for admin user",
+                    "type": "object",
+                    "properties": {
+                        "password": {
+                            "description": "Password for the admin user",
+                            "type": "string"
+                        },
+                        "shell": {
+                            "description": "The shell for the admin user",
+                            "type": "string",
+                            "enum": ["bash", "tmsh"]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
         }
     },
     "additionalProperties": false

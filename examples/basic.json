@@ -20,6 +20,21 @@
                 "1.pool.ntp.org"
             ],
             "timezone": "UTC"
+        },
+        "users": {
+            "admin": {
+                "password": "this_is_my_new_admin_password",
+                "shell": "bash"
+            },
+            "myNewUser": {
+                "password": "this_is_my_new_guest_user_password",
+                "role": "guest",
+                "shell": "tmsh"
+            },
+            "root": {
+                "oldPassword": "this_is_the_current_password",
+                "newPassword": "this_is_my_new_root_password",
+            }
         }
     }
 }
