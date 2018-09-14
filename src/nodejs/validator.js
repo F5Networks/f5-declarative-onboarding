@@ -25,7 +25,12 @@ const networkSchemaFile = `${__dirname}/../schema/network.schema.json`;
 
 class Validator {
     constructor() {
-        const ajv = new Ajv({ allErrors: true });
+        const ajv = new Ajv(
+            {
+                allErrors: true,
+                useDefaults: true
+            }
+        );
         const baseSchema = JSON.parse(fs.readFileSync(baseSchemaFile).toString());
         const systemSchema = JSON.parse(fs.readFileSync(systemSchemaFile).toString());
         const networkSchema = JSON.parse(fs.readFileSync(networkSchemaFile).toString());

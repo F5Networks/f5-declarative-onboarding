@@ -39,15 +39,23 @@
                     "required": ["regKey"],
                     "properties": {
                         "regKey": {
+                            "description": "Registration key",
                             "type": "string",
                             "pattern": "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7}$"
                         },
                         "addOnKeys": {
+                            "description": "Add on keys",
                             "type": "array",
                             "items": {
                                 "type": "string",
+                                "pattern": "^[A-Z]{7}-[A-Z]{7}$",
                                 "uniqueItems": true
                             }
+                        },
+                        "overwrite": {
+                            "description": "Whether or not to overwrite the license if the device is already licensed",
+                            "type": "boolean",
+                            "default": false
                         }
                     }
                 },

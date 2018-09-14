@@ -99,10 +99,42 @@ describe('license', () => {
         it('should validate license data', () => {
             const data = {
                 "license": {
-                    "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ"
+                    "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ",
+                    "addOnKeys": [
+                        "ABCDEFG-HIJKLMN",
+                        "OPQRSTU-VWXYZAB"
+                    ]
                 }
             };
             assert.ok(validate(data), getErrorString(validate));
+        });
+    });
+
+    describe('invalid', () => {
+        it('should invalidate bad regKeys', () => {
+            const data = {
+                "license": {
+                    "regKey": "ABCD-FGHIJ-KLMNO-PQRST-UVWXYZZ"
+                }
+            };
+            assert.strictEqual(validate(data), false, 'bad reg keys should not be valid');
+            assert.notDeepStrictEqual(
+                getErrorString().indexOf('should match pattern'), -1
+            );
+        });
+
+        it('should invalidate bad addOnKeys', () => {
+            const data = {
+                "license": {
+                    "addOnKeys": [
+                        "ABCDEF-HIJKLMN"
+                    ]
+                }
+            };
+            assert.strictEqual(validate(data), false, 'bad add on keys should not be valid');
+            assert.notDeepStrictEqual(
+                getErrorString().indexOf('should match pattern'), -1
+            );
         });
     });
 });
