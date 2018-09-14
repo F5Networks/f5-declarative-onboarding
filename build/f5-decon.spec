@@ -21,6 +21,7 @@ mkdir -p %{_builddir}/node_modules
 cp -r %{main}/src %{_builddir}
 cp -r %{main}/node_modules %{_builddir}/src/nodejs
 cp -r %{main}/schema %{_builddir}
+cp -r %{main}/examples %{_builddir}
 echo -n %{version}-%{release} > %{_builddir}/src/version
 
 %install
@@ -28,6 +29,7 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/src/* $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/schema $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
+cp -r %{_builddir}/examples $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 
 %clean
 rm -rf $RPM_BUILD_ROOT

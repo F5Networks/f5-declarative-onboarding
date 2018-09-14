@@ -16,6 +16,7 @@
 
 'use strict';
 
+const fs = require('fs');
 const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
 const Validator = require('./validator');
 const DeclarationHandler = require('./declarationHandler');
@@ -93,6 +94,31 @@ class RestWorker {
                 });
         }
     }
+
+    /**
+     * Returns an exmple of a valid declaration.
+     *
+     * This is called by WOKER_URI/example
+     *
+     * @public
+     * @returns {Object} An example of a valid declaration.
+     */
+    /* eslint-disable class-methods-use-this */
+    getExampleState() {
+        let exampleResponse;
+
+        try {
+            const example = `${__dirname}/../examples/basic.json`;
+            exampleResponse = JSON.parse(fs.readFileSync(example).toString());
+        } catch (err) {
+            logger.warning(`Error reading example file: ${err}`);
+            exampleResponse = {
+                message: 'no example available'
+            };
+        }
+        return exampleResponse;
+    }
+    /* eslint-enable class-methods-use-this */
 
     /**
      * Sends a response for a restOperation
