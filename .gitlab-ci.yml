@@ -17,8 +17,6 @@ build_rpm:
     stage: package
     tags:
         - docker-executor
-    only:
-        - /^release-.*/
     script:
         - apk add rpm bash
         - build/buildRpm.sh
