@@ -116,8 +116,10 @@
                         }
                     },
                     "additionalProperties": false
-                },
-                "admin": {
+                }
+            },
+            "patternProperties": {
+                "^(?!root).*$": {
                     "description": "Configuration for admin user",
                     "type": "object",
                     "properties": {
@@ -133,8 +135,7 @@
                     },
                     "additionalProperties": false
                 }
-            },
-            "additionalProperties": false
+            }
         }
     },
     "additionalProperties": false

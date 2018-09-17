@@ -192,12 +192,12 @@ describe('ntp', () => {
     });
 });
 
-describe('passwords', () => {
+describe('users', () => {
     describe('valid', () => {
-        it('should validate password data for both users', () => {
+        it('should validate password data for root and non-root users', () => {
             const data = {
                 "users": {
-                    "admin": {
+                    "newUser": {
                         "password": "this_is_my_new_admin_password",
                         "shell": "bash"
                     },
@@ -209,25 +209,13 @@ describe('passwords', () => {
             };
             assert.ok(validate(data), getErrorString(validate));
         });
-
-        it('should validate password data for one user', () => {
-            const data = {
-                "users": {
-                    "admin": {
-                        "password": "this_is_my_new_admin_password",
-                        "shell": "bash"
-                    },
-                }
-            };
-            assert.ok(validate(data), getErrorString(validate));
-        });
     });
 
     describe('invalid', () => {
-        it('should invalidate bad admin password data', () => {
+        it('should invalidate bad non-root password data', () => {
             const data = {
                 "users": {
-                    "admin": {
+                    "newUser": {
                         "oldPassword": "this_is_the_current_password",
                         "newPassword": "this_is_my_new_root_password"
                     }
@@ -249,16 +237,6 @@ describe('passwords', () => {
             assert.strictEqual(validate(data), false, 'object password for admin should not be valid');
             assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "oldPassword"'), -1);
             assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "oldPasswordx"'), -1);
-        });
-
-        it('should invalidate additional properties', () => {
-            const data = {
-                "users": {
-                    "foo": "bar"
-                }
-            };
-            assert.strictEqual(validate(data), false, 'additional properties should not be valid');
-            assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
         });
     });
 });
