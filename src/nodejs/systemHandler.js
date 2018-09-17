@@ -59,6 +59,31 @@ class SystemHandler {
                 return Promise.resolve();
             })
             .then(() => {
+                if (this.declaration.users) {
+                    const users = Object.keys(this.declaration.users);
+                    const promises = [];
+                    users.forEach((user) => {
+                        if (user === 'root') {
+                            promises.push(this.bigIp.onboard.password(
+                                'root',
+                                this.declaration.users.root.newPassword,
+                                this.declaration.users.root.oldPassword
+                            ));
+                        } else {
+                            promises.push(this.bigIp.onboard.updateUser(
+                                user,
+                                this.declaration.users[user].password,
+                                this.declaration.users[user].role,
+                                this.declaration.users[user].shell
+                            ));
+                        }
+                    });
+
+                    return Promise.all(promises);
+                }
+                return Promise.resolve();
+            })
+            .then(() => {
                 if (this.declaration.license) {
                     if (this.declaration.license.regKey || this.declaration.license.addOnKeys) {
                         return this.bigIp.onboard.license(
