@@ -120,17 +120,35 @@
             },
             "patternProperties": {
                 "^(?!root).*$": {
-                    "description": "Configuration for admin user",
+                    "description": "Configuration for non-root users",
                     "type": "object",
                     "properties": {
                         "password": {
-                            "description": "Password for the admin user",
+                            "description": "Password for the user",
                             "type": "string"
                         },
-                        "shell": {
-                            "description": "The shell for the admin user",
+                        "role": {
+                            "description": "Role for the user",
                             "type": "string",
-                            "enum": ["bash", "tmsh"]
+                            "enum": [
+                                "admin",
+                                "auditor",
+                                "guest",
+                                "manager",
+                                "operator",
+                                "user-manager",
+                                "application-editor",
+                                "certificate-manager",
+                                "irule-manager",
+                                "no-access",
+                                "resource-admin"
+                            ]
+                        },
+                        "shell": {
+                            "description": "Shell for the user",
+                            "type": "string",
+                            "enum": ["bash", "tmsh"],
+                            "default": "tmsh"
                         }
                     },
                     "additionalProperties": false
