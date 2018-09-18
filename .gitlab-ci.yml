@@ -33,7 +33,7 @@ pages:
         - docker-executor
     stage: publish
     only:
-        - develop
+        - triggers
     script:
         - node build/generateDocs.js
     artifacts:
