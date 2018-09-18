@@ -16,12 +16,11 @@
 
 'use strict';
 
-const fs = require('fs');
 const assert = require('assert');
 const Ajv = require('ajv');
 
 const ajv = new Ajv({ allErrors: true });
-const systemSchema = JSON.parse(fs.readFileSync(`${__dirname}/../../schema/system.schema.json`).toString());
+const systemSchema = require('../../schema/system.schema.json');
 
 const validate = ajv.compile(systemSchema);
 

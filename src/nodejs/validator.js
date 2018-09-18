@@ -16,12 +16,11 @@
 
 'use strict';
 
-const fs = require('fs');
 const Ajv = require('ajv');
 
-const baseSchemaFile = `${__dirname}/../schema/base.schema.json`;
-const systemSchemaFile = `${__dirname}/../schema/system.schema.json`;
-const networkSchemaFile = `${__dirname}/../schema/network.schema.json`;
+const baseSchema = require('../schema/base.schema.json');
+const systemSchema = require('../schema/system.schema.json');
+const networkSchema = require('../schema/network.schema.json');
 
 class Validator {
     constructor() {
@@ -31,9 +30,6 @@ class Validator {
                 useDefaults: true
             }
         );
-        const baseSchema = JSON.parse(fs.readFileSync(baseSchemaFile).toString());
-        const systemSchema = JSON.parse(fs.readFileSync(systemSchemaFile).toString());
-        const networkSchema = JSON.parse(fs.readFileSync(networkSchemaFile).toString());
 
         this.validate = ajv
             .addSchema(systemSchema)
