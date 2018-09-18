@@ -41,6 +41,14 @@ const FOOTER = `
 `
 
 fs.writeFileSync(INDEX, HEADER);
+
+append(PRE);
+append(H1);
+append('example');
+append(H1_CLOSE);
+append(JSON.stringify(example, null, 4));
+append(PRE_CLOSE);
+
 append(PRE);
 append(H1);
 append('base schema');
@@ -53,13 +61,6 @@ append(H1);
 append('system schema');
 append(H1_CLOSE);
 append(JSON.stringify(systemSchema, null, 4));
-append(PRE_CLOSE);
-
-append(PRE);
-append(H1);
-append('example');
-append(H1_CLOSE);
-append(JSON.stringify(example, null, 4));
 append(PRE_CLOSE);
 
 append(FOOTER);
