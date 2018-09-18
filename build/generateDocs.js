@@ -24,13 +24,20 @@ const networkSchema = require('../schema/network.schema.json');
 const example = require('../examples/basic.json');
 
 const INDEX = ('public/index.html');
-const APPEND = { flag: 'a' };
 const H1 = '<H1>';
-const H1_CLOSE = '</H1>';
-const PRE = '<pre>';
-const PRE_CLOSE = '</pre>';
+const H1_CLOSE = `</H1>
+`;
+const PRE = `<pre>
+`;
+const PRE_CLOSE = `
+</pre>
+`;
 
 const HEADER = `
+<!DOCTYPE html>
+<head>
+    <title>F5 Declarative Onboarding</title>
+</head>
 <html>
 <body>
 `;
@@ -42,29 +49,21 @@ const FOOTER = `
 
 fs.writeFileSync(INDEX, HEADER);
 
-append(PRE);
-append(H1);
-append('example');
-append(H1_CLOSE);
-append(JSON.stringify(example, null, 4));
-append(PRE_CLOSE);
-
-append(PRE);
-append(H1);
-append('base schema');
-append(H1_CLOSE);
-append(JSON.stringify(baseSchema, null, 4));
-append(PRE_CLOSE);
-
-append(PRE);
-append(H1);
-append('system schema');
-append(H1_CLOSE);
-append(JSON.stringify(systemSchema, null, 4));
-append(PRE_CLOSE);
+addJson('example', example);
+addJson('base schema', baseSchema);
+addJson('system schema', systemSchema);
 
 append(FOOTER);
 
 function append(data) {
-    fs.writeFileSync(INDEX, data, APPEND);
+    fs.writeFileSync(INDEX, data, { flag: 'a' });
+}
+
+function addJson(title, json) {
+    append(H1);
+    append(title);
+    append(H1_CLOSE);
+    append(PRE);
+    append(JSON.stringify(json, null, 4));
+    append(PRE_CLOSE);
 }

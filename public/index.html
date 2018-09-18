@@ -1,7 +1,56 @@
 
+<!DOCTYPE html>
+<head>
+    <title>F5 Declarative Onboarding</title>
+</head>
 <html>
 <body>
-<pre><H1>base schema</H1>{
+<H1>example</H1>
+<pre>
+{
+    "schemaVersion": "0.1.0",
+    "system": {
+        "dns": {
+            "nameServers": [
+                "1.2.3.4",
+                "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+            ],
+            "search": [
+                "f5.com"
+            ]
+        },
+        "hostname": "bigip.example.com",
+        "license": {
+            "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ"
+        },
+        "ntp": {
+            "servers": [
+                "0.pool.ntp.org",
+                "1.pool.ntp.org"
+            ],
+            "timezone": "UTC"
+        },
+        "users": {
+            "root": {
+                "oldPassword": "this_is_the_current_root_password",
+                "newPassword": "this_is_the_new_root_password"
+            },
+            "admin": {
+                "password": "this_is_my_new_admin_password",
+                "shell": "bash"
+            },
+            "myNewUser": {
+                "password": "this_is_my_new_guest_user_password",
+                "role": "guest",
+                "shell": "tmsh"
+            }
+        }
+    }
+}
+</pre>
+<H1>base schema</H1>
+<pre>
+{
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/base.schema.json",
     "title": "F5 Declarative Onboarding base declaration",
@@ -57,7 +106,11 @@
         }
     },
     "additionalProperties": false
-}</pre><pre><H1>system schema</H1>{
+}
+</pre>
+<H1>system schema</H1>
+<pre>
+{
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/system.schema.json",
     "title": "F5 Declarative Onboarding system declaration",
@@ -236,45 +289,8 @@
         }
     },
     "additionalProperties": false
-}</pre><pre><H1>example</H1>{
-    "schemaVersion": "0.1.0",
-    "system": {
-        "dns": {
-            "nameServers": [
-                "1.2.3.4",
-                "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
-            ],
-            "search": [
-                "f5.com"
-            ]
-        },
-        "hostname": "bigip.example.com",
-        "license": {
-            "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ"
-        },
-        "ntp": {
-            "servers": [
-                "0.pool.ntp.org",
-                "1.pool.ntp.org"
-            ],
-            "timezone": "UTC"
-        },
-        "users": {
-            "root": {
-                "oldPassword": "this_is_the_current_root_password",
-                "newPassword": "this_is_the_new_root_password"
-            },
-            "admin": {
-                "password": "this_is_my_new_admin_password",
-                "shell": "bash"
-            },
-            "myNewUser": {
-                "password": "this_is_my_new_guest_user_password",
-                "role": "guest",
-                "shell": "tmsh"
-            }
-        }
-    }
-}</pre>
+}
+</pre>
+
 </body>
 </html>
