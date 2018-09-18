@@ -1,7 +1,7 @@
 
 <html>
 <body>
-<pre>{
+<pre><H1>base schema</H1>{
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/base.schema.json",
     "title": "F5 Declarative Onboarding base declaration",
@@ -57,6 +57,224 @@
         }
     },
     "additionalProperties": false
+}</pre><pre><H1>system schema</H1>{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/system.schema.json",
+    "title": "F5 Declarative Onboarding system declaration",
+    "description": "System properties for onboarding a BIG-IP.",
+    "type": "object",
+    "properties": {
+        "dns": {
+            "description": "DNS settings",
+            "type": "object",
+            "properties": {
+                "nameServers": {
+                    "description": "IP addresses of name servers to use for DNS",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "ipv4"
+                            },
+                            {
+                                "format": "ipv6"
+                            }
+                        ]
+                    }
+                },
+                "search": {
+                    "description": "Search domain to use for DNS",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "format": "hostname"
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "hostname": {
+            "description": "Hostname to set for device",
+            "type": "string",
+            "format": "hostname"
+        },
+        "license": {
+            "description": "Licensing info",
+            "type": "object",
+            "oneOf": [
+                {
+                    "required": [
+                        "regKey"
+                    ],
+                    "properties": {
+                        "regKey": {
+                            "description": "Registration key",
+                            "type": "string",
+                            "pattern": "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7}$"
+                        },
+                        "addOnKeys": {
+                            "description": "Add on keys",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[A-Z]{7}-[A-Z]{7}$",
+                                "uniqueItems": true
+                            }
+                        },
+                        "overwrite": {
+                            "description": "Whether or not to overwrite the license if the device is already licensed",
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "bigIq"
+                    ],
+                    "properties": {
+                        "bigIq": {
+                            "type": "object"
+                        }
+                    }
+                }
+            ]
+        },
+        "ntp": {
+            "description": "NTP settings",
+            "type": "object",
+            "properties": {
+                "servers": {
+                    "description": "IP addresses of servers to use for NTP",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "format": "ipv4"
+                            },
+                            {
+                                "format": "ipv6"
+                            },
+                            {
+                                "format": "hostname"
+                            }
+                        ]
+                    }
+                },
+                "timezone": {
+                    "description": "The timezone to set",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "users": {
+            "description": "Modify/create user configuration",
+            "type": "object",
+            "properties": {
+                "root": {
+                    "description": "New and old passwords for the root user",
+                    "type": "object",
+                    "required": [
+                        "newPassword",
+                        "oldPassword"
+                    ],
+                    "properties": {
+                        "newPassword": {
+                            "description": "Password to set for the root user",
+                            "type": "string"
+                        },
+                        "oldPassword": {
+                            "description": "Old password for the root user",
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "patternProperties": {
+                "^(?!root).*$": {
+                    "description": "Configuration for non-root users",
+                    "type": "object",
+                    "properties": {
+                        "password": {
+                            "description": "Password for the user",
+                            "type": "string"
+                        },
+                        "role": {
+                            "description": "Role for the user",
+                            "type": "string",
+                            "enum": [
+                                "admin",
+                                "auditor",
+                                "guest",
+                                "manager",
+                                "operator",
+                                "user-manager",
+                                "application-editor",
+                                "certificate-manager",
+                                "irule-manager",
+                                "no-access",
+                                "resource-admin"
+                            ]
+                        },
+                        "shell": {
+                            "description": "Shell for the user",
+                            "type": "string",
+                            "enum": [
+                                "bash",
+                                "tmsh"
+                            ],
+                            "default": "tmsh"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        }
+    },
+    "additionalProperties": false
+}</pre><pre><H1>example</H1>{
+    "schemaVersion": "0.1.0",
+    "system": {
+        "dns": {
+            "nameServers": [
+                "1.2.3.4",
+                "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+            ],
+            "search": [
+                "f5.com"
+            ]
+        },
+        "hostname": "bigip.example.com",
+        "license": {
+            "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ"
+        },
+        "ntp": {
+            "servers": [
+                "0.pool.ntp.org",
+                "1.pool.ntp.org"
+            ],
+            "timezone": "UTC"
+        },
+        "users": {
+            "root": {
+                "oldPassword": "this_is_the_current_root_password",
+                "newPassword": "this_is_the_new_root_password"
+            },
+            "admin": {
+                "password": "this_is_my_new_admin_password",
+                "shell": "bash"
+            },
+            "myNewUser": {
+                "password": "this_is_my_new_guest_user_password",
+                "role": "guest",
+                "shell": "tmsh"
+            }
+        }
+    }
 }</pre>
 </body>
 </html>

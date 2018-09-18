@@ -18,11 +18,17 @@
 
 const fs = require('fs');
 
-const INDEX = ('public/index.html');
-const APPEND = { flag: 'a' };
 const baseSchema = require('../schema/base.schema.json');
 const systemSchema = require('../schema/system.schema.json');
 const networkSchema = require('../schema/network.schema.json');
+const example = require('../examples/basic.json');
+
+const INDEX = ('public/index.html');
+const APPEND = { flag: 'a' };
+const H1 = '<H1>';
+const H1_CLOSE = '</H1>';
+const PRE = '<pre>';
+const PRE_CLOSE = '</pre>';
 
 const HEADER = `
 <html>
@@ -35,7 +41,29 @@ const FOOTER = `
 `
 
 fs.writeFileSync(INDEX, HEADER);
-fs.writeFileSync(INDEX, '<pre>', APPEND);
-fs.writeFileSync(INDEX, JSON.stringify(baseSchema, null, 4), APPEND);
-fs.writeFileSync(INDEX, '</pre>', APPEND);
-fs.writeFileSync(INDEX, FOOTER, APPEND);
+append(PRE);
+append(H1);
+append('base schema');
+append(H1_CLOSE);
+append(JSON.stringify(baseSchema, null, 4));
+append(PRE_CLOSE);
+
+append(PRE);
+append(H1);
+append('system schema');
+append(H1_CLOSE);
+append(JSON.stringify(systemSchema, null, 4));
+append(PRE_CLOSE);
+
+append(PRE);
+append(H1);
+append('example');
+append(H1_CLOSE);
+append(JSON.stringify(example, null, 4));
+append(PRE_CLOSE);
+
+append(FOOTER);
+
+function append(data) {
+    fs.writeFileSync(INDEX, data, APPEND);
+}
