@@ -32,7 +32,7 @@ class DeclarationHandler {
 
     process() {
         const bigIp = new BigIp({ logger });
-        return bigIp.init('localhost', 'admin', 'admin', { port: '8443' })
+        return bigIp.init('localhost', 'admin', 'admin', { product: 'BIG-IP', port: '8443' })
             .then(() => {
                 return new SystemHandler(this.declaration.system, bigIp).process();
             })
