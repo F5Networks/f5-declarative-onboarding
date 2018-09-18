@@ -16,14 +16,65 @@
 
 'use strict';
 
+const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
+
 class NetworkHandler {
-    constructor(declaration) {
+    constructor(declaration, bigIp) {
         this.declaration = declaration;
+        this.bigIp = bigIp;
     }
 
     process() {
-        return Promise.resolve();
+        return createVlans.call(this)
+            .then(() => {
+
+            })
+            .catch((err) => {
+                logger.severe(`Error processing network declaration: ${err.message}`);
+                return Promise.reject(err);
+            });
     }
+}
+
+function createVlans() {
+    return new Promise((resolve, reject) => {
+        if (this.declaration.vlans) {
+            const vlans = Object.keys(this.declaration.vlans);
+            vlans.forEach((vlan) => {
+                vlanBody = {
+                    name: vlan.name,
+                    interfaces: [
+                        {
+                            name: vlan.nic,
+                            tagged: !!vlan.tag
+                        }
+                    ]
+                };
+
+                if (vlan.mtu) {
+                    vlanBody.mtu = vlan.mtu;
+                }
+
+                if (vlan.tag) {
+                    vlanBody.tag = vlan.tag;
+                }
+
+                promises.push(
+                    {
+                        promise: bigIp.create,
+                        arguments: [
+                            '/tm/net/vlan',
+                            vlanBody
+                        ],
+                        // eslint-disable-next-line max-len
+                        message: `Creating vlan ${vlan.name} on interface ${vlan.nic} ${(vlan.mtu ? ` mtu ${vlan.mtu}` : '')} ${(vlan.tag ? ` with tag ${vlan.tag}` : ' untagged')}`
+                    }
+                );
+            });
+        }
+
+        resolve();
+    });
 }
 
 module.exports = NetworkHandler;

@@ -5,6 +5,48 @@
     "description": "Network properties for onboarding a BIG-IP.",
     "type": "object",
     "properties": {
+        "vlans": {
+            "description": "Properties for VLANs",
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z]+.*": {
+                    "description": "Properties for one VLAN",
+                    "type": "object",
+                    "required": ["interfaces"],
+                    "properties": {
+                        "interfaces": {
+                            "description": "Interfaces for the VLAN",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "required": ["name"],
+                                "properties": {
+                                    "name": {
+                                        "description": "Name of the interface",
+                                        "type": "string"
+                                    },
+                                    "tagged": {
+                                        "description": "Whether or not the interface is tagged. Default is true if a tag is provided, otherwise false.",
+                                        "type": "boolean"
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "mtu": {
+                            "description": "MTU for the VLAN",
+                            "type": "string"
+                        },
+                        "tag": {
+                            "description": "Tag for the VLAN",
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        }
     },
     "additionalProperties": false
 }
