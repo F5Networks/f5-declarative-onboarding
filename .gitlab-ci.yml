@@ -3,6 +3,7 @@ image: node:8
 stages:
     - test
     - package
+    - publish
 
 test:
     stage: test
@@ -26,3 +27,15 @@ build_rpm:
         name: f5-decon-$CI_BUILD_REF
         paths:
             - build/rpmbuild/RPMS/noarch/
+
+pages:
+    tags:
+        - docker-executor
+    stage: publish
+    only:
+        - develop
+    script:
+        - node build/generateDocs.js
+    artifacts:
+        paths:
+            - public
