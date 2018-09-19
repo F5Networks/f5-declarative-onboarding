@@ -39,7 +39,7 @@
     },
     "network": {
         "vlans": {
-    		"newvlan": {
+    		"myVlan": {
                 "tag": 1234,
                 "mtu": 1500,
     			"interfaces": [
@@ -49,6 +49,15 @@
     				}
     			]
     		}
-    	}
+        },
+        "selfIps": {
+            "mySelfIp": {
+                "address": "1.2.3.4",
+                "vlan": "myVlan",
+                "allowService": "all",
+                "trafficGroup": "myTrafficGroup",
+                "floating": true
+            }
+        }
     }
 }
