@@ -20,15 +20,13 @@ const logger = require('f5-logger').getInstance(); // eslint-disable-line import
 
 class NetworkHandler {
     constructor(declaration, bigIp) {
-        this.declaration = declaration;
+        this.declaration = declaration || {};
         this.bigIp = bigIp;
     }
 
     process() {
+        logger.info('Proessing network declaration');
         return createVlans.call(this)
-            .then(() => {
-
-            })
             .catch((err) => {
                 logger.severe(`Error processing network declaration: ${err.message}`);
                 return Promise.reject(err);
@@ -37,18 +35,37 @@ class NetworkHandler {
 }
 
 function createVlans() {
+    logger.fine('creating vlans');
     return new Promise((resolve, reject) => {
-        if (this.declaration.vlans) {
-            const vlans = Object.keys(this.declaration.vlans);
-            vlans.forEach((vlan) => {
-                vlanBody = {
-                    name: vlan.name,
-                    interfaces: [
+        if (!this.declaration.vlans) {
+            resolve();
+        } else {
+            const promises = [];
+            const vlanNames = Object.keys(this.declaration.vlans);
+            logger.finest(`got ${vlanNames.length} vlan(s)`);
+            vlanNames.forEach((vlanName) => {
+                const vlan = this.declaration.vlans[vlanName];
+                const interfaces = [];
+                vlan.interfaces.forEach((anInterface) => {
+                    // Use the tagged property if it is there, otherwise, set tagged if the vlan has a tag
+                    let tagged;
+                    if (typeof anInterface.tagged === 'undefined') {
+                        tagged = !!vlan.tag;
+                    } else {
+                        tagged = anInterface.tagged;
+                    }
+
+                    interfaces.push(
                         {
-                            name: vlan.nic,
-                            tagged: !!vlan.tag
+                            tagged,
+                            name: anInterface.name
                         }
-                    ]
+                    );
+                });
+
+                const vlanBody = {
+                    interfaces,
+                    name: vlanName
                 };
 
                 if (vlan.mtu) {
@@ -60,20 +77,19 @@ function createVlans() {
                 }
 
                 promises.push(
-                    {
-                        promise: bigIp.create,
-                        arguments: [
-                            '/tm/net/vlan',
-                            vlanBody
-                        ],
-                        // eslint-disable-next-line max-len
-                        message: `Creating vlan ${vlan.name} on interface ${vlan.nic} ${(vlan.mtu ? ` mtu ${vlan.mtu}` : '')} ${(vlan.tag ? ` with tag ${vlan.tag}` : ' untagged')}`
-                    }
+                    this.bigIp.create('/tm/net/vlan', vlanBody)
                 );
             });
-        }
 
-        resolve();
+            Promise.all(promises)
+                .then(() => {
+                    resolve();
+                })
+                .catch((err) => {
+                    logger.severe(`Error creating vlans: ${err.message}`);
+                    reject(err);
+                });
+        }
     });
 }
 

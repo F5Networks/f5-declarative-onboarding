@@ -20,12 +20,14 @@ const logger = require('f5-logger').getInstance(); // eslint-disable-line import
 
 class SystemHandler {
     constructor(declaration, bigIp) {
-        this.declaration = declaration;
+        this.declaration = declaration || {};
         this.bigIp = bigIp;
     }
 
     process() {
         let promise;
+
+        logger.info('Processing system declaration');
 
         if (this.declaration.ntp) {
             promise = this.bigIp.modify(

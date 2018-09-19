@@ -36,5 +36,18 @@
                 "shell": "tmsh"
             }
         }
+    },
+    "network": {
+        "vlans": {
+    		"newvlan": {
+    			"tag": "1234",
+    			"interfaces": [
+    				{
+                        "name": "1.0",
+                        "tagged": true
+    				}
+    			]
+    		}
+    	}
     }
 }

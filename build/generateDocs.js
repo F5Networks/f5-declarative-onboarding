@@ -45,7 +45,7 @@ const HEADER = `
 const FOOTER = `
 </body>
 </html>
-`
+`;
 
 fs.writeFileSync(INDEX, HEADER);
 

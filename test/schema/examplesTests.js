@@ -30,9 +30,11 @@ const validate = ajv
     .addSchema(systemSchema)
     .compile(baseSchema);
 
-it('should validate the basic example', () => {
-    const data = JSON.parse(fs.readFileSync(`${__dirname}/../../examples/basic.json`).toString());
-    assert.ok(validate(data), getErrorString());
+describe('examples tests', () => {
+    it('should validate the basic example', () => {
+        const data = JSON.parse(fs.readFileSync(`${__dirname}/../../examples/basic.json`).toString());
+        assert.ok(validate(data), getErrorString());
+    });
 });
 
 function getErrorString() {
