@@ -7,21 +7,21 @@
     "required": ["schemaVersion"],
     "properties": {
         "schemaVersion": {
-            "description": "Version of Declarative Onboarding schema this declaration uses",
+            "description": "Version of Declarative Onboarding schema this declaration uses.",
             "type": "string",
             "$comment": "IMPORTANT: In enum array, please put current schema version first, oldest-supported version last.  Keep enum array sorted most-recent-first.",
             "enum": ["0.1.0"]
         },
         "label": {
-            "description": "Arbitrary label",
+            "description": "Arbitrary label.",
             "type": "string"
         },
         "system": {
-            "description": "System level configuration",
+            "description": "System level configuration.",
             "$ref": "system.schema.json"
         },
         "network": {
-            "description": "Network level configuration",
+            "description": "Network level configuration.",
             "$ref": "network.schema.json"
         },
         "status": {
@@ -31,7 +31,7 @@
             "required": ["code"],
             "properties": {
                 "code": {
-                    "description": "Status code",
+                    "description": "Status code.",
                     "type": "string",
                     "readOnly": true,
                     "enum": ["OK", "ERROR"]

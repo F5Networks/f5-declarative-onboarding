@@ -40,7 +40,8 @@
     "network": {
         "vlans": {
     		"newvlan": {
-    			"tag": "1234",
+                "tag": 1234,
+                "mtu": 1500,
     			"interfaces": [
     				{
                         "name": "1.0",

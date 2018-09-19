@@ -49,8 +49,8 @@ describe('network schema tests', () => {
                                     "tagged": false
                                 }
                             ],
-                            "mtu": "1500",
-                            "tag": "1234"
+                            "mtu": 1500,
+                            "tag": 1234
                         }
                     }
                 };
@@ -63,8 +63,8 @@ describe('network schema tests', () => {
                 const data = {
                     "vlans": {
                         "myVlan": {
-                            "mtu": "1500",
-                            "tag": "1234"
+                            "mtu": 1500,
+                            "tag": 1234
                         }
                     }
                 };
@@ -81,8 +81,8 @@ describe('network schema tests', () => {
                                     "tagged": false
                                 }
                             ],
-                            "mtu": "1500",
-                            "tag": "1234"
+                            "mtu": 1500,
+                            "tag": 1234
                         }
                     }
                 };
@@ -101,13 +101,32 @@ describe('network schema tests', () => {
                                     "foo": "bar"
                                 }
                             ],
-                            "mtu": "1500",
-                            "tag": "1234"
+                            "mtu": 1500,
+                            "tag": 1234
                         }
                     }
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "foo"'), -1);
+            });
+        });
+    });
+
+    describe('selfIps', () => {
+        describe('valid', () => {
+            it('should validate network data', () => {
+                const data = {
+                    "selfIps": {
+                        "mySelf": {
+                            "address": "1.2.3.4",
+                            "vlan": "myVlan",
+                            "allowService": "all",
+                            "trafficGroup": "myTrafficGroup",
+                            "floating": true
+                        }
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
             });
         });
     });

@@ -52,6 +52,7 @@ fs.writeFileSync(INDEX, HEADER);
 addJson('example', example);
 addJson('base schema', baseSchema);
 addJson('system schema', systemSchema);
+addJson('network schema', networkSchema);
 
 append(FOOTER);
 

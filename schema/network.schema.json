@@ -6,23 +6,23 @@
     "type": "object",
     "properties": {
         "vlans": {
-            "description": "Properties for VLANs",
+            "description": "Properties for VLANs.",
             "type": "object",
             "patternProperties": {
                 "^[a-zA-Z]+.*": {
-                    "description": "Properties for one VLAN",
+                    "description": "Properties for one VLAN.",
                     "type": "object",
                     "required": ["interfaces"],
                     "properties": {
                         "interfaces": {
-                            "description": "Interfaces for the VLAN",
+                            "description": "Interfaces for the VLAN.",
                             "type": "array",
                             "items": {
                                 "type": "object",
                                 "required": ["name"],
                                 "properties": {
                                     "name": {
-                                        "description": "Name of the interface",
+                                        "description": "Name of the interface.",
                                         "type": "string"
                                     },
                                     "tagged": {
@@ -34,18 +34,60 @@
                             }
                         },
                         "mtu": {
-                            "description": "MTU for the VLAN",
-                            "type": "string"
+                            "description": "MTU for the VLAN.",
+                            "type": "integer",
+                            "minimum": 576,
+                            "maximum": 9198
                         },
                         "tag": {
-                            "description": "Tag for the VLAN",
-                            "type": "string"
+                            "description": "Tag for the VLAN.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 4094
                         }
                     },
                     "additionalProperties": false
                 }
             },
             "additionalProperties": false
+        },
+        "selfIps": {
+            "description": "Properties for self IPs.",
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z]+.*": {
+                    "description": "Properties for one self IP.",
+                    "type": "object",
+                    "required": ["address", "vlan"],
+                    "properties": {
+                        "address": {
+                            "description": "IP address.",
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "ipv4" },
+                                { "format": "ipv6" }
+                            ]
+                        },
+                        "vlan": {
+                            "description": "Vlan for the self IP.",
+                            "type": "string"
+                        },
+                        "allowService": {
+                            "description": "Which services (ports) to allow on the self IP.",
+                            "type": "string"
+                        },
+                        "trafficGroup": {
+                            "description": "Traffic group for the self IP. Will be created if it does not exist.",
+                            "type": "string"
+                        },
+                        "floating": {
+                            "description": "Whether or not the self IP should be a floating IP.",
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                }
+            }
         }
     },
     "additionalProperties": false
