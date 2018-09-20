@@ -77,7 +77,7 @@ function createVlans() {
                 }
 
                 promises.push(
-                    this.bigIp.create('/tm/net/vlan', vlanBody)
+                    this.bigIp.createOrModify('/tm/net/vlan', vlanBody)
                 );
             });
 

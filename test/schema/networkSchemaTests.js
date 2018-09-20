@@ -129,6 +129,48 @@ describe('network schema tests', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
         });
+
+        describe('invalid', () => {
+            it('should invalidate self ips with no address', () => {
+                const data = {
+                    "selfIps": {
+                        "mySelf": {
+                            "vlan": "myVlan"
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing self ip address should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "address"'), -1);
+            });
+
+            it('should invalidate self ips with no vlan', () => {
+                const data = {
+                    "selfIps": {
+                        "mySelf": {
+                            "address": "1.2.3.4"
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "vlan"'), -1);
+            });
+
+            describe('allowService', () => {
+                it('should invalidate single words that are not all, default, or none', () => {
+                    const data = {
+                        "selfIps": {
+                            "mySelf": {
+                                "address": "1.2.3.4",
+                                "vlan": "myVlan",
+                                "allowService": "foo"
+                            }
+                        }
+                    };
+                    assert.strictEqual(validate(data), false, 'allow service foo should not be valid');
+                    assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                });
+            });
+        });
     });
 });
 

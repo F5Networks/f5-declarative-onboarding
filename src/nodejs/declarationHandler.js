@@ -17,6 +17,7 @@
 'use strict';
 
 const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
@@ -32,7 +33,23 @@ class DeclarationHandler {
 
     process() {
         const bigIp = new BigIp({ logger });
-        return bigIp.init('localhost', 'admin', 'admin', { product: 'BIG-IP', port: '8443' })
+        return cloudUtil.runTmshCommand('list sys httpd ssl-port')
+            .then((response) => {
+                const regex = /(\s+ssl-port\s+)(\S+)\s+/;
+                const port = regex.exec(response)[2];
+                return bigIp.init(
+                    'localhost',
+                    'admin',
+                    'admin',
+                    {
+                        port,
+                        product: 'BIG-IP'
+                    }
+                );
+            })
+            .then(() => {
+                return bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
+            })
             .then(() => {
                 return new SystemHandler(this.declaration.system, bigIp).process();
             })
