@@ -26,7 +26,8 @@ class Response {
         return {
             result: {
                 code,
-                message
+                message,
+                class: 'Result'
             },
             declaration: {
                 body

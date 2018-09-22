@@ -1,57 +1,83 @@
 {
     "schemaVersion": "0.1.0",
-    "system": {
-        "dns": {
-            "nameServers": [
-                "1.2.3.4",
-                "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
-            ],
-            "search": [
-                "f5.com"
-            ]
-        },
-        "hostname": "bigip.example.com",
-        "license": {
-            "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ"
-        },
-        "ntp": {
-            "servers": [
-                "0.pool.ntp.org",
-                "1.pool.ntp.org"
-            ],
-            "timezone": "UTC"
-        },
-        "users": {
-            "root": {
-                "oldPassword": "this_is_the_current_root_password",
-                "newPassword": "this_is_the_new_root_password"
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "mySystem": {
+            "class": "System",
+            "hostname": "bigip.example.com",
+            "myLicense": {
+                "class": "License",
+                "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+            },
+            "myDns": {
+                "class": "DNS",
+                "nameServers": [
+                    "1.2.3.4",
+                    "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+                ],
+                "search": [
+                    "f5.com"
+                ]
+            },
+            "myNtp": {
+                "class": "NTP",
+                "servers": [
+                    "0.pool.ntp.org",
+                    "1.pool.ntp.org"
+                ],
+                "timezone": "UTC"
             },
             "admin": {
-                "password": "this_is_my_new_admin_password",
-                "shell": "bash"
+                "class": "User",
+                "password": "foo",
+                "shell": "bash",
+                "partitionAccess": {
+                    "Common": {
+                        "role": "admin"
+                    }
+                }
             },
-            "myNewUser": {
-                "password": "this_is_my_new_guest_user_password",
-                "role": "guest",
-                "shell": "tmsh"
+            "root": {
+                "class": "User",
+                "oldPassword": "foo",
+                "newPassword": "bar"
+            },
+            "anotherUser": {
+                "class": "User",
+                "password": "foobar",
+                "shell": "tmsh",
+                "partitionAccess": {
+                    "Common": {
+                        "role": "guest"
+                    }
+                }
             }
         }
     },
-    "network": {
-        "vlans": {
-    		"myVlan": {
+    "MyTenant": {
+        "class": "Tenant",
+        "myNetwork": {
+            "class": "Network",
+            "app1Vlan": {
+                "class": "Vlan",
                 "tag": 1234,
                 "mtu": 1500,
-    			"interfaces": [
-    				{
-                        "name": "1.0",
-                        "tagged": true
-    				}
-    			]
-    		}
-        },
-        "selfIps": {
+                "1.1": {
+                    "class": "Interface",
+                    "tagged": true
+                }
+            },
+            "app2Vlan": {
+                "class": "Vlan",
+                "tag": 3456,
+                "1.1": {
+                    "class": "Interface",
+                    "tagged": true
+                }
+            },
             "mySelfIp": {
+                "class": "SelfIp",
                 "address": "1.2.3.4",
                 "vlan": "myVlan",
                 "allowService": "all",

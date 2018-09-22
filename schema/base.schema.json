@@ -12,24 +12,40 @@
             "$comment": "IMPORTANT: In enum array, please put current schema version first, oldest-supported version last.  Keep enum array sorted most-recent-first.",
             "enum": ["0.1.0"]
         },
+        "class": {
+            "description": "Indicates this JSON document is a Device declaration",
+            "type": "string",
+            "const": "Device",
+            "default": "Device"
+        },
         "label": {
-            "description": "Arbitrary label.",
+            "description": "Optional friendly name for this declaration",
             "type": "string"
         },
-        "system": {
-            "description": "System level configuration.",
-            "$ref": "system.schema.json"
+        "Common": {
+            "description": "Special tenant Common holds objects other tenants can share",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Tenant",
+                    "default": "Tenant"
+                }
+            },
+            "anyOf": [
+                { "$ref": "system.schema.json" }
+            ]
         },
-        "network": {
-            "description": "Network level configuration.",
-            "$ref": "network.schema.json"
-        },
-        "status": {
+        "result": {
             "description": "Status of current request. This is set by the system.",
             "type": "object",
             "readOnly": true,
-            "required": ["code"],
+            "required": ["class", "code"],
             "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Result"
+                },
                 "code": {
                     "description": "Status code.",
                     "type": "string",
@@ -44,5 +60,20 @@
             }
         }
     },
-    "additionalProperties": false
+    "patternProperties": {
+        "^(?!Common).*$": {
+            "description": "Configuration of tenants besides Common",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Tenant",
+                    "default": "Tenant"
+                }
+            },
+            "anyOf": [
+                { "$ref": "network.schema.json" }
+            ]
+        }
+    }
 }
