@@ -20,7 +20,7 @@ const Ajv = require('ajv');
 
 const baseSchema = require('../schema/base.schema.json');
 const systemSchema = require('../schema/system.schema.json');
-const networkSchema = require('../schema/network.schema.json');
+// const networkSchema = require('../schema/network.schema.json');
 
 class Validator {
     constructor() {
@@ -33,8 +33,8 @@ class Validator {
 
         this.validate = ajv
             .addSchema(systemSchema)
-            .addSchema(networkSchema)
             .compile(baseSchema);
+//            .addSchema(networkSchema)
     }
 
     isValid(data) {

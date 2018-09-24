@@ -16,18 +16,19 @@ Declarative onboarding for BIG-IP
 %define IAPP_INSTALL_DIR /var/config/rest/iapps/%{name}
 
 %prep
-mkdir -p %{_builddir}/src
-mkdir -p %{_builddir}/node_modules
-cp -r %{main}/src %{_builddir}
-cp -r %{main}/node_modules %{_builddir}/src/nodejs
+cp %{main}/manifest.json %{_builddir}
+cp %{main}/package.json %{_builddir}
+cp -r %{main}/nodejs %{_builddir}
+cp -r %{main}/node_modules %{_builddir}/nodejs
 cp -r %{main}/schema %{_builddir}
 cp -r %{main}/examples %{_builddir}
-echo -n %{version}-%{release} > %{_builddir}/src/version
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
-cp -r %{_builddir}/src/* $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
+cp -r %{_builddir}/manifest.json $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
+cp -r %{_builddir}/package.json $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
+cp -r %{_builddir}/nodejs $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/schema $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/examples $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 
