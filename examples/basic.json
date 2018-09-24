@@ -8,6 +8,7 @@
             "hostname": "bigip.example.com",
             "myLicense": {
                 "class": "License",
+                "licenseType": "regKey",
                 "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
             },
             "myDns": {
@@ -28,25 +29,22 @@
                 ],
                 "timezone": "UTC"
             },
-            "admin": {
-                "class": "User",
-                "password": "foo",
-                "shell": "bash",
-                "partitionAccess": {
-                    "Common": {
-                        "role": "admin"
-                    }
-                }
-            },
             "root": {
                 "class": "User",
+                "userType": "root",
                 "oldPassword": "foo",
                 "newPassword": "bar"
             },
+            "admin": {
+                "class": "User",
+                "userType": "regular",
+                "password": "asdfjkl",
+                "shell": "bash"
+            },
             "anotherUser": {
                 "class": "User",
+                "userType": "regular",
                 "password": "foobar",
-                "shell": "tmsh",
                 "partitionAccess": {
                     "Common": {
                         "role": "guest"

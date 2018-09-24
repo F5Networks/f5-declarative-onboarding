@@ -6,7 +6,7 @@
     "type": "object",
     "properties": {
         "class": {
-            "description": "Indicates this JSON document contains system level configuration.",
+            "description": "Indicates thiat this property contains system level configuration.",
             "type": "string",
             "const": "System"
         },
@@ -16,75 +16,64 @@
             "format": "hostname"
         }
     },
-    "allOf": [
-        {
-            "if": { "properties": { "class": { "const": "License" } } },
-            "then": { "$ref": "#/definitions/License" }
-        },
-        {
-            "if": { "properties": { "class": { "const": "DNS" } } },
-            "then": { "$ref": "#/definitions/DNS" }
-        },
-        {
-            "if": { "properties": { "class": { "const": "NTP" } } },
-            "then": { "$ref": "#/definitions/NTP" }
-        },
-        {
-            "if": { "properties": { "class": { "const": "User" } } },
-            "then": { "$ref": "#/definitions/User" }
-        }
-    ],
+    "additionalProperties": {
+        "oneOf": [
+            { "$ref": "#/definitions/License" },
+            { "$ref": "#/definitions/DNS"},
+            { "$ref": "#/definitions/NTP"},
+            { "$ref": "#/definitions/User"}
+        ]
+    },
     "propertyNames": { "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$" },
     "definitions": {
         "License": {
             "description": "Licensing information",
             "type": "object",
-            "required": ["class"],
+            "required": ["class", "licenseType"],
             "properties": {
                 "class": {
-                    "description": "Indicates this JSON document contains licensing information.",
+                    "description": "Indicates thiat this property contains licensing information.",
                     "type": "string",
                     "const": "License"
+                },
+                "licenseType": {
+                    "description": "The type of license",
+                    "type": "string",
+                    "enum": ["regKey", "licensePool"]
                 }
             },
-            "additionalProperties": {
-                "oneOf": [
-                    {
-                        "description": "A registration key",
-                        "required": ["regKey"],
-                        "properties": {
-                            "regKey": {
-                                "description": "Registration key.",
-                                "type": "string",
-                                "pattern": "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7}$"
-                            },
-                            "addOnKeys": {
-                                "description": "Add on keys.",
-                                "type": "array",
-                                "items": {
-                                    "type": "string",
-                                    "pattern": "^[A-Z]{7}-[A-Z]{7}$",
-                                    "uniqueItems": true
-                                }
-                            },
-                            "overwrite": {
-                                "description": "Whether or not to overwrite the license if the device is already licensed.",
-                                "type": "boolean",
-                                "default": false
-                            }
+            "if": { "properties": { "licenseType": { "const": "regKey" } } },
+            "then": {
+                "properties": {
+                    "regKey": {
+                        "description": "Registration key.",
+                        "type": "string",
+                        "pattern": "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7}$"
+                    },
+                    "addOnKeys": {
+                        "description": "Add on keys.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^[A-Z]{7}-[A-Z]{7}$",
+                            "uniqueItems": true
                         }
                     },
-                    {
-                        "description": "BIG-IQ license pool",
-                        "type": "object",
-                        "required": ["licensePool"],
-                        "properties": {
-                            "licensePool": {
-                                "type": "object"
-                            }
-                        }
+                    "overwrite": {
+                        "description": "Whether or not to overwrite the license if the device is already licensed.",
+                        "type": "boolean",
+                        "default": false
                     }
-                ]
+                }
+            },
+            "else": {
+                "required": ["licensePoolName"],
+                "properties": {
+                    "licensePoolName": {
+                        "description": "The name of the BIG-IQ license pool from which to get a license",
+                        "type": "string"
+                    }
+                }
             }
         },
         "DNS": {
@@ -93,7 +82,7 @@
             "required": ["class"],
             "properties": {
                 "class": {
-                    "description": "Indicates this JSON document contains DNS configuration.",
+                    "description": "Indicates thiat this property contains DNS configuration.",
                     "type": "string",
                     "const": "DNS"
                 },
@@ -116,7 +105,8 @@
                         "format": "hostname"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NTP": {
             "description": "NTP configuration",
@@ -124,7 +114,7 @@
             "required": ["class"],
             "properties": {
                 "class": {
-                    "description": "Indicates this JSON document contains NTP configuration.",
+                    "description": "Indicates thiat this property contains NTP configuration.",
                     "type": "string",
                     "const": "NTP"
                 },
@@ -144,86 +134,83 @@
                     "description": "The timezone to set.",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "User": {
             "description": "User configuration",
             "type": "object",
-            "required": ["class"],
+            "required": ["class", "userType"],
             "properties": {
                 "class": {
-                    "description": "Indicates this JSON document contains user configuration.",
+                    "description": "Indicates thiat this property contains user configuration.",
                     "type": "string",
                     "const": "User"
+                },
+                "userType": {
+                    "description": "The type of user",
+                    "type": "string",
+                    "enum": ["root", "regular"]
                 }
             },
-            "additionalProperties": {
-                "oneOf": [
-                    {
-                        "description": "Configuration for root user",
-                        "type": "object",
-                        "required": ["newPassword", "oldPassword"],
-                        "properties": {
-                            "newPassword": {
-                                "description": "Password to set for the root user.",
-                                "type": "string"
-                            },
-                            "oldPassword": {
-                                "description": "Old password for the root user.",
-                                "type": "string"
-                            }
-                        }
+            "if": { "properties": { "userType": { "const": "root" } } },
+            "then": {
+                "required": ["oldPassword", "newPassword"],
+                "properties": {
+                    "newPassword": {
+                        "description": "Password to set for the root user.",
+                        "type": "string"
                     },
-                    {
-                        "description": "Configuration for non-root users.",
+                    "oldPassword": {
+                        "description": "Old password for the root user.",
+                        "type": "string"
+                    }
+                }
+            },
+            "else": {
+                "properties": {
+                    "password": {
+                        "description": "Password for the user.",
+                        "type": "string"
+                    },
+                    "partitionAccess": {
+                        "description": "Access control configuration",
                         "type": "object",
-                        "required": ["password", "role"],
-                        "properties": {
-                            "password": {
-                                "description": "Password for the user.",
-                                "type": "string"
-                            },
-                            "partitionAccess": {
-                                "description": "Access control configuration",
+                        "patternProperties": {
+                            "^[A-Za-z][0-9A-Za-z_]{0,47}$": {
                                 "type": "object",
-                                "patternProperties": {
-                                    ".+": {
-                                        "type": "object",
-                                        "required": ["role"],
-                                        "properties": {
-                                            "role": {
-                                                "type": "string"
-                                            }
+                                "required": ["role"],
+                                "properties": {
+                                    "role": {
+                                        "role": {
+                                            "description": "Role for the user.",
+                                            "type": "string",
+                                            "enum": [
+                                                "admin",
+                                                "auditor",
+                                                "guest",
+                                                "manager",
+                                                "operator",
+                                                "user-manager",
+                                                "application-editor",
+                                                "certificate-manager",
+                                                "irule-manager",
+                                                "no-access",
+                                                "resource-admin"
+                                            ]
                                         }
                                     }
                                 }
-                            },
-                            "role": {
-                                "description": "Role for the user.",
-                                "type": "string",
-                                "enum": [
-                                    "admin",
-                                    "auditor",
-                                    "guest",
-                                    "manager",
-                                    "operator",
-                                    "user-manager",
-                                    "application-editor",
-                                    "certificate-manager",
-                                    "irule-manager",
-                                    "no-access",
-                                    "resource-admin"
-                                ]
-                            },
-                            "shell": {
-                                "description": "Shell for the user.",
-                                "type": "string",
-                                "enum": ["bash", "tmsh"],
-                                "default": "tmsh"
                             }
                         }
+                    },
+                    "shell": {
+                        "description": "Shell for the user.",
+                        "type": "string",
+                        "enum": ["bash", "tmsh"],
+                        "default": "tmsh"
                     }
-                ]
+                }
             }
         }
     }

@@ -4,7 +4,7 @@
     "title": "F5 Declarative Onboarding base declaration",
     "description": "Top level schema for onboarding a BIG-IP.",
     "type": "object",
-    "required": ["schemaVersion"],
+    "required": ["schemaVersion", "class"],
     "properties": {
         "schemaVersion": {
             "description": "Version of Declarative Onboarding schema this declaration uses.",
@@ -15,8 +15,7 @@
         "class": {
             "description": "Indicates this JSON document is a Device declaration",
             "type": "string",
-            "const": "Device",
-            "default": "Device"
+            "const": "Device"
         },
         "label": {
             "description": "Optional friendly name for this declaration",
@@ -32,10 +31,12 @@
                     "default": "Tenant"
                 }
             },
+            "propertyNames": {
+                "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+            },
             "additionalProperties": {
                 "$ref": "system.schema.json"
-            },
-            "propertyNames": { "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$" }
+            }
         },
         "result": {
             "description": "Status of current request. This is set by the system.",
