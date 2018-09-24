@@ -54,36 +54,5 @@
                 }
             }
         }
-    },
-    "MyTenant": {
-        "class": "Tenant",
-        "myNetwork": {
-            "class": "Network",
-            "app1Vlan": {
-                "class": "Vlan",
-                "tag": 1234,
-                "mtu": 1500,
-                "1.1": {
-                    "class": "Interface",
-                    "tagged": true
-                }
-            },
-            "app2Vlan": {
-                "class": "Vlan",
-                "tag": 3456,
-                "1.1": {
-                    "class": "Interface",
-                    "tagged": true
-                }
-            },
-            "mySelfIp": {
-                "class": "SelfIp",
-                "address": "1.2.3.4",
-                "vlan": "myVlan",
-                "allowService": "all",
-                "trafficGroup": "myTrafficGroup",
-                "floating": true
-            }
-        }
     }
 }

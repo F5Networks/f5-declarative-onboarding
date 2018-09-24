@@ -4,37 +4,37 @@
     "title": "F5 Declarative Onboarding system declaration",
     "description": "System properties for onboarding a BIG-IP.",
     "type": "object",
-    "patternProperties": {
-        "^(?!(hostname|class)).*$": {
-            "description": "System level objects",
-            "type": "object",
-            "required": ["class"],
-            "properties": {
-                "class": {
-                    "description": "Indicates this JSON document contains system level configuration.",
-                    "type": "string",
-                    "const": "System"
-                },
-                "hostname": {
-                    "description": "Hostname to set for device.",
-                    "type": "string",
-                    "format": "hostname"
-                }
-            },
-            "patternProperties": {
-                "^(?!(hostname|class)).*$": {
-                    "description": "System level proerties aside from hostname.",
-                    "type": "object",
-                    "oneOf": [
-                        { "$ref": "#/definitions/License" },
-                        { "$ref": "#/definitions/DNS" },
-                        { "$ref": "#/definitions/NTP" },
-                        { "$ref": "#/definitions/User" }
-                    ]
-                }
-            }
+    "properties": {
+        "class": {
+            "description": "Indicates this JSON document contains system level configuration.",
+            "type": "string",
+            "const": "System"
+        },
+        "hostname": {
+            "description": "Hostname to set for device.",
+            "type": "string",
+            "format": "hostname"
         }
     },
+    "allOf": [
+        {
+            "if": { "properties": { "class": { "const": "License" } } },
+            "then": { "$ref": "#/definitions/License" }
+        },
+        {
+            "if": { "properties": { "class": { "const": "DNS" } } },
+            "then": { "$ref": "#/definitions/DNS" }
+        },
+        {
+            "if": { "properties": { "class": { "const": "NTP" } } },
+            "then": { "$ref": "#/definitions/NTP" }
+        },
+        {
+            "if": { "properties": { "class": { "const": "User" } } },
+            "then": { "$ref": "#/definitions/User" }
+        }
+    ],
+    "propertyNames": { "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$" },
     "definitions": {
         "License": {
             "description": "Licensing information",

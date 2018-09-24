@@ -32,9 +32,10 @@
                     "default": "Tenant"
                 }
             },
-            "anyOf": [
-                { "$ref": "system.schema.json" }
-            ]
+            "additionalProperties": {
+                "$ref": "system.schema.json"
+            },
+            "propertyNames": { "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$" }
         },
         "result": {
             "description": "Status of current request. This is set by the system.",
@@ -58,22 +59,6 @@
                     "readOnly": true
                 }
             }
-        }
-    },
-    "patternProperties": {
-        "^(?!Common).*$": {
-            "description": "Configuration of tenants besides Common",
-            "type": "object",
-            "properties": {
-                "class": {
-                    "type": "string",
-                    "const": "Tenant",
-                    "default": "Tenant"
-                }
-            },
-            "anyOf": [
-                { "$ref": "network.schema.json" }
-            ]
         }
     }
 }
