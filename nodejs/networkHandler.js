@@ -16,7 +16,9 @@
 
 'use strict';
 
-const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
+const Logger = require('./logger');
+
+const logger = new Logger(module);
 
 class NetworkHandler {
     constructor(declaration, bigIp) {

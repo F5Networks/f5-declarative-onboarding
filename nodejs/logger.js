@@ -16,6 +16,8 @@
 
 'use strict';
 
+const path = require('path');
+
 let logger;
 try {
     /* eslint-disable global-require */
@@ -27,6 +29,7 @@ try {
         verbose() {},
         debug() {},
         warning() {},
+        info() {},
         error() {},
         finest() {},
         finer() {},
@@ -38,7 +41,8 @@ try {
 
 class Logger {
     constructor(module) {
-        this.tag = module.name;
+        this.tag = 'f5-decon';
+        this.filename = path.basename(module.filename);
     }
 
     silly(message) {
@@ -51,6 +55,10 @@ class Logger {
 
     debug(message) {
         log.call(this, 'fine', message);
+    }
+
+    info(message) {
+        log.call(this, 'info', message);
     }
 
     warning(message) {
@@ -83,7 +91,7 @@ class Logger {
 }
 
 function log(level, message) {
-    logger[level](`[${this.tag}] ${message}`);
+    logger[level](`[${this.tag}: ${this.filename}] ${message}`);
 }
 
 module.exports = Logger;

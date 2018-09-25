@@ -16,7 +16,9 @@
 
 'use strict';
 
-const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
+const Logger = require('./logger');
+
+const logger = new Logger(module);
 
 class SystemHandler {
     constructor(declaration, bigIp) {
@@ -29,12 +31,14 @@ class SystemHandler {
 
         logger.info('Processing system declaration');
 
-        if (this.declaration.ntp) {
+        if (this.declaration.NTP) {
+            const ntpContainer = Object.keys(this.declaration.NTP)[0];
+            const ntp = this.declaration.NTP[ntpContainer];
             promise = this.bigIp.modify(
                 '/tm/sys/ntp',
                 {
-                    servers: this.declaration.ntp.servers,
-                    timezone: this.declaration.ntp.timezone
+                    servers: ntp.servers,
+                    timezone: ntp.timezone
                 }
             );
         } else {
@@ -43,12 +47,14 @@ class SystemHandler {
 
         return promise
             .then(() => {
-                if (this.declaration.dns) {
+                if (this.declaration.DNS) {
+                    const dnsContainer = Object.keys(this.declaration.DNS)[0];
+                    const dns = this.declaration.DNS[dnsContainer];
                     return this.bigIp.modify(
                         '/tm/sys/dns',
                         {
-                            'name-servers': this.declaration.dns.nameServers,
-                            search: this.declaration.dns.search
+                            'name-servers': dns.nameServers,
+                            search: dns.search
                         }
                     );
                 }
@@ -61,23 +67,27 @@ class SystemHandler {
                 return Promise.resolve();
             })
             .then(() => {
-                if (this.declaration.users) {
-                    const users = Object.keys(this.declaration.users);
+                if (this.declaration.User) {
+                    const users = Object.keys(this.declaration.User);
                     const promises = [];
-                    users.forEach((user) => {
-                        if (user === 'root') {
+                    users.forEach((username) => {
+                        const user = this.declaration.User[username];
+                        if (user.userType === 'root' && username === 'root') {
                             promises.push(this.bigIp.onboard.password(
                                 'root',
-                                this.declaration.users.root.newPassword,
-                                this.declaration.users.root.oldPassword
+                                user.newPassword,
+                                user.oldPassword
+                            ));
+                        } else if (user.userType === 'regular') {
+                            promises.push(this.bigIp.onboard.updateUser(
+                                username,
+                                user.password,
+                                user.role,
+                                user.shell
                             ));
                         } else {
-                            promises.push(this.bigIp.onboard.updateUser(
-                                user,
-                                this.declaration.users[user].password,
-                                this.declaration.users[user].role,
-                                this.declaration.users[user].shell
-                            ));
+                            // eslint-disable-next-line max-len
+                            logger.warning(`${username} has userType root. Only the root user can have userType root.`);
                         }
                     });
 
@@ -86,13 +96,15 @@ class SystemHandler {
                 return Promise.resolve();
             })
             .then(() => {
-                if (this.declaration.license) {
-                    if (this.declaration.license.regKey || this.declaration.license.addOnKeys) {
+                if (this.declaration.License) {
+                    const licenseContainer = Object.keys(this.declaration.License)[0];
+                    const license = this.declaration[licenseContainer];
+                    if (license.regKey || license.addOnKeys) {
                         return this.bigIp.onboard.license(
                             {
-                                registrationKey: this.declaration.license.regKey,
-                                addOnKeys: this.declaration.license.addOnKeys,
-                                overwrite: this.declaration.license.overwrite
+                                registrationKey: license.regKey,
+                                addOnKeys: license.addOnKeys,
+                                overwrite: license.overwrite
                             }
                         );
                     }

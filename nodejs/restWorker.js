@@ -17,10 +17,12 @@
 'use strict';
 
 const fs = require('fs');
-const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
+const Logger = require('./logger');
 const Validator = require('./validator');
 const DeclarationHandler = require('./declarationHandler');
 const response = require('./response');
+
+const logger = new Logger(module);
 
 const STATUS_OK = 'OK';
 const STATUS_ERROR = 'ERROR';
