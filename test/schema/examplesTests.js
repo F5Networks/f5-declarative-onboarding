@@ -21,9 +21,9 @@ const assert = require('assert');
 const Ajv = require('ajv');
 
 const ajv = new Ajv({ allErrors: true });
-const baseSchema = JSON.parse(fs.readFileSync(`${__dirname}/../../schema/base.schema.json`).toString());
-const networkSchema = JSON.parse(fs.readFileSync(`${__dirname}/../../schema/network.schema.json`).toString());
-const systemSchema = JSON.parse(fs.readFileSync(`${__dirname}/../../schema/system.schema.json`).toString());
+const baseSchema = require('../../schema/base.schema.json');
+const networkSchema = require('../../schema/network.schema.json');
+const systemSchema = require('../../schema/system.schema.json');
 
 const validate = ajv
     .addSchema(networkSchema)
