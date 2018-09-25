@@ -76,13 +76,44 @@ it('should transform declaration', () => {
                     }
                 }
             }
+        },
+        "Tenant1": {
+            "class": "Tenant",
+            "myNetwork": {
+                "class": "Network",
+                "app1Vlan": {
+                    "class": "Vlan",
+                    "tag": 1234,
+                    "mtu": 1500,
+                    "1.1": {
+                        "class": "Interface",
+                        "tagged": true
+                    }
+                },
+                "app2Vlan": {
+                    "class": "Vlan",
+                    "tag": 3456,
+                    "1.1": {
+                        "class": "Interface",
+                        "tagged": true
+                    }
+                }
+            }
         }
     };
 
     const declarationParser = new DeclarationParser(declaration);
     const parsed = declarationParser.parse();
+
+    // system
     assert.strictEqual(parsed.System.hostname, declaration.Common.mySystem.hostname);
     assert.strictEqual(parsed.System.License.myLicense.regKey, declaration.Common.mySystem.myLicense.regKey);
     assert.strictEqual(parsed.System.License.myLicense.tenant, 'Common');
     assert.strictEqual(parsed.System.NTP.myNtp.servers[0], declaration.Common.mySystem.myNtp.servers[0]);
+
+    // network
+    assert.strictEqual(parsed.Network.Vlan.app1Vlan.tag, declaration.Tenant1.myNetwork.app1Vlan.tag);
+    assert.strictEqual(parsed.Network.Vlan.app1Vlan.tenant, 'Tenant1');
+    assert.strictEqual(parsed.Network.Vlan.app2Vlan.tag, declaration.Tenant1.myNetwork.app2Vlan.tag);
+    assert.strictEqual(parsed.Network.Vlan.app2Vlan.tenant, 'Tenant1');
 });
