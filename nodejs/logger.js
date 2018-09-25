@@ -16,7 +16,25 @@
 
 'use strict';
 
-const logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
+let logger;
+try {
+    /* eslint-disable global-require */
+    logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
+} catch (err) {
+    // f5-logger is only in place on the BIG-IPs, not on local environments, so mock it here
+    logger = {
+        silly() {},
+        verbose() {},
+        debug() {},
+        warning() {},
+        error() {},
+        finest() {},
+        finer() {},
+        fine() {},
+        warn() {},
+        severe() {}
+    };
+}
 
 class Logger {
     constructor(module) {
