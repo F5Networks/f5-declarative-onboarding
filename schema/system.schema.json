@@ -178,6 +178,7 @@
                         "type": "object",
                         "patternProperties": {
                             "^[A-Za-z][0-9A-Za-z_]{0,47}$": {
+                                "description": "The name of the partition.",
                                 "type": "object",
                                 "required": ["role"],
                                 "properties": {

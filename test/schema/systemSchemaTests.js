@@ -202,94 +202,114 @@ describe('system schema tests', () => {
         });
     });
 
-    // describe('ntp', () => {
-    //     describe('valid', () => {
-    //         it('should validate ntp data', () => {
-    //             const data = {
-    //                 "ntp": {
-    //                     "servers": [
-    //                         "1.2.3.4",
-    //                         "FE80:0000:0000:0000:0202:B3FF:FE1E:8329",
-    //                         "0.pool.ntp.org"
-    //                     ],
-    //                     "timezone": "UTC"
-    //                 }
-    //             };
-    //             assert.ok(validate(data), getErrorString(validate));
-    //         });
-    //     });
+    describe('ntp', () => {
+        describe('valid', () => {
+            it('should validate ntp data', () => {
+                const data = {
+                    "class": "System",
+                    "myNtp": {
+                        "class": "NTP",
+                        "servers": [
+                            "1.2.3.4",
+                            "FE80:0000:0000:0000:0202:B3FF:FE1E:8329",
+                            "0.pool.ntp.org"
+                        ],
+                        "timezone": "UTC"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
 
-    //     describe('invalid', () => {
-    //         it('should invalidate ntp servers that are not ipv4, ipv6, or hostname', () => {
-    //             const data = {
-    //                 "ntp": {
-    //                     "servers": ["foo@bar"]
-    //                 }
-    //             };
-    //             assert.strictEqual(validate(data), false, 'non ip address should not be valid');
-    //             assert.notStrictEqual(getErrorString().indexOf('"format": "ipv4"'), -1);
-    //         });
+        describe('invalid', () => {
+            it('should invalidate ntp servers that are not ipv4, ipv6, or hostname', () => {
+                const data = {
+                    "class": "System",
+                    "myNtp": {
+                        "class": "NTP",
+                        "servers": ["foo@bar"]
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'non ip address should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"format": "ipv4"'), -1);
+            });
 
-    //         it('should invalidate additional properties', () => {
-    //             const data = {
-    //                 "ntp": {
-    //                     "foo": "bar"
-    //                 }
-    //             };
-    //             assert.strictEqual(validate(data), false, 'additional properties should not be valid');
-    //             assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
-    //         });
-    //     });
-    // });
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "class": "System",
+                    "myNtp": {
+                        "class": "NTP",
+                        "foo": "bar"
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+        });
+    });
 
-    // describe('users', () => {
-    //     describe('valid', () => {
-    //         it('should validate password data for root and non-root users', () => {
-    //             const data = {
-    //                 "users": {
-    //                     "newUser": {
-    //                         "password": "this_is_my_new_admin_password",
-    //                         "shell": "bash"
-    //                     },
-    //                     "root": {
-    //                         "oldPassword": "this_is_the_current_password",
-    //                         "newPassword": "this_is_my_new_root_password"
-    //                     }
-    //                 }
-    //             };
-    //             assert.ok(validate(data), getErrorString(validate));
-    //         });
-    //     });
+    describe('users', () => {
+        describe('valid', () => {
+            it('should validate password data for root and non-root users', () => {
+                const data = {
+                    "class": "System",
+                    "newUser": {
+                        "class": "User",
+                        "userType": "regular",
+                        "password": "this_is_my_new_admin_password",
+                        "shell": "bash",
+                        "partitionAccess": {
+                            "Common": {
+                                "role": "guest"
+                            }
+                        }
+                    },
+                    "root": {
+                        "class": "User",
+                        "userType": "root",
+                        "oldPassword": "this_is_the_current_password",
+                        "newPassword": "this_is_my_new_root_password"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
 
-    //     describe('invalid', () => {
-    //         it('should invalidate bad non-root password data', () => {
-    //             const data = {
-    //                 "users": {
-    //                     "newUser": {
-    //                         "oldPassword": "this_is_the_current_password",
-    //                         "newPassword": "this_is_my_new_root_password"
-    //                     }
-    //                 }
-    //             };
-    //             assert.strictEqual(validate(data), false, 'object password for admin should not be valid');
-    //             assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "oldPassword"'), -1);
-    //         });
+        describe('invalid', () => {
+            it('should invalidate bad root password data', () => {
+                const data = {
+                    "class": "System",
+                    "newUser": {
+                        "class": "User",
+                        "userType": "root",
+                        "password": "this_is_my_new_admin_password",
+                        "shell": "bash"
+                    },
+                };
+                assert.strictEqual(validate(data), false, 'password property for root should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "password"'), -1);
+            });
 
-    //         it('should invalidate bad root password data', () => {
-    //             const data = {
-    //                 "users": {
-    //                     "root": {
-    //                         "oldPasswordx": "this_is_the_current_password",
-    //                         "newPassword": "this_is_my_new_root_password"
-    //                     }
-    //                 }
-    //             };
-    //             assert.strictEqual(validate(data), false, 'object password for admin should not be valid');
-    //             assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "oldPassword"'), -1);
-    //             assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "oldPasswordx"'), -1);
-    //         });
-    //     });
-    // });
+            it('should invalidate missing role in partition access', () => {
+                const data = {
+                    "class": "System",
+                    "newUser": {
+                        "class": "User",
+                        "userType": "regular",
+                        "password": "this_is_my_new_admin_password",
+                        "shell": "bash",
+                        "partitionAccess": {
+                            "Common": {
+                                "roles": "guest"
+                            }
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'partitionAccess missing role should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "role"'), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {
