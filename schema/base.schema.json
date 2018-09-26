@@ -5,6 +5,9 @@
     "description": "Top level schema for onboarding a BIG-IP.",
     "type": "object",
     "required": ["schemaVersion", "class"],
+    "propertyNames": {
+        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+    },
     "properties": {
         "schemaVersion": {
             "description": "Version of Declarative Onboarding schema this declaration uses.",
@@ -24,18 +27,21 @@
         "Common": {
             "description": "Special tenant Common holds objects other tenants can share",
             "type": "object",
-            "properties": {
-                "class": {
-                    "type": "string",
-                    "const": "Tenant",
-                    "default": "Tenant"
-                }
-            },
+            "required": ["class"],
             "propertyNames": {
                 "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
             },
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Tenant"
+                }
+            },
             "additionalProperties": {
-                "$ref": "system.schema.json"
+                "oneOf": [
+                    { "$ref": "system.schema.json" },
+                    { "$ref": "network.schema.json" }
+                ]
             }
         },
         "result": {
@@ -61,6 +67,23 @@
                     "readOnly": true
                 }
             }
+        }
+    },
+    "additionalProperties": {
+        "description": "Configuration for tenants besides Common",
+        "type": "object",
+        "required": ["class"],
+        "propertyNames": {
+            "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+        },
+        "properties": {
+            "class": {
+                "type": "string",
+                "const": "Tenant"
+            }
+        },
+        "additionalProperties": {
+            "$ref": "network.schema.json"
         }
     }
 }

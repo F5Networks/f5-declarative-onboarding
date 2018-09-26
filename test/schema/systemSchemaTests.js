@@ -28,10 +28,28 @@ const validate = ajv.compile(systemSchema);
 
 describe('system schema tests', () => {
     describe('toplevel', () => {
+        it('should invalidate non-System classes', () => {
+            const data = {
+                "class": "foo"
+            };
+            assert.strictEqual(validate(data), false, 'non-System classes should not be valid');
+            assert.notStrictEqual(getErrorString().indexOf('"allowedValue": "System"'), -1);
+        });
+
         it('should invalidate additional properties', () => {
             const data = {
                 "class": "System",
                 "foo": "bar"
+            };
+            assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+        });
+
+        it('should invalidate contained classes defined in the schema', () => {
+            const data = {
+                "class": "System",
+                "myFoo": {
+                    "class": "foo"
+                }
             };
             assert.strictEqual(validate(data), false, 'additional properties should not be valid');
         });

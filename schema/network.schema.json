@@ -5,5 +5,105 @@
     "description": "Network properties for onboarding a BIG-IP.",
     "type": "object",
     "properties": {
+        "class": {
+            "description": "Indicates thiat this property contains network configuration.",
+            "type": "string",
+            "const": "Network"
+        }
+    },
+    "additionalProperties": {
+        "oneOf": [
+            { "$ref": "#/definitions/VLAN" },
+            { "$ref": "#/definitions/SelfIp" }
+        ]
+    },
+    "propertyNames": {
+        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+    },
+    "definitions": {
+        "VLAN": {
+            "description": "VLAN information",
+            "type": "object",
+            "required": ["class", "interfaces"],
+            "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains VLAN configuration.",
+                    "type": "string",
+                    "const": "VLAN"
+                },
+                "mtu": {
+                    "description": "MTU for the VLAN.",
+                    "type": "integer",
+                    "minimum": 576,
+                    "maximum": 9198
+                },
+                "tag": {
+                    "description": "Tag for the VLAN.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4094
+                },
+                "interfaces": {
+                    "description": "Interfaces for the VLAN.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name"],
+                        "properties": {
+                            "name": {
+                                "description": "Name of the interface.",
+                                "type": "string"
+                            },
+                            "tagged": {
+                                "description": "Whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.",
+                                "type": "boolean"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "SelfIp": {
+            "description": "Self IP information.",
+            "type": "object",
+            "required": ["class", "address", "vlan"],
+            "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains Self IP configuration.",
+                    "type": "string",
+                    "const": "SelfIp"
+                },
+                "address": {
+                    "description": "IP address.",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6" }
+                    ]
+                },
+                "vlan": {
+                    "description": "Vlan for the self IP.",
+                    "type": "string"
+                },
+                "allowService": {
+                    "description": "Which services (ports) to allow on the self IP. Value should be 'all', 'none', 'default', or '<service:port>",
+                    "type": "string",
+                    "pattern": "^(all|none|default)|(\\w+:\\d+)$",
+                    "default": "default"
+                },
+                "trafficGroup": {
+                    "description": "Traffic group for the self IP. Will be created if it does not exist.",
+                    "type": "string"
+                },
+                "floating": {
+                    "description": "Whether or not the self IP should be a floating IP.",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        }
     }
 }

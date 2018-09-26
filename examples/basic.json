@@ -51,6 +51,37 @@
                     }
                 }
             }
+        },
+        "myNetwork": {
+            "class": "Network",
+            "myVlan": {
+                "class": "VLAN",
+                "tag": 1234,
+                "mtu": 1500,
+                "interfaces": [
+                    {
+                        "name": "1.1",
+                        "tagged": true
+                    }
+                ]
+            }
+        }
+    },
+    "MyTenant": {
+        "class": "Tenant",
+        "myOtherNetwork": {
+            "class": "Network",
+            "myOtherVlan": {
+                "class": "VLAN",
+                "tag": 2345,
+                "mtu": 1500,
+                "interfaces": [
+                    {
+                        "name": "1.0",
+                        "tagged": true
+                    }
+                ]
+            }
         }
     }
 }

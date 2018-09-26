@@ -24,7 +24,9 @@
             { "$ref": "#/definitions/User"}
         ]
     },
-    "propertyNames": { "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$" },
+    "propertyNames": {
+        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+    },
     "definitions": {
         "License": {
             "description": "Licensing information",
