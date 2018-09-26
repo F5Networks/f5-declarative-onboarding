@@ -26,7 +26,7 @@ const validate = ajv.compile(networkSchema);
 
 /* eslint-disable quotes, quote-props */
 
-describe('network schema tests', () => {
+describe('network.schema.json tests', () => {
     describe('toplevel', () => {
         it('should invalidate non-Network classes', () => {
             const data = {

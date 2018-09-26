@@ -9,40 +9,87 @@
 <pre>
 {
     "schemaVersion": "0.1.0",
-    "system": {
-        "dns": {
-            "nameServers": [
-                "1.2.3.4",
-                "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
-            ],
-            "search": [
-                "f5.com"
-            ]
-        },
-        "hostname": "bigip.example.com",
-        "license": {
-            "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ"
-        },
-        "ntp": {
-            "servers": [
-                "0.pool.ntp.org",
-                "1.pool.ntp.org"
-            ],
-            "timezone": "UTC"
-        },
-        "users": {
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "mySystem": {
+            "class": "System",
+            "hostname": "bigip.example.com",
+            "myLicense": {
+                "class": "License",
+                "licenseType": "regKey",
+                "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+            },
+            "myDns": {
+                "class": "DNS",
+                "nameServers": [
+                    "1.2.3.4",
+                    "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+                ],
+                "search": [
+                    "f5.com"
+                ]
+            },
+            "myNtp": {
+                "class": "NTP",
+                "servers": [
+                    "0.pool.ntp.org",
+                    "1.pool.ntp.org"
+                ],
+                "timezone": "UTC"
+            },
             "root": {
-                "oldPassword": "this_is_the_current_root_password",
-                "newPassword": "this_is_the_new_root_password"
+                "class": "User",
+                "userType": "root",
+                "oldPassword": "foo",
+                "newPassword": "bar"
             },
             "admin": {
-                "password": "this_is_my_new_admin_password",
+                "class": "User",
+                "userType": "regular",
+                "password": "asdfjkl",
                 "shell": "bash"
             },
-            "myNewUser": {
-                "password": "this_is_my_new_guest_user_password",
-                "role": "guest",
-                "shell": "tmsh"
+            "anotherUser": {
+                "class": "User",
+                "userType": "regular",
+                "password": "foobar",
+                "partitionAccess": {
+                    "Common": {
+                        "role": "guest"
+                    }
+                }
+            }
+        },
+        "myNetwork": {
+            "class": "Network",
+            "myVlan": {
+                "class": "VLAN",
+                "tag": 1234,
+                "mtu": 1500,
+                "interfaces": [
+                    {
+                        "name": "1.1",
+                        "tagged": true
+                    }
+                ]
+            }
+        }
+    },
+    "MyTenant": {
+        "class": "Tenant",
+        "myOtherNetwork": {
+            "class": "Network",
+            "myOtherVlan": {
+                "class": "VLAN",
+                "tag": 2345,
+                "mtu": 1500,
+                "interfaces": [
+                    {
+                        "name": "1.0",
+                        "tagged": true
+                    }
+                ]
             }
         }
     }
@@ -57,39 +104,72 @@
     "description": "Top level schema for onboarding a BIG-IP.",
     "type": "object",
     "required": [
-        "schemaVersion"
+        "schemaVersion",
+        "class"
     ],
+    "propertyNames": {
+        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+    },
     "properties": {
         "schemaVersion": {
-            "description": "Version of Declarative Onboarding schema this declaration uses",
+            "description": "Version of Declarative Onboarding schema this declaration uses.",
             "type": "string",
             "$comment": "IMPORTANT: In enum array, please put current schema version first, oldest-supported version last.  Keep enum array sorted most-recent-first.",
             "enum": [
                 "0.1.0"
             ]
         },
+        "class": {
+            "description": "Indicates this JSON document is a Device declaration",
+            "type": "string",
+            "const": "Device"
+        },
         "label": {
-            "description": "Arbitrary label",
+            "description": "Optional friendly name for this declaration",
             "type": "string"
         },
-        "system": {
-            "description": "System level configuration",
-            "$ref": "system.schema.json"
+        "Common": {
+            "description": "Special tenant Common holds objects other tenants can share",
+            "type": "object",
+            "required": [
+                "class"
+            ],
+            "propertyNames": {
+                "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+            },
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Tenant"
+                }
+            },
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "$ref": "system.schema.json"
+                    },
+                    {
+                        "$ref": "network.schema.json"
+                    }
+                ]
+            }
         },
-        "network": {
-            "description": "Network level configuration",
-            "$ref": "network.schema.json"
-        },
-        "status": {
+        "result": {
             "description": "Status of current request. This is set by the system.",
             "type": "object",
             "readOnly": true,
             "required": [
+                "class",
                 "code"
             ],
             "properties": {
+                "class": {
+                    "type": "string",
+                    "readOnly": true,
+                    "const": "Result"
+                },
                 "code": {
-                    "description": "Status code",
+                    "description": "Status code.",
                     "type": "string",
                     "readOnly": true,
                     "enum": [
@@ -105,7 +185,25 @@
             }
         }
     },
-    "additionalProperties": false
+    "additionalProperties": {
+        "description": "Configuration for tenants besides Common",
+        "type": "object",
+        "required": [
+            "class"
+        ],
+        "propertyNames": {
+            "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+        },
+        "properties": {
+            "class": {
+                "type": "string",
+                "const": "Tenant"
+            }
+        },
+        "additionalProperties": {
+            "$ref": "network.schema.json"
+        }
+    }
 }
 </pre>
 <H1>system schema</H1>
@@ -117,12 +215,115 @@
     "description": "System properties for onboarding a BIG-IP.",
     "type": "object",
     "properties": {
-        "dns": {
-            "description": "DNS settings",
+        "class": {
+            "description": "Indicates thiat this property contains system level configuration.",
+            "type": "string",
+            "const": "System"
+        },
+        "hostname": {
+            "description": "Hostname to set for device.",
+            "type": "string",
+            "format": "hostname"
+        }
+    },
+    "additionalProperties": {
+        "oneOf": [
+            {
+                "$ref": "#/definitions/License"
+            },
+            {
+                "$ref": "#/definitions/DNS"
+            },
+            {
+                "$ref": "#/definitions/NTP"
+            },
+            {
+                "$ref": "#/definitions/User"
+            }
+        ]
+    },
+    "propertyNames": {
+        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+    },
+    "definitions": {
+        "License": {
+            "description": "Licensing information",
             "type": "object",
+            "required": [
+                "class",
+                "licenseType"
+            ],
             "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains licensing information.",
+                    "type": "string",
+                    "const": "License"
+                },
+                "licenseType": {
+                    "description": "The type of license",
+                    "type": "string",
+                    "enum": [
+                        "regKey",
+                        "licensePool"
+                    ]
+                }
+            },
+            "if": {
+                "properties": {
+                    "licenseType": {
+                        "const": "regKey"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "regKey": {
+                        "description": "Registration key.",
+                        "type": "string",
+                        "pattern": "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7}$"
+                    },
+                    "addOnKeys": {
+                        "description": "Add on keys.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^[A-Z]{7}-[A-Z]{7}$",
+                            "uniqueItems": true
+                        }
+                    },
+                    "overwrite": {
+                        "description": "Whether or not to overwrite the license if the device is already licensed.",
+                        "type": "boolean",
+                        "default": false
+                    }
+                }
+            },
+            "else": {
+                "required": [
+                    "licensePoolName"
+                ],
+                "properties": {
+                    "licensePoolName": {
+                        "description": "The name of the BIG-IQ license pool from which to get a license",
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "DNS": {
+            "description": "DNS configuration",
+            "type": "object",
+            "required": [
+                "class"
+            ],
+            "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains DNS configuration.",
+                    "type": "string",
+                    "const": "DNS"
+                },
                 "nameServers": {
-                    "description": "IP addresses of name servers to use for DNS",
+                    "description": "IP addresses of name servers to use for DNS.",
                     "type": "array",
                     "items": {
                         "type": "string",
@@ -137,7 +338,7 @@
                     }
                 },
                 "search": {
-                    "description": "Search domain to use for DNS",
+                    "description": "Search domain to use for DNS.",
                     "type": "array",
                     "items": {
                         "type": "string",
@@ -147,59 +348,20 @@
             },
             "additionalProperties": false
         },
-        "hostname": {
-            "description": "Hostname to set for device",
-            "type": "string",
-            "format": "hostname"
-        },
-        "license": {
-            "description": "Licensing info",
+        "NTP": {
+            "description": "NTP configuration",
             "type": "object",
-            "oneOf": [
-                {
-                    "required": [
-                        "regKey"
-                    ],
-                    "properties": {
-                        "regKey": {
-                            "description": "Registration key",
-                            "type": "string",
-                            "pattern": "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7}$"
-                        },
-                        "addOnKeys": {
-                            "description": "Add on keys",
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "pattern": "^[A-Z]{7}-[A-Z]{7}$",
-                                "uniqueItems": true
-                            }
-                        },
-                        "overwrite": {
-                            "description": "Whether or not to overwrite the license if the device is already licensed",
-                            "type": "boolean",
-                            "default": false
-                        }
-                    }
-                },
-                {
-                    "required": [
-                        "bigIq"
-                    ],
-                    "properties": {
-                        "bigIq": {
-                            "type": "object"
-                        }
-                    }
-                }
-            ]
-        },
-        "ntp": {
-            "description": "NTP settings",
-            "type": "object",
+            "required": [
+                "class"
+            ],
             "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains NTP configuration.",
+                    "type": "string",
+                    "const": "NTP"
+                },
                 "servers": {
-                    "description": "IP addresses of servers to use for NTP",
+                    "description": "IP addresses of servers to use for NTP.",
                     "type": "array",
                     "items": {
                         "type": "string",
@@ -217,78 +379,239 @@
                     }
                 },
                 "timezone": {
-                    "description": "The timezone to set",
+                    "description": "The timezone to set.",
                     "type": "string"
                 }
             },
             "additionalProperties": false
         },
-        "users": {
-            "description": "Modify/create user configuration",
+        "User": {
+            "description": "User configuration",
             "type": "object",
+            "required": [
+                "class",
+                "userType"
+            ],
             "properties": {
-                "root": {
-                    "description": "New and old passwords for the root user",
-                    "type": "object",
-                    "required": [
-                        "newPassword",
-                        "oldPassword"
-                    ],
-                    "properties": {
-                        "newPassword": {
-                            "description": "Password to set for the root user",
-                            "type": "string"
-                        },
-                        "oldPassword": {
-                            "description": "Old password for the root user",
-                            "type": "string"
-                        }
-                    },
-                    "additionalProperties": false
+                "class": {
+                    "description": "Indicates thiat this property contains user configuration.",
+                    "type": "string",
+                    "const": "User"
+                },
+                "userType": {
+                    "description": "The type of user",
+                    "type": "string",
+                    "enum": [
+                        "root",
+                        "regular"
+                    ]
                 }
             },
-            "patternProperties": {
-                "^(?!root).*$": {
-                    "description": "Configuration for non-root users",
-                    "type": "object",
-                    "properties": {
-                        "password": {
-                            "description": "Password for the user",
-                            "type": "string"
-                        },
-                        "role": {
-                            "description": "Role for the user",
-                            "type": "string",
-                            "enum": [
-                                "admin",
-                                "auditor",
-                                "guest",
-                                "manager",
-                                "operator",
-                                "user-manager",
-                                "application-editor",
-                                "certificate-manager",
-                                "irule-manager",
-                                "no-access",
-                                "resource-admin"
-                            ]
-                        },
-                        "shell": {
-                            "description": "Shell for the user",
-                            "type": "string",
-                            "enum": [
-                                "bash",
-                                "tmsh"
-                            ],
-                            "default": "tmsh"
+            "if": {
+                "properties": {
+                    "userType": {
+                        "const": "root"
+                    }
+                }
+            },
+            "then": {
+                "required": [
+                    "oldPassword",
+                    "newPassword"
+                ],
+                "properties": {
+                    "newPassword": {
+                        "description": "Password to set for the root user.",
+                        "type": "string"
+                    },
+                    "oldPassword": {
+                        "description": "Old password for the root user.",
+                        "type": "string"
+                    }
+                }
+            },
+            "else": {
+                "properties": {
+                    "password": {
+                        "description": "Password for the user.",
+                        "type": "string"
+                    },
+                    "partitionAccess": {
+                        "description": "Access control configuration",
+                        "type": "object",
+                        "patternProperties": {
+                            "^[A-Za-z][0-9A-Za-z_]{0,47}$": {
+                                "description": "The name of the partition.",
+                                "type": "object",
+                                "required": [
+                                    "role"
+                                ],
+                                "properties": {
+                                    "role": {
+                                        "role": {
+                                            "description": "Role for the user.",
+                                            "type": "string",
+                                            "enum": [
+                                                "admin",
+                                                "auditor",
+                                                "guest",
+                                                "manager",
+                                                "operator",
+                                                "user-manager",
+                                                "application-editor",
+                                                "certificate-manager",
+                                                "irule-manager",
+                                                "no-access",
+                                                "resource-admin"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
-                    "additionalProperties": false
+                    "shell": {
+                        "description": "Shell for the user.",
+                        "type": "string",
+                        "enum": [
+                            "bash",
+                            "tmsh"
+                        ],
+                        "default": "tmsh"
+                    }
                 }
             }
         }
+    }
+}
+</pre>
+<H1>network schema</H1>
+<pre>
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/network.schema.json",
+    "title": "F5 Declarative Onboarding network declaration",
+    "description": "Network properties for onboarding a BIG-IP.",
+    "type": "object",
+    "properties": {
+        "class": {
+            "description": "Indicates thiat this property contains network configuration.",
+            "type": "string",
+            "const": "Network"
+        }
     },
-    "additionalProperties": false
+    "additionalProperties": {
+        "oneOf": [
+            {
+                "$ref": "#/definitions/VLAN"
+            },
+            {
+                "$ref": "#/definitions/SelfIp"
+            }
+        ]
+    },
+    "propertyNames": {
+        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+    },
+    "definitions": {
+        "VLAN": {
+            "description": "VLAN information",
+            "type": "object",
+            "required": [
+                "class",
+                "interfaces"
+            ],
+            "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains VLAN configuration.",
+                    "type": "string",
+                    "const": "VLAN"
+                },
+                "mtu": {
+                    "description": "MTU for the VLAN.",
+                    "type": "integer",
+                    "minimum": 576,
+                    "maximum": 9198
+                },
+                "tag": {
+                    "description": "Tag for the VLAN.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4094
+                },
+                "interfaces": {
+                    "description": "Interfaces for the VLAN.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "description": "Name of the interface.",
+                                "type": "string"
+                            },
+                            "tagged": {
+                                "description": "Whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.",
+                                "type": "boolean"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "SelfIp": {
+            "description": "Self IP information.",
+            "type": "object",
+            "required": [
+                "class",
+                "address",
+                "vlan"
+            ],
+            "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains Self IP configuration.",
+                    "type": "string",
+                    "const": "SelfIp"
+                },
+                "address": {
+                    "description": "IP address.",
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "format": "ipv4"
+                        },
+                        {
+                            "format": "ipv6"
+                        }
+                    ]
+                },
+                "vlan": {
+                    "description": "Vlan for the self IP.",
+                    "type": "string"
+                },
+                "allowService": {
+                    "description": "Which services (ports) to allow on the self IP. Value should be 'all', 'none', 'default', or '<service:port>",
+                    "type": "string",
+                    "pattern": "^(all|none|default)|(\\w+:\\d+)$",
+                    "default": "default"
+                },
+                "trafficGroup": {
+                    "description": "Traffic group for the self IP. Will be created if it does not exist.",
+                    "type": "string"
+                },
+                "floating": {
+                    "description": "Whether or not the self IP should be a floating IP.",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        }
+    }
 }
 </pre>
 

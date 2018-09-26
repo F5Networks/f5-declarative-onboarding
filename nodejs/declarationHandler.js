@@ -22,6 +22,7 @@ const DeclarationParser = require('./declarationParser');
 const Logger = require('./logger');
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
+const TenantHandler = require('./tenantHandler');
 
 const logger = new Logger(module);
 
@@ -33,7 +34,7 @@ class DeclarationHandler {
     process() {
         try {
             const declarationParser = new DeclarationParser(this.declaration);
-            const parsedDeclaration = declarationParser.parse();
+            const declarationInfo = declarationParser.parse();
 
             const bigIp = new BigIp({ logger });
             return cloudUtil.runTmshCommand('list sys httpd ssl-port')
@@ -54,11 +55,13 @@ class DeclarationHandler {
                     return bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
                 })
                 .then(() => {
-                    return new SystemHandler(parsedDeclaration.System, bigIp).process();
+                    return new TenantHandler(declarationInfo, bigIp).process();
                 })
                 .then(() => {
-                    // return new NetworkHandler(parsedDeclaration.Network, bigIp).process();
-                    return Promise.resolve();
+                    return new SystemHandler(declarationInfo, bigIp).process();
+                })
+                .then(() => {
+                    return new NetworkHandler(declarationInfo, bigIp).process();
                 })
                 .catch((err) => {
                     return Promise.reject(err);

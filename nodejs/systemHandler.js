@@ -21,15 +21,15 @@ const Logger = require('./logger');
 const logger = new Logger(module);
 
 class SystemHandler {
-    constructor(declaration, bigIp) {
-        this.declaration = declaration || {};
+    constructor(declarationInfo, bigIp) {
+        this.declaration = declarationInfo.parsedDeclaration.System || {};
         this.bigIp = bigIp;
     }
 
     process() {
         let promise;
 
-        logger.info('Processing system declaration');
+        logger.fine('Processing system declaration');
 
         if (this.declaration.NTP) {
             const ntpContainer = Object.keys(this.declaration.NTP)[0];
@@ -115,6 +115,10 @@ class SystemHandler {
                         );
                     }
                 }
+                return Promise.resolve();
+            })
+            .then(() => {
+                logger.fine('Done processing system declaration');
                 return Promise.resolve();
             })
             .catch((err) => {

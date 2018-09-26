@@ -26,7 +26,7 @@ const validate = ajv.compile(systemSchema);
 
 /* eslint-disable quotes, quote-props */
 
-describe('system schema tests', () => {
+describe('system.schema.json tests', () => {
     describe('toplevel', () => {
         it('should invalidate non-System classes', () => {
             const data = {

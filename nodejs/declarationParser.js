@@ -22,12 +22,113 @@ const logger = new Logger(module);
 
 const KEYS_TO_IGNORE = ['schemaVersion', 'class'];
 
+/**
+ * Parses a declaration into a more usable object.
+ *
+ *    + Splits out components (System, Network, etc)
+ *    + Spits out sub-components (DNS, License, etc)
+ *    + Assigns a tenant to each object
+ *
+ * For example, given the declaration
+ *
+ *     {
+ *         "schemaVersion": "0.1.0",
+ *         "class": "Device",
+ *         "Common": {
+ *             "class": "Tenant",
+ *             "mySystem": {
+ *                 "class": "System",
+ *                 "hostname": "bigip.example.com",
+ *                 "myLicense": {
+ *                     "class": "License",
+ *                     "licenseType": "regKey",
+ *                     "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+ *                 },
+ *                 "myDns": {
+ *                     "class": "DNS",
+ *                     "nameServers": [
+ *                         "1.2.3.4",
+ *                         "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+ *                     ],
+ *                     "search": [
+ *                         "f5.com"
+ *                     ]
+ *                 }
+ *             }
+ *         },
+ *         "Tenant1": {
+ *             "class": "Tenant",
+ *             "myNetwork": {
+ *                 "class": "Network",
+ *                 "app1Vlan": {
+ *                     "class": "VLAN",
+ *                     "tag": 1234,
+ *                     "mtu": 1500,
+ *                     "1.1": {
+ *                         "class": "Interface",
+ *                         "tagged": true
+ *                     }
+ *                 }
+ *             }
+ *         }
+ *     }
+ *
+ * Returns a parsed delcaration
+ *
+ *     {
+ *         "System": {
+ *             "hostname": "bigip.example.com",
+ *             "License": {
+ *                 "myLicense": {
+ *                     "tenant": "Common",
+ *                     "licenseType": "regKey",
+ *                     "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+ *                 }
+ *             },
+ *             "DNS": {
+ *                 "myDns": {
+ *                     "tenant": "Common",
+ *                     "nameServers": [
+ *                         "1.2.3.4",
+ *                         "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+ *                     ],
+ *                     "search": [
+ *                         "f5.com"
+ *                     ]
+ *                 }
+ *             }
+ *         },
+ *         "Network": {
+ *             "VLAN": {
+ *                 "app1Vlan": {
+ *                     "tenant": "Tenant1",
+ *                     "tag": 1234,
+ *                     "mtu": 1500,
+ *                     "1.1": {
+ *                         "class": "Interface",
+ *                         "tagged": true
+ *                     }
+ *                 }
+ *             }
+ *         }
+ *     }
+ */
 class DeclarationParser {
     constructor(declaration) {
         this.declaration = {};
         Object.assign(this.declaration, declaration);
     }
 
+    /**
+     * Parses the declaration
+     *
+     * @returns {object} A parsed declaration and list of tenants in the form
+     *
+     *     {
+     *         tenants: <array of tenant names>,
+     *         parsedDeclaration: <the parsed declaration>
+     *     }
+     */
     parse() {
         function isKeyOfInterest(key) {
             return KEYS_TO_IGNORE.indexOf(key) === -1;
@@ -81,7 +182,10 @@ class DeclarationParser {
                 });
             });
 
-            return parsed;
+            return {
+                tenants,
+                parsedDeclaration: parsed
+            };
         } catch (err) {
             logger.error(`Error parsing delcaration ${err.message}`);
             throw err;

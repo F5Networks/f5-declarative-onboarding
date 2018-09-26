@@ -84,7 +84,7 @@
                     ]
                 },
                 "vlan": {
-                    "description": "Vlan for the self IP.",
+                    "description": "VLAN for the self IP.",
                     "type": "string"
                 },
                 "allowService": {

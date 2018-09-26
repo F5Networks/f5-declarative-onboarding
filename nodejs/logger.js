@@ -46,52 +46,56 @@ class Logger {
     }
 
     silly(message) {
-        log.call(this, 'finest', message);
+        log.call(this, 'finest', message, arguments.slice(2));
     }
 
     verbose(message) {
-        log.call(this, 'finer', message);
+        log.call(this, 'finer', message, arguments.slice(2));
     }
 
     debug(message) {
-        log.call(this, 'fine', message);
+        log.call(this, 'fine', message, arguments.slice(2));
     }
 
     info(message) {
-        log.call(this, 'info', message);
+        log.call(this, 'info', message, arguments.slice(2));
     }
 
     warning(message) {
-        log.call(this, 'warning', message);
+        log.call(this, 'warning', message, arguments.slice(2));
     }
 
     error(message) {
-        log.call(this, 'severe', message);
+        log.call(this, 'severe', message, arguments.slice(2));
     }
 
     finest(message) {
-        log.call(this, 'finest', message);
+        log.call(this, 'finest', message, arguments.slice(2));
     }
 
     finer(message) {
-        log.call(this, 'finer', message);
+        log.call(this, 'finer', message, arguments.slice(2));
     }
 
     fine(message) {
-        log.call(this, 'fine', message);
+        log.call(this, 'fine', message, arguments.slice(2));
     }
 
     warn(message) {
-        log.call(this, 'warning', message);
+        log.call(this, 'warning', message, arguments.slice(2));
     }
 
     severe(message) {
-        log.call(this, 'severe', message);
+        log.call(this, 'severe', message, arguments.slice(2));
     }
 }
 
-function log(level, message) {
-    logger[level](`[${this.tag}: ${this.filename}] ${message}`);
+function log(level, message, extraArgs) {
+    var fullMessage = message;
+    extraArgs.forEach((extraArg) => {
+        fullMessage = `${fullMessage} ${extraArg}`;
+    })
+    logger[level](`[${this.tag}: ${this.filename}] ${fullMessage}`);
 }
 
 module.exports = Logger;
