@@ -98,7 +98,7 @@ class SystemHandler {
             .then(() => {
                 if (this.declaration.License) {
                     const licenseContainer = Object.keys(this.declaration.License)[0];
-                    const license = this.declaration[licenseContainer];
+                    const license = this.declaration.License[licenseContainer];
                     if (license.regKey || license.addOnKeys) {
                         return this.bigIp.onboard.license(
                             {
