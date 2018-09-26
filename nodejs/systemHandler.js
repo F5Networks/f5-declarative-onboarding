@@ -79,10 +79,16 @@ class SystemHandler {
                                 user.oldPassword
                             ));
                         } else if (user.userType === 'regular') {
+                            // TODO: parse partitions
+                            if (!user.partitionAccess || !user.partitionAccess.Common) {
+                                user.partitionAccess = {
+                                    Common: {}
+                                };
+                            }
                             promises.push(this.bigIp.onboard.updateUser(
                                 username,
                                 user.password,
-                                user.role,
+                                user.partitionAccess.Common.role, // TODO: parse partitions
                                 user.shell
                             ));
                         } else {
