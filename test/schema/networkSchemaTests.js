@@ -137,12 +137,27 @@ describe('network.schema.json tests', () => {
 
     describe('selfIps', () => {
         describe('valid', () => {
-            it('should validate network data', () => {
+            it('should validate network data with IPv4 address', () => {
                 const data = {
                     "class": "Network",
                     "mySelfIp": {
                         "class": "SelfIp",
-                        "address": "1.2.3.4",
+                        "address": "1.2.3.4/32",
+                        "vlan": "myVlan",
+                        "allowService": "all",
+                        "trafficGroup": "myTrafficGroup",
+                        "floating": true
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate network data with IPv6 address', () => {
+                const data = {
+                    "class": "Network",
+                    "mySelfIp": {
+                        "class": "SelfIp",
+                        "address": "FE80:0000:0000:0000:0202:B3FF:FE1E:8329/128",
                         "vlan": "myVlan",
                         "allowService": "all",
                         "trafficGroup": "myTrafficGroup",
@@ -157,7 +172,7 @@ describe('network.schema.json tests', () => {
                     "class": "Network",
                     "mySelfIp": {
                         "class": "SelfIp",
-                        "address": "1.2.3.4",
+                        "address": "1.2.3.4/32",
                         "vlan": "myVlan",
                         "allowService": "foo:1234",
                         "trafficGroup": "myTrafficGroup",
@@ -203,7 +218,33 @@ describe('network.schema.json tests', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should match format'), -1);
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate IPv4 selfIp with out of range CIDR', () => {
+                const data = {
+                    "class": "Network",
+                    "mySelfIp": {
+                        "class": "SelfIp",
+                        "address": "1.2.3.4/33",
+                        "vlan": "myVlan",
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate IPv6 selfIp with out of range CIDR', () => {
+                const data = {
+                    "class": "Network",
+                    "mySelfIp": {
+                        "class": "SelfIp",
+                        "address": "FE80:0000:0000:0000:0202:B3FF:FE1E:8329/129",
+                        "vlan": "myVlan",
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
             });
 
             describe('allowService', () => {
