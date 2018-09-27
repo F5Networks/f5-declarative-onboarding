@@ -19,8 +19,14 @@
 const fs = require('fs');
 const assert = require('assert');
 const Ajv = require('ajv');
-
 const ajv = new Ajv({ allErrors: true });
+
+const customFormats = require('../../schema/formats.js');
+
+Object.keys(customFormats).forEach((customFormat) => {
+    ajv.addFormat(customFormat, customFormats[customFormat]);
+});
+
 const baseSchema = require('../../schema/base.schema.json');
 const networkSchema = require('../../schema/network.schema.json');
 const systemSchema = require('../../schema/system.schema.json');

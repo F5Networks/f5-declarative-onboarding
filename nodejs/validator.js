@@ -22,6 +22,8 @@ const baseSchema = require('../schema/base.schema.json');
 const systemSchema = require('../schema/system.schema.json');
 const networkSchema = require('../schema/network.schema.json');
 
+const customFormats = require('../../schema/formats.js');
+
 class Validator {
     constructor() {
         const ajv = new Ajv(
@@ -30,6 +32,10 @@ class Validator {
                 useDefaults: true
             }
         );
+
+        Object.keys(customFormats).forEach((customFormat) => {
+            ajv.addFormat(customFormat, customFormats(customFormat));
+        });
 
         this.validate = ajv
             .addSchema(systemSchema)

@@ -78,10 +78,7 @@
                 "address": {
                     "description": "IP address.",
                     "type": "string",
-                    "anyOf": [
-                        { "format": "ipv4" },
-                        { "format": "ipv6" }
-                    ]
+                    "format": "f5ip"
                 },
                 "vlan": {
                     "description": "VLAN for the self IP.",

@@ -21,6 +21,11 @@ const Ajv = require('ajv');
 
 const ajv = new Ajv({ allErrors: true });
 const networkSchema = require('../../schema/network.schema.json');
+const customFormats = require('../../schema/formats.js');
+
+Object.keys(customFormats).forEach((customFormat) => {
+    ajv.addFormat(customFormat, customFormats[customFormat]);
+});
 
 const validate = ajv.compile(networkSchema);
 
