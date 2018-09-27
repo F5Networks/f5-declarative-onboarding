@@ -22,7 +22,7 @@ const baseSchema = require('../schema/base.schema.json');
 const systemSchema = require('../schema/system.schema.json');
 const networkSchema = require('../schema/network.schema.json');
 
-const customFormats = require('../../schema/formats.js');
+const customFormats = require('../schema/formats.js');
 
 class Validator {
     constructor() {

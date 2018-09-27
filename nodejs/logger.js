@@ -91,7 +91,7 @@ class Logger {
 }
 
 function log(level, message, extraArgs) {
-    var fullMessage = message;
+    let fullMessage = message;
     let expandedArg;
     extraArgs.forEach((extraArg) => {
         if (typeof extraArg === 'object') {
@@ -104,7 +104,7 @@ function log(level, message, extraArgs) {
             expandedArg = extraArg;
         }
         fullMessage = `${fullMessage} ${expandedArg}`;
-    })
+    });
     logger[level](`[${this.tag}: ${this.filename}] ${fullMessage}`);
 }
 

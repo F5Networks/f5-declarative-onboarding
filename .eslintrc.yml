@@ -57,3 +57,7 @@ rules:
         - error
         - array: false
           object: false
+
+    # node 4 does not support rest params
+    prefer-rest-params:
+        - off

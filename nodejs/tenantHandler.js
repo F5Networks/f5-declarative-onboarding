@@ -34,7 +34,9 @@ class TenantHandler {
         return this.bigIp.list(PARTITION_PATH)
             .then((partitions) => {
                 function getNonExistingPartitions(tenants) {
-                    const partitionNames = partitions.map(partition => partition.name);
+                    const partitionNames = partitions.map((partition) => {
+                        return partition.name;
+                    });
                     return tenants.filter((tenant) => {
                         return partitionNames.indexOf(tenant) === -1;
                     });

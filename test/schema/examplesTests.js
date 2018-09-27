@@ -19,6 +19,7 @@
 const fs = require('fs');
 const assert = require('assert');
 const Ajv = require('ajv');
+
 const ajv = new Ajv({ allErrors: true });
 
 const customFormats = require('../../schema/formats.js');
