@@ -188,6 +188,19 @@ describe('network.schema.json tests', () => {
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "vlan"'), -1);
             });
 
+            it('should invlalidate selfIp addresses that are not ipv4 or ipv6', () => {
+                const data = {
+                    "class": "Network",
+                    "mySelfIp": {
+                        "class": "SelfIp",
+                        "address": "foo",
+                        "vlan": "myVlan"
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should match format'), -1);
+            });
+
             describe('allowService', () => {
                 it('should invalidate single words that are not all, default, or none', () => {
                     const data = {
