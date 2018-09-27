@@ -32,8 +32,6 @@ pages:
     tags:
         - docker-executor
     stage: publish
-    only:
-        - triggers
     script:
         - node build/generateDocs.js
     artifacts:
