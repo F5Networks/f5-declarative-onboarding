@@ -34,7 +34,7 @@ class Validator {
         );
 
         Object.keys(customFormats).forEach((customFormat) => {
-            ajv.addFormat(customFormat, customFormats(customFormat));
+            ajv.addFormat(customFormat, customFormats[customFormat]);
         });
 
         this.validate = ajv

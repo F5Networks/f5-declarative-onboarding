@@ -15,15 +15,3 @@
  */
 
 'use strict';
-
-const fs = require('fs');
-const assert = require('assert');
-const Validator = require('../../nodejs/validator');
-const validator = new Validator();
-
-describe('examples tests', () => {
-    it('should validate the basic example', () => {
-        const data = JSON.parse(fs.readFileSync(`${__dirname}/../../examples/basic.json`).toString());
-        assert.ok(validator.isValid(data));
-    });
-});
