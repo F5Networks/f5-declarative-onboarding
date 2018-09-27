@@ -44,14 +44,16 @@ class NetworkHandler {
 }
 
 function createVlans() {
-    logger.fine('Creating VLANs');
     return new Promise((resolve, reject) => {
         if (!this.declaration.VLAN) {
             resolve();
         } else {
             const promises = [];
             const vlanNames = Object.keys(this.declaration.VLAN);
+
+            logger.fine('Creating VLANs');
             logger.finest(`got ${vlanNames.length} vlan(s)`);
+
             vlanNames.forEach((vlanName) => {
                 const vlan = this.declaration.VLAN[vlanName];
                 const interfaces = [];
@@ -93,7 +95,6 @@ function createVlans() {
 
             Promise.all(promises)
                 .then(() => {
-                    logger.fine('Done creating VLANs');
                     resolve();
                 })
                 .catch((err) => {
@@ -105,13 +106,14 @@ function createVlans() {
 }
 
 function createSelfIps() {
-    logger.fine('Creating self IPs');
     return new Promise((resolve, reject) => {
         if (!this.declaration.SelfIp) {
             resolve();
         } else {
             const promises = [];
             const selfIpNames = Object.keys(this.declaration.SelfIp);
+
+            logger.fine('Creating self IPs');
             logger.finest(`got ${selfIpNames.length} vlan(s)`);
             selfIpNames.forEach((selfIpName) => {
                 const selfIp = this.declaration.SelfIp[selfIpName];
@@ -132,7 +134,6 @@ function createSelfIps() {
 
             Promise.all(promises)
                 .then(() => {
-                    logger.fine('Done creating self IPs');
                     resolve();
                 })
                 .catch((err) => {

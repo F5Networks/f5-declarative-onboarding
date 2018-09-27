@@ -46,54 +46,64 @@ class Logger {
     }
 
     silly(message) {
-        log.call(this, 'finest', message, arguments.slice(2));
+        log.call(this, 'finest', message, Array.prototype.slice.call(arguments, 2));
     }
 
     verbose(message) {
-        log.call(this, 'finer', message, arguments.slice(2));
+        log.call(this, 'finer', message, Array.prototype.slice.call(arguments, 2));
     }
 
     debug(message) {
-        log.call(this, 'fine', message, arguments.slice(2));
+        log.call(this, 'fine', message, Array.prototype.slice.call(arguments, 2));
     }
 
     info(message) {
-        log.call(this, 'info', message, arguments.slice(2));
+        log.call(this, 'info', message, Array.prototype.slice.call(arguments, 2));
     }
 
     warning(message) {
-        log.call(this, 'warning', message, arguments.slice(2));
+        log.call(this, 'warning', message, Array.prototype.slice.call(arguments, 2));
     }
 
     error(message) {
-        log.call(this, 'severe', message, arguments.slice(2));
+        log.call(this, 'severe', message, Array.prototype.slice.call(arguments, 2));
     }
 
     finest(message) {
-        log.call(this, 'finest', message, arguments.slice(2));
+        log.call(this, 'finest', message, Array.prototype.slice.call(arguments, 2));
     }
 
     finer(message) {
-        log.call(this, 'finer', message, arguments.slice(2));
+        log.call(this, 'finer', message, Array.prototype.slice.call(arguments, 2));
     }
 
     fine(message) {
-        log.call(this, 'fine', message, arguments.slice(2));
+        log.call(this, 'fine', message, Array.prototype.slice.call(arguments, 2));
     }
 
     warn(message) {
-        log.call(this, 'warning', message, arguments.slice(2));
+        log.call(this, 'warning', message, Array.prototype.slice.call(arguments, 2));
     }
 
     severe(message) {
-        log.call(this, 'severe', message, arguments.slice(2));
+        log.call(this, 'severe', message, Array.prototype.slice.call(arguments, 2));
     }
 }
 
 function log(level, message, extraArgs) {
     var fullMessage = message;
+    let expandedArg;
     extraArgs.forEach((extraArg) => {
-        fullMessage = `${fullMessage} ${extraArg}`;
+        if (typeof extraArg === 'object') {
+            try {
+                expandedArg = JSON.stringify(extraArg);
+            } catch (err) {
+                expandedArg = extraArg;
+            }
+        } else {
+            expandedArg = extraArg;
+        }
+        fullMessage = `${fullMessage} ${expandedArg}`;
     })
     logger[level](`[${this.tag}: ${this.filename}] ${fullMessage}`);
 }
