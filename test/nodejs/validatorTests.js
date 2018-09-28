@@ -15,3 +15,31 @@
  */
 
 'use strict';
+
+const assert = require('assert');
+const Validator = require('../../nodejs/validator');
+
+const validator = new Validator();
+
+/* eslint-disable quotes, quote-props */
+
+describe('validator tests', () => {
+    it('should validate valid data', () => {
+        const data = {
+            "schemaVersion": "0.1.0",
+            "class": "Device"
+        };
+        const validation = validator.isValid(data);
+        assert.strictEqual(validation.valid, true);
+        assert.strictEqual(validation.errors, null);
+    });
+
+    it('should invalidate invalid data', () => {
+        it('should validate valid data', () => {
+            const data = {};
+            const validation = validator.isValid(data);
+            assert.strictEqual(validation.valid, false);
+            assert.strictEqual(Array.isArray(validation.errors), true);
+        });
+    });
+});
