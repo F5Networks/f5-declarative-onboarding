@@ -76,6 +76,18 @@ describe('declarationParser tests', () => {
                             }
                         }
                     }
+                },
+                "myNetwork": {
+                    "class": "Network",
+                    "commonVlan": {
+                        "class": "Vlan",
+                        "tag": 1111,
+                        "mtu": 2222,
+                        "1.3": {
+                            "class": "Interface",
+                            "tagged": true
+                        }
+                    }
                 }
             },
             "Tenant1": {
@@ -129,6 +141,10 @@ describe('declarationParser tests', () => {
         );
 
         // network
+        assert.strictEqual(
+            parsedDeclaration.Network.Vlan.commonVlan.tag,
+            declaration.Common.myNetwork.commonVlan.tag
+        );
         assert.strictEqual(
             parsedDeclaration.Network.Vlan.app1Vlan.tag,
             declaration.Tenant1.myNetwork.app1Vlan.tag
