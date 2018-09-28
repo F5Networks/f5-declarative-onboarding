@@ -23,6 +23,7 @@ const logger = new Logger(module);
 class NetworkHandler {
     constructor(declarationInfo, bigIp) {
         this.declaration = declarationInfo.parsedDeclaration.Network || {};
+        this.tenants = declarationInfo.tenants;
         this.bigIp = bigIp;
     }
 
@@ -45,17 +46,15 @@ class NetworkHandler {
 
 function createVlans() {
     return new Promise((resolve, reject) => {
-        if (!this.declaration.VLAN) {
-            resolve();
-        } else {
-            const promises = [];
-            const vlanNames = Object.keys(this.declaration.VLAN);
+        const promises = [];
 
-            logger.fine('Creating VLANs');
-            logger.finest(`got ${vlanNames.length} vlan(s)`);
+        logger.fine('Checking VLANs');
+        this.tenants.forEach((tenantName) => {
+            const tenant = this.declaration[tenantName];
+            const vlanNames = Object.keys(tenant.VLAN);
 
             vlanNames.forEach((vlanName) => {
-                const vlan = this.declaration.VLAN[vlanName];
+                const vlan = tenant.VLAN[vlanName];
                 const interfaces = [];
                 vlan.interfaces.forEach((anInterface) => {
                     // Use the tagged property if it is there, otherwise, set tagged if the vlan has a tag
@@ -77,7 +76,7 @@ function createVlans() {
                 const vlanBody = {
                     interfaces,
                     name: vlanName,
-                    partition: vlan.tenant
+                    partition: tenantName
                 };
 
                 if (vlan.mtu) {
@@ -92,38 +91,46 @@ function createVlans() {
                     this.bigIp.createOrModify('/tm/net/vlan', vlanBody)
                 );
             });
+        });
 
-            Promise.all(promises)
-                .then(() => {
-                    resolve();
-                })
-                .catch((err) => {
-                    logger.severe(`Error creating vlans: ${err.message}`);
-                    reject(err);
-                });
-        }
+        Promise.all(promises)
+            .then(() => {
+                resolve();
+            })
+            .catch((err) => {
+                logger.severe(`Error creating vlans: ${err.message}`);
+                reject(err);
+            });
     });
 }
 
 function createSelfIps() {
     return new Promise((resolve, reject) => {
-        if (!this.declaration.SelfIp) {
-            resolve();
-        } else {
-            const promises = [];
-            const selfIpNames = Object.keys(this.declaration.SelfIp);
+        const promises = [];
 
-            logger.fine('Creating self IPs');
-            logger.finest(`got ${selfIpNames.length} vlan(s)`);
+        logger.finest('Checking self IPs');
+        this.tenants.forEach((tenantName) => {
+            const tenant = this.declaration[tenantName];
+            const selfIpNames = Object.keys(tenant.SelfIp);
+
             selfIpNames.forEach((selfIpName) => {
-                const selfIp = this.declaration.SelfIp[selfIpName];
+                const selfIp = tenant.SelfIp[selfIpName];
+                let vlan;
+
+                // If the vlan does not start with '/', assume it is in this network
+                if (selfIp.vlan.startsWith('/')) {
+                    vlan = selfIp.vlan;
+                } else {
+                    const networkName = getNetworkName(selfIpName);
+                    vlan = `/${tenantName}/${networkName}_${selfIp.vlan}`;
+                }
 
                 const selfIpBody = {
+                    vlan,
                     name: selfIpName,
-                    partition: selfIp.tenant,
+                    partition: tenantName,
                     address: selfIp.address,
                     floating: selfIp.floating ? 'enabled' : 'disabled',
-                    vlan: selfIp.vlan.startsWith('/') ? selfIp.vlan : `/Common/${selfIp.vlan}`,
                     allowService: [selfIp.allowService]
                 };
 
@@ -131,17 +138,22 @@ function createSelfIps() {
                     this.bigIp.createOrModify('/tm/net/self', selfIpBody)
                 );
             });
+        });
 
-            Promise.all(promises)
-                .then(() => {
-                    resolve();
-                })
-                .catch((err) => {
-                    logger.severe(`Error creating self IPs: ${err.message}`);
-                    reject(err);
-                });
-        }
+        Promise.all(promises)
+            .then(() => {
+                resolve();
+            })
+            .catch((err) => {
+                logger.severe(`Error creating self IPs: ${err.message}`);
+                reject(err);
+            });
     });
+}
+
+function getNetworkName(selfIpName) {
+    const index = selfIpName.indexOf('_');
+    return selfIpName.substring(index);
 }
 
 module.exports = NetworkHandler;

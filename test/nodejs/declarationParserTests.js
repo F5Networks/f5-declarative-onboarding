@@ -80,7 +80,7 @@ describe('declarationParser tests', () => {
                 "myNetwork": {
                     "class": "Network",
                     "commonVlan": {
-                        "class": "Vlan",
+                        "class": "VLAN",
                         "tag": 1111,
                         "mtu": 2222,
                         "1.3": {
@@ -95,7 +95,7 @@ describe('declarationParser tests', () => {
                 "myNetwork": {
                     "class": "Network",
                     "app1Vlan": {
-                        "class": "Vlan",
+                        "class": "VLAN",
                         "tag": 1234,
                         "mtu": 1500,
                         "1.1": {
@@ -104,12 +104,16 @@ describe('declarationParser tests', () => {
                         }
                     },
                     "app2Vlan": {
-                        "class": "Vlan",
+                        "class": "VLAN",
                         "tag": 3456,
                         "1.1": {
                             "class": "Interface",
                             "tagged": true
                         }
+                    },
+                    "app1SelfIp": {
+                        "class": "SelfIp",
+                        "vlan": "app1Vlan"
                     }
                 }
             }
@@ -126,34 +130,33 @@ describe('declarationParser tests', () => {
         assert.notStrictEqual(tenants.indexOf('Tenant1'), -1);
 
         // system
-        assert.strictEqual(parsedDeclaration.System.hostname, declaration.Common.mySystem.hostname);
+        assert.strictEqual(parsedDeclaration.System.Common.hostname, declaration.Common.mySystem.hostname);
         assert.strictEqual(
-            parsedDeclaration.System.License.myLicense.regKey,
+            parsedDeclaration.System.Common.License.myLicense.regKey,
             declaration.Common.mySystem.myLicense.regKey
         );
         assert.strictEqual(
-            parsedDeclaration.System.License.myLicense.tenant,
-            'Common'
-        );
-        assert.strictEqual(
-            parsedDeclaration.System.NTP.myNtp.servers[0],
+            parsedDeclaration.System.Common.NTP.myNtp.servers[0],
             declaration.Common.mySystem.myNtp.servers[0]
         );
 
         // network
         assert.strictEqual(
-            parsedDeclaration.Network.Vlan.commonVlan.tag,
+            parsedDeclaration.Network.Common.VLAN.myNetwork_commonVlan.tag,
             declaration.Common.myNetwork.commonVlan.tag
         );
         assert.strictEqual(
-            parsedDeclaration.Network.Vlan.app1Vlan.tag,
+            parsedDeclaration.Network.Tenant1.VLAN.myNetwork_app1Vlan.tag,
             declaration.Tenant1.myNetwork.app1Vlan.tag
         );
-        assert.strictEqual(parsedDeclaration.Network.Vlan.app1Vlan.tenant, 'Tenant1');
         assert.strictEqual(
-            parsedDeclaration.Network.Vlan.app2Vlan.tag,
+            parsedDeclaration.Network.Tenant1.VLAN.myNetwork_app2Vlan.tag,
             declaration.Tenant1.myNetwork.app2Vlan.tag
         );
-        assert.strictEqual(parsedDeclaration.Network.Vlan.app2Vlan.tenant, 'Tenant1');
+
+        assert.strictEqual(
+            parsedDeclaration.Network.Tenant1.SelfIp.myNetwork_app1SelfIp.vlan,
+            declaration.Tenant1.myNetwork.app1SelfIp.vlan
+        );
     });
 });

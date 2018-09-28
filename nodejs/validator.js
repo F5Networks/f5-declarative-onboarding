@@ -29,7 +29,9 @@ class Validator {
         const ajv = new Ajv(
             {
                 allErrors: true,
-                useDefaults: true
+                useDefaults: true,
+                coerceTypes: true,
+                extendRefs: 'fail'
             }
         );
 

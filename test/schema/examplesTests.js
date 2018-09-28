@@ -19,6 +19,7 @@
 const fs = require('fs');
 const assert = require('assert');
 const Validator = require('../../nodejs/validator');
+
 const validator = new Validator();
 
 describe('examples tests', () => {
