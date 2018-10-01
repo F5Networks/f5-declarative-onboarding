@@ -29,9 +29,11 @@ build_rpm:
             - build/rpmbuild/RPMS/noarch/
 
 pages:
+    stage: publish
     tags:
         - docker-executor
-    stage: publish
+    only:
+        - develop
     script:
         - node build/generateDocs.js
     artifacts:
