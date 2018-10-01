@@ -78,7 +78,7 @@
         "class": "Tenant",
         "myOtherNetwork": {
             "class": "Network",
-            "myOtherVlan": {
+            "myVlan": {
                 "class": "VLAN",
                 "tag": 2345,
                 "mtu": 1500,
@@ -92,7 +92,7 @@
             "mySelfIp": {
                 "class": "SelfIp",
                 "address": "5.6.7.8/24",
-                "vlan": "/MyTenant/myOtherVlan",
+                "vlan": "myVlan",
                 "allowService": "tcp:80",
                 "floating": true
             }
