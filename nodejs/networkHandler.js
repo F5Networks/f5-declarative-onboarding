@@ -153,7 +153,7 @@ function createSelfIps() {
 
 function getNetworkName(selfIpName) {
     const index = selfIpName.indexOf('_');
-    return selfIpName.substring(index);
+    return selfIpName.substring(0, index);
 }
 
 module.exports = NetworkHandler;
