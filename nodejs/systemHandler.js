@@ -22,7 +22,11 @@ const logger = new Logger(module);
 
 class SystemHandler {
     constructor(declarationInfo, bigIp) {
-        this.declaration = declarationInfo.parsedDeclaration.System.Common || {};
+        if (declarationInfo.parsedDeclaration.System) {
+            this.declaration = declarationInfo.parsedDeclaration.System.Common || {};
+        } else {
+            this.declaration = {};
+        }
         this.bigIp = bigIp;
     }
 
