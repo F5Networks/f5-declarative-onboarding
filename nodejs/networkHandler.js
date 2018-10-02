@@ -19,6 +19,7 @@
 const Logger = require('./logger');
 
 const logger = new Logger(module);
+const DEFAULT_CIDR = '/24';
 
 class NetworkHandler {
     constructor(declarationInfo, bigIp) {
@@ -36,6 +37,9 @@ class NetworkHandler {
         return createVlans.call(this)
             .then(() => {
                 return createSelfIps.call(this);
+            })
+            .then(() => {
+                return createRoutes.call(this);
             })
             .then(() => {
                 logger.info('Done processing network declartion');
@@ -154,6 +158,48 @@ function createSelfIps() {
             })
             .catch((err) => {
                 logger.severe(`Error creating self IPs: ${err.message}`);
+                reject(err);
+            });
+    });
+}
+
+function createRoutes() {
+    return new Promise((resolve, reject) => {
+        const promises = [];
+
+        logger.finest('Checking routes');
+        this.tenants.forEach((tenantName) => {
+            const tenant = this.declaration[tenantName] || [];
+            if (tenant.Route) {
+                const routeNames = Object.keys(tenant.Route);
+
+                routeNames.forEach((routeName) => {
+                    const route = tenant.Route[routeName];
+
+                    let network = route.network;
+                    if (network.indexOf('/') === -1) {
+                        network += DEFAULT_CIDR;
+                    }
+
+                    const routeBody = {
+                        network,
+                        name: routeName,
+                        gw: route.gw
+                    };
+
+                    promises.push(
+                        this.bigIp.createOrModify('/tm/net/route', routeBody)
+                    );
+                });
+            }
+        });
+
+        Promise.all(promises)
+            .then(() => {
+                resolve();
+            })
+            .catch((err) => {
+                logger.severe(`Error creating routes: ${err.message}`);
                 reject(err);
             });
     });
