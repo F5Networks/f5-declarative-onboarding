@@ -55,7 +55,7 @@ describe('system.schema.json tests', () => {
         });
     });
 
-    describe('dns', () => {
+    describe('DNS', () => {
         describe('valid', () => {
             it('should validate dns data', () => {
                 const data = {
@@ -137,7 +137,7 @@ describe('system.schema.json tests', () => {
         });
     });
 
-    describe('license', () => {
+    describe('License', () => {
         describe('valid', () => {
             it('should validate license data', () => {
                 const data = {
@@ -220,7 +220,7 @@ describe('system.schema.json tests', () => {
         });
     });
 
-    describe('ntp', () => {
+    describe('NTP', () => {
         describe('valid', () => {
             it('should validate ntp data', () => {
                 const data = {
@@ -266,7 +266,7 @@ describe('system.schema.json tests', () => {
         });
     });
 
-    describe('users', () => {
+    describe('User', () => {
         describe('valid', () => {
             it('should validate password data for root and non-root users', () => {
                 const data = {

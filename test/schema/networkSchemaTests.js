@@ -60,7 +60,7 @@ describe('network.schema.json tests', () => {
         });
     });
 
-    describe('vlans', () => {
+    describe('VLAN', () => {
         describe('valid', () => {
             it('should validate vlan data', () => {
                 const data = {
@@ -135,7 +135,7 @@ describe('network.schema.json tests', () => {
         });
     });
 
-    describe('selfIps', () => {
+    describe('SelfIp', () => {
         describe('valid', () => {
             it('should validate network data with IPv4 address', () => {
                 const data = {
@@ -208,7 +208,7 @@ describe('network.schema.json tests', () => {
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "vlan"'), -1);
             });
 
-            it('should invlalidate selfIp addresses that are not ipv4 or ipv6', () => {
+            it('should invlalidate bad selfIp addresses', () => {
                 const data = {
                     "class": "Network",
                     "mySelfIp": {
@@ -275,6 +275,87 @@ describe('network.schema.json tests', () => {
                     assert.strictEqual(validate(data), false, 'allow service foo should not be valid');
                     assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
                 });
+            });
+        });
+    });
+
+    describe('Route', () => {
+        describe('valid', () => {
+            it('should validate route data', () => {
+                const data = {
+                    "class": "Network",
+                    "myRoute": {
+                        "class": "Route",
+                        "gw": "1.2.3.4",
+                        "network": "5.6.7.8"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "class": "Network",
+                    "myRoute": {
+                        "class": "Route",
+                        "gw": "1.2.3.4",
+                        "network": "5.6.7.8",
+                        "foo": "bar"
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+            });
+
+            it('should invalidate missing gateway', () => {
+                const data = {
+                    "class": "Network",
+                    "myRoute": {
+                        "class": "Route",
+                        "network": "5.6.7.8"
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing gateway should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "gw"'), -1);
+            });
+
+            it('should invalidate missing network', () => {
+                const data = {
+                    "class": "Network",
+                    "myRoute": {
+                        "class": "Route",
+                        "gw": "1.2.3.4"
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing network should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "network"'), -1);
+            });
+
+            it('should invalidate route data with bad gateway IP address', () => {
+                const data = {
+                    "class": "Network",
+                    "myRoute": {
+                        "class": "Route",
+                        "gw": "foo",
+                        "network": "5.6.7.8"
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'bad gateway IP address should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"ipv4\\"'), -1);
+            });
+
+            it('should invalidate route data with bad network IP address', () => {
+                const data = {
+                    "class": "Network",
+                    "myRoute": {
+                        "class": "Route",
+                        "gw": "1.2.3.4",
+                        "network": "foo"
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'bad network IP address should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
             });
         });
     });

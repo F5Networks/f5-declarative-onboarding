@@ -14,7 +14,8 @@
     "additionalProperties": {
         "oneOf": [
             { "$ref": "#/definitions/VLAN" },
-            { "$ref": "#/definitions/SelfIp" }
+            { "$ref": "#/definitions/SelfIp" },
+            { "$ref": "#/definitions/Route" }
         ]
     },
     "propertyNames": {
@@ -98,6 +99,32 @@
                     "description": "Whether or not the self IP should be a floating IP.",
                     "type": "boolean",
                     "default": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "Route": {
+            "description": "Route information.",
+            "type": "object",
+            "required": ["gw", "network"],
+            "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains Route configuration.",
+                    "type": "string",
+                    "const": "Route"
+                },
+                "gw": {
+                    "description": "Gateway for route.",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6" }
+                    ]
+                },
+                "network": {
+                    "description": "Network for route.",
+                    "type": "string",
+                    "format": "f5ip"
                 }
             },
             "additionalProperties": false
