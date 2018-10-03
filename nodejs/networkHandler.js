@@ -169,7 +169,7 @@ function createRoutes() {
 
         logger.finest('Checking routes');
         this.tenants.forEach((tenantName) => {
-            const tenant = this.declaration[tenantName] || [];
+            const tenant = this.declaration[tenantName] || {};
             if (tenant.Route) {
                 const routeNames = Object.keys(tenant.Route);
 

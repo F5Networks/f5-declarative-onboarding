@@ -71,6 +71,11 @@
                 "vlan": "myVlan",
                 "allowService": "all",
                 "floating": true
+            },
+            "myRoute": {
+                "class": "Route",
+                "gw": "10.1.20.1",
+                "network": "0.0.0.0/0"
             }
         }
     },
