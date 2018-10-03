@@ -39,17 +39,17 @@ class Validator {
             ajv.addFormat(customFormat, customFormats[customFormat]);
         });
 
-        this.validate = ajv
+        this.validator = ajv
             .addSchema(systemSchema)
             .addSchema(networkSchema)
             .compile(baseSchema);
     }
 
-    isValid(data) {
-        const valid = this.validate(data);
+    validate(data) {
+        const isValid = this.validator(data);
         return {
-            valid,
-            errors: this.validate.errors
+            isValid,
+            errors: this.validator.errors
         };
     }
 }

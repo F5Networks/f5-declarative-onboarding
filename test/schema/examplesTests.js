@@ -25,6 +25,7 @@ const validator = new Validator();
 describe('examples tests', () => {
     it('should validate the basic example', () => {
         const data = JSON.parse(fs.readFileSync(`${__dirname}/../../examples/basic.json`).toString());
-        assert.ok(validator.isValid(data));
+        const validation = validator.validate(data);
+        assert.ok(validation.isValid);
     });
 });

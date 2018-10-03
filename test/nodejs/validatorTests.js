@@ -29,16 +29,16 @@ describe('validator tests', () => {
             "schemaVersion": "0.1.0",
             "class": "Device"
         };
-        const validation = validator.isValid(data);
-        assert.strictEqual(validation.valid, true);
+        const validation = validator.validate(data);
+        assert.strictEqual(validation.isValid, true);
         assert.strictEqual(validation.errors, null);
     });
 
     it('should invalidate invalid data', () => {
         it('should validate valid data', () => {
             const data = {};
-            const validation = validator.isValid(data);
-            assert.strictEqual(validation.valid, false);
+            const validation = validator.validate(data);
+            assert.strictEqual(validation.isValid, false);
             assert.strictEqual(Array.isArray(validation.errors), true);
         });
     });
