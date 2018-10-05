@@ -30,14 +30,14 @@ class NetworkHandler {
     process() {
         logger.fine('Proessing network components');
         logger.fine('Checking VLANs');
-        return createVlans.call(this)
+        return handleVlan.call(this)
             .then(() => {
                 logger.fine('Checking SelfIps');
-                return createSelfIps.call(this);
+                return handleSelfIp.call(this);
             })
             .then(() => {
                 logger.fine('Checking Routes');
-                return createRoutes.call(this);
+                return handleRoute.call(this);
             })
             .then(() => {
                 logger.info('Done processing network declartion');
@@ -50,7 +50,7 @@ class NetworkHandler {
     }
 }
 
-function createVlans() {
+function handleVlan() {
     return new Promise((resolve, reject) => {
         const promises = [];
         forEach(this.declaration, 'VLAN', (tenant, name, vlan) => {
@@ -102,7 +102,7 @@ function createVlans() {
     });
 }
 
-function createSelfIps() {
+function handleSelfIp() {
     return new Promise((resolve, reject) => {
         const promises = [];
         forEach(this.declaration, 'SelfIp', (tenant, name, selfIp) => {
@@ -140,7 +140,7 @@ function createSelfIps() {
     });
 }
 
-function createRoutes() {
+function handleRoute() {
     return new Promise((resolve, reject) => {
         const promises = [];
         forEach(this.declaration, 'Route', (tenant, name, route) => {
