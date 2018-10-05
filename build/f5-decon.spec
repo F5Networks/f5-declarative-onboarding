@@ -1,6 +1,6 @@
 Summary: F5 Declarative Onboarding iControlLX extension
 Name: f5-decon
-Version: 0.2.0
+Version: %{_version}
 Release: %{_release}
 BuildArch: noarch
 Group: Development/Tools
