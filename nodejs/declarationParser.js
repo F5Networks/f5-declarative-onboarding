@@ -35,16 +35,64 @@ const logger = new Logger(module);
  *         "class": "Device",
  *         "Common": {
  *             "class": "Tenant",
- *             "mySystem": {
- *                 "class": "System",
- *                 "hostname": "bigip.example.com",
+ *             "hostname": "bigip.example.com",
+ *             "myLicense": {
+ *                 "class": "License",
+ *                 "licenseType": "regKey",
+ *                 "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+ *             },
+ *             "myDns": {
+ *                 "class": "DNS",
+ *                 "nameServers": [
+ *                     "1.2.3.4",
+ *                     "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+ *                 ],
+ *                 "search": [
+ *                     "f5.com"
+ *                 ]
+ *             },
+ *             "commonVlan": {
+ *                 "class": "VLAN",
+ *                 "tag": 2345,
+ *                 "mtu": 1400,
+ *                 "1.1": {
+ *                     "class": "Interface",
+ *                     "tagged": true
+ *                 }
+ *             }
+ *         },
+ *         "Tenant1": {
+ *             "class": "Tenant",
+ *             "app1Vlan": {
+ *                 "class": "VLAN",
+ *                 "tag": 1234,
+ *                 "mtu": 1500,
+ *                 "1.1": {
+ *                     "class": "Interface",
+ *                     "tagged": true
+ *                 }
+ *             },
+ *             "app1SelfIp": {
+ *                 "class": "SelfIp",
+ *                 "vlan": "app1Vlan",
+ *                 "address": "1.2.3.4/24"
+ *             }
+ *         }
+ *     }
+ *
+ * Returns a parsed delcaration
+ *
+ *     {
+ *         "Common": {
+ *             "hostname": "bigip.example.com",
+ *             "License": {
  *                 "myLicense": {
- *                     "class": "License",
  *                     "licenseType": "regKey",
  *                     "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
- *                 },
+ *                 }
+ *             },
+ *             "DNS": {
  *                 "myDns": {
- *                     "class": "DNS",
  *                     "nameServers": [
  *                         "1.2.3.4",
  *                         "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
@@ -54,10 +102,8 @@ const logger = new Logger(module);
  *                     ]
  *                 }
  *             },
- *             "myNetwork": {
- *                 "class": "Network",
- *                 "commonVlan": {
- *                     "class": "VLAN",
+ *             "VLAN": {
+ *                 "myNetwork_commonVlan": {
  *                     "tag": 2345,
  *                     "mtu": 1400,
  *                     "1.1": {
@@ -68,81 +114,20 @@ const logger = new Logger(module);
  *             }
  *         },
  *         "Tenant1": {
- *             "class": "Tenant",
- *             "myNetwork": {
- *                 "class": "Network",
- *                 "app1Vlan": {
- *                     "class": "VLAN",
+ *             "VLAN": {
+ *                 "myNetwork_app1Vlan": {
  *                     "tag": 1234,
  *                     "mtu": 1500,
  *                     "1.1": {
  *                         "class": "Interface",
  *                         "tagged": true
  *                     }
- *                 },
- *                 "app1SelfIp": {
- *                     "class": "SelfIp",
- *                     "vlan": "app1Vlan",
- *                     "address": "1.2.3.4/24"
- *                 }
- *             }
- *         }
- *     }
- *
- * Returns a parsed delcaration
- *
- *     {
- *         "System": {
- *             "Common": {
- *                 "hostname": "bigip.example.com",
- *                 "License": {
- *                     "myLicense": {
- *                         "licenseType": "regKey",
- *                         "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
- *                     }
- *                 },
- *                 "DNS": {
- *                     "myDns": {
- *                         "nameServers": [
- *                             "1.2.3.4",
- *                             "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
- *                         ],
- *                         "search": [
- *                             "f5.com"
- *                         ]
- *                     }
- *                 }
- *             }
- *         },
- *         "Network": {
- *             "Common": {
- *                 "VLAN": {
- *                     "myNetwork_commonVlan": {
- *                         "tag": 2345,
- *                         "mtu": 1400,
- *                         "1.1": {
- *                             "class": "Interface",
- *                             "tagged": true
- *                         }
- *                     }
  *                 }
  *             },
- *             "Tenant1": {
- *                 "VLAN": {
- *                     "myNetwork_app1Vlan": {
- *                         "tag": 1234,
- *                         "mtu": 1500,
- *                         "1.1": {
- *                             "class": "Interface",
- *                             "tagged": true
- *                         }
- *                     }
- *                 },
- *                 "SelfIp": {
- *                     "myNetwork_app1SelfIp": {
- *                         "vlan": "app1Vlan",
- *                         "address": "1.2.3.4/24"
- *                     }
+ *             "SelfIp": {
+ *                 "myNetwork_app1SelfIp": {
+ *                     "vlan": "app1Vlan",
+ *                     "address": "1.2.3.4/24"
  *                 }
  *             }
  *         }
@@ -191,40 +176,28 @@ class DeclarationParser {
 
             const tenants = getTenants(this.declaration);
             tenants.forEach((tenantName) => {
+                if (!parsed[tenantName]) {
+                    parsed[tenantName] = {};
+                }
+
                 const tenant = this.declaration[tenantName];
-                const containers = getKeysOfInterest(tenant);
-                containers.forEach((containerName) => {
-                    const container = tenant[containerName];
-                    const containerType = container.class; // System, Network, etc
+                const properties = getKeysOfInterest(tenant);
+                properties.forEach((propertyName) => {
+                    const property = tenant[propertyName];
 
-                    if (!parsed[containerType]) {
-                        parsed[containerType] = {};
-                    }
+                    if (typeof property !== 'object') {
+                        parsed[tenantName][propertyName] = property;
+                    } else {
+                        const propertyClass = property.class;
+                        delete property.class;
 
-                    if (!parsed[containerType][tenantName]) {
-                        parsed[containerType][tenantName] = {};
-                    }
-
-                    Object.keys(container).forEach((key) => {
-                        if (isKeyOfInterest(key)) {
-                            const property = container[key];
-                            const fullName = containerType === 'System' ? key : `${containerName}_${key}`;
-                            if (typeof property === 'object' && property.class) {
-                                const propertyClass = property.class;
-                                delete property.class;
-                                if (!parsed[containerType][tenantName][propertyClass]) {
-                                    parsed[containerType][tenantName][propertyClass] = {};
-                                }
-                                parsed[containerType][tenantName][propertyClass][fullName] = {};
-                                Object.assign(
-                                    parsed[containerType][tenantName][propertyClass][fullName],
-                                    property
-                                );
-                            } else {
-                                parsed[containerType][tenantName][fullName] = property;
-                            }
+                        if (!parsed[tenantName][propertyClass]) {
+                            parsed[tenantName][propertyClass] = {};
                         }
-                    });
+
+                        parsed[tenantName][propertyClass][propertyName] = {};
+                        Object.assign(parsed[tenantName][propertyClass][propertyName], property);
+                    }
                 });
             });
 

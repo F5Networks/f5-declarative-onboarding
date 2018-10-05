@@ -23,22 +23,20 @@ const DEFAULT_CIDR = '/24';
 
 class NetworkHandler {
     constructor(declarationInfo, bigIp) {
-        if (declarationInfo.parsedDeclaration.Network) {
-            this.declaration = declarationInfo.parsedDeclaration.Network || {};
-        } else {
-            this.declaration = {};
-        }
-        this.tenants = declarationInfo.tenants;
+        this.declaration = declarationInfo.parsedDeclaration;
         this.bigIp = bigIp;
     }
 
     process() {
-        logger.fine('Proessing network declaration');
+        logger.fine('Proessing network components');
+        logger.fine('Checking VLANs');
         return createVlans.call(this)
             .then(() => {
+                logger.fine('Checking SelfIps');
                 return createSelfIps.call(this);
             })
             .then(() => {
+                logger.fine('Checking Routes');
                 return createRoutes.call(this);
             })
             .then(() => {
@@ -55,52 +53,42 @@ class NetworkHandler {
 function createVlans() {
     return new Promise((resolve, reject) => {
         const promises = [];
+        forEach(this.declaration, 'VLAN', (tenant, name, vlan) => {
+            const interfaces = [];
+            vlan.interfaces.forEach((anInterface) => {
+                // Use the tagged property if it is there, otherwise, set tagged if the vlan has a tag
+                let tagged;
+                if (typeof anInterface.tagged === 'undefined') {
+                    tagged = !!vlan.tag;
+                } else {
+                    tagged = anInterface.tagged;
+                }
 
-        logger.fine('Checking VLANs');
-        this.tenants.forEach((tenantName) => {
-            const tenant = this.declaration[tenantName] || {};
-            if (tenant.VLAN) {
-                const vlanNames = Object.keys(tenant.VLAN);
-
-                vlanNames.forEach((vlanName) => {
-                    const vlan = tenant.VLAN[vlanName];
-                    const interfaces = [];
-                    vlan.interfaces.forEach((anInterface) => {
-                        // Use the tagged property if it is there, otherwise, set tagged if the vlan has a tag
-                        let tagged;
-                        if (typeof anInterface.tagged === 'undefined') {
-                            tagged = !!vlan.tag;
-                        } else {
-                            tagged = anInterface.tagged;
-                        }
-
-                        interfaces.push(
-                            {
-                                tagged,
-                                name: anInterface.name
-                            }
-                        );
-                    });
-
-                    const vlanBody = {
-                        interfaces,
-                        name: vlanName,
-                        partition: tenantName
-                    };
-
-                    if (vlan.mtu) {
-                        vlanBody.mtu = vlan.mtu;
+                interfaces.push(
+                    {
+                        tagged,
+                        name: anInterface.name
                     }
+                );
+            });
 
-                    if (vlan.tag) {
-                        vlanBody.tag = vlan.tag;
-                    }
+            const vlanBody = {
+                name,
+                interfaces,
+                partition: tenant
+            };
 
-                    promises.push(
-                        this.bigIp.createOrModify('/tm/net/vlan', vlanBody)
-                    );
-                });
+            if (vlan.mtu) {
+                vlanBody.mtu = vlan.mtu;
             }
+
+            if (vlan.tag) {
+                vlanBody.tag = vlan.tag;
+            }
+
+            promises.push(
+                this.bigIp.createOrModify('/tm/net/vlan', vlanBody)
+            );
         });
 
         Promise.all(promises)
@@ -117,39 +105,28 @@ function createVlans() {
 function createSelfIps() {
     return new Promise((resolve, reject) => {
         const promises = [];
+        forEach(this.declaration, 'SelfIp', (tenant, name, selfIp) => {
+            let vlan;
 
-        logger.finest('Checking self IPs');
-        this.tenants.forEach((tenantName) => {
-            const tenant = this.declaration[tenantName] || {};
-            if (tenant.SelfIp) {
-                const selfIpNames = Object.keys(tenant.SelfIp);
-
-                selfIpNames.forEach((selfIpName) => {
-                    const selfIp = tenant.SelfIp[selfIpName];
-                    let vlan;
-
-                    // If the vlan does not start with '/', assume it is in this network
-                    if (selfIp.vlan.startsWith('/')) {
-                        vlan = selfIp.vlan;
-                    } else {
-                        const networkName = getNetworkName(selfIpName);
-                        vlan = `/${tenantName}/${networkName}_${selfIp.vlan}`;
-                    }
-
-                    const selfIpBody = {
-                        vlan,
-                        name: selfIpName,
-                        partition: tenantName,
-                        address: selfIp.address,
-                        floating: selfIp.floating ? 'enabled' : 'disabled',
-                        allowService: [selfIp.allowService]
-                    };
-
-                    promises.push(
-                        this.bigIp.createOrModify('/tm/net/self', selfIpBody)
-                    );
-                });
+            // If the vlan does not start with '/', assume it is in this tenant
+            if (selfIp.vlan.startsWith('/')) {
+                vlan = selfIp.vlan;
+            } else {
+                vlan = `/${tenant}/${selfIp.vlan}`;
             }
+
+            const selfIpBody = {
+                name,
+                vlan,
+                partition: tenant,
+                address: selfIp.address,
+                floating: selfIp.floating ? 'enabled' : 'disabled',
+                allowService: [selfIp.allowService]
+            };
+
+            promises.push(
+                this.bigIp.createOrModify('/tm/net/self', selfIpBody)
+            );
         });
 
         Promise.all(promises)
@@ -166,32 +143,22 @@ function createSelfIps() {
 function createRoutes() {
     return new Promise((resolve, reject) => {
         const promises = [];
-
-        logger.finest('Checking routes');
-        this.tenants.forEach((tenantName) => {
-            const tenant = this.declaration[tenantName] || {};
-            if (tenant.Route) {
-                const routeNames = Object.keys(tenant.Route);
-
-                routeNames.forEach((routeName) => {
-                    const route = tenant.Route[routeName];
-
-                    let network = route.network;
-                    if (network.indexOf('/') === -1) {
-                        network += DEFAULT_CIDR;
-                    }
-
-                    const routeBody = {
-                        network,
-                        name: routeName,
-                        gw: route.gw
-                    };
-
-                    promises.push(
-                        this.bigIp.createOrModify('/tm/net/route', routeBody)
-                    );
-                });
+        forEach(this.declaration, 'Route', (tenant, name, route) => {
+            let network = route.network;
+            if (network.indexOf('/') === -1) {
+                network += DEFAULT_CIDR;
             }
+
+            const routeBody = {
+                name,
+                network,
+                partition: tenant,
+                gw: route.gw
+            };
+
+            promises.push(
+                this.bigIp.createOrModify('/tm/net/route', routeBody)
+            );
         });
 
         Promise.all(promises)
@@ -205,9 +172,25 @@ function createRoutes() {
     });
 }
 
-function getNetworkName(selfIpName) {
-    const index = selfIpName.indexOf('_');
-    return selfIpName.substring(0, index);
+function forEach(declaration, classToFetch, cb) {
+    const tenantNames = Object.keys(declaration);
+    tenantNames.forEach((tenantName) => {
+        const tenant = declaration[tenantName];
+        const classNames = Object.keys(tenant);
+        classNames.forEach((className) => {
+            if (className === classToFetch) {
+                const classObject = tenant[className];
+                if (typeof classObject === 'object') {
+                    const containerNames = Object.keys(classObject);
+                    containerNames.forEach((containerName) => {
+                        cb(tenantName, containerName, classObject[containerName]);
+                    });
+                } else {
+                    cb(tenantName, className, classObject);
+                }
+            }
+        });
+    });
 }
 
 module.exports = NetworkHandler;

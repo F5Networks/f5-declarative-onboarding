@@ -35,12 +35,17 @@
                 "class": {
                     "type": "string",
                     "const": "Tenant"
+                },
+                "hostname": {
+                    "description": "Hostname to set for device.",
+                    "type": "string",
+                    "format": "hostname"
                 }
             },
             "additionalProperties": {
                 "oneOf": [
-                    { "$ref": "system.schema.json" },
-                    { "$ref": "network.schema.json" }
+                    { "$ref": "system.schema.json#" },
+                    { "$ref": "network.schema.json#" }
                 ]
             }
         },
@@ -52,19 +57,16 @@
             "properties": {
                 "class": {
                     "type": "string",
-                    "readOnly": true,
                     "const": "Result"
                 },
                 "code": {
                     "description": "Status code.",
                     "type": "string",
-                    "readOnly": true,
                     "enum": ["OK", "ERROR"]
                 },
                 "message": {
                     "description": "Further detail about the status.",
-                    "type": "string",
-                    "readOnly": true
+                    "type": "string"
                 }
             }
         }
@@ -83,7 +85,7 @@
             }
         },
         "additionalProperties": {
-            "$ref": "network.schema.json"
+            "$ref": "network.schema.json#"
         }
     }
 }

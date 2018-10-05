@@ -4,7 +4,8 @@
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive"
+    "test": "mocha --recursive",
+    "lint": "eslint nodejs test"
   },
   "repository": {
     "type": "git",

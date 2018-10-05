@@ -3,34 +3,8 @@
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/system.schema.json",
     "title": "F5 Declarative Onboarding system declaration",
     "description": "System properties for onboarding a BIG-IP.",
-    "type": "object",
-    "properties": {
-        "class": {
-            "description": "Indicates thiat this property contains system level configuration.",
-            "type": "string",
-            "const": "System"
-        },
-        "hostname": {
-            "description": "Hostname to set for device.",
-            "type": "string",
-            "format": "hostname"
-        }
-    },
-    "additionalProperties": {
-        "oneOf": [
-            { "$ref": "#/definitions/License" },
-            { "$ref": "#/definitions/DNS"},
-            { "$ref": "#/definitions/NTP"},
-            { "$ref": "#/definitions/User"}
-        ]
-    },
-    "propertyNames": {
-        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
-    },
-    "definitions": {
-        "License": {
-            "description": "Licensing information",
-            "type": "object",
+    "oneOf": [
+        {
             "required": ["class", "licenseType"],
             "properties": {
                 "class": {
@@ -46,6 +20,9 @@
             },
             "if": { "properties": { "licenseType": { "const": "regKey" } } },
             "then": {
+                "required": [
+                    "regKey"
+                ],
                 "properties": {
                     "regKey": {
                         "description": "Registration key.",
@@ -69,7 +46,6 @@
                 }
             },
             "else": {
-                "required": ["licensePoolName"],
                 "properties": {
                     "licensePoolName": {
                         "description": "The name of the BIG-IQ license pool from which to get a license",
@@ -78,9 +54,7 @@
                 }
             }
         },
-        "DNS": {
-            "description": "DNS configuration",
-            "type": "object",
+        {
             "required": ["class"],
             "properties": {
                 "class": {
@@ -110,9 +84,7 @@
             },
             "additionalProperties": false
         },
-        "NTP": {
-            "description": "NTP configuration",
-            "type": "object",
+        {
             "required": ["class"],
             "properties": {
                 "class": {
@@ -139,9 +111,7 @@
             },
             "additionalProperties": false
         },
-        "User": {
-            "description": "User configuration",
-            "type": "object",
+        {
             "required": ["class", "userType"],
             "properties": {
                 "class": {
@@ -157,7 +127,7 @@
             },
             "if": { "properties": { "userType": { "const": "root" } } },
             "then": {
-                "required": ["oldPassword", "newPassword"],
+                "required": ["newPassword", "oldPassword"],
                 "properties": {
                     "newPassword": {
                         "description": "Password to set for the root user.",
@@ -216,5 +186,5 @@
                 }
             }
         }
-    }
+    ]
 }

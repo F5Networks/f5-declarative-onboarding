@@ -3,28 +3,8 @@
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/network.schema.json",
     "title": "F5 Declarative Onboarding network declaration",
     "description": "Network properties for onboarding a BIG-IP.",
-    "type": "object",
-    "properties": {
-        "class": {
-            "description": "Indicates thiat this property contains network configuration.",
-            "type": "string",
-            "const": "Network"
-        }
-    },
-    "additionalProperties": {
-        "oneOf": [
-            { "$ref": "#/definitions/VLAN" },
-            { "$ref": "#/definitions/SelfIp" },
-            { "$ref": "#/definitions/Route" }
-        ]
-    },
-    "propertyNames": {
-        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
-    },
-    "definitions": {
-        "VLAN": {
-            "description": "VLAN information",
-            "type": "object",
+    "oneOf": [
+        {
             "required": ["class", "interfaces"],
             "properties": {
                 "class": {
@@ -66,9 +46,7 @@
             },
             "additionalProperties": false
         },
-        "SelfIp": {
-            "description": "Self IP information.",
-            "type": "object",
+        {
             "required": ["class", "address", "vlan"],
             "properties": {
                 "class": {
@@ -103,10 +81,8 @@
             },
             "additionalProperties": false
         },
-        "Route": {
-            "description": "Route information.",
-            "type": "object",
-            "required": ["gw", "network"],
+        {
+            "required": ["class", "gw", "network"],
             "properties": {
                 "class": {
                     "description": "Indicates thiat this property contains Route configuration.",
@@ -129,5 +105,5 @@
             },
             "additionalProperties": false
         }
-    }
+    ]
 }
