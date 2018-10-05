@@ -1,6 +1,6 @@
 {
   "name": "f5-decon",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
   "scripts": {
