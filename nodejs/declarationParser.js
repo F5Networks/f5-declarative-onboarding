@@ -21,12 +21,7 @@ const Logger = require('./logger');
 const logger = new Logger(module);
 
 /**
- * Parses a declaration into a more usable object.
- *
- *    + Splits out components (System, Network, etc)
- *    + Each component is split into tenants
- *    + Spits out sub-components (DNS, License, etc)
- *    + For non-System components reates name properties based on the container names
+ * Parses a declaration into sub-components by class (DNS, License, etc).
  *
  * For example, given the declaration
  *
@@ -55,10 +50,12 @@ const logger = new Logger(module);
  *                 "class": "VLAN",
  *                 "tag": 2345,
  *                 "mtu": 1400,
- *                 "1.1": {
- *                     "class": "Interface",
- *                     "tagged": true
- *                 }
+ *                 "interfaces": [
+ *                     {
+ *                         "name": "1.1",
+ *                         "tagged": true
+ *                     }
+ *                 ]
  *             }
  *         },
  *         "Tenant1": {
@@ -67,10 +64,12 @@ const logger = new Logger(module);
  *                 "class": "VLAN",
  *                 "tag": 1234,
  *                 "mtu": 1500,
- *                 "1.1": {
- *                     "class": "Interface",
- *                     "tagged": true
- *                 }
+ *                 "interfaces": [
+ *                     {
+ *                         "name": "1.0",
+ *                         "tagged": true
+ *                     }
+ *                 ]
  *             },
  *             "app1SelfIp": {
  *                 "class": "SelfIp",
@@ -106,10 +105,12 @@ const logger = new Logger(module);
  *                 "myNetwork_commonVlan": {
  *                     "tag": 2345,
  *                     "mtu": 1400,
- *                     "1.1": {
- *                         "class": "Interface",
- *                         "tagged": true
- *                     }
+ *                     "interfaces": [
+ *                         {
+ *                             "name": "1.1",
+ *                             "tagged": true
+ *                         }
+ *                     ]
  *                 }
  *             }
  *         },
@@ -118,10 +119,12 @@ const logger = new Logger(module);
  *                 "myNetwork_app1Vlan": {
  *                     "tag": 1234,
  *                     "mtu": 1500,
- *                     "1.1": {
- *                         "class": "Interface",
- *                         "tagged": true
- *                     }
+ *                     "interfaces": [
+ *                         {
+ *                             "name": "1.0",
+ *                             "tagged": true
+ *                         }
+ *                     ]
  *                 }
  *             },
  *             "SelfIp": {
