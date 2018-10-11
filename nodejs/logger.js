@@ -46,53 +46,64 @@ class Logger {
     }
 
     silly(message) {
-        log.call(this, 'finest', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'finest', message, Array.prototype.slice.call(arguments, 1));
     }
 
     verbose(message) {
-        log.call(this, 'finer', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'finer', message, Array.prototype.slice.call(arguments, 1));
     }
 
     debug(message) {
-        log.call(this, 'fine', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'fine', message, Array.prototype.slice.call(arguments, 1));
     }
 
     info(message) {
-        log.call(this, 'info', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'info', message, Array.prototype.slice.call(arguments, 1));
     }
 
     warning(message) {
-        log.call(this, 'warning', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'warning', message, Array.prototype.slice.call(arguments, 1));
     }
 
     error(message) {
-        log.call(this, 'severe', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'severe', message, Array.prototype.slice.call(arguments, 1));
     }
 
     finest(message) {
-        log.call(this, 'finest', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'finest', message, Array.prototype.slice.call(arguments, 1));
     }
 
     finer(message) {
-        log.call(this, 'finer', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'finer', message, Array.prototype.slice.call(arguments, 1));
     }
 
     fine(message) {
-        log.call(this, 'fine', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'fine', message, Array.prototype.slice.call(arguments, 1));
     }
 
     warn(message) {
-        log.call(this, 'warning', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'warning', message, Array.prototype.slice.call(arguments, 1));
     }
 
     severe(message) {
-        log.call(this, 'severe', message, Array.prototype.slice.call(arguments, 2));
+        log.call(this, 'severe', message, Array.prototype.slice.call(arguments, 1));
     }
 }
 
 function log(level, message, extraArgs) {
-    let fullMessage = message;
+    let fullMessage;
     let expandedArg;
+
+    if (typeof message === 'object') {
+        try {
+            fullMessage = JSON.stringify(message);
+        } catch (err) {
+            fullMessage = message;
+        }
+    } else {
+        fullMessage = message;
+    }
+
     extraArgs.forEach((extraArg) => {
         if (typeof extraArg === 'object') {
             try {

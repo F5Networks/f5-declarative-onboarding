@@ -103,7 +103,7 @@ class RestWorker {
      * This is called by WOKER_URI/example
      *
      * @public
-     * @returns {Object} An example of a valid declaration.
+     * @returns {object} An example of a valid declaration.
      */
     /* eslint-disable class-methods-use-this */
     getExampleState() {
@@ -126,8 +126,8 @@ class RestWorker {
      * Sends a response for a restOperation
      *
      * @private
-     * @param {Object} restOperation - The restOperation to send the response for
-     * @param {Number} code - The HTTP status code
+     * @param {object} restOperation - The restOperation to send the response for
+     * @param {number} code - The HTTP status code
      */
     sendResponse(restOperation, code) {
         restOperation.setStatusCode(code);
@@ -139,8 +139,8 @@ class RestWorker {
      * Updates the current persisted state
      *
      * @private
-     * @param {String} status - The f5-decon status code
-     * @param {String} message - The user friendly message if there is one. This should
+     * @param {string} status - The f5-decon status code
+     * @param {string} message - The user friendly message if there is one. This should
      *                           be the error message if the code does not indicate success.
      */
     updateState(status, message) {
