@@ -18,6 +18,8 @@
 
 const path = require('path');
 
+const KEYS_TO_MASK = ['password', 'newPassword', 'oldPassword', 'passphrase'];
+
 let logger;
 try {
     /* eslint-disable global-require */
@@ -93,30 +95,49 @@ class Logger {
 function log(level, message, extraArgs) {
     let fullMessage;
     let expandedArg;
+    let masked;
 
-    if (typeof message === 'object') {
+    masked = mask(message);
+    if (typeof masked === 'object') {
         try {
-            fullMessage = JSON.stringify(message);
+            fullMessage = JSON.stringify(masked);
         } catch (err) {
-            fullMessage = message;
+            fullMessage = masked;
         }
     } else {
-        fullMessage = message;
+        fullMessage = masked;
     }
 
     extraArgs.forEach((extraArg) => {
-        if (typeof extraArg === 'object') {
+        masked = mask(extraArg);
+        if (typeof masked === 'object') {
             try {
-                expandedArg = JSON.stringify(extraArg);
+                expandedArg = JSON.stringify(masked);
             } catch (err) {
-                expandedArg = extraArg;
+                expandedArg = masked;
             }
         } else {
-            expandedArg = extraArg;
+            expandedArg = masked;
         }
         fullMessage = `${fullMessage} ${expandedArg}`;
     });
     logger[level](`[${this.tag}: ${this.filename}] ${fullMessage}`);
+}
+
+function mask(message) {
+    let masked;
+    if (typeof message === 'object') {
+        masked = {};
+        Object.assign(masked, message);
+        Object.keys(masked).forEach((key) => {
+            if (KEYS_TO_MASK.indexOf(key) !== -1) {
+                masked[key] = '********';
+            }
+        });
+    } else {
+        masked = message;
+    }
+    return masked;
 }
 
 module.exports = Logger;
