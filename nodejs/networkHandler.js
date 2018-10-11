@@ -172,6 +172,18 @@ function handleRoute() {
     });
 }
 
+/**
+ * Iterates over the tenants in a parsed declaration
+ *
+ * At this point, Declarative Onboarding only supports the Common partition, but this
+ * is written to handle other partitions if they should enter the schema.
+ *
+ * @param {Object} declaration - The parsed declaration
+ * @param {Strint} classToFetch - The name of the class (DNS, VLAN, etc)
+ * @param {function} cb - Function to execute for each object. Will be called with 3 parameters
+ *                        tenant, name, object declaration. Object declaration is the declaration
+ *                        for just the object in question, not the whole declaration
+ */
 function forEach(declaration, classToFetch, cb) {
     const tenantNames = Object.keys(declaration);
     tenantNames.forEach((tenantName) => {

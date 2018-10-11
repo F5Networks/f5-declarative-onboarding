@@ -72,26 +72,5 @@
             "gw": "10.1.20.1",
             "network": "0.0.0.0/0"
         }
-    },
-    "MyTenant": {
-        "class": "Tenant",
-        "myVlan": {
-            "class": "VLAN",
-            "tag": 2345,
-            "mtu": 1500,
-            "interfaces": [
-                {
-                    "name": "1.0",
-                    "tagged": true
-                }
-            ]
-        },
-        "mySelfIp": {
-            "class": "SelfIp",
-            "address": "5.6.7.8/24",
-            "vlan": "myVlan",
-            "allowService": "tcp:80",
-            "floating": true
-        }
     }
 }

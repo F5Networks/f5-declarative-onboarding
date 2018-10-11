@@ -71,21 +71,5 @@
             }
         }
     },
-    "additionalProperties": {
-        "description": "Configuration for tenants besides Common",
-        "type": "object",
-        "required": ["class"],
-        "propertyNames": {
-            "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
-        },
-        "properties": {
-            "class": {
-                "type": "string",
-                "const": "Tenant"
-            }
-        },
-        "additionalProperties": {
-            "$ref": "network.schema.json#"
-        }
-    }
+    "additionalProperties": false
 }
