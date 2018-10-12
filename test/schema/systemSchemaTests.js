@@ -189,6 +189,45 @@ describe('system.schema.json tests', () => {
         });
     });
 
+    describe('Provision', () => {
+        describe('valid', () => {
+            it('should validate provisioning data', () => {
+                const data = {
+                    "class": "Provision",
+                    "ltm": "nominal",
+                    "afm": "none"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate bad module names', () => {
+                const data = {
+                    "class": "Provision",
+                    "foo": "none"
+                };
+                assert.strictEqual(validate(data), false, 'bad module names should not be valid');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should be equal to one of the allowed values'),
+                    -1
+                );
+            });
+
+            it('should invalidate bad level names', () => {
+                const data = {
+                    "class": "Provision",
+                    "ltm": "foo"
+                };
+                assert.strictEqual(validate(data), false, 'bad module names should not be valid');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should be equal to one of the allowed values'),
+                    -1
+                );
+            });
+        });
+    });
+
     describe('User', () => {
         describe('valid', () => {
             it('should validate password data for non-root users', () => {

@@ -58,6 +58,41 @@
             "required": ["class"],
             "properties": {
                 "class": {
+                    "description": "Indicates thiat this property contains module provisioning configuration.",
+                    "type": "string",
+                    "const": "Provision"
+                }
+            },
+            "propertyNames": {
+                "description": "The module to provision.",
+                "enum": [
+                    "class",
+                    "afm",
+                    "am",
+                    "apm",
+                    "asm",
+                    "avr",
+                    "dos",
+                    "fps",
+                    "gtm",
+                    "ilx",
+                    "lc",
+                    "ltm",
+                    "pem",
+                    "swg",
+                    "urldb"
+                ]
+            },
+            "additionalProperties": {
+                "description": "The level at which to provision the module.",
+                "type": "string",
+                "enum": ["dedicated", "nominal", "minimum", "none"]
+            }
+        },
+        {
+            "required": ["class"],
+            "properties": {
+                "class": {
                     "description": "Indicates thiat this property contains DNS configuration.",
                     "type": "string",
                     "const": "DNS"
