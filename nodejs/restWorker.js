@@ -75,7 +75,7 @@ class RestWorker {
     onPost(restOperation) {
         const declaration = Object.assign({}, restOperation.getBody());
         const validation = this.validator.validate(declaration);
-        this.state = declaration;
+        this.state = DeclarationHandler.getMasked(declaration);
 
         if (!validation.isValid) {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;

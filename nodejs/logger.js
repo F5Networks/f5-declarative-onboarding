@@ -17,8 +17,7 @@
 'use strict';
 
 const path = require('path');
-
-const KEYS_TO_MASK = ['password', 'newPassword', 'oldPassword', 'passphrase'];
+const KEYS_TO_MASK = require('./sharedConstants').KEYS_TO_MASK;
 
 let logger;
 try {
@@ -129,8 +128,8 @@ function mask(message) {
     if (typeof message === 'object') {
         masked = {};
         Object.assign(masked, message);
-        Object.keys(masked).forEach((key) => {
-            if (KEYS_TO_MASK.indexOf(key) !== -1) {
+        KEYS_TO_MASK.forEach((key) => {
+            if (masked[key]) {
                 masked[key] = '********';
             }
         });

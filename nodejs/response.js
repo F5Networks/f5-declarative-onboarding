@@ -16,12 +16,21 @@
 
 'use strict';
 
+const assert = require('assert');
+const declarationHandler = require('./declarationHandler');
+
 class Response {
     static getResponseBody(state) {
-        const body = Object.assign({}, state);
-        const code = body.status.code;
-        const message = body.status.message;
+        assert.strictEqual(typeof state.status, 'object', 'No status found in state');
+
+        let body = Object.assign({}, state);
+        const code = body.status ? body.status.code : 500;
+        const message = body.status ? body.status.message : 'No status in response';
         delete body.status;
+
+        // the current state should already be masked, but just to be sure nothing
+        // sneaks in...
+        body = declarationHandler.getMasked(body);
 
         return {
             result: {
@@ -29,9 +38,7 @@ class Response {
                 message,
                 class: 'Result'
             },
-            declaration: {
-                body
-            }
+            declaration: body
         };
     }
 }
