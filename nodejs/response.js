@@ -24,7 +24,7 @@ class Response {
         assert.strictEqual(typeof state.status, 'object', 'No status found in state');
 
         let body = Object.assign({}, state);
-        const code = body.status ? body.status.code : 500;
+        const code = body.status ? body.status.code : '';
         const message = body.status ? body.status.message : 'No status in response';
         delete body.status;
 
@@ -38,7 +38,7 @@ class Response {
                 message,
                 class: 'Result'
             },
-            declaration: body
+            declaration: body.declaration
         };
     }
 }

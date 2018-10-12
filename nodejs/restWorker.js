@@ -20,12 +20,14 @@ const fs = require('fs');
 const Logger = require('./logger');
 const Validator = require('./validator');
 const DeclarationHandler = require('./declarationHandler');
+const State = require('./state');
 const response = require('./response');
 
 const logger = new Logger(module);
 
 const STATUS_OK = 'OK';
 const STATUS_ERROR = 'ERROR';
+const STATUS_RUNNING = 'RUNNING';
 
 class RestWorker {
     constructor() {
@@ -75,23 +77,24 @@ class RestWorker {
     onPost(restOperation) {
         const declaration = Object.assign({}, restOperation.getBody());
         const validation = this.validator.validate(declaration);
-        this.state = DeclarationHandler.getMasked(declaration);
+        this.state = new State(declaration);
 
         if (!validation.isValid) {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
-            this.updateState(STATUS_ERROR, message);
+            this.state.updateState(STATUS_ERROR, message);
             logger.info(message);
             this.sendResponse(restOperation, 400);
         } else {
+            this.state.updateState(STATUS_RUNNING);
             const declarationHandler = new DeclarationHandler(declaration);
             declarationHandler.process()
                 .then(() => {
                     logger.debug('Declaration processing complete');
-                    this.updateState(STATUS_OK);
+                    this.state.updateState(STATUS_OK);
                     this.sendResponse(restOperation, 200);
                 })
                 .catch((err) => {
-                    this.updateState(STATUS_ERROR, err.message);
+                    this.state.updateState(STATUS_ERROR, err.message);
                     this.sendResponse(restOperation, 500);
                 });
         }
@@ -133,21 +136,6 @@ class RestWorker {
         restOperation.setStatusCode(code);
         restOperation.setBody(response.getResponseBody(this.state));
         this.completeRestOperation(restOperation);
-    }
-
-    /**
-     * Updates the current persisted state
-     *
-     * @private
-     * @param {string} status - The f5-decon status code
-     * @param {string} message - The user friendly message if there is one. This should
-     *                           be the error message if the code does not indicate success.
-     */
-    updateState(status, message) {
-        this.state.status = {
-            message,
-            code: status
-        };
     }
 }
 
