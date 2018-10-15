@@ -22,5 +22,10 @@
  * @module
  */
 module.exports = {
-    KEYS_TO_MASK: ['password', 'newPassword', 'oldPassword', 'passphrase']
+    KEYS_TO_MASK: ['password', 'newPassword', 'oldPassword', 'passphrase'],
+    STATUS: {
+        STATUS_OK: 'OK',
+        STATUS_ERROR: 'ERROR',
+        STATUS_RUNNING: 'RUNNING'
+    }
 };

@@ -21,13 +21,9 @@ const Logger = require('./logger');
 const Validator = require('./validator');
 const DeclarationHandler = require('./declarationHandler');
 const State = require('./state');
-const response = require('./response');
+const sharedConstants = require('./sharedConstants');
 
 const logger = new Logger(module);
-
-const STATUS_OK = 'OK';
-const STATUS_ERROR = 'ERROR';
-const STATUS_RUNNING = 'RUNNING';
 
 class RestWorker {
     constructor() {
@@ -39,19 +35,43 @@ class RestWorker {
      * Called by LX framework when rest worker is initialized.
      *
      * @public
-     * @param {function} success - callback to indicate successful startup
-     * @param {function} error - callback to indicate startup failure
+     * @param {function} success - Callback to indicate successful startup
+     * @param {function} error - Callback to indicate startup failure
      * @returns {undefined}
      */
     onStart(success, error) {
         try {
-            this.state = {};
             this.validator = new Validator();
             logger.info('Created Declarative onboarding worker');
             success();
         } catch (err) {
-            logger.severe('Error creating declarative onboarding worker', err);
-            error();
+            const message = `Error creating declarative onboarding worker: ${err}`;
+            logger.severe(message);
+            error(message);
+        }
+    }
+
+    /**
+     *
+     * @param {function} success - Callback to indicate successful startup completed.
+     * @param {*} error - Callback to indicate startup completed failure.
+     * @param {*} state - State loaded from rest storage.
+     * @param {*} errorMsg - Error message from upstream.
+     */
+    onStartCompleted(success, error, state, errorMsg) {
+        if (errorMsg) {
+            const message = `error loading state on start: ${errorMsg}`;
+            error(message);
+            return;
+        }
+
+        try {
+            this.state = new State(state);
+            success();
+        } catch (err) {
+            const message = `error creating state: ${err.message}`;
+            logger.severe(message);
+            error(message);
         }
     }
 
@@ -63,8 +83,16 @@ class RestWorker {
      * @returns {void}
      */
     onGet(restOperation) {
-        restOperation.setBody(this.state);
-        this.sendResponse(restOperation);
+        this.loadState(null, (err, state) => {
+            if (err) {
+                this.logger.warning('error loading state: %s', err.message);
+                restOperation.fail(err);
+                return;
+            }
+            this.state = new State(state);
+            restOperation.setBody(this.state);
+            this.sendResponse(restOperation);
+        });
     }
 
     /**
@@ -81,21 +109,24 @@ class RestWorker {
 
         if (!validation.isValid) {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
-            this.state.updateState(STATUS_ERROR, message);
             logger.info(message);
-            this.sendResponse(restOperation, 400);
+            this.state.updateResult(400, sharedConstants.STATUS.STATUS_ERROR, message);
+            this.sendResponse(restOperation);
         } else {
-            this.state.updateState(STATUS_RUNNING);
+            this.state.updateResult(202, sharedConstants.STATUS.STATUS_RUNNING);
             const declarationHandler = new DeclarationHandler(declaration);
             declarationHandler.process()
                 .then(() => {
                     logger.debug('Declaration processing complete');
-                    this.state.updateState(STATUS_OK);
-                    this.sendResponse(restOperation, 200);
+                    this.state.updateResult(200, sharedConstants.STATUS.STATUS_OK);
+                    this.save();
+                })
+                .then(() => {
+                    this.sendResponse(restOperation);
                 })
                 .catch((err) => {
-                    this.state.updateState(STATUS_ERROR, err.message);
-                    this.sendResponse(restOperation, 500);
+                    this.state.updateResult(500, sharedConstants.STATUS.STATUS_ERROR, err.message);
+                    this.sendResponse(restOperation);
                 });
         }
     }
@@ -125,6 +156,18 @@ class RestWorker {
     }
     /* eslint-enable class-methods-use-this */
 
+    save() {
+        return new Promise((resolve, reject) => {
+            this.saveState(null, this.state, (err) => {
+                if (err) {
+                    logger.warning(`Error saving state: ${err}`);
+                    reject();
+                }
+                resolve();
+            });
+        });
+    }
+
     /**
      * Sends a response for a restOperation
      *
@@ -132,9 +175,9 @@ class RestWorker {
      * @param {object} restOperation - The restOperation to send the response for
      * @param {number} code - The HTTP status code
      */
-    sendResponse(restOperation, code) {
-        restOperation.setStatusCode(code);
-        restOperation.setBody(response.getResponseBody(this.state));
+    sendResponse(restOperation) {
+        restOperation.setStatusCode(this.state.getCode());
+        restOperation.setBody(this.state);
         this.completeRestOperation(restOperation);
     }
 }

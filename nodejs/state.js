@@ -19,24 +19,42 @@
 const KEYS_TO_MASK = require('./sharedConstants').KEYS_TO_MASK;
 
 class State {
-    constructor(declaration) {
-        this.status = {};
-        this.declaration = mask(declaration);
+    constructor(declarationOrState) {
+        if (declarationOrState && declarationOrState.result) {
+            // If we were passed a state object, just copy
+            this.result = {};
+            this.declaration = {};
+            Object.assign(this.result, declarationOrState.result);
+            Object.assign(this.declaration, declarationOrState.declaration);
+        } else {
+            // otherwise, create a new state
+            this.result = {
+                class: 'Result'
+            };
+            this.declaration = mask(declarationOrState);
+        }
     }
 
     /**
-     * Updates the status
+     * Gets the current result code
+     */
+    getCode() {
+        return this.result.code;
+    }
+
+    /**
+     * Updates the result
      *
      * @private
-     * @param {string} status - The f5-decon status code
+     * @param {number} code - The f5-decon result code
+     * @param {string} status - The f5-decon status string from sharedConstants.STATUS.
      * @param {string} message - The user friendly message if there is one. This should
      *                           be the error message if the code does not indicate success.
-     */
-    updateStatus(status, message) {
-        this.status = {
-            message,
-            code: status
-        };
+    code,  */
+    updateResult(code, status, message) {
+        this.result.code = code;
+        this.result.status = status;
+        this.result.message = message;
     }
 }
 
