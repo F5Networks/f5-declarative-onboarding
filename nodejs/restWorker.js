@@ -111,7 +111,10 @@ class RestWorker {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
             logger.info(message);
             this.state.updateResult(400, sharedConstants.STATUS.STATUS_ERROR, message);
-            this.sendResponse(restOperation);
+            this.save()
+                .then(() => {
+                    this.sendResponse(restOperation);
+                });
         } else {
             this.state.updateResult(202, sharedConstants.STATUS.STATUS_RUNNING);
             this.save();
