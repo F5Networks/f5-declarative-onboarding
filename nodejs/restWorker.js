@@ -114,19 +114,28 @@ class RestWorker {
             this.sendResponse(restOperation);
         } else {
             this.state.updateResult(202, sharedConstants.STATUS.STATUS_RUNNING);
+            this.save();
+
             const declarationHandler = new DeclarationHandler(declaration);
+
+            if (declaration.async) {
+                this.sendResponse(restOperation);
+            }
+
             declarationHandler.process()
                 .then(() => {
                     logger.debug('Declaration processing complete');
                     this.state.updateResult(200, sharedConstants.STATUS.STATUS_OK);
-                    this.save();
-                })
-                .then(() => {
-                    this.sendResponse(restOperation);
+                    return this.save();
                 })
                 .catch((err) => {
                     this.state.updateResult(500, sharedConstants.STATUS.STATUS_ERROR, err.message);
-                    this.sendResponse(restOperation);
+                    return this.save();
+                })
+                .finally(() => {
+                    if (!declaration.async) {
+                        this.sendResponse(restOperation);
+                    }
                 });
         }
     }

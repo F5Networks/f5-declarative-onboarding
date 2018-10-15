@@ -32,6 +32,7 @@ class DeclarationHandler {
     }
 
     process() {
+        logger.fine('Processing declaration');
         try {
             const declarationParser = new DeclarationParser(this.declaration);
             const declarationInfo = declarationParser.parse();
@@ -67,7 +68,7 @@ class DeclarationHandler {
                     return Promise.reject(err);
                 });
         } catch (err) {
-            logger.warning(`Error parsing declaration: ${err.message}`);
+            logger.warning(`Error processing declaration: ${err.message}`);
             return Promise.reject(err);
         }
     }
