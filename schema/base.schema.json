@@ -20,6 +20,11 @@
             "type": "string",
             "const": "Device"
         },
+        "async": {
+            "description": "Tells the API to return a 202 HTTP status before processing is complete. User must then poll for status.",
+            "type": "boolean",
+            "default": false
+        },
         "label": {
             "description": "Optional friendly name for this declaration",
             "type": "string"

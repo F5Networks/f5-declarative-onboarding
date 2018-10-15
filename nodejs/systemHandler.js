@@ -51,6 +51,10 @@ class SystemHandler {
                 return handleLicense.call(this);
             })
             .then(() => {
+                logger.info('Checking Provision');
+                return handleProvision.call(this);
+            })
+            .then(() => {
                 logger.fine('Done processing system declaration');
                 return Promise.resolve();
             })
@@ -147,6 +151,15 @@ function handleLicense() {
                 }
             );
         }
+    }
+    return Promise.resolve();
+}
+
+function handleProvision() {
+    if (this.declaration.Common.Provision) {
+        const provisionContainer = Object.keys(this.declaration.Common.Provision)[0];
+        const provision = this.declaration.Common.Provision[provisionContainer];
+        return this.bigIp.onboard.provision(provision);
     }
     return Promise.resolve();
 }

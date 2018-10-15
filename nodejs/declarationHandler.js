@@ -24,8 +24,6 @@ const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
 const TenantHandler = require('./tenantHandler');
 
-const KEYS_TO_MASK = require('./sharedConstants').KEYS_TO_MASK;
-
 const logger = new Logger(module);
 
 class DeclarationHandler {
@@ -34,6 +32,7 @@ class DeclarationHandler {
     }
 
     process() {
+        logger.fine('Processing declaration');
         try {
             const declarationParser = new DeclarationParser(this.declaration);
             const declarationInfo = declarationParser.parse();
@@ -69,24 +68,9 @@ class DeclarationHandler {
                     return Promise.reject(err);
                 });
         } catch (err) {
-            logger.warning(`Error parsing declaration: ${err.message}`);
+            logger.warning(`Error processing declaration: ${err.message}`);
             return Promise.reject(err);
         }
-    }
-
-    static getMasked(declaration) {
-        const masked = {};
-        Object.assign(masked, declaration);
-
-        Object.keys(masked).forEach((key) => {
-            if (typeof masked[key] === 'object') {
-                masked[key] = DeclarationHandler.getMasked(masked[key]);
-            } else if (KEYS_TO_MASK.indexOf(key) !== -1) {
-                delete masked[key];
-            }
-        });
-
-        return masked;
     }
 }
 

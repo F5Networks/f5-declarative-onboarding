@@ -49,6 +49,10 @@
                 }
             }
         },
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal"
+        },
         "myVlan": {
             "class": "VLAN",
             "tag": 1234,

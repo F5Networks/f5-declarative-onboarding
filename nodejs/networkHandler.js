@@ -16,6 +16,7 @@
 
 'use strict';
 
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 
 const logger = new Logger(module);
@@ -87,7 +88,7 @@ function handleVlan() {
             }
 
             promises.push(
-                this.bigIp.createOrModify('/tm/net/vlan', vlanBody)
+                this.bigIp.createOrModify('/tm/net/vlan', vlanBody, null, cloudUtil.NO_RETRY)
             );
         });
 
@@ -125,7 +126,7 @@ function handleSelfIp() {
             };
 
             promises.push(
-                this.bigIp.createOrModify('/tm/net/self', selfIpBody)
+                this.bigIp.createOrModify('/tm/net/self', selfIpBody, null, cloudUtil.NO_RETRY)
             );
         });
 
@@ -157,7 +158,7 @@ function handleRoute() {
             };
 
             promises.push(
-                this.bigIp.createOrModify('/tm/net/route', routeBody)
+                this.bigIp.createOrModify('/tm/net/route', routeBody, null, cloudUtil.NO_RETRY)
             );
         });
 
