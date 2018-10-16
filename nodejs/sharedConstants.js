@@ -26,6 +26,7 @@ module.exports = {
     STATUS: {
         STATUS_OK: 'OK',
         STATUS_ERROR: 'ERROR',
-        STATUS_RUNNING: 'RUNNING'
+        STATUS_RUNNING: 'RUNNING',
+        STATUS_REBOOTING: 'REBOOTING'
     }
 };

@@ -17,7 +17,6 @@
 'use strict';
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
-const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const DeclarationParser = require('./declarationParser');
 const Logger = require('./logger');
 const SystemHandler = require('./systemHandler');
@@ -27,22 +26,22 @@ const TenantHandler = require('./tenantHandler');
 const logger = new Logger(module);
 
 class DeclarationHandler {
-    constructor(declaration) {
+    constructor(declaration, bigIp) {
         this.declaration = declaration;
+        this.bigIp = bigIp;
     }
 
     process() {
-        logger.fine('Processing declaration');
+        logger.fine('Processing declaration.');
         try {
             const declarationParser = new DeclarationParser(this.declaration);
             const declarationInfo = declarationParser.parse();
 
-            const bigIp = new BigIp({ logger });
             return cloudUtil.runTmshCommand('list sys httpd ssl-port')
                 .then((response) => {
                     const regex = /(\s+ssl-port\s+)(\S+)\s+/;
                     const port = regex.exec(response)[2];
-                    return bigIp.init(
+                    return this.bigIp.init(
                         'localhost',
                         'admin',
                         'admin',
@@ -53,16 +52,16 @@ class DeclarationHandler {
                     );
                 })
                 .then(() => {
-                    return bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
+                    return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
                 })
                 .then(() => {
-                    return new TenantHandler(declarationInfo, bigIp).process();
+                    return new TenantHandler(declarationInfo, this.bigIp).process();
                 })
                 .then(() => {
-                    return new SystemHandler(declarationInfo, bigIp).process();
+                    return new SystemHandler(declarationInfo, this.bigIp).process();
                 })
                 .then(() => {
-                    return new NetworkHandler(declarationInfo, bigIp).process();
+                    return new NetworkHandler(declarationInfo, this.bigIp).process();
                 })
                 .catch((err) => {
                     return Promise.reject(err);

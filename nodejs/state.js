@@ -38,8 +38,15 @@ class State {
     /**
      * Gets the current result code
      */
-    getCode() {
+    get code() {
         return this.result.code;
+    }
+
+    /**
+     * Gets the current status string
+     */
+    get status() {
+        return this.result.status;
     }
 
     /**

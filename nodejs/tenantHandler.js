@@ -29,7 +29,7 @@ class TenantHandler {
     }
 
     process() {
-        logger.info('Processing tenants');
+        logger.info('Processing tenants.');
 
         return this.bigIp.list(PARTITION_PATH)
             .then((partitions) => {
@@ -56,7 +56,7 @@ class TenantHandler {
                 return Promise.all(promises);
             })
             .then(() => {
-                logger.fine('Done creating tenants');
+                logger.fine('Done creating tenants.');
                 return Promise.resolve();
             })
             .catch((err) => {

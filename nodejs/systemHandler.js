@@ -35,27 +35,27 @@ class SystemHandler {
 
         return handleNTP.call(this)
             .then(() => {
-                logger.fine('Checking DNS');
+                logger.fine('Checking DNS.');
                 return handleDNS.call(this);
             })
             .then(() => {
-                logger.fine('Checking hostname');
+                logger.fine('Checking hostname.');
                 return handleHostname.call(this);
             })
             .then(() => {
-                logger.fine('Checking Users');
+                logger.fine('Checking Users.');
                 return handleUser.call(this);
             })
             .then(() => {
-                logger.fine('Checking License');
+                logger.fine('Checking License.');
                 return handleLicense.call(this);
             })
             .then(() => {
-                logger.info('Checking Provision');
+                logger.info('Checking Provision.');
                 return handleProvision.call(this);
             })
             .then(() => {
-                logger.fine('Done processing system declaration');
+                logger.fine('Done processing system declaration.');
                 return Promise.resolve();
             })
             .catch((err) => {

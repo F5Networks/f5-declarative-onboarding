@@ -17,11 +17,13 @@
 'use strict';
 
 const fs = require('fs');
+const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 const Validator = require('./validator');
 const DeclarationHandler = require('./declarationHandler');
 const State = require('./state');
-const sharedConstants = require('./sharedConstants');
+const STATUS = require('./sharedConstants').STATUS;
 
 const logger = new Logger(module);
 
@@ -55,10 +57,10 @@ class RestWorker {
      *
      * @param {function} success - Callback to indicate successful startup completed.
      * @param {*} error - Callback to indicate startup completed failure.
-     * @param {*} state - State loaded from rest storage.
+     * @param {*} nullState - State loaded from rest storage. Except it is null.
      * @param {*} errorMsg - Error message from upstream.
      */
-    onStartCompleted(success, error, state, errorMsg) {
+    onStartCompleted(success, error, nullState, errorMsg) {
         if (errorMsg) {
             const message = `error loading state on start: ${errorMsg}`;
             error(message);
@@ -66,8 +68,34 @@ class RestWorker {
         }
 
         try {
-            this.state = new State(state);
-            success();
+            // The framework is supposed to pass in our state, but does not.
+            this.loadState(null, (err, state) => {
+                if (err) {
+                    const message = `error loading state: ${err.message}`;
+                    this.logger.warning(message);
+                    error(message);
+                    return;
+                }
+
+                this.state = new State(state);
+
+                if (this.state.status === STATUS.STATUS_REBOOTING) {
+                    // If we were rebooting and are now in this function, all should be well
+                    this.state.updateResult(200, STATUS.STATUS_OK);
+                    this.save()
+                        .then(() => {
+                            logger.fine('Reboot complete.');
+                            success();
+                        })
+                        .catch((saveErr) => {
+                            const message = `error saving state after reboot: ${saveErr.message}`;
+                            logger.severe(message);
+                            error(message);
+                        });
+                } else {
+                    success();
+                }
+            });
         } catch (err) {
             const message = `error creating state: ${err.message}`;
             logger.severe(message);
@@ -85,7 +113,7 @@ class RestWorker {
     onGet(restOperation) {
         this.loadState(null, (err, state) => {
             if (err) {
-                this.logger.warning('error loading state: %s', err.message);
+                this.logger.warning(`error loading state: ${err.message}`);
                 restOperation.fail(err);
                 return;
             }
@@ -107,19 +135,22 @@ class RestWorker {
         const validation = this.validator.validate(declaration);
         this.state = new State(declaration);
 
+        let rebootRequired = false;
+
         if (!validation.isValid) {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
             logger.info(message);
-            this.state.updateResult(400, sharedConstants.STATUS.STATUS_ERROR, message);
+            this.state.updateResult(400, STATUS.STATUS_ERROR, message);
             this.save()
                 .then(() => {
                     this.sendResponse(restOperation);
                 });
         } else {
-            this.state.updateResult(202, sharedConstants.STATUS.STATUS_RUNNING);
+            this.state.updateResult(202, STATUS.STATUS_RUNNING);
             this.save();
 
-            const declarationHandler = new DeclarationHandler(declaration);
+            const bigIp = new BigIp({ logger });
+            const declarationHandler = new DeclarationHandler(declaration, bigIp);
 
             if (declaration.async) {
                 this.sendResponse(restOperation);
@@ -127,17 +158,29 @@ class RestWorker {
 
             declarationHandler.process()
                 .then(() => {
-                    logger.debug('Declaration processing complete');
-                    this.state.updateResult(200, sharedConstants.STATUS.STATUS_OK);
+                    return bigIp.rebootRequired();
+                })
+                .then((needsReboot) => {
+                    rebootRequired = needsReboot;
+                    if (!rebootRequired) {
+                        logger.debug('Declaration processing complete.');
+                        this.state.updateResult(200, STATUS.STATUS_OK);
+                    } else {
+                        logger.debug('Declaration processing complete. Rebooting.');
+                        this.state.updateResult(200, STATUS.STATUS_REBOOTING);
+                    }
                     return this.save();
                 })
                 .catch((err) => {
-                    this.state.updateResult(500, sharedConstants.STATUS.STATUS_ERROR, err.message);
+                    this.state.updateResult(500, STATUS.STATUS_ERROR, err.message);
                     return this.save();
                 })
                 .finally(() => {
                     if (!declaration.async) {
                         this.sendResponse(restOperation);
+                    }
+                    if (rebootRequired) {
+                        bigIp.reboot();
                     }
                 });
         }
@@ -169,14 +212,30 @@ class RestWorker {
     /* eslint-enable class-methods-use-this */
 
     save() {
-        return new Promise((resolve, reject) => {
-            this.saveState(null, this.state, (err) => {
-                if (err) {
-                    logger.warning(`Error saving state: ${err}`);
-                    reject();
-                }
-                resolve();
+        function retryFunc() {
+            return new Promise((resolve, reject) => {
+                this.saveState(null, this.state, (err) => {
+                    if (err) {
+                        reject();
+                    }
+                    resolve();
+                });
             });
+        }
+
+        return new Promise((resolve, reject) => {
+            const retryOptions = {};
+            Object.assign(retryOptions, cloudUtil.QUICK_BUT_LONG_RETRY);
+            retryOptions.continueOnError = true;
+
+            cloudUtil.tryUntil(this, retryOptions, retryFunc)
+                .then(() => {
+                    resolve();
+                })
+                .catch((err) => {
+                    logger.warning(`Error saving state: ${err}`);
+                    reject(err);
+                });
         });
     }
 
@@ -188,7 +247,7 @@ class RestWorker {
      * @param {number} code - The HTTP status code
      */
     sendResponse(restOperation) {
-        restOperation.setStatusCode(this.state.getCode());
+        restOperation.setStatusCode(this.state.code);
         restOperation.setBody(this.state);
         this.completeRestOperation(restOperation);
     }
