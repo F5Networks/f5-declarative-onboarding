@@ -33,48 +33,43 @@ class DeclarationHandler {
 
     process() {
         logger.fine('Processing declaration.');
-        try {
-            const declarationParser = new DeclarationParser(this.declaration);
-            const declarationInfo = declarationParser.parse();
+        const declarationParser = new DeclarationParser(this.declaration);
+        const declarationInfo = declarationParser.parse();
 
-            return cloudUtil.runTmshCommand('list sys httpd ssl-port')
-                .then((response) => {
-                    const regex = /(\s+ssl-port\s+)(\S+)\s+/;
-                    const port = regex.exec(response)[2];
-                    return this.bigIp.init(
-                        'localhost',
-                        'admin',
-                        'admin',
-                        {
-                            port,
-                            product: 'BIG-IP'
-                        }
-                    );
-                })
-                .then(() => {
-                    return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
-                })
-                .then(() => {
-                    return new TenantHandler(declarationInfo, this.bigIp).process();
-                })
-                .then(() => {
-                    return new SystemHandler(declarationInfo, this.bigIp).process();
-                })
-                .then(() => {
-                    return new NetworkHandler(declarationInfo, this.bigIp).process();
-                })
-                .then(() => {
-                    logger.info('Done processing declartion.');
-                    return Promise.resolve();
-                })
-                .catch((err) => {
-                    logger.severe(`Error processing declaration: ${err.message}`);
-                    return Promise.reject(err);
-                });
-        } catch (err) {
-            logger.warning(`Error processing declaration: ${err.message}`);
-            return Promise.reject(err);
-        }
+        return cloudUtil.runTmshCommand('list sys httpd ssl-port')
+            .then((response) => {
+                const regex = /(\s+ssl-port\s+)(\S+)\s+/;
+                const port = regex.exec(response)[2];
+                return this.bigIp.init(
+                    'localhost',
+                    'admin',
+                    'admin',
+                    {
+                        port,
+                        product: 'BIG-IP'
+                    }
+                );
+            })
+            .then(() => {
+                return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
+            })
+            .then(() => {
+                return new TenantHandler(declarationInfo, this.bigIp).process();
+            })
+            .then(() => {
+                return new SystemHandler(declarationInfo, this.bigIp).process();
+            })
+            .then(() => {
+                return new NetworkHandler(declarationInfo, this.bigIp).process();
+            })
+            .then(() => {
+                logger.info('Done processing declartion.');
+                return Promise.resolve();
+            })
+            .catch((err) => {
+                logger.severe(`Error processing declaration: ${err.message}`);
+                return Promise.reject(err);
+            });
     }
 }
 

@@ -175,7 +175,9 @@ class RestWorker {
                     return this.save();
                 })
                 .catch((err) => {
-                    this.state.updateResult(500, STATUS.STATUS_ERROR, err.message);
+                    logger.severe(`Error onboarding: ${err.message}`);
+                    const deconCode = err.code === 400 ? 422 : 500;
+                    this.state.updateResult(deconCode, STATUS.STATUS_ERROR, err.message);
                     return this.save();
                 })
                 .finally(() => {
@@ -252,8 +254,21 @@ class RestWorker {
      */
     sendResponse(restOperation) {
         restOperation.setStatusCode(this.state.code);
-        restOperation.setBody(this.state);
-        this.completeRestOperation(restOperation);
+        if (this.state.code < 300) {
+            restOperation.setBody(this.state);
+        } else {
+            // When the status code is an error, the rest framework sets
+            // up the response differently. Fix that by overwriting here.
+            restOperation.setBody(
+                {
+                    code: this.state.code,
+                    status: this.state.status,
+                    message: this.state.message,
+                    declaration: this.state.declaration
+                }
+            );
+        }
+        restOperation.complete();
     }
 }
 

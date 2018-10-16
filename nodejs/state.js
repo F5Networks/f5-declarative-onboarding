@@ -50,6 +50,13 @@ class State {
     }
 
     /**
+     * Gets the current result message
+     */
+    get message() {
+        return this.result.message;
+    }
+
+    /**
      * Updates the result
      *
      * @private
