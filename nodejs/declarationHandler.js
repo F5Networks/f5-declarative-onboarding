@@ -63,7 +63,12 @@ class DeclarationHandler {
                 .then(() => {
                     return new NetworkHandler(declarationInfo, this.bigIp).process();
                 })
+                .then(() => {
+                    logger.info('Done processing declartion.');
+                    return Promise.resolve();
+                })
                 .catch((err) => {
+                    logger.severe(`Error processing declaration: ${err.message}`);
                     return Promise.reject(err);
                 });
         } catch (err) {

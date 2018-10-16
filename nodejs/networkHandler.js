@@ -22,11 +22,6 @@ const Logger = require('./logger');
 const logger = new Logger(module);
 const DEFAULT_CIDR = '/24';
 
-const retryOptions = {};
-Object.assign(retryOptions, cloudUtil.MEDIUM_RETRY);
-retryOptions.continueOnError = true;
-
-
 class NetworkHandler {
     constructor(declarationInfo, bigIp) {
         this.declaration = declarationInfo.parsedDeclaration;
@@ -34,7 +29,7 @@ class NetworkHandler {
     }
 
     process() {
-        logger.fine('Proessing network components.');
+        logger.fine('Proessing network declaration.');
         logger.fine('Checking VLANs.');
         return handleVlan.call(this)
             .then(() => {
@@ -93,7 +88,7 @@ function handleVlan() {
             }
 
             promises.push(
-                this.bigIp.createOrModify('/tm/net/vlan', vlanBody, null, retryOptions)
+                this.bigIp.createOrModify('/tm/net/vlan', vlanBody, null, cloudUtil.MEDIUM_RETRY)
             );
         });
 
@@ -131,7 +126,7 @@ function handleSelfIp() {
             };
 
             promises.push(
-                this.bigIp.createOrModify('/tm/net/self', selfIpBody, null, retryOptions)
+                this.bigIp.createOrModify('/tm/net/self', selfIpBody, null, cloudUtil.MEDIUM_RETRY)
             );
         });
 
@@ -163,7 +158,7 @@ function handleRoute() {
             };
 
             promises.push(
-                this.bigIp.createOrModify('/tm/net/route', routeBody, null, retryOptions)
+                this.bigIp.createOrModify('/tm/net/route', routeBody, null, cloudUtil.MEDIUM_RETRY)
             );
         });
 

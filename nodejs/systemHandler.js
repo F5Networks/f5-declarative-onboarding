@@ -16,8 +16,8 @@
 
 'use strict';
 
-const Logger = require('./logger');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const Logger = require('./logger');
 
 const logger = new Logger(module);
 
@@ -28,7 +28,7 @@ class SystemHandler {
     }
 
     process() {
-        logger.fine('Processing system components');
+        logger.fine('Processing system declaration.');
         logger.fine('Checking NTP');
         if (!this.declaration.Common) {
             return Promise.resolve();

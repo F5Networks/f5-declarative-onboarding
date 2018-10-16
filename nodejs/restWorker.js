@@ -84,7 +84,7 @@ class RestWorker {
                     this.state.updateResult(200, STATUS.STATUS_OK);
                     this.save()
                         .then(() => {
-                            logger.fine('Reboot complete.');
+                            logger.fine('Rebooting complete. Onboarding complete.');
                             success();
                         })
                         .catch((saveErr) => {
@@ -131,6 +131,7 @@ class RestWorker {
      * @returns {void}
      */
     onPost(restOperation) {
+        logger.finest('Got onboarding request.');
         const declaration = Object.assign({}, restOperation.getBody());
         const validation = this.validator.validate(declaration);
         this.state = new State(declaration);
@@ -146,6 +147,7 @@ class RestWorker {
                     this.sendResponse(restOperation);
                 });
         } else {
+            logger.fine('Onboard starting.');
             this.state.updateResult(202, STATUS.STATUS_RUNNING);
             this.save();
 
@@ -158,15 +160,16 @@ class RestWorker {
 
             declarationHandler.process()
                 .then(() => {
+                    logger.fine('Onboard configuration complete. Checking for reboot.');
                     return bigIp.rebootRequired();
                 })
                 .then((needsReboot) => {
                     rebootRequired = needsReboot;
                     if (!rebootRequired) {
-                        logger.debug('Declaration processing complete.');
+                        logger.fine('Onboard complete. No reboot required.');
                         this.state.updateResult(200, STATUS.STATUS_OK);
                     } else {
-                        logger.debug('Declaration processing complete. Rebooting.');
+                        logger.fine('Reboot required. Rebooting.');
                         this.state.updateResult(200, STATUS.STATUS_REBOOTING);
                     }
                     return this.save();
@@ -177,6 +180,7 @@ class RestWorker {
                 })
                 .finally(() => {
                     if (!declaration.async) {
+                        logger.fine('Sending response.');
                         this.sendResponse(restOperation);
                     }
                     if (rebootRequired) {
