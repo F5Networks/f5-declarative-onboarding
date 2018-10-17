@@ -263,7 +263,7 @@ class RestWorker {
                 {
                     code: this.state.code,
                     status: this.state.status,
-                    message: this.state.message,
+                    errors: this.state.errors,
                     declaration: this.state.declaration
                 }
             );

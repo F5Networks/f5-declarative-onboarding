@@ -29,7 +29,8 @@ class State {
         } else {
             // otherwise, create a new state
             this.result = {
-                class: 'Result'
+                class: 'Result',
+                errors: null
             };
             this.declaration = mask(declarationOrState);
         }
@@ -52,23 +53,27 @@ class State {
     /**
      * Gets the current result message
      */
-    get message() {
-        return this.result.message;
+    get errors() {
+        return this.result.errors;
     }
 
     /**
      * Updates the result
      *
-     * @private
-     * @param {number} code - The f5-decon result code
+     * @param {number} code - The f5-decon result code.
      * @param {string} status - The f5-decon status string from sharedConstants.STATUS.
-     * @param {string} message - The user friendly message if there is one. This should
-     *                           be the error message if the code does not indicate success.
-    code,  */
+     * @param {string} message - The user friendly error message if there is one.
+     */
     updateResult(code, status, message) {
         this.result.code = code;
         this.result.status = status;
-        this.result.message = message;
+
+        if (message) {
+            if (!this.result.errors) {
+                this.result.errors = [];
+            }
+            this.result.errors.push(message);
+        }
     }
 }
 
