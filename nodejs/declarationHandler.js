@@ -25,12 +25,23 @@ const TenantHandler = require('./tenantHandler');
 
 const logger = new Logger(module);
 
+/**
+ * Main processing for a parsed declaration.
+ *
+ * @class
+ */
 class DeclarationHandler {
     constructor(declaration, bigIp) {
         this.declaration = declaration;
         this.bigIp = bigIp;
     }
 
+    /**
+     * Starts processing.
+     *
+     * @returns {Promise} A promise which is resolved when processing is complete
+     *                    or rejected if an error occurs.
+     */
     process() {
         logger.fine('Processing declaration.');
         const declarationParser = new DeclarationParser(this.declaration);

@@ -22,12 +22,23 @@ const logger = new Logger(module);
 
 const PARTITION_PATH = '/tm/auth/partition';
 
+/**
+ * Handles creating any missing tenants.
+ *
+ * @class
+ */
 class TenantHandler {
     constructor(declarationInfo, bigIp) {
         this.tenants = declarationInfo.tenants || [];
         this.bigIp = bigIp;
     }
 
+    /**
+     * Starts processing.
+     *
+     * @returns {Promise} A promise which is resolved when processing is complete
+     *                    or rejected if an error occurs.
+     */
     process() {
         logger.info('Processing tenants.');
 

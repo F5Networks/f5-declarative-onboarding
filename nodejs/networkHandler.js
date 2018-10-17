@@ -22,12 +22,23 @@ const Logger = require('./logger');
 const logger = new Logger(module);
 const DEFAULT_CIDR = '/24';
 
+/**
+ * Handles network parts of a declaration.
+ *
+ * @class
+ */
 class NetworkHandler {
     constructor(declarationInfo, bigIp) {
         this.declaration = declarationInfo.parsedDeclaration;
         this.bigIp = bigIp;
     }
 
+    /**
+     * Starts processing.
+     *
+     * @returns {Promise} A promise which is resolved when processing is complete
+     *                    or rejected if an error occurs.
+     */
     process() {
         logger.fine('Proessing network declaration.');
         logger.fine('Checking VLANs.');

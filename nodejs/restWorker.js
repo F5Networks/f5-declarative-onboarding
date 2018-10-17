@@ -27,6 +27,11 @@ const STATUS = require('./sharedConstants').STATUS;
 
 const logger = new Logger(module);
 
+/**
+ * API handler
+ *
+ * @class
+ */
 class RestWorker {
     constructor() {
         this.WORKER_URI_PATH = 'shared/decon';
@@ -36,10 +41,8 @@ class RestWorker {
     /**
      * Called by LX framework when rest worker is initialized.
      *
-     * @public
-     * @param {function} success - Callback to indicate successful startup
-     * @param {function} error - Callback to indicate startup failure
-     * @returns {undefined}
+     * @param {function} success - Callback to indicate successful startup.
+     * @param {function} error - Callback to indicate startup failure.
      */
     onStart(success, error) {
         try {
@@ -54,11 +57,12 @@ class RestWorker {
     }
 
     /**
+     * Called by LX framework when rest worker is loaded.
      *
      * @param {function} success - Callback to indicate successful startup completed.
-     * @param {*} error - Callback to indicate startup completed failure.
-     * @param {*} nullState - State loaded from rest storage. Except it is null.
-     * @param {*} errorMsg - Error message from upstream.
+     * @param {function} error - Callback to indicate startup completed failure.
+     * @param {object} nullState - State loaded from rest storage. Except it is null.
+     * @param {string} errorMsg - Error message from upstream.
      */
     onStartCompleted(success, error, nullState, errorMsg) {
         if (errorMsg) {
@@ -106,9 +110,7 @@ class RestWorker {
     /**
      * Handles Get requests.
      *
-     * @public
-     * @param {object} restOperation
-     * @returns {void}
+     * @param {object} restOperation - The restOperation containing request info.
      */
     onGet(restOperation) {
         this.loadState(null, (err, state) => {
@@ -126,9 +128,7 @@ class RestWorker {
     /**
      * Handles Post requests.
      *
-     * @public
      * @param {object} restOperation
-     * @returns {void}
      */
     onPost(restOperation) {
         logger.finest('Got onboarding request.');
@@ -195,9 +195,8 @@ class RestWorker {
     /**
      * Returns an exmple of a valid declaration.
      *
-     * This is called by WOKER_URI/example
+     * This is called by WOKER_URI/example.
      *
-     * @public
      * @returns {object} An example of a valid declaration.
      */
     /* eslint-disable class-methods-use-this */
@@ -217,6 +216,9 @@ class RestWorker {
     }
     /* eslint-enable class-methods-use-this */
 
+    /**
+     * Saves current state.
+     */
     save() {
         function retryFunc() {
             return new Promise((resolve, reject) => {
@@ -246,11 +248,10 @@ class RestWorker {
     }
 
     /**
-     * Sends a response for a restOperation
+     * Sends a response for a restOperation.
      *
-     * @private
-     * @param {object} restOperation - The restOperation to send the response for
-     * @param {number} code - The HTTP status code
+     * @param {object} restOperation - The restOperation to send the response for.
+     * @param {number} code - The HTTP status code.
      */
     sendResponse(restOperation) {
         restOperation.setStatusCode(this.state.code);

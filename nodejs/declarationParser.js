@@ -135,6 +135,8 @@ const logger = new Logger(module);
  *             }
  *         }
  *     }
+ *
+ * @class
  */
 class DeclarationParser {
     constructor(declaration) {
@@ -143,7 +145,7 @@ class DeclarationParser {
     }
 
     /**
-     * Parses the declaration
+     * Parses the declaration.
      *
      * @returns {object} A parsed declaration and list of tenants in the form
      *

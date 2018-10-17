@@ -21,12 +21,27 @@ const Logger = require('./logger');
 
 const logger = new Logger(module);
 
+/**
+ * Handles system parts of a declaration.
+ *
+ * @class
+ */
 class SystemHandler {
+    /**
+     * @param {Object} declarationInfo - Parsed declaration.
+     * @param {Object} bigIp - BigIp object.
+     */
     constructor(declarationInfo, bigIp) {
         this.declaration = declarationInfo.parsedDeclaration;
         this.bigIp = bigIp;
     }
 
+    /**
+     * Starts processing.
+     *
+     * @returns {Promise} A promise which is resolved when processing is complete
+     *                    or rejected if an error occurs.
+     */
     process() {
         logger.fine('Processing system declaration.');
         logger.fine('Checking NTP');
