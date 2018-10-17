@@ -12,85 +12,78 @@
     "class": "Device",
     "Common": {
         "class": "Tenant",
-        "mySystem": {
-            "class": "System",
-            "hostname": "bigip.example.com",
-            "myLicense": {
-                "class": "License",
-                "licenseType": "regKey",
-                "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
-            },
-            "myDns": {
-                "class": "DNS",
-                "nameServers": [
-                    "1.2.3.4",
-                    "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
-                ],
-                "search": [
-                    "f5.com"
-                ]
-            },
-            "myNtp": {
-                "class": "NTP",
-                "servers": [
-                    "0.pool.ntp.org",
-                    "1.pool.ntp.org"
-                ],
-                "timezone": "UTC"
-            },
-            "root": {
-                "class": "User",
-                "userType": "root",
-                "oldPassword": "foo",
-                "newPassword": "bar"
-            },
-            "admin": {
-                "class": "User",
-                "userType": "regular",
-                "password": "asdfjkl",
-                "shell": "bash"
-            },
-            "anotherUser": {
-                "class": "User",
-                "userType": "regular",
-                "password": "foobar",
-                "partitionAccess": {
-                    "Common": {
-                        "role": "guest"
-                    }
+        "hostname": "bigip.example.com",
+        "myLicense": {
+            "class": "License",
+            "licenseType": "regKey",
+            "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+        },
+        "myDns": {
+            "class": "DNS",
+            "nameServers": [
+                "8.8.8.8",
+                "2001:4860:4860::8844"
+            ],
+            "search": [
+                "f5.com"
+            ]
+        },
+        "myNtp": {
+            "class": "NTP",
+            "servers": [
+                "0.pool.ntp.org",
+                "1.pool.ntp.org"
+            ],
+            "timezone": "UTC"
+        },
+        "root": {
+            "class": "User",
+            "userType": "root",
+            "oldPassword": "foo",
+            "newPassword": "bar"
+        },
+        "admin": {
+            "class": "User",
+            "userType": "regular",
+            "password": "asdfjkl",
+            "shell": "bash"
+        },
+        "anotherUser": {
+            "class": "User",
+            "userType": "regular",
+            "password": "foobar",
+            "partitionAccess": {
+                "Common": {
+                    "role": "guest"
                 }
             }
         },
-        "myNetwork": {
-            "class": "Network",
-            "myVlan": {
-                "class": "VLAN",
-                "tag": 1234,
-                "mtu": 1500,
-                "interfaces": [
-                    {
-                        "name": "1.1",
-                        "tagged": true
-                    }
-                ]
-            }
-        }
-    },
-    "MyTenant": {
-        "class": "Tenant",
-        "myOtherNetwork": {
-            "class": "Network",
-            "myOtherVlan": {
-                "class": "VLAN",
-                "tag": 2345,
-                "mtu": 1500,
-                "interfaces": [
-                    {
-                        "name": "1.0",
-                        "tagged": true
-                    }
-                ]
-            }
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal"
+        },
+        "myVlan": {
+            "class": "VLAN",
+            "tag": 1234,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ]
+        },
+        "mySelfIp": {
+            "class": "SelfIp",
+            "address": "1.2.3.4/24",
+            "vlan": "myVlan",
+            "allowService": "all",
+            "floating": true
+        },
+        "myRoute": {
+            "class": "Route",
+            "gw": "10.1.20.1",
+            "network": "0.0.0.0/0"
         }
     }
 }
@@ -99,7 +92,7 @@
 <pre>
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/base.schema.json",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/base.schema.json",
     "title": "F5 Declarative Onboarding base declaration",
     "description": "Top level schema for onboarding a BIG-IP.",
     "type": "object",
@@ -124,6 +117,11 @@
             "type": "string",
             "const": "Device"
         },
+        "async": {
+            "description": "Tells the API to return a 202 HTTP status before processing is complete. User must then poll for status.",
+            "type": "boolean",
+            "default": false
+        },
         "label": {
             "description": "Optional friendly name for this declaration",
             "type": "string"
@@ -141,15 +139,20 @@
                 "class": {
                     "type": "string",
                     "const": "Tenant"
+                },
+                "hostname": {
+                    "description": "Hostname to set for device.",
+                    "type": "string",
+                    "format": "hostname"
                 }
             },
             "additionalProperties": {
                 "oneOf": [
                     {
-                        "$ref": "system.schema.json"
+                        "$ref": "system.schema.json#"
                     },
                     {
-                        "$ref": "network.schema.json"
+                        "$ref": "network.schema.json#"
                     }
                 ]
             }
@@ -165,13 +168,11 @@
             "properties": {
                 "class": {
                     "type": "string",
-                    "readOnly": true,
                     "const": "Result"
                 },
                 "code": {
                     "description": "Status code.",
                     "type": "string",
-                    "readOnly": true,
                     "enum": [
                         "OK",
                         "ERROR"
@@ -179,76 +180,23 @@
                 },
                 "message": {
                     "description": "Further detail about the status.",
-                    "type": "string",
-                    "readOnly": true
+                    "type": "string"
                 }
             }
         }
     },
-    "additionalProperties": {
-        "description": "Configuration for tenants besides Common",
-        "type": "object",
-        "required": [
-            "class"
-        ],
-        "propertyNames": {
-            "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
-        },
-        "properties": {
-            "class": {
-                "type": "string",
-                "const": "Tenant"
-            }
-        },
-        "additionalProperties": {
-            "$ref": "network.schema.json"
-        }
-    }
+    "additionalProperties": false
 }
 </pre>
 <H1>system schema</H1>
 <pre>
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/system.schema.json",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/system.schema.json",
     "title": "F5 Declarative Onboarding system declaration",
     "description": "System properties for onboarding a BIG-IP.",
-    "type": "object",
-    "properties": {
-        "class": {
-            "description": "Indicates thiat this property contains system level configuration.",
-            "type": "string",
-            "const": "System"
-        },
-        "hostname": {
-            "description": "Hostname to set for device.",
-            "type": "string",
-            "format": "hostname"
-        }
-    },
-    "additionalProperties": {
-        "oneOf": [
-            {
-                "$ref": "#/definitions/License"
-            },
-            {
-                "$ref": "#/definitions/DNS"
-            },
-            {
-                "$ref": "#/definitions/NTP"
-            },
-            {
-                "$ref": "#/definitions/User"
-            }
-        ]
-    },
-    "propertyNames": {
-        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
-    },
-    "definitions": {
-        "License": {
-            "description": "Licensing information",
-            "type": "object",
+    "oneOf": [
+        {
             "required": [
                 "class",
                 "licenseType"
@@ -276,6 +224,9 @@
                 }
             },
             "then": {
+                "required": [
+                    "regKey"
+                ],
                 "properties": {
                     "regKey": {
                         "description": "Registration key.",
@@ -299,9 +250,6 @@
                 }
             },
             "else": {
-                "required": [
-                    "licensePoolName"
-                ],
                 "properties": {
                     "licensePoolName": {
                         "description": "The name of the BIG-IQ license pool from which to get a license",
@@ -310,9 +258,49 @@
                 }
             }
         },
-        "DNS": {
-            "description": "DNS configuration",
-            "type": "object",
+        {
+            "required": [
+                "class"
+            ],
+            "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains module provisioning configuration.",
+                    "type": "string",
+                    "const": "Provision"
+                }
+            },
+            "propertyNames": {
+                "description": "The module to provision.",
+                "enum": [
+                    "class",
+                    "afm",
+                    "am",
+                    "apm",
+                    "asm",
+                    "avr",
+                    "dos",
+                    "fps",
+                    "gtm",
+                    "ilx",
+                    "lc",
+                    "ltm",
+                    "pem",
+                    "swg",
+                    "urldb"
+                ]
+            },
+            "additionalProperties": {
+                "description": "The level at which to provision the module.",
+                "type": "string",
+                "enum": [
+                    "dedicated",
+                    "nominal",
+                    "minimum",
+                    "none"
+                ]
+            }
+        },
+        {
             "required": [
                 "class"
             ],
@@ -348,9 +336,7 @@
             },
             "additionalProperties": false
         },
-        "NTP": {
-            "description": "NTP configuration",
-            "type": "object",
+        {
             "required": [
                 "class"
             ],
@@ -385,9 +371,7 @@
             },
             "additionalProperties": false
         },
-        "User": {
-            "description": "User configuration",
-            "type": "object",
+        {
             "required": [
                 "class",
                 "userType"
@@ -416,8 +400,8 @@
             },
             "then": {
                 "required": [
-                    "oldPassword",
-                    "newPassword"
+                    "newPassword",
+                    "oldPassword"
                 ],
                 "properties": {
                     "newPassword": {
@@ -482,41 +466,18 @@
                 }
             }
         }
-    }
+    ]
 }
 </pre>
 <H1>network schema</H1>
 <pre>
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/network.schema.json",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/network.schema.json",
     "title": "F5 Declarative Onboarding network declaration",
     "description": "Network properties for onboarding a BIG-IP.",
-    "type": "object",
-    "properties": {
-        "class": {
-            "description": "Indicates thiat this property contains network configuration.",
-            "type": "string",
-            "const": "Network"
-        }
-    },
-    "additionalProperties": {
-        "oneOf": [
-            {
-                "$ref": "#/definitions/VLAN"
-            },
-            {
-                "$ref": "#/definitions/SelfIp"
-            }
-        ]
-    },
-    "propertyNames": {
-        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
-    },
-    "definitions": {
-        "VLAN": {
-            "description": "VLAN information",
-            "type": "object",
+    "oneOf": [
+        {
             "required": [
                 "class",
                 "interfaces"
@@ -563,9 +524,7 @@
             },
             "additionalProperties": false
         },
-        "SelfIp": {
-            "description": "Self IP information.",
-            "type": "object",
+        {
             "required": [
                 "class",
                 "address",
@@ -580,17 +539,10 @@
                 "address": {
                     "description": "IP address.",
                     "type": "string",
-                    "anyOf": [
-                        {
-                            "format": "ipv4"
-                        },
-                        {
-                            "format": "ipv6"
-                        }
-                    ]
+                    "format": "f5ip"
                 },
                 "vlan": {
-                    "description": "Vlan for the self IP.",
+                    "description": "VLAN for the self IP.",
                     "type": "string"
                 },
                 "allowService": {
@@ -610,8 +562,40 @@
                 }
             },
             "additionalProperties": false
+        },
+        {
+            "required": [
+                "class",
+                "gw",
+                "network"
+            ],
+            "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains Route configuration.",
+                    "type": "string",
+                    "const": "Route"
+                },
+                "gw": {
+                    "description": "Gateway for route.",
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "format": "ipv4"
+                        },
+                        {
+                            "format": "ipv6"
+                        }
+                    ]
+                },
+                "network": {
+                    "description": "Network for route.",
+                    "type": "string",
+                    "format": "f5ip"
+                }
+            },
+            "additionalProperties": false
         }
-    }
+    ]
 }
 </pre>
 

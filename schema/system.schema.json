@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://raw.githubusercontent.com/F5Networks/f5-decon/master/schema/system.schema.json",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/system.schema.json",
     "title": "F5 Declarative Onboarding system declaration",
     "description": "System properties for onboarding a BIG-IP.",
     "oneOf": [

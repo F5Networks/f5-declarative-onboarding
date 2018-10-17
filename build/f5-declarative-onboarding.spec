@@ -1,5 +1,5 @@
 Summary: F5 Declarative Onboarding iControlLX extension
-Name: f5-decon
+Name: f5-declarative-onboarding
 Version: %{_version}
 Release: %{_release}
 BuildArch: noarch
@@ -16,6 +16,7 @@ Declarative onboarding for BIG-IP
 %define IAPP_INSTALL_DIR /var/config/rest/iapps/%{name}
 
 %prep
+rm -rf %{_builddir}/*
 cp %{main}/manifest.json %{_builddir}
 cp %{main}/package.json %{_builddir}
 cp -r %{main}/nodejs %{_builddir}
