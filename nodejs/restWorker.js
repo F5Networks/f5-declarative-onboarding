@@ -170,7 +170,7 @@ class RestWorker {
                         this.state.updateResult(200, STATUS.STATUS_OK);
                     } else {
                         logger.fine('Reboot required. Rebooting.');
-                        this.state.updateResult(200, STATUS.STATUS_REBOOTING);
+                        this.state.updateResult(202, STATUS.STATUS_REBOOTING);
                     }
                     return this.save();
                 })
