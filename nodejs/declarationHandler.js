@@ -16,7 +16,6 @@
 
 'use strict';
 
-const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const DeclarationParser = require('./declarationParser');
 const Logger = require('./logger');
 const SystemHandler = require('./systemHandler');
@@ -47,23 +46,7 @@ class DeclarationHandler {
         const declarationParser = new DeclarationParser(this.declaration);
         const declarationInfo = declarationParser.parse();
 
-        return cloudUtil.runTmshCommand('list sys httpd ssl-port')
-            .then((response) => {
-                const regex = /(\s+ssl-port\s+)(\S+)\s+/;
-                const port = regex.exec(response)[2];
-                return this.bigIp.init(
-                    'localhost',
-                    'admin',
-                    'admin',
-                    {
-                        port,
-                        product: 'BIG-IP'
-                    }
-                );
-            })
-            .then(() => {
-                return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
-            })
+        return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' })
             .then(() => {
                 return new TenantHandler(declarationInfo, this.bigIp).process();
             })

@@ -19,10 +19,13 @@
 const fs = require('fs');
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
-const Logger = require('./logger');
-const Validator = require('./validator');
+
+const ConfigManager = require('./configManager');
 const DeclarationHandler = require('./declarationHandler');
+const Logger = require('./logger');
 const State = require('./state');
+const Validator = require('./validator');
+
 const STATUS = require('./sharedConstants').STATUS;
 
 const logger = new Logger(module);
@@ -34,7 +37,7 @@ const logger = new Logger(module);
  */
 class RestWorker {
     constructor() {
-        this.WORKER_URI_PATH = 'shared/decon';
+        this.WORKER_URI_PATH = 'shared/declarative-onboarding';
         this.isPublic = true;
     }
 
@@ -152,13 +155,21 @@ class RestWorker {
             this.save();
 
             const bigIp = new BigIp({ logger });
+            const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
             const declarationHandler = new DeclarationHandler(declaration, bigIp);
 
             if (declaration.async) {
                 this.sendResponse(restOperation);
             }
 
-            declarationHandler.process()
+            initializeBigIp(bigIp)
+                .then(() => {
+                    return configManager.get();
+                })
+                .then((currentConfig) => {
+                    logger.info('current config', currentConfig);
+                    return declarationHandler.process();
+                })
                 .then(() => {
                     logger.fine('Onboard configuration complete. Checking for reboot.');
                     return bigIp.rebootRequired();
@@ -271,6 +282,23 @@ class RestWorker {
         }
         restOperation.complete();
     }
+}
+
+function initializeBigIp(bigIp) {
+    return cloudUtil.runTmshCommand('list sys httpd ssl-port')
+        .then((response) => {
+            const regex = /(\s+ssl-port\s+)(\S+)\s+/;
+            const port = regex.exec(response)[2];
+            return bigIp.init(
+                'localhost',
+                'admin',
+                'admin',
+                {
+                    port,
+                    product: 'BIG-IP'
+                }
+            );
+        });
 }
 
 module.exports = RestWorker;

@@ -1,0 +1,21 @@
+[
+    {
+        "path": "/tm/sys/ntp",
+        "properties": ["servers", "timezone"]
+    },
+    {
+        "path": "/tm/sys/dns",
+        "properties": ["nameServers", "search"]
+    },
+    {
+        "path": "/tm/net/vlan",
+        "properties": ["mtu", "tag", "interfacesReference"],
+        "references": {
+            "interfacesReference": ["name", "tagged"]
+        }
+    },
+    {
+        "path": "/tm/net/self",
+        "properties": ["address", "vlan", "allowService", "trafficGroup", "floating"]
+    }
+]
