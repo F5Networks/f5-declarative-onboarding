@@ -68,83 +68,120 @@ class ConfigManager {
      *                    iControl REST and filtered as defined in configItems.
      */
     get() {
-        const requiredProperties = ['kind', 'name'];
+        const currentConfig = {};
         const promises = [];
         const referencePromises = [];
+        const referenceInfo = []; // info needed to tie reference result to config item
 
         // get a list of iControl Rest queries asking for the config items and selecting the
         // properties we want
         this.configItems.forEach((configItem) => {
             const query = { $filter: 'partition eq Common' };
-            if (configItem.properties && configItem.properties.length > 0) {
-                requiredProperties.forEach((requiredProp) => {
-                    if (configItem.properties.indexOf(requiredProp) === -1) {
-                        configItem.properties.push(requiredProp);
-                    }
-                });
-                query.$select = configItem.properties.join(',');
+            const selectProperties = getPropertiesOfInterest(configItem.properties);
+            if (selectProperties.length > 0) {
+                query.$select = selectProperties.join(',');
             }
             const encodedQuery = querystring.stringify(query);
             const path = `${configItem.path}?${encodedQuery}`;
             promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
         });
 
-        // Remove keys we don't want from a config item
-        const filterItem = ((item) => {
-            const filtered = {};
-            Object.assign(filtered, item);
-            Object.keys(filtered).forEach((key) => {
-                if (key === 'kind' || key.endsWith('Reference')) {
-                    delete filtered[key];
-                }
-            });
-            return filtered;
-        });
-
-        // if we asked for any references, construct a path based on the link
-        // given to us in the reference and the properties we need
-        const getReferences = ((item, index) => {
-            Object.keys(item).forEach((property) => {
-                if (this.configItems[index].references
-                    && this.configItems[index].references[property]
-                    && item[property].link) {
-                    const parsed = url.parse(item[property].link);
-                    const query = querystring.parse(parsed.query);
-                    query.$select = this.configItems[index].references[property].join(',');
-                    const encodedQuery = querystring.stringify(query);
-                    let path = `${parsed.pathname}?${encodedQuery}`;
-                    if (path.startsWith('/mgmt')) {
-                        path = path.substring('/mgmt'.length);
-                    }
-                    referencePromises.push(path);
-                }
-            });
-        });
-
         return Promise.all(promises)
             .then((results) => {
-                const currentConfig = {};
                 results.forEach((currentItem, index) => {
                     if (Array.isArray(currentItem)) {
                         const kind = currentItem[0].kind; // all items should be the same kind
                         currentConfig[kind] = {};
                         currentItem.forEach((item) => {
-                            currentConfig[kind][item.name] = filterItem(item);
-                            getReferences(item, index);
+                            currentConfig[kind][item.name] = removeUnusedKeys(item);
+                            getReferencedPaths.call(this, item, index, referencePromises, referenceInfo);
                         });
                     } else {
-                        currentConfig[currentItem.kind] = filterItem(currentItem);
-                        getReferences(currentItem, index);
+                        currentConfig[currentItem.kind] = removeUnusedKeys(currentItem);
+                        getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
                     }
                 });
+                return Promise.all(referencePromises);
+            })
+            .then((referencesResults) => {
+                referencesResults.forEach((referenceResult, index) => {
+                    const property = referenceInfo[index].property;
+                    const kind = referenceInfo[index].kind;
+                    const name = referenceInfo[index].name;
+                    const configItem = currentConfig[kind][name];
+
+                    configItem[property] = [];
+                    // references refer to arrays, so each referenceResult should be an array
+                    referenceResult.forEach((reference) => {
+                        configItem[property].push(removeUnusedKeys(reference));
+                    });
+                });
                 logger.info('currentConfig', JSON.stringify(currentConfig, null, 4));
-                logger.info('refs', referencePromises);
             })
             .catch((err) => {
                 logger.severe(`Error getting current config: ${err.message}`);
                 return Promise.reject(err);
             });
     }
+}
+
+// Remove keys we don't want from a config item
+function removeUnusedKeys(item) {
+    const filtered = {};
+    Object.assign(filtered, item);
+    Object.keys(filtered).forEach((key) => {
+        if (key === 'kind' || key.endsWith('Reference')) {
+            delete filtered[key];
+        }
+    });
+    return filtered;
+}
+
+function getPropertiesOfInterest(initialProperties) {
+    const requiredProperties = ['kind', 'name'];
+    const properties = initialProperties ? initialProperties.slice() : [];
+    requiredProperties.forEach((requiredProp) => {
+        if (properties.indexOf(requiredProp) === -1) {
+            properties.push(requiredProp);
+        }
+    });
+    return properties;
+}
+
+// given an item and its index in configItems, construct a path based the properties we want
+// and on the link given to us in the reference in the iControl REST object
+function getReferencedPaths(item, index, referencePromises, referenceInfo) {
+    Object.keys(item).forEach((property) => {
+        if (this.configItems[index].references
+            && this.configItems[index].references[property]
+            && item[property].link) {
+            const parsed = url.parse(item[property].link);
+            const query = querystring.parse(parsed.query);
+            const selectProperties = getPropertiesOfInterest(
+                this.configItems[index].references[property]
+            );
+            if (selectProperties.length > 0) {
+                query.$select = selectProperties.join(',');
+            }
+            const encodedQuery = querystring.stringify(query);
+            let path = `${parsed.pathname}?${encodedQuery}`;
+            if (path.startsWith('/mgmt')) {
+                path = path.substring('/mgmt'.length);
+            }
+
+            // trim off 'Reference' from the property name to get the name for the unreferenced property
+            const regex = /^(.+)Reference$/;
+            const trimmedPropertyName = regex.exec(property)[1];
+            referencePromises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
+            referenceInfo.push(
+                {
+                    property: trimmedPropertyName,
+                    kind: item.kind,
+                    name: item.name
+                }
+            );
+        }
+    });
 }
 
 module.exports = ConfigManager;

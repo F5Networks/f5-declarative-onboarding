@@ -11,7 +11,7 @@
         "path": "/tm/net/vlan",
         "properties": ["mtu", "tag", "interfacesReference"],
         "references": {
-            "interfacesReference": ["name", "tagged"]
+            "interfacesReference": ["tagged"]
         }
     },
     {
