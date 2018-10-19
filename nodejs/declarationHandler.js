@@ -46,6 +46,8 @@ class DeclarationHandler {
         const declarationParser = new DeclarationParser(this.declaration);
         const declarationInfo = declarationParser.parse();
 
+        logger.info('parsed', JSON.stringify(declarationInfo, null, 4));
+
         return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' })
             .then(() => {
                 return new TenantHandler(declarationInfo, this.bigIp).process();
