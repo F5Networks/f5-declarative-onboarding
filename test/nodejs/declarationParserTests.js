@@ -123,16 +123,18 @@ describe('declarationParser tests', () => {
         // system
         assert.strictEqual(parsedDeclaration.Common.hostname, declaration.Common.hostname);
         assert.strictEqual(
-            parsedDeclaration.Common.License.myLicense.regKey,
+            parsedDeclaration.Common.License.regKey,
             declaration.Common.myLicense.regKey
         );
         assert.strictEqual(
-            parsedDeclaration.Common.NTP.myNtp.servers[0],
+            parsedDeclaration.Common.NTP.servers[0],
             declaration.Common.myNtp.servers[0]
         );
 
         // network
+        assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, 'commonVlan');
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.tag, declaration.Common.commonVlan.tag);
+        assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.name, 'app1Vlan');
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.tag, declaration.Tenant1.app1Vlan.tag);
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app2Vlan.tag, declaration.Tenant1.app2Vlan.tag);
 

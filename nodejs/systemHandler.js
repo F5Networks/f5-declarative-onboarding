@@ -83,8 +83,7 @@ class SystemHandler {
 
 function handleNTP() {
     if (this.declaration.Common.NTP) {
-        const ntpContainer = Object.keys(this.declaration.Common.NTP)[0];
-        const ntp = this.declaration.Common.NTP[ntpContainer];
+        const ntp = this.declaration.Common.NTP;
         return this.bigIp.modify(
             '/tm/sys/ntp',
             {
@@ -98,8 +97,7 @@ function handleNTP() {
 
 function handleDNS() {
     if (this.declaration.Common.DNS) {
-        const dnsContainer = Object.keys(this.declaration.Common.DNS)[0];
-        const dns = this.declaration.Common.DNS[dnsContainer];
+        const dns = this.declaration.Common.DNS;
         return this.bigIp.modify(
             '/tm/sys/dns',
             {
@@ -156,8 +154,7 @@ function handleUser() {
 
 function handleLicense() {
     if (this.declaration.Common.License) {
-        const licenseContainer = Object.keys(this.declaration.Common.License)[0];
-        const license = this.declaration.Common.License[licenseContainer];
+        const license = this.declaration.Common.License;
         if (license.regKey || license.addOnKeys) {
             return this.bigIp.onboard.license(
                 {
@@ -173,8 +170,7 @@ function handleLicense() {
 
 function handleProvision() {
     if (this.declaration.Common.Provision) {
-        const provisionContainer = Object.keys(this.declaration.Common.Provision)[0];
-        const provision = this.declaration.Common.Provision[provisionContainer];
+        const provision = this.declaration.Common.Provision;
         return this.bigIp.onboard.provision(provision)
             .then((results) => {
                 // If we provisioned something make sure we are active for a while.

@@ -65,7 +65,7 @@ class NetworkHandler {
 function handleVlan() {
     return new Promise((resolve, reject) => {
         const promises = [];
-        forEach(this.declaration, 'VLAN', (tenant, name, vlan) => {
+        forEach(this.declaration, 'VLAN', (tenant, vlan) => {
             const interfaces = [];
             vlan.interfaces.forEach((anInterface) => {
                 // Use the tagged property if it is there, otherwise, set tagged if the vlan has a tag
@@ -85,8 +85,8 @@ function handleVlan() {
             });
 
             const vlanBody = {
-                name,
                 interfaces,
+                name: vlan.name,
                 partition: tenant
             };
 
@@ -117,7 +117,7 @@ function handleVlan() {
 function handleSelfIp() {
     return new Promise((resolve, reject) => {
         const promises = [];
-        forEach(this.declaration, 'SelfIp', (tenant, name, selfIp) => {
+        forEach(this.declaration, 'SelfIp', (tenant, selfIp) => {
             let vlan;
 
             // If the vlan does not start with '/', assume it is in this tenant
@@ -128,8 +128,8 @@ function handleSelfIp() {
             }
 
             const selfIpBody = {
-                name,
                 vlan,
+                name: selfIp.name,
                 partition: tenant,
                 address: selfIp.address,
                 floating: selfIp.floating ? 'enabled' : 'disabled',
@@ -155,15 +155,15 @@ function handleSelfIp() {
 function handleRoute() {
     return new Promise((resolve, reject) => {
         const promises = [];
-        forEach(this.declaration, 'Route', (tenant, name, route) => {
+        forEach(this.declaration, 'Route', (tenant, route) => {
             let network = route.network;
             if (network.indexOf('/') === -1) {
                 network += DEFAULT_CIDR;
             }
 
             const routeBody = {
-                name,
                 network,
+                name: route.name,
                 partition: tenant,
                 gw: route.gw
             };
@@ -192,8 +192,8 @@ function handleRoute() {
  *
  * @param {Object} declaration - The parsed declaration
  * @param {Strint} classToFetch - The name of the class (DNS, VLAN, etc)
- * @param {function} cb - Function to execute for each object. Will be called with 3 parameters
- *                        tenant, name, object declaration. Object declaration is the declaration
+ * @param {function} cb - Function to execute for each object. Will be called with 2 parameters
+ *                        tenant and object declaration. Object declaration is the declaration
  *                        for just the object in question, not the whole declaration
  */
 function forEach(declaration, classToFetch, cb) {
@@ -207,10 +207,10 @@ function forEach(declaration, classToFetch, cb) {
                 if (typeof classObject === 'object') {
                     const containerNames = Object.keys(classObject);
                     containerNames.forEach((containerName) => {
-                        cb(tenantName, containerName, classObject[containerName]);
+                        cb(tenantName, classObject[containerName]);
                     });
                 } else {
-                    cb(tenantName, className, classObject);
+                    cb(tenantName, classObject);
                 }
             }
         });

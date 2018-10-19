@@ -110,7 +110,7 @@ class ConfigManager {
                         currentConfig[schemaClass] = {};
                         patchedItem = removeUnusedKeys.call(this, currentItem);
                         patchedItem = mapProperties.call(this, patchedItem, index);
-                        currentConfig[schemaClass][schemaClass] = patchedItem;
+                        currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
                     }
                 });
@@ -131,6 +131,7 @@ class ConfigManager {
                         configItem[property].push(removeUnusedKeys(reference));
                     });
                 });
+
                 logger.info('currentConfig', JSON.stringify(currentConfig, null, 4));
             })
             .catch((err) => {
@@ -140,7 +141,12 @@ class ConfigManager {
     }
 }
 
-// Remove keys we don't want from a config item
+
+/**
+ * Removes keys we don't want from a config item
+ *
+ * @param {Object} item - The item to clean up
+ */
 function removeUnusedKeys(item) {
     const filtered = {};
     Object.assign(filtered, item);
@@ -152,6 +158,11 @@ function removeUnusedKeys(item) {
     return filtered;
 }
 
+/**
+ * Gets the property names we want to ask iControl REST to select in our queries
+ *
+ * @param {Object[]} initialProperties - Array of configItem properties to select
+ */
 function getPropertiesOfInterest(initialProperties) {
     const requiredProperties = ['name'];
     const properties = initialProperties ? initialProperties.slice() : [];
@@ -169,6 +180,14 @@ function getPropertiesOfInterest(initialProperties) {
     return propertyNames;
 }
 
+/**
+ * Map what needs to be mapped.
+ *
+ * For example, map 'enabled' to true
+ *
+ * @param {Object} item - The item whose properties to map
+ * @param {Object} index - The index into configItems for this property
+ */
 function mapProperties(item, index) {
     const mappedItem = {};
     Object.assign(mappedItem, item);
