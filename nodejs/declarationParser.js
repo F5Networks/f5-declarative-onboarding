@@ -102,7 +102,7 @@ const logger = new Logger(module);
  *                 }
  *             },
  *             "VLAN": {
- *                 "myNetwork_commonVlan": {
+ *                 "commonVlan": {
  *                     "tag": 2345,
  *                     "mtu": 1400,
  *                     "interfaces": [
@@ -116,7 +116,7 @@ const logger = new Logger(module);
  *         },
  *         "Tenant1": {
  *             "VLAN": {
- *                 "myNetwork_app1Vlan": {
+ *                 "app1Vlan": {
  *                     "tag": 1234,
  *                     "mtu": 1500,
  *                     "interfaces": [
@@ -128,7 +128,7 @@ const logger = new Logger(module);
  *                 }
  *             },
  *             "SelfIp": {
- *                 "myNetwork_app1SelfIp": {
+ *                 "app1SelfIp": {
  *                     "vlan": "app1Vlan",
  *                     "address": "1.2.3.4/24"
  *                 }

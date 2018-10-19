@@ -1,21 +1,49 @@
 [
     {
         "path": "/tm/sys/ntp",
-        "properties": ["servers", "timezone"]
+        "schemaClass": "NTP",
+        "properties": [
+            { "id": "servers" },
+            { "id": "timezone" }
+        ]
     },
     {
         "path": "/tm/sys/dns",
-        "properties": ["nameServers", "search"]
+        "schemaClass": "DNS",
+        "properties": [
+            { "id": "nameServers" },
+            { "id": "search" }
+        ]
     },
     {
         "path": "/tm/net/vlan",
-        "properties": ["mtu", "tag", "interfacesReference"],
+        "schemaClass": "VLAN",
+        "properties": [
+            { "id": "mtu" },
+            { "id": "tag" },
+            { "id": "interfacesReference" }
+        ],
         "references": {
             "interfacesReference": ["tagged"]
         }
     },
     {
         "path": "/tm/net/self",
-        "properties": ["address", "vlan", "allowService", "trafficGroup", "floating"]
+        "schemaClass": "SelfIp",
+        "properties": [
+            { "id": "address" },
+            { "id": "vlan" },
+            { "id": "allowService" },
+            { "id": "trafficGroup" },
+            { "id": "floating", "truth": "enabled", "falsehood": "disabled" }
+        ]
+    },
+    {
+        "path": "/tm/net/route",
+        "schemaClass": "Route",
+        "properties": [
+            { "id": "network" },
+            { "id": "gw" }
+        ]
     }
 ]

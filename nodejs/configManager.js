@@ -57,7 +57,14 @@ class ConfigManager {
      * [
      *     {
      *         path: <iControl_rest_path>,
-     *         properties: ['properties', 'that', 'we', 'are', 'interested', 'in'],
+     *         schemaClass: <schema_class_name>
+     *         properties: [
+     *             {
+     *                 id: <property_name>,
+     *                 "truth": <mcp_truth_value_if_this_is_boolean>,
+     *                 "falsehood": <mcp_false_value_if_this_is_boolean>
+     *             }
+     *         ]
      *         references: {
      *             <name_of_reference>: ['properties', 'that', 'we', 'are', 'interested', 'in']
      *         }
@@ -88,27 +95,35 @@ class ConfigManager {
 
         return Promise.all(promises)
             .then((results) => {
+                let patchedItem;
                 results.forEach((currentItem, index) => {
+                    const schemaClass = this.configItems[index].schemaClass;
                     if (Array.isArray(currentItem)) {
-                        const kind = currentItem[0].kind; // all items should be the same kind
-                        currentConfig[kind] = {};
+                        currentConfig[schemaClass] = {};
                         currentItem.forEach((item) => {
-                            currentConfig[kind][item.name] = removeUnusedKeys(item);
+                            patchedItem = removeUnusedKeys.call(this, item);
+                            patchedItem = mapProperties.call(this, patchedItem, index);
+                            currentConfig[schemaClass][item.name] = patchedItem;
                             getReferencedPaths.call(this, item, index, referencePromises, referenceInfo);
                         });
                     } else {
-                        currentConfig[currentItem.kind] = removeUnusedKeys(currentItem);
+                        currentConfig[schemaClass] = {};
+                        patchedItem = removeUnusedKeys.call(this, currentItem);
+                        patchedItem = mapProperties.call(this, patchedItem, index);
+                        currentConfig[schemaClass][schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
                     }
                 });
+
+                // get any objects that were referenced from the ones we already got
                 return Promise.all(referencePromises);
             })
             .then((referencesResults) => {
                 referencesResults.forEach((referenceResult, index) => {
                     const property = referenceInfo[index].property;
-                    const kind = referenceInfo[index].kind;
+                    const schemaClass = referenceInfo[index].schemaClass;
                     const name = referenceInfo[index].name;
-                    const configItem = currentConfig[kind][name];
+                    const configItem = currentConfig[schemaClass][name];
 
                     configItem[property] = [];
                     // references refer to arrays, so each referenceResult should be an array
@@ -130,7 +145,7 @@ function removeUnusedKeys(item) {
     const filtered = {};
     Object.assign(filtered, item);
     Object.keys(filtered).forEach((key) => {
-        if (key === 'kind' || key.endsWith('Reference')) {
+        if (key.endsWith('Reference')) {
             delete filtered[key];
         }
     });
@@ -138,14 +153,34 @@ function removeUnusedKeys(item) {
 }
 
 function getPropertiesOfInterest(initialProperties) {
-    const requiredProperties = ['kind', 'name'];
+    const requiredProperties = ['name'];
     const properties = initialProperties ? initialProperties.slice() : [];
+    const propertyNames = properties.reduce((acc, curr) => {
+        acc.push(curr.id);
+        return acc;
+    }, []);
+
+    // make sure we're getting properties we always need
     requiredProperties.forEach((requiredProp) => {
-        if (properties.indexOf(requiredProp) === -1) {
-            properties.push(requiredProp);
+        if (propertyNames.indexOf(requiredProp) === -1) {
+            propertyNames.push(requiredProp);
         }
     });
-    return properties;
+    return propertyNames;
+}
+
+function mapProperties(item, index) {
+    const mappedItem = {};
+    Object.assign(mappedItem, item);
+    this.configItems[index].properties.forEach((property) => {
+        if (mappedItem[property.id]) {
+            // map truth/falsehood (enabled/disabled, for example) to booleans
+            if (property.truth !== undefined) {
+                mappedItem[property.id] = mappedItem[property.id] === property.truth;
+            }
+        }
+    });
+    return mappedItem;
 }
 
 // given an item and its index in configItems, construct a path based the properties we want
@@ -176,7 +211,7 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
             referenceInfo.push(
                 {
                     property: trimmedPropertyName,
-                    kind: item.kind,
+                    schemaClass: this.configItems[index].schemaClass,
                     name: item.name
                 }
             );
