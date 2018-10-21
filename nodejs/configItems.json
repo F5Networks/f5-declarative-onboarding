@@ -1,5 +1,11 @@
 [
     {
+        "path": "/tm/sys/global-settings",
+        "properties": [
+            { "id": "hostname" }
+        ]
+    },
+    {
         "path": "/tm/sys/ntp",
         "schemaClass": "NTP",
         "properties": [

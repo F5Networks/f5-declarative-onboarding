@@ -98,7 +98,11 @@ class ConfigManager {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
                     const schemaClass = this.configItems[index].schemaClass;
-                    if (Array.isArray(currentItem)) {
+                    if (!schemaClass) {
+                        Object.keys(currentItem).forEach((key) => {
+                            currentConfig[key] = currentItem[key];
+                        });
+                    } else if (Array.isArray(currentItem)) {
                         currentConfig[schemaClass] = {};
                         currentItem.forEach((item) => {
                             patchedItem = removeUnusedKeys.call(this, item);
