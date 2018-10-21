@@ -20,7 +20,6 @@ const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 
 const logger = new Logger(module);
-const DEFAULT_CIDR = '/24';
 
 /**
  * Handles network parts of a declaration.

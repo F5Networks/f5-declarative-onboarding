@@ -88,7 +88,7 @@ class RestWorker {
 
                 if (this.state.status === STATUS.STATUS_REBOOTING) {
                     // If we were rebooting and are now in this function, all should be well
-                    this.state.updateResult(200, STATUS.STATUS_OK);
+                    this.state.updateResult(200, STATUS.STATUS_OK, 'success');
                     this.save()
                         .then(() => {
                             logger.fine('Rebooting complete. Onboarding complete.');
@@ -144,14 +144,14 @@ class RestWorker {
         if (!validation.isValid) {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
             logger.info(message);
-            this.state.updateResult(400, STATUS.STATUS_ERROR, message);
+            this.state.updateResult(400, STATUS.STATUS_ERROR, 'bad declaration', validation.errors);
             this.save()
                 .then(() => {
                     this.sendResponse(restOperation);
                 });
         } else {
             logger.fine('Onboard starting.');
-            this.state.updateResult(202, STATUS.STATUS_RUNNING);
+            this.state.updateResult(202, STATUS.STATUS_RUNNING, 'processing');
             this.save();
 
             const bigIp = new BigIp({ logger });
@@ -178,17 +178,17 @@ class RestWorker {
                     rebootRequired = needsReboot;
                     if (!rebootRequired) {
                         logger.fine('Onboard complete. No reboot required.');
-                        this.state.updateResult(200, STATUS.STATUS_OK);
+                        this.state.updateResult(200, STATUS.STATUS_OK, 'success');
                     } else {
                         logger.fine('Reboot required. Rebooting.');
-                        this.state.updateResult(202, STATUS.STATUS_REBOOTING);
+                        this.state.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
                     }
                     return this.save();
                 })
                 .catch((err) => {
                     logger.severe(`Error onboarding: ${err.message}`);
                     const deconCode = err.code === 400 ? 422 : 500;
-                    this.state.updateResult(deconCode, STATUS.STATUS_ERROR, err.message);
+                    this.state.updateResult(deconCode, STATUS.STATUS_ERROR, 'invalid config', err.message);
                     return this.save();
                 })
                 .finally(() => {
@@ -275,6 +275,7 @@ class RestWorker {
                 {
                     code: this.state.code,
                     status: this.state.status,
+                    message: this.state.message,
                     errors: this.state.errors,
                     declaration: this.state.declaration
                 }

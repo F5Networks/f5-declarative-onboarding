@@ -44,6 +44,13 @@ class State {
     }
 
     /**
+     * Gets the current result message
+     */
+    get message() {
+        return this.result.message;
+    }
+
+    /**
      * Gets the current status string
      */
     get status() {
@@ -63,16 +70,26 @@ class State {
      * @param {number} code - The f5-declarative-onboarding result code.
      * @param {string} status - The f5-declarative-onboarding status string from sharedConstants.STATUS.
      * @param {string} message - The user friendly error message if there is one.
+     * @param {string | array} - An error message or array of messages
      */
-    updateResult(code, status, message) {
+    updateResult(code, status, message, errors) {
         this.result.code = code;
         this.result.status = status;
 
         if (message) {
+            this.result.message = message;
+        }
+
+        if (errors) {
             if (!this.result.errors) {
                 this.result.errors = [];
             }
-            this.result.errors.push(message);
+
+            if (Array.isArray(errors)) {
+                this.result.errors = this.result.errors.concat(errors);
+            } else {
+                this.result.errors.push(errors);
+            }
         }
     }
 }
