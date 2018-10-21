@@ -64,9 +64,20 @@
                     "type": "string"
                 },
                 "allowService": {
-                    "description": "Which services (ports) to allow on the self IP. Value should be 'all', 'none', 'default', or '<service:port>",
-                    "type": "string",
-                    "pattern": "^(all|none|default)|(\\w+:\\d+)$",
+                    "description": "Which services (ports) to allow on the self IP. Value should be 'all', 'none', 'default', or array of '<service:port>",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "enum": ["all", "none", "default"]
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "pattern": "(\\w+:\\d+)"
+                            }
+                        }
+                    ],
                     "default": "default"
                 },
                 "trafficGroup": {
@@ -82,7 +93,7 @@
             "additionalProperties": false
         },
         {
-            "required": ["class", "gw", "network"],
+            "required": ["class", "gw"],
             "properties": {
                 "class": {
                     "description": "Indicates thiat this property contains Route configuration.",
@@ -90,17 +101,18 @@
                     "const": "Route"
                 },
                 "gw": {
-                    "description": "Gateway for route.",
+                    "description": "Gateway for the route.",
                     "type": "string",
                     "anyOf": [
                         { "format": "ipv4" },
                         { "format": "ipv6" }
                     ]
                 },
-                "network": {
-                    "description": "Network for route.",
-                    "type": "string",
-                    "format": "f5ip"
+                "mtu": {
+                    "description": "MTU for the route.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9198
                 }
             },
             "additionalProperties": false

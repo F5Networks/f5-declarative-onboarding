@@ -133,7 +133,7 @@ function handleSelfIp() {
                 partition: tenant,
                 address: selfIp.address,
                 floating: selfIp.floating ? 'enabled' : 'disabled',
-                allowService: [selfIp.allowService]
+                allowService: selfIp.allowService
             };
 
             promises.push(
@@ -156,16 +156,11 @@ function handleRoute() {
     return new Promise((resolve, reject) => {
         const promises = [];
         forEach(this.declaration, 'Route', (tenant, route) => {
-            let network = route.network;
-            if (network.indexOf('/') === -1) {
-                network += DEFAULT_CIDR;
-            }
-
             const routeBody = {
-                network,
                 name: route.name,
                 partition: tenant,
-                gw: route.gw
+                gw: route.gw,
+                mtu: route.mtu
             };
 
             promises.push(

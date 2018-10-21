@@ -183,7 +183,7 @@ function getPropertiesOfInterest(initialProperties) {
 /**
  * Map what needs to be mapped.
  *
- * For example, map 'enabled' to true
+ * For example, map 'enabled' to true, and fix references if isRef is true
  *
  * @param {Object} item - The item whose properties to map
  * @param {Object} index - The index into configItems for this property
@@ -196,6 +196,13 @@ function mapProperties(item, index) {
             // map truth/falsehood (enabled/disabled, for example) to booleans
             if (property.truth !== undefined) {
                 mappedItem[property.id] = mappedItem[property.id] === property.truth;
+            }
+
+            // If property is a reference, strip the /Common if it is there
+            // TODO: if we handle references to BIG-IP objects like AS 3, maybe
+            // this can go away
+            if (property.isRef && mappedItem[property.id].startsWith('/Common/')) {
+                mappedItem[property.id] = mappedItem[property.id].substring('/Common/'.length);
             }
         }
     });

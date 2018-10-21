@@ -32,9 +32,8 @@
         "schemaClass": "SelfIp",
         "properties": [
             { "id": "address" },
-            { "id": "vlan" },
+            { "id": "vlan", "isRef": true },
             { "id": "allowService" },
-            { "id": "trafficGroup" },
             { "id": "floating", "truth": "enabled", "falsehood": "disabled" }
         ]
     },
@@ -42,8 +41,8 @@
         "path": "/tm/net/route",
         "schemaClass": "Route",
         "properties": [
-            { "id": "network" },
-            { "id": "gw" }
+            { "id": "gw" },
+            { "id": "mtu" }
         ]
     }
 ]
