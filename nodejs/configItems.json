@@ -6,6 +6,14 @@
         ]
     },
     {
+        "path": "/tm/sys/provision",
+        "schemaClass": "Provision",
+        "properties": [
+            { "id": "level" }
+        ],
+        "singleValue": true
+    },
+    {
         "path": "/tm/sys/ntp",
         "schemaClass": "NTP",
         "properties": [

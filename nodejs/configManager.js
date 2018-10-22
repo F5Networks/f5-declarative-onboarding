@@ -67,7 +67,8 @@ class ConfigManager {
      *         ]
      *         references: {
      *             <name_of_reference>: ['properties', 'that', 'we', 'are', 'interested', 'in']
-     *         }
+     *         },
+     *         singleValue: <whether_or_not_we_want_single_key_value_vs_whole_object_(Provision, for example)>
      *     }
      * ]
      *
@@ -99,6 +100,7 @@ class ConfigManager {
                 results.forEach((currentItem, index) => {
                     const schemaClass = this.configItems[index].schemaClass;
                     if (!schemaClass) {
+                        // Simple item that is just key:value - not a larger object
                         Object.keys(currentItem).forEach((key) => {
                             currentConfig[key] = currentItem[key];
                         });
@@ -195,6 +197,12 @@ function getPropertiesOfInterest(initialProperties) {
 function mapProperties(item, index) {
     const mappedItem = {};
     Object.assign(mappedItem, item);
+
+    // If we're just interested in one value, return that (Provision values, for example)
+    if (this.configItems[index].singleValue) {
+        return mappedItem[this.configItems[index].properties[0].id];
+    }
+
     this.configItems[index].properties.forEach((property) => {
         if (mappedItem[property.id]) {
             // map truth/falsehood (enabled/disabled, for example) to booleans
