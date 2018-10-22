@@ -217,6 +217,7 @@ class DeclarationParser {
                 });
             });
 
+            parsed.parsed = true;
             return {
                 tenants,
                 parsedDeclaration: parsed

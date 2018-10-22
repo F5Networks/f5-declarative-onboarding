@@ -30,8 +30,7 @@ const logger = new Logger(module);
  * @class
  */
 class DeclarationHandler {
-    constructor(declaration, bigIp) {
-        this.declaration = declaration;
+    constructor(bigIp) {
         this.bigIp = bigIp;
     }
 
@@ -41,12 +40,17 @@ class DeclarationHandler {
      * @returns {Promise} A promise which is resolved when processing is complete
      *                    or rejected if an error occurs.
      */
-    process() {
+    process(newDeclaration, oldDeclaration) {
         logger.fine('Processing declaration.');
-        const declarationParser = new DeclarationParser(this.declaration);
-        const declarationInfo = declarationParser.parse();
+        let declarationInfo = {};
 
-        logger.info('parsed', JSON.stringify(declarationInfo, null, 4));
+        // We may have already parsed this (if we are rolling back, for example)
+        if (!newDeclaration.parsed) {
+            const declarationParser = new DeclarationParser(newDeclaration);
+            declarationInfo = declarationParser.parse();
+        } else {
+            Object.assign(declarationInfo, newDeclaration);
+        }
 
         return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' })
             .then(() => {

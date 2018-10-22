@@ -138,7 +138,12 @@ class ConfigManager {
                     });
                 });
 
-                logger.info('currentConfig', JSON.stringify(currentConfig, null, 4));
+                return Promise.resolve(
+                    {
+                        parsed: true,
+                        Common: currentConfig
+                    }
+                );
             })
             .catch((err) => {
                 logger.severe(`Error getting current config: ${err.message}`);
