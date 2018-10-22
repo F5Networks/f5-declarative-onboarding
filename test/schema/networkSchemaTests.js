@@ -240,6 +240,7 @@ describe('network.schema.json tests', () => {
                 const data = {
                     "class": "Route",
                     "gw": "1.2.3.4",
+                    "network": "default",
                     "mtu": 1234
                 };
                 assert.ok(validate(data), getErrorString(validate));
@@ -271,6 +272,16 @@ describe('network.schema.json tests', () => {
                 };
                 assert.strictEqual(validate(data), false, 'bad gateway IP address should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"ipv4\\"'), -1);
+            });
+
+            it('should invalidate route data with bad network', () => {
+                const data = {
+                    "class": "Route",
+                    "gw": "1.2.3.4",
+                    "network": "foo"
+                };
+                assert.strictEqual(validate(data), false, 'bad gateway IP address should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('allowedValues'), -1);
             });
         });
     });

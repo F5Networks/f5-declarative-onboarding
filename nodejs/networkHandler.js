@@ -159,6 +159,7 @@ function handleRoute() {
                 name: route.name,
                 partition: tenant,
                 gw: route.gw,
+                network: route.network,
                 mtu: route.mtu
             };
 

@@ -108,6 +108,15 @@
                         { "format": "ipv6" }
                     ]
                 },
+                "network": {
+                    "description": "IP address/netmask for route",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "f5ip" },
+                        { "enum": ["default", "default-inet6"]}
+                    ],
+                    "default": "default"
+                },
                 "mtu": {
                     "description": "MTU for the route.",
                     "type": "integer",

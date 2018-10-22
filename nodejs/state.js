@@ -29,8 +29,7 @@ class State {
         } else {
             // otherwise, create a new state
             this.result = {
-                class: 'Result',
-                errors: null
+                class: 'Result'
             };
             this.declaration = mask(declarationOrState);
         }
@@ -73,8 +72,13 @@ class State {
      * @param {string | array} - An error message or array of messages
      */
     updateResult(code, status, message, errors) {
-        this.result.code = code;
-        this.result.status = status;
+        if (code) {
+            this.result.code = code;
+        }
+
+        if (status) {
+            this.result.status = status;
+        }
 
         if (message) {
             this.result.message = message;

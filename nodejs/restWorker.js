@@ -84,11 +84,12 @@ class RestWorker {
                     return;
                 }
 
-                this.state = new State(state);
+                this.state = state || {};
+                this.state.doState = new State(this.state.doState);
 
-                if (this.state.status === STATUS.STATUS_REBOOTING) {
+                if (this.state.doState.status === STATUS.STATUS_REBOOTING) {
                     // If we were rebooting and are now in this function, all should be well
-                    this.state.updateResult(200, STATUS.STATUS_OK, 'success');
+                    this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
                     this.save()
                         .then(() => {
                             logger.fine('Rebooting complete. Onboarding complete.');
@@ -122,8 +123,8 @@ class RestWorker {
                 restOperation.fail(err);
                 return;
             }
-            this.state = new State(state);
-            restOperation.setBody(this.state);
+            const doState = new State(state.doState);
+            restOperation.setBody(doState);
             this.sendResponse(restOperation);
         });
     }
@@ -137,21 +138,21 @@ class RestWorker {
         logger.finest('Got onboarding request.');
         const declaration = Object.assign({}, restOperation.getBody());
         const validation = this.validator.validate(declaration);
-        this.state = new State(declaration);
+        this.state.doState = new State(declaration);
 
         let rebootRequired = false;
 
         if (!validation.isValid) {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
             logger.info(message);
-            this.state.updateResult(400, STATUS.STATUS_ERROR, 'bad declaration', validation.errors);
+            this.state.doState.updateResult(400, STATUS.STATUS_ERROR, 'bad declaration', validation.errors);
             this.save()
                 .then(() => {
                     this.sendResponse(restOperation);
                 });
         } else {
             logger.fine('Onboard starting.');
-            this.state.updateResult(202, STATUS.STATUS_RUNNING, 'processing');
+            this.state.doState.updateResult(202, STATUS.STATUS_RUNNING, 'processing');
             this.save();
 
             const bigIp = new BigIp({ logger });
@@ -178,17 +179,22 @@ class RestWorker {
                     rebootRequired = needsReboot;
                     if (!rebootRequired) {
                         logger.fine('Onboard complete. No reboot required.');
-                        this.state.updateResult(200, STATUS.STATUS_OK, 'success');
+                        this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
                     } else {
                         logger.fine('Reboot required. Rebooting.');
-                        this.state.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
+                        this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
                     }
                     return this.save();
                 })
                 .catch((err) => {
                     logger.severe(`Error onboarding: ${err.message}`);
                     const deconCode = err.code === 400 ? 422 : 500;
-                    this.state.updateResult(deconCode, STATUS.STATUS_ERROR, 'invalid config', err.message);
+                    this.state.doState.updateResult(
+                        deconCode,
+                        STATUS.STATUS_ERROR,
+                        'invalid config',
+                        err.message
+                    );
                     return this.save();
                 })
                 .finally(() => {
@@ -265,19 +271,19 @@ class RestWorker {
      * @param {number} code - The HTTP status code.
      */
     sendResponse(restOperation) {
-        restOperation.setStatusCode(this.state.code);
-        if (this.state.code < 300) {
-            restOperation.setBody(this.state);
+        restOperation.setStatusCode(this.state.doState.code);
+        if (this.state.doState.code < 300) {
+            restOperation.setBody(this.state.doState);
         } else {
             // When the status code is an error, the rest framework sets
             // up the response differently. Fix that by overwriting here.
             restOperation.setBody(
                 {
-                    code: this.state.code,
-                    status: this.state.status,
-                    message: this.state.message,
-                    errors: this.state.errors,
-                    declaration: this.state.declaration
+                    code: this.state.doState.code,
+                    status: this.state.doState.status,
+                    message: this.state.doState.message,
+                    errors: this.state.doState.errors,
+                    declaration: this.state.doState.declaration
                 }
             );
         }
