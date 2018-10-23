@@ -1,0 +1,6 @@
+awscli
+f5-sphinx-theme>=1.0.5
+sphinx>=1.7.0
+recommonmark
+sphinxjp.themes.basicstrap
+cloud_sptheme

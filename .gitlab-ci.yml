@@ -37,3 +37,77 @@ pages:
     artifacts:
         paths:
             - public
+
+create docs:
+  image: quay.pdsea.f5net.com/doc-ops/containthedocs:710e05a8ed
+  stage: publish
+  script:
+  - make html
+  - echo "Checking grammar and style"
+  # Runs the grammar check on everything except the /docs/drafts directory
+  - vale --glob='*.rst' .
+  - echo "Checking links"
+  - make linkcheck
+
+  # build developer documentation (optional)
+  - if [ "$CI_COMMIT_REF_NAME" = "master" ]; then
+  -   npm install --registry $NPM_REGISTRY_URL -g jsdoc
+  -   jsdoc src/nodejs/* -d developer_docs
+  - fi
+  tags:
+  - cm-official-docker-executor
+  artifacts:
+    expire_in: 1 week
+    name: sphinx-docs_$CI_BUILD_REF
+    paths:
+    - docs/_build/html
+
+
+# Publish docs in development to clouddocs.f5networks.net/under-review/f5-appsvcs (staging site).
+docs to staging:
+  image: quay.pdsea.f5net.com/doc-ops/containthedocs:710e05a8ed
+  stage: publish
+  environment:
+    name: staging
+    url: https://clouddocs.f5networks.net/under-review/${CI_PROJECT_PATH_SLUG}
+  only:
+    - master
+    - develop
+  tags:
+  - cm-official-docker-executor
+  dependencies:
+  - create docs
+  script:
+  # Only publish docs to staging site if AWS variables are configured in repo.
+  - if [ "$AWS_S3_BUCKET" != "" ]; then
+  -   publish-docs-to-staging gitlab
+  -   printf "Your staged documentation is available at http://clouddocs.f5networks.net/under-review/${CI_PROJECT_PATH_SLUG}/${CI_JOB_ID}"
+  -   set -x
+  -   s3-index-generator -b $AWS_S3_BUCKET -t under-review/${CI_PROJECT_PATH_SLUG} -r under-review/ -i 'index.html';
+  -   else printf "Deployment skipped. Project not set up for deployment to staging."
+  - fi
+
+# Publish docs to clouddocs.f5.com
+docs to production:
+  image: quay.pdsea.f5net.com/doc-ops/containthedocs:710e05a8ed
+  stage: publish
+  environment:
+    name: production
+    url: https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension
+  only:
+  # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
+  # fill in desired release branch name and uncomment to add deployment from a branch
+  - doc-publish@cloudsolutions/f5-declarative-onboarding
+  tags:
+  - cm-official-docker-executor
+  dependencies:
+  - create docs
+  script:
+  # Uncomment and set to create desired version format
+  - export VERSION=3
+  - export AWS_S3_BUCKET=clouddocs.f5.com
+  # Publish docs to clouddocs.f5.com (live site).
+  - publish-product-docs-to-prod extensions/f5-declarative-onboarding $VERSION
+  # create invalidation to clear cloudfront cache
+  - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
+  - printf "Your documentation is live at https://${AWS_S3_BUCKET}/products/extensions/f5-declarative-onboarding$(VERSION)"
