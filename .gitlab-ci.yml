@@ -26,6 +26,8 @@ build_rpm:
         paths:
             - build/rpmbuild/RPMS/noarch/
 
+
+
 pages:
     stage: publish
     tags:
@@ -38,9 +40,10 @@ pages:
         paths:
             - public
 
+
 create docs:
   image: quay.pdsea.f5net.com/doc-ops/containthedocs:710e05a8ed
-  stage: publish
+  stage: package
   script:
   - make html
   - echo "Checking grammar and style"
