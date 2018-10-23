@@ -27,8 +27,14 @@ const logger = new Logger(module);
  * @class
  */
 class NetworkHandler {
-    constructor(declarationInfo, bigIp) {
-        this.declaration = declarationInfo.parsedDeclaration;
+    /**
+     * Constructor
+     *
+     * @param {Object} declaration - Parsed declaration.
+     * @param {Object} bigIp - BigIp object.
+     */
+    constructor(declaration, bigIp) {
+        this.declaration = declaration;
         this.bigIp = bigIp;
     }
 

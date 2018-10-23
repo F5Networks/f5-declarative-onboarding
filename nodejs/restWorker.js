@@ -265,6 +265,12 @@ function getAndSaveCurrentConfig(bigIp) {
     return configManager.get()
         .then((currentConfig) => {
             this.state.doState.currentConfig = currentConfig;
+
+            // Also save an original config which we will use for putting
+            // objects back to their defaults
+            if (!this.state.doState.originalConfig) {
+                this.state.doState.originalConfig = currentConfig;
+            }
             return save.call(this);
         });
 }

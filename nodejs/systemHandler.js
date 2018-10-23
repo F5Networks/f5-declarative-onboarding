@@ -28,11 +28,13 @@ const logger = new Logger(module);
  */
 class SystemHandler {
     /**
-     * @param {Object} declarationInfo - Parsed declaration.
+     * Constructor
+     *
+     * @param {Object} declaration - Parsed declaration.
      * @param {Object} bigIp - BigIp object.
      */
-    constructor(declarationInfo, bigIp) {
-        this.declaration = declarationInfo.parsedDeclaration;
+    constructor(declaration, bigIp) {
+        this.declaration = declaration;
         this.bigIp = bigIp;
     }
 
@@ -44,11 +46,11 @@ class SystemHandler {
      */
     process() {
         logger.fine('Processing system declaration.');
-        logger.fine('Checking NTP');
         if (!this.declaration.Common) {
             return Promise.resolve();
         }
 
+        logger.fine('Checking NTP');
         return handleNTP.call(this)
             .then(() => {
                 logger.fine('Checking DNS.');

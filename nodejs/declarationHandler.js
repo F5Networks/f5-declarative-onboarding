@@ -17,11 +17,10 @@
 'use strict';
 
 const DeclarationParser = require('./declarationParser');
-const DiffManager = require('./diffManager');
+const DiffHandler = require('./diffHandler');
 const Logger = require('./logger');
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
-const TenantHandler = require('./tenantHandler');
 
 const logger = new Logger(module);
 
@@ -38,47 +37,46 @@ class DeclarationHandler {
     /**
      * Starts processing.
      *
+     * @param {Object} newDeclaration - The updated declaration to process
+     * @param {Object} oldDeclaration - A declaration representing the current configuration on the device
+     *
      * @returns {Promise} A promise which is resolved when processing is complete
      *                    or rejected if an error occurs.
      */
     process(newDeclaration, oldDeclaration) {
         logger.fine('Processing declaration.');
-        let oldDeclarationInfo = {};
-        let newDeclarationInfo = {};
+        let parsedOldDeclaration;
+        let parsedNewDeclaration;
 
         if (!oldDeclaration.parsed) {
             const declarationParser = new DeclarationParser(oldDeclaration);
-            oldDeclarationInfo = declarationParser.parse();
+            parsedOldDeclaration = declarationParser.parse().parsedDeclaration;
         } else {
-            oldDeclarationInfo.parsedDeclaration = {};
-            Object.assign(oldDeclarationInfo.parsedDeclaration, oldDeclaration);
+            parsedOldDeclaration = {};
+            Object.assign(parsedOldDeclaration, oldDeclaration);
         }
 
-        // We may have already parsed this (if we are rolling back, for example)
         if (!newDeclaration.parsed) {
             const declarationParser = new DeclarationParser(newDeclaration);
-            newDeclarationInfo = declarationParser.parse();
+            parsedNewDeclaration = declarationParser.parse().parsedDeclaration;
         } else {
-            newDeclarationInfo.parsedDeclaration = {};
-            Object.assign(newDeclarationInfo.parsedDeclaration, newDeclaration);
+            parsedNewDeclaration = {};
+            Object.assign(parsedNewDeclaration, newDeclaration);
         }
 
         const classesOfInterest = ['DNS', 'NTP', 'Provision', 'VLAN', 'SelfIp', 'Route'];
-        const diffManager = new DiffManager(classesOfInterest);
-        const finalDeclaration = diffManager.process(
-            oldDeclarationInfo.parsedDeclaration,
-            newDeclarationInfo.parsedDeclaration
-        );
-
-        return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' })
-            .then(() => {
-                return new TenantHandler(declarationInfo, this.bigIp).process();
+        const diffHandler = new DiffHandler(classesOfInterest);
+        let finalDeclaration;
+        return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration)
+            .then((declaration) => {
+                finalDeclaration = declaration;
+                return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
             })
             .then(() => {
-                return new SystemHandler(declarationInfo, this.bigIp).process();
+                return new SystemHandler(finalDeclaration, this.bigIp).process();
             })
             .then(() => {
-                return new NetworkHandler(declarationInfo, this.bigIp).process();
+                return new NetworkHandler(finalDeclaration, this.bigIp).process();
             })
             .then(() => {
                 logger.info('Done processing declartion.');
