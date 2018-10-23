@@ -60,8 +60,8 @@ class State {
     /**
      * Updates the result
      *
-     * @param {number} code - The f5-decon result code.
-     * @param {string} status - The f5-decon status string from sharedConstants.STATUS.
+     * @param {number} code - The f5-declarative-onboarding result code.
+     * @param {string} status - The f5-declarative-onboarding status string from sharedConstants.STATUS.
      * @param {string} message - The user friendly error message if there is one.
      */
     updateResult(code, status, message) {

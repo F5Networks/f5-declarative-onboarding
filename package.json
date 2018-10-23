@@ -1,5 +1,5 @@
 {
-  "name": "f5-decon",
+  "name": "f5-declarative-onboarding",
   "version": "0.3.0",
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/F5Networks/f5-decon.git"
+    "url": "git+https://github.com/F5Networks/f5-declarative-onboarding.git"
   },
   "keywords": [
     "f5",

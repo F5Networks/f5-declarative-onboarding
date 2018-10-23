@@ -42,7 +42,7 @@ try {
 
 class Logger {
     constructor(module) {
-        this.tag = 'f5-decon';
+        this.tag = 'f5-declarative-onboarding';
         this.filename = path.basename(module.filename);
     }
 
