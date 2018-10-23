@@ -17,6 +17,7 @@
 'use strict';
 
 const DeclarationParser = require('./declarationParser');
+const DiffManager = require('./diffManager');
 const Logger = require('./logger');
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
@@ -42,15 +43,32 @@ class DeclarationHandler {
      */
     process(newDeclaration, oldDeclaration) {
         logger.fine('Processing declaration.');
-        let declarationInfo = {};
+        let oldDeclarationInfo = {};
+        let newDeclarationInfo = {};
+
+        if (!oldDeclaration.parsed) {
+            const declarationParser = new DeclarationParser(oldDeclaration);
+            oldDeclarationInfo = declarationParser.parse();
+        } else {
+            oldDeclarationInfo.parsedDeclaration = {};
+            Object.assign(oldDeclarationInfo.parsedDeclaration, oldDeclaration);
+        }
 
         // We may have already parsed this (if we are rolling back, for example)
         if (!newDeclaration.parsed) {
             const declarationParser = new DeclarationParser(newDeclaration);
-            declarationInfo = declarationParser.parse();
+            newDeclarationInfo = declarationParser.parse();
         } else {
-            Object.assign(declarationInfo, newDeclaration);
+            newDeclarationInfo.parsedDeclaration = {};
+            Object.assign(newDeclarationInfo.parsedDeclaration, newDeclaration);
         }
+
+        const classesOfInterest = ['DNS', 'NTP', 'Provision', 'VLAN', 'SelfIp', 'Route'];
+        const diffManager = new DiffManager(classesOfInterest);
+        const finalDeclaration = diffManager.process(
+            oldDeclarationInfo.parsedDeclaration,
+            newDeclarationInfo.parsedDeclaration
+        );
 
         return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' })
             .then(() => {

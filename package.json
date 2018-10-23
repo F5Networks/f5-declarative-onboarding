@@ -24,7 +24,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@f5devcentral/f5-cloud-libs": "beta",
-    "ajv": "^6.5.3"
+    "ajv": "^6.5.3",
+    "deep-diff": "^1.0.2"
   },
   "devDependencies": {
     "eslint": "^5.4.0",

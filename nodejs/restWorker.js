@@ -203,7 +203,7 @@ class RestWorker {
                     logger.info('Rolling back configuration');
                     return save.call(this)
                         .then(() => {
-                            return declarationHandler.process(this.state.doState.currentConfig);
+                            return declarationHandler.process(this.state.doState.currentConfig, declaration);
                         });
                 })
                 .finally(() => {
@@ -307,6 +307,7 @@ function save() {
  * @param {number} code - The HTTP status code.
  */
 function sendResponse(restOperation) {
+    /* jshint validthis: true */
     restOperation.setStatusCode(this.state.doState.code);
     restOperation.setBody(new Response(this.state.doState));
     restOperation.complete();
