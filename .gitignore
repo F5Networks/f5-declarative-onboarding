@@ -2,3 +2,4 @@
 out/
 node_modules/
 build/rpmbuild/
+docs/_build/
