@@ -33,18 +33,21 @@ class State {
      */
     constructor(existingState) {
         this.result = {};
-        this.declaration = {};
-        Object.assign(this.result, existingState.result);
-        Object.assign(this.declaration, existingState.internalDeclaration);
+        this.internalDeclaration = {};
 
-        if (existingState.currentConfig) {
-            this.currentConfig = {};
-            Object.assign(this.currentConfig, existingState.currentConfig);
-        }
+        if (existingState) {
+            Object.assign(this.result, existingState.result);
+            Object.assign(this.internalDeclaration, existingState.internalDeclaration);
 
-        if (existingState.originalConfig) {
-            this.originalConfig = {};
-            Object.assign(this.originalConfig, existingState.originalConfig);
+            if (existingState.currentConfig) {
+                this.currentConfig = {};
+                Object.assign(this.currentConfig, existingState.currentConfig);
+            }
+
+            if (existingState.originalConfig) {
+                this.originalConfig = {};
+                Object.assign(this.originalConfig, existingState.originalConfig);
+            }
         }
     }
 

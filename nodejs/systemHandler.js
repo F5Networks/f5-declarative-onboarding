@@ -86,7 +86,7 @@ class SystemHandler {
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        return this.bigIp.modify(
+        return this.bigIp.replace(
             '/tm/sys/ntp',
             {
                 servers: ntp.servers,
@@ -100,7 +100,7 @@ function handleNTP() {
 function handleDNS() {
     if (this.declaration.Common.DNS) {
         const dns = this.declaration.Common.DNS;
-        return this.bigIp.modify(
+        return this.bigIp.replace(
             '/tm/sys/dns',
             {
                 'name-servers': dns.nameServers,
