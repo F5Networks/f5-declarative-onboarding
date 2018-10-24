@@ -63,6 +63,7 @@ create docs:
 
 
 # Deploy docs to Pages for review
+# Docs are staged on pages at https://cloudsolutions.pages.gitswarm.f5net.com/f5-declarative-onboarding/ 
 pages:
   stage: publish
   environment: 
