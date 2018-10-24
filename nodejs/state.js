@@ -18,8 +18,15 @@
 
 const KEYS_TO_MASK = require('./sharedConstants').KEYS_TO_MASK;
 
+/**
+ * Represents the declarative onboarding state
+ *
+ * @class
+ */
 class State {
     constructor(declarationOrState) {
+        this.currentConfig = null;
+        this.originalConfig = null;
         if (declarationOrState && declarationOrState.result) {
             // If we were passed a state object, just copy
             this.result = {};

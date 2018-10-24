@@ -217,10 +217,6 @@ class DeclarationParser {
                 });
             });
 
-            // We need to fill in defaults for module provisioning which is not in the declaration
-            // This is because the user can leave out a module or put in level: none. Since these
-            // mean the same thing we need to normalize
-            parsed.Common.Provision = normalizeProvisioning(parsed.Common.Provision);
             parsed.parsed = true;
             return {
                 tenants,
@@ -231,40 +227,6 @@ class DeclarationParser {
             throw err;
         }
     }
-}
-
-function normalizeProvisioning(provisioning) {
-    if (!provisioning) {
-        return undefined;
-    }
-
-    const normalized = {};
-    Object.assign(normalized, provisioning);
-
-    const modules = [
-        'afm',
-        'am',
-        'apm',
-        'asm',
-        'avr',
-        'dos',
-        'fps',
-        'gtm',
-        'ilx',
-        'lc',
-        'ltm',
-        'pem',
-        'swg',
-        'urldb'
-    ];
-
-    modules.forEach((module) => {
-        if (!normalized[module]) {
-            normalized[module] = 'none';
-        }
-    });
-
-    return normalized;
 }
 
 module.exports = DeclarationParser;

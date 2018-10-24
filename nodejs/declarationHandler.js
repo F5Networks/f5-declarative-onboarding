@@ -24,6 +24,11 @@ const NetworkHandler = require('./networkHandler');
 
 const logger = new Logger(module);
 
+// They are the classes for which we are the source of truth. We will
+// run a diff against these classes and also apply defaults for them if they
+// are missing from the declaration
+const classesOfTruth = ['hostname', 'DNS', 'NTP', 'Provision', 'VLAN', 'SelfIp', 'Route'];
+
 /**
  * Main processing for a parsed declaration.
  *
@@ -38,15 +43,19 @@ class DeclarationHandler {
      * Starts processing.
      *
      * @param {Object} newDeclaration - The updated declaration to process
+     * @param {Object} state - The [doState]{@link State} object
      * @param {Object} oldDeclaration - A declaration representing the current configuration on the device
      *
      * @returns {Promise} A promise which is resolved when processing is complete
      *                    or rejected if an error occurs.
      */
-    process(newDeclaration, oldDeclaration) {
+    process(newDeclaration, state) {
         logger.fine('Processing declaration.');
         let parsedOldDeclaration;
         let parsedNewDeclaration;
+
+        const oldDeclaration = {};
+        Object.assign(oldDeclaration, state.currentConfig);
 
         if (!oldDeclaration.parsed) {
             const declarationParser = new DeclarationParser(oldDeclaration);
@@ -64,8 +73,9 @@ class DeclarationHandler {
             Object.assign(parsedNewDeclaration, newDeclaration);
         }
 
-        const classesOfInterest = ['DNS', 'NTP', 'Provision', 'VLAN', 'SelfIp', 'Route'];
-        const diffHandler = new DiffHandler(classesOfInterest);
+        applyDefaults(newDeclaration, state);
+
+        const diffHandler = new DiffHandler(classesOfTruth);
         let finalDeclaration;
         return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration)
             .then((declaration) => {
@@ -87,6 +97,33 @@ class DeclarationHandler {
                 return Promise.reject(err);
             });
     }
+}
+
+/**
+ * Apply defaults to a declaration
+ *
+ * Anything that is not mentioned that is not mentioned that we are the source
+ * of truth for will be set back to its original state.
+ *
+ * @param {Object} declaration - The new declation to apply
+ * @param {Object} state - The [doState]{@link State} object
+ */
+function applyDefaults(declaration, state) {
+    classesOfTruth.forEach((key) => {
+        if (!declaration.Common[key]) {
+            const original = state.originalConfig.Common[key];
+            if (original) {
+                if (typeof original === 'string') {
+                    declaration[key] = original;
+                } else if (Array.isArray(original)) {
+                    declaration[key] = original.slice();
+                } else {
+                    declaration[key] = {};
+                    Object.assign(declaration[key], original);
+                }
+            }
+        }
+    });
 }
 
 module.exports = DeclarationHandler;

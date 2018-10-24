@@ -19,27 +19,32 @@
 const observableDiff = require('deep-diff').observableDiff;
 const applyChange = require('deep-diff').applyChange;
 
-class DiffManager {
+class DiffHandler {
     /**
      * Constructor
-     * @param {String[]} classesOfInterest - Array of classes that we want to diff. All
-     *                                       other classes will be left alone.
+     * @param {String[]} classesOfTruth - Array of classes that we are the source of truth for. All
+     *                                    other classes will be left alone.
      */
-    constructor(classesOfInterest) {
-        this.classesOfInterest = classesOfInterest.slice();
+    constructor(classesOfTruth) {
+        this.classesOfTruth = classesOfTruth.slice();
     }
 
     /**
      *
-     * @param {Object} to - The declaration we are updating to
-     * @param {Object} from - The declaration we are updating from
+     * @param {Object} toDeclaration - The declaration we are updating to
+     * @param {Object} fromDeclaration - The declaration we are updating from
      *
      * @param {Promise} A promise which is resolved with the declaration to apply
      */
-    process(to, from) {
-        // start off with the stuff that we do not diff (we always attempt to apply these items)
+    process(toDeclaration, fromDeclaration) {
+        // Clone these to make sure we do not modify them via observableDiff
+        const to = JSON.parse(JSON.stringify(toDeclaration));
+        const from = JSON.parse(JSON.stringify(fromDeclaration));
+
+        // Start off with the stuff that we do not diff (we are not the source of truth for
+        // these - they will always be applied as given to us).
         const final = {
-            Common: populateUninterestingClasses(to.Common, this.classesOfInterest)
+            Common: populateNonTruthClasses(to.Common, this.classesOfTruth)
         };
         const updatedPaths = [];
 
@@ -48,10 +53,10 @@ class DiffManager {
         // the changed data
         observableDiff(from, to, (diff) => {
             // diff.path looks like ['Common', 'DNS'], for example
-            if (this.classesOfInterest.indexOf(diff.path[1]) !== -1) {
+            if (this.classesOfTruth.indexOf(diff.path[1]) !== -1) {
                 applyChange(from, to, diff);
 
-                // we're only interesed in on layer down (/Common/DNS, for example)
+                // we're only interesed in one layer down (/Common/DNS, for example)
                 if (updatedPaths.indexOf(diff.path[1]) === -1) {
                     updatedPaths.push(diff.path[1]);
                 }
@@ -75,15 +80,15 @@ class DiffManager {
 }
 
 /**
- * Copies all classes that we do not want to diff
+ * Copies all classes that we are not the source of truth for (we don't want to diff these)
  *
  * @param {Object} declaration - Common section of parsed declaration
- * @param {String[]} classesOfInterest - Classes that we are interested in
+ * @param {String[]} classesOfTruth - Classes that we are the source of truth for
  */
-function populateUninterestingClasses(declaration, classesOfInterest) {
+function populateNonTruthClasses(declaration, classesOfTruth) {
     const uninteresting = {};
     Object.keys(declaration).forEach((key) => {
-        if (classesOfInterest.indexOf(key) === -1) {
+        if (classesOfTruth.indexOf(key) === -1) {
             if (typeof declaration[key] === 'string') {
                 uninteresting[key] = declaration[key];
             } else if (typeof declaration[key] === 'object') {
@@ -98,4 +103,4 @@ function populateUninterestingClasses(declaration, classesOfInterest) {
     return uninteresting;
 }
 
-module.exports = DiffManager;
+module.exports = DiffHandler;

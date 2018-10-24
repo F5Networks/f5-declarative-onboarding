@@ -50,7 +50,7 @@ class SystemHandler {
             return Promise.resolve();
         }
 
-        logger.fine('Checking NTP');
+        logger.fine('Checking NTP.');
         return handleNTP.call(this)
             .then(() => {
                 logger.fine('Checking DNS.');

@@ -168,7 +168,7 @@ class RestWorker {
                     return getAndSaveCurrentConfig.call(this, bigIp);
                 })
                 .then(() => {
-                    return declarationHandler.process(declaration, this.state.doState.currentConfig);
+                    return declarationHandler.process(declaration, this.state.doState);
                 })
                 .then(() => {
                     logger.fine('Onboard configuration complete. Checking for reboot.');
@@ -193,18 +193,33 @@ class RestWorker {
                 })
                 .catch((err) => {
                     logger.severe(`Error onboarding: ${err.message}`);
-                    const deconCode = err.code === 400 ? 422 : 500;
+                    logger.info('Rolling back configuration');
+                    const rollbackTo = {};
+                    Object.assign(rollbackTo, this.state.doState.currentConfig);
+                    return getAndSaveCurrentConfig.call(this, bigIp)
+                        .then(() => {
+                            return declarationHandler.process(rollbackTo, this.state.doState);
+                        })
+                        .then(() => {
+                            const deconCode = err.code === 400 ? 422 : 500;
+                            this.state.doState.updateResult(
+                                deconCode,
+                                STATUS.STATUS_ERROR,
+                                'invalid config - rolled back',
+                                err.message
+                            );
+                            return save.call(this);
+                        });
+                })
+                .catch((err) => {
+                    logger.severe(`Error rolling back configuration: ${err.message}`);
+                    const deconCode = 500;
                     this.state.doState.updateResult(
                         deconCode,
                         STATUS.STATUS_ERROR,
-                        'invalid config',
+                        'rollback failed',
                         err.message
                     );
-                    logger.info('Rolling back configuration');
-                    return save.call(this)
-                        .then(() => {
-                            return declarationHandler.process(this.state.doState.currentConfig, declaration);
-                        });
                 })
                 .finally(() => {
                     if (!declaration.async) {

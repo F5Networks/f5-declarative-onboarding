@@ -52,6 +52,12 @@ rules:
           variables: true
           classes: true
 
+    # Allow updating propertes of function parameters. This is the eslint default
+    # but AirBnb overrides it
+    no-param-reassign:
+        - error
+        - props: false
+
     # node 4 does not support destructuring
     prefer-destructuring:
         - error
