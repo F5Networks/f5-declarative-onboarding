@@ -52,11 +52,7 @@ create docs:
   - echo "Checking links"
   - make linkcheck
 
-  # build developer documentation (optional)
-  - if [ "$CI_COMMIT_REF_NAME" = "master" ]; then
-  -   npm install --registry $NPM_REGISTRY_URL -g jsdoc
-  -   jsdoc src/nodejs/* -d developer_docs
-  - fi
+  
   tags:
   - cm-official-docker-executor
   artifacts:
@@ -96,7 +92,7 @@ docs to production:
   stage: publish
   environment:
     name: production
-    url: https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension
+    url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding
   only:
   # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
   # fill in desired release branch name and uncomment to add deployment from a branch
