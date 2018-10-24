@@ -62,29 +62,26 @@ create docs:
     - docs/_build/html
 
 
-# Publish docs in development to clouddocs.f5networks.net/under-review/f5-appsvcs (staging site).
-docs to staging:
-  image: quay.pdsea.f5net.com/doc-ops/containthedocs:710e05a8ed
+# Deploy docs to Pages for review
+pages:
   stage: publish
-  environment:
-    name: staging
-    url: https://clouddocs.f5networks.net/under-review/${CI_PROJECT_PATH_SLUG}
-  only:
-    - master
-    - develop
+  environment: 
+    name: review
+    url: https://${CI_PROJECT_NAMESPACE}.pages.gitswarm.f5net.com/${CI_PROJECT_NAME}/
   tags:
   - cm-official-docker-executor
   dependencies:
-  - create docs
+  - build docs  
   script:
-  # Only publish docs to staging site if AWS variables are configured in repo.
-  - if [ "$AWS_S3_BUCKET" != "" ]; then
-  -   publish-docs-to-staging gitlab
-  -   printf "Your staged documentation is available at http://clouddocs.f5networks.net/under-review/${CI_PROJECT_PATH_SLUG}/${CI_JOB_ID}"
-  -   set -x
-  -   s3-index-generator -b $AWS_S3_BUCKET -t under-review/${CI_PROJECT_PATH_SLUG} -r under-review/ -i 'index.html';
-  -   else printf "Deployment skipped. Project not set up for deployment to staging."
-  - fi
+  - mkdir -p ./public
+  - cp -R docs/_build/html/* ./public
+  artifacts:
+    paths:
+    - public
+  only:
+  - branches
+
+
 
 # Publish docs to clouddocs.f5.com
 docs to production:
