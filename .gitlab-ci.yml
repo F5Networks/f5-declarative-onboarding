@@ -71,7 +71,7 @@ pages:
   tags:
   - cm-official-docker-executor
   dependencies:
-  - build docs  
+  - create docs  
   script:
   - mkdir -p ./public
   - cp -R docs/_build/html/* ./public
