@@ -63,10 +63,10 @@ class RestWorker {
     /**
      * Called by LX framework when rest worker is loaded.
      *
-     * @param {function} success - Callback to indicate successful startup completed.
-     * @param {function} error - Callback to indicate startup completed failure.
-     * @param {object} nullState - State loaded from rest storage. Except it is null.
-     * @param {string} errorMsg - Error message from upstream.
+     * @param {Function} success - Callback to indicate successful startup completed.
+     * @param {Function} error - Callback to indicate startup completed failure.
+     * @param {Object} nullState - State loaded from rest storage. Except it is null.
+     * @param {String} errorMsg - Error message from upstream.
      */
     onStartCompleted(success, error, nullState, errorMsg) {
         if (errorMsg) {
@@ -107,7 +107,7 @@ class RestWorker {
      *
      * For query options see {@link Response}
      *
-     * @param {object} restOperation - The restOperation containing request info.
+     * @param {Object} restOperation - The restOperation containing request info.
      */
     onGet(restOperation) {
         sendResponse.call(this, restOperation);
@@ -116,7 +116,7 @@ class RestWorker {
     /**
      * Handles Post requests.
      *
-     * @param {object} restOperation
+     * @param {Object} restOperation
      */
     onPost(restOperation) {
         logger.finest('Got onboarding request.');
@@ -223,7 +223,7 @@ class RestWorker {
      *
      * This is called by WOKER_URI/example.
      *
-     * @returns {object} An example of a valid declaration.
+     * @returns {Object} An example of a valid declaration.
      */
     /* eslint-disable class-methods-use-this */
     getExampleState() {
@@ -327,8 +327,8 @@ function load() {
 /**
  * Sends a response for a restOperation.
  *
- * @param {object} restOperation - The restOperation to send the response for.
- * @param {number} code - The HTTP status code.
+ * @param {Object} restOperation - The restOperation to send the response for.
+ * @param {Number} code - The HTTP status code.
  */
 function sendResponse(restOperation) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
