@@ -20,9 +20,13 @@
  * Format a response to rest request
  *
  * @class
+ *
+ * @param {Object} state - The current [doState]{@link State}
+ * @param {Object} [options] - Query options
+ * @param {String} [options.show] - What to show of the state. Only current option is 'full'
  */
 class Response {
-    constructor(state) {
+    constructor(state, options) {
         if (state.code < 300) {
             this.result = {
                 class: 'Result',
@@ -31,13 +35,18 @@ class Response {
                 message: state.message,
                 errors: state.errors
             };
-            this.declaration = state.declaration;
         } else {
             this.code = state.code;
             this.status = state.status;
             this.message = state.message;
             this.errors = state.errors;
-            this.declaration = state.declaration;
+        }
+
+        this.declaration = state.declaration;
+
+        if (options && options.show && options.show === 'full') {
+            this.currentConfig = state.currentConfig;
+            this.originalConfig = state.originalConfig;
         }
     }
 }

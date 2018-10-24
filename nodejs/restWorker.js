@@ -75,19 +75,9 @@ class RestWorker {
             return;
         }
 
-        try {
-            // The framework is supposed to pass in our state, but does not.
-            this.loadState(null, (err, state) => {
-                if (err) {
-                    const message = `error loading state: ${err.message}`;
-                    this.logger.warning(message);
-                    error(message);
-                    return;
-                }
-
-                this.state = state || {};
-                this.state.doState = new State(this.state.doState);
-
+        // The framework is supposed to pass in our state, but does not.
+        load.call(this)
+            .then(() => {
                 if (this.state.doState.status === STATUS.STATUS_REBOOTING) {
                     // If we were rebooting and are now in this function, all should be well
                     this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
@@ -104,30 +94,23 @@ class RestWorker {
                 } else {
                     success();
                 }
+            })
+            .catch((err) => {
+                const message = `error creating state: ${err.message}`;
+                logger.severe(message);
+                error(message);
             });
-        } catch (err) {
-            const message = `error creating state: ${err.message}`;
-            logger.severe(message);
-            error(message);
-        }
     }
 
     /**
      * Handles Get requests.
      *
+     * For query options see {@link Response}
+     *
      * @param {object} restOperation - The restOperation containing request info.
      */
     onGet(restOperation) {
-        this.loadState(null, (err, state) => {
-            if (err) {
-                this.logger.warning(`error loading state: ${err.message}`);
-                restOperation.fail(err);
-                return;
-            }
-            const doState = new State(state.doState);
-            restOperation.setBody(doState);
-            sendResponse.call(this, restOperation);
-        });
+        sendResponse.call(this, restOperation);
     }
 
     /**
@@ -139,7 +122,7 @@ class RestWorker {
         logger.finest('Got onboarding request.');
         const declaration = Object.assign({}, restOperation.getBody());
         const validation = this.validator.validate(declaration);
-        this.state.doState = new State(declaration);
+        this.state.doState.declaration = declaration;
 
         let rebootRequired = false;
 
@@ -189,7 +172,9 @@ class RestWorker {
                     if (!rebootRequired) {
                         logger.fine('Onboard complete.');
                         this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
+                        return save.call(this);
                     }
+                    return Promise.resolve();
                 })
                 .catch((err) => {
                     logger.severe(`Error onboarding: ${err.message}`);
@@ -321,6 +306,24 @@ function save() {
     });
 }
 
+function load() {
+    return new Promise((resolve, reject) => {
+        this.loadState(null, (err, state) => {
+            if (err) {
+                const message = `error loading state: ${err.message}`;
+                this.logger.warning(message);
+                reject(err);
+            }
+
+            this.state = state || {};
+
+            // This gives us our state methods, rather than just the data
+            this.state.doState = new State(this.state.doState);
+            resolve();
+        });
+    });
+}
+
 /**
  * Sends a response for a restOperation.
  *
@@ -328,9 +331,11 @@ function save() {
  * @param {number} code - The HTTP status code.
  */
 function sendResponse(restOperation) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
-    restOperation.setStatusCode(this.state.doState.code);
-    restOperation.setBody(new Response(this.state.doState));
+    const doState = new State(this.state.doState);
+    restOperation.setStatusCode(doState.code);
+    restOperation.setBody(new Response(doState, restOperation.getUri().query));
     restOperation.complete();
 }
 

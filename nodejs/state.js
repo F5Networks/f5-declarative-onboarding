@@ -24,21 +24,27 @@ const KEYS_TO_MASK = require('./sharedConstants').KEYS_TO_MASK;
  * @class
  */
 class State {
-    constructor(declarationOrState) {
-        this.currentConfig = null;
-        this.originalConfig = null;
-        if (declarationOrState && declarationOrState.result) {
-            // If we were passed a state object, just copy
-            this.result = {};
-            this.declaration = {};
-            Object.assign(this.result, declarationOrState.result);
-            Object.assign(this.declaration, declarationOrState.declaration);
-        } else {
-            // otherwise, create a new state
-            this.result = {
-                class: 'Result'
-            };
-            this.declaration = mask(declarationOrState);
+    /**
+     * Copy constructor
+     *
+     * This allows us to re-create a state object with methods from just the data
+     *
+     * @param {Object} existingState - The existing state data
+     */
+    constructor(existingState) {
+        this.result = {};
+        this.declaration = {};
+        Object.assign(this.result, existingState.result);
+        Object.assign(this.declaration, existingState.internalDeclaration);
+
+        if (existingState.currentConfig) {
+            this.currentConfig = {};
+            Object.assign(this.currentConfig, existingState.currentConfig);
+        }
+
+        if (existingState.originalConfig) {
+            this.originalConfig = {};
+            Object.assign(this.originalConfig, existingState.originalConfig);
         }
     }
 
@@ -68,6 +74,20 @@ class State {
      */
     get errors() {
         return this.result.errors;
+    }
+
+    /**
+     * Sets the declaration masking certain values
+     */
+    set declaration(declaration) {
+        this.internalDeclaration = mask(declaration);
+    }
+
+    /**
+     * Gets the declaration
+     */
+    get declaration() {
+        return this.internalDeclaration;
     }
 
     /**

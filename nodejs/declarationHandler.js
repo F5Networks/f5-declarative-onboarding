@@ -73,7 +73,7 @@ class DeclarationHandler {
             Object.assign(parsedNewDeclaration, newDeclaration);
         }
 
-        applyDefaults(newDeclaration, state);
+        applyDefaults(parsedNewDeclaration, state);
 
         const diffHandler = new DiffHandler(classesOfTruth);
         let finalDeclaration;
@@ -109,17 +109,21 @@ class DeclarationHandler {
  * @param {Object} state - The [doState]{@link State} object
  */
 function applyDefaults(declaration, state) {
+    const commonDeclaration = declaration.Common;
     classesOfTruth.forEach((key) => {
-        if (!declaration.Common[key]) {
+        const item = commonDeclaration[key];
+
+        // if the missing or empty, fill in the original
+        if (!item || (typeof item === 'object' && Object.keys(item).length === 0)) {
             const original = state.originalConfig.Common[key];
             if (original) {
                 if (typeof original === 'string') {
-                    declaration[key] = original;
+                    commonDeclaration[key] = original;
                 } else if (Array.isArray(original)) {
-                    declaration[key] = original.slice();
+                    commonDeclaration[key] = original.slice();
                 } else {
-                    declaration[key] = {};
-                    Object.assign(declaration[key], original);
+                    commonDeclaration[key] = {};
+                    Object.assign(commonDeclaration[key], original);
                 }
             }
         }

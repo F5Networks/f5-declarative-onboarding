@@ -160,9 +160,15 @@ class ConfigManager {
  */
 function removeUnusedKeys(item) {
     const filtered = {};
+    const keysToRemove = ['kind', 'selfLink'];
     Object.assign(filtered, item);
     Object.keys(filtered).forEach((key) => {
         if (key.endsWith('Reference')) {
+            delete filtered[key];
+        }
+
+        // we get some keys we don't ask for
+        if (keysToRemove.indexOf(key) !== -1) {
             delete filtered[key];
         }
     });
