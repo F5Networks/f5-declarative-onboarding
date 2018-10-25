@@ -53,13 +53,13 @@ create docs:
         - make linkcheck
 
 
-  tags:
-      - cm-official-docker-executor
-  artifacts:
-      expire_in: 1 week
-      name: sphinx-docs_$CI_BUILD_REF
-      paths:
-          - docs/_build/html
+    tags:
+        - cm-official-docker-executor
+    artifacts:
+        expire_in: 1 week
+        name: sphinx-docs_$CI_BUILD_REF
+        paths:
+            - docs/_build/html
 
 # Deploy docs to Pages for review
 # Docs are staged on this projects pages site
