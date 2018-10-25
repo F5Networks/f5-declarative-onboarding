@@ -18,6 +18,7 @@
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
+const PATHS = require('./sharedConstants').PATHS;
 
 const logger = new Logger(module);
 
@@ -28,11 +29,13 @@ const logger = new Logger(module);
  */
 class SystemHandler {
     /**
-     * @param {Object} declarationInfo - Parsed declaration.
+     * Constructor
+     *
+     * @param {Object} declaration - Parsed declaration.
      * @param {Object} bigIp - BigIp object.
      */
-    constructor(declarationInfo, bigIp) {
-        this.declaration = declarationInfo.parsedDeclaration;
+    constructor(declaration, bigIp) {
+        this.declaration = declaration;
         this.bigIp = bigIp;
     }
 
@@ -44,11 +47,11 @@ class SystemHandler {
      */
     process() {
         logger.fine('Processing system declaration.');
-        logger.fine('Checking NTP');
         if (!this.declaration.Common) {
             return Promise.resolve();
         }
 
+        logger.fine('Checking NTP.');
         return handleNTP.call(this)
             .then(() => {
                 logger.fine('Checking DNS.');
@@ -83,10 +86,9 @@ class SystemHandler {
 
 function handleNTP() {
     if (this.declaration.Common.NTP) {
-        const ntpContainer = Object.keys(this.declaration.Common.NTP)[0];
-        const ntp = this.declaration.Common.NTP[ntpContainer];
-        return this.bigIp.modify(
-            '/tm/sys/ntp',
+        const ntp = this.declaration.Common.NTP;
+        return this.bigIp.replace(
+            PATHS.NTP,
             {
                 servers: ntp.servers,
                 timezone: ntp.timezone
@@ -98,10 +100,9 @@ function handleNTP() {
 
 function handleDNS() {
     if (this.declaration.Common.DNS) {
-        const dnsContainer = Object.keys(this.declaration.Common.DNS)[0];
-        const dns = this.declaration.Common.DNS[dnsContainer];
-        return this.bigIp.modify(
-            '/tm/sys/dns',
+        const dns = this.declaration.Common.DNS;
+        return this.bigIp.replace(
+            PATHS.DNS,
             {
                 'name-servers': dns.nameServers,
                 search: dns.search
@@ -156,8 +157,7 @@ function handleUser() {
 
 function handleLicense() {
     if (this.declaration.Common.License) {
-        const licenseContainer = Object.keys(this.declaration.Common.License)[0];
-        const license = this.declaration.Common.License[licenseContainer];
+        const license = this.declaration.Common.License;
         if (license.regKey || license.addOnKeys) {
             return this.bigIp.onboard.license(
                 {
@@ -173,8 +173,7 @@ function handleLicense() {
 
 function handleProvision() {
     if (this.declaration.Common.Provision) {
-        const provisionContainer = Object.keys(this.declaration.Common.Provision)[0];
-        const provision = this.declaration.Common.Provision[provisionContainer];
+        const provision = this.declaration.Common.Provision;
         return this.bigIp.onboard.provision(provision)
             .then((results) => {
                 // If we provisioned something make sure we are active for a while.

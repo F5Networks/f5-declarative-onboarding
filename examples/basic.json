@@ -74,7 +74,8 @@
         "myRoute": {
             "class": "Route",
             "gw": "10.1.20.1",
-            "network": "0.0.0.0/0"
+            "network": "default",
+            "mtu": 0
         }
     }
 }

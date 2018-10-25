@@ -23,6 +23,13 @@
  */
 module.exports = {
     KEYS_TO_MASK: ['password', 'newPassword', 'oldPassword', 'passphrase'],
+    PATHS: {
+        DNS: '/tm/sys/dns',
+        NTP: '/tm/net/sys/ntp',
+        Route: '/tm/net/route',
+        SelfIp: '/tm/net/self',
+        VLAN: '/tm/net/vlan'
+    },
     STATUS: {
         STATUS_OK: 'OK',
         STATUS_ERROR: 'ERROR',

@@ -1,0 +1,63 @@
+[
+    {
+        "path": "/tm/sys/global-settings",
+        "properties": [
+            { "id": "hostname" }
+        ]
+    },
+    {
+        "path": "/tm/sys/provision",
+        "schemaClass": "Provision",
+        "properties": [
+            { "id": "level" }
+        ],
+        "singleValue": true
+    },
+    {
+        "path": "/tm/sys/ntp",
+        "schemaClass": "NTP",
+        "properties": [
+            { "id": "servers" },
+            { "id": "timezone" }
+        ]
+    },
+    {
+        "path": "/tm/sys/dns",
+        "schemaClass": "DNS",
+        "properties": [
+            { "id": "nameServers" },
+            { "id": "search" }
+        ]
+    },
+    {
+        "path": "/tm/net/vlan",
+        "schemaClass": "VLAN",
+        "properties": [
+            { "id": "mtu" },
+            { "id": "tag" },
+            { "id": "interfacesReference" }
+        ],
+        "references": {
+            "interfacesReference": [{ "id": "tagged" }]
+        }
+    },
+    {
+        "path": "/tm/net/self",
+        "schemaClass": "SelfIp",
+        "properties": [
+            { "id": "address" },
+            { "id": "vlan", "isRef": true },
+            { "id": "allowService" },
+            { "id": "floating", "truth": "enabled", "falsehood": "disabled" }
+        ]
+    },
+    {
+        "path": "/tm/net/route",
+        "schemaClass": "Route",
+        "properties": [
+            { "id": "gw" },
+            { "id": "network" },
+            { "id": "mtu" }
+        ]
+    }
+]

@@ -19,10 +19,14 @@
 const fs = require('fs');
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
-const Logger = require('./logger');
-const Validator = require('./validator');
+
+const ConfigManager = require('./configManager');
 const DeclarationHandler = require('./declarationHandler');
+const Logger = require('./logger');
+const Response = require('./response');
 const State = require('./state');
+const Validator = require('./validator');
+
 const STATUS = require('./sharedConstants').STATUS;
 
 const logger = new Logger(module);
@@ -34,7 +38,7 @@ const logger = new Logger(module);
  */
 class RestWorker {
     constructor() {
-        this.WORKER_URI_PATH = 'shared/decon';
+        this.WORKER_URI_PATH = 'shared/declarative-onboarding';
         this.isPublic = true;
     }
 
@@ -59,10 +63,10 @@ class RestWorker {
     /**
      * Called by LX framework when rest worker is loaded.
      *
-     * @param {function} success - Callback to indicate successful startup completed.
-     * @param {function} error - Callback to indicate startup completed failure.
-     * @param {object} nullState - State loaded from rest storage. Except it is null.
-     * @param {string} errorMsg - Error message from upstream.
+     * @param {Function} success - Callback to indicate successful startup completed.
+     * @param {Function} error - Callback to indicate startup completed failure.
+     * @param {Object} nullState - State loaded from rest storage. Except it is null.
+     * @param {String} errorMsg - Error message from upstream.
      */
     onStartCompleted(success, error, nullState, errorMsg) {
         if (errorMsg) {
@@ -71,22 +75,13 @@ class RestWorker {
             return;
         }
 
-        try {
-            // The framework is supposed to pass in our state, but does not.
-            this.loadState(null, (err, state) => {
-                if (err) {
-                    const message = `error loading state: ${err.message}`;
-                    this.logger.warning(message);
-                    error(message);
-                    return;
-                }
-
-                this.state = new State(state);
-
-                if (this.state.status === STATUS.STATUS_REBOOTING) {
+        // The framework is supposed to pass in our state, but does not.
+        load.call(this)
+            .then(() => {
+                if (this.state.doState.status === STATUS.STATUS_REBOOTING) {
                     // If we were rebooting and are now in this function, all should be well
-                    this.state.updateResult(200, STATUS.STATUS_OK);
-                    this.save()
+                    this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
+                    save.call(this)
                         .then(() => {
                             logger.fine('Rebooting complete. Onboarding complete.');
                             success();
@@ -99,66 +94,66 @@ class RestWorker {
                 } else {
                     success();
                 }
+            })
+            .catch((err) => {
+                const message = `error creating state: ${err.message}`;
+                logger.severe(message);
+                error(message);
             });
-        } catch (err) {
-            const message = `error creating state: ${err.message}`;
-            logger.severe(message);
-            error(message);
-        }
     }
 
     /**
      * Handles Get requests.
      *
-     * @param {object} restOperation - The restOperation containing request info.
+     * For query options see {@link Response}
+     *
+     * @param {Object} restOperation - The restOperation containing request info.
      */
     onGet(restOperation) {
-        this.loadState(null, (err, state) => {
-            if (err) {
-                this.logger.warning(`error loading state: ${err.message}`);
-                restOperation.fail(err);
-                return;
-            }
-            this.state = new State(state);
-            restOperation.setBody(this.state);
-            this.sendResponse(restOperation);
-        });
+        sendResponse.call(this, restOperation);
     }
 
     /**
      * Handles Post requests.
      *
-     * @param {object} restOperation
+     * @param {Object} restOperation
      */
     onPost(restOperation) {
         logger.finest('Got onboarding request.');
         const declaration = Object.assign({}, restOperation.getBody());
         const validation = this.validator.validate(declaration);
-        this.state = new State(declaration);
+        this.state.doState.declaration = declaration;
+        this.state.doState.errors = null;
 
         let rebootRequired = false;
 
         if (!validation.isValid) {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
             logger.info(message);
-            this.state.updateResult(400, STATUS.STATUS_ERROR, message);
-            this.save()
+            this.state.doState.updateResult(400, STATUS.STATUS_ERROR, 'bad declaration', validation.errors);
+            save.call(this)
                 .then(() => {
-                    this.sendResponse(restOperation);
+                    sendResponse.call(this, restOperation);
                 });
         } else {
             logger.fine('Onboard starting.');
-            this.state.updateResult(202, STATUS.STATUS_RUNNING);
-            this.save();
+            this.state.doState.updateResult(202, STATUS.STATUS_RUNNING, 'processing');
+            save.call(this);
 
             const bigIp = new BigIp({ logger });
-            const declarationHandler = new DeclarationHandler(declaration, bigIp);
+            const declarationHandler = new DeclarationHandler(bigIp);
 
             if (declaration.async) {
-                this.sendResponse(restOperation);
+                sendResponse.call(this, restOperation);
             }
 
-            declarationHandler.process()
+            initializeBigIp(bigIp)
+                .then(() => {
+                    return getAndSaveCurrentConfig.call(this, bigIp);
+                })
+                .then(() => {
+                    return declarationHandler.process(declaration, this.state.doState);
+                })
                 .then(() => {
                     logger.fine('Onboard configuration complete. Checking for reboot.');
                     return bigIp.rebootRequired();
@@ -166,24 +161,56 @@ class RestWorker {
                 .then((needsReboot) => {
                     rebootRequired = needsReboot;
                     if (!rebootRequired) {
-                        logger.fine('Onboard complete. No reboot required.');
-                        this.state.updateResult(200, STATUS.STATUS_OK);
-                    } else {
-                        logger.fine('Reboot required. Rebooting.');
-                        this.state.updateResult(202, STATUS.STATUS_REBOOTING);
+                        logger.fine('No reboot required');
+                        return getAndSaveCurrentConfig.call(this, bigIp);
                     }
-                    return this.save();
+
+                    logger.fine('Reboot required. Rebooting.');
+                    this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
+                    return save.call(this);
+                })
+                .then(() => {
+                    if (!rebootRequired) {
+                        logger.fine('Onboard complete.');
+                        this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
+                        return save.call(this);
+                    }
+                    return Promise.resolve();
                 })
                 .catch((err) => {
                     logger.severe(`Error onboarding: ${err.message}`);
-                    const deconCode = err.code === 400 ? 422 : 500;
-                    this.state.updateResult(deconCode, STATUS.STATUS_ERROR, err.message);
-                    return this.save();
+                    logger.info('Rolling back configuration');
+                    const rollbackTo = {};
+                    Object.assign(rollbackTo, this.state.doState.currentConfig);
+                    return getAndSaveCurrentConfig.call(this, bigIp)
+                        .then(() => {
+                            return declarationHandler.process(rollbackTo, this.state.doState);
+                        })
+                        .then(() => {
+                            const deconCode = err.code === 400 ? 422 : 500;
+                            this.state.doState.updateResult(
+                                deconCode,
+                                STATUS.STATUS_ERROR,
+                                'invalid config - rolled back',
+                                err.message
+                            );
+                            return save.call(this);
+                        });
+                })
+                .catch((err) => {
+                    logger.severe(`Error rolling back configuration: ${err.message}`);
+                    const deconCode = 500;
+                    this.state.doState.updateResult(
+                        deconCode,
+                        STATUS.STATUS_ERROR,
+                        'rollback failed',
+                        err.message
+                    );
                 })
                 .finally(() => {
                     if (!declaration.async) {
                         logger.fine('Sending response.');
-                        this.sendResponse(restOperation);
+                        sendResponse.call(this, restOperation);
                     }
                     if (rebootRequired) {
                         bigIp.reboot();
@@ -197,7 +224,7 @@ class RestWorker {
      *
      * This is called by WOKER_URI/example.
      *
-     * @returns {object} An example of a valid declaration.
+     * @returns {Object} An example of a valid declaration.
      */
     /* eslint-disable class-methods-use-this */
     getExampleState() {
@@ -215,62 +242,102 @@ class RestWorker {
         return exampleResponse;
     }
     /* eslint-enable class-methods-use-this */
+}
 
-    /**
-     * Saves current state.
-     */
-    save() {
-        function retryFunc() {
-            return new Promise((resolve, reject) => {
-                this.saveState(null, this.state, (err) => {
-                    if (err) {
-                        reject();
-                    }
-                    resolve();
-                });
-            });
-        }
+function initializeBigIp(bigIp) {
+    return cloudUtil.runTmshCommand('list sys httpd ssl-port')
+        .then((response) => {
+            const regex = /(\s+ssl-port\s+)(\S+)\s+/;
+            const port = regex.exec(response)[2];
+            return bigIp.init(
+                'localhost',
+                'admin',
+                'admin',
+                {
+                    port,
+                    product: 'BIG-IP'
+                }
+            );
+        });
+}
 
+function getAndSaveCurrentConfig(bigIp) {
+    const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
+    return configManager.get()
+        .then((currentConfig) => {
+            this.state.doState.currentConfig = currentConfig;
+
+            // Also save an original config which we will use for putting
+            // objects back to their defaults
+            if (!this.state.doState.originalConfig) {
+                this.state.doState.originalConfig = currentConfig;
+            }
+            return save.call(this);
+        });
+}
+
+/**
+ * Saves current state.
+ */
+function save() {
+    function retryFunc() {
         return new Promise((resolve, reject) => {
-            const retryOptions = {};
-            Object.assign(retryOptions, cloudUtil.QUICK_BUT_LONG_RETRY);
-            retryOptions.continueOnError = true;
-
-            cloudUtil.tryUntil(this, retryOptions, retryFunc)
-                .then(() => {
-                    resolve();
-                })
-                .catch((err) => {
-                    logger.warning(`Error saving state: ${err}`);
-                    reject(err);
-                });
+            this.saveState(null, this.state, (err) => {
+                if (err) {
+                    reject();
+                }
+                resolve();
+            });
         });
     }
 
-    /**
-     * Sends a response for a restOperation.
-     *
-     * @param {object} restOperation - The restOperation to send the response for.
-     * @param {number} code - The HTTP status code.
-     */
-    sendResponse(restOperation) {
-        restOperation.setStatusCode(this.state.code);
-        if (this.state.code < 300) {
-            restOperation.setBody(this.state);
-        } else {
-            // When the status code is an error, the rest framework sets
-            // up the response differently. Fix that by overwriting here.
-            restOperation.setBody(
-                {
-                    code: this.state.code,
-                    status: this.state.status,
-                    errors: this.state.errors,
-                    declaration: this.state.declaration
-                }
-            );
-        }
-        restOperation.complete();
-    }
+    return new Promise((resolve, reject) => {
+        const retryOptions = {};
+        Object.assign(retryOptions, cloudUtil.QUICK_BUT_LONG_RETRY);
+        retryOptions.continueOnError = true;
+
+        cloudUtil.tryUntil(this, retryOptions, retryFunc)
+            .then(() => {
+                resolve();
+            })
+            .catch((err) => {
+                logger.warning(`Error saving state: ${err}`);
+                reject(err);
+            });
+    });
+}
+
+function load() {
+    return new Promise((resolve, reject) => {
+        this.loadState(null, (err, state) => {
+            if (err) {
+                const message = `error loading state: ${err.message}`;
+                this.logger.warning(message);
+                reject(err);
+            }
+
+            this.state = state || {};
+
+            // This gives us our state methods, rather than just the data
+            this.state.doState = new State(this.state.doState);
+            resolve();
+        });
+    });
+}
+
+/**
+ * Sends a response for a restOperation.
+ *
+ * @param {Object} restOperation - The restOperation to send the response for.
+ * @param {Number} code - The HTTP status code.
+ */
+function sendResponse(restOperation) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+    const doState = new State(this.state.doState);
+    restOperation.setStatusCode(doState.code);
+    restOperation.setBody(new Response(doState, restOperation.getUri().query));
+    restOperation.complete();
 }
 
 module.exports = RestWorker;

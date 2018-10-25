@@ -23,6 +23,8 @@ const logger = new Logger(module);
 /**
  * Parses a declaration into sub-components by class (DNS, License, etc).
  *
+ * Also ignores the name property if it is not relevant
+ *
  * For example, given the declaration
  *
  *     {
@@ -85,24 +87,21 @@ const logger = new Logger(module);
  *         "Common": {
  *             "hostname": "bigip.example.com",
  *             "License": {
- *                 "myLicense": {
- *                     "licenseType": "regKey",
- *                     "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
- *                 }
+ *                 "licenseType": "regKey",
+ *                 "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
  *             },
  *             "DNS": {
- *                 "myDns": {
- *                     "nameServers": [
- *                         "1.2.3.4",
- *                         "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
- *                     ],
- *                     "search": [
- *                         "f5.com"
- *                     ]
- *                 }
+ *                 "nameServers": [
+ *                     "1.2.3.4",
+ *                     "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+ *                 ],
+ *                 "search": [
+ *                     "f5.com"
+ *                 ]
  *             },
  *             "VLAN": {
- *                 "myNetwork_commonVlan": {
+ *                 "commonVlan": {
+ *                     "name": "commonVlan",
  *                     "tag": 2345,
  *                     "mtu": 1400,
  *                     "interfaces": [
@@ -116,7 +115,8 @@ const logger = new Logger(module);
  *         },
  *         "Tenant1": {
  *             "VLAN": {
- *                 "myNetwork_app1Vlan": {
+ *                 "app1Vlan": {
+ *                     "name": "app1Vlan",
  *                     "tag": 1234,
  *                     "mtu": 1500,
  *                     "interfaces": [
@@ -128,7 +128,8 @@ const logger = new Logger(module);
  *                 }
  *             },
  *             "SelfIp": {
- *                 "myNetwork_app1SelfIp": {
+ *                 "app1SelfIp": {
+ *                     "name": "app1SelfIp",
  *                     "vlan": "app1Vlan",
  *                     "address": "1.2.3.4/24"
  *                 }
@@ -156,6 +157,9 @@ class DeclarationParser {
      */
     parse() {
         const KEYS_TO_IGNORE = ['schemaVersion', 'class'];
+
+        // classes that have config objects without a name property
+        const NAMELESS_CLASSES = ['DNS', 'NTP', 'License', 'Provision'];
 
         function isKeyOfInterest(key) {
             return KEYS_TO_IGNORE.indexOf(key) === -1;
@@ -200,12 +204,20 @@ class DeclarationParser {
                             parsed[tenantName][propertyClass] = {};
                         }
 
-                        parsed[tenantName][propertyClass][propertyName] = {};
-                        Object.assign(parsed[tenantName][propertyClass][propertyName], property);
+                        // If the config object does not get a name property, just assign
+                        // the object directly. Otherwise, put create a named sub property
+                        if (NAMELESS_CLASSES.indexOf(propertyClass) !== -1) {
+                            Object.assign(parsed[tenantName][propertyClass], property);
+                        } else {
+                            parsed[tenantName][propertyClass][propertyName] = {};
+                            property.name = propertyName;
+                            Object.assign(parsed[tenantName][propertyClass][propertyName], property);
+                        }
                     }
                 });
             });
 
+            parsed.parsed = true;
             return {
                 tenants,
                 parsedDeclaration: parsed

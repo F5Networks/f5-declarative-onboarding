@@ -136,7 +136,7 @@ describe('network.schema.json tests', () => {
                     "class": "SelfIp",
                     "address": "1.2.3.4/32",
                     "vlan": "myVlan",
-                    "allowService": "foo:1234",
+                    "allowService": ["foo:1234"],
                     "trafficGroup": "myTrafficGroup",
                     "floating": true
                 };
@@ -202,17 +202,32 @@ describe('network.schema.json tests', () => {
                         "allowService": "foo"
                     };
                     assert.strictEqual(validate(data), false, 'allow service foo should not be valid');
-                    assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                    assert.notStrictEqual(getErrorString().indexOf('allowedValues'), -1);
                 });
 
-                it('should invalidate invalid service:port words', () => {
+                it('should invalidate service:port that is not in an array', () => {
                     const data = {
                         "class": "SelfIp",
                         "address": "1.2.3.4",
                         "vlan": "myVlan",
-                        "allowService": "foo:bar"
+                        "allowService": "tcp:1234"
                     };
-                    assert.strictEqual(validate(data), false, 'allow service foo should not be valid');
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'allow service:port not in array should not be valid'
+                    );
+                    assert.notStrictEqual(getErrorString().indexOf('allowedValues'), -1);
+                });
+
+                it('should invalidate invalid port values', () => {
+                    const data = {
+                        "class": "SelfIp",
+                        "address": "1.2.3.4",
+                        "vlan": "myVlan",
+                        "allowService": ["foo:bar"]
+                    };
+                    assert.strictEqual(validate(data), false, 'allow service bar should not be valid port');
                     assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
                 });
             });
@@ -225,7 +240,8 @@ describe('network.schema.json tests', () => {
                 const data = {
                     "class": "Route",
                     "gw": "1.2.3.4",
-                    "network": "5.6.7.8"
+                    "network": "default",
+                    "mtu": 1234
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -236,7 +252,6 @@ describe('network.schema.json tests', () => {
                 const data = {
                     "class": "Route",
                     "gw": "1.2.3.4",
-                    "network": "5.6.7.8",
                     "foo": "bar"
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
@@ -244,40 +259,29 @@ describe('network.schema.json tests', () => {
 
             it('should invalidate missing gateway', () => {
                 const data = {
-                    "class": "Route",
-                    "network": "5.6.7.8"
+                    "class": "Route"
                 };
                 assert.strictEqual(validate(data), false, 'missing gateway should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "gw"'), -1);
             });
 
-            it('should invalidate missing network', () => {
-                const data = {
-                    "class": "Route",
-                    "gw": "1.2.3.4"
-                };
-                assert.strictEqual(validate(data), false, 'missing network should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "network"'), -1);
-            });
-
             it('should invalidate route data with bad gateway IP address', () => {
                 const data = {
                     "class": "Route",
-                    "gw": "foo",
-                    "network": "5.6.7.8"
+                    "gw": "foo"
                 };
                 assert.strictEqual(validate(data), false, 'bad gateway IP address should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"ipv4\\"'), -1);
             });
 
-            it('should invalidate route data with bad network IP address', () => {
+            it('should invalidate route data with bad network', () => {
                 const data = {
                     "class": "Route",
                     "gw": "1.2.3.4",
                     "network": "foo"
                 };
-                assert.strictEqual(validate(data), false, 'bad network IP address should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+                assert.strictEqual(validate(data), false, 'bad gateway IP address should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('allowedValues'), -1);
             });
         });
     });
