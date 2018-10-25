@@ -18,6 +18,7 @@
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
+const PATHS = require('./sharedConstants').PATHS;
 
 const logger = new Logger(module);
 
@@ -87,7 +88,7 @@ function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
         return this.bigIp.replace(
-            '/tm/sys/ntp',
+            PATHS.NTP,
             {
                 servers: ntp.servers,
                 timezone: ntp.timezone
@@ -101,7 +102,7 @@ function handleDNS() {
     if (this.declaration.Common.DNS) {
         const dns = this.declaration.Common.DNS;
         return this.bigIp.replace(
-            '/tm/sys/dns',
+            PATHS.DNS,
             {
                 'name-servers': dns.nameServers,
                 search: dns.search

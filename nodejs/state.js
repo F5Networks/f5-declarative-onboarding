@@ -73,6 +73,19 @@ class State {
     }
 
     /**
+     * Sets the current errors
+     *
+     * @param {String[]} errors - The error array to set
+     */
+    set errors(errors) {
+        if (errors) {
+            this.result.errors = errors.slice();
+        } else if (this.result.errors) {
+            this.result.errors.length = 0;
+        }
+    }
+
+    /**
      * Gets the current result message
      */
     get errors() {
@@ -81,6 +94,8 @@ class State {
 
     /**
      * Sets the declaration masking certain values
+     *
+     * @param {Object} declaration - The declaration to set.
      */
     set declaration(declaration) {
         this.internalDeclaration = mask(declaration);

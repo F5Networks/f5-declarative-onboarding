@@ -22,6 +22,9 @@ const PATHS = require('./sharedConstants').PATHS;
 
 const logger = new Logger(module);
 
+// This is an ordered list - objects will be deleted in this order
+const DELETABLE_CLASSES = ['Route', 'SelfIp', 'VLAN'];
+
 /**
  * Handles deleting objects.
  *
@@ -48,11 +51,13 @@ class DeleteHandler {
     process() {
         logger.fine('Processing deletes.');
         const promises = [];
-        Object.keys(this.declaration.Common).forEach((classKey) => {
-            Object.keys(this.declaration.Common[classKey]).forEach((itemKey) => {
-                const path = `${PATHS[classKey]}/~Common~${itemKey}`;
-                promises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
-            });
+        DELETABLE_CLASSES.forEach((deleteableClass) => {
+            if (this.declaration.Common[deleteableClass]) {
+                Object.keys(this.declaration.Common[deleteableClass]).forEach((itemKey) => {
+                    const path = `${PATHS[deleteableClass]}/~Common~${itemKey}`;
+                    promises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                });
+            }
         });
 
         return Promise.all(promises)

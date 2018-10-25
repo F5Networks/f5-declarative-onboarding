@@ -159,7 +159,7 @@ class DeclarationParser {
         const KEYS_TO_IGNORE = ['schemaVersion', 'class'];
 
         // classes that have config objects without a name property
-        const namelessClasses = ['DNS', 'NTP', 'License', 'Provision'];
+        const NAMELESS_CLASSES = ['DNS', 'NTP', 'License', 'Provision'];
 
         function isKeyOfInterest(key) {
             return KEYS_TO_IGNORE.indexOf(key) === -1;
@@ -206,7 +206,7 @@ class DeclarationParser {
 
                         // If the config object does not get a name property, just assign
                         // the object directly. Otherwise, put create a named sub property
-                        if (namelessClasses.indexOf(propertyClass) !== -1) {
+                        if (NAMELESS_CLASSES.indexOf(propertyClass) !== -1) {
                             Object.assign(parsed[tenantName][propertyClass], property);
                         } else {
                             parsed[tenantName][propertyClass][propertyName] = {};

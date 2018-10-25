@@ -28,7 +28,7 @@ const logger = new Logger(module);
 // They are the classes for which we are the source of truth. We will
 // run a diff against these classes and also apply defaults for them if they
 // are missing from the declaration
-const classesOfTruth = ['hostname', 'DNS', 'NTP', 'Provision', 'VLAN', 'SelfIp', 'Route'];
+const CLASSES_OF_TRUTH = ['hostname', 'DNS', 'NTP', 'Provision', 'VLAN', 'SelfIp', 'Route'];
 
 /**
  * Main processing for a parsed declaration.
@@ -76,7 +76,7 @@ class DeclarationHandler {
 
         applyDefaults(parsedNewDeclaration, state);
 
-        const diffHandler = new DiffHandler(classesOfTruth);
+        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH);
         let updateDeclaration;
         let deleteDeclaration;
         return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration)
@@ -116,7 +116,7 @@ class DeclarationHandler {
  */
 function applyDefaults(declaration, state) {
     const commonDeclaration = declaration.Common;
-    classesOfTruth.forEach((key) => {
+    CLASSES_OF_TRUTH.forEach((key) => {
         const item = commonDeclaration[key];
 
         // if the missing or empty, fill in the original

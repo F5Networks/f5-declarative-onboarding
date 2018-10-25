@@ -123,6 +123,7 @@ class RestWorker {
         const declaration = Object.assign({}, restOperation.getBody());
         const validation = this.validator.validate(declaration);
         this.state.doState.declaration = declaration;
+        this.state.doState.errors = null;
 
         let rebootRequired = false;
 
