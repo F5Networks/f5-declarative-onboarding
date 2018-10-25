@@ -64,7 +64,6 @@ class DeleteHandler {
                 logger.severe(`Error processing deletes: ${err.message}`);
                 return Promise.reject(err);
             });
-
     }
 }
 

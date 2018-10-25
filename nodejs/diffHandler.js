@@ -18,9 +18,6 @@
 
 const observableDiff = require('deep-diff').observableDiff;
 const applyChange = require('deep-diff').applyChange;
-const Logger = require('./logger');
-
-const logger = new Logger(module);
 
 class DiffHandler {
     /**
