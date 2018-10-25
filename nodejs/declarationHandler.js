@@ -21,6 +21,7 @@ const DiffHandler = require('./diffHandler');
 const Logger = require('./logger');
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
+const DeleteHandler = require('./deleteHandler');
 
 const logger = new Logger(module);
 
@@ -76,17 +77,22 @@ class DeclarationHandler {
         applyDefaults(parsedNewDeclaration, state);
 
         const diffHandler = new DiffHandler(classesOfTruth);
-        let finalDeclaration;
+        let updateDeclaration;
+        let deleteDeclaration;
         return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration)
-            .then((declaration) => {
-                finalDeclaration = declaration;
+            .then((declarationDiffs) => {
+                updateDeclaration = declarationDiffs.toUpdate;
+                deleteDeclaration = declarationDiffs.toDelete;
                 return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
             })
             .then(() => {
-                return new SystemHandler(finalDeclaration, this.bigIp).process();
+                return new SystemHandler(updateDeclaration, this.bigIp).process();
             })
             .then(() => {
-                return new NetworkHandler(finalDeclaration, this.bigIp).process();
+                return new NetworkHandler(updateDeclaration, this.bigIp).process();
+            })
+            .then(() => {
+                return new DeleteHandler(deleteDeclaration, this.bigIp).process();
             })
             .then(() => {
                 logger.info('Done processing declartion.');

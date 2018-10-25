@@ -18,6 +18,9 @@
 
 const observableDiff = require('deep-diff').observableDiff;
 const applyChange = require('deep-diff').applyChange;
+const Logger = require('./logger');
+
+const logger = new Logger(module);
 
 class DiffHandler {
     /**
@@ -30,11 +33,17 @@ class DiffHandler {
     }
 
     /**
+     * Calculates updates and deletions in declarations
      *
      * @param {Object} toDeclaration - The declaration we are updating to
      * @param {Object} fromDeclaration - The declaration we are updating from
      *
-     * @param {Promise} A promise which is resolved with the declaration to apply
+     * @param {Promise} A promise which is resolved with the declarations to delete
+     *                  and update.
+     *     {
+     *         toDelete: <delete_declaration>
+     *         toUpdate: <update_declaration>
+     *     }
      */
     process(toDeclaration, fromDeclaration) {
         // Clone these to make sure we do not modify them via observableDiff
@@ -63,7 +72,10 @@ class DiffHandler {
             }
         });
 
-        // copy in anything that was updated
+        // copy in anything that was updated and keep track of what whas deleted
+        const toDelete = {
+            Common: {}
+        };
         updatedPaths.forEach((path) => {
             if (typeof from.Common[path] === 'string') {
                 final.Common[path] = from.Common[path];
@@ -73,9 +85,18 @@ class DiffHandler {
                 final.Common[path] = {};
                 Object.assign(final.Common[path], from.Common[path]);
             }
+
+            if (!final.Common[path] || Object.keys(final.Common[path]).length === 0) {
+                toDelete.Common[path] = fromDeclaration.Common[path];
+            }
         });
 
-        return Promise.resolve(final);
+        return Promise.resolve(
+            {
+                toDelete,
+                toUpdate: final
+            }
+        );
     }
 }
 
