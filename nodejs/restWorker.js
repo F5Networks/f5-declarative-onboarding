@@ -162,18 +162,16 @@ class RestWorker {
                     rebootRequired = needsReboot;
                     if (!rebootRequired) {
                         logger.fine('No reboot required');
-                        return getAndSaveCurrentConfig.call(this, bigIp);
+                        this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
+                    } else {
+                        logger.fine('Reboot required. Rebooting.');
+                        this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
                     }
-
-                    logger.fine('Reboot required. Rebooting.');
-                    this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
-                    return save.call(this);
+                    return getAndSaveCurrentConfig.call(this, bigIp);
                 })
                 .then(() => {
                     if (!rebootRequired) {
                         logger.fine('Onboard complete.');
-                        this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
-                        return save.call(this);
                     }
                     return Promise.resolve();
                 })
