@@ -26,6 +26,8 @@ build_rpm:
         paths:
             - build/rpmbuild/RPMS/noarch/
 
+
+
 pages:
     stage: publish
     tags:
@@ -37,3 +39,69 @@ pages:
     artifacts:
         paths:
             - public
+
+
+create docs:
+    image: ${CONTAINTHEDOCS_IMAGE}
+    stage: package
+    script:
+        - make html
+        - echo "Checking grammar and style"
+        # Runs the grammar check on everything except the /docs/drafts directory
+        - vale --glob='*.rst' .
+        - echo "Checking links"
+        - make linkcheck
+
+
+  tags:
+      - cm-official-docker-executor
+  artifacts:
+      expire_in: 1 week
+      name: sphinx-docs_$CI_BUILD_REF
+      paths:
+          - docs/_build/html
+
+# Deploy docs to Pages for review
+# Docs are staged on this projects pages site
+pages:
+    stage: publish
+    environment:
+        name: review
+        url: https://${CI_PROJECT_NAMESPACE}.${PAGES_DOMAIN}/${CI_PROJECT_NAME}/
+    tags:
+        - cm-official-docker-executor
+    dependencies:
+        - create docs
+    script:
+        - mkdir -p ./public
+        - cp -R docs/_build/html/* ./public
+    artifacts:
+        paths:
+            - public
+    only:
+        - branches
+
+# Publish docs to clouddocs.f5.com
+docs to production:
+    image: ${CONTAINTHEDOCS_IMAGE}
+    stage: publish
+    environment:
+        name: production
+        url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding
+    only:
+        # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
+        # fill in desired release branch name and uncomment to add deployment from a branch
+        - doc-publish@cloudsolutions/f5-declarative-onboarding
+    tags:
+        - cm-official-docker-executor
+    dependencies:
+        - create docs
+    script:
+        # Uncomment and set to create desired version format
+        - export VERSION=3
+        - export AWS_S3_BUCKET=clouddocs.f5.com
+        # Publish docs to clouddocs.f5.com (live site).
+        - publish-product-docs-to-prod extensions/f5-declarative-onboarding $VERSION
+        # create invalidation to clear cloudfront cache
+        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
+        - printf "Your documentation is live at https://${AWS_S3_BUCKET}/products/extensions/f5-declarative-onboarding$(VERSION)"
