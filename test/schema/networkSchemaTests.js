@@ -113,8 +113,7 @@ describe('network.schema.json tests', () => {
                     "address": "1.2.3.4/32",
                     "vlan": "myVlan",
                     "allowService": "all",
-                    "trafficGroup": "myTrafficGroup",
-                    "floating": true
+                    "trafficGroup": "traffic-group-1"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -125,8 +124,7 @@ describe('network.schema.json tests', () => {
                     "address": "FE80:0000:0000:0000:0202:B3FF:FE1E:8329/128",
                     "vlan": "myVlan",
                     "allowService": "all",
-                    "trafficGroup": "myTrafficGroup",
-                    "floating": true
+                    "trafficGroup": "traffic-group-1"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -137,8 +135,7 @@ describe('network.schema.json tests', () => {
                     "address": "1.2.3.4/32",
                     "vlan": "myVlan",
                     "allowService": ["foo:1234"],
-                    "trafficGroup": "myTrafficGroup",
-                    "floating": true
+                    "trafficGroup": "traffic-group-1"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -191,6 +188,17 @@ describe('network.schema.json tests', () => {
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate bad traffic group', () => {
+                const data = {
+                    "class": "SelfIp",
+                    "address": "1.2.3.4",
+                    "vlan": "myVlan",
+                    "trafficGroup": "traffic-group-foo"
+                };
+                assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('allowedValues'), -1);
             });
 
             describe('allowService', () => {

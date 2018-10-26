@@ -47,8 +47,8 @@
         "properties": [
             { "id": "address" },
             { "id": "vlan", "isRef": true },
-            { "id": "allowService" },
-            { "id": "floating", "truth": "enabled", "falsehood": "disabled" }
+            { "id": "trafficGroup" },
+            { "id": "allowService" }
         ]
     },
     {

@@ -59,6 +59,12 @@
                     "type": "string",
                     "format": "f5ip"
                 },
+                "trafficGroup": {
+                    "description": "Traffic group for the Self IP.",
+                    "type": "string",
+                    "enum": ["traffic-group-local-only", "traffic-group-1"],
+                    "default": "traffic-group-local-only"
+                },
                 "vlan": {
                     "description": "VLAN for the self IP.",
                     "type": "string"
@@ -79,18 +85,8 @@
                         }
                     ],
                     "default": "default"
-                },
-                "trafficGroup": {
-                    "description": "Traffic group for the self IP. Will be created if it does not exist.",
-                    "type": "string"
-                },
-                "floating": {
-                    "description": "Whether or not the self IP should be a floating IP.",
-                    "type": "boolean",
-                    "default": false
                 }
-            },
-            "additionalProperties": false
+            }
         },
         {
             "required": ["class", "gw"],

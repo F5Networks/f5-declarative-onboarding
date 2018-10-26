@@ -69,7 +69,7 @@
             "address": "1.2.3.4/24",
             "vlan": "myVlan",
             "allowService": "all",
-            "floating": true
+            "trafficGroup": "traffic-group-local-only"
         },
         "myRoute": {
             "class": "Route",

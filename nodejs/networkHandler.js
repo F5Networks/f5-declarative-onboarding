@@ -138,7 +138,7 @@ function handleSelfIp() {
                 name: selfIp.name,
                 partition: tenant,
                 address: selfIp.address,
-                floating: selfIp.floating ? 'enabled' : 'disabled',
+                trafficGroup: selfIp.trafficGroup,
                 allowService: selfIp.allowService
             };
 
