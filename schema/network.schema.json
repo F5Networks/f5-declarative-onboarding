@@ -8,7 +8,7 @@
             "required": ["class", "interfaces"],
             "properties": {
                 "class": {
-                    "description": "Indicates thiat this property contains VLAN configuration.",
+                    "description": "Indicates that this property contains VLAN configuration.",
                     "type": "string",
                     "const": "VLAN"
                 },
@@ -50,7 +50,7 @@
             "required": ["class", "address", "vlan"],
             "properties": {
                 "class": {
-                    "description": "Indicates thiat this property contains Self IP configuration.",
+                    "description": "Indicates that this property contains Self IP configuration.",
                     "type": "string",
                     "const": "SelfIp"
                 },
@@ -92,7 +92,7 @@
             "required": ["class", "gw"],
             "properties": {
                 "class": {
-                    "description": "Indicates thiat this property contains Route configuration.",
+                    "description": "Indicates that this property contains Route configuration.",
                     "type": "string",
                     "const": "Route"
                 },
