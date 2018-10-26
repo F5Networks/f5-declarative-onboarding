@@ -1,10 +1,10 @@
 .. _composing:  
 
 
-Composing an AS3 Declaration
-----------------------------
+Composing a Declarative Onboarding Declaration
+----------------------------------------------
 
-The most important part of using AS3 is creating a declaration that includes the BIG-IP objects you want the system to configure.  For a detailed look at the purpose and function of the AS3 declaration, see :ref:`declaration-purpose-function`.  See :ref:`examples` and :ref:`schema-reference` for sample declarations and further information.
+The most important part of using Declarative Onboarding is creating a declaration that includes the BIG-IP objects you want the system to configure.  For a detailed look at the purpose and function of the AS3 declaration, see :ref:`declaration-purpose-function`.  See :ref:`examples` and :ref:`schema-reference` for sample declarations and further information.
 
 To submit an AS3 declaration, use a specialized RESTful API client such as Postman or a universal client such as cURL.
 
@@ -22,58 +22,15 @@ If you want to try this sample declaration now, jump to :doc:`quick-start`.
 Sample declaration
 ~~~~~~~~~~~~~~~~~~
 
-In this scenario, an organization has a simple HTTP-only application running on two web servers and wants to use the BIG-IP system to provide basic load balancing and health monitoring.  On the BIG-IP system, at a minimum, this configuration requires the creation of a virtual server and a load balancing pool, but can include much more.
+In this scenario, 
 
-In the following declaration, we include the virtual server and the pool, and use some default objects like the built-in HTTP health monitor.  We also include some other objects that are necessary for AS3, such as a tenant (which becomes a BIG-IP partition) and an application.
+In the following declaration, we include 
 
 This is our example declaration.  We break down the components in the following sections.
 
-.. code-block:: json
+.. literalinclude:: examples/example_01.json
+   :language: json
    :linenos:
-
-
-    {
-        "class": "AS3",
-        "action": "deploy",
-        "persist": true,
-        "declaration": {
-            "class": "ADC",
-            "schemaVersion": "3.0.0",
-            "id": "example-declaration-01",
-            "label": "Sample 1",
-            "remark": "Simple HTTP application with round robin pool",
-            "Sample_01": {
-                "class": "Tenant",
-                "defaultRouteDomain": 0,
-                "Application_1": {
-                    "class": "Application",
-                    "template": "http",
-                "serviceMain": {
-                    "class": "Service_HTTP",
-                    "virtualAddresses": [
-                        "10.0.1.10"
-                    ],
-                    "pool": "web_pool"
-                    },
-                    "web_pool": {
-                        "class": "Pool",
-                        "monitors": [
-                            "http"
-                        ],
-                        "members": [
-                            {
-                                "servicePort": 80,
-                                "serverAddresses": [
-                                    "192.0.1.10",
-                                    "192.0.1.11"
-                                ]
-                            }
-                        ]
-                    }
-                }
-            }
-        }
-    }
 
 
 |
@@ -86,8 +43,8 @@ The following sections break down the example into parts so you can understand h
 
 .. _as3class-ref:
 
-AS3 Class
-`````````
+Device Class
+````````````
 The first few lines of your declaration are a part of the AS3 class and define top-level options.  You can create a declaration without using the AS3 class (called a ADC declaration), however in that case the action or persist parameters are no longer available.
 
 .. code-block:: javascript

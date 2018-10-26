@@ -23,5 +23,6 @@ Use the following links, the navigation on the left, and/or the Next and Previou
    quick-start
    using-do
    examples
+   schema-reference
    revision-history
 
