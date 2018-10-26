@@ -15,7 +15,7 @@ If you are not familiar with the BIG-IP and REST APIs, or want more detailed ins
    - For complete instructions see :ref:`installgui-ref` or
      :ref:`installcurl-ref`.
 
-#. Be sure to see :doc:`prereqs` and the known issues on GitHub (https://github.com/F5Networks/f5-declarative-onboarding/issues) to review any known issues and other important information before you attempt to use AS3.
+#. Be sure to see :doc:`prereqs` and the known issues on GitHub () to review any known issues and other important information before you attempt to use AS3.
 
 #. Provide authorization (basic auth) to the BIG-IP system:  
 

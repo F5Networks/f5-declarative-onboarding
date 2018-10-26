@@ -104,7 +104,7 @@ Linux: ``sha256sum <path_to_template>``
 
 Windows using CertUtil: ``CertUtil –hashfile <path_to_template> SHA256``
 
-You can compare the checksum produced by that command against the **.sha256** file in the **dist** directory (https://github.com/F5Networks/f5-declarative-onboarding/tree/master/dist).
+You can compare the checksum produced by that command against the **.sha256** file in the **dist** directory.
 
 
 .. |github| raw:: html
