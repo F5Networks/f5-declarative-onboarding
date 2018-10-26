@@ -1,8 +1,8 @@
 .. _installation:
 
-Downloading and installing the AS3 package
-------------------------------------------
-The AS3 package is an RPM file you download, and then upload to the BIG-IP system using the iControl/iApp LX framework. Alternatively, you can see our :doc:`quick-start`.
+Downloading and installing the Declarative Onboarding package
+-------------------------------------------------------------
+The Declarative Onboarding package is an RPM file you download, and then upload to the BIG-IP system using the iControl/iApp LX framework. Alternatively, you can see our :doc:`quick-start`.
 
 Downloading the RPM file
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,9 +74,9 @@ Copy the following commands to install the package.
 
 |
 
-Updating AS3
-````````````
-When F5 releases a new version of AS3, use the same procedure you used to initially install the RPM.  For example, if you used the Configuration utility, when you click Import and then select the new RPM, the system recognizes you are upgrading AS3:
+Updating Declarative Onboarding
+```````````````````````````````
+When F5 releases a new version of Declarative Onboarding, use the same procedure you used to initially install the RPM.  For example, if you used the Configuration utility, when you click Import and then select the new RPM, the system recognizes you are upgrading AS3:
 
 .. figure:: /images/upgrade.png
 
@@ -85,21 +85,18 @@ When F5 releases a new version of AS3, use the same procedure you used to initia
 .. NOTE:: Installing or uninstalling AS3 does not affect the BIG-IP configuration created by AS3.
 
 
-Reverting to a previous version of AS3
-``````````````````````````````````````
-If for any reason you want to revert to a previous version of AS3, you must first remove the version of AS3 on your BIG-IP system (:guilabel:`iApps > Package Management LX > f5-appsvcs > Uninstall`).  After you uninstall, you can import the RPM for the version of AS3 you want to use.
+Reverting to a previous version
+```````````````````````````````
+If for any reason you want to revert to a previous version of Declarative Onboarding, you must first remove the version on your BIG-IP system (:guilabel:`iApps > Package Management LX > f5-appsvcs > Uninstall`).  After you uninstall, you can import the RPM for the version of AS3 you want to use.
 
-.. |github| raw:: html
-
-   <a href="https://github.com/F5Networks/f5-appsvcs-extension" target="_blank">F5 AS3 site on GitHub</a>
 
 |
 
 .. _hash-ref:
 
-Verifying the integrity of the AS3 RPM package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-F5 Networks provides a checksum for each of our AS3 releases so you can confirm the integrity of the RPM package.
+Verifying the integrity of the RPM package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+F5 Networks provides a checksum for each of our Declarative Onboarding releases so you can confirm the integrity of the RPM package.
 
 You can get a checksum for a particular template by running one of the following commands, depending on your operating system:
 
@@ -107,4 +104,9 @@ Linux: ``sha256sum <path_to_template>``
 
 Windows using CertUtil: ``CertUtil –hashfile <path_to_template> SHA256``
 
-You can compare the checksum produced by that command against the **.sha256** file in the **dist** directory (https://github.com/F5Networks/f5-appsvcs-extension/tree/master/dist).
+You can compare the checksum produced by that command against the **.sha256** file in the **dist** directory (https://github.com/F5Networks/f5-declarative-onboarding/tree/master/dist).
+
+
+.. |github| raw:: html
+
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding" target="_blank">F5 Declarative Onboarding site on GitHub</a>

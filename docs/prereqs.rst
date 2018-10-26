@@ -1,14 +1,11 @@
 Prerequisites and Requirements
 ------------------------------
 
-The following are prerequisites for using AS3:
+The following are prerequisites for using F5 Declarative Onboarding:
 
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for BIG-IP version 12.1.x is available in AS3 v3.1.0 and later
-
-- You must be using BIG-IP version 12.1.x (if using AS3 v3.1.0 or later) or v13.0 or later to use AS3.
-- To use AS3, your BIG-IP user account must have the **Administrator**
+- You must be using BIG-IP version 12.1.x (if using AS3 v3.1.0 or later) or v13.0 or later.
+- Your BIG-IP user account must have the **Administrator**
   role.
 - You should be familiar with the F5 BIG-IP and F5 terminology.  For
   general information and documentation on the BIG-IP system, see the

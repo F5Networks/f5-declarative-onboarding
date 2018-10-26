@@ -3,9 +3,9 @@
 About Declarative Onboarding
 ============================
 
-The Application Services 3 Extension uses a |declare| model, meaning you send a
+F5 Declarative Onboarding uses a |declare| model, meaning you send a
 declaration file using a single Rest API call. This section gives an overview of
-the major components of AS3, with references to more information later in this
+the major components of Declarative Onboarding, with references to more information later in this
 document.  See :ref:`revision-history` for information on document changes.
 
 .. toctree::

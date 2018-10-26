@@ -4,7 +4,7 @@
 Composing a Declarative Onboarding Declaration
 ----------------------------------------------
 
-The most important part of using Declarative Onboarding is creating a declaration that includes the BIG-IP objects you want the system to configure.  For a detailed look at the purpose and function of the AS3 declaration, see :ref:`declaration-purpose-function`.  See :ref:`examples` and :ref:`schema-reference` for sample declarations and further information.
+The most important part of using Declarative Onboarding is creating a declaration that includes the BIG-IP objects you want the system to configure.    See :ref:`examples` and :ref:`schema-reference` for sample declarations and further information.
 
 To submit an AS3 declaration, use a specialized RESTful API client such as Postman or a universal client such as cURL.
 
