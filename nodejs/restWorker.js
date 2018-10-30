@@ -178,21 +178,30 @@ class RestWorker {
                 .catch((err) => {
                     logger.severe(`Error onboarding: ${err.message}`);
                     logger.info('Rolling back configuration');
-                    const rollbackTo = {};
-                    Object.assign(rollbackTo, this.state.doState.currentConfig);
-                    return getAndSaveCurrentConfig.call(this, bigIp)
+                    const deconCode = err.code === 400 ? 422 : 500;
+                    this.state.doState.updateResult(
+                        deconCode,
+                        STATUS.STATUS_ROLLING_BACK,
+                        'invalid config - rolling back',
+                        err.message
+                    );
+                    return save.call(this)
                         .then(() => {
-                            return declarationHandler.process(rollbackTo, this.state.doState);
-                        })
-                        .then(() => {
-                            const deconCode = err.code === 400 ? 422 : 500;
-                            this.state.doState.updateResult(
-                                deconCode,
-                                STATUS.STATUS_ERROR,
-                                'invalid config - rolled back',
-                                err.message
-                            );
-                            return save.call(this);
+                            const rollbackTo = {};
+                            Object.assign(rollbackTo, this.state.doState.currentConfig);
+                            return getAndSaveCurrentConfig.call(this, bigIp)
+                                .then(() => {
+                                    return declarationHandler.process(rollbackTo, this.state.doState);
+                                })
+                                .then(() => {
+                                    this.state.doState.status = STATUS.STATUS_ERROR;
+                                    this.state.doState.message = 'invalid config - rolled back';
+                                    return save.call(this);
+                                })
+                                .catch((rollbackError) => {
+                                    logger.severe(`Error rolling back: ${rollbackError.message}`);
+                                    return Promise.reject(rollbackError);
+                                });
                         });
                 })
                 .catch((err) => {

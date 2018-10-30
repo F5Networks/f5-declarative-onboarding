@@ -33,6 +33,7 @@ module.exports = {
     STATUS: {
         STATUS_OK: 'OK',
         STATUS_ERROR: 'ERROR',
+        STATUS_ROLLING_BACK: 'ROLLING_BACK',
         STATUS_RUNNING: 'RUNNING',
         STATUS_REBOOTING: 'REBOOTING'
     }
