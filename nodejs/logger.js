@@ -40,6 +40,11 @@ try {
     };
 }
 
+/**
+ * Logger that works with f5-cloud-libs and restnoded styles.
+ *
+ * @class
+ */
 class Logger {
     constructor(module) {
         this.tag = 'f5-declarative-onboarding';

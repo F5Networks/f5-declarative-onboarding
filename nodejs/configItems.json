@@ -59,5 +59,26 @@
             { "id": "network" },
             { "id": "mtu" }
         ]
+    },
+    {
+        "path": "/tm/cm/device",
+        "schemaClass": "ConfigSync",
+        "properties": [
+            { "id": "configsyncIp" }
+        ]
+    },
+    {
+        "path": "/tm/cm/device-group",
+        "schemaClass": "DeviceGroup",
+        "properties": [
+            { "id": "class" },
+            { "id": "type" },
+            { "id": "members" },
+            { "id": "autoSync" },
+            { "id": "saveOnAutoSync" },
+            { "id": "networkFailover" },
+            { "id": "fullLoadOnSync" },
+            { "id": "asmSync" }
+        ]
     }
 ]

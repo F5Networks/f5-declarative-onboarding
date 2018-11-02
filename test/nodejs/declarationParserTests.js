@@ -143,4 +143,33 @@ describe('declarationParser tests', () => {
             declaration.Tenant1.app1SelfIp.vlan
         );
     });
+
+    it('should dereference pointers', () => {
+        const declaration = {
+            "Common": {
+                "class": "Tenant",
+                "myVlan": {
+                    "class": "VLAN",
+                    "tag": 1111,
+                    "mtu": 2222
+                },
+                "mySelfIp": {
+                    "class": "SelfIp",
+                    "address": "1.2.3.4",
+                    "vlan": "/Common/myVlan"
+                },
+                "myConfigSync": {
+                    "class": "ConfigSync",
+                    "configsyncIp": "/Common/mySelfIp/address"
+                }
+            }
+        };
+        const declarationParser = new DeclarationParser(declaration);
+        const parsedDeclaration = declarationParser.parse().parsedDeclaration;
+        assert.strictEqual(parsedDeclaration.Common.SelfIp.mySelfIp.vlan, '/Common/myVlan');
+        assert.strictEqual(
+            parsedDeclaration.Common.ConfigSync.configsyncIp,
+            declaration.Common.mySelfIp.address
+        );
+    });
 });

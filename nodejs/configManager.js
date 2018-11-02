@@ -48,8 +48,8 @@ class ConfigManager {
     /**
      * Gets the configuration items we are interested in.
      *
-     * The goal here is to create an object with the current config that we are interested
-     * in and in a format that matches what our parsed declaration looks like.
+     * The goal here is to create an object with the current BIG-IP config objects
+     * that we are interested in and in a format that matches what our parsed declaration looks like.
      *
      * What we retrieve is controlled by this.configItems.
      *

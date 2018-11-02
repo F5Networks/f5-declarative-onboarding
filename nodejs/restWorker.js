@@ -17,9 +17,8 @@
 'use strict';
 
 const fs = require('fs');
-const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
-
+const doUtil = require('./doUtil');
 const ConfigManager = require('./configManager');
 const DeclarationHandler = require('./declarationHandler');
 const Logger = require('./logger');
@@ -140,23 +139,23 @@ class RestWorker {
             this.state.doState.updateResult(202, STATUS.STATUS_RUNNING, 'processing');
             save.call(this);
 
-            const bigIp = new BigIp({ logger });
-            const declarationHandler = new DeclarationHandler(bigIp);
-
             if (declaration.async) {
                 sendResponse.call(this, restOperation);
             }
 
-            initializeBigIp(bigIp)
-                .then(() => {
-                    return getAndSaveCurrentConfig.call(this, bigIp);
+            doUtil.getBigIp(logger)
+                .then((bigIp) => {
+                    this.bigIp = bigIp;
+                    this.declarationHandler = new DeclarationHandler(this.bigIp);
+                    logger.fine('Getting and saving current configuration');
+                    return getAndSaveCurrentConfig.call(this, this.bigIp);
                 })
                 .then(() => {
-                    return declarationHandler.process(declaration, this.state.doState);
+                    return this.declarationHandler.process(declaration, this.state.doState);
                 })
                 .then(() => {
                     logger.fine('Onboard configuration complete. Checking for reboot.');
-                    return bigIp.rebootRequired();
+                    return this.bigIp.rebootRequired();
                 })
                 .then((needsReboot) => {
                     rebootRequired = needsReboot;
@@ -167,7 +166,8 @@ class RestWorker {
                         logger.fine('Reboot required. Rebooting.');
                         this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
                     }
-                    return getAndSaveCurrentConfig.call(this, bigIp);
+                    logger.fine('Getting and saving current configuration');
+                    return getAndSaveCurrentConfig.call(this, this.bigIp);
                 })
                 .then(() => {
                     if (!rebootRequired) {
@@ -189,9 +189,9 @@ class RestWorker {
                         .then(() => {
                             const rollbackTo = {};
                             Object.assign(rollbackTo, this.state.doState.currentConfig);
-                            return getAndSaveCurrentConfig.call(this, bigIp)
+                            return getAndSaveCurrentConfig.call(this, this.bigIp)
                                 .then(() => {
-                                    return declarationHandler.process(rollbackTo, this.state.doState);
+                                    return this.declarationHandler.process(rollbackTo, this.state.doState);
                                 })
                                 .then(() => {
                                     this.state.doState.status = STATUS.STATUS_ERROR;
@@ -220,7 +220,7 @@ class RestWorker {
                         sendResponse.call(this, restOperation);
                     }
                     if (rebootRequired) {
-                        bigIp.reboot();
+                        this.bigIp.reboot();
                     }
                 });
         }
@@ -249,23 +249,6 @@ class RestWorker {
         return exampleResponse;
     }
     /* eslint-enable class-methods-use-this */
-}
-
-function initializeBigIp(bigIp) {
-    return cloudUtil.runTmshCommand('list sys httpd ssl-port')
-        .then((response) => {
-            const regex = /(\s+ssl-port\s+)(\S+)\s+/;
-            const port = regex.exec(response)[2];
-            return bigIp.init(
-                'localhost',
-                'admin',
-                'admin',
-                {
-                    port,
-                    product: 'BIG-IP'
-                }
-            );
-        });
 }
 
 function getAndSaveCurrentConfig(bigIp) {

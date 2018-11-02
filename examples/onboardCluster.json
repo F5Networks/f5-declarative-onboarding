@@ -3,7 +3,7 @@
     "class": "Device",
     "Common": {
         "class": "Tenant",
-        "hostname": "bigip.example.com",
+        "hostname": "bigip1.example.com",
         "myLicense": {
             "class": "License",
             "licenseType": "regKey",
@@ -76,6 +76,29 @@
             "gw": "10.1.20.1",
             "network": "default",
             "mtu": 0
+        },
+        "configsync": {
+            "class": "ConfigSync",
+            "configsyncIp": "/Common/external-self/address"
+        },
+        "failoverGroup": {
+            "class": "DeviceGroup",
+            "type": "sync-failover",
+            "members": ["bigip1.example.com", "bigip2.example.com"],
+            "owner": "bigip1.example.com",
+            "autoSync": true,
+            "saveOnAutoSync": false,
+            "networkFailover": true,
+            "fullLoadOnSync": false,
+            "asmSync": false
+        },
+        "trust": {
+            "class": "DeviceTrust",
+            "localUsername": "admin",
+            "localPassword": "pass1word",
+            "remoteHost": "bigip2.example.com",
+            "remoteUsername": "admin",
+            "remotePassword": "pass2word"
         }
     }
 }

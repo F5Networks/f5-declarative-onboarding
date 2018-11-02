@@ -34,7 +34,7 @@
             "type": "object",
             "required": ["class"],
             "propertyNames": {
-                "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+                "pattern": "^[A-Za-z][0-9A-Za-z_-]{0,47}$"
             },
             "properties": {
                 "class": {
@@ -50,7 +50,8 @@
             "additionalProperties": {
                 "oneOf": [
                     { "$ref": "system.schema.json#" },
-                    { "$ref": "network.schema.json#" }
+                    { "$ref": "network.schema.json#" },
+                    { "$ref": "dsc.schema.json#" }
                 ]
             }
         },

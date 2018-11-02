@@ -52,6 +52,13 @@ class State {
     }
 
     /**
+     * Sets the current result code
+     */
+    set code(code) {
+        this.result.code = code;
+    }
+
+    /**
      * Gets the current result code
      */
     get code() {
@@ -59,10 +66,24 @@ class State {
     }
 
     /**
+     * Sets the current result message
+     */
+    set message(message) {
+        this.result.message = message;
+    }
+
+    /**
      * Gets the current result message
      */
     get message() {
         return this.result.message;
+    }
+
+    /**
+     * Sets the current status string
+     */
+    set status(status) {
+        this.result.status = status;
     }
 
     /**

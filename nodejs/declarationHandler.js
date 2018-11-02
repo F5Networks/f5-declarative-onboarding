@@ -21,6 +21,7 @@ const DiffHandler = require('./diffHandler');
 const Logger = require('./logger');
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
+const DscHandler = require('./dscHandler');
 const DeleteHandler = require('./deleteHandler');
 
 const logger = new Logger(module);
@@ -28,7 +29,17 @@ const logger = new Logger(module);
 // They are the classes for which we are the source of truth. We will
 // run a diff against these classes and also apply defaults for them if they
 // are missing from the declaration
-const CLASSES_OF_TRUTH = ['hostname', 'DNS', 'NTP', 'Provision', 'VLAN', 'SelfIp', 'Route'];
+const CLASSES_OF_TRUTH = [
+    'hostname',
+    'DNS',
+    'NTP',
+    'Provision',
+    'VLAN',
+    'SelfIp',
+    'Route',
+    'ConfigSync',
+    'DeviceGroup'
+];
 
 /**
  * Main processing for a parsed declaration.
@@ -45,7 +56,6 @@ class DeclarationHandler {
      *
      * @param {Object} newDeclaration - The updated declaration to process
      * @param {Object} state - The [doState]{@link State} object
-     * @param {Object} oldDeclaration - A declaration representing the current configuration on the device
      *
      * @returns {Promise} A promise which is resolved when processing is complete
      *                    or rejected if an error occurs.
@@ -90,6 +100,9 @@ class DeclarationHandler {
             })
             .then(() => {
                 return new NetworkHandler(updateDeclaration, this.bigIp).process();
+            })
+            .then(() => {
+                return new DscHandler(updateDeclaration, this.bigIp).process();
             })
             .then(() => {
                 return new DeleteHandler(deleteDeclaration, this.bigIp).process();

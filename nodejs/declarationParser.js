@@ -159,7 +159,7 @@ class DeclarationParser {
         const KEYS_TO_IGNORE = ['schemaVersion', 'class'];
 
         // classes that have config objects without a name property
-        const NAMELESS_CLASSES = ['DNS', 'NTP', 'License', 'Provision'];
+        const NAMELESS_CLASSES = ['DNS', 'NTP', 'License', 'Provision', 'ConfigSync', 'DeviceTrust'];
 
         function isKeyOfInterest(key) {
             return KEYS_TO_IGNORE.indexOf(key) === -1;
@@ -192,13 +192,15 @@ class DeclarationParser {
                 const tenant = this.declaration[tenantName];
                 const properties = getKeysOfInterest(tenant);
                 properties.forEach((propertyName) => {
-                    const property = tenant[propertyName];
+                    let property = tenant[propertyName];
 
                     if (typeof property !== 'object') {
                         parsed[tenantName][propertyName] = property;
                     } else {
                         const propertyClass = property.class;
                         delete property.class;
+
+                        property = dereference.call(this, property);
 
                         if (!parsed[tenantName][propertyClass]) {
                             parsed[tenantName][propertyClass] = {};
@@ -227,6 +229,45 @@ class DeclarationParser {
             throw err;
         }
     }
+}
+
+function dereference(property) {
+    const dereferenced = {};
+    Object.assign(dereferenced, property);
+
+    Object.keys(dereferenced).forEach((key) => {
+        if (typeof dereferenced[key] === 'string' && dereferenced[key].startsWith('/')) {
+            const value = dereferencePointer.call(this, dereferenced[key]);
+
+            // If we get a string value, do a replacement. Otherwise, just leave the
+            // initial value. This allows us to write a declaration with 'vlan: /Common/myVlan'
+            // when we want the name 'myVlan' and also a declaration with 'address: /Common/mySelfIp/address'
+            // when we want the address property. Might have to revisit this if we ever need to actually
+            // replace a pointer with an object or array. Though at that point, since the pointer likely
+            // refers to a BIG-IP object, we could use the AS3 bigip: reference style
+            if (typeof value === 'string') {
+                dereferenced[key] = value;
+            }
+        }
+    });
+
+    return dereferenced;
+}
+
+function dereferencePointer(pointer) {
+    if (!pointer.startsWith('/')) {
+        return pointer;
+    }
+
+    let value = this.declaration;
+    const keys = pointer.split('/');
+    keys.forEach((key) => {
+        if (key && value) {
+            value = value[key];
+        }
+    });
+
+    return value;
 }
 
 module.exports = DeclarationParser;

@@ -11,6 +11,7 @@ test:
         - docker-executor
     script:
         - npm install
+        - npm run lint
         - npm test
 
 build_rpm:

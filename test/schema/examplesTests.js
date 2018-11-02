@@ -23,9 +23,12 @@ const Validator = require('../../nodejs/validator');
 const validator = new Validator();
 
 describe('examples tests', () => {
-    it('should validate the basic example', () => {
-        const data = JSON.parse(fs.readFileSync(`${__dirname}/../../examples/basic.json`).toString());
-        const validation = validator.validate(data);
-        assert.ok(validation.isValid, JSON.stringify(validation.errors, null, 4));
+    const files = fs.readdirSync(`${__dirname}/../../examples`);
+    files.forEach((file) => {
+        it(`should validate ${file}`, () => {
+            const data = JSON.parse(fs.readFileSync(`${__dirname}/../../examples/${file}`));
+            const validation = validator.validate(data);
+            assert.ok(validation.isValid, JSON.stringify(validation.errors, null, 4));
+        });
     });
 });
