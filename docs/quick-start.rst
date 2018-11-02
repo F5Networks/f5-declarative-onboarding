@@ -3,9 +3,9 @@ Quick Start
 
 If you are familiar with the BIG-IP system, and generally familiar with REST and
 using APIs, this section contains the minimum amount of information to get you
-up and running with AS3.
+up and running with Declarative Onboarding.
 
-If you are not familiar with the BIG-IP and REST APIs, or want more detailed instructions, continue with :doc:`using-as3`.
+If you are not familiar with the BIG-IP and REST APIs, or want more detailed instructions, continue with :doc:`using-Declarative Onboarding`.
 
 #. Download the latest RPM package from |github| in the **dist** directory.
 #. Upload and install the RPM package on the using the BIG-IP GUI:
@@ -15,7 +15,7 @@ If you are not familiar with the BIG-IP and REST APIs, or want more detailed ins
    - For complete instructions see :ref:`installgui-ref` or
      :ref:`installcurl-ref`.
 
-#. Be sure to see :doc:`prereqs` and the known issues on GitHub () to review any known issues and other important information before you attempt to use AS3.
+#. Be sure to see :doc:`prereqs` and the known issues on GitHub () to review any known issues and other important information before you attempt to use Declarative Onboarding.
 
 #. Provide authorization (basic auth) to the BIG-IP system:  
 

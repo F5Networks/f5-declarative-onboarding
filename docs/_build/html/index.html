@@ -16,7 +16,7 @@
   <meta name="title" content="F5 Declarative Onboarding Documentation"/>
   <meta name="product" content="F5 Declarative Onboarding"/>
   <meta name="version" content=""/>
-  <meta name="updated_date"  content="2018-10-26 12:52:18"/>
+  <meta name="updated_date"  content="2018-11-02 09:12:46"/>
   <meta name="archived" content="Archived documents excluded"/>
 
   
@@ -47,7 +47,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="About Declarative Onboarding" href="about-do.html" />
+    <link rel="next" title="Prerequisites and Requirements" href="prereqs.html" />
 
   
     
@@ -89,7 +89,7 @@
         <h5>Site Contents</h5>
         <span class="nav-sidebartoc">
             <ul>
-<li class="toctree-l1"><a class="reference internal" href="about-do.html">About Declarative Onboarding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prereqs.html">Prerequisites and Requirements</a></li>
 <li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using-do.html">Using Declarative Onboarding</a></li>
@@ -123,27 +123,27 @@
 <p>Welcome to the F5 Declarative Onboarding documentation. To provide feedback on this documentation, you can file a GitHub Issue, or email us at <a class="reference external" href="mailto:solutionsfeedback&#37;&#52;&#48;f5&#46;com">solutionsfeedback<span>&#64;</span>f5<span>&#46;</span>com</a>.</p>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>F5 Declarative onboarding uses a declarative model to bring up a BIG-IP device with all of the required initial settings. A declarative model means you provide a JSON declaration rather than a set of imperative
+<p>F5 Declarative onboarding uses a declarative model to initially configure a BIG-IP device with all of the required settings. A declarative model means you provide a JSON declaration rather than a set of imperative
 commands. The declaration represents the configuration which Declarative Onboarding is responsible for creating on a BIG-IP system.</p>
+<p>F5 Declarative Onboarding uses a <a href="https://f5.com/about-us/blog/articles/in-container-land-declarative-configuration-is-king-27226" target="_blank">declarative</a> model, meaning you send a
+declaration file using a single Rest API call. This section gives an overview of
+the major components of Declarative Onboarding, with references to more information later in this
+document.  See <a class="reference internal" href="revision-history.html#revision-history"><span class="std std-ref">Document Revision History</span></a> for information on document changes.</p>
 <p>This guide contains information on downloading, installing, and using F5 Declarative Onboarding.</p>
 <p>Use the following links, the navigation on the left, and/or the Next and Previous buttons to explore the documentation.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="about-do.html">About Declarative Onboarding</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="prereqs.html">Prerequisites and Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="components.html">Components</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="prereqs.html">Prerequisites and Requirements</a></li>
 <li class="toctree-l1"><a class="reference internal" href="components.html">Components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="components.html#as3-declaration">AS3 Declaration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="components.html#as3-json-schema">AS3 JSON Schema</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#declarative-onboarding-declaration">Declarative Onboarding Declaration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#declarative-onboarding-json-schema">Declarative Onboarding JSON Schema</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using-do.html">Using Declarative Onboarding</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="http-methods.html">HTTP Methods</a></li>
 <li class="toctree-l2"><a class="reference internal" href="authentication.html">Authentication and Authorization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html">Downloading and installing the AS3 package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Downloading and installing the Declarative Onboarding package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="composing-a-declaration.html">Composing a Declarative Onboarding Declaration</a></li>
 </ul>
 </li>
@@ -164,7 +164,7 @@ commands. The declaration represents the configuration which Declarative Onboard
        <div class="col-lg-12">
        
        
-          <a href="about-do.html" title="About Declarative Onboarding" accesskey="n" class="btn btn-primary pull-right">Next <i class="fa fa-arrow-circle-right" aria-hidden="true"></i></a>
+          <a href="prereqs.html" title="Prerequisites and Requirements" accesskey="n" class="btn btn-primary pull-right">Next <i class="fa fa-arrow-circle-right" aria-hidden="true"></i></a>
        
      </div>
      </div>

@@ -17,7 +17,7 @@ GET
 You can use the GET method to retrieve the declarations you previously sent to
 Declarative Onboarding. Use the GET method to the URI
 ``https://<BIG-IP>/mgmt/shared/appsvcs/declare``.  Only declarations you create
-in AS3 return, GET does not return anything that was not created by AS3.
+in Declarative Onboarding return, GET does not return anything that was not created by Declarative Onboarding.
 
 
 

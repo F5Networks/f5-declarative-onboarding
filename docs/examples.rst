@@ -3,7 +3,7 @@
 Example declarations
 ====================
 
-The following examples show you some AS3 declarations and the BIG-IP LTM objects
+The following examples show you some Declarative Onboarding declarations and the BIG-IP LTM objects
 they create.  
 
 If you missed it, we recommend you first read :doc:`composing-a-declaration` for a

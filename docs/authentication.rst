@@ -1,17 +1,17 @@
 Authentication and Authorization
 --------------------------------
 
-Authorization to invoke AS3 includes authorization to GET declarations stored in
-AS3.
+Authorization to invoke Declarative Onboarding includes authorization to GET declarations stored in
+Declarative Onboarding.
 
 Authorization to deploy a declaration to localhost (which means changing a
-BIG-IP configuration) gets subsumed into authorization to invoke AS3.  That is,
-if you have administrator credentials for a BIG-IP running AS3 you can use AS3
+BIG-IP configuration) gets subsumed into authorization to invoke Declarative Onboarding.  That is,
+if you have administrator credentials for a BIG-IP running Declarative Onboarding you can use Declarative Onboarding
 to configure that BIG-IP.
 
 To deploy a declaration to some other target BIG-IP (not localhost) you must
-supply AS3 with some credential (an access token or a name-and-passphrase
-combination) AS3 can use to authenticate to the target.  The role
+supply Declarative Onboarding with some credential (an access token or a name-and-passphrase
+combination) Declarative Onboarding can use to authenticate to the target.  The role
 associated with that credential must have authorization to modify the target's
 configuration.
 
@@ -19,7 +19,7 @@ Currently, there is no way to supply credentials for targets other than
 localhost with GET or DELETE requests, so you may issue POST requests with a
 suitable "action" values instead.
 
-Because AS3 is an iControl LX extension, you can authenticate by including one of the following **header** values in your HTTP requests.
+Because Declarative Onboarding is an iControl LX extension, you can authenticate by including one of the following **header** values in your HTTP requests.
 
 Basic Auth
 ~~~~~~~~~~
@@ -66,8 +66,8 @@ By default, the token has an expiration time of 1200 seconds.  To extend this ti
 
 
 
-For requests that perform the AS3 operation on a remote target BIG-IP
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For requests that perform the Declarative Onboarding operation on a remote target BIG-IP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can use either the Basic Auth Header or X-F5-Auth-Token for the request on the local BIG-IP. 
 
@@ -78,7 +78,7 @@ If using basic auth:
 .. code-block:: json
 
     {
-        "class":"AS3",
+        "class":"Declarative Onboarding",
         "action": "retrieve",
         "targetUsername": "{userWithCorrectPerms}",
         "targetPassphrase": "{userPassword}",
@@ -91,7 +91,7 @@ If using a token:
 .. code-block:: json
 
     {
-        "class":"AS3",
+        "class":"Declarative Onboarding",
         "action": "retrieve",
         "targetHost": "{{remote_bigip_host}}",
         "targetTokens": {

@@ -8,19 +8,19 @@ Downloading the RPM file
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The first task is to download the latest RPM file.  Go to the |github|, and download the latest (highest numbered) RPM file.
 
-Uploading and installing the AS3 file on the BIG-IP
+Uploading and installing the Declarative Onboarding file on the BIG-IP
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 After you download the RPM, you must upload and then install it on your BIG-IP system.  You can use the BIG-IP Configuration utility or cURL (you can alternatively use SCP to upload the file to **/var/config/rest/downloads**, but you would still have to use cURL command to install the package).  Use only one of the following procedures.
 
 .. _installgui-ref:
 
-Installing AS3 using the BIG-IP Configuration utility
+Installing Declarative Onboarding using the BIG-IP Configuration utility
 `````````````````````````````````````````````````````
 
 From the Configuration utility:
 
 1. Before you can use the Configuration utility, you must enable the framework using the BIG-IP command line. From the CLI, type the following command:  ``touch /var/config/rest/iapps/enable``.  You only need to run this command once (per BIG-IP system).
-2. Click **iApps > Package Management LX**.  Your AS3 version number may be different than the one shown in the following example.
+2. Click **iApps > Package Management LX**.  Your Declarative Onboarding version number may be different than the one shown in the following example.
 
    .. image:: /images/install1.png
 
@@ -38,10 +38,10 @@ From the Configuration utility:
 
 .. _installcurl-ref:
 
-Installing AS3 using cURL from the Linux shell
+Installing Declarative Onboarding using cURL from the Linux shell
 ``````````````````````````````````````````````
 
-If you want to use cURL to install AS3, use the following command syntax.  First, set the file name and the BIG-IP credentials, making sure you use the appropriate RPM build number (36 in the following example), and BIG-IP credentials.
+If you want to use cURL to install Declarative Onboarding, use the following command syntax.  First, set the file name and the BIG-IP credentials, making sure you use the appropriate RPM build number (36 in the following example), and BIG-IP credentials.
 
 .. code-block:: shell
 
@@ -76,18 +76,18 @@ Copy the following commands to install the package.
 
 Updating Declarative Onboarding
 ```````````````````````````````
-When F5 releases a new version of Declarative Onboarding, use the same procedure you used to initially install the RPM.  For example, if you used the Configuration utility, when you click Import and then select the new RPM, the system recognizes you are upgrading AS3:
+When F5 releases a new version of Declarative Onboarding, use the same procedure you used to initially install the RPM.  For example, if you used the Configuration utility, when you click Import and then select the new RPM, the system recognizes you are upgrading Declarative Onboarding:
 
 .. figure:: /images/upgrade.png
 
 |
 
-.. NOTE:: Installing or uninstalling AS3 does not affect the BIG-IP configuration created by AS3.
+.. NOTE:: Installing or uninstalling Declarative Onboarding does not affect the BIG-IP configuration created by Declarative Onboarding.
 
 
 Reverting to a previous version
 ```````````````````````````````
-If for any reason you want to revert to a previous version of Declarative Onboarding, you must first remove the version on your BIG-IP system (:guilabel:`iApps > Package Management LX > f5-appsvcs > Uninstall`).  After you uninstall, you can import the RPM for the version of AS3 you want to use.
+If for any reason you want to revert to a previous version of Declarative Onboarding, you must first remove the version on your BIG-IP system (:guilabel:`iApps > Package Management LX > f5-appsvcs > Uninstall`).  After you uninstall, you can import the RPM for the version of Declarative Onboarding you want to use.
 
 
 |
