@@ -169,7 +169,7 @@ function mask(declaration) {
     Object.assign(masked, declaration);
 
     Object.keys(masked).forEach((key) => {
-        if (typeof masked[key] === 'object') {
+        if (!Array.isArray(masked[key]) && typeof masked[key] === 'object') {
             masked[key] = mask(masked[key]);
         } else if (KEYS_TO_MASK.indexOf(key) !== -1) {
             delete masked[key];
