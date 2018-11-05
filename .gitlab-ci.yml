@@ -99,7 +99,7 @@ docs to production:
         - create docs
     script:
         # Uncomment and set to create desired version format
-        - export VERSION=3
+        - export VERSION=1
         - export AWS_S3_BUCKET=clouddocs.f5.com
         # Publish docs to clouddocs.f5.com (live site).
         - publish-product-docs-to-prod extensions/f5-declarative-onboarding $VERSION
