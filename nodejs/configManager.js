@@ -150,9 +150,16 @@ class ConfigManager {
                     const configItem = currentConfig[schemaClass][name];
 
                     configItem[property] = [];
+                    let patchedItem;
                     // references refer to arrays, so each referenceResult should be an array
                     referenceResult.forEach((reference) => {
-                        configItem[property].push(removeUnusedKeys(reference));
+                        patchedItem = removeUnusedKeys.call(this, reference);
+                        referenceInfo[index].properties.forEach((refProperty) => {
+                            if (refProperty.truth !== undefined) {
+                                patchedItem[refProperty.id] = mapTruth(patchedItem, refProperty);
+                            }
+                        });
+                        configItem[property].push(patchedItem);
                     });
                 });
 
@@ -241,12 +248,12 @@ function mapProperties(item, index) {
     }
 
     this.configItems[index].properties.forEach((property) => {
-        if (mappedItem[property.id]) {
-            // map truth/falsehood (enabled/disabled, for example) to booleans
-            if (property.truth !== undefined) {
-                mappedItem[property.id] = mappedItem[property.id] === property.truth;
-            }
+        // map truth/falsehood (enabled/disabled, for example) to booleans
+        if (property.truth !== undefined) {
+            mappedItem[property.id] = mapTruth(mappedItem, property);
+        }
 
+        if (mappedItem[property.id]) {
             // If property is a reference, strip the /Common if it is there
             // TODO: if we handle references to BIG-IP objects like AS 3, maybe
             // this can go away
@@ -256,6 +263,21 @@ function mapProperties(item, index) {
         }
     });
     return mappedItem;
+}
+
+/**
+ * Maps things like 'enabled/disabled' to true/false
+ *
+ * @param {Object} item - The config item
+ * @param {Object} property - The property to map
+ *
+ * @returns {Boolean} Whether or not the property value represents truth
+ */
+function mapTruth(item, property) {
+    if (!item[property.id]) {
+        return false;
+    }
+    return item[property.id] === property.truth;
 }
 
 // given an item and its index in configItems, construct a path based the properties we want
@@ -287,7 +309,8 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
                 {
                     property: trimmedPropertyName,
                     schemaClass: this.configItems[index].schemaClass,
-                    name: item.name
+                    name: item.name,
+                    properties: this.configItems[index].references[property]
                 }
             );
         }

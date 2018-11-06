@@ -38,7 +38,9 @@
             { "id": "interfacesReference" }
         ],
         "references": {
-            "interfacesReference": [{ "id": "tagged" }]
+            "interfacesReference": [
+                { "id": "tagged", "truth": true, "falsehood": false }
+            ]
         }
     },
     {
