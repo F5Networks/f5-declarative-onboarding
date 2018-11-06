@@ -54,11 +54,15 @@ class DiffHandler {
         };
         const updatedPaths = [];
 
+        const toDelete = {
+            Common: {}
+        };
+
         // let deep-diff update the from declaration so we don't have to figure out how
         // to apply the changes. Collect updated paths on the way so we can copy just
         // the changed data
         observableDiff(from, to, (diff) => {
-            // diff.path looks like ['Common', 'DNS'], for example
+            // diff.path looks like ['Common', 'VLAN', 'myVlan'], for example
             if (this.classesOfTruth.indexOf(diff.path[1]) !== -1) {
                 applyChange(from, to, diff);
 
@@ -66,13 +70,28 @@ class DiffHandler {
                 if (updatedPaths.indexOf(diff.path[1]) === -1) {
                     updatedPaths.push(diff.path[1]);
                 }
+
+                // keep track of deletes since they require special handling
+                if (diff.kind === 'D') {
+                    if (!toDelete.Common[diff.path[1]]) {
+                        toDelete.Common[diff.path[1]] = {};
+                    }
+
+                    // we are creating a declaration that looks like a parsed
+                    // declaration with empty bodies for things to delete
+                    // {
+                    //         Common: {
+                    //             VLAN: {
+                    //                 myVlan: {}
+                    //             }
+                    //         }
+                    // }
+                    toDelete.Common[diff.path[1]][diff.path[2]] = {};
+                }
             }
         });
 
         // copy in anything that was updated and keep track of what whas deleted
-        const toDelete = {
-            Common: {}
-        };
         updatedPaths.forEach((path) => {
             if (typeof from.Common[path] === 'string') {
                 final.Common[path] = from.Common[path];
@@ -84,7 +103,10 @@ class DiffHandler {
             }
 
             if (!final.Common[path] || Object.keys(final.Common[path]).length === 0) {
-                toDelete.Common[path] = fromDeclaration.Common[path];
+                if (!toDelete.Common[path]) {
+                    toDelete.Common[path] = {};
+                }
+                toDelete.Common[path][fromDeclaration.Common[path]] = {};
             }
         });
 

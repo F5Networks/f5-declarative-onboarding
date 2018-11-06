@@ -23,7 +23,9 @@ const PATHS = require('./sharedConstants').PATHS;
 const logger = new Logger(module);
 
 // This is an ordered list - objects will be deleted in this order
-const DELETABLE_CLASSES = ['Route', 'SelfIp', 'VLAN'];
+const DELETABLE_CLASSES = ['DeviceGroup', 'Route', 'SelfIp', 'VLAN'];
+
+const READ_ONLY_DEVICE_GROUPS = ['device_trust_group', 'gtm', 'datasync-global-dg'];
 
 /**
  * Handles deleting objects.
@@ -45,6 +47,16 @@ class DeleteHandler {
     /**
      * Deletes items in the declaration
      *
+     * this.declaration should look like:
+     * {
+     *     Common: {
+     *         VLAN: {
+     *             myVlan1: {},
+     *             myVlan2: {}
+     *         }
+     *     }
+     * }
+     *
      * @returns {Promise} A promise which is resolved when processing is complete
      *                    or rejected if an error occurs.
      */
@@ -53,9 +65,16 @@ class DeleteHandler {
         const promises = [];
         DELETABLE_CLASSES.forEach((deleteableClass) => {
             if (this.declaration.Common[deleteableClass]) {
-                Object.keys(this.declaration.Common[deleteableClass]).forEach((itemKey) => {
-                    const path = `${PATHS[deleteableClass]}/~Common~${itemKey}`;
-                    promises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                Object.keys(this.declaration.Common[deleteableClass]).forEach((itemToDelete) => {
+                    // Special case for device groups
+                    if (deleteableClass === 'DeviceGroup') {
+                        if (READ_ONLY_DEVICE_GROUPS.indexOf(itemToDelete) === -1) {
+                            promises.push(this.bigIp.cluster.deleteDeviceGroup(itemToDelete));
+                        }
+                    } else {
+                        const path = `${PATHS[deleteableClass]}/~Common~${itemToDelete}`;
+                        promises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    }
                 });
             }
         });

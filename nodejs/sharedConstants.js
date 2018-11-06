@@ -28,7 +28,8 @@ module.exports = {
         NTP: '/tm/sys/ntp',
         Route: '/tm/net/route',
         SelfIp: '/tm/net/self',
-        VLAN: '/tm/net/vlan'
+        VLAN: '/tm/net/vlan',
+        DeviceGroup: '/tm/cm/device-group'
     },
     STATUS: {
         STATUS_OK: 'OK',
