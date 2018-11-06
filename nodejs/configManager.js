@@ -68,9 +68,12 @@ class ConfigManager {
      *         references: {
      *             <name_of_reference>: ['properties', 'that', 'we', 'are', 'interested', 'in']
      *         },
-     *         singleValue: <whether_or_not_we_want_single_key_value_vs_whole_object_(Provision, for example)>
+     *         singleValue: <true_if_we_want_single_key_value_vs_whole_object_(Provision, for example)>,
+     *         nameless: <true_if_we_do_not_want_the_name_property_in_the_result>
      *     }
      * ]
+     *
+     * 'path' can contain {{hostname}} which will be replaced with this devices hostname
      *
      * @returns {Promise} A promise which is resolved with the config as returned by
      *                    iControl REST and filtered as defined in configItems.
@@ -81,20 +84,31 @@ class ConfigManager {
         const referencePromises = [];
         const referenceInfo = []; // info needed to tie reference result to config item
 
-        // get a list of iControl Rest queries asking for the config items and selecting the
-        // properties we want
-        this.configItems.forEach((configItem) => {
-            const query = { $filter: 'partition eq Common' };
-            const selectProperties = getPropertiesOfInterest(configItem.properties);
-            if (selectProperties.length > 0) {
-                query.$select = selectProperties.join(',');
-            }
-            const encodedQuery = querystring.stringify(query);
-            const path = `${configItem.path}?${encodedQuery}`;
-            promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
-        });
+        // get this devices hostname to use in replacements
+        return this.bigIp.deviceInfo()
+            .then((deviceInfo) => {
+                const hostname = deviceInfo.hostname;
+                const hostnameRegex = /{{hostname}}/;
 
-        return Promise.all(promises)
+                // get a list of iControl Rest queries asking for the config items and selecting the
+                // properties we want
+                this.configItems.forEach((configItem) => {
+                    const query = { $filter: 'partition eq Common' };
+                    const selectProperties = getPropertiesOfInterest(configItem.properties);
+                    if (selectProperties.length > 0) {
+                        query.$select = selectProperties.join(',');
+                    }
+                    const encodedQuery = querystring.stringify(query);
+                    let path = `${configItem.path}?${encodedQuery}`;
+
+                    // do any replacements (only {{hostname}} for now)
+                    path = path.replace(hostnameRegex, hostname);
+
+                    promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
+                });
+
+                return Promise.all(promises);
+            })
             .then((results) => {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
@@ -114,7 +128,11 @@ class ConfigManager {
                         });
                     } else {
                         currentConfig[schemaClass] = {};
-                        patchedItem = removeUnusedKeys.call(this, currentItem);
+                        patchedItem = removeUnusedKeys.call(
+                            this,
+                            currentItem,
+                            this.configItems[index].nameless
+                        );
                         patchedItem = mapProperties.call(this, patchedItem, index);
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
@@ -156,18 +174,26 @@ class ConfigManager {
 /**
  * Removes keys we don't want from a config item
  *
+ * We get some things we don't ask for
+ *
  * @param {Object} item - The item to clean up
+ * @param {Boolean} nameless - Whether or not to also remove the name property
  */
-function removeUnusedKeys(item) {
+function removeUnusedKeys(item, nameless) {
     const filtered = {};
+
     const keysToRemove = ['kind', 'selfLink'];
+
+    if (nameless) {
+        keysToRemove.push('name');
+    }
+
     Object.assign(filtered, item);
     Object.keys(filtered).forEach((key) => {
         if (key.endsWith('Reference')) {
             delete filtered[key];
         }
 
-        // we get some keys we don't ask for
         if (keysToRemove.indexOf(key) !== -1) {
             delete filtered[key];
         }

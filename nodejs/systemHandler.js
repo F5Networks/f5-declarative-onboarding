@@ -105,7 +105,7 @@ function handleDNS() {
             PATHS.DNS,
             {
                 'name-servers': dns.nameServers,
-                search: dns.search
+                search: dns.search || []
             }
         );
     }

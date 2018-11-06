@@ -121,7 +121,7 @@ class DeclarationHandler {
 /**
  * Apply defaults to a declaration
  *
- * Anything that is not mentioned that is not mentioned that we are the source
+ * Anything that is not mentioned that we are the source
  * of truth for will be set back to its original state.
  *
  * @param {Object} declaration - The new declation to apply

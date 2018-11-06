@@ -209,8 +209,10 @@ class DeclarationParser {
                         // If the config object does not get a name property, just assign
                         // the object directly. Otherwise, put create a named sub property
                         if (NAMELESS_CLASSES.indexOf(propertyClass) !== -1) {
+                            property = assignDefaults(propertyClass, property);
                             Object.assign(parsed[tenantName][propertyClass], property);
                         } else {
+                            property = assignDefaults(propertyClass, property);
                             parsed[tenantName][propertyClass][propertyName] = {};
                             property.name = propertyName;
                             Object.assign(parsed[tenantName][propertyClass][propertyName], property);
@@ -229,6 +231,49 @@ class DeclarationParser {
             throw err;
         }
     }
+}
+
+/**
+ * Assigns defualts to properties for which the schema can't do the job.
+ *
+ * Some properties can't have defaults assigned by the schema. For example,
+ * provisioning levels have no sensible default since that are all in one object.
+ *
+ * @param {String} propertyClass - The property class (DNS, NTP, etc).
+ * @param {Object} property - The property to assign defaults to.
+ */
+function assignDefaults(propertyClass, property) {
+    const modules = [
+        'afm',
+        'am',
+        'apm',
+        'asm',
+        'avr',
+        'dos',
+        'fps',
+        'gtm',
+        'ilx',
+        'lc',
+        'ltm',
+        'pem',
+        'swg',
+        'urldb'
+    ];
+
+    switch (propertyClass) {
+    case 'Provision':
+        modules.forEach((module) => {
+            if (!property[module]) {
+                property[module] = 'none';
+            }
+        });
+
+        break;
+    default:
+        // Nothing to do here
+    }
+
+    return property;
 }
 
 function dereference(property) {

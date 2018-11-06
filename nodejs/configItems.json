@@ -61,11 +61,12 @@
         ]
     },
     {
-        "path": "/tm/cm/device",
+        "path": "/tm/cm/device/~Common~{{hostname}}",
         "schemaClass": "ConfigSync",
         "properties": [
             { "id": "configsyncIp" }
-        ]
+        ],
+        "nameless": true
     },
     {
         "path": "/tm/cm/device-group",
