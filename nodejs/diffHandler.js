@@ -91,7 +91,7 @@ class DiffHandler {
             }
         });
 
-        // copy in anything that was updated and keep track of what whas deleted
+        // copy in anything that was updated
         updatedPaths.forEach((path) => {
             if (typeof from.Common[path] === 'string') {
                 final.Common[path] = from.Common[path];
@@ -100,13 +100,6 @@ class DiffHandler {
             } else {
                 final.Common[path] = {};
                 Object.assign(final.Common[path], from.Common[path]);
-            }
-
-            if (!final.Common[path] || Object.keys(final.Common[path]).length === 0) {
-                if (!toDelete.Common[path]) {
-                    toDelete.Common[path] = {};
-                }
-                toDelete.Common[path][fromDeclaration.Common[path]] = {};
             }
         });
 
