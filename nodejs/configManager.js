@@ -73,7 +73,9 @@ class ConfigManager {
      *     }
      * ]
      *
-     * 'path' can contain {{hostname}} which will be replaced with this devices hostname
+     * 'path' can contain tokens which will be replaced as follows:
+     *     {{hostName}} - The current hostname
+     *     {{deviceName}} - The current cm device name for the host
      *
      * @returns {Promise} A promise which is resolved with the config as returned by
      *                    iControl REST and filtered as defined in configItems.
@@ -84,11 +86,11 @@ class ConfigManager {
         const referencePromises = [];
         const referenceInfo = []; // info needed to tie reference result to config item
 
-        // get this devices hostname to use in replacements
-        return this.bigIp.deviceInfo()
-            .then((deviceInfo) => {
-                const hostname = deviceInfo.hostname;
-                const hostnameRegex = /{{hostname}}/;
+        // get this token replacements
+        return getTokenMap.call(this)
+            .then((tokenMap) => {
+                const hostNameRegex = /{{hostName}}/;
+                const deviceNameRegex = /{{deviceName}}/;
 
                 // get a list of iControl Rest queries asking for the config items and selecting the
                 // properties we want
@@ -101,8 +103,9 @@ class ConfigManager {
                     const encodedQuery = querystring.stringify(query);
                     let path = `${configItem.path}?${encodedQuery}`;
 
-                    // do any replacements (only {{hostname}} for now)
-                    path = path.replace(hostnameRegex, hostname);
+                    // do any replacements
+                    path = path.replace(hostNameRegex, tokenMap.hostName);
+                    path = path.replace(deviceNameRegex, tokenMap.deviceName);
 
                     promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
                 });
@@ -315,6 +318,37 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
             );
         }
     });
+}
+
+/**
+ * Gets values we use to replace tokens in configItems.json
+ *
+ * @returns {Promise} A promise which is resolved with the replacement
+ *                    map
+ *     {
+ *         hostName: hostname from global settings
+ *         deviceName: device name for the host
+ *     }
+ */
+function getTokenMap() {
+    return this.bigIp.deviceInfo()
+        .then((deviceInfo) => {
+            const hostName = deviceInfo.hostname;
+
+            // mcpDeviceName is like '/Common/bigip1' and we only want 'bigip1'
+            const deviceName = deviceInfo.mcpDeviceName.split('/')[2];
+
+            return Promise.resolve(
+                {
+                    hostName,
+                    deviceName
+                }
+            );
+        })
+        .catch((err) => {
+            logger.severe(`Error getting device info for tokens: ${err.message}`);
+            return Promise.reject(err);
+        });
 }
 
 module.exports = ConfigManager;

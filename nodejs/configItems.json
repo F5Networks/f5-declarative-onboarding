@@ -63,7 +63,7 @@
         ]
     },
     {
-        "path": "/tm/cm/device/~Common~{{hostname}}",
+        "path": "/tm/cm/device/~Common~{{deviceName}}",
         "schemaClass": "ConfigSync",
         "properties": [
             { "id": "configsyncIp" }
