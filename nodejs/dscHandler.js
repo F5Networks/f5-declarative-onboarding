@@ -173,9 +173,9 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
     // Get the device group members that are currently trusted
     return this.bigIp.cluster.areInTrustGroup(deviceGroup.members || [])
         .then((devices) => {
-            // If we're adding something besides ourselves and autoSync is not
-            // configured, do an initial sync after createion
-            if (devices.length > 0 && !deviceGroup.autoSync) {
+            // If we're adding something besides ourselves do
+            // an initial sync after createion
+            if (devices.length > 0) {
                 needsSync = true;
             }
 
