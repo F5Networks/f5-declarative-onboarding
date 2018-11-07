@@ -7,7 +7,7 @@ RESTful API client like Postman or a universal client such as cURL.  You can use
 A client may supply a declaration with a POST request, and other request methods (currently only GET) work with declarations previously
 supplied via POST and retained by Declarative Onboarding.
 
-The default target ADC for every Declarative Onboarding request (that is, the target selected when
+**(not sure if this exactly applies to DO or needs to be here)**  The default target ADC for every Declarative Onboarding request (that is, the target selected when
 a request does not specify any other) is "localhost".  In the basic case that
 means the BIG-IP on which Declarative Onboarding is running.  (When Declarative Onboarding is not running on a
 BIG-IP, "localhost" is not a valid target.)

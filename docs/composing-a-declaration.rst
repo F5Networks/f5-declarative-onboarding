@@ -8,10 +8,8 @@ The most important part of using Declarative Onboarding is creating a declaratio
 
 To submit an Declarative Onboarding declaration, use a specialized RESTful API client such as Postman or a universal client such as cURL.
 
-To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP address>/mgmt/shared/appsvcs/declare``.
+To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP address>/mgmt/shared/declarative-onboarding``.
 
-
-Once you submit a declaration, if you want to view it from the BIG-IP Configuration utility, you must select the partition from the **Partition** list in the upper-right portion of the screen.  The partition name is the name you give the tenant in the declaration.
 
 In this section, we break down an example declaration and describe its parts. 
 
@@ -22,11 +20,11 @@ If you want to try this sample declaration now, jump to :doc:`quick-start`.
 Sample declaration
 ~~~~~~~~~~~~~~~~~~
 
-In this scenario, 
+In this declaration, we 
 
 In the following declaration, we include 
 
-This is our example declaration.  We break down the components in the following sections.
+We break down the components in the following sections.
 
 .. literalinclude:: examples/example_01.json
    :language: json
@@ -41,7 +39,7 @@ The following sections break down the example into parts so you can understand h
 
 .. NOTE:: Declarative Onboarding contains many more options, see :ref:`schema-reference` for details.
 
-.. _Declarative Onboardingclass-ref:
+.. _deviceclass-ref:
 
 Device Class
 ````````````

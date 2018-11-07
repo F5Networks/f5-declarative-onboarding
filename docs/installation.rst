@@ -8,46 +8,36 @@ Downloading the RPM file
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The first task is to download the latest RPM file.  Go to the |github|, and download the latest (highest numbered) RPM file.
 
-Uploading and installing the Declarative Onboarding file on the BIG-IP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-After you download the RPM, you must upload and then install it on your BIG-IP system.  You can use the BIG-IP Configuration utility or cURL (you can alternatively use SCP to upload the file to **/var/config/rest/downloads**, but you would still have to use cURL command to install the package).  Use only one of the following procedures.
+Uploading and installing the Declarative Onboarding RPM file on the BIG-IP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+After you download the RPM, you must upload and then install it on your BIG-IP system.  In this section, we show how to upload the RPM using :ref:`cURL<uploadcurl>` or :ref:`SCP<uploadscp>`.  Use only one of the following procedures.
 
-.. _installgui-ref:
+.. _uploadscp:
 
-Installing Declarative Onboarding using the BIG-IP Configuration utility
-`````````````````````````````````````````````````````
+Uploading Declarative Onboarding using SCP
+``````````````````````````````````````````
 
-From the Configuration utility:
+You can use SCP to upload the RPM file to the BIG-IP system.  Note that even if you use SCP to upload the RPM file,  you still have to use cURL command to install the package.
 
-1. Before you can use the Configuration utility, you must enable the framework using the BIG-IP command line. From the CLI, type the following command:  ``touch /var/config/rest/iapps/enable``.  You only need to run this command once (per BIG-IP system).
-2. Click **iApps > Package Management LX**.  Your Declarative Onboarding version number may be different than the one shown in the following example.
-
-   .. image:: /images/install1.png
-
-3. Click the **Import** button.
-
-   .. image:: /images/install2.png
-
-4. Click **Choose File** and then browse to the location you saved the RPM file, and then click **Ok**.
-5. Click the **Upload** button.
-
-   .. image:: /images/install3.png
-
+#. Open your SCP client, and use the management IP address of your BIG-IP system.
+#. Use the **root** account to authenticate to the BIG-IP.  The initial root password is **default**.  We strongly recommend you change this password after you install Declarative Onboarding (you can change this password using a Declarative Onboarding declaration as shown in :doc:`examples`).  
+#. Upload the RPM file to the directory **/var/config/rest/downloads**.
+#. Continue with :ref:`installcurl-ref`
 
 |
 
-.. _installcurl-ref:
+.. _uploadcurl:
 
-Installing Declarative Onboarding using cURL from the Linux shell
-``````````````````````````````````````````````
+Uploading Declarative Onboarding using cURL from the Linux shell
+`````````````````````````````````````````````````````````````````
 
-If you want to use cURL to install Declarative Onboarding, use the following command syntax.  First, set the file name and the BIG-IP credentials, making sure you use the appropriate RPM build number (36 in the following example), and BIG-IP credentials.
+If you want to use cURL to install Declarative Onboarding, use the following command syntax.  First, set the file name and the BIG-IP credentials, making sure you use the appropriate RPM build number (36 in the following example), and BIG-IP credentials.  
 
 .. code-block:: shell
 
     FN=f5-appsvcs-3.0.0-36.noarch.rpm
 
-    CREDS=admin:password
+    CREDS=admin:admin
 
     IP=IP address of BIG-IP
 
@@ -63,7 +53,13 @@ Copy the following commands to upload the package. If you uploaded the RPM by an
 
 |
 
-Copy the following commands to install the package.
+.. _installcurl-ref:
+
+Installing Declarative Onboarding using cURL from the Linux shell
+`````````````````````````````````````````````````````````````````
+No matter which method you used to upload the RPM onto the BIG-IP, you must use the following cURL commands Copy the following commands to install the package.
+
+If you used SCP to upload the package, first set the BIG-IP IP address and credentials as described in :ref:`uploadcurl`.
 
 .. code-block:: shell
 
@@ -76,11 +72,8 @@ Copy the following commands to install the package.
 
 Updating Declarative Onboarding
 ```````````````````````````````
-When F5 releases a new version of Declarative Onboarding, use the same procedure you used to initially install the RPM.  For example, if you used the Configuration utility, when you click Import and then select the new RPM, the system recognizes you are upgrading Declarative Onboarding:
+When F5 releases a new version of Declarative Onboarding, use the same procedure you used to initially install the RPM.  
 
-.. figure:: /images/upgrade.png
-
-|
 
 .. NOTE:: Installing or uninstalling Declarative Onboarding does not affect the BIG-IP configuration created by Declarative Onboarding.
 

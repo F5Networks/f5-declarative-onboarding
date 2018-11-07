@@ -9,16 +9,6 @@ BIG-IP configuration) gets subsumed into authorization to invoke Declarative Onb
 if you have administrator credentials for a BIG-IP running Declarative Onboarding you can use Declarative Onboarding
 to configure that BIG-IP.
 
-To deploy a declaration to some other target BIG-IP (not localhost) you must
-supply Declarative Onboarding with some credential (an access token or a name-and-passphrase
-combination) Declarative Onboarding can use to authenticate to the target.  The role
-associated with that credential must have authorization to modify the target's
-configuration.
-
-Currently, there is no way to supply credentials for targets other than
-localhost with GET or DELETE requests, so you may issue POST requests with a
-suitable "action" values instead.
-
 Because Declarative Onboarding is an iControl LX extension, you can authenticate by including one of the following **header** values in your HTTP requests.
 
 Basic Auth
@@ -66,35 +56,3 @@ By default, the token has an expiration time of 1200 seconds.  To extend this ti
 
 
 
-For requests that perform the Declarative Onboarding operation on a remote target BIG-IP
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You can use either the Basic Auth Header or X-F5-Auth-Token for the request on the local BIG-IP. 
-
-Then, the POST body then must contain one of the following:
-
-If using basic auth:
-
-.. code-block:: json
-
-    {
-        "class":"Declarative Onboarding",
-        "action": "retrieve",
-        "targetUsername": "{userWithCorrectPerms}",
-        "targetPassphrase": "{userPassword}",
-        "targetHost": "{{remote_bigip_host}}"
-    }
-
-
-If using a token:
-
-.. code-block:: json
-
-    {
-        "class":"Declarative Onboarding",
-        "action": "retrieve",
-        "targetHost": "{{remote_bigip_host}}",
-        "targetTokens": {
-        "X-F5-Auth-Token": "{{bigip_auth_token}}"
-        }
-    }
