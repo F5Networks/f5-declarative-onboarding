@@ -40,7 +40,10 @@
                 "owner": {
                     "description": "Owning device. Config will be pushed from this device. If this is present, device group will only be created if the current device is the owner. If not present, device group will be created if it does not exist",
                     "type": "string",
-                    "format": "hostname"
+                    "anyOf": [
+                        { "format": "hostname" },
+                        { "format": "json-pointer" }
+                    ]
                 },
                 "members": {
                     "description": "Members to add to the device group if they are already in the trust domain",
@@ -100,7 +103,8 @@
                     "anyOf": [
                         { "format": "ipv4" },
                         { "format": "ipv6" },
-                        { "format": "hostname" }
+                        { "format": "hostname" },
+                        { "format": "json-pointer" }
                     ]
                 }
             }

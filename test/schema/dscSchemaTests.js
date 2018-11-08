@@ -96,7 +96,16 @@ describe('network.schema.json tests', () => {
             it('should validate minimal device group data', () => {
                 const data = {
                     "class": "DeviceGroup",
+                    "type": "sync-only"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal device group data with json-pointer', () => {
+                const data = {
+                    "class": "DeviceGroup",
                     "type": "sync-only",
+                    "owner": "/foo/bar/0"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -146,6 +155,18 @@ describe('network.schema.json tests', () => {
                     "localUsername": "myUser",
                     "localPassword": "myPassword",
                     "remoteHost": "1.2.3.4",
+                    "remoteUsername": "yourUser",
+                    "remotePassword": "yourPassword"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate device trust data with json-pointer', () => {
+                const data = {
+                    "class": "DeviceTrust",
+                    "localUsername": "myUser",
+                    "localPassword": "myPassword",
+                    "remoteHost": "/foo/bar/0",
                     "remoteUsername": "yourUser",
                     "remotePassword": "yourPassword"
                 };
