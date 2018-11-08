@@ -1,7 +1,6 @@
 {
     "schemaVersion": "0.1.0",
     "class": "Device",
-    "async": "false",
     "label": "my BIG-IP declaration for declarative onboarding",
     "Common": {
         "class": "Tenant",
