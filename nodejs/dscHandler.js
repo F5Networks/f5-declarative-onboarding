@@ -50,6 +50,10 @@ class DscHandler {
         logger.fine('Checking ConfigSync.');
         return handleConfigSync.call(this)
             .then(() => {
+                logger.fine('Checking FailoverUnicast.');
+                return handleFailoverUnicast.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking DeviceTrust.');
                 return handleDeviceTrust.call(this);
             })
@@ -71,7 +75,7 @@ function handleConfigSync() {
     if (this.declaration.Common.ConfigSync) {
         let configsyncIp = this.declaration.Common.ConfigSync.configsyncIp || '';
 
-        // configsyncIp may have been a json pointer to something with a CIDR
+        // address may have been a json pointer to something with a CIDR
         // so strip that off
         const slashIndex = configsyncIp.indexOf('/');
         if (slashIndex !== -1) {
@@ -82,6 +86,43 @@ function handleConfigSync() {
             configsyncIp,
             cloudUtil.SHORT_RETRY
         );
+    }
+    return Promise.resolve();
+}
+
+/**
+ * Handles setting the network failover unicast address
+ */
+function handleFailoverUnicast() {
+    if (this.declaration.Common.FailoverUnicast) {
+        const port = this.declaration.Common.FailoverUnicast.port;
+        let unicastAddress = this.declaration.Common.FailoverUnicast.address || '';
+
+        // address may have been a json pointer to something with a CIDR
+        // so strip that off
+        const slashIndex = unicastAddress.indexOf('/');
+        if (slashIndex !== -1) {
+            unicastAddress = unicastAddress.substring(0, slashIndex);
+        }
+
+        return this.bigIp.deviceInfo()
+            .then((deviceInfo) => {
+                return this.bigIp.modify(
+                    `/tm/cm/device/~Common~${deviceInfo.hostname}`,
+                    {
+                        unicastAddress: [
+                            {
+                                port,
+                                ip: unicastAddress,
+                            }
+                        ]
+                    }
+                );
+            })
+            .catch((err) => {
+                logger.severe(`Error setting failover unicast address: ${err.message}`);
+                return Promise.reject(err);
+            });
     }
     return Promise.resolve();
 }

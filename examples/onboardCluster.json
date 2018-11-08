@@ -81,6 +81,10 @@
             "class": "ConfigSync",
             "configsyncIp": "/Common/external-self/address"
         },
+        "failoverAddress": {
+            "class": "FailoverUnicast",
+            "address": "/Common/external-self/address"
+        },
         "failoverGroup": {
             "class": "DeviceGroup",
             "type": "sync-failover",

@@ -38,7 +38,8 @@ const CLASSES_OF_TRUTH = [
     'SelfIp',
     'Route',
     'ConfigSync',
-    'DeviceGroup'
+    'DeviceGroup',
+    'FailoverUnicast'
 ];
 
 /**

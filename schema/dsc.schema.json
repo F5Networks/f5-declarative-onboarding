@@ -25,6 +25,33 @@
             "additionalProperties": false
         },
         {
+            "required": ["class", "address"],
+            "properties": {
+                "class": {
+                    "description": "Indicates thiat this property contains failover unicast address configuration.",
+                    "type": "string",
+                    "const": "FailoverUnicast"
+                },
+                "address": {
+                    "description": "IP address to listen on for failover heartbeats",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6" },
+                        { "format": "json-pointer" }
+                    ]
+                },
+                "port": {
+                    "description": "Port to listen on for failover heartbeats",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "default": 1026
+                }
+            },
+            "additionalProperties": false
+        },
+        {
             "required": ["class", "type"],
             "properties": {
                 "class": {
