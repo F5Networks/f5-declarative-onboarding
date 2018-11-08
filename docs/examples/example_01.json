@@ -1,7 +1,6 @@
 {
     "schemaVersion": "0.1.0",
     "class": "Device",
-    "async": "false",
     "label": "my BIG-IP declaration for declarative onboarding",
     "Common": {
         "class": "Tenant",
@@ -36,8 +35,8 @@
         "root": {
             "class": "User",
             "userType": "root",
-            "oldPassword": "foo",
-            "newPassword": "bar"
+            "oldPassword": "default",
+            "newPassword": "myNewPass1word"
         },
         "admin": {
             "class": "User",

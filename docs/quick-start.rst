@@ -5,15 +5,11 @@ If you are familiar with the BIG-IP system, and generally familiar with REST and
 using APIs, this section contains the minimum amount of information to get you
 up and running with Declarative Onboarding.
 
-If you are not familiar with the BIG-IP and REST APIs, or want more detailed instructions, continue with :doc:`using-Declarative Onboarding`.
+If you are not familiar with the BIG-IP and REST APIs, or want more detailed instructions, continue with :doc:`using-do`.
 
 #. Download the latest RPM package from |github| in the **dist** directory.
-#. Upload and install the RPM package on the using the BIG-IP GUI:
 
-   - :guilabel:`Main tab > iApps > Package Management LX > Import`
-   - Select the downloaded file and click :guilabel:`Upload`
-   - For complete instructions see :ref:`installgui-ref` or
-     :ref:`installcurl-ref`.
+#. Upload and install the RPM package.  For complete instructions see :doc:`installation`.
 
 #. Be sure to see :doc:`prereqs` and the known issues on GitHub () to review any known issues and other important information before you attempt to use Declarative Onboarding.
 
