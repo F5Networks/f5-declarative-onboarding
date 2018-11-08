@@ -85,7 +85,7 @@
             "class": "DeviceGroup",
             "type": "sync-failover",
             "members": ["bigip1.example.com", "bigip2.example.com"],
-            "owner": "bigip1.example.com",
+            "owner": "/Common/failoverGroup/members/0",
             "autoSync": true,
             "saveOnAutoSync": false,
             "networkFailover": true,
@@ -96,7 +96,7 @@
             "class": "DeviceTrust",
             "localUsername": "admin",
             "localPassword": "pass1word",
-            "remoteHost": "bigip2.example.com",
+            "remoteHost": "/Common/failoverGroup/members/0",
             "remoteUsername": "admin",
             "remotePassword": "pass2word"
         }
