@@ -126,6 +126,12 @@ class ConfigManager {
                         currentItem.forEach((item) => {
                             patchedItem = removeUnusedKeys.call(this, item);
                             patchedItem = mapProperties.call(this, patchedItem, index);
+
+                            // Self IPs are so odd that I don't see a generic way to handle this
+                            if (schemaClass === 'SelfIp') {
+                                patchedItem = patchSelfIp.call(this, patchedItem);
+                            }
+
                             currentConfig[schemaClass][item.name] = patchedItem;
                             getReferencedPaths.call(this, item, index, referencePromises, referenceInfo);
                         });
@@ -258,9 +264,11 @@ function mapProperties(item, index) {
 
         if (mappedItem[property.id]) {
             // If property is a reference, strip the /Common if it is there
-            // TODO: if we handle references to BIG-IP objects like AS 3, maybe
-            // this can go away
-            if (property.isRef && mappedItem[property.id].startsWith('/Common/')) {
+            // Either the user specified it without /Commmon in their declaration
+            // or we replaced the user value with just the last part because it looks
+            // like a json pointer
+            if (typeof mappedItem[property.id] === 'string'
+                && mappedItem[property.id].startsWith('/Common/')) {
                 mappedItem[property.id] = mappedItem[property.id].substring('/Common/'.length);
             }
         }
@@ -349,6 +357,33 @@ function getTokenMap() {
             logger.severe(`Error getting device info for tokens: ${err.message}`);
             return Promise.reject(err);
         });
+}
+
+/**
+ * Self IPs have a couple oddities that are hard to deal with in a generic fashion
+ *
+ * - allowService is typically an array. However, if allowService is "default", you can
+ * specify either "default" or ["default"] when creating but always get back ["default"]
+ * - If allowService is "none", you specify "none" when creating but the returned object
+ * just doesn't have the allowService property.
+ * - If allowService is "all", you must specify "all" when creating and get back "all".
+ *
+ * @param {Object} selfIp - Self IP config item
+ *
+ * @returns A consistent self IP config item
+ */
+function patchSelfIp(selfIp) {
+    const patched = {};
+    Object.assign(patched, selfIp);
+    if (!patched.allowService) {
+        patched.allowService = 'none';
+    } else if (Array.isArray(patched.allowService)) {
+        if (patched.allowService.length === 1 && patched.allowService[0] === 'default') {
+            patched.allowService = 'default';
+        }
+    }
+
+    return patched;
 }
 
 module.exports = ConfigManager;
