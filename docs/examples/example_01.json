@@ -1,13 +1,19 @@
 {
     "schemaVersion": "0.1.0",
     "class": "Device",
+    "async": "false",
+    "label": "my BIG-IP declaration for declarative onboarding",
     "Common": {
         "class": "Tenant",
         "hostname": "bigip.example.com",
         "myLicense": {
             "class": "License",
             "licenseType": "regKey",
-            "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+            "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
+        },
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal"
         },
         "myDns": {
             "class": "DNS",
@@ -48,10 +54,6 @@
                     "role": "guest"
                 }
             }
-        },
-        "myProvisioning": {
-            "class": "Provision",
-            "ltm": "nominal"
         },
         "myVlan": {
             "class": "VLAN",
