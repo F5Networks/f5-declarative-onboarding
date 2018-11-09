@@ -8,10 +8,10 @@ The most important part of using Declarative Onboarding is creating a declaratio
 
 To submit an Declarative Onboarding declaration, use a specialized RESTful API client such as Postman or a universal client such as cURL.
 
-To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP address>/mgmt/shared/declarative-onboarding``.
+To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP address>/mgmt/shared/declarative-onboarding``.  If you are using a single NIC BIG-IP, include port 8443: ``<BIG-IP IP address>:8443/mgmt/shared/declarative-onboarding``
 
 
-In this section, we first show the sample declaration, and then we break it down an describe its parts. 
+In this section, we first show the sample declaration, and then we break it down an describe its parts. If you are unfamiliar with any of the BIG-IP terminology, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.
 
 
 
@@ -38,8 +38,6 @@ The following sections break down the example into parts so you can understand t
 If there is a default value, it is shown in bold in the Options column.  
 
 Use the index in the left pane if you want to go directly to a particular section.
-
-.. NOTE:: Declarative Onboarding contains many more options, see :ref:`schema-reference` for details.
 
 .. _base-comps:
 
@@ -360,35 +358,94 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | interfaces         | string                         |   Yes      |  Interfaces for the VLAN.                                                                                                          |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| name               | string                         |   Yes      |  The name for the interface, such as 1.1 or 1.2.                                                                                    |
+| name               | string                         |   Yes      |  The name for the interface, such as 1.1 or 1.2.                                                                                   |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | tagged             | true, false                    |   No       |  Specifies whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.                     |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
 
+.. _selfip-class:
+
+Self IP class
+`````````````
+The next lines of the declaration configure self IP address(es) on the BIG-IP system. 
+
+The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
 
-        "mySelfIp": {
-            "class": "SelfIp",
-            "address": "1.2.3.4/24",
-            "vlan": "myVlan",
-            "allowService": "all",
-            "floating": true
-        },
+.. code-block:: javascript
+   :linenos:
+   :lineno-start: 46
+
+    "mySelfIp": {
+        "class": "SelfIp",
+        "address": "1.2.3.4/24",
+        "vlan": "myVlan",
+        "allowService": "all",
+        "trafficGroup": "traffic-group-local-only"
+    },
+
+
++--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                                            | Required*? |  Description/Notes                                                                                                                 |
++====================+====================================================+============+====================================================================================================================================+
+| class              | SelfIp                                             |   Yes      |  Indicates that this property contains self IP configuration.                                                                      |
++--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| address            | string                                             |   Yes      |  IP address you want to use for the self IP address.                                                                               |
++--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| vlan               | string                                             |   Yes      |  The VLAN to which the self IP should be associated. This field should match any VLANs you are including in this declaration.      |
++--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| allowService       | all, none, **default**, or array of <service:port> |   No       |  Specifies which services (ports) to allow on the self IP.                                                                         |
++--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| trafficGroup       | **traffic-group-local-only**, "traffic-group-1     |   No       |  Traffic group for the Self IP.                                                                                                    |
++--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+
+
+\* The required column applies only if you are using this class.
+
+
+.. _selfip-class:
+
+Route class
+```````````
+The next lines of the declaration configure self IP address(es) on the BIG-IP system. 
+
+The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+
+
+.. code-block:: javascript
+   :linenos:
+   :lineno-start: 46
+
         "myRoute": {
-            "class": "Route",
-            "gw": "10.1.20.1",
-            "network": "default",
-            "mtu": 0
+                "class": "Route",
+                "gw": "10.1.20.1",
+                "network": "default",
+                "mtu": 0
+            }
         }
     }
-}
-    
+
+
++--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                         | Required*? |  Description/Notes                                                                                                                 |
++====================+=================================+============+====================================================================================================================================+
+| class              | Route                           |   Yes      |  Indicates that this property contains route configuration.                                                                        |
++--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| gw                 | string (IPv4 or IPv6 address)   |   Yes      |  Gateway for the route.                                                                                                            |
++--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| network            | string                          |   No       |  IP address/netmask for route.  The default network is **default**.                                                                |
++--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| mtu                | integer                         |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 0 and a maximum of 9198.                                   |
++--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+
+
+
+\* The required column applies only if you are using this class.
+
        
 
-
-See :doc:`examples` to see the default values Declarative Onboarding uses behind the scenes, and the Reference section for a list of all possible parameters you can use in your declarations.
  
 
 .. |user| raw:: html

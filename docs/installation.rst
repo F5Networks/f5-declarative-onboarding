@@ -43,7 +43,7 @@ If you want to use cURL to install Declarative Onboarding, use the following com
 
 |
 
-Copy the following commands to upload the package. Note you must be in the same directory where you downloaded the RPM package. CIf you uploaded the RPM by another method, you can skip these commands.
+Copy the following commands to upload the package. Note you must be in the same directory where you downloaded the RPM package. If you uploaded the RPM by another method, you can skip these commands.
 
 .. code-block:: shell
 
