@@ -35,7 +35,7 @@ If you want to use cURL to install Declarative Onboarding, use the following com
 
 .. code-block:: shell
 
-    FN=f5-appsvcs-3.0.0-36.noarch.rpm
+    FN=f5-declarative-onboarding-1.0.0-1.noarch.rpm
 
     CREDS=admin:admin
 
@@ -43,7 +43,7 @@ If you want to use cURL to install Declarative Onboarding, use the following com
 
 |
 
-Copy the following commands to upload the package. If you uploaded the RPM by another method, you can skip these commands.
+Copy the following commands to upload the package. Note you must be in the same directory where you downloaded the RPM package. CIf you uploaded the RPM by another method, you can skip these commands.
 
 .. code-block:: shell
 

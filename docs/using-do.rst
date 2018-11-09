@@ -4,13 +4,10 @@ Using Declarative Onboarding
 As mentioned in the prerequisites, to transmit Declarative Onboarding declarations you can use a
 RESTful API client like Postman or a universal client such as cURL.  You can use the HTTP request methods POST and GET with Declarative Onboarding.
 
-A client may supply a declaration with a POST request, and other request methods (currently only GET) work with declarations previously
+A client may supply a declaration with a POST request, and other request methods (currently only GET) work with the declaration previously
 supplied via POST and retained by Declarative Onboarding.
 
-**(not sure if this exactly applies to DO or needs to be here)**  The default target ADC for every Declarative Onboarding request (that is, the target selected when
-a request does not specify any other) is "localhost".  In the basic case that
-means the BIG-IP on which Declarative Onboarding is running.  (When Declarative Onboarding is not running on a
-BIG-IP, "localhost" is not a valid target.)
+
 
 .. toctree::
    :maxdepth: 2
@@ -21,3 +18,4 @@ BIG-IP, "localhost" is not a valid target.)
    authentication
    installation
    composing-a-declaration
+   clustering

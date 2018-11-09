@@ -1,24 +1,24 @@
 .. _composing:  
 
 
-Composing a Declarative Onboarding Declaration
-----------------------------------------------
+Composing a Declarative Onboarding declaration for a standalone BIG-IP
+----------------------------------------------------------------------
 
-The most important part of using Declarative Onboarding is creating a declaration that includes the BIG-IP objects you want the system to configure.    See :ref:`examples` and :ref:`schema-reference` for sample declarations and further information.
+The most important part of using Declarative Onboarding is creating a declaration that includes the BIG-IP objects you want the system to configure.    
 
 To submit an Declarative Onboarding declaration, use a specialized RESTful API client such as Postman or a universal client such as cURL.
 
 To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP address>/mgmt/shared/declarative-onboarding``.
 
 
-In this section, we break down an example declaration and describe its parts. 
+In this section, we first show the sample declaration, and then we break it down an describe its parts. 
 
 
 
-Sample declaration
-~~~~~~~~~~~~~~~~~~
+Sample declaration for a standalone BIG-IP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this declaration, we 
+In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of a declaration that onboards a cluster of BIG-IPs, see :doc:`cluster`.
 
 In the following declaration, we include 
 
@@ -33,9 +33,11 @@ We break down the components in the following sections.
 
 Components of the declaration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The following sections break down the example into parts so you can understand how to compose a declaration. The tables below the examples contains descriptions and options for the parameters included in the example only.  
+The following sections break down the example into parts so you can understand the options and how to compose a declaration. The tables below the examples contains descriptions and options for the parameters included in the example only.  
 
 If there is a default value, it is shown in bold in the Options column.  
+
+Use the index in the left pane if you want to go directly to a particular section.
 
 .. NOTE:: Declarative Onboarding contains many more options, see :ref:`schema-reference` for details.
 
@@ -81,7 +83,7 @@ The next lines of the declaration set the partition (tenant) on the BIG-IP in wh
 
 While not strictly required, you must include Common and the tenant class to set any other parameters in Declarative Onboarding; therefore the required column is set to Yes for the Tenant class.
 
-.. NOTE:: For the rest of the classes on this page, the required column applies only if you are using this class.
+.. NOTE:: For the rest of the classes on this page, the required column in the tables applies only if you are using the class in the heading.  None of the classes are required.
 
 .. code-block:: javascript
    :linenos:
@@ -352,13 +354,13 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 +====================+================================+============+====================================================================================================================================+
 | class              | VLAN                           |   Yes      |  Indicates that this property contains VLAN configuration.                                                                         |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minumum of 1 and a maximum of 4094.                                                                  |
+| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minimum of 1 and a maximum of 4094.                                                                  |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198                                  |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | interfaces         | string                         |   Yes      |  Interfaces for the VLAN.                                                                                                          |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| name               | string                         |   Yes      |  The name for the interace, such as 1.1 or 1.2.                                                                                    |
+| name               | string                         |   Yes      |  The name for the interface, such as 1.1 or 1.2.                                                                                    |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | tagged             | true, false                    |   No       |  Specifies whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.                     |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
