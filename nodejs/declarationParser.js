@@ -28,7 +28,7 @@ const logger = new Logger(module);
  * For example, given the declaration
  *
  *     {
- *         "schemaVersion": "0.1.0",
+ *         "schemaVersion": "1.0.0",
  *         "class": "Device",
  *         "Common": {
  *             "class": "Tenant",
