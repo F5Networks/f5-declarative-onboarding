@@ -4,10 +4,7 @@ Authentication and Authorization
 Authorization to invoke Declarative Onboarding includes authorization to GET declarations stored in
 Declarative Onboarding.
 
-Authorization to deploy a declaration to localhost (which means changing a
-BIG-IP configuration) gets subsumed into authorization to invoke Declarative Onboarding.  That is,
-if you have administrator credentials for a BIG-IP running Declarative Onboarding you can use Declarative Onboarding
-to configure that BIG-IP.
+Declarative Onboarding does not require its own credentials, however you you must have administrator credentials for the BIG-IP that is running Declarative Onboarding.
 
 Because Declarative Onboarding is an iControl LX extension, you can authenticate by including one of the following **header** values in your HTTP requests.
 

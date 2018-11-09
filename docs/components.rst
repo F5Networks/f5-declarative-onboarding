@@ -23,9 +23,9 @@ provides a |crud| interface for creating and modifying the declaration document.
 The audit engine is responsible for aligning BIG-IP configuration with the
 declaration document.
 
-Declaration > Schema > Validation > Configuration 
+Declaration > Validated Declaration > Parser > Auditor > iControl > BIG-IP 
 
-.. image:: /images/data-flow.png
+
 
 .. |json| raw:: html
 
