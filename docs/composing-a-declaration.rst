@@ -320,6 +320,68 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 
 \* The required column applies only if you are using this class.
+
+.. _vlan-class:
+
+VLAN class
+``````````
+The next lines of the declaration configure VLANs on the BIG-IP system. 
+
+The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+
+
+.. code-block:: javascript
+   :linenos:
+   :lineno-start: 46
+
+    "myVlan": {
+        "class": "VLAN",
+        "tag": 1234,
+        "mtu": 1500,
+        "interfaces": [
+            {
+                "name": "1.1",
+                "tagged": true
+            }
+        ]
+    },
+
+
++--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                        | Required*? |  Description/Notes                                                                                                                 |
++====================+================================+============+====================================================================================================================================+
+| class              | VLAN                           |   Yes      |  Indicates that this property contains VLAN configuration.                                                                         |
++--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minumum of 1 and a maximum of 4094.                                                                  |
++--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198                                  |
++--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| interfaces         | string                         |   Yes      |  Interfaces for the VLAN.                                                                                                          |
++--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| name               | string                         |   Yes      |  The name for the interace, such as 1.1 or 1.2.                                                                                    |
++--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| tagged             | true, false                    |   No       |  Specifies whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.                     |
++--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+
+\* The required column applies only if you are using this class.
+
+
+
+        "mySelfIp": {
+            "class": "SelfIp",
+            "address": "1.2.3.4/24",
+            "vlan": "myVlan",
+            "allowService": "all",
+            "floating": true
+        },
+        "myRoute": {
+            "class": "Route",
+            "gw": "10.1.20.1",
+            "network": "default",
+            "mtu": 0
+        }
+    }
+}
     
        
 
