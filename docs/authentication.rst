@@ -4,7 +4,7 @@ Authentication and Authorization
 Authorization to invoke Declarative Onboarding includes authorization to GET declarations stored in
 Declarative Onboarding.
 
-Declarative Onboarding does not require its own credentials, however you you must have administrator credentials for the BIG-IP that is running Declarative Onboarding.
+Declarative Onboarding does not require its own credentials, however you must have administrator credentials for the BIG-IP that is running Declarative Onboarding.
 
 Because Declarative Onboarding is an iControl LX extension, you can authenticate by including one of the following **header** values in your HTTP requests.
 
