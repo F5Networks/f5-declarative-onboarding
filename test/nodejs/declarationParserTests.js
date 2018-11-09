@@ -24,7 +24,7 @@ const DeclarationParser = require('../../nodejs/declarationParser');
 describe('declarationParser tests', () => {
     it('should transform declaration', () => {
         const declaration = {
-            "schemaVersion": "0.1.0",
+            "schemaVersion": "1.0.0",
             "class": "Device",
             "Common": {
                 "class": "Tenant",

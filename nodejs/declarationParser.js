@@ -28,7 +28,7 @@ const logger = new Logger(module);
  * For example, given the declaration
  *
  *     {
- *         "schemaVersion": "0.1.0",
+ *         "schemaVersion": "1.0.0",
  *         "class": "Device",
  *         "Common": {
  *             "class": "Tenant",
@@ -159,7 +159,15 @@ class DeclarationParser {
         const KEYS_TO_IGNORE = ['schemaVersion', 'class'];
 
         // classes that have config objects without a name property
-        const NAMELESS_CLASSES = ['DNS', 'NTP', 'License', 'Provision', 'ConfigSync', 'DeviceTrust'];
+        const NAMELESS_CLASSES = [
+            'DNS',
+            'NTP',
+            'License',
+            'Provision',
+            'ConfigSync',
+            'FailoverUnicast',
+            'DeviceTrust'
+        ];
 
         function isKeyOfInterest(key) {
             return KEYS_TO_IGNORE.indexOf(key) === -1;

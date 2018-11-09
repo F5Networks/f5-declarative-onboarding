@@ -91,6 +91,67 @@ describe('network.schema.json tests', () => {
         });
     });
 
+    describe('FailoverUnicast', () => {
+        describe('valid', () => {
+            it('should validate minimal unicast address with ip', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "address": "1.2.3.4"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal unicast address with json-pointer', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "address": "/foo/bar"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate full unicast address', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "address": "1.2.3.4",
+                    "port": 8888
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate bad address', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "address": "foo"
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf("should match format"), -1);
+            });
+
+            it('should invalidate missing address', () => {
+                const data = {
+                    "class": "FailoverUnicast"
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(
+                    getErrorString().indexOf("should have required property 'address'"),
+                    -1
+                );
+            });
+
+            it('should invalidate bad port', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "address": "1.2.3.4",
+                    "port": 65536
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf("should be <= 65535"), -1);
+            });
+        });
+    });
+
     describe('DeviceGroup', () => {
         describe('valid', () => {
             it('should validate minimal device group data', () => {

@@ -1,5 +1,5 @@
 {
-    "schemaVersion": "0.1.0",
+    "schemaVersion": "1.0.0",
     "class": "Device",
     "Common": {
         "class": "Tenant",
@@ -80,6 +80,10 @@
         "configsync": {
             "class": "ConfigSync",
             "configsyncIp": "/Common/external-self/address"
+        },
+        "failoverAddress": {
+            "class": "FailoverUnicast",
+            "address": "/Common/external-self/address"
         },
         "failoverGroup": {
             "class": "DeviceGroup",

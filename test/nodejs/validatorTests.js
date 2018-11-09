@@ -26,7 +26,7 @@ const validator = new Validator();
 describe('validator tests', () => {
     it('should validate valid data', () => {
         const data = {
-            "schemaVersion": "0.1.0",
+            "schemaVersion": "1.0.0",
             "class": "Device"
         };
         const validation = validator.validate(data);
