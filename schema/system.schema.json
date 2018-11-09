@@ -15,7 +15,7 @@
                 "licenseType": {
                     "description": "The type of license",
                     "type": "string",
-                    "enum": ["regKey", "licensePool"]
+                    "enum": ["regKey"]
                 }
             },
             "if": { "properties": { "licenseType": { "const": "regKey" } } },
@@ -42,14 +42,6 @@
                         "description": "Whether or not to overwrite the license if the device is already licensed.",
                         "type": "boolean",
                         "default": false
-                    }
-                }
-            },
-            "else": {
-                "properties": {
-                    "licensePoolName": {
-                        "description": "The name of the BIG-IQ license pool from which to get a license",
-                        "type": "string"
                     }
                 }
             }
