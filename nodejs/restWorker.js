@@ -154,6 +154,10 @@ class RestWorker {
                     return this.declarationHandler.process(declaration, this.state.doState);
                 })
                 .then(() => {
+                    logger.fine('Saving sys config.');
+                    return this.bigIp.save();
+                })
+                .then(() => {
                     logger.fine('Onboard configuration complete. Checking for reboot.');
                     return this.bigIp.rebootRequired();
                 })
