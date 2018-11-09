@@ -19,7 +19,6 @@ Use the following links, the navigation on the left, and/or the Next and Previou
 
    prereqs
    components
-   quick-start
    using-do
    examples
    schema-reference
