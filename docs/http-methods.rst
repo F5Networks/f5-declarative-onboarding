@@ -19,7 +19,7 @@ You can use the GET method to retrieve the declaration you previously sent to
 Declarative Onboarding. Use the GET method to the URI
 ``https://<BIG-IP>/mgmt/shared/declarative-onboarding``.  Only declarations you create
 in Declarative Onboarding return, GET does not return anything that was not created by Declarative Onboarding.
-You can also use ``https://<BIG-IP>/mgmt/shared/declarative-onboarding?show=full`` to retrieve the 
+You can also use ``https://<BIG-IP>/mgmt/shared/declarative-onboarding?show=full`` to retrieve the original and current configuration.
 
 .. NOTE:: If you are using a single NIC BIG-IP system, you must include port 8443 after your IP address in your GET: **https://<BIG-IP>:8443/mgmt/shared/declarative-onboarding**
 

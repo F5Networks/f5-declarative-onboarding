@@ -9,11 +9,24 @@ they create.
 If you missed it, we recommend you first read :doc:`composing-a-declaration` for a
 breakdown of some of the components of a declaration.
 
-**Note:** If you do not specify certain parameters in your declaration, the
-system supplies default values. <true?>
+
+
+Example 1: Standalone
+---------------------
 
 .. literalinclude:: examples/example_01.json
    :language: json
+
+
+Example 2: Standalone
+---------------------
+
+.. literalinclude:: examples/example_02.json
+   :language: json
+
+
+
+
 
 .. |br| raw:: html
 
