@@ -55,7 +55,7 @@
         },
         "external": {
             "class": "VLAN",
-            "tag": 1234,
+            "tag": 4094,
             "mtu": 1500,
             "interfaces": [
                 {
@@ -66,16 +66,16 @@
         },
         "external-self": {
             "class": "SelfIp",
-            "address": "1.2.3.4/24",
+            "address": "10.0.1.100/24",
             "vlan": "external",
             "allowService": "all",
             "trafficGroup": "traffic-group-local-only"
         },
         "default": {
             "class": "Route",
-            "gw": "10.1.20.1",
+            "gw": "10.0.1.1",
             "network": "default",
-            "mtu": 0
+            "mtu": 1500
         }
     }
 }
