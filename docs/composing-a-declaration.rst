@@ -281,7 +281,7 @@ If you are modifying the root password, you must supply the existing root passwo
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | shell              | **tmsh**, bash   (non-root only)                                                                                                           | No        | The shell you want the user to be able to use. The default is tmsh.                                                                                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-
+ 
 
 \* The required column applies only if you are using this class.
 
@@ -290,7 +290,7 @@ If you are modifying the root password, you must supply the existing root passwo
 
 Provision class
 ```````````````
-The next lines of the declaration set the NTP (network time protocol) options on the BIG-IP system. 
+The next lines of the declaration set the NTP (network time protocol) options on the BIG-IP. 
 
 The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
