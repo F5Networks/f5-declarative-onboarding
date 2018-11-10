@@ -11,14 +11,14 @@ To submit an Declarative Onboarding declaration, use a specialized RESTful API c
 To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP address>/mgmt/shared/declarative-onboarding``.  If you are using a single NIC BIG-IP, include port 8443: ``<BIG-IP IP address>:8443/mgmt/shared/declarative-onboarding``
 
 
-In this section, we first show the sample declaration, and then we break it down an describe its parts. If you are unfamiliar with any of the BIG-IP terminology, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.
+In this section, we first show the sample declaration, and then we break it down and describe its parts. If you are unfamiliar with any of the BIG-IP terminology, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.
 
 
 
 Sample declaration for a standalone BIG-IP
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of a declaration that onboards a cluster of BIG-IPs, see :doc:`cluster`.
+In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`.
 
 In the following declaration, we include 
 
@@ -262,25 +262,25 @@ If you are modifying the root password, you must supply the existing root passwo
 |
 
 
-+--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Parameter          | Options                                                                                                                                    | Required*? |  Description/Notes                                                                                                                                                                 |
-+====================+============================================================================================================================================+============+====================================================================================================================================================================================+
-| class              | User                                                                                                                                       | Yes        | Indicates that this property contains user information.                                                                                                                            |
-+--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| userType           | root, regular (any non-root user)                                                                                                          | No         | The type of user you want to add. Use **regular** for any non-root user                                                                                                            |
-+--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| oldPassword        | string                                                                                                                                     | Yes (root) | The existing root password.  By default on a new BIG-IP, the root password is **default**. For root user only.                                                                     |
-+--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| newPassword        | string                                                                                                                                     | Yes (root) | The new root password.  For root user only.                                                                                                                                        |
-+--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| password           | string                                                                                                                                     | Yes        | The password you want to set for the user.                                                                                                                                         |
-+--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| partitionAccess    | object (must contain a partition and role)                                                                                                 | No         |  PartitionAccess allows you to restrict non-root users to a partition (tenant) and role on the BIG-IP. The first line under partitionAccess must contain the name of the partition.|
-+--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| role               | admin, auditor, guest, manager, operator, user-manager, application-editor, certificate-manager, irule-manager, no-access, resource-admin  | Yes        | The BIG-IP user role you want to assign to the user.  See |user| for information on specific user roles.  Required if you are using partitionAccess.                               |
-+--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| shell              | **tmsh**, bash                                                                                                                             | Yes        | The shell you want the user to be able to use. The default is tmsh.                                                                                                                |
-+--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                                                                                                                                    | Required*? |  Description/Notes                                                                                                                                                                                      |
++====================+============================================================================================================================================+============+=========================================================================================================================================================================================================+
+| class              | User                                                                                                                                       | Yes        | Indicates that this property contains user information.                                                                                                                                                 |
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| userType           | root, regular (any non-root user)                                                                                                          | No         | The type of user you want to add. Use **regular** for any non-root user                                                                                                                                 |
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| oldPassword        | string  (root only)                                                                                                                        | Yes (root) | The existing root password.  By default on a new BIG-IP, the root password is **default**. For root user only.                                                                                          |
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| newPassword        | string  (root only)                                                                                                                        | Yes (root) | The new root password.  For root user only.                                                                                                                                                             |
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| password           | string  (non-root only)                                                                                                                    | Yes        | The password you want to set for the non-root user.                                                                                                                                                     |
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| partitionAccess    | object (must contain a partition (currently only Common) and role)                                                                         | No         | PartitionAccess allows you to restrict non-root users to a partition (only Common in this release) and role on the BIG-IP. The first line under partitionAccess must contain the name of the partition. |
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| role               | admin, auditor, guest, manager, operator, user-manager, application-editor, certificate-manager, irule-manager, no-access, resource-admin  | Yes        | The BIG-IP user role you want to assign to the user.  See |user| for information on specific user roles.  Required if you are using partitionAccess.                                                    |
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| shell              | **tmsh**, bash   (non-root only)                                                                                                           | No        | The shell you want the user to be able to use. The default is tmsh.                                                                                                                                      |
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 \* The required column applies only if you are using this class.
@@ -297,7 +297,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 46
+   :lineno-start: 54
 
 
     "myProvisioning": {
@@ -310,13 +310,13 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 |
 
 
-+--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Parameter          | Options                                                                                                                             | Required*? |  Description/Notes                                                                                                                                                 |
-+====================+=====================================================================================================================================+============+====================================================================================================================================================================+
-| class              | Provision                                                                                                                           |   Yes      | Indicates that this property contains provisioning information.                                                                                                    |
-+--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| <module>:<level>   | Modules: class, afm, am, apm, asm, avr, dos, fps, gtm, ilx, lc, ltm, pem, swg, urldb  |br| Level: dedicated, nominal, minimum, none |   Yes      | The servers property contain the IP address(es) or host name(s) of the NTP servers you want the BIG-IP to use. IP addresses can be either IPv4 or IPv6 addresses.  |
-+--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                                                                                                                             | Required*? |  Description/Notes                                                                                                                                                                                                                                                                     |
++====================+=====================================================================================================================================+============+========================================================================================================================================================================================================================================================================================+
+| class              | Provision                                                                                                                           |   Yes      | Indicates that this property contains provisioning information.                                                                                                                                                                                                                        |
++--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| <module>:<level>   | Modules: class, afm, am, apm, asm, avr, dos, fps, gtm, ilx, lc, ltm, pem, swg, urldb  |br| Level: dedicated, nominal, minimum, none |   Yes      | Individually list the modules you want to provision on this BIG-IP and the level of licensing for each module. Your BIG-IP must have enough memory and space for the modules you provision.  For information on provisioning levels, see |prov|, for information on modules, see |f5|. |
++--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 \* The required column applies only if you are using this class.
@@ -325,16 +325,15 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 VLAN class
 ``````````
-The next lines of the declaration configure VLANs on the BIG-IP system. 
+The next lines of the declaration configure VLANs on the BIG-IP system. In this case, the name you give the VLAN class is used for the name of the VLAN on the BIG-IP.
 
-The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 46
+   :lineno-start: 59
 
-    "myVlan": {
+    "external": {
         "class": "VLAN",
         "tag": 1234,
         "mtu": 1500,
@@ -369,19 +368,17 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 Self IP class
 `````````````
-The next lines of the declaration configure self IP address(es) on the BIG-IP system. 
-
-The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+The next lines of the declaration configure self IP address(es) on the BIG-IP system. In this case, the name you give the Self IP class is used for the name of the Self IP on the BIG-IP.
 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 46
+   :lineno-start: 70
 
-    "mySelfIp": {
+    "external-self": {
         "class": "SelfIp",
         "address": "1.2.3.4/24",
-        "vlan": "myVlan",
+        "vlan": "external",
         "allowService": "all",
         "trafficGroup": "traffic-group-local-only"
     },
@@ -405,7 +402,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 \* The required column applies only if you are using this class.
 
 
-.. _selfip-class:
+.. _route-class:
 
 Route class
 ```````````
@@ -416,7 +413,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 46
+   :lineno-start: 77
 
         "myRoute": {
                 "class": "Route",
@@ -456,3 +453,14 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 .. |br| raw:: html
    
    <br />
+
+.. |prov| raw:: html
+
+   <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-essentials-13-1-0/7.html" target="_blank">Provisioning Levels</a>
+
+
+
+
+.. |f5| raw:: html
+
+   <a href="https://www.f5.com/products" target="_blank">F5 product modules</a>
