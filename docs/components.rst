@@ -23,7 +23,7 @@ provides a |crud| interface for creating and modifying the declaration document.
 The audit engine is responsible for aligning BIG-IP configuration with the
 declaration document.
 
-Declaration > Validated Declaration > Parser > Auditor > iControl > BIG-IP 
+**Declaration > Validated Declaration > Parser > Auditor > iControl > BIG-IP**
 
 
 

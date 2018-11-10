@@ -3,11 +3,11 @@
 Example declarations
 ====================
 
-The following examples show you some Declarative Onboarding declarations and the BIG-IP LTM objects
+The following examples show you some Declarative Onboarding declarations and the BIG-IP objects
 they create.  
 
 If you missed it, we recommend you first read :doc:`composing-a-declaration` for a
-breakdown of some of the components of a declaration.
+breakdown of the components of a declaration.
 
 
 
@@ -18,8 +18,8 @@ Example 1: Standalone
    :language: json
 
 
-Example 2: Standalone
----------------------
+Example 2: Clustered
+--------------------
 
 .. literalinclude:: examples/example_02.json
    :language: json

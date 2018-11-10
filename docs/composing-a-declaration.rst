@@ -417,7 +417,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
         "myRoute": {
                 "class": "Route",
-                "gw": "10.1.20.1",
+                "gw": "1.2.3.254",
                 "network": "default",
                 "mtu": 0
             }
