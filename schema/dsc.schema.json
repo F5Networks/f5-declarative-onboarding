@@ -8,7 +8,7 @@
             "required": ["class", "configsyncIp"],
             "properties": {
                 "class": {
-                    "description": "Indicates thiat this property contains config sync IP configuration.",
+                    "description": "Indicates that this property contains config sync IP configuration.",
                     "type": "string",
                     "const": "ConfigSync"
                 },
@@ -28,7 +28,7 @@
             "required": ["class", "address"],
             "properties": {
                 "class": {
-                    "description": "Indicates thiat this property contains failover unicast address configuration.",
+                    "description": "Indicates that this property contains failover unicast address configuration.",
                     "type": "string",
                     "const": "FailoverUnicast"
                 },
@@ -55,7 +55,7 @@
             "required": ["class", "type"],
             "properties": {
                 "class": {
-                    "description": "Indicates thiat this property contains device group configuration.",
+                    "description": "Indicates that this property contains device group configuration.",
                     "type": "string",
                     "const": "DeviceGroup"
                 },
@@ -112,7 +112,7 @@
             "required": ["class", "localUsername", "localPassword", "remoteHost", "remoteUsername", "remotePassword"],
             "properties": {
                 "class": {
-                    "description": "Indicates thiat this property contains device trust configuration.",
+                    "description": "Indicates that this property contains device trust configuration.",
                     "type": "string",
                     "const": "DeviceTrust"
                 },

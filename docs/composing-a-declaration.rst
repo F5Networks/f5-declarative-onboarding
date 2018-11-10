@@ -2,7 +2,7 @@
 
 
 Composing a Declarative Onboarding declaration for a standalone BIG-IP
-----------------------------------------------------------------------
+======================================================================
 
 The most important part of using Declarative Onboarding is creating a declaration that includes the BIG-IP objects you want the system to configure.    
 
@@ -16,7 +16,7 @@ In this section, we first show the sample declaration, and then we break it down
 
 
 Sample declaration for a standalone BIG-IP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------
 
 In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`.
 
@@ -32,7 +32,7 @@ We break down the components in the following sections.
 |
 
 Components of the declaration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 The following sections break down the example into parts so you can understand the options and how to compose a declaration. The tables below the examples contains descriptions and options for the parameters included in the example only.  
 
 If there is a default value, it is shown in bold in the Options column.  
@@ -406,9 +406,7 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
 
 Route class
 ```````````
-The next lines of the declaration configure self IP address(es) on the BIG-IP system. 
-
-The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+The next lines of the declaration configure self IP address(es) on the BIG-IP system.   In this case, the name you give the Route class is used for the name of the route on the BIG-IP.
 
 
 .. code-block:: javascript
