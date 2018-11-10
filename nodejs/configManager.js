@@ -339,19 +339,30 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
  *     }
  */
 function getTokenMap() {
+    let hostName;
     return this.bigIp.deviceInfo()
         .then((deviceInfo) => {
-            const hostName = deviceInfo.hostname;
+            hostName = deviceInfo.hostname;
+            return this.bigIp.list('/tm/cm/device');
+        })
+        .then((cmDeviceInfo) => {
+            const devices = cmDeviceInfo.filter((device) => {
+                return device.hostname === hostName;
+            });
 
-            // mcpDeviceName is like '/Common/bigip1' and we only want 'bigip1'
-            const deviceName = deviceInfo.mcpDeviceName.split('/')[2];
+            if (devices.length === 1) {
+                const deviceName = devices[0].name;
+                return Promise.resolve(
+                    {
+                        hostName,
+                        deviceName
+                    }
+                );
+            }
 
-            return Promise.resolve(
-                {
-                    hostName,
-                    deviceName
-                }
-            );
+            const message = 'Too many devices match our name';
+            logger.severe(message);
+            return Promise.reject(new Error(message));
         })
         .catch((err) => {
             logger.severe(`Error getting device info for tokens: ${err.message}`);
