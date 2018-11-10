@@ -187,7 +187,7 @@ The name *myDNS* we use in this example is arbitrary; it is not used anywhere in
 
 NTP class
 `````````
-The next lines of the declaration set the NTP (network time protocol) options on the BIG-IP system. 
+The next lines of the declaration set the NTP (network time protocol) options on the BIG-IP. 
 
 The name *myNTP* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
@@ -279,7 +279,7 @@ If you are modifying the root password, you must supply the existing root passwo
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | role               | admin, auditor, guest, manager, operator, user-manager, application-editor, certificate-manager, irule-manager, no-access, resource-admin  | Yes        | The BIG-IP user role you want to assign to the user.  See |user| for information on specific user roles.  Required if you are using partitionAccess.                                                    |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| shell              | **tmsh**, bash   (non-root only)                                                                                                           | No        | The shell you want the user to be able to use. The default is tmsh.                                                                                                                                      |
+| shell              | **tmsh**, bash   (non-root only)                                                                                                           | No         | The shell you want the user to be able to use. The default is tmsh.                                                                                                                                     |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
  
 
