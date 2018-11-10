@@ -1,0 +1,108 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip1.example.com",
+        "myLicense": {
+            "class": "License",
+            "licenseType": "regKey",
+            "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+        },
+        "myDns": {
+            "class": "DNS",
+            "nameServers": [
+                "8.8.8.8",
+                "2001:4860:4860::8844"
+            ],
+            "search": [
+                "f5.com"
+            ]
+        },
+        "myNtp": {
+            "class": "NTP",
+            "servers": [
+                "0.pool.ntp.org",
+                "1.pool.ntp.org"
+            ],
+            "timezone": "UTC"
+        },
+        "root": {
+            "class": "User",
+            "userType": "root",
+            "oldPassword": "foo",
+            "newPassword": "bar"
+        },
+        "admin": {
+            "class": "User",
+            "userType": "regular",
+            "password": "asdfjkl",
+            "shell": "bash"
+        },
+        "anotherUser": {
+            "class": "User",
+            "userType": "regular",
+            "password": "foobar",
+            "partitionAccess": {
+                "Common": {
+                    "role": "guest"
+                }
+            }
+        },
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal"
+        },
+        "external": {
+            "class": "VLAN",
+            "tag": 1234,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ]
+        },
+        "external-self": {
+            "class": "SelfIp",
+            "address": "1.2.3.4/24",
+            "vlan": "external",
+            "allowService": "all",
+            "trafficGroup": "traffic-group-local-only"
+        },
+        "default": {
+            "class": "Route",
+            "gw": "10.1.20.1",
+            "network": "default",
+            "mtu": 0
+        },
+        "configsync": {
+            "class": "ConfigSync",
+            "configsyncIp": "/Common/external-self/address"
+        },
+        "failoverAddress": {
+            "class": "FailoverUnicast",
+            "address": "/Common/external-self/address"
+        },
+        "failoverGroup": {
+            "class": "DeviceGroup",
+            "type": "sync-failover",
+            "members": ["bigip1.example.com", "bigip2.example.com"],
+            "owner": "/Common/failoverGroup/members/0",
+            "autoSync": true,
+            "saveOnAutoSync": false,
+            "networkFailover": true,
+            "fullLoadOnSync": false,
+            "asmSync": false
+        },
+        "trust": {
+            "class": "DeviceTrust",
+            "localUsername": "admin",
+            "localPassword": "pass1word",
+            "remoteHost": "/Common/failoverGroup/members/0",
+            "remoteUsername": "admin",
+            "remotePassword": "pass2word"
+        }
+    }
+}
