@@ -54,7 +54,7 @@
                 }
             }
         },
-        "myVlan": {
+        "external": {
             "class": "VLAN",
             "tag": 1234,
             "mtu": 1500,
@@ -65,16 +65,16 @@
                 }
             ]
         },
-        "mySelfIp": {
+        "external-self": {
             "class": "SelfIp",
             "address": "1.2.3.4/24",
-            "vlan": "myVlan",
+            "vlan": "external",
             "allowService": "all",
             "floating": true
         },
         "myRoute": {
             "class": "Route",
-            "gw": "10.1.20.1",
+            "gw": "1.2.3.254",
             "network": "default",
             "mtu": 0
         }
