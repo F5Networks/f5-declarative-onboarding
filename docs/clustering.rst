@@ -6,7 +6,7 @@ Composing a Declarative Onboarding declaration for a cluster of BIG-IPs
 
 Declarative Onboarding can also create a clustered configuration (Device Service Cluster) between two or more BIG-IP systems. You must install Declarative Onboarding and submit a declaration on each device in the cluster, and all BIG-IP devices must be on the same BIG-IP version.  You specify one BIG-IP system as the 'owner' and the other BIG-IPs as 'members' (see :ref:`devicegroup`).  
 
-For detailed information about clustering on the BIG-IP system, see |cluster|.
+BIG-IP clustering is well-documented in the product documentation; for detailed information about clustering on the BIG-IP system, see |cluster|.
 
 
 Declaration classes for a cluster of BIG-IPs
