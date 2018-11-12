@@ -1,10 +1,10 @@
-Components
-----------
+Components of Declarative Onboarding
+------------------------------------
 
 Declarative Onboarding Declaration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An Declarative Onboarding declaration describes the desired initial configuration of an Application
+A Declarative Onboarding declaration describes the desired initial configuration of an Application
 Delivery Controller (ADC) such as F5 BIG-IP.
 
 Declarative Onboarding JSON Schema

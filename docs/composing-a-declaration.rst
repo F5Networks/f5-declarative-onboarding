@@ -31,7 +31,7 @@ This example is the entire declaration.  The following sections break down each 
 
 Components of the declaration
 -----------------------------
-In this section, we break down the example into each class so you can understand the options when composing your declaration. The tables below the examples contains descriptions and options for the parameters included in the example only.  
+In this section, we break down the example into each class so you can understand the options when composing your declaration. The tables below the examples contain descriptions and options for the parameters included in the example only.  
 
 If there is a default value, it is shown in bold in the Options column.  
 
@@ -41,7 +41,7 @@ Use the index in the left pane if you want to go directly to a particular class.
 
 Base components
 ```````````````
-The first few lines of your declaration are a part of the base components and define top-level options. When you POST a declaration, depending on the complexity of your declaration and the modules you are provisioning, it may take some time before the system returns a success message.  You can use the property **"async": "true",** in your declaration, and then use GET with ?show=full to poll for status.
+The first few lines of your declaration are a part of the base components and define top-level options. When you POST a declaration, depending on the complexity of your declaration and the modules you are provisioning, it may take some time before the system returns a success message.  You can use the property **"async": "true",** in your declaration, and then use GET with **?show=full** to poll for status.
 
 .. code-block:: javascript
    :linenos:
@@ -109,7 +109,7 @@ While not strictly required, you must include Common and the tenant class to set
 
 License class
 `````````````
-The next lines of the declaration set the licencing options if you are using an F5 Bring Your Own License (BYOL). If your BIG-IP system already has a license (for example, you are using a pay-as-you-go (PAYG) license), you do not need this class. Contact your F5 sales representative if you require a license.
+The next lines of the declaration set the licensing options if you are using an F5 Bring Your Own License (BYOL). If your BIG-IP system already has a license (for example, you are using a pay-as-you-go (PAYG) license), you do not need this class. Contact your F5 sales representative if you require a license.
 
 The name *myLicense* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 

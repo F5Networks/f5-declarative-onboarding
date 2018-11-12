@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 1.0
-        - Initial release of F5 Declarative Onboarding documentation
+        - Documentation for the initial release of F5 Declarative Onboarding
         - 11-13-18
 
 

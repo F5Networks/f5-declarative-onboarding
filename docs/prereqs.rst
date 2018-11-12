@@ -15,7 +15,7 @@ The following are prerequisites for using F5 Declarative Onboarding:
 
 - If you are using a single NIC BIG-IP system, you must include port 8443 after the IP address of the BIG-IP in your POST and GET requests, such as ``https://<BIG-IP>:8443/mgmt/shared/declarative-onboarding``
 
-- You should be familiar with the F5 BIG-IP and F5 terminology.  For general information and documentation on the BIG-IP system, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.  
+- You should be familiar with the F5 BIG-IP and F5 terminology.  The settings and features Declarative Onboarding uses are well-documented in the product documentation. For general information and documentation on the BIG-IP system, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.  
 
 Notes and tips
 ~~~~~~~~~~~~~~
@@ -29,6 +29,7 @@ Notes and tips
 - If you POST a declaration that modifies the password for the admin account, even if the declaration returns an error, the password can be changed.  Therefore you may need to update the admin password in the client you are using to send the declaration.
 
 - After using Declarative Onboarding, if you want to use a declarative model to configure applications and services on a BIG-IP device, see the |as3| documentation.
+
 
 
 .. |br| raw:: html
