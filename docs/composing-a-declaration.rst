@@ -18,11 +18,9 @@ In this section, we first show the sample declaration, and then we break it down
 Sample declaration for a standalone BIG-IP
 ------------------------------------------
 
-In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`.
+In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of the parts of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`.
 
-In the following declaration, we include 
-
-We break down the components in the following sections.
+This example is the entire declaration.  The following sections break down each class of this example declaration. 
 
 .. literalinclude:: examples/example_01.json
    :language: json
@@ -33,17 +31,17 @@ We break down the components in the following sections.
 
 Components of the declaration
 -----------------------------
-The following sections break down the example into parts so you can understand the options and how to compose a declaration. The tables below the examples contains descriptions and options for the parameters included in the example only.  
+In this section, we break down the example into each class so you can understand the options when composing your declaration. The tables below the examples contains descriptions and options for the parameters included in the example only.  
 
 If there is a default value, it is shown in bold in the Options column.  
 
-Use the index in the left pane if you want to go directly to a particular section.
+Use the index in the left pane if you want to go directly to a particular class.
 
 .. _base-comps:
 
 Base components
 ```````````````
-The first few lines of your declaration are a part of the base components and define top-level options. 
+The first few lines of your declaration are a part of the base components and define top-level options. When you POST a declaration, depending on the complexity of your declaration and the modules you are provisioning, it may take some time before the system returns a success message.  You can use the property **"async": "true",** in your declaration, and then use GET with ?show=full to poll for status.
 
 .. code-block:: javascript
    :linenos:
@@ -67,7 +65,7 @@ The first few lines of your declaration are a part of the base components and de
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | class              | Device                         |   Yes      |  Indicates this JSON document is a Device declaration.                                                                             |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| async              | true, **false**                |   No       |  If true, async tells the API to return a 202 HTTP status before processing is complete. User must then poll for status using GET. |
+| async              | true, **false**                |   No       |  If true, async tells the API to return a 202 HTTP status before processing is complete. You can then poll for status using GET.   |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | label              | string                         |   No       |  Optional friendly label for this declaration.                                                                                     |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
@@ -251,7 +249,7 @@ If you are modifying the root password, you must supply the existing root passwo
     "anotherUser": {
         "class": "User",
         "userType": "regular",
-        "password": "foobar",
+        "password": "myPass1word",
         "partitionAccess": {
             "Common": {
                 "role": "guest"
@@ -395,7 +393,7 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
 +--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | allowService       | all, none, **default**, or array of <service:port> |   No       |  Specifies which services (ports) to allow on the self IP.                                                                         |
 +--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| trafficGroup       | **traffic-group-local-only**, "traffic-group-1     |   No       |  Traffic group for the Self IP.                                                                                                    |
+| trafficGroup       | **traffic-group-local-only**, traffic-group-1      |   No       |  Traffic group for the Self IP.                                                                                                    |
 +--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
 

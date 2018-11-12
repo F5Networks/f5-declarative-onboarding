@@ -47,7 +47,7 @@
         "anotherUser": {
             "class": "User",
             "userType": "regular",
-            "password": "foobar",
+            "password": "myPass1word",
             "partitionAccess": {
                 "Common": {
                     "role": "guest"

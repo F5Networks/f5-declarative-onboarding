@@ -2,7 +2,7 @@
 
 Downloading and installing the Declarative Onboarding package
 -------------------------------------------------------------
-The Declarative Onboarding package is an RPM file you download, and then upload to the BIG-IP system using the iControl/iApp LX framework. 
+The Declarative Onboarding package is an RPM file you download, and then upload to the BIG-IP system using the iControl/iApp LX framework. Remember that your BIG-IP must have a management IP address and an **admin** user.
 
 Downloading the RPM file
 ~~~~~~~~~~~~~~~~~~~~~~~~

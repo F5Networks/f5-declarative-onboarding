@@ -5,7 +5,7 @@ The following are prerequisites for using F5 Declarative Onboarding:
 
 - You must have an existing BIG-IP device with a management IP address.  
 
-- You must have an existing **admin** user. If you are using 13.1.x, the BIG-IP contains an admin user by default (admin:admin), if you are using 14.x, reset the admin password before installing Declarative Onboarding.  
+- You must have an existing **admin** user. If you are using 13.1.x, the BIG-IP contains an admin user by default (admin:admin), if you are using 14.x, reset the admin password before installing Declarative Onboarding.  See |14| for information about secure passwords in BIG-IP 14.0 and later.
 
 - The BIG-IP must be running version 13.1.0 or later.   
 
@@ -28,7 +28,19 @@ Notes and tips
 
 - If you POST a declaration that modifies the password for the admin account, even if the declaration returns an error, the password can be changed.  Therefore you may need to update the admin password in the client you are using to send the declaration.
 
+- After using Declarative Onboarding, if you want to use a declarative model to configure applications and services on a BIG-IP device, see the |as3| documentation.
+
 
 .. |br| raw:: html
    
    <br />
+
+.. |as3| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/3/" target="_blank">Application Services 3 (AS3)</a>
+
+.. |14| raw:: html
+
+   <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-system-secure-password-policy-14-0-0.html" target="_blank">BIG-IP System: Secure Password Policy</a>
+
+
