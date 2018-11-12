@@ -1,5 +1,5 @@
 {
-    "schemaVersion": "0.1.0",
+    "schemaVersion": "1.0.0",
     "class": "Device",
     "label": "my BIG-IP declaration for declarative onboarding",
     "Common": {
@@ -56,7 +56,7 @@
         },
         "external": {
             "class": "VLAN",
-            "tag": 1234,
+            "tag": 4094,
             "mtu": 1500,
             "interfaces": [
                 {
