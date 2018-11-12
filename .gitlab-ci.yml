@@ -87,7 +87,7 @@ Publish docs to staging:
   stage: publish
   environment: 
     name: staging
-    url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding
+    url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
   tags:
     - cm-official-docker-executor
   only:
@@ -95,9 +95,9 @@ Publish docs to staging:
   dependencies:
     - create docs
   script:
-    - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding
+    - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
     # create invalidation to clear cloudfront cache
-    # - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-appsvcs-extension/latest
+    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest/
 
 # Publish docs to clouddocs.f5.com
 docs to production:
@@ -105,7 +105,7 @@ docs to production:
     stage: publish
     environment:
         name: production
-        url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding
+        url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest
     only:
         # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
         # fill in desired release branch name and uncomment to add deployment from a branch
@@ -115,11 +115,8 @@ docs to production:
     dependencies:
         - create docs
     script:
-        # Uncomment and set to create desired version format
-        - export VERSION=1
-        - export AWS_S3_BUCKET=clouddocs.f5.com
+
         # Publish docs to clouddocs.f5.com (live site).
-        - publish-product-docs-to-prod extensions/f5-declarative-onboarding $VERSION
+        - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
         # create invalidation to clear cloudfront cache
         - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
-        - printf "Your documentation is live at https://${AWS_S3_BUCKET}/products/extensions/f5-declarative-onboarding$(VERSION)"
