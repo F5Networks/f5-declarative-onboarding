@@ -247,6 +247,54 @@ describe('network.schema.json tests', () => {
                 assert.strictEqual(validate(data), false, 'missing localUsername should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "localUsername"'), -1);
             });
+
+            it('should invalidate missing localPassword', () => {
+                const data = {
+                    "class": "DeviceTrust",
+                    "localUsername": "myUser",
+                    "remoteHost": "1.2.3.4",
+                    "remoteUsername": "yourUser",
+                    "remotePassword": "yourPassword"
+                };
+                assert.strictEqual(validate(data), false, 'missing localPassword should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "localPassword"'), -1);
+            });
+
+            it('should invalidate missing remoteHost', () => {
+                const data = {
+                    "class": "DeviceTrust",
+                    "localUsername": "myUser",
+                    "localPassword": "myPassword",
+                    "remoteUsername": "yourUser",
+                    "remotePassword": "yourPassword"
+                };
+                assert.strictEqual(validate(data), false, 'missing remoteHost should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "remoteHost"'), -1);
+            });
+
+            it('should invalidate missing remoteUsername', () => {
+                const data = {
+                    "class": "DeviceTrust",
+                    "localUsername": "myUser",
+                    "localPassword": "myPassword",
+                    "remoteHost": "1.2.3.4",
+                    "remotePassword": "yourPassword"
+                };
+                assert.strictEqual(validate(data), false, 'missing remoteUsername should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "remoteUsername"'), -1);
+            });
+
+            it('should invalidate missing remotePassword', () => {
+                const data = {
+                    "class": "DeviceTrust",
+                    "localUsername": "myUser",
+                    "localPassword": "myPassword",
+                    "remoteHost": "1.2.3.4",
+                    "remoteUsername": "yourUser"
+                };
+                assert.strictEqual(validate(data), false, 'missing remotePassword should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "remotePassword"'), -1);
+            });
         });
     });
 });

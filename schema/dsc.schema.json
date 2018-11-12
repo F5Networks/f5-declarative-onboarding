@@ -133,6 +133,14 @@
                         { "format": "hostname" },
                         { "format": "json-pointer" }
                     ]
+                },
+                "remoteUsername": {
+                    "description": "An admin user on the remote host",
+                    "type": "string"
+                },
+                "remotePassword": {
+                    "description": "Password for the remote user in remoteUsername",
+                    "type": "string"
                 }
             }
         }
