@@ -41,7 +41,7 @@ Use the index in the left pane if you want to go directly to a particular class.
 
 Base components
 ```````````````
-The first few lines of your declaration are a part of the base components and define top-level options. When you POST a declaration, depending on the complexity of your declaration and the modules you are provisioning, it may take some time before the system returns a success message.  You can use the property **"async": "true",** in your declaration, and then use GET with **?show=full** to poll for status.
+The first few lines of your declaration are a part of the base components and define top-level options. When you POST a declaration, depending on the complexity of your declaration and the modules you are provisioning, it may take some time before the system returns a success message.  You can use the property **"async": "true",** in your declaration, and then use GET to poll for status.
 
 .. code-block:: javascript
    :linenos:
@@ -174,9 +174,9 @@ The name *myDNS* we use in this example is arbitrary; it is not used anywhere in
 +====================+================================+============+====================================================================================================================================+
 | class              | DNS                            |   Yes      | Indicates that this property contains DNS information.                                                                             |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| nameServers        | string                         |   No       | The nameServers property contains the IP address(es) of name servers to use for DNS, and can be either IPv4 or IPv6 addresses.     |
+| nameServers        | array of strings               |   No       | The nameServers property contains the IP address(es) of name servers to use for DNS, and can be either IPv4 or IPv6 addresses.     |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| search             | string                         |   No       | The search domain(s) you want to use for DNS. This must be in hostname format.                                                     |
+| search             | array of strings               |   No       | The search domain(s) you want to use for DNS. This must be in hostname format.                                                     |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
@@ -212,7 +212,7 @@ The name *myNTP* we use in this example is arbitrary; it is not used anywhere in
 +====================+================================+============+====================================================================================================================================================================+
 | class              | NTP                            |   Yes      | Indicates that this property contains NTP information.                                                                                                             |
 +--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| servers            | string                         |   No       | The servers property contain the IP address(es) or host name(s) of the NTP servers you want the BIG-IP to use. IP addresses can be either IPv4 or IPv6 addresses.  |
+| servers            | array of strings               |   No       | The servers property contain the IP address(es) or host name(s) of the NTP servers you want the BIG-IP to use. IP addresses can be either IPv4 or IPv6 addresses.  |
 +--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | timezone           | string                         |   No       |  The timezone you want to set on the BIG-IP system.                                                                                                                |
 +--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -239,7 +239,7 @@ If you are modifying the root password, you must supply the existing root passwo
         "userType": "root",
         "oldPassword": "default",
         "newPassword": "myNewPass1word"
-        },
+    },
     "admin": {
         "class": "User",
         "userType": "regular",
@@ -265,7 +265,7 @@ If you are modifying the root password, you must supply the existing root passwo
 +====================+============================================================================================================================================+============+=========================================================================================================================================================================================================+
 | class              | User                                                                                                                                       | Yes        | Indicates that this property contains user information.                                                                                                                                                 |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| userType           | root, regular (any non-root user)                                                                                                          | No         | The type of user you want to add. Use **regular** for any non-root user                                                                                                                                 |
+| userType           | root, regular (any non-root user)                                                                                                          | Yes        | The type of user you want to add. Use **regular** for any non-root user                                                                                                                                 |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | oldPassword        | string  (root only)                                                                                                                        | Yes (root) | The existing root password.  By default on a new BIG-IP, the root password is **default**. For root user only.                                                                                          |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -288,7 +288,7 @@ If you are modifying the root password, you must supply the existing root passwo
 
 Provision class
 ```````````````
-The next lines of the declaration set the NTP (network time protocol) options on the BIG-IP. 
+The next lines of the declaration set the provisioning options on the BIG-IP.  For information on the available modules, see |f5|, and for information on provisioning levels, see |prov|. By default, the BIG-IP has the Local Traffic Manager (ltm) provisioned as nominal.
 
 The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
@@ -300,7 +300,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
     "myProvisioning": {
             "class": "Provision",
-            "ltm": "nominal"
+            "ltm": "nominal",
             "gtm": "minimal"
     },
     
@@ -308,13 +308,13 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 |
 
 
-+--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Parameter          | Options                                                                                                                             | Required*? |  Description/Notes                                                                                                                                                                                                                                                                     |
-+====================+=====================================================================================================================================+============+========================================================================================================================================================================================================================================================================================+
-| class              | Provision                                                                                                                           |   Yes      | Indicates that this property contains provisioning information.                                                                                                                                                                                                                        |
-+--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| <module>:<level>   | Modules: class, afm, am, apm, asm, avr, dos, fps, gtm, ilx, lc, ltm, pem, swg, urldb  |br| Level: dedicated, nominal, minimum, none |   Yes      | Individually list the modules you want to provision on this BIG-IP and the level of licensing for each module. Your BIG-IP must have enough memory and space for the modules you provision.  For information on provisioning levels, see |prov|, for information on modules, see |f5|. |
-+--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                                                                                                                             | Required*? |  Description/Notes                                                                                                                                                                                               |
++====================+=====================================================================================================================================+============+==================================================================================================================================================================================================================+
+| class              | Provision                                                                                                                           |   Yes      | Indicates that this property contains provisioning information.                                                                                                                                                  |
++--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| <module>:<level>   | Modules: class, afm, am, apm, asm, avr, dos, fps, gtm, ilx, lc, ltm, pem, swg, urldb  |br| Level: dedicated, nominal, minimum, none |   Yes      | Individually list the modules you want to provision on this BIG-IP and the level of licensing for each module. Your BIG-IP must have enough memory and space for the modules you provision.                      |
++--------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 \* The required column applies only if you are using this class.
@@ -382,19 +382,19 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
     },
 
 
-+--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| Parameter          | Options                                            | Required*? |  Description/Notes                                                                                                                 |
-+====================+====================================================+============+====================================================================================================================================+
-| class              | SelfIp                                             |   Yes      |  Indicates that this property contains self IP configuration.                                                                      |
-+--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| address            | string                                             |   Yes      |  IP address you want to use for the self IP address.                                                                               |
-+--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| vlan               | string                                             |   Yes      |  The VLAN to which the self IP should be associated. This field should match any VLANs you are including in this declaration.      |
-+--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| allowService       | all, none, **default**, or array of <service:port> |   No       |  Specifies which services (ports) to allow on the self IP.                                                                         |
-+--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| trafficGroup       | **traffic-group-local-only**, traffic-group-1      |   No       |  Traffic group for the Self IP.                                                                                                    |
-+--------------------+----------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                                                  | Required*? |  Description/Notes                                                                                                                 |
++====================+==========================================================+============+====================================================================================================================================+
+| class              | SelfIp                                                   |   Yes      |  Indicates that this property contains self IP configuration.                                                                      |
++--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| address            | string (IPv4/IPv6 address, optional %RD and/or /masklen) |   Yes      |  IP address you want to use for the self IP address. You can optionally include a route domain and/or a mask length.               |
++--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| vlan               | string                                                   |   Yes      |  The VLAN to which the self IP should be associated. This field should match any VLANs you are including in this declaration.      |
++--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| allowService       | all, none, **default**, or array of <service:port>       |   No       |  Specifies which services (ports) to allow on the self IP.                                                                         |
++--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| trafficGroup       | **traffic-group-local-only**, traffic-group-1            |   No       |  Traffic group for the Self IP.                                                                                                    |
++--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
 
 \* The required column applies only if you are using this class.
@@ -404,7 +404,7 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
 
 Route class
 ```````````
-The next lines of the declaration configure self IP address(es) on the BIG-IP system.   In this case, the name you give the Route class is used for the name of the route on the BIG-IP.
+The next lines of the declaration configure routes on the BIG-IP system.   In this case, the name you give the Route class is used for the name of the route on the BIG-IP.
 
 
 .. code-block:: javascript
@@ -421,17 +421,17 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
     }
 
 
-+--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| Parameter          | Options                         | Required*? |  Description/Notes                                                                                                                 |
-+====================+=================================+============+====================================================================================================================================+
-| class              | Route                           |   Yes      |  Indicates that this property contains route configuration.                                                                        |
-+--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| gw                 | string (IPv4 or IPv6 address)   |   Yes      |  Gateway for the route.                                                                                                            |
-+--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| network            | string                          |   No       |  IP address/netmask for route.  The default network is **default**.                                                                |
-+--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| mtu                | integer                         |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 0 and a maximum of 9198.                                   |
-+--------------------+---------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                                                                                   | Required*? |  Description/Notes                                                                                                                 |
++====================+===========================================================================================+============+====================================================================================================================================+
+| class              | Route                                                                                     |   Yes      |  Indicates that this property contains route configuration.                                                                        |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| gw                 | string (IPv4 or IPv6 address)                                                             |   Yes      |  Gateway for the route.                                                                                                            |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| network            | string (IPv4/IPv6 address, optional %RD and/or /masklen), **default**, or default-inet6   |   No       |  IP address/netmask for route.  The default network is **default**.                                                                |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| mtu                | integer                                                                                   |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 0 and a maximum of 9198.                                   |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
 
 

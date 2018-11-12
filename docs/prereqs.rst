@@ -5,11 +5,9 @@ The following are prerequisites for using F5 Declarative Onboarding:
 
 - You must have an existing BIG-IP device with a management IP address.  
 
-- You must have an existing **admin** user. If you are using 13.1.x, the BIG-IP contains an admin user by default (admin:admin), if you are using 14.x, reset the admin password before installing Declarative Onboarding.  See |14| for information about secure passwords in BIG-IP 14.0 and later.
+- You must have an existing user account with the Administrator role. If you are using 13.1.x, the BIG-IP contains an admin user by default. If you are using 14.x, reset the admin password before installing Declarative Onboarding.  See |14| for information about secure passwords in BIG-IP 14.0 and later.
 
-- The BIG-IP must be running version 13.1.0 or later.   
-
-- Your BIG-IP user account must have the **Administrator** role.  
+- The BIG-IP must be running version 13.1.0 or later.    
 
 - If you are using an F5 BYOL license, you must have a valid F5 Networks License Registration Key to include in your declaration.  If you do not have one, contact your F5 sales representative. If you do not use a valid F5 license key, your declaration will fail.  This is not a requirement if you are using a BIG-IP with pay-as-you-go licensing. 
 
@@ -20,11 +18,11 @@ The following are prerequisites for using F5 Declarative Onboarding:
 Notes and tips
 ~~~~~~~~~~~~~~
 
-- The first time you POST a Declarative Onboarding declaration, the system records the initial configuration produced by the declaration. Declarative Onboarding is meant to initially configure a BIG-IP device. However, if you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.  **Important**: No matter what you send in a subsequent declaration, Declarative Onboarding will never unlicense a BIG-IP device, it will never delete a user, and it never modify Device Trust.
+- The first time you POST a Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration. Declarative Onboarding is meant to initially configure a BIG-IP device. However, if you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.  **Important**: No matter what you send in a subsequent declaration, Declarative Onboarding will never unlicense a BIG-IP device, it will never delete a user, and it never break the device trust once it has been established.
 
 - You can use GET to retrieve a sample declaration.  Use GET to ``https://<BIG-IP>/mgmt/shared/declarative-onboarding/example``
 
-- When you POST a declaration, it may take some time before the system returns a success message (for example, the BIG-IP may have to reboot to load the configuration).  You can use the property **"async": "true",** in your declaration, and then use GET with ?show=full to poll for status.
+- When you POST a declaration, while the system is processing the declaration, the HTTP connection can be broken, especially when provisioning modules.  You can use the property **"async": "true",** in your declaration, and then use GET to poll for status.
 
 - If you POST a declaration that modifies the password for the admin account, even if the declaration returns an error, the password can be changed.  Therefore you may need to update the admin password in the client you are using to send the declaration.
 

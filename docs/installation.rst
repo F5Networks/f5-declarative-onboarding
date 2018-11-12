@@ -31,7 +31,9 @@ You can use SCP to upload the RPM file to the BIG-IP system.  Note that even if 
 Uploading Declarative Onboarding using cURL from the Linux shell
 `````````````````````````````````````````````````````````````````
 
-If you want to use cURL to install Declarative Onboarding, use the following command syntax.  First, set the file name and the BIG-IP credentials, making sure you use the appropriate RPM build number (36 in the following example), and BIG-IP credentials.  
+If you want to use cURL to install Declarative Onboarding, use the following command syntax.  First, set the file name and the BIG-IP credentials, making sure you use the appropriate RPM build number (1 in the following example), and BIG-IP credentials.  
+
+If you are using a single NIC BIG-IP system, you must include port 8443 after the IP address of the BIG-IP (so the last line in the following would be: IP=IP address of the BIG-IP:8443)
 
 .. code-block:: shell
 
@@ -102,4 +104,4 @@ You can compare the checksum produced by that command against the **.sha256** fi
 
 .. |github| raw:: html
 
-   <a href="https://github.com/F5Networks/f5-declarative-onboarding" target="_blank">F5 Declarative Onboarding site on GitHub</a>
+   <a href="https://github.com/F5devcentral/f5-declarative-onboarding" target="_blank">F5 Declarative Onboarding site on GitHub</a>
