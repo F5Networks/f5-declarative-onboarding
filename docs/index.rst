@@ -21,7 +21,6 @@ Use the following links, the navigation on the left, and/or the Next and Previou
    components
    using-do
    examples
-   schema-reference
    revision-history
 
 .. |declare| raw:: html
