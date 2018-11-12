@@ -7,7 +7,7 @@
         "myLicense": {
             "class": "License",
             "licenseType": "regKey",
-            "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+            "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
         },
         "myDns": {
             "class": "DNS",
@@ -55,7 +55,7 @@
         },
         "external": {
             "class": "VLAN",
-            "tag": 1234,
+            "tag": 4094,
             "mtu": 1500,
             "interfaces": [
                 {
@@ -75,7 +75,7 @@
             "class": "Route",
             "gw": "10.1.20.1",
             "network": "default",
-            "mtu": 0
+            "mtu": 1500
         },
         "configsync": {
             "class": "ConfigSync",
