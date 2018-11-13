@@ -104,4 +104,4 @@ You can compare the checksum produced by that command against the **.sha256** fi
 
 .. |github| raw:: html
 
-   <a href="https://github.com/F5devcentral/f5-declarative-onboarding" target="_blank">F5 Declarative Onboarding site on GitHub</a>
+   <a href="https://github.com/f5devcentral/f5-declarative-onboarding/tree/master/dist" target="_blank">F5 Declarative Onboarding site on GitHub</a>
