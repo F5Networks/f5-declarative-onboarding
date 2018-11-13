@@ -83,9 +83,9 @@ pages:
         - branches
 
 Publish docs to staging:
-  image: quay.pdsea.f5net.com/doc-ops/containthedocs:710e05a8ed
+  image: ${CONTAINTHEDOCS_IMAGE}
   stage: publish
-  environment: 
+  environment:
     name: staging
     url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
   tags:
