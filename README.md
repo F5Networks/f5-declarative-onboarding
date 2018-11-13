@@ -1,8 +1,8 @@
 # f5-declarative-onboarding
 
 [![Slack Status](https://f5cloudsolutions.herokuapp.com/badge.svg)](https://f5cloudsolutions.herokuapp.com)
-[![Releases](https://img.shields.io/github/release/f5networks/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/releases)
-[![Issues](https://img.shields.io/github/issues/f5networks/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/issues)
+[![Releases](https://img.shields.io/github/release/f5devcentral/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/releases)
+[![Issues](https://img.shields.io/github/issues/f5devcentral/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/issues)
 
 ## Introduction
 F5 Declarative onboarding uses a declarative model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.
