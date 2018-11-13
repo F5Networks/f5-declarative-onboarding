@@ -165,7 +165,14 @@ function handleLicense() {
                     addOnKeys: license.addOnKeys,
                     overwrite: license.overwrite
                 }
-            );
+            )
+                .then(() => {
+                    return this.bigIp.active();
+                })
+                .catch((err) => {
+                    logger.severe(`Error licensing: ${err}`);
+                    return Promise.reject(err);
+                });
         }
     }
     return Promise.resolve();
