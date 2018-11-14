@@ -82,7 +82,7 @@ When F5 releases a new version of Declarative Onboarding, use the same procedure
 
 Reverting to a previous version
 ```````````````````````````````
-If for any reason you want to revert to a previous version of Declarative Onboarding, you must first remove the version on your BIG-IP system (:guilabel:`iApps > Package Management LX > f5-appsvcs > Uninstall`).  After you uninstall, you can import the RPM for the version of Declarative Onboarding you want to use.
+If for any reason you want to revert to a previous version of Declarative Onboarding, you must first remove the version on your BIG-IP system (:guilabel:`iApps > Package Management LX > f5-declarative-onboarding > Uninstall`).  After you uninstall, you can import the RPM for the version of Declarative Onboarding you want to use.
 
 
 |
