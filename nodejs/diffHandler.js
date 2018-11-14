@@ -71,8 +71,11 @@ class DiffHandler {
                     updatedPaths.push(diff.path[1]);
                 }
 
-                // keep track of deletes since they require special handling
-                if (diff.kind === 'D') {
+                // keep track of objects to delete since they require special handling
+                // diff.path looks like ['Common', 'SelfIp', 'external', 'trafficGroup']
+                // so if diff.path is longer than 3, it's just a property being deleted
+                // and this will be handled by the applyChange
+                if (diff.kind === 'D' && diff.path.length === 3) {
                     if (!toDelete.Common[diff.path[1]]) {
                         toDelete.Common[diff.path[1]] = {};
                     }
