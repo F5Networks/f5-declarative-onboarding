@@ -1,8 +1,8 @@
 # f5-declarative-onboarding
 
 [![Slack Status](https://f5cloudsolutions.herokuapp.com/badge.svg)](https://f5cloudsolutions.herokuapp.com)
-[![Releases](https://img.shields.io/github/release/f5networks/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/releases)
-[![Issues](https://img.shields.io/github/issues/f5networks/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/issues)
+[![Releases](https://img.shields.io/github/release/f5devcentral/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/releases)
+[![Issues](https://img.shields.io/github/issues/f5devcentral/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/issues)
 
 ## Introduction
 F5 Declarative onboarding uses a declarative model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.
@@ -19,7 +19,7 @@ If you come across a bug or other issue when using Declarative Onboarding, use [
 **Although Declarative Onboarding has been created and tested by F5 Networks, it is not yet supported by F5. This means that support is not available from F5 Technical Support. Be sure to see the [Support page](SUPPORT.md) in this repo for more details.**
 
 ### Community Help
-We encourage you to use our [Slack channel](https://f5cloudsolutions.herokuapp.com) for discussion and assistance on Declarative Onboarding templates (click the **f5-declarative-onboarding** channel). There are F5 employees who are members of this community who typically monitor the channel Monday-Friday 9-5 PST and will offer best-effort assistance. See the [Slack Channel Statement](slack-channel-statement.md) for guidelines on using this channel.
+We encourage you to use our [Slack channel](https://f5cloudsolutions.herokuapp.com) for discussion and assistance on Declarative Onboarding templates (click the **declarative-onboard** channel). There are F5 employees who are members of this community who typically monitor the channel Monday-Friday 9-5 PST and will offer best-effort assistance. See the [Slack Channel Statement](slack-channel-statement.md) for guidelines on using this channel.
 
 ## Copyright
 
