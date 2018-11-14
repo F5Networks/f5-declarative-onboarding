@@ -86,7 +86,8 @@
                     ],
                     "default": "default"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         {
             "required": ["class", "gw"],
