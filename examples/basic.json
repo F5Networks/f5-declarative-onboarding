@@ -68,8 +68,7 @@
             "class": "SelfIp",
             "address": "10.0.1.100/24",
             "vlan": "external",
-            "allowService": "all",
-            "trafficGroup": "traffic-group-local-only"
+            "allowService": "all"
         },
         "default": {
             "class": "Route",

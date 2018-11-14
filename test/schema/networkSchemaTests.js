@@ -32,16 +32,6 @@ const validate = ajv.compile(networkSchema);
 /* eslint-disable quotes, quote-props */
 
 describe('network.schema.json tests', () => {
-    describe('toplevel', () => {
-        it('should invalidate bad classes', () => {
-            const data = {
-                "class": "foo"
-            };
-            assert.strictEqual(validate(data), false, 'additional properties should not be valid');
-            assert.notStrictEqual(getErrorString().indexOf('should match exactly one schema in oneOf'), -1);
-        });
-    });
-
     describe('VLAN', () => {
         describe('valid', () => {
             it('should validate vlan data', () => {

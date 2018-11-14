@@ -32,16 +32,6 @@ const validate = ajv.compile(dscSchema);
 /* eslint-disable quotes, quote-props */
 
 describe('network.schema.json tests', () => {
-    describe('toplevel', () => {
-        it('should invalidate bad classes', () => {
-            const data = {
-                "class": "foo"
-            };
-            assert.strictEqual(validate(data), false, 'additional properties should not be valid');
-            assert.notStrictEqual(getErrorString().indexOf('should match exactly one schema in oneOf'), -1);
-        });
-    });
-
     describe('ConfigSync', () => {
         describe('valid', () => {
             it('should validate config sync data with IP configsyncIp', () => {

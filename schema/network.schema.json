@@ -3,125 +3,134 @@
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/network.schema.json",
     "title": "F5 Declarative Onboarding network declaration",
     "description": "Network properties for onboarding a BIG-IP.",
-    "oneOf": [
+    "allOf": [
         {
-            "required": ["class", "interfaces"],
-            "properties": {
-                "class": {
-                    "description": "Indicates that this property contains VLAN configuration.",
-                    "type": "string",
-                    "const": "VLAN"
-                },
-                "mtu": {
-                    "description": "MTU for the VLAN.",
-                    "type": "integer",
-                    "minimum": 576,
-                    "maximum": 9198
-                },
-                "tag": {
-                    "description": "Tag for the VLAN.",
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 4094
-                },
-                "interfaces": {
-                    "description": "Interfaces for the VLAN.",
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["name"],
-                        "properties": {
-                            "name": {
-                                "description": "Name of the interface.",
-                                "type": "string"
+            "if": { "properties": { "class": { "const": "VLAN" } } },
+            "then": {
+                "required": ["class", "interfaces"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains VLAN configuration.",
+                        "type": "string",
+                        "const": "VLAN"
+                    },
+                    "mtu": {
+                        "description": "MTU for the VLAN.",
+                        "type": "integer",
+                        "minimum": 576,
+                        "maximum": 9198
+                    },
+                    "tag": {
+                        "description": "Tag for the VLAN.",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 4094
+                    },
+                    "interfaces": {
+                        "description": "Interfaces for the VLAN.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                                "name": {
+                                    "description": "Name of the interface.",
+                                    "type": "string"
+                                },
+                                "tagged": {
+                                    "description": "Whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.",
+                                    "type": "boolean"
+                                }
                             },
-                            "tagged": {
-                                "description": "Whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.",
-                                "type": "boolean"
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                }
-            },
-            "additionalProperties": false
-        },
-        {
-            "required": ["class", "address", "vlan"],
-            "properties": {
-                "class": {
-                    "description": "Indicates that this property contains Self IP configuration.",
-                    "type": "string",
-                    "const": "SelfIp"
-                },
-                "address": {
-                    "description": "IP address.",
-                    "type": "string",
-                    "format": "f5ip"
-                },
-                "trafficGroup": {
-                    "description": "Traffic group for the Self IP.",
-                    "type": "string",
-                    "enum": ["traffic-group-local-only", "traffic-group-1"],
-                    "default": "traffic-group-local-only"
-                },
-                "vlan": {
-                    "description": "VLAN for the self IP.",
-                    "type": "string"
-                },
-                "allowService": {
-                    "description": "Which services (ports) to allow on the self IP. Value should be 'all', 'none', 'default', or array of '<service:port>",
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "enum": ["all", "none", "default"]
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "pattern": "(\\w+:\\d+)"
-                            }
+                            "additionalProperties": false
                         }
-                    ],
-                    "default": "default"
-                }
-            },
-            "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false
+            }
         },
         {
-            "required": ["class", "gw"],
-            "properties": {
-                "class": {
-                    "description": "Indicates that this property contains Route configuration.",
-                    "type": "string",
-                    "const": "Route"
+            "if": { "properties": { "class": { "const": "SelfIp" } } },
+            "then": {
+                "required": ["class", "address", "vlan"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Self IP configuration.",
+                        "type": "string",
+                        "const": "SelfIp"
+                    },
+                    "address": {
+                        "description": "IP address.",
+                        "type": "string",
+                        "format": "f5ip"
+                    },
+                    "trafficGroup": {
+                        "description": "Traffic group for the Self IP.",
+                        "type": "string",
+                        "enum": ["traffic-group-local-only", "traffic-group-1"],
+                        "default": "traffic-group-local-only"
+                    },
+                    "vlan": {
+                        "description": "VLAN for the self IP.",
+                        "type": "string"
+                    },
+                    "allowService": {
+                        "description": "Which services (ports) to allow on the self IP. Value should be 'all', 'none', 'default', or array of '<service:port>",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": ["all", "none", "default"]
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "(\\w+:\\d+)"
+                                }
+                            }
+                        ],
+                        "default": "default"
+                    }
                 },
-                "gw": {
-                    "description": "Gateway for the route.",
-                    "type": "string",
-                    "anyOf": [
-                        { "format": "ipv4" },
-                        { "format": "ipv6" }
-                    ]
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "Route" } } },
+            "then": {
+                "required": ["class", "gw"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Route configuration.",
+                        "type": "string",
+                        "const": "Route"
+                    },
+                    "gw": {
+                        "description": "Gateway for the route.",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    },
+                    "network": {
+                        "description": "IP address/netmask for route",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "f5ip" },
+                            { "enum": ["default", "default-inet6"]}
+                        ],
+                        "default": "default"
+                    },
+                    "mtu": {
+                        "description": "MTU for the route.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9198
+                    }
                 },
-                "network": {
-                    "description": "IP address/netmask for route",
-                    "type": "string",
-                    "anyOf": [
-                        { "format": "f5ip" },
-                        { "enum": ["default", "default-inet6"]}
-                    ],
-                    "default": "default"
-                },
-                "mtu": {
-                    "description": "MTU for the route.",
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 9198
-                }
-            },
-            "additionalProperties": false
+                "additionalProperties": false
+            }
         }
     ]
 }
