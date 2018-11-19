@@ -4,6 +4,7 @@
 + Support licensing via BIG-IQ utility and purchased pools
 + Fix bug which was improperly deleting objects which just had a property change
 + Apply defaults from the schema
++ Dis-allow sync-failover device group with both autoSync and fullLoadOnSync
 
 ## Version 1.0.0
 + Supports
