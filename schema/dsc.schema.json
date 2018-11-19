@@ -103,15 +103,26 @@
                         "type": "boolean",
                         "default": false
                     },
-                    "fullLoadOnSync": {
-                        "description": "Whether or not the device group should do a full load on sync",
-                        "type": "boolean",
-                        "default": false
-                    },
                     "asmSync": {
                         "description": "Whether or not the device group should sync ASM properties",
                         "type": "boolean",
                         "default": false
+                    },
+                    "fullLoadOnSync": {
+                        "description": "Whether or not the device group should do a full load on sync",
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                "if": { "properties": { "type": { "const": "sync-failover" } } },
+                "then": {
+                    "if": { "properties": { "autoSync": { "const": true } } },
+                    "then": {
+                        "properties": {
+                            "fullLoadOnSync": {
+                                "const": false
+                            }
+                        }
                     }
                 },
                 "additionalProperties": false

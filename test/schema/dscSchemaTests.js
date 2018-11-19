@@ -182,6 +182,18 @@ describe('network.schema.json tests', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate sync-failover with autoSync true, fullLoadOnSync false', () => {
+                const data = {
+                    "class": "DeviceGroup",
+                    "type": "sync-failover",
+                    "owner": "bigip1.me.com",
+                    "members": ["bigip1.me.com", "bigip2.me.com"],
+                    "autoSync": true,
+                    "fullLoadOnSync": false
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
@@ -201,6 +213,22 @@ describe('network.schema.json tests', () => {
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate sync-failover with autoSync true, fullLoadOnSync true', () => {
+                const data = {
+                    "class": "DeviceGroup",
+                    "type": "sync-failover",
+                    "owner": "bigip1.me.com",
+                    "members": ["bigip1.me.com", "bigip2.me.com"],
+                    "autoSync": true,
+                    "fullLoadOnSync": true
+                };
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'sync-failover with autosync and fullLoadOnSync should not be valid'
+                );
             });
         });
     });
