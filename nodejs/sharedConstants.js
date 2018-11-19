@@ -22,7 +22,7 @@
  * @module
  */
 module.exports = {
-    KEYS_TO_MASK: ['password', 'newPassword', 'oldPassword', 'passphrase'],
+    MASK_REGEX: new RegExp('pass(word|phrase)', 'i'),
     PATHS: {
         DNS: '/tm/sys/dns',
         NTP: '/tm/sys/ntp',

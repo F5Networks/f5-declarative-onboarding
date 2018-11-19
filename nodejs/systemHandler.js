@@ -17,6 +17,7 @@
 'use strict';
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const doUtil = require('./doUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 
@@ -159,23 +160,76 @@ function handleLicense() {
     if (this.declaration.Common.License) {
         const license = this.declaration.Common.License;
         if (license.regKey || license.addOnKeys) {
-            return this.bigIp.onboard.license(
-                {
-                    registrationKey: license.regKey,
-                    addOnKeys: license.addOnKeys,
-                    overwrite: license.overwrite
-                }
-            )
-                .then(() => {
-                    return this.bigIp.active();
-                })
-                .catch((err) => {
-                    logger.severe(`Error licensing: ${err}`);
-                    return Promise.reject(err);
-                });
+            return handleRegKey.call(this, license);
         }
+        return handleLicensePool.call(this, license);
     }
     return Promise.resolve();
+}
+
+function handleRegKey(license) {
+    return this.bigIp.onboard.license(
+        {
+            registrationKey: license.regKey,
+            addOnKeys: license.addOnKeys,
+            overwrite: license.overwrite
+        }
+    )
+        .then(() => {
+            return this.bigIp.active();
+        })
+        .catch((err) => {
+            logger.severe(`Error licensing: ${err}`);
+            return Promise.reject(err);
+        });
+}
+
+function handleLicensePool(license) {
+    // If we're using the reachable API, we need a bigIp object
+    // that has the right credentials and host IP
+    let getBigIp;
+    if (license.reachable) {
+        getBigIp = new Promise((resolve, reject) => {
+            this.bigIp.deviceInfo()
+                .then((deviceInfo) => {
+                    return doUtil.getBigIp(
+                        logger,
+                        {
+                            host: deviceInfo.managementAddress,
+                            user: license.bigIpUsername,
+                            password: license.bigIpPassword
+                        }
+                    );
+                })
+                .then((bigIp) => {
+                    resolve(bigIp);
+                })
+                .catch((err) => {
+                    logger.severe(`Error getting big ip for reachable API: ${err}`);
+                    reject(err);
+                });
+        });
+    } else {
+        getBigIp = Promise.resolve(this.bigIp);
+    }
+
+    return getBigIp
+        .then((bigIp) => {
+            return bigIp.onboard.licenseViaBigIq(
+                license.bigIqHost,
+                license.bigIqUsername,
+                license.bigIqPassword || license.bigIqPasswordUri,
+                license.licensePool,
+                license.hypervisor,
+                {
+                    passwordIsUri: !!license.bigIqPasswordUri,
+                    skuKeyword1: license.skuKeyword1,
+                    skuKeyword2: license.skuKeyword2,
+                    unitOfMeasure: license.unitOfMeasure,
+                    noUnreachable: !!license.reachable
+                }
+            );
+        });
 }
 
 function handleProvision() {

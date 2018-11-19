@@ -19,7 +19,14 @@
 const assert = require('assert');
 const Ajv = require('ajv');
 
-const ajv = new Ajv({ allErrors: true });
+const ajv = new Ajv(
+    {
+        allErrors: true,
+        useDefaults: true,
+        coerceTypes: true,
+        extendRefs: 'fail'
+    }
+);
 const systemSchema = require('../../schema/system.schema.json');
 
 const validate = ajv.compile(systemSchema);
@@ -75,69 +82,215 @@ describe('system.schema.json tests', () => {
     });
 
     describe('License', () => {
-        describe('valid', () => {
-            it('should validate license data', () => {
-                const data = {
-                    "class": "License",
-                    "licenseType": "regKey",
-                    "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ",
-                    "addOnKeys": [
-                        "ABCDEFG-HIJKLMN",
-                        "OPQRSTU-VWXYZAB"
-                    ]
-                };
-                assert.ok(validate(data), getErrorString(validate));
+        describe('common', () => {
+            describe('invalid', () => {
+                it('should invalidate bad license type', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "foo",
+                        "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ",
+                        "addOnKeys": [
+                            "ABCDEFG-HIJKLMN",
+                            "OPQRSTU-VWXYZAB"
+                        ]
+                    };
+                    assert.strictEqual(validate(data), false, 'bad license type not be valid');
+                    assert.notStrictEqual(
+                        getErrorString().indexOf('"allowedValue": "licensePool"'),
+                        -1
+                    );
+                });
+
+                it('should invalidate missing license type', () => {
+                    const data = {
+                        "class": "License",
+                        "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ",
+                        "addOnKeys": [
+                            "ABCDEFG-HIJKLMN",
+                            "OPQRSTU-VWXYZAB"
+                        ]
+                    };
+                    assert.strictEqual(validate(data), false, 'missing license type not be valid');
+                });
             });
         });
 
-        describe('invalid', () => {
-            it('should invalidate missing license type', () => {
-                const data = {
-                    "class": "License",
-                    "licenseType": "foo",
-                    "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ",
-                    "addOnKeys": [
-                        "ABCDEFG-HIJKLMN",
-                        "OPQRSTU-VWXYZAB"
-                    ]
-                };
-                assert.strictEqual(validate(data), false, 'bad license type not be valid');
-                assert.notStrictEqual(
-                    getErrorString().indexOf('should be equal to one of the allowed values'),
-                    -1
-                );
+        describe('regKey', () => {
+            describe('valid', () => {
+                it('should validate license data', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "regKey",
+                        "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ",
+                        "addOnKeys": [
+                            "ABCDEFG-HIJKLMN",
+                            "OPQRSTU-VWXYZAB"
+                        ]
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
             });
 
-            it('should invalidate bad license type', () => {
-                const data = {
-                    "class": "License",
-                    "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ",
-                    "addOnKeys": [
-                        "ABCDEFG-HIJKLMN",
-                        "OPQRSTU-VWXYZAB"
-                    ]
-                };
-                assert.strictEqual(validate(data), false, 'missing license type not be valid');
+            describe('invalid', () => {
+                it('should invalidate bad regKeys', () => {
+                    const data = {
+                        "licenseType": "regKey",
+                        "regKey": "ABCD-FGHIJ-KLMNO-PQRST-UVWXYZZ"
+                    };
+                    assert.strictEqual(validate(data), false, 'bad reg keys should not be valid');
+                    assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                });
+
+                it('should invalidate bad addOnKeys', () => {
+                    const data = {
+                        "licenseType": "regKey",
+                        "addOnKeys": [
+                            "ABCDEF-HIJKLMN"
+                        ]
+                    };
+                    assert.strictEqual(validate(data), false, 'bad add on keys should not be valid');
+                    assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                });
+            });
+        });
+
+        describe('licensePool', () => {
+            describe('valid', () => {
+                it('should validate with bigIqPassword', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "licensePool": "myPool",
+                        "bigIpUsername": "admin",
+                        "bigIpPassword": "barbar"
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate with bigIqPasswordUri', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPasswordUri": "https://my.passwordscom/bigIq",
+                        "licensePool": "myPool",
+                        "bigIpUsername": "admin",
+                        "bigIpPassword": "barbar"
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate full unreachable data', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "licensePool": "myPool",
+                        "skuKeyword1": "key1",
+                        "skuKeyword2": "key2",
+                        "unitOfMeasure": "hourly",
+                        "reachable": false,
+                        "hypervisor": "vmware"
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate full reachable data', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "licensePool": "myPool",
+                        "skuKeyword1": "key1",
+                        "skuKeyword2": "key2",
+                        "unitOfMeasure": "hourly",
+                        "reachable": true,
+                        "bigIpUsername": "admine",
+                        "bigIpPassword": "barbar"
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
             });
 
-            it('should invalidate bad regKeys', () => {
-                const data = {
-                    "licenseType": "regKey",
-                    "regKey": "ABCD-FGHIJ-KLMNO-PQRST-UVWXYZZ"
-                };
-                assert.strictEqual(validate(data), false, 'bad reg keys should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
-            });
+            describe('invalid', () => {
+                it('should invalidate using both bigIqPassword and bigIqPasswordUri', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "bigIqPasswordUri": "https://my.passwordscom/bigIq",
+                        "licensePool": "myPool",
+                        "bigIpUsername": "admin",
+                        "bigIpPassword": "barbar"
+                    };
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'using bigIqPassword and bigIqPasswordUri should be invalid'
+                    );
+                    assert.notStrictEqual(
+                        getErrorString().indexOf('should match exactly one schema in oneOf'),
+                        -1
+                    );
+                });
 
-            it('should invalidate bad addOnKeys', () => {
-                const data = {
-                    "licenseType": "regKey",
-                    "addOnKeys": [
-                        "ABCDEF-HIJKLMN"
-                    ]
-                };
-                assert.strictEqual(validate(data), false, 'bad add on keys should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                it('should invalidate reachable false without hypervisor', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "bigIqPasswordUri": "https://my.passwordscom/bigIq",
+                        "licensePool": "myPool",
+                        "reachable": false
+                    };
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'if reachable is false, hypervisor should be required'
+                    );
+                    assert.notStrictEqual(
+                        getErrorString().indexOf("should have required property 'hypervisor'"),
+                        -1
+                    );
+                });
+
+                it('should invalidate reachable true without bigIpUsername and bigIpPassword', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "bigIqPasswordUri": "https://my.passwordscom/bigIq",
+                        "licensePool": "myPool",
+                        "reachable": true
+                    };
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'if reachable is false, bigIpUsername and bigIpPassword should be required'
+                    );
+                    assert.notStrictEqual(
+                        getErrorString().indexOf("should have required property 'bigIpUsername'"),
+                        -1
+                    );
+                    assert.notStrictEqual(
+                        getErrorString().indexOf("should have required property 'bigIpPassword'"),
+                        -1
+                    );
+                });
             });
         });
     });

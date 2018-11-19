@@ -16,7 +16,7 @@
 
 'use strict';
 
-const KEYS_TO_MASK = require('./sharedConstants').KEYS_TO_MASK;
+const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 
 /**
  * Represents the declarative onboarding state
@@ -171,7 +171,7 @@ function mask(declaration) {
     Object.keys(masked).forEach((key) => {
         if (!Array.isArray(masked[key]) && typeof masked[key] === 'object') {
             masked[key] = mask(masked[key]);
-        } else if (KEYS_TO_MASK.indexOf(key) !== -1) {
+        } else if (MASK_REGEX.test(key)) {
             delete masked[key];
         }
     });

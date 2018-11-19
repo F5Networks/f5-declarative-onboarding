@@ -7,25 +7,20 @@
         {
             "if": { "properties": { "class": { "const": "License" } } },
             "then": {
-                "required": ["class", "licenseType"],
-                "properties": {
-                    "class": {
-                        "description": "Indicates that this property contains licensing information.",
-                        "type": "string",
-                        "const": "License"
-                    },
-                    "licenseType": {
-                        "description": "The type of license",
-                        "type": "string",
-                        "enum": ["regKey"]
-                    }
-                },
                 "if": { "properties": { "licenseType": { "const": "regKey" } } },
                 "then": {
-                    "required": [
-                        "regKey"
-                    ],
+                    "required": ["class", "licenseType", "regKey"],
                     "properties": {
+                        "class": {
+                            "description": "Indicates that this property contains licensing information.",
+                            "type": "string",
+                            "const": "License"
+                        },
+                        "licenseType": {
+                            "description": "The type of license",
+                            "type": "string",
+                            "const": "regKey"
+                        },
                         "regKey": {
                             "description": "Registration key.",
                             "type": "string",
@@ -45,7 +40,99 @@
                             "type": "boolean",
                             "default": false
                         }
-                    }
+                    },
+                    "additionalProperties": false
+                },
+                "else": {
+                    "required": ["class", "licenseType", "bigIqHost", "bigIqUsername", "licensePool"],
+                    "oneOf": [
+                        {
+                            "required": ["bigIqPassword"]
+                        },
+                        {
+                            "required": ["bigIqPasswordUri"]
+                        }
+                    ],
+                    "if": {
+                        "properties": { "reachable": { "const": false }}
+                    },
+                    "then": {
+                        "required": ["hypervisor"]
+                    },
+                    "else": {
+                        "required": ["bigIpUsername", "bigIpPassword"]
+                    },
+                    "properties": {
+                        "class": {
+                            "description": "Indicates that this property contains licensing information.",
+                            "type": "string",
+                            "const": "License"
+                        },
+                        "licenseType": {
+                            "description": "The type of license",
+                            "type": "string",
+                            "const": "licensePool"
+                        },
+                        "bigIqHost": {
+                            "description": "The BIG-IQ hostname or IP address.",
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "ipv4" },
+                                { "format": "ipv6" },
+                                { "format": "hostname" }
+                            ]
+                        },
+                        "bigIqUsername": {
+                            "description": "An admin user on the BIG-IQ.",
+                            "type": "string"
+                        },
+                        "bigIqPassword": {
+                            "description": "Password for the user in bigIqUsername.",
+                            "type": "string"
+                        },
+                        "bigIqPasswordUri": {
+                            "description": "URI which will return the password for the user in bigIqUsername.",
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "licensePool": {
+                            "description": "Name of the BIG-IQ license pool from which to obtain a license.",
+                            "type": "string"
+                        },
+                        "skuKeyword1": {
+                            "description": "skuKeyword1 parameter for CLPv2 licensing.",
+                            "type": "string"
+                        },
+                        "skuKeyword2": {
+                            "description": "skuKeyword2 parameter for CLPv2 licensing.",
+                            "type": "string"
+                        },
+                        "unitOfMeasure": {
+                            "description": "unitOfMeasure parameter for CLPv2 licensing.",
+                            "type": "string",
+                            "enum": ["yearly", "monthly", "daily", "hourly"],
+                            "default": "monthly"
+                        },
+                        "reachable": {
+                            "description": "Whether or not BIG-IQ has a route to this BIG-IP device.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "hypervisor": {
+                            "description": "Hypervisor which is running the BIG-IP. Required by BIG-IQ if 'reachable' is false.",
+                            "type": "string",
+                            "enum": ["aws", "azure", "gce", "vmware", "hyperv", "kvm", "xen"]
+                        },
+                        "bigIpUsername": {
+                            "description": "An admin user on the BIG-IP. Used by BIG-IQ to login to BIG-IP if 'reachable' is true.",
+                            "type": "string"
+                        },
+                        "bigIpPassword": {
+                            "description": "Password for the user in bigIpUsername. Used by BIG-IQ to login to BIG-IP if 'reachable' is true.",
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
                 }
             }
         },
@@ -163,7 +250,7 @@
                             "const": "User"
                         },
                         "userType": {
-                            "description": "The type of user",
+                            "description": "The type of user.",
                             "type": "string",
                             "enum": ["root", "regular"]
                         },
@@ -187,7 +274,7 @@
                             "const": "User"
                         },
                         "userType": {
-                            "description": "The type of user",
+                            "description": "The type of user.",
                             "type": "string",
                             "enum": ["root", "regular"]
                         },
@@ -196,7 +283,7 @@
                             "type": "string"
                         },
                         "partitionAccess": {
-                            "description": "Access control configuration",
+                            "description": "Access control configuration.",
                             "type": "object",
                             "patternProperties": {
                                 "^[A-Za-z][0-9A-Za-z_]{0,47}$": {
