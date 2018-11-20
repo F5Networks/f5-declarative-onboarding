@@ -133,18 +133,7 @@ function handleUser() {
                     user.oldPassword
                 ));
             } else if (user.userType === 'regular') {
-                // TODO: parse partitions
-                if (!user.partitionAccess || !user.partitionAccess.Common) {
-                    user.partitionAccess = {
-                        Common: {}
-                    };
-                }
-                promises.push(this.bigIp.onboard.updateUser(
-                    username,
-                    user.password,
-                    user.partitionAccess.Common.role, // TODO: parse partitions
-                    user.shell
-                ));
+                promises.push(createOrUpdateUser.call(this, username, user));
             } else {
                 // eslint-disable-next-line max-len
                 logger.warning(`${username} has userType root. Only the root user can have userType root.`);
@@ -255,6 +244,53 @@ function handleProvision() {
             });
     }
     return Promise.resolve();
+}
+
+function createOrUpdateUser(username, data) {
+    let userEndpoint = '/tm/auth/user';
+    if (this.bigIp.isBigIq()) {
+        userEndpoint = '/shared/authz/users';
+    }
+
+    const body = {
+        name: username
+    };
+
+    if (data.password) {
+        body.password = data.password;
+    }
+
+    if (data.shell) {
+        body.shell = data.shell;
+    }
+
+    if (data.partitionAccess) {
+        body['partition-access'] = {};
+        Object.keys(data.partitionAccess).forEach((partition) => {
+            body['partition-access'][partition] = {
+                role: data.partitionAccess[partition].role
+            };
+        });
+    }
+
+    return this.bigIp.createOrModify(userEndpoint, body)
+        .then(() => {
+            // If we're setting the password for our user, we need to
+            // re-initialize the bigIp core
+            if (username === this.bigIp.user) {
+                return this.bigIp.init(
+                    this.bigIp.host,
+                    this.bigIp.user,
+                    data.password,
+                    { port: this.bigIp.port }
+                );
+            }
+            return Promise.resolve();
+        })
+        .catch((err) => {
+            logger.severs(`Error creating/updating user: ${err}`);
+            return Promise.reject(err);
+        });
 }
 
 module.exports = SystemHandler;
