@@ -39,12 +39,22 @@
             "password": "asdfjkl",
             "shell": "bash"
         },
-        "anotherUser": {
+        "guestUser": {
             "class": "User",
             "userType": "regular",
             "password": "foobar",
             "partitionAccess": {
                 "Common": {
+                    "role": "guest"
+                }
+            }
+        },
+        "anotherUser": {
+            "class": "User",
+            "userType": "regular",
+            "password": "foobar",
+            "partitionAccess": {
+                "all-partitions": {
                     "role": "guest"
                 }
             }

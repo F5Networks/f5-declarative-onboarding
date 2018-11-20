@@ -265,11 +265,14 @@ function createOrUpdateUser(username, data) {
     }
 
     if (data.partitionAccess) {
-        body['partition-access'] = {};
+        body['partition-access'] = [];
         Object.keys(data.partitionAccess).forEach((partition) => {
-            body['partition-access'][partition] = {
-                role: data.partitionAccess[partition].role
-            };
+            body['partition-access'].push(
+                {
+                    name: partition,
+                    role: data.partitionAccess[partition].role
+                }
+            );
         });
     }
 

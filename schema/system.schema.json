@@ -252,7 +252,7 @@
                         "userType": {
                             "description": "The type of user.",
                             "type": "string",
-                            "enum": ["root", "regular"]
+                            "const": "root"
                         },
                         "newPassword": {
                             "description": "Password to set for the root user.",
@@ -276,7 +276,7 @@
                         "userType": {
                             "description": "The type of user.",
                             "type": "string",
-                            "enum": ["root", "regular"]
+                            "const": "regular"
                         },
                         "password": {
                             "description": "Password for the user.",
@@ -285,34 +285,15 @@
                         "partitionAccess": {
                             "description": "Access control configuration.",
                             "type": "object",
-                            "patternProperties": {
-                                "^[A-Za-z][0-9A-Za-z_]{0,47}$": {
-                                    "description": "The name of the partition.",
-                                    "type": "object",
-                                    "required": ["role"],
-                                    "properties": {
-                                        "role": {
-                                            "role": {
-                                                "description": "Role for the user.",
-                                                "type": "string",
-                                                "enum": [
-                                                    "admin",
-                                                    "auditor",
-                                                    "guest",
-                                                    "manager",
-                                                    "operator",
-                                                    "user-manager",
-                                                    "application-editor",
-                                                    "certificate-manager",
-                                                    "irule-manager",
-                                                    "no-access",
-                                                    "resource-admin"
-                                                ]
-                                            }
-                                        }
-                                    }
+                            "properties": {
+                                "Common": {
+                                    "$ref": "#/definitions/partitionAccess"
+                                },
+                                "all-partitions": {
+                                    "$ref": "#/definitions/partitionAccess"
                                 }
-                            }
+                            },
+                            "additionalProperties": false
                         },
                         "shell": {
                             "description": "Shell for the user.",
@@ -325,5 +306,32 @@
                 }
             }
         }
-    ]
+    ],
+    "definitions": {
+        "partitionAccess": {
+            "description": "The partition - either 'Common' or 'all-partitions'.",
+            "type": "object",
+            "required": ["role"],
+            "properties": {
+                "role": {
+                    "description": "Role for the user.",
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "auditor",
+                        "guest",
+                        "manager",
+                        "operator",
+                        "user-manager",
+                        "application-editor",
+                        "certificate-manager",
+                        "irule-manager",
+                        "no-access",
+                        "resource-admin"
+                    ]
+                }
+            },
+            "additionalProperties": false
+        }
+    }
 }

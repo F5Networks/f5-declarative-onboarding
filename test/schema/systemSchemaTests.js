@@ -373,7 +373,7 @@ describe('system.schema.json tests', () => {
 
     describe('User', () => {
         describe('valid', () => {
-            it('should validate password data for non-root users', () => {
+            it('should validate password data for non-root users Common partition', () => {
                 const data = {
                     "class": "User",
                     "userType": "regular",
@@ -387,16 +387,31 @@ describe('system.schema.json tests', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
-        });
 
-        it('should validate password data for root users', () => {
-            const data = {
-                "class": "User",
-                "userType": "root",
-                "oldPassword": "this_is_the_current_password",
-                "newPassword": "this_is_my_new_root_password"
-            };
-            assert.ok(validate(data), getErrorString(validate));
+            it('should validate password data for non-root users all-partitions', () => {
+                const data = {
+                    "class": "User",
+                    "userType": "regular",
+                    "password": "this_is_my_new_admin_password",
+                    "shell": "bash",
+                    "partitionAccess": {
+                        "all-partitions": {
+                            "role": "guest"
+                        }
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate password data for root users', () => {
+                const data = {
+                    "class": "User",
+                    "userType": "root",
+                    "oldPassword": "this_is_the_current_password",
+                    "newPassword": "this_is_my_new_root_password"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
@@ -425,6 +440,26 @@ describe('system.schema.json tests', () => {
                 };
                 assert.strictEqual(validate(data), false, 'partitionAccess missing role should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "role"'), -1);
+            });
+
+            it('should invalidate bad partition value', () => {
+                const data = {
+                    "class": "User",
+                    "userType": "regular",
+                    "password": "this_is_my_new_admin_password",
+                    "shell": "bash",
+                    "partitionAccess": {
+                        "foo": {
+                            "role": "guest"
+                        }
+                    }
+                };
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'partitionAccess bad partition should not be valid'
+                );
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
             });
         });
     });
