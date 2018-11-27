@@ -8,6 +8,8 @@ Declarative Onboarding can also create a clustered configuration (Device Service
 
 BIG-IP clustering is well-documented in the product documentation; for detailed information about clustering on the BIG-IP system, see |cluster|.
 
+.. TIP:: You can use GET to the URI ``https://<BIG-IP>/mgmt/shared/declarative-onboarding`` to track whether a declaration is successful or get information on why it failed.
+
 
 Declaration classes for a cluster of BIG-IPs
 --------------------------------------------
