@@ -10,6 +10,7 @@ To submit an Declarative Onboarding declaration, use a specialized RESTful API c
 
 To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP address>/mgmt/shared/declarative-onboarding``.  If you are using a single NIC BIG-IP, include port 8443: ``<BIG-IP IP address>:8443/mgmt/shared/declarative-onboarding``
 
+.. TIP:: You can use GET to the URI ``https://<BIG-IP>/mgmt/shared/declarative-onboarding`` to track whether a declaration is successful or get information on why it failed.
 
 In this section, we first show the sample declaration, and then we break it down and describe its parts. If you are unfamiliar with any of the BIG-IP terminology, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.
 
@@ -21,6 +22,7 @@ Sample declaration for a standalone BIG-IP
 In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of the parts of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`.
 
 This example is the entire declaration.  The following sections break down each class of this example declaration. 
+
 
 .. literalinclude:: examples/example_01.json
    :language: json
@@ -377,7 +379,7 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
         "class": "SelfIp",
         "address": "1.2.3.4/24",
         "vlan": "external",
-        "allowService": "all",
+        "allowService": "default",
         "trafficGroup": "traffic-group-local-only"
     },
 

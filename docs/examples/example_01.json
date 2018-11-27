@@ -62,7 +62,7 @@
             "interfaces": [
                 {
                     "name": "1.1",
-                    "tagged": true
+                    "tagged": false
                 }
             ]
         },
@@ -70,8 +70,8 @@
             "class": "SelfIp",
             "address": "1.2.3.4/24",
             "vlan": "external",
-            "allowService": "all",
-            "floating": true
+            "allowService": "default",
+            "trafficGroup": "traffic-group-local-only"
         },
         "myRoute": {
             "class": "Route",
