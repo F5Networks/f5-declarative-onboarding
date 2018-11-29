@@ -117,7 +117,7 @@ describe('system.schema.json tests', () => {
 
         describe('regKey', () => {
             describe('valid', () => {
-                it('should validate license data', () => {
+                it('should validate eval keys', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "regKey",
@@ -126,6 +126,15 @@ describe('system.schema.json tests', () => {
                             "ABCDEFG-HIJKLMN",
                             "OPQRSTU-VWXYZAB"
                         ]
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate dev keys', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "regKey",
+                        "regKey": "A1234-56789-12345-66890-1234567"
                     };
                     assert.ok(validate(data), getErrorString(validate));
                 });

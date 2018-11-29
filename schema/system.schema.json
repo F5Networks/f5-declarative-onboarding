@@ -24,7 +24,7 @@
                         "regKey": {
                             "description": "Registration key.",
                             "type": "string",
-                            "pattern": "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7}$"
+                            "pattern": "^([A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7})|([A-Z][0-9]{4}-[0-9]{5}-[0-9]{5}-[0-9]{5}-[0-9]{7})$"
                         },
                         "addOnKeys": {
                             "description": "Add on keys.",
