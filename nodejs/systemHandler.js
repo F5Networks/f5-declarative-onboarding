@@ -218,6 +218,9 @@ function handleLicensePool(license) {
                     noUnreachable: !!license.reachable
                 }
             );
+        })
+        .then(() => {
+            return this.bigIp.active();
         });
 }
 

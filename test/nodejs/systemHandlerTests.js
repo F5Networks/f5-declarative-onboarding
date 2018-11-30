@@ -1,0 +1,428 @@
+/**
+ * Copyright 2018 F5 Networks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+const assert = require('assert');
+const cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
+const doUtilMock = require('../../nodejs/doUtil');
+const SystemHandler = require('../../nodejs/systemHandler');
+const PATHS = require('../../nodejs/sharedConstants').PATHS;
+
+describe('systemHandler', () => {
+    let pathSent;
+    let dataSent;
+    let bigIpMock;
+
+    beforeEach(() => {
+        pathSent = null;
+        dataSent = null;
+        bigIpMock = {
+            replace(path, data) {
+                pathSent = path;
+                dataSent = data;
+                return Promise.resolve();
+            },
+            active() {
+                return Promise.resolve();
+            }
+        };
+    });
+
+    afterEach(() => {
+        Object.keys(require.cache).forEach((key) => {
+            delete require.cache[key];
+        });
+    });
+
+    it('should handle NTP', () => {
+        const declaration = {
+            Common: {
+                NTP: {
+                    servers: [
+                        '0.pool.ntp.org',
+                        '1.pool.ntp.org'
+                    ],
+                    timezone: 'UTC'
+                }
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, PATHS.NTP);
+                    assert.deepEqual(dataSent.servers, declaration.Common.NTP.servers);
+                    assert.deepEqual(dataSent.timezone, declaration.Common.NTP.timezone);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle DNS', () => {
+        const declaration = {
+            Common: {
+                DNS: {
+                    nameServers: [
+                        '8.8.8.8',
+                        '2001:4860:4860::8844'
+                    ],
+                    search: ['one.com', 'two.com']
+                }
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, PATHS.DNS);
+                    assert.deepEqual(dataSent.nameServers, declaration.Common.DNS.servers);
+                    assert.deepEqual(dataSent.search, declaration.Common.DNS.search);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle hostname', () => {
+        const declaration = {
+            Common: {
+                hostname: 'myhost.example.com'
+            }
+        };
+
+        let hostnameSent;
+        bigIpMock.onboard = {
+            hostname(hostname) {
+                hostnameSent = hostname;
+                return Promise.resolve();
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostnameSent, declaration.Common.hostname);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle root users', () => {
+        const declaration = {
+            Common: {
+                User: {
+                    root: {
+                        userType: 'root',
+                        oldPassword: 'foo',
+                        newPassword: 'bar'
+                    }
+                }
+            }
+        };
+
+        let userSent;
+        let newPasswordSent;
+        let oldPasswordSent;
+        bigIpMock.onboard = {
+            password(user, newPassword, oldPassword) {
+                userSent = user;
+                newPasswordSent = newPassword;
+                oldPasswordSent = oldPassword;
+                return Promise.resolve();
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(userSent, 'root');
+                    assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
+                    assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle non-root users', () => {
+        const declaration = {
+            Common: {
+                User: {
+                    user1: {
+                        userType: 'regular',
+                        password: 'foofoo',
+                        partitionAccess: {
+                            Common: {
+                                role: 'guest'
+                            }
+                        },
+                        shell: 'bash'
+                    },
+                    user2: {
+                        userType: 'regular',
+                        password: 'barbar',
+                        partitionAccess: {
+                            'all-partitions': {
+                                role: 'guest'
+                            },
+                            Common: {
+                                role: 'admin'
+                            }
+                        },
+                        shell: 'tmsh'
+                    }
+                }
+            }
+        };
+
+        const bodiesSent = [];
+        bigIpMock.isBigIq = () => { return false; };
+        bigIpMock.createOrModify = (path, body) => {
+            pathSent = path;
+            bodiesSent.push(body);
+            return Promise.resolve();
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, '/tm/auth/user');
+                    assert.strictEqual(bodiesSent.length, 2);
+                    assert.deepEqual(
+                        bodiesSent[0]['partition-access'],
+                        [
+                            { name: 'Common', role: 'guest' }
+                        ]
+                    );
+                    assert.deepEqual(bodiesSent[0].shell, 'bash');
+                    assert.deepEqual(
+                        bodiesSent[1]['partition-access'],
+                        [
+                            { name: 'all-partitions', role: 'guest' },
+                            { name: 'Common', role: 'admin' }
+                        ]
+                    );
+                    assert.deepEqual(bodiesSent[1].shell, 'tmsh');
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle reg key licenses', () => {
+        const declaration = {
+            Common: {
+                License: {
+                    licenseType: 'regKey',
+                    regKey: 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ',
+                    addOnKeys: ['ABCDEFG-HIJKLMN', 'OPQRSTU-VWXYZAB'],
+                    overwrite: true
+                }
+            }
+        };
+
+        let licenseArgs;
+        bigIpMock.onboard = {
+            license(args) {
+                licenseArgs = args;
+                return Promise.resolve();
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(licenseArgs.registrationKey, declaration.Common.License.regKey);
+                    assert.deepEqual(licenseArgs.addOnKeys, declaration.Common.License.addOnKeys);
+                    assert.strictEqual(licenseArgs.overwrite, declaration.Common.License.overwrite);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle licene pool licenses with unreachable BIG-IP', () => {
+        const declaration = {
+            Common: {
+                License: {
+                    licenseType: 'licensePool',
+                    bigIqHost: '10.145.112.44',
+                    bigIqUsername: 'admin',
+                    bigIqPassword: 'foofoo',
+                    licensePool: 'clpv2',
+                    unitOfMeasure: 'daily',
+                    skuKeyword1: 'my skukeyword1',
+                    skuKeyword2: 'my skukeyword2',
+                    reachable: false,
+                    hypervisor: 'vmware'
+                }
+            }
+        };
+
+        let bigIqHostSent;
+        let bigIqUsernameSent;
+        let bigIqPasswordSent;
+        let licensePoolSent;
+        let hypervisorSent;
+        let optionsSent;
+        bigIpMock.onboard = {
+            licenseViaBigIq(bigIqHost, bigIqUsername, bigIqPassword, licensePool, hypervisor, options) {
+                bigIqHostSent = bigIqHost;
+                bigIqUsernameSent = bigIqUsername;
+                bigIqPasswordSent = bigIqPassword;
+                licensePoolSent = licensePool;
+                hypervisorSent = hypervisor;
+                optionsSent = options;
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIqHostSent, declaration.Common.License.bigIqHost);
+                    assert.strictEqual(bigIqUsernameSent, declaration.Common.License.bigIqUsername);
+                    assert.strictEqual(bigIqPasswordSent, declaration.Common.License.bigIqPassword);
+                    assert.strictEqual(licensePoolSent, declaration.Common.License.licensePool);
+                    assert.strictEqual(hypervisorSent, declaration.Common.License.hypervisor);
+                    assert.strictEqual(optionsSent.skuKeyword1, declaration.Common.License.skuKeyword1);
+                    assert.strictEqual(optionsSent.skuKeyword2, declaration.Common.License.skuKeyword2);
+                    assert.strictEqual(optionsSent.unitOfMeasure, declaration.Common.License.unitOfMeasure);
+                    assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle licene pool licenses with reachable BIG-IP', () => {
+        const declaration = {
+            Common: {
+                License: {
+                    licenseType: 'licensePool',
+                    bigIqHost: '10.145.112.44',
+                    bigIqUsername: 'admin',
+                    bigIqPassword: 'foofoo',
+                    licensePool: 'clpv2',
+                    unitOfMeasure: 'daily',
+                    skuKeyword1: 'my skukeyword1',
+                    skuKeyword2: 'my skukeyword2',
+                    reachable: true,
+                    bigIpUsername: 'mybigipuser',
+                    bigIpPassword: 'barbar'
+                }
+            }
+        };
+        const managementAddress = '1.2.3.4';
+
+        let optionsSent;
+        bigIpMock.onboard = {
+            licenseViaBigIq(bigIqHost, bigIqUsername, bigIqPassword, licensePool, hypervisor, options) {
+                optionsSent = options;
+            }
+        };
+        bigIpMock.deviceInfo = () => {
+            return Promise.resolve({ managementAddress });
+        };
+
+        let bigIpUsernameSent;
+        let bigIpPasswordSent;
+        let bigIpHostSent;
+        doUtilMock.getBigIp = (logger, options) => {
+            bigIpUsernameSent = options.user;
+            bigIpPasswordSent = options.password;
+            bigIpHostSent = options.host;
+            return Promise.resolve(bigIpMock);
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
+                    assert.strictEqual(bigIpUsernameSent, declaration.Common.License.bigIpUsername);
+                    assert.strictEqual(bigIpPasswordSent, declaration.Common.License.bigIpPassword);
+                    assert.strictEqual(bigIpHostSent, managementAddress);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle provisioning', () => {
+        const declaration = {
+            Common: {
+                Provision: {
+                    module1: 'level 1',
+                    module2: 'level 2'
+                }
+            }
+        };
+
+        let provisioningSent;
+        bigIpMock.onboard = {
+            provision(provisioning) {
+                provisioningSent = provisioning;
+                return Promise.resolve([{}]);
+            }
+        };
+
+        let numActiveRequests = 0;
+        cloudUtilMock.callInSerial = (bigIp, activeRequests) => {
+            numActiveRequests = activeRequests.length;
+            return Promise.resolve();
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(provisioningSent.module1, declaration.Common.Provision.module1);
+                    assert.strictEqual(provisioningSent.module2, declaration.Common.Provision.module2);
+                    assert.ok(numActiveRequests > 0);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+});
