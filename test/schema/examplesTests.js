@@ -22,7 +22,7 @@ const Validator = require('../../nodejs/validator');
 
 const validator = new Validator();
 
-describe('examples tests', () => {
+describe('examples', () => {
     const files = fs.readdirSync(`${__dirname}/../../examples`);
     files.forEach((file) => {
         it(`should validate ${file}`, () => {

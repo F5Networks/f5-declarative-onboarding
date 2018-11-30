@@ -38,7 +38,7 @@ const validate = ajv.compile(dscSchema);
 
 /* eslint-disable quotes, quote-props */
 
-describe('network.schema.json tests', () => {
+describe('dsc.schema.json', () => {
     describe('ConfigSync', () => {
         describe('valid', () => {
             it('should validate config sync data with IP configsyncIp', () => {

@@ -23,7 +23,7 @@ const validator = new Validator();
 
 /* eslint-disable quotes, quote-props */
 
-describe('validator tests', () => {
+describe('validator', () => {
     it('should validate valid data', () => {
         const data = {
             "schemaVersion": "1.0.0",

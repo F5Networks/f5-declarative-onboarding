@@ -22,7 +22,7 @@ const BigIpMock = require('@f5devcentral/f5-cloud-libs').bigIp;
 
 const doUtil = require('../../nodejs/doUtil');
 
-describe('doUtil tests', () => {
+describe('doUtil', () => {
     const port = '1234';
     let bigIpInitOptions;
 

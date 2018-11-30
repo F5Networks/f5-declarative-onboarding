@@ -21,7 +21,7 @@ const DeclarationParser = require('../../nodejs/declarationParser');
 
 /* eslint-disable quote-props, quotes */
 
-describe('declarationParser tests', () => {
+describe('declarationParser', () => {
     it('should transform declaration', () => {
         const declaration = {
             "schemaVersion": "1.0.0",

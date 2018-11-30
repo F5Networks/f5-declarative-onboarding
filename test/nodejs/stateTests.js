@@ -20,7 +20,7 @@ const assert = require('assert');
 
 const State = require('../../nodejs/state');
 
-describe('state tests', () => {
+describe('state', () => {
     it('should create a new state from an exsiting state', () => {
         const existingState = {
             result: {

@@ -33,7 +33,7 @@ const validate = ajv.compile(systemSchema);
 
 /* eslint-disable quotes, quote-props */
 
-describe('system.schema.json tests', () => {
+describe('system.schema.json', () => {
     describe('DNS', () => {
         describe('valid', () => {
             it('should validate dns data', () => {

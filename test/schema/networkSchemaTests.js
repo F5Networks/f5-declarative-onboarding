@@ -38,7 +38,7 @@ const validate = ajv.compile(networkSchema);
 
 /* eslint-disable quotes, quote-props */
 
-describe('network.schema.json tests', () => {
+describe('network.schema.json', () => {
     describe('VLAN', () => {
         describe('valid', () => {
             it('should validate vlan data', () => {
