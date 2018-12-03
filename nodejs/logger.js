@@ -19,9 +19,10 @@
 const path = require('path');
 const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 
+let f5Logger;
 try {
     /* eslint-disable global-require */
-    this.logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
+    f5Logger = require('f5-logger'); // eslint-disable-line import/no-unresolved
 } catch (err) {
     // f5-logger is only in place on the BIG-IPs, not on local environments. If we fail to
     // get one (in our unit tests, for instance), we will mock it in the constructor
@@ -38,8 +39,9 @@ class Logger {
         this.filename = path.basename(module.filename);
 
         // If we weren't able to get the f5-logger, create a mock (so our unit tests run)
-        if (!this.logger) {
-            this.logger = {
+        this.logger = f5Logger
+            ? f5Logger.getInstance()
+            : {
                 silly() {},
                 verbose() {},
                 debug() {},
@@ -52,7 +54,6 @@ class Logger {
                 warn() {},
                 severe() {}
             };
-        }
     }
 
     silly(message) {
