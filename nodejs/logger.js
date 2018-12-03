@@ -19,25 +19,12 @@
 const path = require('path');
 const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 
-let logger;
 try {
     /* eslint-disable global-require */
-    logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
+    this.logger = require('f5-logger').getInstance(); // eslint-disable-line import/no-unresolved
 } catch (err) {
-    // f5-logger is only in place on the BIG-IPs, not on local environments, so mock it here
-    logger = {
-        silly() {},
-        verbose() {},
-        debug() {},
-        warning() {},
-        info() {},
-        error() {},
-        finest() {},
-        finer() {},
-        fine() {},
-        warn() {},
-        severe() {}
-    };
+    // f5-logger is only in place on the BIG-IPs, not on local environments. If we fail to
+    // get one (in our unit tests, for instance), we will mock it in the constructor
 }
 
 /**
@@ -49,6 +36,23 @@ class Logger {
     constructor(module) {
         this.tag = 'f5-declarative-onboarding';
         this.filename = path.basename(module.filename);
+
+        // If we weren't able to get the f5-logger, create a mock (so our unit tests run)
+        if (!this.logger) {
+            this.logger = {
+                silly() {},
+                verbose() {},
+                debug() {},
+                warning() {},
+                info() {},
+                error() {},
+                finest() {},
+                finer() {},
+                fine() {},
+                warn() {},
+                severe() {}
+            };
+        }
     }
 
     silly(message) {
@@ -125,7 +129,7 @@ function log(level, message, extraArgs) {
         }
         fullMessage = `${fullMessage} ${expandedArg}`;
     });
-    logger[level](`[${this.tag}: ${this.filename}] ${fullMessage}`);
+    this.logger[level](`[${this.tag}: ${this.filename}] ${fullMessage}`);
 }
 
 function mask(message) {
