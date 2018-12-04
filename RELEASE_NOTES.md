@@ -1,7 +1,7 @@
 # Release Notes
 
 ## Version 1.1.0
-+ Support licensing via BIG-IQ utility and purchased pools.
++ Support licensing via BIG-IQ utility, purchased, and reg key pools.
 + Allow partition access 'all-partitions' when creating users.
 + Fix bug which was improperly deleting objects which just had a property change.
 + Apply defaults from the schema.
