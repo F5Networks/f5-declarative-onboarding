@@ -17,11 +17,16 @@
 'use strict';
 
 const assert = require('assert');
-const DeclarationParser = require('../../nodejs/declarationParser');
 
-/* eslint-disable quote-props, quotes */
+let DeclarationParser;
+
+/* eslint-disable quote-props, quotes, global-require */
 
 describe('declarationParser', () => {
+    before(() => {
+        DeclarationParser = require('../../nodejs/declarationParser');
+    });
+
     it('should transform declaration', () => {
         const declaration = {
             "schemaVersion": "1.0.0",

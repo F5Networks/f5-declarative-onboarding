@@ -37,6 +37,12 @@ describe('doUtil', () => {
         };
     });
 
+    after(() => {
+        Object.keys(require.cache).forEach((key) => {
+            delete require.cache[key];
+        });
+    });
+
     describe('getBigIp', () => {
         it('should get a BIG-IP with the correct management port', () => {
             return new Promise((resolve, reject) => {

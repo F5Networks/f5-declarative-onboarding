@@ -17,15 +17,25 @@
 'use strict';
 
 const assert = require('assert');
-const cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
-const doUtilMock = require('../../nodejs/doUtil');
-const SystemHandler = require('../../nodejs/systemHandler');
+
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
+
+let cloudUtilMock;
+let doUtilMock;
+let SystemHandler;
+
+/* eslint-disable global-require */
 
 describe('systemHandler', () => {
     let pathSent;
     let dataSent;
     let bigIpMock;
+
+    before(() => {
+        cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
+        doUtilMock = require('../../nodejs/doUtil');
+        SystemHandler = require('../../nodejs/systemHandler');
+    });
 
     beforeEach(() => {
         pathSent = null;
