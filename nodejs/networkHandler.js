@@ -122,7 +122,8 @@ function handleVlan() {
 
 function handleSelfIp() {
     return new Promise((resolve, reject) => {
-        const promises = [];
+        const nonFloatingBodies = [];
+        const floatingBodies = [];
         forEach(this.declaration, 'SelfIp', (tenant, selfIp) => {
             let vlan;
 
@@ -142,12 +143,29 @@ function handleSelfIp() {
                 allowService: selfIp.allowService
             };
 
-            promises.push(
-                this.bigIp.createOrModify(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
-            );
+            if (selfIpBody.trafficGroup && !selfIpBody.trafficGroup.endsWith('traffic-group-local-only')) {
+                floatingBodies.push(selfIpBody);
+            } else {
+                nonFloatingBodies.push(selfIpBody);
+            }
+        });
+
+        // We have to create non floating self IPs before floating self IPs
+        const promises = [];
+        nonFloatingBodies.forEach((selfIpBody) => {
+            promises.push(this.bigIp.createOrModify(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY));
         });
 
         Promise.all(promises)
+            .then(() => {
+                promises.length = 0;
+                floatingBodies.forEach((selfIpBody) => {
+                    promises.push(
+                        this.bigIp.createOrModify(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
+                    );
+                });
+                return Promise.all(promises);
+            })
             .then(() => {
                 resolve();
             })
