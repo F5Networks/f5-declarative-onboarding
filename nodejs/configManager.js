@@ -39,8 +39,7 @@ class ConfigManager {
         if (typeof configItems === 'string') {
             this.configItems = JSON.parse(fs.readFileSync(configItems));
         } else {
-            this.configItems = {};
-            Object.assign(this.configItems, configItems);
+            this.configItems = configItems.slice();
         }
         this.bigIp = bigIp;
     }
@@ -242,7 +241,7 @@ function getPropertiesOfInterest(initialProperties) {
 /**
  * Map what needs to be mapped.
  *
- * For example, map 'enabled' to true, and fix references if isRef is true
+ * For example, map 'enabled' to true
  *
  * @param {Object} item - The item whose properties to map
  * @param {Object} index - The index into configItems for this property
