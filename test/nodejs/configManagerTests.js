@@ -242,4 +242,98 @@ describe('configManager', () => {
                 });
         });
     });
+
+    describe('SelfIp oddities', () => {
+        it('should strip /Common from vlan', () => {
+            return new Promise((resolve, reject) => {
+                configItems = [
+                    {
+                        "path": "/tm/net/self",
+                        "schemaClass": "SelfIp",
+                        "properties": [
+                            { "id": "vlan" }
+                        ]
+                    }
+                ];
+
+                listResponses['/tm/net/self'] = [
+                    {
+                        name: 'selfIp1',
+                        vlan: '/Common/external'
+                    }
+                ];
+
+                const configManager = new ConfigManager(configItems, bigIpMock);
+                configManager.get()
+                    .then((response) => {
+                        assert.strictEqual(response.Common.SelfIp.selfIp1.vlan, 'external');
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should handle allowService with ["default"]', () => {
+            return new Promise((resolve, reject) => {
+                configItems = [
+                    {
+                        "path": "/tm/net/self",
+                        "schemaClass": "SelfIp",
+                        "properties": [
+                            { "id": "allowService" }
+                        ]
+                    }
+                ];
+
+                listResponses['/tm/net/self'] = [
+                    {
+                        name: 'selfIp1',
+                        allowService: ['default']
+                    }
+                ];
+
+                const configManager = new ConfigManager(configItems, bigIpMock);
+                configManager.get()
+                    .then((response) => {
+                        assert.strictEqual(response.Common.SelfIp.selfIp1.allowService, 'default');
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should handle allowService none', () => {
+            return new Promise((resolve, reject) => {
+                configItems = [
+                    {
+                        "path": "/tm/net/self",
+                        "schemaClass": "SelfIp",
+                        "properties": [
+                            { "id": "allowService" }
+                        ]
+                    }
+                ];
+
+                listResponses['/tm/net/self'] = [
+                    {
+                        name: 'selfIp1'
+                    }
+                ];
+
+                const configManager = new ConfigManager(configItems, bigIpMock);
+                configManager.get()
+                    .then((response) => {
+                        assert.strictEqual(response.Common.SelfIp.selfIp1.allowService, 'none');
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+    });
 });
