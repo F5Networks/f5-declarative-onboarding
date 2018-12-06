@@ -19,3 +19,4 @@ supplied via POST and retained by Declarative Onboarding.
    installation
    composing-a-declaration
    clustering
+   big-iq-licensing
