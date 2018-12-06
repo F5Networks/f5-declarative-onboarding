@@ -114,7 +114,7 @@
                             "default": "monthly"
                         },
                         "reachable": {
-                            "description": "Whether or not BIG-IQ has a route to this BIG-IP device.",
+                            "description": "Whether or not BIG-IQ has a route to the BIG-IP device.",
                             "type": "boolean",
                             "default": true
                         },
