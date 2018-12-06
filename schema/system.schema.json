@@ -100,15 +100,15 @@
                             "type": "string"
                         },
                         "skuKeyword1": {
-                            "description": "skuKeyword1 parameter for CLPv2 licensing.",
+                            "description": "skuKeyword1 parameter for subscription licensing.",
                             "type": "string"
                         },
                         "skuKeyword2": {
-                            "description": "skuKeyword2 parameter for CLPv2 licensing.",
+                            "description": "skuKeyword2 parameter for subscription licensing.",
                             "type": "string"
                         },
                         "unitOfMeasure": {
-                            "description": "unitOfMeasure parameter for CLPv2 licensing.",
+                            "description": "unitOfMeasure parameter for subscription licensing.",
                             "type": "string",
                             "enum": ["yearly", "monthly", "daily", "hourly"],
                             "default": "monthly"
