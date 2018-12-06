@@ -51,7 +51,7 @@ create docs:
 
 # Deploy docs to Pages for review
 # Docs are staged on this projects pages site
-doc-pages:
+pages:
     stage: publish
     environment:
         name: review
