@@ -3,7 +3,12 @@
 
 Composing a declaration for licensing BIG-IP with a BIG-IQ
 ==========================================================
-If you have an existing BIG-IQ device with a pool of F5 licenses (BIG-IQ License Manager), you can reference it from your Declarative Onboarding declaration in order to license your BIG-IP device. To use this feature, you must have a BIG-IQ device with a pool of BIG-IP VE licenses. Only Registration Key and ELA/subscription pools are supported. See the |bigiq| for more detailed information on License pool types.
+If you have an existing BIG-IQ device with a pool of F5 licenses (BIG-IQ License Manager), you can reference it from your Declarative Onboarding declaration in order to license your BIG-IP device. 
+
+To use this feature:
+
+- You must have an existing BIG-IQ device with a pool of BIG-IP VE licenses. 
+- The license pool can only be a Registration Key pool or a ELA/subscription pool. See the |bigiq| for more detailed information on License pool types.
 
 
 Declaration class licensing with BIG-IQ
@@ -54,7 +59,7 @@ The License class contains information about your BIG-IQ device.
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+                                       
 | bigIqUsername      | string                                      |   Yes      |  An admin user on the BIG-IQ you specified in bigIqHost.                                                                                                                                                                          |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| bigIqPassword      | string                                      |   No       |  The password for your BIG-IQ device.  If you do not want to include your BIG-IQ password in your declaration, use bigIqPasswordUri instead.  **NOTE** Either bigIqPassword or bigIqPasswordUri is required.                      |
+| bigIqPassword      | string                                      |   No       |  The password for your BIG-IQ device.  If you do not want to include your BIG-IQ password in your declaration, use bigIqPasswordUri instead.  **NOTE** Either *bigIqPassword* or *bigIqPasswordUri* is required.                  |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | bigIqPasswordUri   | string (URI)                                |   No       |  While not shown in the example above, you can use this property instead of **bigIqPassword** to specify the URI that will return the password for the username if you do not want to include the password in your declaration.   |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -75,9 +80,13 @@ The License class contains information about your BIG-IQ device.
 | hypervisor         | aws, azure, gce, vmware, hyperv, kvm, xen   |   Yes**    |  If reachable = false, specify the hypervisor in which the BIG-IP is running                                                                                                                                                      |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
-\* Required if reachable = true only  
-
+\* Required if reachable = true only |br|
 \** Required by BIG-IQ if reachable = false only
+
+
+Again, for the full BIG-IQ Licensing example declaration, see :ref:`example3` and :ref:`example4`.
+
+|
 
 
 .. |bigiq| raw:: html
@@ -85,5 +94,7 @@ The License class contains information about your BIG-IQ device.
    <a href="https://support.f5.com/kb/en-us/products/big-iq-centralized-mgmt/manuals/product/bigiq-central-mgmt-device-5-3-0/3.html" target="_blank">BIG-IQ documentation</a>
 
 
-
+.. |br| raw:: html
+   
+   <br />
 
