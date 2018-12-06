@@ -11,9 +11,6 @@
             "bigIqUsername": "admin",
             "bigIqPassword": "foofoo",
             "licensePool": "myPool",
-            "skuKeyword1": "key1",
-            "skuKeyword2": "key2",
-            "unitOfMeasure": "hourly",
             "reachable": false,
             "hypervisor": "vmware"
         },
