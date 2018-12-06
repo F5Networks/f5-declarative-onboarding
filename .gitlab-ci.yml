@@ -29,19 +29,6 @@ build_rpm:
 
 
 
-pages:
-    stage: publish
-    tags:
-        - docker-executor
-    only:
-        - develop
-    script:
-        - node build/generateDocs.js
-    artifacts:
-        paths:
-            - public
-
-
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: package
