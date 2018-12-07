@@ -218,7 +218,7 @@ class RestWorker {
                         err.message
                     );
                 })
-                .finally(() => {
+                .then(() => {
                     if (!declaration.async) {
                         logger.fine('Sending response.');
                         sendResponse.call(this, restOperation);
@@ -306,7 +306,7 @@ function load() {
         this.loadState(null, (err, state) => {
             if (err) {
                 const message = `error loading state: ${err.message}`;
-                this.logger.warning(message);
+                logger.warning(message);
                 reject(err);
             }
 
