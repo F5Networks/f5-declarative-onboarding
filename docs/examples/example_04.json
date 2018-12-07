@@ -9,7 +9,7 @@
             "licenseType": "licensePool",
             "bigIqHost": "10.0.1.200",
             "bigIqUsername": "admin",
-            "bigIqPassword": "foofoo",
+            "bigIqPassword": "myPassword1",
             "licensePool": "myPool",
             "reachable": false,
             "hypervisor": "vmware"

@@ -9,7 +9,7 @@
             "licenseType": "licensePool",
             "bigIqHost": "10.0.1.200",
             "bigIqUsername": "admin",
-            "bigIqPassword": "foofoo",
+            "bigIqPassword": "myPassword1",
             "licensePool": "myPool",
             "skuKeyword1": "key1",
             "skuKeyword2": "key2",
