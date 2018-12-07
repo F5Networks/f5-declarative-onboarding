@@ -13,6 +13,7 @@ test:
         - npm install
         - npm run lint
         - npm test
+        - npm run coveralls
 
 build_rpm:
     image: node:8-alpine
@@ -26,8 +27,6 @@ build_rpm:
         name: f5-decon-$CI_BUILD_REF
         paths:
             - build/rpmbuild/RPMS/noarch/
-
-
 
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}

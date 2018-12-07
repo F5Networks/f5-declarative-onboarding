@@ -1,5 +1,7 @@
 .vscode
+.nyc_output/
 out/
 node_modules/
 build/rpmbuild/
 docs/_build/
+coverage/
