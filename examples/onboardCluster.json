@@ -53,6 +53,24 @@
             "class": "Provision",
             "ltm": "nominal"
         },
+        "internal": {
+            "class": "VLAN",
+            "tag": 4093,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.2",
+                    "tagged": false
+                }
+            ]
+        },
+        "internal-self": {
+            "class": "SelfIp",
+            "address": "10.10.0.100/24",
+            "vlan": "internal",
+            "allowService": "default",
+            "trafficGroup": "traffic-group-local-only"
+        },
         "external": {
             "class": "VLAN",
             "tag": 4094,
@@ -60,30 +78,37 @@
             "interfaces": [
                 {
                     "name": "1.1",
-                    "tagged": true
+                    "tagged": false
                 }
             ]
         },
+        "external-localself": {
+            "class": "SelfIp",
+            "address": "10.20.0.100/24",
+            "vlan": "external",
+            "allowService": "none",
+            "trafficGroup": "traffic-group-local-only"
+        },
         "external-self": {
             "class": "SelfIp",
-            "address": "10.0.1.100/24",
+            "address": "10.20.0.200/24",
             "vlan": "external",
-            "allowService": "all",
-            "trafficGroup": "traffic-group-local-only"
+            "allowService": "none",
+            "trafficGroup": "traffic-group-1"
         },
         "default": {
             "class": "Route",
-            "gw": "10.0.1.1",
+            "gw": "10.10.0.1",
             "network": "default",
             "mtu": 1500
         },
         "configsync": {
             "class": "ConfigSync",
-            "configsyncIp": "/Common/external-self/address"
+            "configsyncIp": "/Common/internal-self/address"
         },
         "failoverAddress": {
             "class": "FailoverUnicast",
-            "address": "/Common/external-self/address"
+            "address": "/Common/internal-self/address"
         },
         "failoverGroup": {
             "class": "DeviceGroup",
