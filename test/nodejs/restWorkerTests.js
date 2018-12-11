@@ -41,6 +41,8 @@ describe('restWorker', () => {
     beforeEach(() => {
         restOperationMock = {
             setStatusCode() {},
+            setContentType() {},
+            getContentType() { return 'application/json'; },
             setBody(body) { responseBody = body; },
             getBody() { return {}; },
             getUri() {
@@ -289,6 +291,43 @@ describe('restWorker', () => {
                     assert.notStrictEqual(responseBody.message.indexOf('bad declaration'), -1);
                     resolve();
                 };
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should handle missing content header with valid content', () => {
+            return new Promise((resolve, reject) => {
+                restOperationMock.complete = () => {
+                    resolve();
+                };
+
+                restOperationMock.getContentType = () => {};
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should handle missing content header with invalid content', () => {
+            return new Promise((resolve, reject) => {
+                restOperationMock.complete = () => {
+                    assert.strictEqual(responseBody.code, 400);
+                    assert.strictEqual(responseBody.status, STATUS.STATUS_ERROR);
+                    assert.notStrictEqual(responseBody.message.indexOf('bad declaration'), -1);
+                    assert.notStrictEqual(responseBody.errors[0].indexOf('Should be JSON format'), -1);
+                    resolve();
+                };
+
+                restOperationMock.getContentType = () => {};
+                restOperationMock.getBody = () => { return 'foobar'; };
 
                 try {
                     restWorker.onPost(restOperationMock);

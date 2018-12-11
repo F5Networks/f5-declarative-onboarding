@@ -119,7 +119,24 @@ class RestWorker {
      */
     onPost(restOperation) {
         logger.finest('Got onboarding request.');
-        const declaration = Object.assign({}, restOperation.getBody());
+
+        const contentType = restOperation.getContentType() || '';
+        let body = restOperation.getBody();
+        if (contentType.toLowerCase() !== 'application/json') {
+            try {
+                body = JSON.parse(body);
+            } catch (err) {
+                const message = 'Unable to parse request body. Should be JSON format.';
+                logger.info(message);
+                this.state.doState.declaration = {};
+                this.state.doState.errors = null;
+                this.state.doState.updateResult(400, STATUS.STATUS_ERROR, 'bad declaration', message);
+                sendResponse.call(this, restOperation);
+                return;
+            }
+        }
+
+        const declaration = Object.assign({}, body);
         const validation = this.validator.validate(declaration);
         this.state.doState.declaration = declaration;
         this.state.doState.errors = null;
@@ -329,6 +346,7 @@ function sendResponse(restOperation) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
     const doState = new State(this.state.doState);
+    restOperation.setContentType('application/json');
     restOperation.setStatusCode(doState.code);
     restOperation.setBody(new Response(doState, restOperation.getUri().query));
     restOperation.complete();
