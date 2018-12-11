@@ -294,7 +294,7 @@ function createOrUpdateUser(username, data) {
             return Promise.resolve();
         })
         .catch((err) => {
-            logger.severs(`Error creating/updating user: ${err}`);
+            logger.severe(`Error creating/updating user: ${err}`);
             return Promise.reject(err);
         });
 }

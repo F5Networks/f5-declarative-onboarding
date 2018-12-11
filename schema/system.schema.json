@@ -298,7 +298,7 @@
                         "shell": {
                             "description": "Shell for the user.",
                             "type": "string",
-                            "enum": ["bash", "tmsh"],
+                            "enum": ["bash", "tmsh", "none"],
                             "default": "tmsh"
                         }
                     },
