@@ -262,15 +262,11 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
  *                    or rejected if an error occurs.
  */
 function joinDeviceGroup(deviceGroupName, deviceGroup, hostname) {
-    // If we are not the owner, make sure we are in the group
-    return this.bigIp.cluster.hasDeviceGroup(deviceGroupName)
-        .then((hasDeviceGroup) => {
-            if (!hasDeviceGroup) {
-                const message = `Device group ${deviceGroupName} does not exist on this device.`;
-                logger.info(message);
-                return Promise.reject(new Error(message));
-            }
-
+    // Wait till we have the device group. Once addToTrust is finished
+    // and the owning device creates the group, we should have it but maybe
+    // we are coming up before the owner, so wait.
+    return waitForDeviceGroup.call(this, deviceGroupName)
+        .then(() => {
             return this.bigIp.cluster.addToDeviceGroup(hostname, deviceGroupName);
         })
         .then(() => {
@@ -299,6 +295,23 @@ function joinDeviceGroup(deviceGroupName, deviceGroup, hostname) {
             logger.severe(`Error joining device group: ${err.message}`);
             return Promise.reject(err);
         });
+}
+
+function waitForDeviceGroup(deviceGroupName) {
+    function checkDeviceGroup() {
+        return new Promise((resolve, reject) => {
+            this.bigIp.cluster.hasDeviceGroup(deviceGroupName)
+                .then((hasDeviceGroup) => {
+                    if (hasDeviceGroup) {
+                        resolve();
+                    } else {
+                        reject(new Error(`Device group ${deviceGroupName} does not exist on this device.`));
+                    }
+                });
+        });
+    }
+
+    return cloudUtil.tryUntil(this, cloudUtil.DEFAULT_RETRY, checkDeviceGroup);
 }
 
 module.exports = DscHandler;
