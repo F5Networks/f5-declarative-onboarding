@@ -5,4 +5,6 @@ RPM_NAME=f5-declarative-onboarding-${VERSION}-${RELEASE}.noarch.rpm
 rm -rf node_modules
 npm install --production
 rpmbuild -bb --define "main $(pwd)" --define '_topdir %{main}/build/rpmbuild' --define "_version ${VERSION}" --define "_release ${RELEASE}" build/f5-declarative-onboarding.spec
-sha256sum build/rpmbuild/RPMS/noarch/${RPM_NAME} > build/rpmbuild/RPMS/noarch/${RPM_NAME}.sha256
+pushd build/rpmbuild/RPMS/noarch
+sha256sum ${RPM_NAME} > ${RPM_NAME}.sha256
+popd
