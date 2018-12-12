@@ -52,8 +52,12 @@ class SystemHandler {
             return Promise.resolve();
         }
 
-        logger.fine('Checking NTP.');
-        return handleNTP.call(this)
+        logger.fine('Checking db variables.');
+        return handleDbVars.call(this)
+            .then(() => {
+                logger.fine('Checking NTP.');
+                return handleNTP.call(this);
+            })
             .then(() => {
                 logger.fine('Checking DNS.');
                 return handleDNS.call(this);
@@ -83,6 +87,13 @@ class SystemHandler {
                 return Promise.reject(err);
             });
     }
+}
+
+function handleDbVars() {
+    if (this.declaration.Common.DbVariables) {
+        return this.bigIp.onboard.setDbVars(this.declaration.Common.DbVariables);
+    }
+    return Promise.resolve();
 }
 
 function handleNTP() {

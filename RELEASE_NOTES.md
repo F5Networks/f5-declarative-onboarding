@@ -2,6 +2,7 @@
 
 ## Version 1.1.0
 + Support licensing via BIG-IQ utility, purchased, and reg key pools.
++ Allow setting global db variables.
 + Allow partition access 'all-partitions' when creating regular users.
 + Allow shell of 'none' when creating regular users.
 + Better reporting of schema validation errors.

@@ -137,6 +137,25 @@
             }
         },
         {
+            "if": { "properties": { "class": { "const": "DbVariables" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains global db variable configuration.",
+                        "type": "string",
+                        "const": "DbVariables"
+                    }
+                },
+                "propertyNames": {
+                    "description": "The name of the db variable."
+                },
+                "additionalProperties": {
+                    "description": "The value to set for the db variable."
+                }
+            }
+        },
+        {
             "if": { "properties": { "class": { "const": "Provision" } } },
             "then": {
                 "required": ["class"],

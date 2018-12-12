@@ -160,6 +160,7 @@ class DeclarationParser {
 
         // classes that have config objects without a name property
         const NAMELESS_CLASSES = [
+            'DbVariables',
             'DNS',
             'NTP',
             'License',

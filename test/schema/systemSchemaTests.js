@@ -304,6 +304,19 @@ describe('system.schema.json', () => {
         });
     });
 
+    describe('DbVariables', () => {
+        describe('valid', () => {
+            it('should validate db variable data', () => {
+                const data = {
+                    "class": "DbVariables",
+                    "foo": "bar",
+                    "some.number": 3
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+    });
+
     describe('NTP', () => {
         describe('valid', () => {
             it('should validate ntp data', () => {

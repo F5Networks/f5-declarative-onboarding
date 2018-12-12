@@ -58,6 +58,37 @@ describe('systemHandler', () => {
         });
     });
 
+    it('should handle DbVariables', () => {
+        const declaration = {
+            Common: {
+                DbVariables: {
+                    foo: 'bar',
+                    hello: 123
+                }
+            }
+        };
+
+        let dbVarsSent;
+        bigIpMock.onboard = {
+            setDbVars(dbVars) {
+                dbVarsSent = dbVars;
+                return Promise.resolve();
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.deepEqual(dbVarsSent, declaration.Common.DbVariables);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
     it('should handle NTP', () => {
         const declaration = {
             Common: {
