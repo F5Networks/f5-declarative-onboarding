@@ -4,6 +4,12 @@
     "Common": {
         "class": "Tenant",
         "hostname": "bigip.example.com",
+        "dbvars": {
+        	"class": "DbVariables",
+        	"ui.advisory.enabled": true,
+        	"ui.advisory.color": "green",
+        	"ui.advisory.text": "/Common/hostname"
+        },
         "myLicense": {
             "class": "License",
             "licenseType": "regKey",
