@@ -27,6 +27,14 @@ class DiffHandler {
      */
     constructor(classesOfTruth) {
         this.classesOfTruth = classesOfTruth.slice();
+        // Although we may be the source of truth for 'hostname', we do not want
+        // to diff it beccause hostname is set in 2 different places. Better
+        // to let f5-cloud-libs handle checking it.
+        for (let i = 0; i < this.classesOfTruth.length; i++) {
+            if (this.classesOfTruth[i] === 'hostname') {
+                this.classesOfTruth.splice(i, 1);
+            }
+        }
     }
 
     /**

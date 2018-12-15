@@ -107,4 +107,31 @@ describe('diffHandler', () => {
                 });
         });
     });
+
+    it('should leave hostname alone', () => {
+        return new Promise((resolve, reject) => {
+            const hostname = 'bigip1.example.com';
+
+            const toDeclaration = {
+                Common: {
+                    hostname
+                }
+            };
+            const fromDeclaration = {
+                Common: {
+                    hostname
+                }
+            };
+
+            const diffHandler = new DiffHandler(['hostname']);
+            diffHandler.process(toDeclaration, fromDeclaration)
+                .then((diff) => {
+                    assert.deepEqual(diff.toUpdate.Common.hostname, hostname);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
 });
