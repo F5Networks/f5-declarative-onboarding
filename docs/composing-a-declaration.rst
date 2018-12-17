@@ -228,6 +228,10 @@ The name *myNTP* we use in this example is arbitrary; it is not used anywhere in
 
 .. _user-class:
 
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The **all-partitions** value for partitionAccess is available in Declarative Onboarding 1.1.0 and later.
+
 User class
 ``````````
 The next lines of the declaration create (or modify) the users and their associated roles and access control. 
@@ -252,12 +256,22 @@ If you are modifying the root password, you must supply the existing root passwo
         "password": "asdfjkl",
         "shell": "bash"
     },
+    "guestUser": {
+        "class": "User",
+        "userType": "regular",
+        "password": "guestNewPass1",
+        "partitionAccess": {
+            "Common": {
+                "role": "guest"
+            }
+        }
+    },
     "anotherUser": {
         "class": "User",
         "userType": "regular",
         "password": "myPass1word",
         "partitionAccess": {
-            "Common": {
+            "all-partitions": {
                 "role": "guest"
             }
         }
@@ -301,7 +315,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 54
+   :lineno-start: 64
 
 
     "myProvisioning": {
@@ -335,7 +349,7 @@ The next lines of the declaration configure VLANs on the BIG-IP system. In this 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 59
+   :lineno-start: 69
 
     "external": {
         "class": "VLAN",
@@ -344,6 +358,17 @@ The next lines of the declaration configure VLANs on the BIG-IP system. In this 
         "interfaces": [
             {
                 "name": "1.1",
+                "tagged": true
+            }
+        ]
+    },
+    "internal": {
+        "class": "VLAN",
+        "tag": 4093,
+        "mtu": 1500,
+        "interfaces": [
+            {
+                "name": "1.2",
                 "tagged": true
             }
         ]
@@ -377,12 +402,19 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 70
+   :lineno-start: 91
 
     "external-self": {
         "class": "SelfIp",
         "address": "1.2.3.4/24",
         "vlan": "external",
+        "allowService": "default",
+        "trafficGroup": "traffic-group-local-only"
+    },
+    "internal-self": {
+        "class": "SelfIp",
+        "address": "10.10.0.100/24",
+        "vlan": "internal",
         "allowService": "default",
         "trafficGroup": "traffic-group-local-only"
     },
@@ -415,7 +447,7 @@ The next lines of the declaration configure routes on the BIG-IP system.   In th
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 77
+   :lineno-start: 105
 
         "myRoute": {
                 "class": "Route",
@@ -424,7 +456,7 @@ The next lines of the declaration configure routes on the BIG-IP system.   In th
                 "mtu": 0
             }
         }
-    }
+    },
 
 
 +--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
@@ -443,8 +475,43 @@ The next lines of the declaration configure routes on the BIG-IP system.   In th
 
 \* The required column applies only if you are using this class.
 
+
+.. _dbvars-class:
+
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for database variables is available in Declarative Onboarding 1.1.0 and later.
+
+DB Variable class
+`````````````````
+The next lines of the declaration enable the ability to set arbitrary database variables in a declaration. You simply supply a name and a value for the database variable you want to use.
+
+
+
+.. code-block:: javascript
+   :linenos:
+   :lineno-start: 111
+
+        "dbvars": {
+            "class": "DbVariables",
+            "ui.advisory.enabled": true,
+            "ui.advisory.color": "green",
+            "ui.advisory.text": "/Common/hostname"
+        },
+
        
 
++----------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter            | Options                                                                                   | Required*? |  Description/Notes                                                                                                                 |
++======================+===========================================================================================+============+====================================================================================================================================+
+| class                | DbVariables                                                                               |   Yes      |  Indicates that this property contains global db variable configuration.                                                           |
++----------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| propertyNames        | string                                                                                    |   Yes      |  The name of the db variable.                                                                                                      |
++----------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| additionalProperties | string                                                                                    |   Yes      |  The value to set for the db variable.                                                                                             |
++----------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+
+\* The required column applies only if you are using this class.
  
 
 .. |user| raw:: html
