@@ -12,6 +12,7 @@
 + Dis-allow sync-failover device group with both autoSync and fullLoadOnSync.
 + Ensure that non-floating self IPs are created before floating self IPs.
 + Handle missing content-type header.
++ Fix issue where device name was not being set if hostname already matched declaration.
 
 ## Version 1.0.0
 + Supports
