@@ -11,10 +11,6 @@
             "licenseType": "regKey",
             "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
         },
-        "myProvisioning": {
-            "class": "Provision",
-            "ltm": "nominal"
-        },
         "myDns": {
             "class": "DNS",
             "nameServers": [
@@ -45,15 +41,30 @@
             "password": "asdfjkl",
             "shell": "bash"
         },
-        "anotherUser": {
+        "guestUser": {
             "class": "User",
             "userType": "regular",
-            "password": "myPass1word",
+            "password": "guestNewPass1",
             "partitionAccess": {
                 "Common": {
                     "role": "guest"
                 }
             }
+        },
+        "anotherUser": {
+            "class": "User",
+            "userType": "regular",
+            "password": "myPass1word",
+            "partitionAccess": {
+                "all-partitions": {
+                    "role": "guest"
+                }
+            }
+        },
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal",
+            "gtm": "minimal"
         },
         "external": {
             "class": "VLAN",
@@ -65,6 +76,24 @@
                     "tagged": false
                 }
             ]
+        },
+        "internal": {
+            "class": "VLAN",
+            "tag": 4093,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.2",
+                    "tagged": true
+                }
+            ]
+        },
+        "internal-self": {
+            "class": "SelfIp",
+            "address": "10.10.0.100/24",
+            "vlan": "internal",
+            "allowService": "default",
+            "trafficGroup": "traffic-group-local-only"
         },
         "external-self": {
             "class": "SelfIp",
@@ -78,6 +107,12 @@
             "gw": "1.2.3.254",
             "network": "default",
             "mtu": 0
+        },
+        "dbvars": {
+        	"class": "DbVariables",
+        	"ui.advisory.enabled": true,
+        	"ui.advisory.color": "green",
+        	"ui.advisory.text": "/Common/hostname"
         }
     }
 }
