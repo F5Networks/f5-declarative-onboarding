@@ -1,8 +1,8 @@
 # f5-declarative-onboarding
 
 [![Slack Status](https://f5cloudsolutions.herokuapp.com/badge.svg)](https://f5cloudsolutions.herokuapp.com)
-[![Releases](https://img.shields.io/github/release/f5devcentral/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/releases)
-[![Issues](https://img.shields.io/github/issues/f5devcentral/f5-declarative-onboarding.svg)](https://github.com/f5devcentral/f5-declarative-onboarding/issues)
+[![Releases](https://img.shields.io/github/release/F5Networks/f5-declarative-onboarding.svg)](https://github.com/F5Networks/f5-declarative-onboarding/releases)
+[![Issues](https://img.shields.io/github/issues/F5Networks/f5-declarative-onboarding.svg)](https://github.com/F5Networks/f5-declarative-onboarding/issues)
 
 ## Introduction
 F5 Declarative onboarding uses a declarative model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.
@@ -14,9 +14,11 @@ For the documentation on Declarative Onboarding, including download, installatio
 The Declarative Onboarding documentation contains example declarations you can modify to suit your needs.  See the [Examples](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/examples.html) page.
 
 ## Filing Issues and Getting Help
-If you come across a bug or other issue when using Declarative Onboarding, use [GitHub Issues](https://github.com/F5devcentral/f5-declarative-onboarding/issues) to submit an issue for our team.  You can also see the current known issues on that page, which are tagged with a purple Known Issue label.
+If you come across a bug or other issue when using Declarative Onboarding, use [GitHub Issues](https://github.com/F5Networks/f5-declarative-onboarding/issues) to submit an issue for our team.  You can also see the current known issues on that page, which are tagged with a purple Known Issue label.
 
-**Although Declarative Onboarding has been created and tested by F5 Networks, it is not yet supported by F5. This means that support is not available from F5 Technical Support. Be sure to see the [Support page](SUPPORT.md) in this repo for more details.**
+Because Declarative Onboarding v1.1.0 and later has been created and fully tested by F5 Networks, it is fully supported by F5. This means you can get assistance if necessary from [F5 Technical Support](https://support.f5.com/csp/article/K25327565).  
+
+Be sure to see the [Support page](SUPPORT.md) in this repo for more details and supported versions of AS3.  
 
 ### Community Help
 We encourage you to use our [Slack channel](https://f5cloudsolutions.herokuapp.com) for discussion and assistance on Declarative Onboarding templates (click the **declarative-onboard** channel). There are F5 employees who are members of this community who typically monitor the channel Monday-Friday 9-5 PST and will offer best-effort assistance. See the [Slack Channel Statement](slack-channel-statement.md) for guidelines on using this channel.

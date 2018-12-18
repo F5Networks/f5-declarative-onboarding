@@ -1,4 +1,5 @@
-.. _prereqs
+
+.. _prereqs:
 
 Prerequisites and Requirements
 ------------------------------

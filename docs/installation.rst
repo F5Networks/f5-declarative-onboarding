@@ -28,8 +28,8 @@ You can use SCP to upload the RPM file to the BIG-IP system.  Note that even if 
 
 .. _uploadcurl:
 
-Uploading Declarative Onboarding using cURL from the Linux shell
-`````````````````````````````````````````````````````````````````
+Uploading Declarative Onboarding using cURL
+```````````````````````````````````````````
 
 If you want to use cURL to install Declarative Onboarding, use the following command syntax.  First, set the file name and the BIG-IP credentials, making sure you use the appropriate RPM build number (1 in the following example), and BIG-IP credentials.  
 
@@ -45,7 +45,7 @@ If you are using a single NIC BIG-IP system, you must include port 8443 after th
 
 |
 
-Copy the following commands to upload the package. Note you must be in the same directory where you downloaded the RPM package. If you uploaded the RPM by another method, you can skip these commands.
+Copy the following commands to upload the package (if using Mac, use the second code box for the first command). Note you must be in the same directory where you downloaded the RPM package. If you uploaded the RPM by another method, you can skip these commands.
 
 .. code-block:: shell
 
@@ -54,6 +54,13 @@ Copy the following commands to upload the package. Note you must be in the same 
     curl -kvu $CREDS https://$IP/mgmt/shared/file-transfer/uploads/$FN -H 'Content-Type: application/octet-stream' -H "Content-Range: 0-$((LEN - 1))/$LEN" -H "Content-Length: $LEN" -H 'Connection: keep-alive' --data-binary @$FN
 
 |
+
+If you are using a Mac, for the first command, use 
+
+.. code-block:: shell
+
+    LEN=$(wc -c $FN | cut -f 2 -d ' ') 
+
 
 .. _installcurl-ref:
 
@@ -71,6 +78,8 @@ If you used SCP to upload the package, first set the BIG-IP IP address and crede
     curl -kvu $CREDS "https://$IP/mgmt/shared/iapp/package-management-tasks" -H "Origin: https://$IP" -H 'Content-Type: application/json;charset=UTF-8' --data $DATA
 
 |
+
+For information on how you can view the status of installation, see |status|.
 
 Updating Declarative Onboarding
 ```````````````````````````````
@@ -105,3 +114,7 @@ You can compare the checksum produced by that command against the **.sha256** fi
 .. |github| raw:: html
 
    <a href="https://github.com/F5Networks/declarative-onboarding/tree/master/dist" target="_blank">F5 Declarative Onboarding site on GitHub</a>
+
+.. |status| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/iapp/iapp-lx/tmos-14_0/icontrollx_pacakges/working_with_icontrollx_packages.html" target="_blank">Working with iControl LX packages</a>

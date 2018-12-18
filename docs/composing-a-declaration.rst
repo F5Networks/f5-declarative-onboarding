@@ -19,7 +19,7 @@ In this section, we first show the sample declaration, and then we break it down
 Sample declaration for a standalone BIG-IP
 ------------------------------------------
 
-In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of the parts of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`.
+In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of the parts of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`. To see how to use BIG-IQ to license your BIG-IP VEs, see :doc:`big-iq-licensing`.
 
 This example is the entire declaration.  The following sections break down each class of this example declaration. 
 
@@ -483,10 +483,12 @@ The next lines of the declaration configure routes on the BIG-IP system.   In th
 
    Support for database variables is available in Declarative Onboarding 1.1.0 and later.
 
+
 DB Variable class
 `````````````````
 The next lines of the declaration enable the ability to set arbitrary database variables in a declaration. You simply supply a name and a value for the database variable you want to use.
 
+|
 
 
 .. code-block:: javascript
