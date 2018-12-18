@@ -12,7 +12,7 @@ If you have an existing BIG-IQ device with a pool of F5 licenses (BIG-IQ License
 To use this feature:
 
 - You must have an existing BIG-IQ device with a pool of BIG-IP VE licenses. 
-- The license pool can only be a Registration Key pool, Purchase Pool, or a ELA/subscription pool. See the |bigiq| documentation for more detailed information on License pool types.
+- The license pool can only be a Registration Key pool, Purchased Pool, or a ELA/subscription pool. See the |bigiq| documentation for more detailed information on License pool types.
 
 
 Declaration class licensing with BIG-IQ
@@ -57,7 +57,7 @@ The License class contains information about your BIG-IQ device.
 +====================+=============================================+============+===================================================================================================================================================================================================================================+
 | class              | License                                     |   Yes      |  Indicates that this property contains licensing information                                                                                                                                                                      |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| licenseType        | licensePool, regKey                         |   Yes      |  You must specify either RegKey or license pool.   **NOTE** The rest of this table is specific to licensePool.  For regKey options, see :doc:`composing-a-declaration`                                                            |
+| licenseType        | licensePool, regKey                         |   Yes      |  You must specify either regKey or licensePool.   **NOTE** The rest of this table is specific to licensePool.  For regKey options, see :doc:`composing-a-declaration`                                                            |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+         
 | bigIqHost          | string  (IPv4/IPv6 address or hostname)     |   Yes      |  The IP address or hostname of the BIG-IQ device with the license pool.                                                                                                                                                           |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+                                       
