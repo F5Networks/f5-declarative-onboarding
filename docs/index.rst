@@ -9,7 +9,9 @@ A declarative model means you provide a JSON declaration rather than a set of im
 
 This guide contains information on downloading, installing, and using F5 Declarative Onboarding.
 
-See :ref:`revision-history` for information on document changes. To provide feedback on this documentation, you can file a GitHub Issue or email us at solutionsfeedback@f5.com. 
+.. NOTE:: To see what's new in Declarative Onboarding, see the the :ref:`revision-history` 
+
+To provide feedback on this documentation, you can file a GitHub Issue or email us at solutionsfeedback@f5.com. 
 
 Use the following links, the navigation on the left, and/or the Next and Previous buttons to explore the documentation.
 

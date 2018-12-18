@@ -236,7 +236,7 @@ User class
 ``````````
 The next lines of the declaration create (or modify) the users and their associated roles and access control. 
 
-If you are modifying the root password, you must supply the existing root password (**default** on a new BIG-IP). All other user accounts, including admin, do not have this requirement.
+If you are modifying the root password, you must supply the existing root password (**default** on a new BIG-IP). All other user accounts, including admin, do not have this requirement. As mentioned in the :ref:`prereqs`, if you are using BIG-IP v14.0 or later, the root password may be the same as your admin password you reset before installing Declarative Onboarding. 
 
 
 .. code-block:: javascript
