@@ -230,7 +230,7 @@ The name *myNTP* we use in this example is arbitrary; it is not used anywhere in
 
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The **all-partitions** value for partitionAccess is available in Declarative Onboarding 1.1.0 and later.
+   The options **all-partitions** for partitionAccess and **none** for shell access are available in Declarative Onboarding 1.1.0 and later.
 
 User class
 ``````````
@@ -270,6 +270,7 @@ If you are modifying the root password, you must supply the existing root passwo
         "class": "User",
         "userType": "regular",
         "password": "myPass1word",
+        "shell": "none",
         "partitionAccess": {
             "all-partitions": {
                 "role": "guest"
@@ -297,7 +298,7 @@ If you are modifying the root password, you must supply the existing root passwo
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | role               | admin, auditor, guest, manager, operator, user-manager, application-editor, certificate-manager, irule-manager, no-access, resource-admin  | Yes        | The BIG-IP user role you want to assign to the user.  See |user| for information on specific user roles.  Required if you are using partitionAccess.                                                                                            |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| shell              | **tmsh**, bash   (non-root only)                                                                                                           | No         | The shell you want the user to be able to use. The default is tmsh.                                                                                                                                                                             |
+| shell              | **tmsh**, bash, none   (non-root only)                                                                                                     | No         | The shell you want the user to be able to use. The default is tmsh. In Declarative Onboarding 1.1.0 and later, you can use **none** when creating non-root users.                                                                               |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
  
 
@@ -315,7 +316,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 64
+   :lineno-start: 65
 
 
     "myProvisioning": {
@@ -349,7 +350,7 @@ The next lines of the declaration configure VLANs on the BIG-IP system. In this 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 69
+   :lineno-start: 70
 
     "external": {
         "class": "VLAN",
@@ -402,7 +403,7 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 91
+   :lineno-start: 92
 
     "external-self": {
         "class": "SelfIp",
@@ -447,7 +448,7 @@ The next lines of the declaration configure routes on the BIG-IP system.   In th
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 105
+   :lineno-start: 106
 
         "myRoute": {
                 "class": "Route",
@@ -490,7 +491,7 @@ The next lines of the declaration enable the ability to set arbitrary database v
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 111
+   :lineno-start: 112
 
         "dbvars": {
             "class": "DbVariables",
