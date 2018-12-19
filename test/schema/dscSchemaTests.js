@@ -21,7 +21,7 @@ const Ajv = require('ajv');
 
 const ajv = new Ajv(
     {
-        allErrors: true,
+        allErrors: false,
         useDefaults: true,
         coerceTypes: true,
         extendRefs: 'fail'
