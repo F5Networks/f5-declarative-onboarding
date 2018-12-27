@@ -16,9 +16,8 @@
 
 'use strict';
 
+const net = require('net');
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
-const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
-
 const Logger = require('./logger');
 
 const logger = new Logger(module);
@@ -38,6 +37,7 @@ module.exports = {
      * @param {Logger} callingLogger - {@link Logger} object from caller.
      * @param {Object} [options] - Optional parameters.
      * @param {String} [options.host] - IP or hostname of BIG-IP. Default localhost.
+     * @param {Number} [options.port] - Port for management address on host.
      * @param {String} [options.user] - User for iControl REST commands. Default admin.
      * @param {String} [options.password] - Password for iControl REST user. Default admin.
      */
@@ -48,23 +48,28 @@ module.exports = {
         return initializeBigIp(
             bigIp,
             optionalArgs.host || 'localhost',
+            optionalArgs.port,
             optionalArgs.user || 'admin',
             optionalArgs.password || 'admin'
         );
     }
 };
 
-function initializeBigIp(bigIp, host, user, password) {
-    return cloudUtil.runTmshCommand('list sys httpd ssl-port')
-        .then((response) => {
-            const regex = /(\s+ssl-port\s+)(\S+)\s+/;
-            const port = regex.exec(response)[2];
+function initializeBigIp(bigIp, host, port, user, password) {
+    let portPromise;
+    if (port) {
+        portPromise = Promise.resolve(port);
+    } else {
+        portPromise = getPort();
+    }
+    return portPromise
+        .then((managmentPort) => {
             return bigIp.init(
                 host,
                 user,
                 password,
                 {
-                    port,
+                    port: managmentPort,
                     product: 'BIG-IP'
                 }
             );
@@ -76,4 +81,32 @@ function initializeBigIp(bigIp, host, user, password) {
             logger.severe(`Error initializing BigIp: ${err.message}`);
             return Promise.reject(err);
         });
+}
+
+/**
+ * Gets the port for the management address when running on a BIG-IP
+ */
+function getPort(host) {
+    const ports = [8443, 443];
+
+    function tryPort(index, resolve, reject) {
+        if (index < ports.length) {
+            const port = ports[index];
+            const socket = net.createConnection({ host, port });
+            socket.on('connect', () => {
+                socket.end();
+                resolve(port);
+            });
+            socket.on('error', () => {
+                socket.destroy();
+                tryPort(index + 1, resolve, reject);
+            });
+        } else {
+            reject(new Error('Could not determine device port'));
+        }
+    }
+
+    return new Promise((resolve, reject) => {
+        tryPort(0, resolve, reject);
+    });
 }

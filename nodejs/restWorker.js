@@ -136,8 +136,21 @@ class RestWorker {
             }
         }
 
-        const declaration = Object.assign({}, body);
-        const validation = this.validator.validate(declaration);
+        // Set the declaration to the base request (no remote info)
+        // and the wrapper to a remote request
+        let declaration = Object.assign({}, body);
+        let wrapper;
+        if (declaration.class !== 'DO') {
+            wrapper = {
+                declaration,
+                class: 'DO'
+            };
+        } else {
+            wrapper = declaration;
+            declaration = wrapper.declaration;
+        }
+
+        const validation = this.validator.validate(wrapper);
         this.state.doState.declaration = declaration;
         this.state.doState.errors = null;
 
@@ -160,7 +173,13 @@ class RestWorker {
                 sendResponse.call(this, restOperation);
             }
 
-            doUtil.getBigIp(logger)
+            const bigIpOptions = {
+                host: wrapper.targetHost,
+                port: wrapper.targetPort,
+                user: wrapper.targetUsername,
+                password: wrapper.targetPassphrase
+            };
+            doUtil.getBigIp(logger, bigIpOptions)
                 .then((bigIp) => {
                     this.bigIp = bigIp;
                     this.declarationHandler = new DeclarationHandler(this.bigIp);

@@ -17,14 +17,34 @@
 'use strict';
 
 const assert = require('assert');
-const cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
+const netMock = require('net');
 const BigIpMock = require('@f5devcentral/f5-cloud-libs').bigIp;
 
 const doUtil = require('../../nodejs/doUtil');
 
 describe('doUtil', () => {
     const port = '1234';
+    const socket = {
+        connectCalls: 0,
+        numConnectsToFail: 0,
+        on(event, cb) {
+            if (event === 'connect') {
+                this.connectCalls += 1;
+                if (this.connectCalls > this.numConnectsToFail) {
+                    cb();
+                }
+            }
+            if (event === 'error') {
+                if (this.connectCalls <= this.numConnectsToFail) {
+                    cb();
+                }
+            }
+        },
+        end() {},
+        destroy() {}
+    };
     let bigIpInitOptions;
+    let createConnectionCalled;
 
     before(() => {
         BigIpMock.prototype.init = (host, user, password, options) => {
@@ -32,9 +52,15 @@ describe('doUtil', () => {
             return Promise.resolve();
         };
 
-        cloudUtilMock.runTmshCommand = () => {
-            return Promise.resolve(`sys httpd { ssl-port ${port} }`);
+        netMock.createConnection = () => {
+            createConnectionCalled = true;
+            return socket;
         };
+    });
+
+    beforeEach(() => {
+        socket.connectCalls = 0;
+        createConnectionCalled = false;
     });
 
     after(() => {
@@ -44,11 +70,55 @@ describe('doUtil', () => {
     });
 
     describe('getBigIp', () => {
-        it('should get a BIG-IP with the correct management port', () => {
+        it('should get a BIG-IP with the first port it tries to discover', () => {
             return new Promise((resolve, reject) => {
                 doUtil.getBigIp()
                     .then(() => {
+                        assert.strictEqual(bigIpInitOptions.port, 8443);
+                        assert.strictEqual(createConnectionCalled, true);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should get a BIG-IP with the second port it tries to discover', () => {
+            return new Promise((resolve, reject) => {
+                socket.numConnectsToFail = 1;
+                doUtil.getBigIp()
+                    .then(() => {
+                        assert.strictEqual(bigIpInitOptions.port, 443);
+                        assert.strictEqual(createConnectionCalled, true);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should handle failures on all discovery ports', () => {
+            return new Promise((resolve, reject) => {
+                socket.numConnectsToFail = 2;
+                doUtil.getBigIp()
+                    .then(() => {
+                        reject(new Error('should have failed to discover a port'));
+                    })
+                    .catch((err) => {
+                        assert.strictEqual(err.message, 'Could not determine device port');
+                        resolve();
+                    });
+            });
+        });
+
+        it('should get a BIG-IP with the provided port', () => {
+            return new Promise((resolve, reject) => {
+                doUtil.getBigIp(null, { port })
+                    .then(() => {
                         assert.strictEqual(bigIpInitOptions.port, port);
+                        assert.strictEqual(createConnectionCalled, false);
                         resolve();
                     })
                     .catch((err) => {
@@ -65,7 +135,7 @@ describe('doUtil', () => {
             };
 
             return new Promise((resolve, reject) => {
-                doUtil.getBigIp()
+                doUtil.getBigIp(null, { port: 443 })
                     .then(() => {
                         reject(new Error('should have raised initialization error'));
                     })

@@ -26,8 +26,15 @@ describe('examples', () => {
     const files = fs.readdirSync(`${__dirname}/../../examples`);
     files.forEach((file) => {
         it(`should validate ${file}`, () => {
-            const data = JSON.parse(fs.readFileSync(`${__dirname}/../../examples/${file}`));
-            const validation = validator.validate(data);
+            let declaration = JSON.parse(fs.readFileSync(`${__dirname}/../../examples/${file}`));
+            // wrap the declaration if we need to
+            if (declaration.class !== 'DO') {
+                declaration = {
+                    declaration,
+                    class: 'DO'
+                };
+            }
+            const validation = validator.validate(declaration);
             assert.ok(validation.isValid, JSON.stringify(validation.errors, null, 4));
         });
     });

@@ -26,8 +26,11 @@ const validator = new Validator();
 describe('validator', () => {
     it('should validate valid data', () => {
         const data = {
-            "schemaVersion": "1.0.0",
-            "class": "Device"
+            "class": "DO",
+            "declaration": {
+                "schemaVersion": "1.0.0",
+                "class": "Device"
+            }
         };
         const validation = validator.validate(data);
         assert.strictEqual(validation.isValid, true);
