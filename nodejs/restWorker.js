@@ -179,6 +179,14 @@ class RestWorker {
                 user: wrapper.targetUsername,
                 password: wrapper.targetPassphrase
             };
+
+            const targetTokens = wrapper.targetTokens || {};
+            Object.keys(targetTokens).forEach((key) => {
+                if (key.toLowerCase() === 'x-f5-auth-token') {
+                    bigIpOptions.authToken = targetTokens[key];
+                }
+            });
+
             doUtil.getBigIp(logger, bigIpOptions)
                 .then((bigIp) => {
                     this.bigIp = bigIp;

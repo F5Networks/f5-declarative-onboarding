@@ -70,6 +70,32 @@ describe('doUtil', () => {
     });
 
     describe('getBigIp', () => {
+        it('should not set the auth token flag if not appropriate', () => {
+            return new Promise((resolve, reject) => {
+                doUtil.getBigIp(null, {})
+                    .then(() => {
+                        assert.strictEqual(bigIpInitOptions.passwordIsToken, false);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should set the auth token flag if appropriate', () => {
+            return new Promise((resolve, reject) => {
+                doUtil.getBigIp(null, { authToken: 'foo' })
+                    .then(() => {
+                        assert.strictEqual(bigIpInitOptions.passwordIsToken, true);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
         it('should get a BIG-IP with the first port it tries to discover', () => {
             return new Promise((resolve, reject) => {
                 doUtil.getBigIp()

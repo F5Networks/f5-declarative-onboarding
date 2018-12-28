@@ -34,12 +34,13 @@ module.exports = {
     /**
      * Gets and initializes a [BigIp]{@link external:BigIp} object
      *
-     * @param {Logger} callingLogger - {@link Logger} object from caller.
-     * @param {Object} [options] - Optional parameters.
-     * @param {String} [options.host] - IP or hostname of BIG-IP. Default localhost.
-     * @param {Number} [options.port] - Port for management address on host.
-     * @param {String} [options.user] - User for iControl REST commands. Default admin.
-     * @param {String} [options.password] - Password for iControl REST user. Default admin.
+     * @param {Logger}  callingLogger - {@link Logger} object from caller.
+     * @param {Object}  [options] - Optional parameters.
+     * @param {String}  [options.host] - IP or hostname of BIG-IP. Default localhost.
+     * @param {Number}  [options.port] - Port for management address on host.
+     * @param {String}  [options.user] - User for iControl REST commands. Default admin.
+     * @param {String}  [options.password] - Password for iControl REST user. Default admin.
+     * @param {Boolean} [options.authToken] - Use this auth token instead of a password.
      */
     getBigIp(callingLogger, options) {
         const optionalArgs = {};
@@ -50,12 +51,15 @@ module.exports = {
             optionalArgs.host || 'localhost',
             optionalArgs.port,
             optionalArgs.user || 'admin',
-            optionalArgs.password || 'admin'
+            optionalArgs.authToken || optionalArgs.password || 'admin',
+            {
+                passwordIsToken: !!optionalArgs.authToken
+            }
         );
     }
 };
 
-function initializeBigIp(bigIp, host, port, user, password) {
+function initializeBigIp(bigIp, host, port, user, password, options) {
     let portPromise;
     if (port) {
         portPromise = Promise.resolve(port);
@@ -70,7 +74,8 @@ function initializeBigIp(bigIp, host, port, user, password) {
                 password,
                 {
                     port: managmentPort,
-                    product: 'BIG-IP'
+                    product: 'BIG-IP',
+                    passwordIsToken: options.passwordIsToken
                 }
             );
         })

@@ -1,5 +1,8 @@
 # Release Notes
 
+## Version 1.2.0
++ Support for remote provisioning.
+
 ## Version 1.1.0
 + Support licensing via BIG-IQ utility, purchased, and reg key pools.
 + Allow setting global db variables.
