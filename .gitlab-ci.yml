@@ -37,8 +37,6 @@ create docs:
         - vale --glob='*.rst' .
         - echo "Checking links"
         - make linkcheck
-
-
     tags:
         - cm-official-docker-executor
     artifacts:
@@ -67,40 +65,39 @@ pages:
     only:
         - branches
 
-Publish docs to staging:
-  image: ${CONTAINTHEDOCS_IMAGE}
-  stage: publish
-  environment:
-    name: staging
-    url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-  tags:
-    - cm-official-docker-executor
-  only:
-    - doc-staging@cloudsolutions/f5-declarative-onboarding
-  dependencies:
-    - create docs
-  script:
-    - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-    # create invalidation to clear cloudfront cache
-    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest/
-
-# Publish docs to clouddocs.f5.com
-docs to production:
-  image: ${CONTAINTHEDOCS_IMAGE}
-  stage: publish
-  environment:
-    name: production
-    url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest
-  only:
-    # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
-    # fill in desired release branch name and uncomment to add deployment from a branch
-    - doc-publish@cloudsolutions/f5-declarative-onboarding
-  tags:
-    - cm-official-docker-executor
-  dependencies:
-    - create docs
-  script:
-        # Publish docs to clouddocs.f5.com (live site).
-    - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
+publish docs to staging:
+    image: ${CONTAINTHEDOCS_IMAGE}
+    stage: publish
+    environment:
+        name: staging
+        url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
+    tags:
+        - cm-official-docker-executor
+    only:
+        - doc-staging@cloudsolutions/f5-declarative-onboarding
+    dependencies:
+        - create docs
+    script:
+        - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
         # create invalidation to clear cloudfront cache
-    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
+        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest/
+
+publish docs to production:
+    image: ${CONTAINTHEDOCS_IMAGE}
+    stage: publish
+    environment:
+        name: production
+        url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest
+    only:
+        # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
+        # fill in desired release branch name and uncomment to add deployment from a branch
+        - doc-publish@cloudsolutions/f5-declarative-onboarding
+    tags:
+        - cm-official-docker-executor
+    dependencies:
+        - create docs
+    script:
+        # Publish docs to clouddocs.f5.com (live site).
+        - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
+        # create invalidation to clear cloudfront cache
+        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
