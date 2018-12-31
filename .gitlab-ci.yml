@@ -2,7 +2,8 @@ image: node:8
 
 stages:
     - test
-    - package
+    - build
+    - post build
     - publish
 
 test:
@@ -14,22 +15,46 @@ test:
         - npm run lint
         - npm test
 
-build_rpm:
+build rpm:
     image: node:8-alpine
-    stage: package
+    stage: build
     tags:
         - docker-executor
     script:
         - apk add rpm bash
         - build/buildRpm.sh
     artifacts:
-        name: f5-decon-$CI_BUILD_REF
+        name: ${CI_PROJECT_NAME}-${CI_BUILD_REF}
         paths:
             - build/rpmbuild/RPMS/noarch/
 
+build asg:
+    image: docker:latest
+    stage: post build
+    tags:
+        - docker-executor
+    dependencies:
+        - build rpm
+    script:
+        - TARGET=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
+        - IMAGE_NAME=f5-do-container
+        # TAG is VERSION-RELEASE. Use awk to remove everything else
+        - IMAGE_TAG=$(echo $(basename $TARGET) | awk -F- -v PROJECT_NAME=${CI_PROJECT_NAME}- '{sub(PROJECT_NAME, ""); sub(".noarch.rpm", ""); print}')
+        - if [[ ${CI_COMMIT_REF_NAME} == 'master' ]]; then
+        -     IMAGE_TAG=$(echo $IMAGE_TAG | grep -o "^[^-]\+")
+        - elif [[ ${CI_COMMIT_REF_NAME} != 'develop' ]]; then
+        -     IMAGE_TAG=$CI_COMMIT_REF_NAME
+        - fi
+        - docker build -f build/Dockerfile.asg -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
+        - docker save ${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
+    artifacts:
+        name: ${CI_PROJECT_NAME}-${CI_BUILD_REF}
+        paths:
+            - dist/*.tar.gz
+
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
-    stage: package
+    stage: build
     script:
         - make html
         - echo "Checking grammar and style"
