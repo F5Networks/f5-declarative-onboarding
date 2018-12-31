@@ -1,7 +1,8 @@
 # Release Notes
 
 ## Version 1.2.0
-+ Support for remote provisioning.
++ Support for remote provisioning via ASG.
++ Fix bug which rejected CIDR of 1x on SelfIp.
 
 ## Version 1.1.0
 + Support licensing via BIG-IQ utility, purchased, and reg key pools.
