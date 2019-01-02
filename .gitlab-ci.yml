@@ -47,7 +47,7 @@ build asg:
         -     IMAGE_TAG=$CI_COMMIT_REF_NAME
         - fi
         - docker build -f build/Dockerfile.asg -t ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
-        - docker save ${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
+        - docker save ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${ORGANIZATION_NAME}-${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_BUILD_REF}
         paths:
