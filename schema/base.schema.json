@@ -35,17 +35,17 @@
                 "type": "object",
                 "properties": {
                     "username": {
-                        "description": "Username of principal authorized to modify configuration of targetHost (may not include the character ':').  NOTE:  this is generally not required to configure 'localhost' because client authentication and authorization precede invocation of DO.  It is also not required for any host if you populate tokens",
+                        "description": "Username of principal authorized to modify configuration of device (may not include the character ':').  NOTE:  this is generally not required to configure 'localhost' because client authentication and authorization precede invocation of DO.  It is also not required for any host if you populate tokens",
                         "type": "string",
                         "pattern": "^[^:]{0,254}$"
                     },
                     "password": {
-                        "description": "Passphrase for targetUsername account.  This is generally not required to configure 'localhost' and is not required when you populate tokens",
+                        "description": "Password for username account.  This is generally not required to configure 'localhost' and is not required when you populate tokens",
                         "type": "string",
                         "pattern": "^.{0,254}$"
                     },
                     "tokens": {
-                        "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the targetHost management service as authentication/authorization tokens",
+                        "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the device management service as authentication/authorization tokens",
                         "type": "object",
                         "patternProperties": {
                             "^[^\\x00-\\x20:\\x7f-\\xff]{1,254}$": {
