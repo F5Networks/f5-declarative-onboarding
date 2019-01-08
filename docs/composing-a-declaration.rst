@@ -322,7 +322,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
     "myProvisioning": {
             "class": "Provision",
             "ltm": "nominal",
-            "gtm": "minimal"
+            "gtm": "minimum"
     },
     
         
