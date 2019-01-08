@@ -31,12 +31,18 @@
         "targetUsername": {
             "description": "Username of principal authorized to modify configuration of targetHost (may not include the character ':').  NOTE:  this is generally not required to configure 'localhost' because client authentication and authorization precede invocation of DO.  It is also not required for any targetHost if you populate targetTokens",
             "type": "string",
-            "pattern": "^[^:]{0,254}$"
+            "anyOf": [
+                { "format": "json-pointer" },
+                { "pattern": "^[^:]{0,254}$" }
+            ]
         },
         "targetPassphrase": {
             "description": "Passphrase for targetUsername account.  This is generally not required to configure 'localhost' and is not required when you populate targetTokens",
             "type": "string",
-            "pattern": "^.{0,254}$"
+            "anyOf": [
+                { "format": "json-pointer" },
+                { "pattern": "^.{0,254}$" }
+            ]
         },
         "targetTokens": {
             "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the targetHost management service as authentication/authorization tokens",
