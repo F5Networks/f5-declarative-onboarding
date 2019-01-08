@@ -1,21 +1,21 @@
 {
-	"class": "DO",
-	"targetHost": "1.2.3.4",
-	"targetUsername": "/declaration/Credentials/1/username",
-	"targetPassphrase": "/declaration/Credentials/1/password",
-	"declaration": {
+    "class": "DO",
+    "targetHost": "1.2.3.4",
+    "targetUsername": "/declaration/Credentials/1/username",
+    "targetPassphrase": "/declaration/Credentials/1/password",
+    "declaration": {
         "schemaVersion": "1.0.0",
         "class": "Device",
-		"Credentials": [
-			{
-				"username": "bigIqAdmin",
-				"password": "foofoo"
-			},
-			{
-				"username": "admin",
-				"password": "barbar"
-			}
-		],
+        "Credentials": [
+            {
+                "username": "bigIqAdmin",
+                "password": "foofoo"
+            },
+            {
+                "username": "admin",
+                "password": "barbar"
+            }
+        ],
         "Common": {
             "class": "Tenant",
             "hostname": "bigip.example.com",
