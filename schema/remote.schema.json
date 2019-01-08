@@ -40,14 +40,25 @@
         },
         "targetTokens": {
             "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the targetHost management service as authentication/authorization tokens",
-            "type": "object",
-            "patternProperties": {
-                "^[^\\x00-\\x20:\\x7f-\\xff]{1,254}$": {
+            "oneOf": [
+                {
+                    "description": "Pointer to tokens in a format that matches the 'object' schema below",
                     "type": "string",
-                    "pattern": "^[^\\x00-\\x1f\\x7f-\\xff]{0,8192}$"
+                    "anyOf": [
+                        { "format": "json-pointer" }
+                    ]
+                },
+                {
+                    "type": "object",
+                    "patternProperties": {
+                        "^[^\\x00-\\x20:\\x7f-\\xff]{1,254}$": {
+                            "type": "string",
+                            "pattern": "^[^\\x00-\\x1f\\x7f-\\xff]{0,8192}$"
+                        }
+                    },
+                    "additionalProperties": false
                 }
-            },
-            "additionalProperties": false
+            ]
         },
         "targetTimeout": {
             "description": "Maximum delay allowed while communicating with targetHost device (seconds, default 900)",

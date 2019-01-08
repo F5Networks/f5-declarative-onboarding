@@ -84,11 +84,19 @@
                         },
                         "bigIqUsername": {
                             "description": "An admin user on the BIG-IQ.",
-                            "type": "string"
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^[^:]{0,254}$" }
+                            ]
                         },
                         "bigIqPassword": {
                             "description": "Password for the user in bigIqUsername.",
-                            "type": "string"
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^.{0,254}$" }
+                            ]
                         },
                         "bigIqPasswordUri": {
                             "description": "URI which will return the password for the user in bigIqUsername.",
@@ -125,11 +133,19 @@
                         },
                         "bigIpUsername": {
                             "description": "An admin user on the BIG-IP. Used by BIG-IQ to login to BIG-IP if 'reachable' is true.",
-                            "type": "string"
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^.{0,254}$" }
+                            ]
                         },
                         "bigIpPassword": {
                             "description": "Password for the user in bigIpUsername. Used by BIG-IQ to login to BIG-IP if 'reachable' is true.",
-                            "type": "string"
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^.{0,254}$" }
+                            ]
                         }
                     },
                     "additionalProperties": false
@@ -275,11 +291,19 @@
                         },
                         "newPassword": {
                             "description": "Password to set for the root user.",
-                            "type": "string"
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^.{0,254}$" }
+                            ]
                         },
                         "oldPassword": {
                             "description": "Old password for the root user.",
-                            "type": "string"
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^.{0,254}$" }
+                            ]
                         }
                     },
                     "additionalProperties": false
@@ -299,7 +323,11 @@
                         },
                         "password": {
                             "description": "Password for the user.",
-                            "type": "string"
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^.{0,254}$" }
+                            ]
                         },
                         "partitionAccess": {
                             "description": "Access control configuration.",
