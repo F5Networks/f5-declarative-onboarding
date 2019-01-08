@@ -163,6 +163,18 @@ describe('remote.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate targetUsername json-pointer', () => {
+                const data = {
+                    "class": "DO",
+                    "targetUsername": "/foo/bar",
+                    "declaration": {
+                        "schemaVersion": "1.0.0",
+                        "class": "Device"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
@@ -194,12 +206,38 @@ describe('remote.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate targetPassphrase json-pointer', () => {
+                const data = {
+                    "class": "DO",
+                    "targetPassphrase": "/foo/bar",
+                    "declaration": {
+                        "schemaVersion": "1.0.0",
+                        "class": "Device"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
     });
 
     describe('targetTokens', () => {
         describe('valid', () => {
             it('should validate targetTokens', () => {
+                const data = {
+                    "class": "DO",
+                    "targetTokens": {
+                        "foo": "bar"
+                    },
+                    "declaration": {
+                        "schemaVersion": "1.0.0",
+                        "class": "Device"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate targetTokens json-pointer', () => {
                 const data = {
                     "class": "DO",
                     "targetTokens": {

@@ -165,12 +165,17 @@ class State {
 }
 
 function mask(declaration) {
-    const masked = {};
-    Object.assign(masked, declaration);
+    const masked = JSON.parse(JSON.stringify(declaration));
 
     Object.keys(masked).forEach((key) => {
         if (!Array.isArray(masked[key]) && typeof masked[key] === 'object') {
             masked[key] = mask(masked[key]);
+        } else if (Array.isArray(masked[key])) {
+            masked[key].forEach((item, index) => {
+                if (!Array.isArray(item) && typeof item === 'object') {
+                    masked[key][index] = mask(item);
+                }
+            });
         } else if (MASK_REGEX.test(key)) {
             delete masked[key];
         }

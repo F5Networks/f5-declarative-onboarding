@@ -56,6 +56,28 @@ module.exports = {
                 passwordIsToken: !!optionalArgs.authToken
             }
         );
+    },
+
+    /**
+     * Fills in values that are referenced by json-pointers
+     * @param {Object} declaration - The declaration containing potentially referenced values
+     * @param {Object} container - Object of keys/values to dereference
+     */
+    dereference(declaration, container) {
+        const dereferenced = {};
+        Object.assign(dereferenced, container);
+
+        Object.keys(dereferenced).forEach((key) => {
+            if (typeof dereferenced[key] === 'string' && dereferenced[key].startsWith('/')) {
+                const value = dereferencePointer(declaration, dereferenced[key]);
+
+                if (typeof value === 'string') {
+                    dereferenced[key] = value;
+                }
+            }
+        });
+
+        return dereferenced;
     }
 };
 
@@ -114,4 +136,20 @@ function getPort(host) {
     return new Promise((resolve, reject) => {
         tryPort(0, resolve, reject);
     });
+}
+
+function dereferencePointer(declaration, pointer) {
+    if (!pointer.startsWith('/')) {
+        return pointer;
+    }
+
+    let value = declaration;
+    const keys = pointer.split('/');
+    keys.forEach((key) => {
+        if (key && value) {
+            value = value[key];
+        }
+    });
+
+    return value;
 }

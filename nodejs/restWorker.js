@@ -173,12 +173,16 @@ class RestWorker {
                 sendResponse.call(this, restOperation);
             }
 
-            const bigIpOptions = {
-                host: wrapper.targetHost,
-                port: wrapper.targetPort,
-                user: wrapper.targetUsername,
-                password: wrapper.targetPassphrase
-            };
+            // Fill in anything in the wrapper that is a json-pointer
+            const bigIpOptions = doUtil.dereference(
+                wrapper,
+                {
+                    host: wrapper.targetHost,
+                    port: wrapper.targetPort,
+                    user: wrapper.targetUsername,
+                    password: wrapper.targetPassphrase
+                }
+            );
 
             const targetTokens = wrapper.targetTokens || {};
             Object.keys(targetTokens).forEach((key) => {

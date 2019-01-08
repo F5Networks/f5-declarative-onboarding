@@ -306,6 +306,38 @@ describe('restWorker', () => {
             });
         });
 
+        it('should dereference json-pointers in the DO wrapper', () => {
+            return new Promise((resolve, reject) => {
+                declaration = {
+                    class: 'DO',
+                    targetUsername: '/declaration/Credentials/0/username',
+                    targetPassphrase: '/declaration/Credentials/1/password',
+                    declaration: {
+                        Credentials: [
+                            { username: 'my user' },
+                            { password: 'my password' }
+                        ]
+                    }
+                };
+
+                restOperationMock.complete = () => {
+                    assert.strictEqual(
+                        bigIpOptionsCalled.user, declaration.declaration.Credentials[0].username
+                    );
+                    assert.strictEqual(
+                        bigIpOptionsCalled.password, declaration.declaration.Credentials[1].password
+                    );
+                    resolve();
+                };
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
         it('should handle validation errors', () => {
             return new Promise((resolve, reject) => {
                 validatorMock.validate = () => {
