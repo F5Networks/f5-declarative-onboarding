@@ -80,11 +80,21 @@ describe('state', () => {
                     hello: 'world',
                     password: '1234'
                 }
-            }
+            },
+            fooArray: [
+                {
+                    okie: 'dokie',
+                    password: '5678'
+                }
+            ]
         };
         state.declaration = declaration;
         assert.strictEqual(state.declaration.foo.bar.hello, declaration.foo.bar.hello);
         assert.strictEqual(state.declaration.foo.bar.password, undefined);
+        assert.notStrictEqual(declaration.foo.bar.password, undefined);
+        assert.strictEqual(state.declaration.fooArray[0].okie, declaration.fooArray[0].okie);
+        assert.strictEqual(state.declaration.fooArray[0].password, undefined);
+        assert.notStrictEqual(declaration.fooArray[0].password, undefined);
     });
 
     it('should update results', () => {
