@@ -36,8 +36,9 @@ build asg:
     dependencies:
         - build rpm
     script:
-        - TARGET=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
         - IMAGE_NAME=f5-do-container
+        - ORGANIZATION_NAME=f5devcentral
+        - TARGET=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
         # TAG is VERSION-RELEASE. Use awk to remove everything else
         - IMAGE_TAG=$(echo $(basename $TARGET) | awk -F- -v PROJECT_NAME=${CI_PROJECT_NAME}- '{sub(PROJECT_NAME, ""); sub(".noarch.rpm", ""); print}')
         - if [[ ${CI_COMMIT_REF_NAME} == 'master' ]]; then
@@ -45,8 +46,8 @@ build asg:
         - elif [[ ${CI_COMMIT_REF_NAME} != 'develop' ]]; then
         -     IMAGE_TAG=$CI_COMMIT_REF_NAME
         - fi
-        - docker build -f build/Dockerfile.asg -t ${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
-        - docker save ${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
+        - docker build -f build/Dockerfile.asg -t ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
+        - docker save ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${ORGANIZATION_NAME}-${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_BUILD_REF}
         paths:
