@@ -53,6 +53,18 @@ build asg:
         paths:
             - dist/*.tar.gz
 
+create postman collection:
+    stage: build
+    tags:
+        - docker-executor
+    script:
+        - node build/generatePostmanCollection.js
+    artifacts:
+        name: ${CI_PROJECT_NAME}-${CI_BUILD_REF}
+        paths:
+            - dist/do.examples.collection.json
+
+
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build

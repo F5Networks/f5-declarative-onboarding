@@ -1,0 +1,216 @@
+{
+    "auth": {
+        "basic": [
+            {
+                "key": "password",
+                "type": "string",
+                "value": "{{password}}"
+            },
+            {
+                "key": "username",
+                "type": "string",
+                "value": "{{username}}"
+            }
+        ],
+        "type": "basic"
+    },
+    "info": {
+        "_postman_id": "1",
+        "name": "DOExampleDeclarations",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "licenseViaBigIqReachable",
+            "request": {
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"schemaVersion\": \"1.0.0\",\n    \"class\": \"Device\",\n    \"label\": \"License BIG-IP via BIG-IQ when BIG-IP is reachable from BIG-IQ\",\n    \"Common\": {\n        \"class\": \"Tenant\",\n        \"hostname\": \"bigip.example.com\",\n        \"myLicense\": {\n            \"class\": \"License\",\n            \"licenseType\": \"licensePool\",\n            \"bigIqHost\": \"10.0.1.200\",\n            \"bigIqUsername\": \"admin\",\n            \"bigIqPassword\": \"foofoo\",\n            \"licensePool\": \"myPool\",\n            \"skuKeyword1\": \"key1\",\n            \"skuKeyword2\": \"key2\",\n            \"unitOfMeasure\": \"hourly\",\n            \"reachable\": true,\n            \"bigIpUsername\": \"admin\",\n            \"bigIpPassword\": \"barbar\"\n        },\n        \"myDns\": {\n            \"class\": \"DNS\",\n            \"nameServers\": [\n                \"8.8.8.8\",\n                \"2001:4860:4860::8844\"\n            ],\n            \"search\": [\n                \"f5.com\"\n            ]\n        },\n        \"myNtp\": {\n            \"class\": \"NTP\",\n            \"servers\": [\n                \"0.pool.ntp.org\",\n                \"1.pool.ntp.org\",\n                \"2.pool.ntp.org\"\n            ],\n            \"timezone\": \"UTC\"\n        },\n        \"root\": {\n            \"class\": \"User\",\n            \"userType\": \"root\",\n            \"oldPassword\": \"foo\",\n            \"newPassword\": \"bar\"\n        },\n        \"admin\": {\n            \"class\": \"User\",\n            \"userType\": \"regular\",\n            \"password\": \"asdfjkl\",\n            \"shell\": \"bash\"\n        },\n        \"anotherUser\": {\n            \"class\": \"User\",\n            \"userType\": \"regular\",\n            \"password\": \"foobar\",\n            \"partitionAccess\": {\n                \"Common\": {\n                    \"role\": \"guest\"\n                }\n            }\n        },\n        \"myProvisioning\": {\n            \"class\": \"Provision\",\n            \"ltm\": \"nominal\"\n        },\n        \"internal\": {\n            \"class\": \"VLAN\",\n            \"tag\": 4093,\n            \"mtu\": 1500,\n            \"interfaces\": [\n                {\n                    \"name\": \"1.2\",\n                    \"tagged\": true\n                }\n            ]\n        },\n        \"internal-self\": {\n            \"class\": \"SelfIp\",\n            \"address\": \"10.10.0.100/24\",\n            \"vlan\": \"internal\",\n            \"allowService\": \"default\",\n            \"trafficGroup\": \"traffic-group-local-only\"\n        },\n        \"external\": {\n            \"class\": \"VLAN\",\n            \"tag\": 4094,\n            \"mtu\": 1500,\n            \"interfaces\": [\n                {\n                    \"name\": \"1.1\",\n                    \"tagged\": true\n                }\n            ]\n        },\n        \"external-self\": {\n            \"class\": \"SelfIp\",\n            \"address\": \"10.20.0.100/24\",\n            \"vlan\": \"external\",\n            \"allowService\": \"none\",\n            \"trafficGroup\": \"traffic-group-local-only\"\n        },\n        \"default\": {\n            \"class\": \"Route\",\n            \"gw\": \"10.10.0.1\",\n            \"network\": \"default\",\n            \"mtu\": 1500\n        }\n    }\n}"
+                },
+                "description": "License BIG-IP via BIG-IQ when BIG-IP is reachable from BIG-IQ",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "name": "Content-Type",
+                        "type": "text",
+                        "value": "application/json"
+                    }
+                ],
+                "method": "POST",
+                "url": {
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "mgmt",
+                        "shared",
+                        "declarative-onboarding"
+                    ],
+                    "protocol": "https",
+                    "raw": "https://{{host}}/mgmt/shared/declarative-onboarding"
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "licenseViaBigIqReachableASG",
+            "request": {
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"class\": \"DO\",\n    \"targetHost\": \"1.2.3.4\",\n    \"targetUsername\": \"/declaration/Credentials/1/username\",\n    \"targetPassphrase\": \"/declaration/Credentials/1/password\",\n    \"declaration\": {\n        \"schemaVersion\": \"1.0.0\",\n        \"class\": \"Device\",\n        \"label\": \"Use App Services Gateway to license BIG-IP via BIG-IQ when BIG-IP is reachable from BIG-IQ\",\n        \"Credentials\": [\n            {\n                \"username\": \"bigIqAdmin\",\n                \"password\": \"foofoo\"\n            },\n            {\n                \"username\": \"admin\",\n                \"password\": \"barbar\"\n            }\n        ],\n        \"Common\": {\n            \"class\": \"Tenant\",\n            \"hostname\": \"bigip.example.com\",\n            \"myLicense\": {\n                \"class\": \"License\",\n                \"licenseType\": \"licensePool\",\n                \"bigIqHost\": \"10.0.1.200\",\n                \"bigIqUsername\": \"/Credentials/0/username\",\n                \"bigIqPassword\": \"/Credentials/0/password\",\n                \"licensePool\": \"myPool\",\n                \"skuKeyword1\": \"key1\",\n                \"skuKeyword2\": \"key2\",\n                \"unitOfMeasure\": \"hourly\",\n                \"reachable\": true,\n                \"bigIpUsername\": \"/Credentials/1/username\",\n                \"bigIpPassword\": \"/Credentials/1/password\"\n            },\n            \"myDns\": {\n                \"class\": \"DNS\",\n                \"nameServers\": [\n                    \"8.8.8.8\",\n                    \"2001:4860:4860::8844\"\n                ],\n                \"search\": [\n                    \"f5.com\"\n                ]\n            },\n            \"myNtp\": {\n                \"class\": \"NTP\",\n                \"servers\": [\n                    \"0.pool.ntp.org\",\n                    \"1.pool.ntp.org\",\n                    \"2.pool.ntp.org\"\n                ],\n                \"timezone\": \"UTC\"\n            },\n            \"root\": {\n                \"class\": \"User\",\n                \"userType\": \"root\",\n                \"oldPassword\": \"foo\",\n                \"newPassword\": \"bar\"\n            },\n            \"admin\": {\n                \"class\": \"User\",\n                \"userType\": \"regular\",\n                \"password\": \"asdfjkl\",\n                \"shell\": \"bash\"\n            },\n            \"anotherUser\": {\n                \"class\": \"User\",\n                \"userType\": \"regular\",\n                \"password\": \"foobar\",\n                \"partitionAccess\": {\n                    \"Common\": {\n                        \"role\": \"guest\"\n                    }\n                }\n            },\n            \"myProvisioning\": {\n                \"class\": \"Provision\",\n                \"ltm\": \"nominal\"\n            },\n            \"internal\": {\n                \"class\": \"VLAN\",\n                \"tag\": 4093,\n                \"mtu\": 1500,\n                \"interfaces\": [\n                    {\n                        \"name\": \"1.2\",\n                        \"tagged\": true\n                    }\n                ]\n            },\n            \"internal-self\": {\n                \"class\": \"SelfIp\",\n                \"address\": \"10.10.0.100/24\",\n                \"vlan\": \"internal\",\n                \"allowService\": \"default\",\n                \"trafficGroup\": \"traffic-group-local-only\"\n            },\n            \"external\": {\n                \"class\": \"VLAN\",\n                \"tag\": 4094,\n                \"mtu\": 1500,\n                \"interfaces\": [\n                    {\n                        \"name\": \"1.1\",\n                        \"tagged\": true\n                    }\n                ]\n            },\n            \"external-self\": {\n                \"class\": \"SelfIp\",\n                \"address\": \"10.20.0.100/24\",\n                \"vlan\": \"external\",\n                \"allowService\": \"none\",\n                \"trafficGroup\": \"traffic-group-local-only\"\n            },\n            \"default\": {\n                \"class\": \"Route\",\n                \"gw\": \"10.10.0.1\",\n                \"network\": \"default\",\n                \"mtu\": 1500\n            }\n        }\n    }\n}"
+                },
+                "description": "Use App Services Gateway to license BIG-IP via BIG-IQ when BIG-IP is reachable from BIG-IQ",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "name": "Content-Type",
+                        "type": "text",
+                        "value": "application/json"
+                    }
+                ],
+                "method": "POST",
+                "url": {
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "mgmt",
+                        "shared",
+                        "declarative-onboarding"
+                    ],
+                    "protocol": "https",
+                    "raw": "https://{{host}}/mgmt/shared/declarative-onboarding"
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "licenseViaBigIqUnreachable",
+            "request": {
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"schemaVersion\": \"1.0.0\",\n    \"class\": \"Device\",\n    \"label\": \"License BIG-IP via BIG-IQ when BIG-IP is not reachable from BIG-IQ\",\n    \"Common\": {\n        \"class\": \"Tenant\",\n        \"hostname\": \"bigip.example.com\",\n        \"myLicense\": {\n            \"class\": \"License\",\n            \"licenseType\": \"licensePool\",\n            \"bigIqHost\": \"10.0.1.200\",\n            \"bigIqUsername\": \"admin\",\n            \"bigIqPassword\": \"foofoo\",\n            \"licensePool\": \"myPool\",\n            \"skuKeyword1\": \"key1\",\n            \"skuKeyword2\": \"key2\",\n            \"unitOfMeasure\": \"hourly\",\n            \"reachable\": false,\n            \"hypervisor\": \"vmware\"\n        },\n        \"myDns\": {\n            \"class\": \"DNS\",\n            \"nameServers\": [\n                \"8.8.8.8\",\n                \"2001:4860:4860::8844\"\n            ],\n            \"search\": [\n                \"f5.com\"\n            ]\n        },\n        \"myNtp\": {\n            \"class\": \"NTP\",\n            \"servers\": [\n                \"0.pool.ntp.org\",\n                \"1.pool.ntp.org\",\n                \"2.pool.ntp.org\"\n            ],\n            \"timezone\": \"UTC\"\n        },\n        \"root\": {\n            \"class\": \"User\",\n            \"userType\": \"root\",\n            \"oldPassword\": \"foo\",\n            \"newPassword\": \"bar\"\n        },\n        \"admin\": {\n            \"class\": \"User\",\n            \"userType\": \"regular\",\n            \"password\": \"asdfjkl\",\n            \"shell\": \"bash\"\n        },\n        \"anotherUser\": {\n            \"class\": \"User\",\n            \"userType\": \"regular\",\n            \"password\": \"foobar\",\n            \"partitionAccess\": {\n                \"Common\": {\n                    \"role\": \"guest\"\n                }\n            }\n        },\n        \"myProvisioning\": {\n            \"class\": \"Provision\",\n            \"ltm\": \"nominal\"\n        },\n        \"internal\": {\n            \"class\": \"VLAN\",\n            \"tag\": 4093,\n            \"mtu\": 1500,\n            \"interfaces\": [\n                {\n                    \"name\": \"1.2\",\n                    \"tagged\": true\n                }\n            ]\n        },\n        \"internal-self\": {\n            \"class\": \"SelfIp\",\n            \"address\": \"10.10.0.100/24\",\n            \"vlan\": \"internal\",\n            \"allowService\": \"default\",\n            \"trafficGroup\": \"traffic-group-local-only\"\n        },\n        \"external\": {\n            \"class\": \"VLAN\",\n            \"tag\": 4094,\n            \"mtu\": 1500,\n            \"interfaces\": [\n                {\n                    \"name\": \"1.1\",\n                    \"tagged\": true\n                }\n            ]\n        },\n        \"external-self\": {\n            \"class\": \"SelfIp\",\n            \"address\": \"10.20.0.100/24\",\n            \"vlan\": \"external\",\n            \"allowService\": \"none\",\n            \"trafficGroup\": \"traffic-group-local-only\"\n        },\n        \"default\": {\n            \"class\": \"Route\",\n            \"gw\": \"10.10.0.1\",\n            \"network\": \"default\",\n            \"mtu\": 1500\n        }\n    }\n}"
+                },
+                "description": "License BIG-IP via BIG-IQ when BIG-IP is not reachable from BIG-IQ",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "name": "Content-Type",
+                        "type": "text",
+                        "value": "application/json"
+                    }
+                ],
+                "method": "POST",
+                "url": {
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "mgmt",
+                        "shared",
+                        "declarative-onboarding"
+                    ],
+                    "protocol": "https",
+                    "raw": "https://{{host}}/mgmt/shared/declarative-onboarding"
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "onboard",
+            "request": {
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"schemaVersion\": \"1.0.0\",\n    \"class\": \"Device\",\n    \"label\": \"Basic onboarding\",\n    \"Common\": {\n        \"class\": \"Tenant\",\n        \"hostname\": \"bigip.example.com\",\n        \"dbvars\": {\n            \"class\": \"DbVariables\",\n            \"ui.advisory.enabled\": true,\n            \"ui.advisory.color\": \"green\",\n            \"ui.advisory.text\": \"/Common/hostname\"\n        },\n        \"myLicense\": {\n            \"class\": \"License\",\n            \"licenseType\": \"regKey\",\n            \"regKey\": \"MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ\"\n        },\n        \"myDns\": {\n            \"class\": \"DNS\",\n            \"nameServers\": [\n                \"8.8.8.8\",\n                \"2001:4860:4860::8844\"\n            ],\n            \"search\": [\n                \"f5.com\"\n            ]\n        },\n        \"myNtp\": {\n            \"class\": \"NTP\",\n            \"servers\": [\n                \"0.pool.ntp.org\",\n                \"1.pool.ntp.org\",\n                \"2.pool.ntp.org\"\n            ],\n            \"timezone\": \"UTC\"\n        },\n        \"root\": {\n            \"class\": \"User\",\n            \"userType\": \"root\",\n            \"oldPassword\": \"foo\",\n            \"newPassword\": \"bar\"\n        },\n        \"admin\": {\n            \"class\": \"User\",\n            \"userType\": \"regular\",\n            \"password\": \"asdfjkl\",\n            \"shell\": \"bash\"\n        },\n        \"guestUser\": {\n            \"class\": \"User\",\n            \"userType\": \"regular\",\n            \"password\": \"foobar\",\n            \"partitionAccess\": {\n                \"Common\": {\n                    \"role\": \"guest\"\n                }\n            }\n        },\n        \"anotherUser\": {\n            \"class\": \"User\",\n            \"userType\": \"regular\",\n            \"password\": \"foobar\",\n            \"shell\": \"none\",\n            \"partitionAccess\": {\n                \"all-partitions\": {\n                    \"role\": \"guest\"\n                }\n            }\n        },\n        \"myProvisioning\": {\n            \"class\": \"Provision\",\n            \"ltm\": \"nominal\"\n        },\n        \"internal\": {\n            \"class\": \"VLAN\",\n            \"tag\": 4093,\n            \"mtu\": 1500,\n            \"interfaces\": [\n                {\n                    \"name\": \"1.2\",\n                    \"tagged\": true\n                }\n            ]\n        },\n        \"internal-self\": {\n            \"class\": \"SelfIp\",\n            \"address\": \"10.10.0.100/24\",\n            \"vlan\": \"internal\",\n            \"allowService\": \"default\",\n            \"trafficGroup\": \"traffic-group-local-only\"\n        },\n        \"external\": {\n            \"class\": \"VLAN\",\n            \"tag\": 4094,\n            \"mtu\": 1500,\n            \"interfaces\": [\n                {\n                    \"name\": \"1.1\",\n                    \"tagged\": true\n                }\n            ]\n        },\n        \"external-self\": {\n            \"class\": \"SelfIp\",\n            \"address\": \"10.20.0.100/24\",\n            \"vlan\": \"external\",\n            \"allowService\": \"none\",\n            \"trafficGroup\": \"traffic-group-local-only\"\n        },\n        \"default\": {\n            \"class\": \"Route\",\n            \"gw\": \"10.10.0.1\",\n            \"network\": \"default\",\n            \"mtu\": 1500\n        }\n    }\n}"
+                },
+                "description": "Basic onboarding",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "name": "Content-Type",
+                        "type": "text",
+                        "value": "application/json"
+                    }
+                ],
+                "method": "POST",
+                "url": {
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "mgmt",
+                        "shared",
+                        "declarative-onboarding"
+                    ],
+                    "protocol": "https",
+                    "raw": "https://{{host}}/mgmt/shared/declarative-onboarding"
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "onboardFailover",
+            "request": {
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"schemaVersion\": \"1.0.0\",\n    \"class\": \"Device\",\n    \"label\": \"Onboard BIG-IP into an HA Pair\",\n    \"Common\": {\n        \"class\": \"Tenant\",\n        \"hostname\": \"bigip1.example.com\",\n        \"myLicense\": {\n            \"class\": \"License\",\n            \"licenseType\": \"regKey\",\n            \"regKey\": \"MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ\"\n        },\n        \"myDns\": {\n            \"class\": \"DNS\",\n            \"nameServers\": [\n                \"8.8.8.8\",\n                \"2001:4860:4860::8844\"\n            ],\n            \"search\": [\n                \"f5.com\"\n            ]\n        },\n        \"myNtp\": {\n            \"class\": \"NTP\",\n            \"servers\": [\n                \"0.pool.ntp.org\",\n                \"1.pool.ntp.org\",\n                \"2.pool.ntp.org\"\n            ],\n            \"timezone\": \"UTC\"\n        },\n        \"root\": {\n            \"class\": \"User\",\n            \"userType\": \"root\",\n            \"oldPassword\": \"foo\",\n            \"newPassword\": \"bar\"\n        },\n        \"admin\": {\n            \"class\": \"User\",\n            \"userType\": \"regular\",\n            \"password\": \"asdfjkl\",\n            \"shell\": \"bash\"\n        },\n        \"anotherUser\": {\n            \"class\": \"User\",\n            \"userType\": \"regular\",\n            \"password\": \"foobar\",\n            \"partitionAccess\": {\n                \"Common\": {\n                    \"role\": \"guest\"\n                }\n            }\n        },\n        \"myProvisioning\": {\n            \"class\": \"Provision\",\n            \"ltm\": \"nominal\"\n        },\n        \"internal\": {\n            \"class\": \"VLAN\",\n            \"tag\": 4093,\n            \"mtu\": 1500,\n            \"interfaces\": [\n                {\n                    \"name\": \"1.2\",\n                    \"tagged\": false\n                }\n            ]\n        },\n        \"internal-self\": {\n            \"class\": \"SelfIp\",\n            \"address\": \"10.10.0.100/24\",\n            \"vlan\": \"internal\",\n            \"allowService\": \"default\",\n            \"trafficGroup\": \"traffic-group-local-only\"\n        },\n        \"external\": {\n            \"class\": \"VLAN\",\n            \"tag\": 4094,\n            \"mtu\": 1500,\n            \"interfaces\": [\n                {\n                    \"name\": \"1.1\",\n                    \"tagged\": false\n                }\n            ]\n        },\n        \"external-localself\": {\n            \"class\": \"SelfIp\",\n            \"address\": \"10.20.0.100/24\",\n            \"vlan\": \"external\",\n            \"allowService\": \"none\",\n            \"trafficGroup\": \"traffic-group-local-only\"\n        },\n        \"external-self\": {\n            \"class\": \"SelfIp\",\n            \"address\": \"10.20.0.200/24\",\n            \"vlan\": \"external\",\n            \"allowService\": \"none\",\n            \"trafficGroup\": \"traffic-group-1\"\n        },\n        \"default\": {\n            \"class\": \"Route\",\n            \"gw\": \"10.10.0.1\",\n            \"network\": \"default\",\n            \"mtu\": 1500\n        },\n        \"configsync\": {\n            \"class\": \"ConfigSync\",\n            \"configsyncIp\": \"/Common/internal-self/address\"\n        },\n        \"failoverAddress\": {\n            \"class\": \"FailoverUnicast\",\n            \"address\": \"/Common/internal-self/address\"\n        },\n        \"failoverGroup\": {\n            \"class\": \"DeviceGroup\",\n            \"type\": \"sync-failover\",\n            \"members\": [\n                \"bigip1.example.com\",\n                \"bigip2.example.com\"\n            ],\n            \"owner\": \"/Common/failoverGroup/members/0\",\n            \"autoSync\": true,\n            \"saveOnAutoSync\": false,\n            \"networkFailover\": true,\n            \"fullLoadOnSync\": false,\n            \"asmSync\": false\n        },\n        \"trust\": {\n            \"class\": \"DeviceTrust\",\n            \"localUsername\": \"admin\",\n            \"localPassword\": \"pass1word\",\n            \"remoteHost\": \"/Common/failoverGroup/members/0\",\n            \"remoteUsername\": \"admin\",\n            \"remotePassword\": \"pass2word\"\n        }\n    }\n}"
+                },
+                "description": "Onboard BIG-IP into an HA Pair",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "name": "Content-Type",
+                        "type": "text",
+                        "value": "application/json"
+                    }
+                ],
+                "method": "POST",
+                "url": {
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "mgmt",
+                        "shared",
+                        "declarative-onboarding"
+                    ],
+                    "protocol": "https",
+                    "raw": "https://{{host}}/mgmt/shared/declarative-onboarding"
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "viaASG",
+            "request": {
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"class\": \"DO\",\n    \"targetHost\": \"1.2.3.4\",\n    \"targetUsername\": \"admin\",\n    \"targetPassphrase\": \"myAdminPassword\",\n    \"declaration\": {\n        \"schemaVersion\": \"1.0.0\",\n        \"class\": \"Device\",\n        \"label\": \"Use App Services Gateway to onboard a BIG-IP\",\n        \"Common\": {\n            \"class\": \"Tenant\",\n            \"hostname\": \"bigip.example.com\",\n            \"dbvars\": {\n                \"class\": \"DbVariables\",\n                \"ui.advisory.enabled\": true,\n                \"ui.advisory.color\": \"green\",\n                \"ui.advisory.text\": \"/Common/hostname\"\n            },\n            \"myLicense\": {\n                \"class\": \"License\",\n                \"licenseType\": \"regKey\",\n                \"regKey\": \"MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ\"\n            },\n            \"myDns\": {\n                \"class\": \"DNS\",\n                \"nameServers\": [\n                    \"8.8.8.8\",\n                    \"2001:4860:4860::8844\"\n                ],\n                \"search\": [\n                    \"f5.com\"\n                ]\n            },\n            \"myNtp\": {\n                \"class\": \"NTP\",\n                \"servers\": [\n                    \"0.pool.ntp.org\",\n                    \"1.pool.ntp.org\",\n                    \"2.pool.ntp.org\"\n                ],\n                \"timezone\": \"UTC\"\n            },\n            \"root\": {\n                \"class\": \"User\",\n                \"userType\": \"root\",\n                \"oldPassword\": \"foo\",\n                \"newPassword\": \"bar\"\n            },\n            \"admin\": {\n                \"class\": \"User\",\n                \"userType\": \"regular\",\n                \"password\": \"asdfjkl\",\n                \"shell\": \"bash\"\n            },\n            \"guestUser\": {\n                \"class\": \"User\",\n                \"userType\": \"regular\",\n                \"password\": \"foobar\",\n                \"partitionAccess\": {\n                    \"Common\": {\n                        \"role\": \"guest\"\n                    }\n                }\n            },\n            \"anotherUser\": {\n                \"class\": \"User\",\n                \"userType\": \"regular\",\n                \"password\": \"foobar\",\n                \"shell\": \"none\",\n                \"partitionAccess\": {\n                    \"all-partitions\": {\n                        \"role\": \"guest\"\n                    }\n                }\n            },\n            \"myProvisioning\": {\n                \"class\": \"Provision\",\n                \"ltm\": \"nominal\"\n            },\n            \"internal\": {\n                \"class\": \"VLAN\",\n                \"tag\": 4093,\n                \"mtu\": 1500,\n                \"interfaces\": [\n                    {\n                        \"name\": \"1.2\",\n                        \"tagged\": true\n                    }\n                ]\n            },\n            \"internal-self\": {\n                \"class\": \"SelfIp\",\n                \"address\": \"10.10.0.100/24\",\n                \"vlan\": \"internal\",\n                \"allowService\": \"default\",\n                \"trafficGroup\": \"traffic-group-local-only\"\n            },\n            \"external\": {\n                \"class\": \"VLAN\",\n                \"tag\": 4094,\n                \"mtu\": 1500,\n                \"interfaces\": [\n                    {\n                        \"name\": \"1.1\",\n                        \"tagged\": true\n                    }\n                ]\n            },\n            \"external-self\": {\n                \"class\": \"SelfIp\",\n                \"address\": \"10.20.0.100/24\",\n                \"vlan\": \"external\",\n                \"allowService\": \"none\",\n                \"trafficGroup\": \"traffic-group-local-only\"\n            },\n            \"default\": {\n                \"class\": \"Route\",\n                \"gw\": \"10.10.0.1\",\n                \"network\": \"default\",\n                \"mtu\": 1500\n            }\n        }\n    }\n}"
+                },
+                "description": "Use App Services Gateway to onboard a BIG-IP",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "name": "Content-Type",
+                        "type": "text",
+                        "value": "application/json"
+                    }
+                ],
+                "method": "POST",
+                "url": {
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "mgmt",
+                        "shared",
+                        "declarative-onboarding"
+                    ],
+                    "protocol": "https",
+                    "raw": "https://{{host}}/mgmt/shared/declarative-onboarding"
+                }
+            },
+            "response": []
+        }
+    ]
+}
