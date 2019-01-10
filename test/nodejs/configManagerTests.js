@@ -71,7 +71,7 @@ describe('configManager', () => {
             listResponses['/tm/sys/global-settings'] = { hostname };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get()
+            configManager.get({})
                 .then((response) => {
                     assert.strictEqual(
                         response.Common.hostname,
@@ -104,7 +104,7 @@ describe('configManager', () => {
             };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get()
+            configManager.get({})
                 .then((response) => {
                     assert.deepEqual(response.Common.NTP, listResponses['/tm/sys/ntp']);
                     resolve();
@@ -145,7 +145,7 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get()
+            configManager.get({})
                 .then((response) => {
                     assert.deepEqual(response.Common.Route.default, listResponses['/tm/net/route'][0]);
                     assert.deepEqual(response.Common.Route.route1, listResponses['/tm/net/route'][1]);
@@ -182,7 +182,7 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get()
+            configManager.get({})
                 .then((response) => {
                     assert.deepEqual(response.Common.Provision, { 'afm': 'none', 'ltm': 'nominal' });
                     resolve();
@@ -229,7 +229,7 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get()
+            configManager.get({})
                 .then((response) => {
                     assert.strictEqual(
                         response.Common.VLAN.external.interfaces.name,
@@ -264,7 +264,7 @@ describe('configManager', () => {
                 ];
 
                 const configManager = new ConfigManager(configItems, bigIpMock);
-                configManager.get()
+                configManager.get({})
                     .then((response) => {
                         assert.strictEqual(response.Common.SelfIp.selfIp1.vlan, 'external');
                         resolve();
@@ -295,7 +295,7 @@ describe('configManager', () => {
                 ];
 
                 const configManager = new ConfigManager(configItems, bigIpMock);
-                configManager.get()
+                configManager.get({})
                     .then((response) => {
                         assert.strictEqual(response.Common.SelfIp.selfIp1.allowService, 'default');
                         resolve();
@@ -325,7 +325,7 @@ describe('configManager', () => {
                 ];
 
                 const configManager = new ConfigManager(configItems, bigIpMock);
-                configManager.get()
+                configManager.get({})
                     .then((response) => {
                         assert.strictEqual(response.Common.SelfIp.selfIp1.allowService, 'none');
                         resolve();
