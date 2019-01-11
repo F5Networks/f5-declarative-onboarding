@@ -66,7 +66,7 @@ If you are using a Mac, for the first command, use
 
 Installing Declarative Onboarding using cURL from the Linux shell
 `````````````````````````````````````````````````````````````````
-No matter which method you used to upload the RPM onto the BIG-IP, you must use the following cURL commands Copy the following commands to install the package.
+No matter which method you used to upload the RPM onto the BIG-IP, you must use the following cURL commands. Copy the following commands to install the package.
 
 If you used SCP to upload the package, first set the BIG-IP IP address and credentials as described in :ref:`uploadcurl`.
 
