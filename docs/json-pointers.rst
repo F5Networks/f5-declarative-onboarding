@@ -32,7 +32,7 @@ And then call the credentials later in the declaration, for example
 You can see a full example of Credentials in action in :ref:`example6`.
 
 Referencing other objects in a declaration
-------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can also reference other objects you define in a declaration, as shown in :ref:`clustering`.  (are there limits or certain properties that can be pointers?)
 
 For example, you have the following lines in your declaration.
