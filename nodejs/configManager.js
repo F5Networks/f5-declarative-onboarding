@@ -45,9 +45,9 @@ class ConfigManager {
     }
 
     /**
-     * Gets the configuration items we are interested in.
+     * Updates state with the configuration items we are interested in.
      *
-     * The goal here is to create an object with the current BIG-IP config objects
+     * The goal here is to store an object with the current BIG-IP config objects
      * that we are interested in and in a format that matches what our parsed declaration looks like.
      *
      * What we retrieve is controlled by this.configItems.
@@ -76,16 +76,51 @@ class ConfigManager {
      *     {{hostName}} - The current hostname
      *     {{deviceName}} - The current cm device name for the host
      *
-     * @returns {Promise} A promise which is resolved with the config as returned by
-     *                    iControl REST and filtered as defined in configItems.
+     * @param {Object} declaration - The delcaration we are processing
+     * @param {Object} state - The [doState]{@link State} object
+     *
+     * @returns {Promise} A promise which is resolved when the operation is complete
+     *                    or rejected if an error occurs.
      */
-    get() {
+    get(declaration, state) {
+        const currentCurrentConfig = state.currentConfig || {};
         const currentConfig = {};
         const promises = [];
         const referencePromises = [];
         const referenceInfo = []; // info needed to tie reference result to config item
 
-        // get this token replacements
+        // Get the list of db variables that we really want. This includes
+        // whatever is in the declaration plus what is in the current config.
+        // Otherwise, if a user leaves a db variable out of the declaration we
+        // won't have any values to diff. This is all because we do not really
+        // want to store all of the db variables (there are over 2000 of them) and
+        // there is no way to query for a set of db variables. You would think
+        // that $filter would allow you to do this, but $filter only allows you
+        // to filter by partition. We love you BIG-IP! So, we either have to get
+        // them all and then filter ourselves, or get them one at a time and push
+        // them into the correct object in the current config. Since the current structure
+        // (using configItems.json) is more amenable to the first approach, that's
+        // what we're doing.
+        const dbVarsOfInterest = [];
+        if (currentCurrentConfig && currentCurrentConfig.Common && currentCurrentConfig.Common.DbVariables) {
+            Object.keys(currentCurrentConfig.Common.DbVariables).forEach((dbVar) => {
+                if (dbVar !== 'class') {
+                    dbVarsOfInterest.push(dbVar);
+                }
+            });
+        }
+        if (declaration.Common) {
+            Object.keys(declaration.Common).forEach((key) => {
+                if (declaration.Common[key].class === 'DbVariables') {
+                    Object.keys(declaration.Common[key]).forEach((dbVar) => {
+                        if (dbVar !== 'class') {
+                            dbVarsOfInterest.push(dbVar);
+                        }
+                    });
+                }
+            });
+        }
+
         return getTokenMap.call(this)
             .then((tokenMap) => {
                 const hostNameRegex = /{{hostName}}/;
@@ -121,7 +156,6 @@ class ConfigManager {
                             currentConfig[key] = currentItem[key];
                         });
                     } else if (Array.isArray(currentItem)) {
-                        currentConfig[schemaClass] = {};
                         currentItem.forEach((item) => {
                             patchedItem = removeUnusedKeys.call(this, item);
                             patchedItem = mapProperties.call(this, patchedItem, index);
@@ -131,7 +165,20 @@ class ConfigManager {
                                 patchedItem = patchSelfIp.call(this, patchedItem);
                             }
 
-                            currentConfig[schemaClass][item.name] = patchedItem;
+                            // Ditto for DB variables
+                            if (schemaClass === 'DbVariables') {
+                                if (dbVarsOfInterest.indexOf(item.name) === -1) {
+                                    patchedItem = null;
+                                }
+                            }
+
+                            if (patchedItem) {
+                                if (!currentConfig[schemaClass]) {
+                                    currentConfig[schemaClass] = {};
+                                }
+                                currentConfig[schemaClass][item.name] = patchedItem;
+                            }
+
                             getReferencedPaths.call(this, item, index, referencePromises, referenceInfo);
                         });
                     } else {
@@ -171,12 +218,32 @@ class ConfigManager {
                     });
                 });
 
-                return Promise.resolve(
-                    {
-                        parsed: true,
-                        Common: currentConfig
+                state.currentConfig = {
+                    parsed: true,
+                    Common: currentConfig
+                };
+
+                if (!state.originalConfig) {
+                    state.originalConfig = JSON.parse(JSON.stringify(state.currentConfig));
+                }
+
+                // Fill in any db vars that we don't currently have in the original config. If
+                // a user does not set a db var on the first POST but does on a subsequent POST
+                // we need an original value to set it back to if the user does yet another
+                // POST with out the variable
+                const currentDbVariables = state.currentConfig.Common.DbVariables;
+                if (currentDbVariables) {
+                    if (!state.originalConfig.Common.DbVariables) {
+                        state.originalConfig.Common.DbVariables = {};
                     }
-                );
+                    Object.keys(currentDbVariables).forEach((dbVar) => {
+                        if (!state.originalConfig.Common.DbVariables[dbVar]) {
+                            state.originalConfig.Common.DbVariables[dbVar] = currentDbVariables[dbVar];
+                        }
+                    });
+                }
+
+                return Promise.resolve();
             })
             .catch((err) => {
                 logger.severe(`Error getting current config: ${err.message}`);
@@ -184,7 +251,6 @@ class ConfigManager {
             });
     }
 }
-
 
 /**
  * Removes keys we don't want from a config item

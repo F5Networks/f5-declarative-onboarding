@@ -196,7 +196,7 @@ class RestWorker {
                     this.bigIp = bigIp;
                     this.declarationHandler = new DeclarationHandler(this.bigIp);
                     logger.fine('Getting and saving current configuration');
-                    return getAndSaveCurrentConfig.call(this, this.bigIp);
+                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
                 })
                 .then(() => {
                     return this.declarationHandler.process(declaration, this.state.doState);
@@ -219,7 +219,7 @@ class RestWorker {
                         this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
                     }
                     logger.fine('Getting and saving current configuration');
-                    return getAndSaveCurrentConfig.call(this, this.bigIp);
+                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
                 })
                 .then(() => {
                     if (!rebootRequired) {
@@ -241,7 +241,7 @@ class RestWorker {
                         .then(() => {
                             const rollbackTo = {};
                             Object.assign(rollbackTo, this.state.doState.currentConfig);
-                            return getAndSaveCurrentConfig.call(this, this.bigIp)
+                            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration)
                                 .then(() => {
                                     return this.declarationHandler.process(rollbackTo, this.state.doState);
                                 })
@@ -303,17 +303,10 @@ class RestWorker {
     /* eslint-enable class-methods-use-this */
 }
 
-function getAndSaveCurrentConfig(bigIp) {
+function getAndSaveCurrentConfig(bigIp, declaration) {
     const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
-    return configManager.get()
-        .then((currentConfig) => {
-            this.state.doState.currentConfig = currentConfig;
-
-            // Also save an original config which we will use for putting
-            // objects back to their defaults
-            if (!this.state.doState.originalConfig) {
-                this.state.doState.originalConfig = currentConfig;
-            }
+    return configManager.get(declaration, this.state.doState)
+        .then(() => {
             return save.call(this);
         });
 }

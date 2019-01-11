@@ -31,6 +31,7 @@ const logger = new Logger(module);
 // are missing from the declaration
 const CLASSES_OF_TRUTH = [
     'hostname',
+    'DbVariables',
     'DNS',
     'NTP',
     'Provision',
@@ -55,16 +56,18 @@ class DeclarationHandler {
     /**
      * Starts processing.
      *
-     * @param {Object} newDeclaration - The updated declaration to process
+     * @param {Object} declaration - The declaration to process
      * @param {Object} state - The [doState]{@link State} object
      *
      * @returns {Promise} A promise which is resolved when processing is complete
      *                    or rejected if an error occurs.
      */
-    process(newDeclaration, state) {
+    process(declaration, state) {
         logger.fine('Processing declaration.');
         let parsedOldDeclaration;
         let parsedNewDeclaration;
+
+        const newDeclaration = JSON.parse(JSON.stringify(declaration));
 
         const oldDeclaration = {};
         Object.assign(oldDeclaration, state.currentConfig);
