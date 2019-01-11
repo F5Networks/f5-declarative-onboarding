@@ -45,9 +45,9 @@ class ConfigManager {
     }
 
     /**
-     * Gets the configuration items we are interested in.
+     * Updates state with the configuration items we are interested in.
      *
-     * The goal here is to create an object with the current BIG-IP config objects
+     * The goal here is to store an object with the current BIG-IP config objects
      * that we are interested in and in a format that matches what our parsed declaration looks like.
      *
      * What we retrieve is controlled by this.configItems.
@@ -77,13 +77,13 @@ class ConfigManager {
      *     {{deviceName}} - The current cm device name for the host
      *
      * @param {Object} declaration - The delcaration we are processing
-     * @param {Object} currentCurrentConfig - DOs view of what the config is before we get
-     *                                        the real current config
+     * @param {Object} state - The [doState]{@link State} object
      *
-     * @returns {Promise} A promise which is resolved with the config as returned by
-     *                    iControl REST and filtered as defined in configItems.
+     * @returns {Promise} A promise which is resolved when the operation is complete
+     *                    or rejected if an error occurs.
      */
-    get(declaration, currentCurrentConfig) {
+    get(declaration, state) {
+        const currentCurrentConfig = state.currentConfig || {};
         const currentConfig = {};
         const promises = [];
         const referencePromises = [];
@@ -156,7 +156,6 @@ class ConfigManager {
                             currentConfig[key] = currentItem[key];
                         });
                     } else if (Array.isArray(currentItem)) {
-                        currentConfig[schemaClass] = {};
                         currentItem.forEach((item) => {
                             patchedItem = removeUnusedKeys.call(this, item);
                             patchedItem = mapProperties.call(this, patchedItem, index);
@@ -174,6 +173,9 @@ class ConfigManager {
                             }
 
                             if (patchedItem) {
+                                if (!currentConfig[schemaClass]) {
+                                    currentConfig[schemaClass] = {};
+                                }
                                 currentConfig[schemaClass][item.name] = patchedItem;
                             }
 
@@ -216,12 +218,29 @@ class ConfigManager {
                     });
                 });
 
-                return Promise.resolve(
-                    {
-                        parsed: true,
-                        Common: currentConfig
-                    }
-                );
+                state.currentConfig = {
+                    parsed: true,
+                    Common: currentConfig
+                };
+
+                if (!state.originalConfig) {
+                    state.originalConfig = JSON.parse(JSON.stringify(state.currentConfig));
+                }
+
+                // Fill in any db vars that we don't currently have in the original config. If
+                // a user does not set a db var on the first POST but does on a subsequent POST
+                // we need an original value to set it back to if the user does yet another
+                // POST with out the variable
+                const currentDbVariables = state.currentConfig.Common.DbVariables;
+                if (currentDbVariables) {
+                    Object.keys(currentDbVariables).forEach((dbVar) => {
+                        if (!state.originalConfig.Common.DbVariables[dbVar]) {
+                            state.originalConfig.Common.DbVariables[dbVar] = currentDbVariables[dbVar];
+                        }
+                    });
+                }
+
+                return Promise.resolve();
             })
             .catch((err) => {
                 logger.severe(`Error getting current config: ${err.message}`);

@@ -305,15 +305,8 @@ class RestWorker {
 
 function getAndSaveCurrentConfig(bigIp, declaration) {
     const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
-    return configManager.get(declaration, this.state.doState.currentConfig)
-        .then((currentConfig) => {
-            this.state.doState.currentConfig = currentConfig;
-
-            // Also save an original config which we will use for putting
-            // objects back to their defaults
-            if (!this.state.doState.originalConfig) {
-                this.state.doState.originalConfig = currentConfig;
-            }
+    return configManager.get(declaration, this.state.doState)
+        .then(() => {
             return save.call(this);
         });
 }
