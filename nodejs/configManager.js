@@ -233,6 +233,9 @@ class ConfigManager {
                 // POST with out the variable
                 const currentDbVariables = state.currentConfig.Common.DbVariables;
                 if (currentDbVariables) {
+                    if (!state.originalConfig.Common.DbVariables) {
+                        state.originalConfig.Common.DbVariables = {};
+                    }
                     Object.keys(currentDbVariables).forEach((dbVar) => {
                         if (!state.originalConfig.Common.DbVariables[dbVar]) {
                             state.originalConfig.Common.DbVariables[dbVar] = currentDbVariables[dbVar];
