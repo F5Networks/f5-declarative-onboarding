@@ -18,7 +18,7 @@ If using BIG-IP 14.0 or later
 `````````````````````````````
 If you are using BIG-IP 14.0 or later, the |14| is enforced. As mentioned in the Prerequisites, you must change your **admin** password before attempting to upload or install Declarative Onboarding.  
 
-- To change your admin password using the Configuration utility, simply go to the BIG-IP Configuration utility (https://IP address of BIG-IP) and login using **admin** as the Username and Password. You are forced to change your password.  
+- To change your admin password using the Configuration utility, simply go to the BIG-IP Configuration utility ``https://(IP address of BIG-IP)`` and login using **admin** as the Username and Password. You are forced to change your password.  
 
 - To change your admin password using the CLI, SSH into the BIG-IP.  Log on as **root** with the password of **default**.  You are forced to change your root password.  After changing your root password, you receive a message saying the admin password was also changed but marked as expired.  Type the following command to change the admin password: **modify auth user admin prompt-for-password**, and then type a new admin password. 
 
