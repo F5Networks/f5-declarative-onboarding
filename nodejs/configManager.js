@@ -96,11 +96,11 @@ class ConfigManager {
         // want to store all of the db variables (there are over 2000 of them) and
         // there is no way to query for a set of db variables. You would think
         // that $filter would allow you to do this, but $filter only allows you
-        // to filter by partition. So, we either have to get them all and then
-        // filter ourselves, or get them one at a time and push them into the the
-        // same object in the current config. Since the current structure
+        // to filter by partition. We love you BIG-IP! So, we either have to get
+        // them all and then filter ourselves, or get them one at a time and push
+        // them into the correct object in the current config. Since the current structure
         // (using configItems.json) is more amenable to the first approach, that's
-        // what we're doing. We love you BIG-IP!
+        // what we're doing.
         const dbVarsOfInterest = [];
         if (currentCurrentConfig && currentCurrentConfig.Common && currentCurrentConfig.Common.DbVariables) {
             Object.keys(currentCurrentConfig.Common.DbVariables).forEach((dbVar) => {
