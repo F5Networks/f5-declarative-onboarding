@@ -1,0 +1,126 @@
+{
+    "class": "DO",
+    "targetHost": "1.2.3.4",
+    "targetUsername": "/declaration/Credentials/1/username",
+    "targetPassphrase": "/declaration/Credentials/1/password",
+    "declaration": {
+        "schemaVersion": "1.0.0",
+        "class": "Device",
+        "label": "Use App Services Gateway to license BIG-IP via BIG-IQ when BIG-IP is reachable from BIG-IQ",
+        "Credentials": [
+            {
+                "username": "bigIqAdmin",
+                "password": "foofoo"
+            },
+            {
+                "username": "admin",
+                "password": "barbar"
+            }
+        ],
+        "Common": {
+            "class": "Tenant",
+            "hostname": "bigip.example.com",
+            "myLicense": {
+                "class": "License",
+                "licenseType": "licensePool",
+                "bigIqHost": "10.0.1.200",
+                "bigIqUsername": "/Credentials/0/username",
+                "bigIqPassword": "/Credentials/0/password",
+                "licensePool": "myPool",
+                "skuKeyword1": "key1",
+                "skuKeyword2": "key2",
+                "unitOfMeasure": "hourly",
+                "reachable": true,
+                "bigIpUsername": "/Credentials/1/username",
+                "bigIpPassword": "/Credentials/1/password"
+            },
+            "myDns": {
+                "class": "DNS",
+                "nameServers": [
+                    "8.8.8.8",
+                    "2001:4860:4860::8844"
+                ],
+                "search": [
+                    "f5.com"
+                ]
+            },
+            "myNtp": {
+                "class": "NTP",
+                "servers": [
+                    "0.pool.ntp.org",
+                    "1.pool.ntp.org",
+                    "2.pool.ntp.org"
+                ],
+                "timezone": "UTC"
+            },
+            "root": {
+                "class": "User",
+                "userType": "root",
+                "oldPassword": "foo",
+                "newPassword": "bar"
+            },
+            "admin": {
+                "class": "User",
+                "userType": "regular",
+                "password": "asdfjkl",
+                "shell": "bash"
+            },
+            "anotherUser": {
+                "class": "User",
+                "userType": "regular",
+                "password": "foobar",
+                "partitionAccess": {
+                    "Common": {
+                        "role": "guest"
+                    }
+                }
+            },
+            "myProvisioning": {
+                "class": "Provision",
+                "ltm": "nominal"
+            },
+            "internal": {
+                "class": "VLAN",
+                "tag": 4093,
+                "mtu": 1500,
+                "interfaces": [
+                    {
+                        "name": "1.2",
+                        "tagged": true
+                    }
+                ]
+            },
+            "internal-self": {
+                "class": "SelfIp",
+                "address": "10.10.0.100/24",
+                "vlan": "internal",
+                "allowService": "default",
+                "trafficGroup": "traffic-group-local-only"
+            },
+            "external": {
+                "class": "VLAN",
+                "tag": 4094,
+                "mtu": 1500,
+                "interfaces": [
+                    {
+                        "name": "1.1",
+                        "tagged": true
+                    }
+                ]
+            },
+            "external-self": {
+                "class": "SelfIp",
+                "address": "10.20.0.100/24",
+                "vlan": "external",
+                "allowService": "none",
+                "trafficGroup": "traffic-group-local-only"
+            },
+            "default": {
+                "class": "Route",
+                "gw": "10.10.0.1",
+                "network": "default",
+                "mtu": 1500
+            }
+        }
+    }
+}

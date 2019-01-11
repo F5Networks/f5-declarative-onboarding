@@ -22,7 +22,7 @@ The first task is to download (pull) the Docker image from Docker Hub.  If you p
 
 1. Download the F5 Declarative Onboarding Docker image using the following command syntax: ``docker pull f5devcentral/f5-do-container:<tag name>``.  The <tag name> is optional and allows you to include a specific tag using :<tagname> after f5-Declarative Onboarding-container.  If you do not include a tag, it downloads the latest version (:latest). |br| Once the download is complete, you should see a status message stating the image was downloaded.
 
-2. Run Declarative Onboarding container using the command: ``docker run --name do_container --rm -d -p 8443:443 -p 8080:80 f5devcentral/f5-do-container:latest``
+2. Run Declarative Onboarding container using the command: ``docker run --name do_container --rm -d -p 8443:443 -p 8080:80 f5devcentral/f5-do-container:latest``.  **--name do_container** is optional and can be changed to any name you want, it's just an easy way to identify this container.
 
 3. To test the Docker image is functional, you can use one of the following options (the following examples use **localhost**, you can use an IP address in place of localhost if your client and container are on different devices):
 
@@ -32,7 +32,7 @@ The first task is to download (pull) the Docker image from Docker Hub.  If you p
 
 
 
-You should see a response like the following: (I'm still working on getting a box to show me this, ignore the below for now)
+You should see a response like the following: (will replace with real example when i can test it)
 
 .. code-block:: json
 
@@ -62,7 +62,7 @@ Example declaration snippet using a RESTful client
 To send a declaration from the container with a RESTful client like Postman, use the targetHost, targetUsername, and targetPassphrase parameters as shown in the following example (using values from your configuration).  In this example, your declaration would continue after the last (schemaVersion) line.
 
 .. code-block:: shell
-   :emphasize-lines: 5-7
+   :emphasize-lines: 3-7
 
    {
 
@@ -168,7 +168,7 @@ Full declaration using the Declarative Onboarding container
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This example uses a simple example declaration using the container.
 
-.. literalinclude:: examples/example-container.json
+.. literalinclude:: examples/example_05.json
    :language: json
 
 
