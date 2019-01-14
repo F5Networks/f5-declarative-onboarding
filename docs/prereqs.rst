@@ -23,6 +23,8 @@ The following are prerequisites for using F5 Declarative Onboarding:
 Notes and tips
 ~~~~~~~~~~~~~~
 
+- With the release of Declarative Onboarding 1.2.0, the GitHub repository now includes a |github| with all of the example declarations. For information on importing this collection and using Postman collections, see the |postman|.  
+
 - The first time you POST a Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration. Declarative Onboarding is meant to initially configure a BIG-IP device. However, if you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.  **Important**: No matter what you send in a subsequent declaration, Declarative Onboarding will never unlicense a BIG-IP device, it will never delete a user, and it never break the device trust once it has been established.
 
 - You can use GET to retrieve a sample declaration.  Use GET to ``https://<BIG-IP>/mgmt/shared/declarative-onboarding/example``
@@ -50,5 +52,14 @@ Notes and tips
 .. |reset| raw:: html
 
    <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-system-secure-password-policy-14-0-0/01.html#unique_208231698" target="_blank">Resetting passwords in v14</a>
+
+.. |postman| raw:: html
+
+   <a href="https://learning.getpostman.com/docs/postman/collections/intro_to_collections/" target="_blank">Postman documentation</a>
+
+
+.. |github| raw:: html
+
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/dist/f5-declarative-onboarding/blob/develop/dist/do.examples.collection.json" target="_blank">Declarative Onboarding Postman collection</a>
 
 
