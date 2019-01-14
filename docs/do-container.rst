@@ -2,7 +2,7 @@
 
 Using Declarative Onboarding in a Docker Container
 --------------------------------------------------
-F5 Networks has created a Docker Container (currently Community Supported) with Declarative Onboarding installed.  You can use this container to create new BIG-IP systems.  This can be extremely useful for automating BIG-IP configurations.
+F5 Networks has created a Docker Container (currently Community Supported) with Declarative Onboarding installed (1.2.0).  You can use this container to create new BIG-IP systems.  This can be extremely useful for automating BIG-IP configurations.   
 
 .. IMPORTANT:: Note this solution is currently Community Supported and in the F5Devcentral organization on Docker Hub.  Once it is fully supported by F5, it will move to **f5networks** on Docker Hub.
 
@@ -31,17 +31,7 @@ The first task is to download (pull) the Docker image from Docker Hub.  If you p
    - Run the following cURL command: ``curl -k https://localhost:8443/mgmt/shared/declarative-onboarding/example``  
 
 
-
-You should see a response like the following: (will replace with real example when i can test it)
-
-.. code-block:: json
-
-    {
-        "version": "1.2.0",
-        "release": "1",
-        "schemaCurrent": "1.2.0",
-        "schemaMinimum": "1.0.0"
-    }
+The system returns an example Declarative Onboarding declaration.
 
 |
 

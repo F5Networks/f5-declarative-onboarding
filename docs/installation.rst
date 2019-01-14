@@ -109,7 +109,7 @@ In either case, if installation was successful, you should see an empty declarat
    }
 
 
-
+You can also GET to send ``https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding/example`` to retrieve an example declaration.
 
 
 Updating Declarative Onboarding
