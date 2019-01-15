@@ -69,7 +69,7 @@ The items specific to the DO class are highlighted.
 .. literalinclude:: examples/example_05.json
    :language: json
    :linenos:
-   :emphasize-lines: 1-6
+   :emphasize-lines: 2-6
 
 :ref:`Back to top<examples>`
 

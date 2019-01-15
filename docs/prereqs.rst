@@ -8,9 +8,9 @@ The following are prerequisites for using F5 Declarative Onboarding:
 
 - You must have an existing BIG-IP device with a management IP address.  
 
-- You must have an existing user account with the Administrator role. If you are using 13.1.x, the BIG-IP contains an admin user by default. If you are using 14.x, you **must** reset the admin password before installing Declarative Onboarding. See :ref:`14andlater` for instructions. 
+- The BIG-IP must be running version 13.1.0 or later.  
 
-- The BIG-IP must be running version 13.1.0 or later.   
+- You must have an existing user account with the Administrator role. If you are using 13.1.x, the BIG-IP contains an admin user by default. If you are using 14.x, you **must** reset the admin password before installing Declarative Onboarding. See :ref:`14andlater` for instructions.  
 
 - Declarative Onboarding is not supported on F5 vCMP systems.
 
