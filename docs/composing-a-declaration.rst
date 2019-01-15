@@ -14,6 +14,8 @@ To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP ad
 
 In this section, we first show the sample declaration, and then we break it down and describe its parts. If you are unfamiliar with any of the BIG-IP terminology, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.
 
+Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
+
 
 
 Sample declaration for a standalone BIG-IP

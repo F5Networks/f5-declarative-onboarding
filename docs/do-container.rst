@@ -49,7 +49,9 @@ To send a declaration with the container using cURL, use ``curl -sku admin:admin
 
 Example declaration snippet using a RESTful client
 ``````````````````````````````````````````````````
-To send a declaration from the container with a RESTful client like Postman, use the targetHost, targetUsername, and targetPassphrase parameters as shown in the following example (using values from your configuration).  In this example, your declaration would continue after the last (schemaVersion) line.
+To send a declaration from the container with a RESTful client like Postman, use the targetHost, targetUsername, and targetPassphrase parameters as shown in the following example (using values from your configuration).  In this example, your declaration would continue after the last (schemaVersion) line.  
+
+Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
 
 .. code-block:: shell
    :emphasize-lines: 3-7

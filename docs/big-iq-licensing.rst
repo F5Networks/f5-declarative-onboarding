@@ -14,6 +14,8 @@ To use this feature:
 - You must have an existing BIG-IQ device with a pool of BIG-IP VE licenses. 
 - The license pool can only be a Registration Key pool, Purchased Pool, or a ELA/subscription pool. See the |bigiq| documentation for more detailed information on License pool types.
 
+Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
+
 
 Declaration class licensing with BIG-IQ
 ---------------------------------------
