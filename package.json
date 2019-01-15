@@ -35,7 +35,7 @@
     "request": "^2.88.0"
   },
   "scripts": {
-    "test": "nyc mocha --recursive test",
+    "test": "nyc mocha --recursive test/nodejs test/schema",
     "functional" : "node test/functional/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint nodejs test"
