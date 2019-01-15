@@ -18,7 +18,7 @@ If you come across a bug or other issue when using Declarative Onboarding, use [
 
 Because Declarative Onboarding v1.1.0 and later has been created and fully tested by F5 Networks, it is fully supported by F5. This means you can get assistance if necessary from [F5 Technical Support](https://support.f5.com/csp/article/K25327565).  
 
-Be sure to see the [Support page](SUPPORT.md) in this repo for more details and supported versions of AS3.  
+Be sure to see the [Support page](SUPPORT.md) in this repo for more details and supported versions of Declarative Onboarding.  
 
 ### Community Help
 We encourage you to use our [Slack channel](https://f5cloudsolutions.herokuapp.com) for discussion and assistance on Declarative Onboarding templates (click the **declarative-onboard** channel). There are F5 employees who are members of this community who typically monitor the channel Monday-Friday 9-5 PST and will offer best-effort assistance. See the [Slack Channel Statement](slack-channel-statement.md) for guidelines on using this channel.
