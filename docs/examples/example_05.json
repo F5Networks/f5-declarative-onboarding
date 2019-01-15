@@ -6,7 +6,7 @@
 	"declaration": {
         "schemaVersion": "1.0.0",
         "class": "Device",
-        "label": "Use App Services Gateway to onboard a BIG-IP",
+        "label": "Use a container to onboard a BIG-IP",
         "Common": {
             "class": "Tenant",
             "hostname": "bigip.example.com",

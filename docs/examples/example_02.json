@@ -82,9 +82,16 @@
                 }
             ]
         },
+        "external-localself": {
+            "class": "SelfIp",
+            "address": "10.20.0.100/24",
+            "vlan": "external",
+            "allowService": "none",
+            "trafficGroup": "traffic-group-local-only"
+        },
         "external-self": {
             "class": "SelfIp",
-            "address": "1.2.3.4/24",
+            "address": "10.20.0.200/24",
             "vlan": "external",
             "allowService": "default",
             "trafficGroup": "traffic-group-1"
@@ -97,11 +104,11 @@
         },
         "configsync": {
             "class": "ConfigSync",
-            "configsyncIp": "/Common/external-self/address"
+            "configsyncIp": "/Common/internal-self/address"
         },
         "failoverAddress": {
             "class": "FailoverUnicast",
-            "address": "/Common/external-self/address"
+            "address": "/Common/internal-self/address"
         },
         "failoverGroup": {
             "class": "DeviceGroup",
