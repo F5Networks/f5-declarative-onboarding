@@ -1,0 +1,25 @@
+{
+    "schemaVersion" : "1.0.0",
+    "class" : "Device",
+    "async" : true,
+    "Common" : {
+      "class" : "Tenant",
+      "myVlan" : {
+          "class" : "VLAN",
+          "tag" : 1234,
+          "mtu" : 5000,
+          "interfaces" : [
+              {
+                  "name" : "1.3",
+                  "tagged" : true
+              }
+           ]
+       },
+       "myRoute" : {
+          "class" : "Route",
+          "gw" : "10.147.75.1",
+          "network" : "0.0.0.0",
+          "mtu" : 1500 
+       }
+    }
+}

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "1.0.0",
+  "class": "Device",
+  "async": true,
+    "Common": {
+      "class": "Tenant",
+        "hostname": "f5.example.com",
+        "myDns": {
+            "class": "DNS",
+            "nameServers": [
+              "8.8.8.8",
+                "2001:4860:4860::8844"
+            ],
+            "search": [
+                "f5.com"
+            ]
+        },
+        "myNtp": {
+            "class": "NTP",
+            "servers": [
+              "0.pool.ntp.org",
+                "1.pool.ntp.org"
+            ],
+            "timezone": "UTC"
+        },
+        "myProvisioning": {
+          "class": "Provision",
+          "ltm": "nominal"
+        },
+        "admin": {
+            "class": "User",
+            "userType": "regular",
+            "password": "admin",
+            "shell": "bash"
+        },
+        "anotherUser": {
+            "class": "User",
+            "userType": "regular",
+            "password": "admin",
+            "partitionAccess": {
+                "Common": {
+                    "role": "guest"
+                }
+            }
+        },
+        "myVlan": {
+            "class": "VLAN",
+            "tag": 1234,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ]
+        },
+        "mySelfIp": {
+            "class": "SelfIp",
+            "address": "10.148.75.46/24",
+            "vlan": "myVlan",
+            "allowService": ["tcp:80"],
+            "trafficGroup": "traffic-group-local-only"
+        },
+        "myRoute": {
+            "class": "Route",
+            "gw": "10.148.75.1",
+            "network": "default",
+            "mtu": 1500
+        }
+    }
+}
