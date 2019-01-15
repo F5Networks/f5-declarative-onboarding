@@ -41,9 +41,9 @@ To send a declaration to a BIG-IP system you use the new *target* parameters in 
 
 Again, the following examples use **localhost**, you can use an IP address in place of localhost if your client and container are on different devices.
 
-To send a declaration with the container using a RESTful client, use ``https://localhost:8443/mgmt/shared/appsvcs/declare``, and then POST a declaration.
+To send a declaration with the container using a RESTful client, use ``https://localhost:8443/mgmt/shared/declarative-onboarding``, and then POST a declaration.
 
-To send a declaration with the container using cURL, use ``curl -sku admin:admin -H "Content-Type: application/json" -X POST https://localhost:8443/mgmt/shared/appsvcs/declare`` and then include the declaration.
+To send a declaration with the container using cURL, use ``curl -sku admin:admin -H "Content-Type: application/json" -X POST https://localhost:8443/mgmt/shared/declarative-onboarding`` and then include the declaration.
 
 
 
@@ -96,7 +96,7 @@ To send a declaration from the container with cURL, use the same parameters as d
 
 .. code-block:: shell
 
-    curl -sku admin:admin -H "Content-Type: application/json" -X POST https://localhost:8443/mgmt/shared/declarative-onboarding ‘{
+    curl -sku admin:admin -H "Content-Type: application/json" -X POST https://localhost:8443/mgmt/shared/declarative-onboarding -d ‘{
         "class": "DO",
         "targetHost": "192.0.2.76",
         "targetUsername": "admin",

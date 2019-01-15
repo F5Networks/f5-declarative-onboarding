@@ -60,29 +60,29 @@ In this example, the entire *License* class is unique to using BIG-IQ for licens
 
 :ref:`Back to top<examples>`
 
-Example 5: 
--------------------------------------------------------
-The following is another example of using a BIG-IQ to license your BIG-IP systems. However, in this case the BIG-IQ does **not** have an existing route to the BIG-IP.  Also, this example is using a RegKey pool on the BIG-IQ device, so skuKeyword1 and 2, and unitOfMeasure are not needed.
-In this example, the entire *License* class is unique to using BIG-IQ for licensing, and we've highlighted the lines that are specific to this No Route example (reachable=false).  See :doc:`big-iq-licensing` for specific details on this example.
+Example 5: Using Declarative Onboarding in a container
+------------------------------------------------------
+The following is an example of a declaration for use in a container.  It contains the **DO** class, which contains information about the target BIG-IP device.  See :doc:`do-container` for information about the container and the DO class. 
+
+The items specific to the DO class are highlighted. 
 
 .. literalinclude:: examples/example_05.json
    :language: json
    :linenos:
-   :emphasize-lines: 14-15
+   :emphasize-lines: 1-6
 
 :ref:`Back to top<examples>`
 
 .. _example6:
 
-Example 6: hkj
--------------------------------------------------------
-The following is another example of using a BIG-IQ to license your BIG-IP systems. However, in this case the BIG-IQ does **not** have an existing route to the BIG-IP.  Also, this example is using a RegKey pool on the BIG-IQ device, so skuKeyword1 and 2, and unitOfMeasure are not needed.
-In this example, the entire *License* class is unique to using BIG-IQ for licensing, and we've highlighted the lines that are specific to this No Route example (reachable=false).  See :doc:`big-iq-licensing` for specific details on this example.
+Example 6: Using JSON Pointers
+------------------------------
+The following is another example using a declaration for use in a container, but in this case, it also contains a number of examples of using JSON pointers in a declaration.  For more information on JSON pointers, see :doc:`json-pointers`.
 
 .. literalinclude:: examples/example_06.json
    :language: json
    :linenos:
-   :emphasize-lines: 14-15
+
 
 :ref:`Back to top<examples>`
 
