@@ -58,6 +58,24 @@
             "class": "Provision",
             "ltm": "nominal"
         },
+        "internal": {
+            "class": "VLAN",
+            "tag": 4093,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.2",
+                    "tagged": true
+                }
+            ]
+        },
+        "internal-self": {
+            "class": "SelfIp",
+            "address": "10.10.0.100/24",
+            "vlan": "internal",
+            "allowService": "default",
+            "trafficGroup": "traffic-group-local-only"
+        },
         "external": {
             "class": "VLAN",
             "tag": 4094,
@@ -73,7 +91,8 @@
             "class": "SelfIp",
             "address": "10.0.1.100/24",
             "vlan": "external",
-            "allowService": "all"
+            "allowService": "all",
+            "trafficGroup": "traffic-group-local-only"
         },
         "default": {
             "class": "Route",

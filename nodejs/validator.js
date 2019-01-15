@@ -18,6 +18,7 @@
 
 const Ajv = require('ajv');
 
+const remoteSchema = require('../schema/remote.schema.json');
 const baseSchema = require('../schema/base.schema.json');
 const systemSchema = require('../schema/system.schema.json');
 const networkSchema = require('../schema/network.schema.json');
@@ -44,7 +45,8 @@ class Validator {
             .addSchema(systemSchema)
             .addSchema(networkSchema)
             .addSchema(dscSchema)
-            .compile(baseSchema);
+            .addSchema(baseSchema)
+            .compile(remoteSchema);
     }
 
     validate(data) {

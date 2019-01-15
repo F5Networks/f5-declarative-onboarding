@@ -6,6 +6,14 @@
         ]
     },
     {
+        "path": "/tm/sys/db",
+        "schemaClass": "DbVariables",
+        "properties": [
+            { "id": "value" }
+        ],
+        "singleValue": true
+    },
+    {
         "path": "/tm/sys/provision",
         "schemaClass": "Provision",
         "properties": [

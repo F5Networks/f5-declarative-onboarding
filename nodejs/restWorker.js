@@ -136,8 +136,21 @@ class RestWorker {
             }
         }
 
-        const declaration = Object.assign({}, body);
-        const validation = this.validator.validate(declaration);
+        // Set the declaration to the base request (no remote info)
+        // and the wrapper to a remote request
+        let declaration = Object.assign({}, body);
+        let wrapper;
+        if (declaration.class !== 'DO') {
+            wrapper = {
+                declaration,
+                class: 'DO'
+            };
+        } else {
+            wrapper = declaration;
+            declaration = wrapper.declaration;
+        }
+
+        const validation = this.validator.validate(wrapper);
         this.state.doState.declaration = declaration;
         this.state.doState.errors = null;
 
@@ -160,12 +173,30 @@ class RestWorker {
                 sendResponse.call(this, restOperation);
             }
 
-            doUtil.getBigIp(logger)
+            // Fill in anything in the wrapper that is a json-pointer
+            const bigIpOptions = doUtil.dereference(
+                wrapper,
+                {
+                    host: wrapper.targetHost,
+                    port: wrapper.targetPort,
+                    user: wrapper.targetUsername,
+                    password: wrapper.targetPassphrase
+                }
+            );
+
+            const targetTokens = wrapper.targetTokens || {};
+            Object.keys(targetTokens).forEach((key) => {
+                if (key.toLowerCase() === 'x-f5-auth-token') {
+                    bigIpOptions.authToken = targetTokens[key];
+                }
+            });
+
+            doUtil.getBigIp(logger, bigIpOptions)
                 .then((bigIp) => {
                     this.bigIp = bigIp;
                     this.declarationHandler = new DeclarationHandler(this.bigIp);
                     logger.fine('Getting and saving current configuration');
-                    return getAndSaveCurrentConfig.call(this, this.bigIp);
+                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
                 })
                 .then(() => {
                     return this.declarationHandler.process(declaration, this.state.doState);
@@ -188,7 +219,7 @@ class RestWorker {
                         this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
                     }
                     logger.fine('Getting and saving current configuration');
-                    return getAndSaveCurrentConfig.call(this, this.bigIp);
+                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
                 })
                 .then(() => {
                     if (!rebootRequired) {
@@ -210,7 +241,7 @@ class RestWorker {
                         .then(() => {
                             const rollbackTo = {};
                             Object.assign(rollbackTo, this.state.doState.currentConfig);
-                            return getAndSaveCurrentConfig.call(this, this.bigIp)
+                            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration)
                                 .then(() => {
                                     return this.declarationHandler.process(rollbackTo, this.state.doState);
                                 })
@@ -259,7 +290,7 @@ class RestWorker {
         let exampleResponse;
 
         try {
-            const example = `${__dirname}/../examples/basic.json`;
+            const example = `${__dirname}/../examples/onboard.json`;
             exampleResponse = JSON.parse(fs.readFileSync(example).toString());
         } catch (err) {
             logger.warning(`Error reading example file: ${err}`);
@@ -272,17 +303,10 @@ class RestWorker {
     /* eslint-enable class-methods-use-this */
 }
 
-function getAndSaveCurrentConfig(bigIp) {
+function getAndSaveCurrentConfig(bigIp, declaration) {
     const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
-    return configManager.get()
-        .then((currentConfig) => {
-            this.state.doState.currentConfig = currentConfig;
-
-            // Also save an original config which we will use for putting
-            // objects back to their defaults
-            if (!this.state.doState.originalConfig) {
-                this.state.doState.originalConfig = currentConfig;
-            }
+    return configManager.get(declaration, this.state.doState)
+        .then(() => {
             return save.call(this);
         });
 }

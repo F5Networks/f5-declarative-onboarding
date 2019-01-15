@@ -28,6 +28,7 @@ describe('restWorker', () => {
     let RestWorker;
     let doUtilMock;
     let bigIpMock;
+    let declaration;
     let restOperationMock;
     let responseBody;
 
@@ -39,12 +40,13 @@ describe('restWorker', () => {
     });
 
     beforeEach(() => {
+        declaration = {};
         restOperationMock = {
             setStatusCode() {},
             setContentType() {},
             getContentType() { return 'application/json'; },
             setBody(body) { responseBody = body; },
-            getBody() { return {}; },
+            getBody() { return declaration; },
             getUri() {
                 return {
                     query: 'foo'
@@ -206,7 +208,7 @@ describe('restWorker', () => {
     describe('onGet', () => {
         it('should return current state', () => {
             return new Promise((resolve, reject) => {
-                const declaration = {
+                declaration = {
                     foo: 'bar'
                 };
 
@@ -234,6 +236,7 @@ describe('restWorker', () => {
     describe('onPost', () => {
         const validatorMock = {};
         let restWorker;
+        let bigIpOptionsCalled;
         let saveCalled;
 
         beforeEach(() => {
@@ -245,6 +248,7 @@ describe('restWorker', () => {
                 return Promise.resolve();
             };
 
+            bigIpOptionsCalled = {};
             saveCalled = false;
             bigIpMock = {
                 save() {
@@ -256,7 +260,8 @@ describe('restWorker', () => {
                 },
                 reboot() {}
             };
-            doUtilMock.getBigIp = () => {
+            doUtilMock.getBigIp = (logger, bigIpOptions) => {
+                bigIpOptionsCalled = bigIpOptions;
                 return Promise.resolve(bigIpMock);
             };
 
@@ -275,6 +280,62 @@ describe('restWorker', () => {
             restWorker.state = {
                 doState: new State()
             };
+        });
+
+        it('should pass off auth token if provided', () => {
+            return new Promise((resolve, reject) => {
+                const authToken = '1234ABCD';
+                declaration = {
+                    class: 'DO',
+                    targetTokens: {
+                        'X-F5-Auth-Token': authToken
+                    },
+                    declaration: {}
+                };
+
+                restOperationMock.complete = () => {
+                    assert.strictEqual(bigIpOptionsCalled.authToken, authToken);
+                    resolve();
+                };
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should dereference json-pointers in the DO wrapper', () => {
+            return new Promise((resolve, reject) => {
+                declaration = {
+                    class: 'DO',
+                    targetUsername: '/declaration/Credentials/0/username',
+                    targetPassphrase: '/declaration/Credentials/1/password',
+                    declaration: {
+                        Credentials: [
+                            { username: 'my user' },
+                            { password: 'my password' }
+                        ]
+                    }
+                };
+
+                restOperationMock.complete = () => {
+                    assert.strictEqual(
+                        bigIpOptionsCalled.user, declaration.declaration.Credentials[0].username
+                    );
+                    assert.strictEqual(
+                        bigIpOptionsCalled.password, declaration.declaration.Credentials[1].password
+                    );
+                    resolve();
+                };
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
         });
 
         it('should handle validation errors', () => {

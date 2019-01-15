@@ -2,7 +2,8 @@ image: node:8
 
 stages:
     - test
-    - package
+    - build
+    - post build
     - publish
 
 test:
@@ -14,22 +15,62 @@ test:
         - npm run lint
         - npm test
 
-build_rpm:
+build rpm:
     image: node:8-alpine
-    stage: package
+    stage: build
     tags:
         - docker-executor
     script:
         - apk add rpm bash
         - build/buildRpm.sh
     artifacts:
-        name: f5-decon-$CI_BUILD_REF
+        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
             - build/rpmbuild/RPMS/noarch/
+        expire_in: 1 week
+
+build asg:
+    image: docker:latest
+    stage: post build
+    tags:
+        - docker-executor
+    dependencies:
+        - build rpm
+    script:
+        - IMAGE_NAME=f5-do-container
+        - ORGANIZATION_NAME=f5devcentral
+        - TARGET=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
+        - echo $TARGET
+        # TAG is VERSION-RELEASE. Use awk to remove everything else
+        - IMAGE_TAG=$(echo $(basename $TARGET) | awk -F- -v PROJECT_NAME=${CI_PROJECT_NAME}- '{sub(PROJECT_NAME, ""); sub(".noarch.rpm", ""); print}')
+        - if [[ ${CI_COMMIT_REF_NAME} == 'master' ]]; then
+        -     IMAGE_TAG=$(echo $IMAGE_TAG | grep -o "^[^-]\+")
+        - elif [[ ${CI_COMMIT_REF_NAME} != 'develop' ]]; then
+        -     IMAGE_TAG=$CI_COMMIT_REF_NAME
+        - fi
+        - docker build -f build/Dockerfile.asg -t ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
+        - docker save ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${ORGANIZATION_NAME}-${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
+    artifacts:
+        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
+        paths:
+            - dist/*.tar.gz
+        expire_in: 1 week
+
+create postman collection:
+    stage: post build
+    tags:
+        - docker-executor
+    script:
+        - node build/generatePostmanCollection.js
+    artifacts:
+        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
+        paths:
+            - dist/do.examples.collection.json
+        expire_in: 1 week
 
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
-    stage: package
+    stage: post build
     script:
         - make html
         - echo "Checking grammar and style"
@@ -37,13 +78,11 @@ create docs:
         - vale --glob='*.rst' .
         - echo "Checking links"
         - make linkcheck
-
-
     tags:
         - cm-official-docker-executor
     artifacts:
         expire_in: 1 week
-        name: sphinx-docs_$CI_BUILD_REF
+        name: sphinx-docs_$CI_COMMIT_SHA
         paths:
             - docs/_build/html
 
@@ -67,40 +106,39 @@ pages:
     only:
         - branches
 
-Publish docs to staging:
-  image: ${CONTAINTHEDOCS_IMAGE}
-  stage: publish
-  environment:
-    name: staging
-    url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-  tags:
-    - cm-official-docker-executor
-  only:
-    - doc-staging@cloudsolutions/f5-declarative-onboarding
-  dependencies:
-    - create docs
-  script:
-    - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-    # create invalidation to clear cloudfront cache
-    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest/
-
-# Publish docs to clouddocs.f5.com
-docs to production:
-  image: ${CONTAINTHEDOCS_IMAGE}
-  stage: publish
-  environment:
-    name: production
-    url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest
-  only:
-    # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
-    # fill in desired release branch name and uncomment to add deployment from a branch
-    - doc-publish@cloudsolutions/f5-declarative-onboarding
-  tags:
-    - cm-official-docker-executor
-  dependencies:
-    - create docs
-  script:
-        # Publish docs to clouddocs.f5.com (live site).
-    - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
+publish docs to staging:
+    image: ${CONTAINTHEDOCS_IMAGE}
+    stage: publish
+    environment:
+        name: staging
+        url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
+    tags:
+        - cm-official-docker-executor
+    only:
+        - doc-staging@cloudsolutions/f5-declarative-onboarding
+    dependencies:
+        - create docs
+    script:
+        - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
         # create invalidation to clear cloudfront cache
-    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
+        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest/
+
+publish docs to production:
+    image: ${CONTAINTHEDOCS_IMAGE}
+    stage: publish
+    environment:
+        name: production
+        url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest
+    only:
+        # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
+        # fill in desired release branch name and uncomment to add deployment from a branch
+        - doc-publish@cloudsolutions/f5-declarative-onboarding
+    tags:
+        - cm-official-docker-executor
+    dependencies:
+        - create docs
+    script:
+        # Publish docs to clouddocs.f5.com (live site).
+        - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
+        # create invalidation to clear cloudfront cache
+        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding

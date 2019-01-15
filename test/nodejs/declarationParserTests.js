@@ -151,6 +151,16 @@ describe('declarationParser', () => {
 
     it('should dereference pointers', () => {
         const declaration = {
+            "Credentials": [
+                {
+                    "username": "myUser",
+                    "password": "myPassword"
+                },
+                {
+                    "username": "myOtherUser",
+                    "password": "myOtherPassword"
+                }
+            ],
             "Common": {
                 "class": "Tenant",
                 "myVlan": {
@@ -166,7 +176,13 @@ describe('declarationParser', () => {
                 "myConfigSync": {
                     "class": "ConfigSync",
                     "configsyncIp": "/Common/mySelfIp/address"
-                }
+                },
+                "myLicense": {
+                    "class": "License",
+                    "bigIpUsername": "/Credentials/0/username",
+                    "bigIqUsername": "/Credentials/1/username",
+                    "notAPointer": "/foo/bar"
+                },
             }
         };
         const declarationParser = new DeclarationParser(declaration);
@@ -175,6 +191,21 @@ describe('declarationParser', () => {
         assert.strictEqual(
             parsedDeclaration.Common.ConfigSync.configsyncIp,
             declaration.Common.mySelfIp.address
+        );
+        assert.strictEqual(
+            parsedDeclaration.Common.License.bigIpUsername,
+            declaration.Credentials[0].username
+        );
+        assert.strictEqual(
+            parsedDeclaration.Common.License.bigIqUsername,
+            declaration.Credentials[1].username
+        );
+
+        // If we get a pointer that does not de-reference, we should just get back the
+        // original pointer
+        assert.strictEqual(
+            parsedDeclaration.Common.License.notAPointer,
+            declaration.Common.myLicense.notAPointer
         );
     });
 });

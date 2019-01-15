@@ -5,6 +5,8 @@ Example declarations
 
 The following examples show you some Declarative Onboarding declarations.  
 
+.. IMPORTANT:: The following examples include passwords that may not be valid for BIG-IP v14.0 and later.  See |pass| for specific requirements.
+
 
 
 
@@ -58,6 +60,37 @@ In this example, the entire *License* class is unique to using BIG-IQ for licens
 
 :ref:`Back to top<examples>`
 
+Example 5: Using Declarative Onboarding in a container
+------------------------------------------------------
+The following is an example of a declaration for use in a container.  It contains the **DO** class, which contains information about the target BIG-IP device.  See :doc:`do-container` for information about the container and the DO class. 
+
+The items specific to the DO class are highlighted. 
+
+.. literalinclude:: examples/example_05.json
+   :language: json
+   :linenos:
+   :emphasize-lines: 2-6
+
+:ref:`Back to top<examples>`
+
+.. _example6:
+
+Example 6: Using JSON Pointers
+------------------------------
+The following is another example using a declaration for use in a container, but in this case, it also contains a number of examples of using JSON pointers in a declaration.  For more information on JSON pointers, see :doc:`json-pointers`.
+
+.. literalinclude:: examples/example_06.json
+   :language: json
+   :linenos:
+
+
+:ref:`Back to top<examples>`
+
 .. |br| raw:: html
 
    <br />
+
+.. |pass| raw:: html
+
+   <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-system-secure-password-policy-14-0-0/01.html" target="_blank">BIG-IP Secure Password Policy</a>
+

@@ -12,7 +12,7 @@
         "schemaVersion": {
             "description": "Version of Declarative Onboarding schema this declaration uses.",
             "type": "string",
-            "enum": ["1.1.0", "1.0.0"]
+            "enum": ["1.2.0", "1.1.0", "1.0.0"]
         },
         "class": {
             "description": "Indicates this JSON document is a Device declaration",
@@ -27,6 +27,57 @@
         "label": {
             "description": "Optional friendly name for this declaration",
             "type": "string"
+        },
+        "Credentials": {
+            "description": "Credentials which can be referenced from other parts of the declaration or the remote wrapper.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "description": "Username of principal authorized to modify configuration of device (may not include the character ':').  NOTE:  this is generally not required to configure 'localhost' because client authentication and authorization precede invocation of DO.  It is also not required for any host if you populate tokens",
+                        "type": "string",
+                        "pattern": "^[^:]{0,254}$"
+                    },
+                    "password": {
+                        "description": "Password for username account.  This is generally not required to configure 'localhost' and is not required when you populate tokens",
+                        "type": "string",
+                        "pattern": "^.{0,254}$"
+                    },
+                    "tokens": {
+                        "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the device management service as authentication/authorization tokens",
+                        "type": "object",
+                        "patternProperties": {
+                            "^[^\\x00-\\x20:\\x7f-\\xff]{1,254}$": {
+                                "type": "string",
+                                "pattern": "^[^\\x00-\\x1f\\x7f-\\xff]{0,8192}$"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false,
+                "if": {
+                    "required": ["tokens"]
+                },
+                "then": {
+                    "dependencies": {
+                        "username": {
+                            "not": {}
+                        },
+                        "password": {
+                            "not": {}
+                        }
+                    }
+                },
+                "else": {
+                    "dependencies": {
+                        "tokens": {
+                            "not": {}
+                        }
+                    }
+                }
+            }
         },
         "Common": {
             "description": "Special tenant Common holds objects other tenants can share",
