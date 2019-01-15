@@ -111,16 +111,16 @@ To send a declaration from the container with cURL, use the same parameters as d
 
 .. _base:
 
-Adding Base Authentication
+Adding Basic Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-To enable base authentication, which allows you to protect your container running Declarative Onboarding, you can :guilabel:`COPY` or :guilabel:`MOUNT` the conf and password files to the running container using the following instructions. 
+To enable Basic authentication, which allows you to protect your container running Declarative Onboarding, you can :guilabel:`COPY` or :guilabel:`MOUNT` the authentication configuration and user password files to your container using the following instructions. 
 
-**Notes and requirements for adding base authentication**
+**Notes and requirements for adding Basic authentication**
 
 - You should be at least somewhat familiar with the Docker command line.
-- You should have knowledge of Apache .htpasswd for adding base authentication.  See https://httpd.apache.org/docs/2.4/howto/auth.html.
-- While we include commands for Microsoft Windows in this section, getting paths and directories set up in Windows can be tricky, so we recommend using a Linux-based system to add basic authentication.
-- In our example, we are using hashed value for the password *admin*.  We strongly recommend you use a different password.  Use a htpasswd generator (such as http://www.htaccesstools.com/htpasswd-generator/) to generate a value for a stronger password.
+- You should have knowledge of Apache .htpasswd for adding Basic authentication.  See https://httpd.apache.org/docs/2.4/howto/auth.html.
+- While we include commands for Microsoft Windows in this section, getting paths and directories set up in Windows can be tricky, so we recommend using a Linux-based system to add Basic authentication.
+- In our example, we are using a hashed value for the password *admin*.  We strongly recommend you use a different password. Use a htpasswd generator (such as http://www.htaccesstools.com/htpasswd-generator/) to generate a value for a stronger password.
 
 | 
 
