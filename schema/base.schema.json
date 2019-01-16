@@ -6,7 +6,10 @@
     "type": "object",
     "required": ["schemaVersion", "class"],
     "propertyNames": {
-        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+        "oneOf": [
+            { "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$" },
+            { "const": "$schema" }
+        ]
     },
     "properties": {
         "schemaVersion": {
@@ -18,6 +21,11 @@
             "description": "Indicates this JSON document is a Device declaration",
             "type": "string",
             "const": "Device"
+        },
+        "$schema": {
+            "description": "URL of schema against which to validate. Used by validation in your local environment only (via Visual Studio Code, for example)",
+            "type": "string",
+            "format": "uri"
         },
         "async": {
             "description": "Tells the API to return a 202 HTTP status before processing is complete. User must then poll for status.",
