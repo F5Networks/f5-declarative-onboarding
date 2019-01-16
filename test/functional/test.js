@@ -58,7 +58,7 @@ const bigipPassword = 'default';
 
 (function main() {
     let machines = [];
-    let allPassed = 0;
+    let allPassed = 1;
 
     getMachines(2)
         .then((deployedMachines) => {
@@ -76,10 +76,10 @@ const bigipPassword = 'default';
             return testOnboard(machines[0].ip);
         })
         .then((onboardTest) => {
-            allPassed = allPassed || onboardTest;
+            allPassed = allPassed && onboardTest;
         })
         .catch((error) => {
-            allPassed = allPassed || 1;
+            allPassed = allPassed && 0;
             console.log(new Error(error));
         })
         /* eslint-disable no-unused-vars */
@@ -89,10 +89,10 @@ const bigipPassword = 'default';
            return testByol(machines[1].ip)
        })
        .then((byolTest) => {
-           allPassed = allPassed || byolTest;
+           allPassed = allPassed && byolTest;
        })
        .cath((error) => {
-           allPassed = allPassed || 1;
+           allPassed = allPassed && 0;
            console.log(new Error(error));
        })
         * */
@@ -101,10 +101,10 @@ const bigipPassword = 'default';
             return testNetworking(machines[1].ip);
         })
         .then((networkingTest) => {
-            allPassed = allPassed || networkingTest;
+            allPassed = allPassed && networkingTest;
         })
         .catch((error) => {
-            allPassed = allPassed || 1;
+            allPassed = allPassed && 0;
             console.log(new Error(error));
         })
         .then(() => {
@@ -112,10 +112,10 @@ const bigipPassword = 'default';
             return testRollbacking(machines[0].ip);
         })
         .then((rollbackingTest) => {
-            allPassed = allPassed || rollbackingTest;
+            allPassed = allPassed && rollbackingTest;
         })
         .catch((error) => {
-            allPassed = allPassed || 1;
+            allPassed = allPassed && 0;
             console.log(new Error(error));
         })
         .then(() => {
@@ -127,7 +127,9 @@ const bigipPassword = 'default';
         })
         .then(() => {
             console.log('Finished');
-            process.exit(allPassed);
+            // we return a non-zero exit code if any of the tests
+            // do not pass
+            process.exit(!allPassed);
         })
         .catch((error) => {
             console.log(error);
@@ -137,15 +139,14 @@ const bigipPassword = 'default';
 /**
  * testOnboard - test for an onboard declaration type
  * @bigipAddress {String} : ip addrress of target BIG-IP
- * Returns a Promise which is always resolved, but with an error if a network call
- * fails (request or get status later)
+ * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
 */
 function testOnboard(bigipAddress) {
     return new Promise((resolve, reject) => {
         const bodyFile = `${BODIES}/onboard.json`;
         let body;
         const errors = [];
-        let passed = 0;
+        let passed = 1;
 
         common.readFile(bodyFile)
             .then(JSON.parse)
@@ -157,7 +158,7 @@ function testOnboard(bigipAddress) {
                     HTTP_ACCEPTED, 'POST', errors);
             })
             .then((response) => {
-                passed = passed || check('test onboard request', response, errors);
+                passed = passed && check('test onboard request', response, errors);
             })
             .then(() => {
                 // we make a single status call (retrying it if it doesn't succeed),
@@ -172,31 +173,32 @@ function testOnboard(bigipAddress) {
                 return response.currentConfig.Common;
             })
             .then((response) => {
-                passed = passed || check('hostname matches', testHostname(body.Common, response, errors),
+                passed = passed && check('hostname matches', testHostname(body.Common, response, errors),
                     errors);
                 return response;
             })
             .then((response) => {
-                passed = passed || check('dns matches', testDns(body.Common.myDns, response, errors), errors);
+                passed = passed && check('dns matches', testDns(body.Common.myDns, response, errors), errors);
                 return response;
             })
             .then((response) => {
-                passed = passed || check('ntp matches', testNtp(body.Common.myNtp, response, errors), errors);
+                passed = passed && check('ntp matches', testNtp(body.Common.myNtp, response, errors), errors);
                 return response;
             })
             .then((response) => {
+                // we're done; resolve
                 const provisionModules = ['ltm'];
-                passed = passed || check('provisioning matches', testProvisioning(body.Common.myProvisioning,
+                passed = passed && check('provisioning matches', testProvisioning(body.Common.myProvisioning,
                     response, provisionModules, errors), errors);
                 return response;
             })
             .then((response) => {
-                passed = passed || check('vlan matches', testVlan(body.Common.myVlan, response, errors),
+                passed = passed && check('vlan matches', testVlan(body.Common.myVlan, response, errors),
                     errors);
                 return response;
             })
             .then((response) => {
-                passed = passed || check('route matches', testRoute(body.Common.myRoute, response, errors),
+                passed = passed && check('route matches', testRoute(body.Common.myRoute, response, errors),
                     errors);
             })
             .then(() => {
@@ -213,15 +215,14 @@ function testOnboard(bigipAddress) {
 /**
  * testByol - test for a Bring Your Own License (BYOL) declaration type
  * @bigipAddress {String} : ip addrress of target BIG-IP
- * Returns a Promise which is always resolved, but with an error if a network call
- * fails (request or get status later)
+ * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
 */
 function testByol(bigipAddress) {
     return new Promise((resolve, reject) => {
         const bodyFile = `${BODIES}/byol.json`;
         let body;
         const errors = [];
-        let passed = 0;
+        let passed = 1;
 
         common.readFile(bodyFile)
             .then((fileRead) => {
@@ -232,7 +233,7 @@ function testByol(bigipAddress) {
                     HTTP_ACCEPTED, 'POST', errors);
             })
             .then((response) => {
-                passed = passed || check('test byol request', response, errors);
+                passed = passed && check('test byol request', response, errors);
             })
             .then(() => {
                 return testGetStatus(30, 60 * 1000, bigipAddress, bigipAdminUsername, bigipAdminPassword,
@@ -242,21 +243,20 @@ function testByol(bigipAddress) {
                 return response.currentConfig.Common;
             })
             .then((response) => {
-                passed = passed || check('dns matches', testDns(body.Common.myDns, response, errors), errors);
+                passed = passed && check('dns matches', testDns(body.Common.myDns, response, errors), errors);
                 return response;
             })
             .then((response) => {
-                passed = passed || check('ntp matches', testNtp(body.Common.myNtp, response, errors),
+                passed = passed && check('ntp matches', testNtp(body.Common.myNtp, response, errors),
                     errors);
                 return response;
             })
             .then((response) => {
-                passed = passed || check('licensing matches', testLicensing(body.Common.myNtp, response,
+                passed = passed && check('licensing matches', testLicensing(body.Common.myNtp, response,
                     errors), errors);
                 return response;
             })
             .then(() => {
-                // we're done; resolve
                 resolve(passed);
             })
             .catch((error) => {
@@ -270,15 +270,14 @@ function testByol(bigipAddress) {
 /**
  * testNetworking - test for a networking declaration type
  * @bigipAddress {String} : ip addrress of target BIG-IP
- * Returns a Promise which is always resolved, but with an error if a network call
- * fails (request or get status later)
+ * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
 */
 function testNetworking(bigipAddress) {
     return new Promise((resolve, reject) => {
         const bodyFile = `${BODIES}/network.json`;
         let body;
         const errors = [];
-        let passed = 0;
+        let passed = 1;
 
         common.readFile(bodyFile)
             .then((fileRead) => {
@@ -289,7 +288,7 @@ function testNetworking(bigipAddress) {
                     HTTP_ACCEPTED, 'POST', errors);
             })
             .then((response) => {
-                passed = passed || check('test networking request', response, errors);
+                passed = passed && check('test networking request', response, errors);
             })
             .then(() => {
                 // try 30 times, 60 secs each trial
@@ -300,21 +299,20 @@ function testNetworking(bigipAddress) {
                 return response.currentConfig.Common;
             })
             .then((response) => {
-                passed = passed || check('self ip matches', testSelfIp(body.Common.mySelfIp, response,
+                passed = passed && check('self ip matches', testSelfIp(body.Common.mySelfIp, response,
                     errors), errors);
                 return response;
             })
             .then((response) => {
-                passed = passed || check('vlan matches', testVlan(body.Common.myVlan, response, errors),
+                passed = passed && check('vlan matches', testVlan(body.Common.myVlan, response, errors),
                     errors);
                 return response;
             })
             .then((response) => {
-                passed = passed || check('route matches', testRoute(body.Common.myRoute, response, errors),
+                passed = passed && check('route matches', testRoute(body.Common.myRoute, response, errors),
                     errors);
             })
             .then(() => {
-                // we're done; resolve
                 resolve(passed);
             })
             .catch((error) => {
@@ -330,20 +328,19 @@ function testNetworking(bigipAddress) {
  *                   and we get the status later on to see if we have rolled back
  *                   to the previously working configuration
  * @bigipAddress {String} : ip addrress of target BIG-IP
- * Returns a Promise which is always resolved, but with an error if a network call
- * fails (request or get status later)
+ * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
 */
 function testRollbacking(bigipAddress) {
     return new Promise((resolve, reject) => {
         const bodyFile = `${BODIES}/bogus.json`;
         let currentConfiguration;
         const errors = [];
-        let passed = 0;
+        let passed = 1;
 
         // get current configuration to compare against later
         testGetStatus(1, 1, bigipAddress, bigipAdminUsername, bigipAdminPassword, HTTP_SUCCESS, errors)
             .then((response) => {
-                passed = passed || check('test current status is ok', response, errors);
+                passed = passed && check('test current status is ok', response, errors);
                 currentConfiguration = response.currentConfig.Common;
             })
             // send out request with invalid config declaration
@@ -356,28 +353,27 @@ function testRollbacking(bigipAddress) {
                     HTTP_ACCEPTED, 'POST', errors);
             })
             .then((response) => {
-                passed = passed || check('test invalid request status is unprocessable', response, errors);
+                passed = passed && check('test invalid request status is unprocessable', response, errors);
             })
             .then(() => {
                 return testGetStatus(3, 60 * 1000, bigipAddress, bigipAdminUsername, bigipAdminPassword,
                     HTTP_UNPROCESSABLE, errors);
             })
             .then((response) => {
-                passed = passed || check('test new status is rollbacked', response, errors);
+                passed = passed && check('test new status is rollbacked', response, errors);
                 return response.currentConfig.Common;
             })
             // check that configuration is still the same as before
             .then((config) => {
-                passed = passed || check('vlan matches', testVlan(currentConfiguration.VLAN.myVlan, config,
+                passed = passed && check('vlan matches', testVlan(currentConfiguration.VLAN.myVlan, config,
                     errors), errors);
                 return config;
             })
             .then((config) => {
-                passed = passed || check('route matches', testRoute(currentConfiguration.Route.myRoute,
+                passed = passed && check('route matches', testRoute(currentConfiguration.Route.myRoute,
                     config, errors), errors);
             })
             .then(() => {
-                // we're done; resolve
                 resolve(passed);
             })
             .catch((error) => {
@@ -673,16 +669,16 @@ function sendRequest(options) {
  * @description {String} : test description
  * @testValue {Boolean} : variable to test for truth
  * @errors {Array} list of errors to be reported if test fails
- * Returns 0 if test passed, 1 otherwise
+ * Returns 1 if test passed, 0 otherwise
 */
 function check(description, testValue, errors) {
     if (testValue) {
         console.log(`${' OK'.bgGreen.black} ${description.green}`);
-        return 0;
+        return 1;
     }
     console.log(`${' FAIL'.bgRed.black} ${description.red}`);
     reportMismatch(errors);
-    return 1;
+    return 0;
 }
 
 /**

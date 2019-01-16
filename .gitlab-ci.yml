@@ -38,7 +38,6 @@ functional test:
     tags:
         - docker-executor
     only:
-        - functional_testing
         - schedules
     script:
         # set location of DO RPM package
