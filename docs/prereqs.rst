@@ -60,6 +60,6 @@ Notes and tips
 
 .. |github| raw:: html
 
-   <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/dist/f5-declarative-onboarding/blob/develop/dist/do.examples.collection.json" target="_blank">Declarative Onboarding Postman collection</a>
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/dist/do.examples.collection.json" target="_blank">Declarative Onboarding Postman collection</a>
 
 
