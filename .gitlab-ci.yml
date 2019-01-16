@@ -3,6 +3,7 @@ image: node:8
 stages:
     - test
     - build
+    - functional test
     - post build
     - publish
 
@@ -30,6 +31,25 @@ build rpm:
         paths:
             - build/rpmbuild/RPMS/noarch/
         expire_in: 1 week
+
+functional test:
+    image: centos
+    stage: functional test
+    tags:
+        - docker-executor
+    only:
+        - schedules
+    script:
+        # set location of DO RPM package
+        - export RPM_PACKAGE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
+        # pull auto-vio prm package
+        - curl -u "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_PASSWORD}" -O "${ARTIFACTORY_AUTO_VIO}/${AUTO_VIO_RPM}"
+        # test.js can import auto-vio with /var/rpm/auto-vio/vio-lib.js
+        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+        - yum install -y nodejs
+        - yum install -y "${AUTO_VIO_RPM}"
+        - npm install
+        - npm run functional
 
 build asg:
     image: docker:latest

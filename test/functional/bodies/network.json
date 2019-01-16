@@ -1,0 +1,31 @@
+{
+    "schemaVersion": "1.0.0",
+    "async" : true,
+    "class": "Device",
+    "Common": {
+      "class": "Tenant",
+        "myVlan": {
+            "class": "VLAN",
+            "tag": 1234,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ]
+        },
+        "mySelfIp": {
+            "class": "SelfIp",
+            "address": "10.148.75.46/24",
+            "vlan": "myVlan",
+            "allowService": ["tcp:80"]
+        },
+        "myRoute": {
+            "class": "Route",
+            "gw": "10.148.75.1",
+            "network": "default",
+            "mtu" : 1500
+        }
+    }
+}
