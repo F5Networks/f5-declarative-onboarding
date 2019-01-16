@@ -60,7 +60,7 @@ Additionally, see :doc:`json-pointers` for information on using JSON/Declarative
 
         "class": "DO",
         "targetHost": "192.0.2.76",
-        "targetPort": 8443
+        "targetPort": 8443,
         "targetUsername": "admin",
         "targetPassphrase": "myAdminPassword",
         "declaration": {
