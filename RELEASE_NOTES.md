@@ -1,5 +1,8 @@
 # Release Notes
 
+## Version 1.3.0
++ Allow $schema property for use in local validation of declaration
+
 ## Version 1.2.0
 + Support for remote provisioning via ASG.
 + Fix bug which rejected CIDR of 1x on SelfIp.
