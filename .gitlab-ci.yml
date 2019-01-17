@@ -39,6 +39,8 @@ functional test:
         - docker-executor
     only:
         - schedules
+    dependencies:
+        - build rpm
     script:
         # set location of DO RPM package
         - export RPM_PACKAGE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
@@ -56,6 +58,7 @@ build asg:
     stage: post build
     except:
         - tags
+        - schedules
     tags:
         - docker-executor
     dependencies:
@@ -83,6 +86,7 @@ create postman collection:
     stage: post build
     except:
         - tags
+        - schedules
     tags:
         - docker-executor
     script:
@@ -113,6 +117,9 @@ publish to artifactory:
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: post build
+    except:
+        - tags
+        - schedules
     script:
         - make html
         - echo "Checking grammar and style"
