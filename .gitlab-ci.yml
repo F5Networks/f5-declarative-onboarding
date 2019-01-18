@@ -42,11 +42,8 @@ functional test:
     dependencies:
         - build rpm
     script:
-        # set location of DO RPM package
         - export RPM_PACKAGE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
-        # pull auto-vio prm package
-        - curl -u "${ARTIFACTORY_USERNAME}:${ARTIFACTORY_PASSWORD}" -O "${ARTIFACTORY_AUTO_VIO}/${AUTO_VIO_RPM}"
-        # test.js can import auto-vio with /var/rpm/auto-vio/vio-lib.js
+        - curl -H "Authorization: Bearer ${ARTIFACTORY_AUTO_VIO_TOKEN}" -X GET "${ARTIFACTORY_BASE_URL}/cloudsolutions/auto-vio/${AUTO_VIO_RPM}" -o "${AUTO_VIO_RPM}"
         - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
         - yum install -y nodejs
         - yum install -y "${AUTO_VIO_RPM}"
