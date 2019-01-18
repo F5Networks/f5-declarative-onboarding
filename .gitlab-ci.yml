@@ -43,7 +43,7 @@ functional test:
         - build rpm
     script:
         - export RPM_PACKAGE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
-        - curl -H "Authorization: Bearer ${ARTIFACTORY_AUTO_VIO_TOKEN}" -X GET "${ARTIFACTORY_BASE_URL}/cloudsolutions/auto-vio/${AUTO_VIO_RPM}" -o "${AUTO_VIO_RPM}"
+        - 'curl -H "Authorization: Bearer ${ARTIFACTORY_AUTO_VIO_TOKEN}" -X GET "${ARTIFACTORY_BASE_URL}/cloudsolutions/auto-vio/${AUTO_VIO_RPM}" -o "${AUTO_VIO_RPM}"'
         - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
         - yum install -y nodejs
         - yum install -y "${AUTO_VIO_RPM}"
