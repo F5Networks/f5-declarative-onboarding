@@ -179,8 +179,9 @@ function handleRegKey(license) {
             return this.bigIp.active();
         })
         .catch((err) => {
-            logger.severe(`Error licensing: ${err}`);
-            return Promise.reject(err);
+            const errorLicensing = `Error licensing: ${err}`;
+            logger.severe(errorLicensing);
+            return Promise.reject(errorLicensing);
         });
 }
 
