@@ -316,6 +316,37 @@ describe('systemHandler', () => {
         });
     });
 
+    it('should provide descriptive licensing error if licensing fails', () => {
+        const declaration = {
+            Common: {
+                License: {
+                    licenseType: 'regKey',
+                    regKey: 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ',
+                    addOnKeys: ['ABCDEFG-HIJKLMN', 'OPQRSTU-VWXYZAB'],
+                    overwrite: true
+                }
+            }
+        };
+
+        bigIpMock.onboard = {
+            license() {
+                return Promise.reject(new Error('failed to license device'));
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    reject(new Error('should have rejected'));
+                })
+                .catch((err) => {
+                    assert.strictEqual(err.startsWith('Error licensing'), true);
+                    resolve();
+                });
+        });
+    });
+
     it('should handle licene pool licenses with unreachable BIG-IP', () => {
         const declaration = {
             Common: {
