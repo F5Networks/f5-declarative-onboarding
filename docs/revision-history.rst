@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 1.5
+        - This documentation update release updated the style of this document.
+        - 01-28-19
+      
       * - 1.4
         - Updated the documentation for Declarative Onboarding v1.2.0. This release contains the following changes: |br| * Added support using Declarative Onboarding in a container (see :doc:`do-container`). |br| * Added a new section on using JSON Pointers in Declarative Onboarding declarations (see :doc:`json-pointers`). |br| * Added a note and link about the Declarative Onboarding Postman Collection available on GitHub (see :doc:`prereqs`). |br| * Added notes about the BIG-IP v14.0 and later Secure Password Policy (see :ref:`14andlater` for details). |br| * Added new example declarations to :ref:`examples`. |br| |br| Issues Resolved: |br| * Corrected an issue which would reject a CIDR of 1x on a Self IP address. |br| * Corrected an issue in which DB vars were not rolled back in the event of an error.
         - 01-16-19
