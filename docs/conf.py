@@ -43,7 +43,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.copybutton',
     'recommonmark',
-    #'sphinx_copybutton'
+    'sphinx_copybutton',
 ]
 
 primary_domain = 'js'
@@ -60,8 +60,9 @@ templates_path = ['_templates']
 # source_suffix = ['.rst', '.md']
 
 source_suffix = {
-  '.rst': 'restructuredtext'
+  '.rst': 'restructuredtext',
 }
+
 
 
 
