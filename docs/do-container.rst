@@ -112,7 +112,7 @@ To send a declaration from the container with cURL, use the same parameters as d
 .. _base:
 
 Adding Basic Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To enable Basic authentication, which allows you to protect your container running Declarative Onboarding, you can :guilabel:`COPY` or :guilabel:`MOUNT` the authentication configuration and user password files to your container using the following instructions. 
 
 **Notes and requirements for adding Basic authentication**

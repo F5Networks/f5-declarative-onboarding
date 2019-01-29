@@ -41,9 +41,8 @@ extensions = ['sphinx.ext.autodoc',
     'cloud_sptheme.ext.table_styling',
     'sphinx.ext.extlinks',
     'sphinx.ext.autosummary',
-    'sphinx.copybutton',
     'recommonmark',
-    'sphinx_copybutton',
+    'sphinx_copybutton'
 ]
 
 primary_domain = 'js'
