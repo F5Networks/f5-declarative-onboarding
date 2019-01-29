@@ -15,7 +15,7 @@
    Author: @fonsecayarochewsky
 
    This is a module to be tested, each function being responsible for a set of tests
-   such as Onboarding, Networking, BYOL, etc. Functions act on a target BIG-IP in which
+   such as Onboarding, Networking, licensing, etc. Functions act on a target BIG-IP in which
    the Declarative Onboarding rpm package has already been installed. Each function takes
    the same 3 parameters. Those are the target BIG-IP's ip address, admin username and admin
    password (last two are the username/password used to call the DO API)
@@ -31,8 +31,8 @@ const common = require('./common.js');
 /* eslint-disable import/no-absolute-path, import/no-unresolved  */
 const vio = require('/var/rpm/auto-vio/vio-lib.js');
 /* eslint-enable import/no-absolute-path, import/no-unresolved  */
-// DO endpoint address
-const ENDPOINT_API = '/mgmt/shared/declarative-onboarding';
+const ICONTROL_API = '/mgmt';
+const DO_API = `${ICONTROL_API}/shared/declarative-onboarding`;
 // HTTP status codes
 const HTTP_ACCEPTED = 202;
 const HTTP_SUCCESS = 200;
@@ -45,7 +45,6 @@ const BODIES = 'test/functional/bodies';
 // directory on the BIG-IPs to copy rpm package to
 const REMOTE_DIR = '/var/config/rest/downloads';
 // iControl REST API endpoint
-const API_ENDPOINT = '/mgmt/shared/iapp/package-management-tasks';
 const RPM_PACKAGE = process.env.RPM_PACKAGE;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -60,7 +59,7 @@ const bigipPassword = 'default';
     let machines = [];
     let allPassed = 1;
 
-    getMachines(2)
+    getMachines(3)
         .then((deployedMachines) => {
             /* eslint-disable no-console */
             console.log('Deployed');
@@ -82,26 +81,20 @@ const bigipPassword = 'default';
             allPassed = allPassed && 0;
             console.log(new Error(error));
         })
-        /* eslint-disable no-unused-vars */
-        /**
-       .then(() => {
-           console.log('BYOL Tests');
-           return testByol(machines[1].ip)
-       })
-       .then((byolTest) => {
-           allPassed = allPassed && byolTest;
-       })
-       .cath((error) => {
-           allPassed = allPassed && 0;
-           console.log(new Error(error));
-       })
-        * */
         .then(() => {
             console.log('Networking Tests');
             return testNetworking(machines[1].ip);
         })
         .then((networkingTest) => {
             allPassed = allPassed && networkingTest;
+        })
+        .catch((error) => {
+            allPassed = allPassed && 0;
+            console.log(new Error(error));
+        })
+        .then(() => {
+            console.log('Licensing Tests');
+            return testLicensing(machines[2].ip);
         })
         .catch((error) => {
             allPassed = allPassed && 0;
@@ -155,10 +148,7 @@ function testOnboard(bigipAddress) {
             })
             .then(() => {
                 return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    HTTP_ACCEPTED, 'POST', errors);
-            })
-            .then((response) => {
-                passed = passed && check('test onboard request', response, errors);
+                    DO_API, HTTP_ACCEPTED, 'POST', errors);
             })
             .then(() => {
                 // we make a single status call (retrying it if it doesn't succeed),
@@ -213,48 +203,81 @@ function testOnboard(bigipAddress) {
 }
 
 /**
- * testByol - test for a Bring Your Own License (BYOL) declaration type
+ * testLicensing - test for licensing, revoking using a BIG-IQ, and relicensing. We revoke at the end so as to
+ *                 clean up licenses on BIG-IPs that are going to be killed after the test suite.
  * @bigipAddress {String} : ip addrress of target BIG-IP
  * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
 */
-function testByol(bigipAddress) {
+function testLicensing(bigipAddress) {
     return new Promise((resolve, reject) => {
-        const bodyFile = `${BODIES}/byol.json`;
-        let body;
+        return licensingWorkflow(bigipAddress)
+            .then((passed) => {
+                if (passed) {
+                    return licensingWorkflow(bigipAddress);
+                }
+                return 0;
+            })
+            .then((passed) => {
+                resolve(passed);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+}
+
+/**
+ * licensingWorkflow - tests an entire license/revoke workflow
+ * @bigipAddress {String} : ip address of target BIG-IP
+ * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or reject with an error
+*/
+function licensingWorkflow(bigipAddress) {
+    return new Promise((resolve, reject) => {
+        const bodyFileLicensing = `${BODIES}/licensing_big_iq.json`;
+        const bodyFileRevoking = `${BODIES}/license_revoking_big_iq.json`;
         const errors = [];
         let passed = 1;
 
-        common.readFile(bodyFile)
-            .then((fileRead) => {
-                body = JSON.parse(fileRead);
-            })
-            .then(() => {
+        common.readFile(bodyFileLicensing)
+            .then(JSON.parse)
+            .then((body) => {
+                // license the BIG-IP through a BIG-IQ
                 return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    HTTP_ACCEPTED, 'POST', errors);
-            })
-            .then((response) => {
-                passed = passed && check('test byol request', response, errors);
+                    DO_API, HTTP_ACCEPTED, 'POST', errors);
             })
             .then(() => {
+                // wait until status is 200
+                // try 30 times, 60 secs each trial
                 return testGetStatus(30, 60 * 1000, bigipAddress, bigipAdminUsername, bigipAdminPassword,
                     HTTP_SUCCESS, errors);
             })
-            .then((response) => {
-                return response.currentConfig.Common;
+            .then(() => {
+                // check if device has been licensed with an iControl call
+                return testRequest(null, bigipAddress, bigipAdminUsername, bigipAdminPassword,
+                    `${ICONTROL_API}/tm/sys/license`, HTTP_SUCCESS, 'GET', errors);
             })
-            .then((response) => {
-                passed = passed && check('dns matches', testDns(body.Common.myDns, response, errors), errors);
-                return response;
+            .then(JSON.parse)
+            .then((iControlResponse) => {
+                passed = passed && check('device was licensed', ('entries' in iControlResponse), errors);
             })
-            .then((response) => {
-                passed = passed && check('ntp matches', testNtp(body.Common.myNtp, response, errors),
+            .then(() => {
+                return common.readFile(bodyFileRevoking);
+            })
+            .then(JSON.parse)
+            .then((body) => {
+                // revoke license through BIG-IQ
+                return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
+                    DO_API, HTTP_ACCEPTED, 'POST', errors);
+            })
+            .then(() => {
+                // check if device is no longer licensed
+                return testRequest(null, bigipAddress, bigipAdminUsername, bigipAdminPassword,
+                    `${ICONTROL_API}/tm/sys/license`, HTTP_SUCCESS, 'GET', errors);
+            })
+            .then(JSON.parse)
+            .then((iControlResponse) => {
+                passed = passed && check('device is no longer licensed', (!('entries' in iControlResponse)),
                     errors);
-                return response;
-            })
-            .then((response) => {
-                passed = passed && check('licensing matches', testLicensing(body.Common.myNtp, response,
-                    errors), errors);
-                return response;
             })
             .then(() => {
                 resolve(passed);
@@ -265,7 +288,6 @@ function testByol(bigipAddress) {
             });
     });
 }
-
 
 /**
  * testNetworking - test for a networking declaration type
@@ -285,10 +307,7 @@ function testNetworking(bigipAddress) {
             })
             .then(() => {
                 return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    HTTP_ACCEPTED, 'POST', errors);
-            })
-            .then((response) => {
-                passed = passed && check('test networking request', response, errors);
+                    DO_API, HTTP_ACCEPTED, 'POST', errors);
             })
             .then(() => {
                 // try 30 times, 60 secs each trial
@@ -350,10 +369,7 @@ function testRollbacking(bigipAddress) {
             .then((fileRead) => {
                 const body = JSON.parse(fileRead);
                 return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    HTTP_ACCEPTED, 'POST', errors);
-            })
-            .then((response) => {
-                passed = passed && check('test invalid request status is unprocessable', response, errors);
+                    DO_API, HTTP_ACCEPTED, 'POST', errors);
             })
             .then(() => {
                 return testGetStatus(3, 60 * 1000, bigipAddress, bigipAdminUsername, bigipAdminPassword,
@@ -381,18 +397,6 @@ function testRollbacking(bigipAddress) {
                 reject(error);
             });
     });
-}
-
-/**
- * testLicensing - test licensing status from a DO status call
- *                 against a target object schemed on a declaration
- * @target {Object} : object to be tested against
- * @response {Object} : object from status response to compare with target
- * @errors {Array}: list of mismatched pairs
- * Returns Promise true/false
-*/
-function testLicensing(target, response, errors) {
-    return comparePair(target, response, { regKey: 'registrationKey' }, errors);
 }
 
 /**
@@ -490,23 +494,26 @@ function testRoute(target, response, errors) {
  * @ipAddress {String} : BIG-IP's ip address
  * @username {String} : BIG-IP's admin username
  * @password {String} : BIG-IP's admin password
+ * @endpoint {String} : API endpoint
  * @expectedCode {int} : expected HTTP status code for the request
  * @method {String} : HTTP request method (POST, GET)
  * @errors {Array} : list of mismatched pairs
- * Returns Promise true/false on these assumptions
+ * Returns Promise which resolves with response body on success or rejects with error
 */
-function testRequest(body, ipAddress, username, password, expectedCode, method, errors) {
+function testRequest(body, ipAddress, username, password, endpoint, expectedCode, method, errors) {
     const func = function () {
         return new Promise((resolve, reject) => {
             const auth = buildAuthenticationString({ username, password });
-            const options = buildBody(hostname(ipAddress), ENDPOINT_API, body, auth, method);
+            const options = buildBody(hostname(ipAddress), endpoint, body, auth, method);
             sendRequest(options)
                 .then((response) => {
                     if (response.response.statusCode === expectedCode) {
-                        resolve((response.response) && (response.response.statusCode === expectedCode));
+                        resolve(response.body);
                     } else {
-                        pushError(errors, 'status code', 'status code', response.response.statusCode,
-                            expectedCode);
+                        if (errors) {
+                            pushError(errors, 'status code', 'status code', response.response.statusCode,
+                                expectedCode);
+                        }
                         reject(new Error(response.response.statusCode));
                     }
                 })
@@ -516,22 +523,6 @@ function testRequest(body, ipAddress, username, password, expectedCode, method, 
         });
     };
     return common.tryOften(func, 10, 60 * 1000, [HTTP_UNAVAILABLE], true);
-}
-
-/**
- * buildTestPair - Builds a boolean test based on (key1, key2) dictionary
- *                 pairwise-comparing each key on its corresponding object,
- *                 target and status call's response
- * @target {Object} : object to be tested against
- * @response {Object} : object from status response to compare with target
- * @pairs {Object} : key/value mapping of target's field and status call's field
- * @errors {Array} : list of mismatched pairs
- * Returns true/false
-*/
-function comparePair(target, response, pairs, errors) {
-    return Object.entries(pairs).every((pair) => {
-        return compareObjects(pair[0], pair[1], target, response, errors);
-    });
 }
 
 /**
@@ -620,7 +611,7 @@ function testGetStatus(trials, timeInterval, ipAddress, adminUsername, adminPass
     const func = function () {
         return new Promise((resolve, reject) => {
             const auth = buildAuthenticationString({ username: adminUsername, password: adminPassword });
-            const options = buildBody(hostname(ipAddress), `${ENDPOINT_API}?show=full`, {}, auth, 'GET');
+            const options = buildBody(hostname(ipAddress), `${DO_API}?show=full`, {}, auth, 'GET');
             sendRequest(options)
                 .then((response) => {
                     if (response.response.statusCode === expectedCode) {
@@ -708,9 +699,11 @@ function buildBody(ipAddress, endpoint, data, auth, method) {
         headers: {
             'Content-Type': 'application/json',
             Authorization: auth
-        },
-        body: JSON.stringify(data)
+        }
     };
+    if (data) {
+        options.body = JSON.stringify(data);
+    }
     return options;
 }
 
@@ -738,6 +731,7 @@ function getMachines(numberOfMachines) {
                             .then(() => {
                                 return installRpm(ipAddress);
                             })
+                            .then(JSON.parse)
                             .then((response) => {
                                 if (response.status === 'CREATED') {
                                     // we're done; the rpm package was installed
@@ -770,40 +764,14 @@ function getMachines(numberOfMachines) {
  * @host {String} : BIG-IP's ip address
 */
 function installRpm(host) {
-    const func = function () {
-        return new Promise((resolve, reject) => {
-            const installBody = JSON.stringify({
-                operation: 'INSTALL',
-                /* eslint-disable no-undef */
-                packageFilePath: `${REMOTE_DIR}/${path.basename(RPM_PACKAGE)}`
-                /* eslint-enable no-undef */
-            });
-            const authString = Buffer.from(`${bigipAdminUsername}:${bigipAdminPassword}`)
-                .toString('base64');
-            const options = {
-                method: 'POST',
-                url: `https://${host}/${API_ENDPOINT}`,
-                headers: {
-                    'Content-Type': 'appplication/json',
-                    Authorization: `Basic ${authString}`,
-                },
-                body: installBody
-            };
-            common.requestPromise(options)
-                .then((response) => {
-                    if (response.statusCode === HTTP_ACCEPTED) {
-                        resolve(JSON.parse(response.body));
-                    }
-                    // not ready yet
-                    reject(new Error('not ready'));
-                })
-                .catch((error) => {
-                    reject(error);
-                });
-        });
+    const installBody = {
+        operation: 'INSTALL',
+        /* eslint-disable no-undef */
+        packageFilePath: `${REMOTE_DIR}/${path.basename(RPM_PACKAGE)}`
+        /* eslint-enable no-undef */
     };
-    // try 5 times, with 1min for each time, and don't reject on error
-    return common.tryOften(func, 5, 60 * 1000, null, false);
+    return testRequest(installBody, host, bigipAdminUsername, bigipAdminPassword,
+        `${ICONTROL_API}/shared/iapp/package-management-tasks`, HTTP_ACCEPTED, 'POST', null);
 }
 
 /**
