@@ -43,7 +43,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.copybutton',
     'recommonmark',
-    'sphinx_copybutton'
+    #'sphinx_copybutton'
 ]
 
 primary_domain = 'js'
