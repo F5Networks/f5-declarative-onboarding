@@ -62,8 +62,9 @@ module.exports.requestPromise = function requestPromise(options) {
 module.exports.tryOften = function tryOften(targetFunction, trials, timeInterval, acceptErrors, checkError) {
     return new Promise((resolve, reject) => {
         let timer;
+        let trialsCopy = trials;
         const intervalFunction = function () {
-            if (trials === 0) {
+            if (trialsCopy === 0) {
                 clearInterval(timer);
                 reject(new Error('number of trials exhausted'));
             }
@@ -73,11 +74,12 @@ module.exports.tryOften = function tryOften(targetFunction, trials, timeInterval
                     resolve(response);
                 })
                 .catch((error) => {
+                    trialsCopy -= 1;
                     if (checkError) {
                         // ok, if none of the acceptable errors match, we will reject
                         let willReject = true;
                         acceptErrors.forEach((err) => {
-                            if (err === error.message) {
+                            if (err === parseInt(error.message, 10)) {
                                 willReject = false;
                             }
                         });
