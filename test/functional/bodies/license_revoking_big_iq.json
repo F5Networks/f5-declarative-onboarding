@@ -10,7 +10,7 @@
         "bigIqHost" : "10.145.65.76",
         "bigIqUsername" : "admin",
         "bigIqPassword" : "f5netW0rks!",
-        "revokeFrom" : "myLicensePool",
+        "revokeFrom" : "myLicense",
         "reachable" : true,
         "bigIpUsername" : "admin",
         "bigIpPassword" : "admin"

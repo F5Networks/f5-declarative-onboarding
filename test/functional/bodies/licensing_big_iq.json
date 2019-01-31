@@ -10,7 +10,8 @@
         "bigIqHost" : "10.145.65.76",
         "bigIqUsername" : "admin",
         "bigIqPassword" : "f5netW0rks!",
-        "licensePool" : "myLicensePool",
+        "licensePool" : "myLicense",
+        "skuKeyword1" : "F5-BIG-MSP-BR-3G",
         "reachable" : true,
         "bigIpUsername" : "admin",
         "bigIpPassword" : "admin"
