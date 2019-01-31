@@ -11,6 +11,7 @@
         "bigIqUsername" : "admin",
         "bigIqPassword" : "f5netW0rks!",
         "revokeFrom" : "myLicense",
+        "licensePool" : "myOtherLicensePool",
         "reachable" : true,
         "bigIpUsername" : "admin",
         "bigIpPassword" : "admin"

@@ -12,6 +12,7 @@
         "bigIqPassword" : "f5netW0rks!",
         "licensePool" : "myLicense",
         "skuKeyword1" : "F5-BIG-MSP-BR-3G",
+        "unitOfMeasure" : "hourly",
         "reachable" : true,
         "bigIpUsername" : "admin",
         "bigIpPassword" : "admin"
