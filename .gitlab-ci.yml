@@ -112,7 +112,7 @@ publish to artifactory:
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during upload; exit 1; fi
 
 create docs:
-    image: quay.pdsea.f5net.com/doc-ops/containthedocs:8bbed5bb63
+    image: ${CONTAINTHEDOCS_IMAGE}
     stage: post build
     except:
         - tags
@@ -153,7 +153,7 @@ pages:
         - branches
 
 publish docs to staging:
-    image: quay.pdsea.f5net.com/doc-ops/containthedocs:8bbed5bb63
+    image: ${CONTAINTHEDOCS_IMAGE}
     stage: publish
     environment:
         name: staging
@@ -170,7 +170,7 @@ publish docs to staging:
         - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest/
 
 publish docs to production:
-    image: quay.pdsea.f5net.com/doc-ops/containthedocs:8bbed5bb63
+    image: ${CONTAINTHEDOCS_IMAGE}
     stage: publish
     environment:
         name: production
