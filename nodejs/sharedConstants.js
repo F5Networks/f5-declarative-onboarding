@@ -41,5 +41,15 @@ module.exports = {
     },
     EVENTS: {
         DO_LICENSE_REVOKED: 'DO_LICENSE_REVOKED'
-    }
+    },
+    NAMELESS_CLASSES: [
+        'DbVariables',
+        'DNS',
+        'NTP',
+        'License',
+        'Provision',
+        'ConfigSync',
+        'FailoverUnicast',
+        'DeviceTrust'
+    ]
 };
