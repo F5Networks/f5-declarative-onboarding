@@ -100,10 +100,8 @@ publish to artifactory:
         - tags
     tags:
         - docker-executor
-    dependencies:
-        - build rpm
     script:
-        - RPM_FILE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
+        - RPM_FILE=$(ls dist/*.rpm)
         - RPM_NAME=$(basename $RPM_FILE)
         - >-
             UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_NAME}
