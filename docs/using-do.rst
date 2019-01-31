@@ -18,6 +18,7 @@ supplied via POST and retained by Declarative Onboarding.
    authentication
    installation
    composing-a-declaration
+   validate
    clustering
    big-iq-licensing
    do-container
