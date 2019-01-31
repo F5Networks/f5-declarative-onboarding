@@ -68,7 +68,8 @@ class ConfigManager {
      *             <name_of_reference>: ['properties', 'that', 'we', 'are', 'interested', 'in']
      *         },
      *         singleValue: <true_if_we_want_single_key_value_vs_whole_object_(Provision, for example)>,
-     *         nameless: <true_if_we_do_not_want_the_name_property_in_the_result>
+     *         nameless: <true_if_we_do_not_want_the_name_property_in_the_result>,
+     *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>
      *     }
      * ]
      *
@@ -135,13 +136,18 @@ class ConfigManager {
                         query.$select = selectProperties.join(',');
                     }
                     const encodedQuery = querystring.stringify(query);
+                    const options = {};
                     let path = `${configItem.path}?${encodedQuery}`;
 
                     // do any replacements
                     path = path.replace(hostNameRegex, tokenMap.hostName);
                     path = path.replace(deviceNameRegex, tokenMap.deviceName);
 
-                    promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
+                    if (configItem.silent) {
+                        options.silent = configItem.silent;
+                    }
+
+                    promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options));
                 });
 
                 return Promise.all(promises);
