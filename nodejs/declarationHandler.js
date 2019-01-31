@@ -47,10 +47,14 @@ const CLASSES_OF_TRUTH = [
  * Main processing for a parsed declaration.
  *
  * @class
+ *
+ * @param {Object} bigIp - BigIp object.
+ * @param {EventEmitter} - Restnoded event channel.
  */
 class DeclarationHandler {
-    constructor(bigIp) {
+    constructor(bigIp, eventEmitter) {
         this.bigIp = bigIp;
+        this.eventEmitter = eventEmitter;
     }
 
     /**
@@ -100,16 +104,16 @@ class DeclarationHandler {
                 return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
             })
             .then(() => {
-                return new SystemHandler(updateDeclaration, this.bigIp).process();
+                return new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter).process();
             })
             .then(() => {
-                return new NetworkHandler(updateDeclaration, this.bigIp).process();
+                return new NetworkHandler(updateDeclaration, this.bigIp, this.eventEmitter).process();
             })
             .then(() => {
-                return new DscHandler(updateDeclaration, this.bigIp).process();
+                return new DscHandler(updateDeclaration, this.bigIp, this.eventEmitter).process();
             })
             .then(() => {
-                return new DeleteHandler(deleteDeclaration, this.bigIp).process();
+                return new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter).process();
             })
             .then(() => {
                 logger.info('Done processing declartion.');

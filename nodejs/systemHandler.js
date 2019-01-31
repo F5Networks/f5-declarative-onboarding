@@ -20,6 +20,7 @@ const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
+const EVENTS = require('./sharedConstants').EVENTS;
 
 const logger = new Logger(module);
 
@@ -34,10 +35,12 @@ class SystemHandler {
      *
      * @param {Object} declaration - Parsed declaration.
      * @param {Object} bigIp - BigIp object.
+     * @param {EventEmitter} - DO event emitter.
      */
-    constructor(declaration, bigIp) {
+    constructor(declaration, bigIp, eventEmitter) {
         this.declaration = declaration;
         this.bigIp = bigIp;
+        this.eventEmitter = eventEmitter;
     }
 
     /**
@@ -189,6 +192,7 @@ function handleLicensePool(license) {
     // If we're using the reachable API, we need a bigIp object
     // that has the right credentials and host IP
     let getBigIp;
+    let bigIp;
     if (license.reachable) {
         getBigIp = new Promise((resolve, reject) => {
             this.bigIp.deviceInfo()
@@ -202,8 +206,8 @@ function handleLicensePool(license) {
                         }
                     );
                 })
-                .then((bigIp) => {
-                    resolve(bigIp);
+                .then((resolvedBigIp) => {
+                    resolve(resolvedBigIp);
                 })
                 .catch((err) => {
                     logger.severe(`Error getting big ip for reachable API: ${err}`);
@@ -215,21 +219,74 @@ function handleLicensePool(license) {
     }
 
     return getBigIp
-        .then((bigIp) => {
-            return bigIp.onboard.licenseViaBigIq(
-                license.bigIqHost,
-                license.bigIqUsername,
-                license.bigIqPassword || license.bigIqPasswordUri,
-                license.licensePool,
-                license.hypervisor,
-                {
-                    passwordIsUri: !!license.bigIqPasswordUri,
-                    skuKeyword1: license.skuKeyword1,
-                    skuKeyword2: license.skuKeyword2,
-                    unitOfMeasure: license.unitOfMeasure,
-                    noUnreachable: !!license.reachable
+        .then((resolvedBigIp) => {
+            bigIp = resolvedBigIp;
+            let possiblyRevoke;
+
+            if (license.revokeFrom) {
+                let licenseInfo;
+                let licensePoolName;
+
+                if (typeof license.revokeFrom === 'string') {
+                    licenseInfo = license;
+                    licensePoolName = license.revokeFrom;
+                } else {
+                    licenseInfo = license.revokeFrom;
+                    licensePoolName = license.revokeFrom.licensePool;
                 }
-            );
+
+                const options = {
+                    licensePoolName,
+                    bigIqHost: licenseInfo.bigIqHost,
+                    bigIqUser: licenseInfo.bigIqUsername,
+                    bigIqPassword: licenseInfo.bigIqPassword,
+                    bigIqPasswordUri: licenseInfo.bigIqPasswordUri
+                };
+
+                // If our license is about to be revoked, let everyone know
+                if (licenseInfo.reachable) {
+                    this.eventEmitter.emit(
+                        EVENTS.DO_LICENSE_REVOKED,
+                        licenseInfo.bigIpPassword,
+                        licenseInfo.bigIqPassword
+                    );
+                }
+
+                possiblyRevoke = bigIp.onboard.revokeLicenseViaBigIq(
+                    options.bigIqHost,
+                    options.bigIqUser,
+                    options.bigIqPassword || options.bigIqPasswordUri,
+                    options.licensePoolName,
+                    {
+                        passwordIsUri: !!options.bigIqPasswordUri,
+                        noUnreachable: !!license.reachable
+                    }
+                );
+            } else {
+                possiblyRevoke = Promise.resolve();
+            }
+
+            return possiblyRevoke;
+        })
+        .then(() => {
+            if (license.licensePool) {
+                return bigIp.onboard.licenseViaBigIq(
+                    license.bigIqHost,
+                    license.bigIqUsername,
+                    license.bigIqPassword || license.bigIqPasswordUri,
+                    license.licensePool,
+                    license.hypervisor,
+                    {
+                        passwordIsUri: !!license.bigIqPasswordUri,
+                        skuKeyword1: license.skuKeyword1,
+                        skuKeyword2: license.skuKeyword2,
+                        unitOfMeasure: license.unitOfMeasure,
+                        noUnreachable: !!license.reachable,
+                        overwrite: !!license.overwrite
+                    }
+                );
+            }
+            return Promise.resolve();
         })
         .then(() => {
             return this.bigIp.active();

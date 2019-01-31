@@ -18,6 +18,7 @@
 
 const net = require('net');
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
+const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const Logger = require('./logger');
 
 const logger = new Logger(module);
@@ -58,8 +59,34 @@ module.exports = {
         );
     },
 
+
     /**
-     * Fills in values that are referenced by json-pointers
+     * Determines the platform on which we are currently running
+     *
+     * @returns {Promise} A promise which is resolved with the platform.
+     */
+    getCurrentPlatform() {
+        return new Promise((resolve, reject) => {
+            httpUtil.get('http://localhost:8100/shared/identified-devices/config/device-info')
+                .then((deviceInfo) => {
+                    if (deviceInfo
+                        && deviceInfo.slots
+                        && deviceInfo.slots[0]
+                        && deviceInfo.slots[0].product) {
+                        resolve(deviceInfo.slots[0].product);
+                    } else {
+                        resolve('CONTAINER');
+                    }
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    },
+
+    /**
+     * Fills in values that are referenced by json-pointers.
+     *
      * @param {Object} declaration - The declaration containing potentially referenced values
      * @param {Object} container - Object of keys/values to dereference
      */

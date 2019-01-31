@@ -2,6 +2,8 @@
 
 ## Version 1.3.0
 + Allow $schema property for use in local validation of declaration
++ Allow for licenses to be revoked when licensed via BIG-IQ
++ Add 'overwrite' option when licensing via BIG-IQ
 
 ## Version 1.2.0
 + Support for remote provisioning via ASG.

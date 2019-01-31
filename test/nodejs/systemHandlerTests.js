@@ -360,7 +360,8 @@ describe('systemHandler', () => {
                     skuKeyword1: 'my skukeyword1',
                     skuKeyword2: 'my skukeyword2',
                     reachable: false,
-                    hypervisor: 'vmware'
+                    hypervisor: 'vmware',
+                    overwrite: true
                 }
             }
         };
@@ -395,6 +396,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(optionsSent.skuKeyword2, declaration.Common.License.skuKeyword2);
                     assert.strictEqual(optionsSent.unitOfMeasure, declaration.Common.License.unitOfMeasure);
                     assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
+                    assert.strictEqual(optionsSent.overwrite, declaration.Common.License.overwrite);
                     resolve();
                 })
                 .catch((err) => {
@@ -403,7 +405,7 @@ describe('systemHandler', () => {
         });
     });
 
-    it('should handle licene pool licenses with reachable BIG-IP', () => {
+    it('should handle license pool licenses with reachable BIG-IP', () => {
         const declaration = {
             Common: {
                 License: {
@@ -456,6 +458,118 @@ describe('systemHandler', () => {
                 .catch((err) => {
                     reject(err);
                 });
+        });
+    });
+
+    describe('revoke', () => {
+        it('should handle revoke from license pool', () => {
+            const declaration = {
+                Common: {
+                    License: {
+                        licenseType: 'licensePool',
+                        bigIqHost: '10.145.112.44',
+                        bigIqUsername: 'admin',
+                        bigIqPassword: 'foofoo',
+                        reachable: false,
+                        revokeFrom: 'clpv2'
+                    }
+                }
+            };
+
+            let bigIqHostSent;
+            let bigIqUsernameSent;
+            let bigIqPasswordSent;
+            let licensePoolSent;
+            let optionsSent;
+            bigIpMock.onboard = {
+                revokeLicenseViaBigIq(bigIqHost, bigIqUsername, bigIqPassword, licensePool, options) {
+                    bigIqHostSent = bigIqHost;
+                    bigIqUsernameSent = bigIqUsername;
+                    bigIqPasswordSent = bigIqPassword;
+                    licensePoolSent = licensePool;
+                    optionsSent = options;
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const systemHandler = new SystemHandler(declaration, bigIpMock);
+                systemHandler.process()
+                    .then(() => {
+                        assert.strictEqual(bigIqHostSent, declaration.Common.License.bigIqHost);
+                        assert.strictEqual(bigIqUsernameSent, declaration.Common.License.bigIqUsername);
+                        assert.strictEqual(bigIqPasswordSent, declaration.Common.License.bigIqPassword);
+                        assert.strictEqual(licensePoolSent, declaration.Common.License.revokeFrom);
+                        assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should handle revoke from license pool from a different BIG-IQ', () => {
+            const declaration = {
+                Common: {
+                    License: {
+                        licenseType: 'licensePool',
+                        bigIqHost: '10.145.112.44',
+                        bigIqUsername: 'admin',
+                        bigIqPassword: 'foofoo',
+                        reachable: false,
+                        revokeFrom: {
+                            bigIqHost: '10.145.112.45',
+                            bigIqUsername: 'otherAdmin',
+                            bigIqPassword: 'barbar',
+                            licensePool: 'clpv2',
+                            reachable: false
+                        }
+                    }
+                }
+            };
+
+            let bigIqHostSent;
+            let bigIqUsernameSent;
+            let bigIqPasswordSent;
+            let licensePoolSent;
+            let optionsSent;
+            bigIpMock.onboard = {
+                revokeLicenseViaBigIq(bigIqHost, bigIqUsername, bigIqPassword, licensePool, options) {
+                    bigIqHostSent = bigIqHost;
+                    bigIqUsernameSent = bigIqUsername;
+                    bigIqPasswordSent = bigIqPassword;
+                    licensePoolSent = licensePool;
+                    optionsSent = options;
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const systemHandler = new SystemHandler(declaration, bigIpMock);
+                systemHandler.process()
+                    .then(() => {
+                        assert.strictEqual(bigIqHostSent, declaration.Common.License.revokeFrom.bigIqHost);
+                        assert.strictEqual(
+                            bigIqUsernameSent,
+                            declaration.Common.License.revokeFrom.bigIqUsername
+                        );
+                        assert.strictEqual(
+                            bigIqPasswordSent,
+                            declaration.Common.License.revokeFrom.bigIqPassword
+                        );
+                        assert.strictEqual(
+                            licensePoolSent,
+                            declaration.Common.License.revokeFrom.licensePool
+                        );
+                        assert.strictEqual(
+                            optionsSent.noUnreachable,
+                            declaration.Common.License.revokeFrom.reachable
+                        );
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
         });
     });
 

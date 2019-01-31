@@ -17,8 +17,11 @@
 'use strict';
 
 const fs = require('fs');
+const EventEmitter = require('events');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
+const cryptoUtil = require('./cryptoUtil');
 const ConfigManager = require('./configManager');
 const DeclarationHandler = require('./declarationHandler');
 const Logger = require('./logger');
@@ -27,8 +30,12 @@ const State = require('./state');
 const Validator = require('./validator');
 
 const STATUS = require('./sharedConstants').STATUS;
+const EVENTS = require('./sharedConstants').EVENTS;
 
 const logger = new Logger(module);
+
+const BIG_IP_ENCRYPTION_ID = 'doBigIp';
+const BIG_IQ_ENCRYPTION_ID = 'doBigIq';
 
 /**
  * API handler
@@ -39,6 +46,8 @@ class RestWorker {
     constructor() {
         this.WORKER_URI_PATH = 'shared/declarative-onboarding';
         this.isPublic = true;
+
+        this.eventEmitter = new EventEmitter();
     }
 
     /**
@@ -74,10 +83,24 @@ class RestWorker {
             return;
         }
 
+        // If this device's license is going to be revoked, services will
+        // restart and we need to know that's what happened when this worker is restarted.
+        this.eventEmitter.on(EVENTS.DO_LICENSE_REVOKED, (bigIpPassword, bigIqPassword) => {
+            if (this.platform === PRODUCTS.BIGIP) {
+                // if we need to relicense after we restart, so store passwords
+                cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID);
+                cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID);
+
+                this.state.doState.updateResult(202, STATUS.STATUS_REVOKING, 'revoking license');
+                save.call(this);
+            }
+        });
+
         // The framework is supposed to pass in our state, but does not.
         load.call(this)
             .then(() => {
-                if (this.state.doState.status === STATUS.STATUS_REBOOTING) {
+                switch (this.state.doState.status) {
+                case STATUS.STATUS_REBOOTING:
                     // If we were rebooting and are now in this function, all should be well
                     this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
                     save.call(this)
@@ -90,7 +113,80 @@ class RestWorker {
                             logger.severe(message);
                             error(message);
                         });
-                } else {
+                    break;
+                case STATUS.STATUS_REVOKING:
+                    // If our status is REVOKING, restnoded was just restarted
+                    // and we need to finish processing the declaration.
+                    // This should only be the case when we are running on a BIG-IP.
+
+                    // call success then start onboarding
+                    setImmediate(success);
+                    setImmediate(() => {
+                        // In this case, we should be running locally on a BIG-IP since
+                        // revoking the BIG-IP license will not restart our restnoded in
+                        // other environments (ASG, for example)
+                        logger.fine('Onboard resuming.');
+                        this.state.doState.updateResult(202, STATUS.STATUS_RUNNING, 'processing');
+                        save.call(this);
+
+                        // Make sure we don't try to revoke again and if we need to relicense,
+                        // fill in the BIG-IQ and BIG-IP passwords
+                        const declaration = Object.assign({}, this.state.doState.declaration);
+                        const deletePromises = [];
+                        let licenseName;
+                        let hasBigIpUser = false;
+                        let hasBigIqUser = false;
+
+                        Object.keys(declaration.Common).forEach((key) => {
+                            if (declaration.Common[key].class === 'License') {
+                                licenseName = key;
+                                delete declaration.Common[licenseName].revokeFrom;
+
+                                if (declaration.Common[licenseName].bigIpUsername) {
+                                    hasBigIpUser = true;
+                                }
+                                if (declaration.Common[licenseName].bigIqUsername) {
+                                    hasBigIqUser = true;
+                                }
+                            }
+                        });
+
+                        Promise.resolve()
+                            .then(() => {
+                                if (hasBigIpUser) {
+                                    return cryptoUtil.decryptId(BIG_IP_ENCRYPTION_ID);
+                                }
+                                return Promise.resolve();
+                            })
+                            .then((password) => {
+                                if (password) {
+                                    declaration.Common[licenseName].bigIpPassword = password;
+                                    deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID));
+                                }
+                                if (hasBigIqUser) {
+                                    return cryptoUtil.decryptId(BIG_IQ_ENCRYPTION_ID);
+                                }
+                                return Promise.resolve();
+                            })
+                            .then((password) => {
+                                if (password) {
+                                    declaration.Common[licenseName].bigIqPassword = password;
+                                    deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID));
+                                }
+                                return Promise.all(deletePromises);
+                            })
+                            .then(() => {
+                                return onboard.call(this, declaration, {});
+                            })
+                            .then((rebootRequired) => {
+                                if (rebootRequired) {
+                                    this.bigIp.reboot();
+                                }
+                            });
+                    });
+
+                    break;
+                default:
                     success();
                 }
             })
@@ -154,8 +250,6 @@ class RestWorker {
         this.state.doState.declaration = declaration;
         this.state.doState.errors = null;
 
-        let rebootRequired = false;
-
         if (!validation.isValid) {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
             logger.info(message);
@@ -191,82 +285,8 @@ class RestWorker {
                 }
             });
 
-            doUtil.getBigIp(logger, bigIpOptions)
-                .then((bigIp) => {
-                    this.bigIp = bigIp;
-                    this.declarationHandler = new DeclarationHandler(this.bigIp);
-                    logger.fine('Getting and saving current configuration');
-                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
-                })
-                .then(() => {
-                    return this.declarationHandler.process(declaration, this.state.doState);
-                })
-                .then(() => {
-                    logger.fine('Saving sys config.');
-                    return this.bigIp.save();
-                })
-                .then(() => {
-                    logger.fine('Onboard configuration complete. Checking for reboot.');
-                    return this.bigIp.rebootRequired();
-                })
-                .then((needsReboot) => {
-                    rebootRequired = needsReboot;
-                    if (!rebootRequired) {
-                        logger.fine('No reboot required');
-                        this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
-                    } else {
-                        logger.fine('Reboot required. Rebooting.');
-                        this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
-                    }
-                    logger.fine('Getting and saving current configuration');
-                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
-                })
-                .then(() => {
-                    if (!rebootRequired) {
-                        logger.fine('Onboard complete.');
-                    }
-                    return Promise.resolve();
-                })
-                .catch((err) => {
-                    logger.severe(`Error onboarding: ${err.message}`);
-                    logger.info('Rolling back configuration');
-                    const deconCode = err.code === 400 ? 422 : 500;
-                    this.state.doState.updateResult(
-                        deconCode,
-                        STATUS.STATUS_ROLLING_BACK,
-                        'invalid config - rolling back',
-                        err.message
-                    );
-                    return save.call(this)
-                        .then(() => {
-                            const rollbackTo = {};
-                            Object.assign(rollbackTo, this.state.doState.currentConfig);
-                            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration)
-                                .then(() => {
-                                    return this.declarationHandler.process(rollbackTo, this.state.doState);
-                                })
-                                .then(() => {
-                                    this.state.doState.status = STATUS.STATUS_ERROR;
-                                    this.state.doState.message = 'invalid config - rolled back';
-                                    return save.call(this);
-                                })
-                                .catch((rollbackError) => {
-                                    logger.severe(`Error rolling back: ${rollbackError.message}`);
-                                    return Promise.reject(rollbackError);
-                                });
-                        });
-                })
-                .catch((err) => {
-                    logger.severe(`Error rolling back configuration: ${err.message}`);
-                    const deconCode = 500;
-                    this.state.doState.updateResult(
-                        deconCode,
-                        STATUS.STATUS_ERROR,
-                        'rollback failed',
-                        err.message
-                    );
-                })
-                .then(() => {
+            onboard.call(this, declaration, bigIpOptions)
+                .then((rebootRequired) => {
                     if (!declaration.async) {
                         logger.fine('Sending response.');
                         sendResponse.call(this, restOperation);
@@ -301,6 +321,96 @@ class RestWorker {
         return exampleResponse;
     }
     /* eslint-enable class-methods-use-this */
+}
+
+function onboard(declaration, bigIpOptions) {
+    let rebootRequired = false;
+
+    return doUtil.getBigIp(logger, bigIpOptions)
+        .then((bigIp) => {
+            this.bigIp = bigIp;
+            this.declarationHandler = new DeclarationHandler(this.bigIp, this.eventEmitter);
+            logger.fine('Determining platform');
+            return doUtil.getCurrentPlatform(bigIpOptions);
+        })
+        .then((platform) => {
+            logger.fine('Running in a', platform);
+            this.platform = platform;
+
+            logger.fine('Getting and saving current configuration');
+            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
+        })
+        .then(() => {
+            return this.declarationHandler.process(declaration, this.state.doState);
+        })
+        .then(() => {
+            logger.fine('Saving sys config.');
+            return this.bigIp.save();
+        })
+        .then(() => {
+            logger.fine('Onboard configuration complete. Checking for reboot.');
+            return this.bigIp.rebootRequired();
+        })
+        .then((needsReboot) => {
+            rebootRequired = needsReboot;
+            if (!rebootRequired) {
+                logger.fine('No reboot required');
+                this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
+            } else {
+                logger.fine('Reboot required. Rebooting.');
+                this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
+            }
+            logger.fine('Getting and saving current configuration');
+            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
+        })
+        .then(() => {
+            if (!rebootRequired) {
+                logger.fine('Onboard complete.');
+            }
+            return Promise.resolve();
+        })
+        .catch((err) => {
+            logger.severe(`Error onboarding: ${err.message}`);
+            logger.info('Rolling back configuration');
+            const deconCode = err.code === 400 ? 422 : 500;
+            this.state.doState.updateResult(
+                deconCode,
+                STATUS.STATUS_ROLLING_BACK,
+                'invalid config - rolling back',
+                err.message
+            );
+            return save.call(this)
+                .then(() => {
+                    const rollbackTo = {};
+                    Object.assign(rollbackTo, this.state.doState.currentConfig);
+                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration)
+                        .then(() => {
+                            return this.declarationHandler.process(rollbackTo, this.state.doState);
+                        })
+                        .then(() => {
+                            this.state.doState.status = STATUS.STATUS_ERROR;
+                            this.state.doState.message = 'invalid config - rolled back';
+                            return save.call(this);
+                        })
+                        .catch((rollbackError) => {
+                            logger.severe(`Error rolling back: ${rollbackError.message}`);
+                            return Promise.reject(rollbackError);
+                        });
+                });
+        })
+        .catch((err) => {
+            logger.severe(`Error rolling back configuration: ${err.message}`);
+            const deconCode = 500;
+            this.state.doState.updateResult(
+                deconCode,
+                STATUS.STATUS_ERROR,
+                'rollback failed',
+                err.message
+            );
+        })
+        .then(() => {
+            return Promise.resolve(rebootRequired);
+        });
 }
 
 function getAndSaveCurrentConfig(bigIp, declaration) {
