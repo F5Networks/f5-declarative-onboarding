@@ -5,3 +5,4 @@ node_modules/
 build/rpmbuild/
 docs/_build/
 coverage/
+npm-debug.log
