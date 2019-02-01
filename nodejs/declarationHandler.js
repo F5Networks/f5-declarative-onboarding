@@ -24,6 +24,8 @@ const NetworkHandler = require('./networkHandler');
 const DscHandler = require('./dscHandler');
 const DeleteHandler = require('./deleteHandler');
 
+const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
+
 const logger = new Logger(module);
 
 // They are the classes for which we are the source of truth. We will
@@ -94,7 +96,7 @@ class DeclarationHandler {
 
         applyDefaults(parsedNewDeclaration, state);
 
-        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH);
+        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
         let updateDeclaration;
         let deleteDeclaration;
         return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration)

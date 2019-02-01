@@ -17,6 +17,7 @@
 'use strict';
 
 const Logger = require('./logger');
+const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 
 const logger = new Logger(module);
 
@@ -157,18 +158,6 @@ class DeclarationParser {
      */
     parse() {
         const KEYS_TO_IGNORE = ['schemaVersion', 'class'];
-
-        // classes that have config objects without a name property
-        const NAMELESS_CLASSES = [
-            'DbVariables',
-            'DNS',
-            'NTP',
-            'License',
-            'Provision',
-            'ConfigSync',
-            'FailoverUnicast',
-            'DeviceTrust'
-        ];
 
         function isKeyOfInterest(key) {
             return KEYS_TO_IGNORE.indexOf(key) === -1;

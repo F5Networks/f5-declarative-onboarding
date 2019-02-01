@@ -24,9 +24,13 @@ class DiffHandler {
      * Constructor
      * @param {String[]} classesOfTruth - Array of classes that we are the source of truth for. All
      *                                    other classes will be left alone.
+     * @param {String[]} namelessClasses - Array of classes which do not have a name property
+     *                                     (DNS, for example)
      */
-    constructor(classesOfTruth) {
+    constructor(classesOfTruth, namelessClasses) {
         this.classesOfTruth = classesOfTruth.slice();
+        this.namelessClasses = namelessClasses.slice();
+
         // Although we may be the source of truth for 'hostname', we do not want
         // to diff it beccause hostname is set in 2 different places. Better
         // to let f5-cloud-libs handle checking it.
@@ -60,7 +64,8 @@ class DiffHandler {
         const final = {
             Common: populateNonTruthClasses(to.Common, this.classesOfTruth)
         };
-        const updatedPaths = [];
+        const updatedClasses = [];
+        const updatedNames = {};
 
         const toDelete = {
             Common: {}
@@ -74,9 +79,22 @@ class DiffHandler {
             if (this.classesOfTruth.indexOf(diff.path[1]) !== -1) {
                 applyChange(from, to, diff);
 
-                // we're only interesed in one layer down (/Common/DNS, for example)
-                if (updatedPaths.indexOf(diff.path[1]) === -1) {
-                    updatedPaths.push(diff.path[1]);
+                // the item at index 1 is the name of the class in the schema
+                // if these are named objects (vlans, for example) the name is at
+                // index 2
+                const schemaClass = diff.path[1];
+                let objectName;
+                if (this.namelessClasses.indexOf(schemaClass) === -1) {
+                    objectName = diff.path[2];
+                }
+                if (updatedClasses.indexOf(schemaClass) === -1) {
+                    updatedClasses.push(schemaClass);
+                }
+                if (objectName) {
+                    if (!updatedNames[schemaClass]) {
+                        updatedNames[schemaClass] = [];
+                    }
+                    updatedNames[schemaClass].push(objectName);
                 }
 
                 // keep track of objects to delete since they require special handling
@@ -84,8 +102,8 @@ class DiffHandler {
                 // so if diff.path is longer than 3, it's just a property being deleted
                 // and this will be handled by the applyChange
                 if (diff.kind === 'D' && diff.path.length === 3) {
-                    if (!toDelete.Common[diff.path[1]]) {
-                        toDelete.Common[diff.path[1]] = {};
+                    if (!toDelete.Common[schemaClass]) {
+                        toDelete.Common[schemaClass] = {};
                     }
 
                     // we are creating a declaration that looks like a parsed
@@ -97,20 +115,31 @@ class DiffHandler {
                     //             }
                     //         }
                     // }
-                    toDelete.Common[diff.path[1]][diff.path[2]] = {};
+                    toDelete.Common[schemaClass][diff.path[2]] = {};
                 }
             }
         });
 
         // copy in anything that was updated
-        updatedPaths.forEach((path) => {
-            if (typeof from.Common[path] === 'string') {
-                final.Common[path] = from.Common[path];
-            } else if (Array.isArray(from.Common[path])) {
-                final.Common[path] = from.Common[path].slice();
+        updatedClasses.forEach((schemaClass) => {
+            if (typeof from.Common[schemaClass] === 'string') {
+                final.Common[schemaClass] = from.Common[schemaClass];
+            } else if (Array.isArray(from.Common[schemaClass])) {
+                final.Common[schemaClass] = from.Common[schemaClass].slice();
             } else {
-                final.Common[path] = {};
-                Object.assign(final.Common[path], from.Common[path]);
+                final.Common[schemaClass] = {};
+                if (this.namelessClasses.indexOf(schemaClass) === -1) {
+                    // for named classes, just update the objects that changed
+                    updatedNames[schemaClass].forEach((updatedName) => {
+                        final.Common[schemaClass][updatedName] = {};
+                        Object.assign(
+                            final.Common[schemaClass][updatedName],
+                            from.Common[schemaClass][updatedName]
+                        );
+                    });
+                } else {
+                    Object.assign(final.Common[schemaClass], from.Common[schemaClass]);
+                }
             }
         });
 
