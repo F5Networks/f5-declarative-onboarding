@@ -19,7 +19,7 @@ Use the following procedure to validate a declaration.
             "$schema": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/base.schema.json",
         
 
-4. As you begin to type the properties of your declaration, the validation process warns of incorrect syntax with a green wavy line under the word
+4. As you begin to type the :ref:`properties of your declaration<composing>`, the validation process warns of incorrect syntax with a green wavy line under the word
 
     .. image:: /images/validate-1.png
      
