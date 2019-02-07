@@ -62,7 +62,7 @@ const bigipPassword = 'default';
     getMachines(3)
         .then((deployedMachines) => {
             /* eslint-disable no-console */
-            // console.log('Deployed');
+            console.log('Deployed');
             machines = deployedMachines;
         })
         .catch((error) => {
