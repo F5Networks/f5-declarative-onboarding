@@ -33,10 +33,12 @@ class DscHandler {
      *
      * @param {Object} declaration - Parsed declaration.
      * @param {Object} bigIp - BigIp object.
+     * @param {EventEmitter} - DO event emitter.
      */
-    constructor(declaration, bigIp) {
+    constructor(declaration, bigIp, eventEmitter) {
         this.declaration = declaration;
         this.bigIp = bigIp;
+        this.eventEmitter = eventEmitter;
     }
 
     /**

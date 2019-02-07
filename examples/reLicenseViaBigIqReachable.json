@@ -1,15 +1,24 @@
 {
     "schemaVersion": "1.0.0",
     "class": "Device",
-    "async": true,
-    "label": "my BIG-IP declaration for declarative onboarding",
+    "label": "Re-license BIG-IP from a different pool when BIG-IP is reachable from BIG-IQ",
     "Common": {
         "class": "Tenant",
         "hostname": "bigip.example.com",
         "myLicense": {
             "class": "License",
-            "licenseType": "regKey",
-            "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
+            "licenseType": "licensePool",
+            "bigIqHost": "10.0.1.200",
+            "bigIqUsername": "admin",
+            "bigIqPassword": "foofoo",
+            "licensePool": "myOtherPool",
+            "revokeFrom": "myPool",
+            "skuKeyword1": "key1",
+            "skuKeyword2": "key2",
+            "unitOfMeasure": "hourly",
+            "reachable": true,
+            "bigIpUsername": "admin",
+            "bigIpPassword": "barbar"
         },
         "myDns": {
             "class": "DNS",
@@ -25,15 +34,16 @@
             "class": "NTP",
             "servers": [
                 "0.pool.ntp.org",
-                "1.pool.ntp.org"
+                "1.pool.ntp.org",
+                "2.pool.ntp.org"
             ],
             "timezone": "UTC"
         },
         "root": {
             "class": "User",
             "userType": "root",
-            "oldPassword": "default",
-            "newPassword": "myNewPass1word"
+            "oldPassword": "foo",
+            "newPassword": "bar"
         },
         "admin": {
             "class": "User",
@@ -41,42 +51,19 @@
             "password": "asdfjkl",
             "shell": "bash"
         },
-        "guestUser": {
+        "anotherUser": {
             "class": "User",
             "userType": "regular",
-            "password": "guestNewPass1",
+            "password": "foobar",
             "partitionAccess": {
                 "Common": {
                     "role": "guest"
                 }
             }
         },
-        "anotherUser": {
-            "class": "User",
-            "userType": "regular",
-            "password": "myPass1word",
-            "shell": "none",
-            "partitionAccess": {
-                "all-partitions": {
-                    "role": "guest"
-                }
-            }
-        },
         "myProvisioning": {
             "class": "Provision",
-            "ltm": "nominal",
-            "gtm": "minimum"
-        },
-        "external": {
-            "class": "VLAN",
-            "tag": 4094,
-            "mtu": 1500,
-            "interfaces": [
-                {
-                    "name": "1.1",
-                    "tagged": false
-                }
-            ]
+            "ltm": "nominal"
         },
         "internal": {
             "class": "VLAN",
@@ -96,24 +83,29 @@
             "allowService": "default",
             "trafficGroup": "traffic-group-local-only"
         },
+        "external": {
+            "class": "VLAN",
+            "tag": 4094,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ]
+        },
         "external-self": {
             "class": "SelfIp",
-            "address": "1.2.3.4/24",
+            "address": "10.20.0.100/24",
             "vlan": "external",
-            "allowService": "default",
+            "allowService": "none",
             "trafficGroup": "traffic-group-local-only"
         },
-        "myRoute": {
+        "default": {
             "class": "Route",
-            "gw": "1.2.3.254",
+            "gw": "10.10.0.1",
             "network": "default",
-            "mtu": 0
-        },
-        "dbvars": {
-        	"class": "DbVariables",
-        	"ui.advisory.enabled": true,
-        	"ui.advisory.color": "green",
-        	"ui.advisory.text": "/Common/hostname"
+            "mtu": 1500
         }
     }
 }

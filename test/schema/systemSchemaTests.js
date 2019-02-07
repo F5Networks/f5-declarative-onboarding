@@ -226,6 +226,61 @@ describe('system.schema.json', () => {
                     };
                     assert.ok(validate(data), getErrorString(validate));
                 });
+
+                it('should validate reachable without bigIp user if not getting new license', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "reachable": true
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate unreachable without hypervisor if not getting new license', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "reachable": false
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate revokeFrom as a string', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "reachable": false,
+                        "revokeFrom": "foo"
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate revokeFrom as an object', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "reachable": false,
+                        "revokeFrom": {
+                            "bigIqHost": "1.2.3.4",
+                            "bigIqUsername": "admin",
+                            "bigIqPassword": "foofoo",
+                            "licensePool": "barbar"
+                        }
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
             });
 
             describe('invalid', () => {
@@ -286,6 +341,72 @@ describe('system.schema.json', () => {
                         false,
                         'if reachable is false, bigIpUsername and bigIpPassword should be required'
                     );
+                });
+
+                it('should invalidate revokeFrom with missing bigIqHost', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "reachable": false,
+                        "revokeFrom": {
+                            "bigIqUsername": "admin",
+                            "bigIqPassword": "foofoo",
+                            "licensePool": "myPool"
+                        }
+                    };
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'if revokeFrom is an object, bigIqHost is required'
+                    );
+                    assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "bigIqHost"'), -1);
+                });
+
+                it('should invalidate revokeFrom with missing bigIqUsername', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "reachable": false,
+                        "revokeFrom": {
+                            "bigIqHost": "1.2.3.4",
+                            "bigIqPassword": "foofoo",
+                            "licensePool": "myPool"
+                        }
+                    };
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'if revokeFrom is an object, bigIqHost is required'
+                    );
+                    assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "bigIqUsername"'), -1);
+                });
+
+                it('should invalidate revokeFrom with missing licensePool', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "reachable": false,
+                        "revokeFrom": {
+                            "bigIqHost": "1.2.3.4",
+                            "bigIqUsername": "admin",
+                            "bigIqPassword": "foofoo"
+                        }
+                    };
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'if revokeFrom is an object, licensePool is required'
+                    );
+                    assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "licensePool"'), -1);
                 });
             });
         });

@@ -36,6 +36,20 @@ module.exports = {
         STATUS_ERROR: 'ERROR',
         STATUS_ROLLING_BACK: 'ROLLING_BACK',
         STATUS_RUNNING: 'RUNNING',
-        STATUS_REBOOTING: 'REBOOTING'
-    }
+        STATUS_REBOOTING: 'REBOOTING',
+        STATUS_REVOKING: 'REVOKING'
+    },
+    EVENTS: {
+        DO_LICENSE_REVOKED: 'DO_LICENSE_REVOKED'
+    },
+    NAMELESS_CLASSES: [
+        'DbVariables',
+        'DNS',
+        'NTP',
+        'License',
+        'Provision',
+        'ConfigSync',
+        'FailoverUnicast',
+        'DeviceTrust'
+    ]
 };

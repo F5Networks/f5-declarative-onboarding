@@ -62,7 +62,7 @@ const bigipPassword = 'default';
     getMachines(3)
         .then((deployedMachines) => {
             /* eslint-disable no-console */
-            console.log('Deployed');
+            // console.log('Deployed');
             machines = deployedMachines;
         })
         .catch((error) => {
@@ -140,6 +140,7 @@ function testOnboard(bigipAddress) {
         let body;
         const errors = [];
         let passed = 1;
+        const auth = { username: bigipAdminUsername, password: bigipAdminPassword };
 
         common.readFile(bodyFile)
             .then(JSON.parse)
@@ -147,16 +148,15 @@ function testOnboard(bigipAddress) {
                 body = readBody;
             })
             .then(() => {
-                return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    DO_API, HTTP_ACCEPTED, 'POST', errors);
+                return testRequest(body, `${hostname(bigipAddress)}${DO_API}`, auth,
+                    HTTP_ACCEPTED, 'POST', errors);
             })
             .then(() => {
                 // we make a single status call (retrying it if it doesn't succeed),
                 // and check everything against the response we get from it. Then all
                 // of the tests become local
                 // try 30 times, for 1min each trial
-                return testGetStatus(30, 60 * 1000, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    HTTP_SUCCESS, errors);
+                return testGetStatus(30, 60 * 1000, bigipAddress, auth, HTTP_SUCCESS, errors);
             })
             .then((response) => {
                 // get the part that interests us
@@ -203,83 +203,161 @@ function testOnboard(bigipAddress) {
 }
 
 /**
- * testLicensing - test for licensing, revoking using a BIG-IQ, and relicensing. We revoke at the end so as to
- *                 clean up licenses on BIG-IPs that are going to be killed after the test suite.
- * @bigipAddress {String} : ip addrress of target BIG-IP
- * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
+ * getF5Token - returns a new Promise which resolves with a new authorization token for
+ *              iControl calls, or reject with error
+ * @deviceIp {String} : ip address of target device
+ * @auth {Object} : authorization body to retrieve token (username/password)
 */
-function testLicensing(bigipAddress) {
+function getF5Token(deviceIp, auth) {
     return new Promise((resolve, reject) => {
-        return licensingWorkflow(bigipAddress)
-            .then((passed) => {
-                if (passed) {
-                    return licensingWorkflow(bigipAddress);
+        const options = buildBody(`${hostname(deviceIp)}${ICONTROL_API}/shared/authn/login`,
+            auth, auth, 'POST');
+        return sendRequest(options)
+            .then((response) => {
+                if (response.response.statusCode !== HTTP_SUCCESS) {
+                    reject(new Error('could not get token'));
                 }
-                return 0;
+                return response.body;
             })
-            .then((passed) => {
-                resolve(passed);
+            .then(JSON.parse)
+            .then((response) => {
+                resolve(response.token.token);
             })
-            .catch((err) => {
-                reject(err);
+            .catch((error) => {
+                reject(error);
             });
     });
 }
 
 /**
- * licensingWorkflow - tests an entire license/revoke workflow
- * @bigipAddress {String} : ip address of target BIG-IP
- * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or reject with an error
+ * getAuditLink - returns a Promise which resolves with link for later query of licensing information,
+ *                or rejects if no licensing information was found for that device, or if the device
+ *                is not licensed
+ * @bigIqAddress {String} : ip address of BIG-IQ license manager
+ * @bigIpAddress {String} : ip address of target licensed BIG-IP
+ * @auth {Object} : authorization body for BIG-IQ (username/password)
 */
-function licensingWorkflow(bigipAddress) {
+function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
+    return new Promise((resolve, reject) => {
+        return getF5Token(bigIqAddress, bigIqAuth)
+            .then((token) => {
+                const options = buildBody(`${hostname(bigIqAddress)}${ICONTROL_API}`
+                    + '/cm/device/licensing/assignments',
+                null, { token }, 'GET');
+                return sendRequest(options);
+            })
+            .then((response) => {
+                if (response.response.statusCode !== HTTP_SUCCESS) {
+                    reject(new Error('could not license'));
+                }
+                return response.body;
+            })
+            .then(JSON.parse)
+            .then((response) => {
+                return response.items;
+            })
+            .then((assignments) => {
+                assignments.forEach((assignment) => {
+                    if (assignment.deviceAddress === bigIpAddress) {
+                        const licensingStatus = assignment.status;
+                        const auditLink = assignment.auditRecordReference.link;
+                        // audit links come with the ip address as localhost, we need to
+                        // replace it with the address of the BIG-IQ, in order to use it later
+                        // to check licensing of a particular device
+                        const auditLinkRemote = auditLink.replace(/localhost/gi, bigIqAddress);
+                        if (assignment.status === 'LICENSED') resolve(auditLinkRemote);
+                        else reject(new Error(`device license status : ${licensingStatus}`));
+                    }
+                });
+                reject(new Error('no license match for device address'));
+            })
+            .catch((error) => {
+                reject(error);
+            });
+    });
+}
+
+/**
+ * testLicensing - test for licensing, revoking using a BIG-IQ, and relicensing. We revoke at the end so as to
+ *                 clean up licenses on BIG-IPs that are going to be killed after the test suite.
+ * @bigIpAddress {String} : ip address of target BIG-IP
+ * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
+*/
+function testLicensing(bigIpAddress) {
     return new Promise((resolve, reject) => {
         const bodyFileLicensing = `${BODIES}/licensing_big_iq.json`;
-        const bodyFileRevoking = `${BODIES}/license_revoking_big_iq.json`;
+        const bodyFileRevokingRelicensing = `${BODIES}/revoking_relicensing_big_iq.json`;
         const errors = [];
         let passed = 1;
+        const bigIpAuth = { username: bigipAdminUsername, password: bigipAdminPassword };
+        const bigIqAuth = {};
+        let bigIqAddress;
+        let oldAuditLink;
 
         common.readFile(bodyFileLicensing)
             .then(JSON.parse)
             .then((body) => {
+                // get BIG-IQ credentials
+                bigIqAuth.username = body.Common.myLicense.bigIqUsername;
+                bigIqAuth.password = body.Common.myLicense.bigIqPassword;
+                // and its ip address
+                bigIqAddress = body.Common.myLicense.bigIqHost;
+                return body;
+            })
+            .then((body) => {
                 // license the BIG-IP through a BIG-IQ
-                return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    DO_API, HTTP_ACCEPTED, 'POST', errors);
+                return testRequest(body, `${hostname(bigIpAddress)}${DO_API}`, bigIpAuth,
+                    HTTP_ACCEPTED, 'POST', errors);
             })
             .then(() => {
-                // wait until status is 200
-                // try 30 times, 60 secs each trial
-                return testGetStatus(30, 60 * 1000, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    HTTP_SUCCESS, errors);
+                // wait until status is 200, try 30 times, 60 secs each trial
+                return testGetStatus(30, 60 * 1000, bigIpAddress, bigIpAuth, HTTP_SUCCESS, errors);
             })
             .then(() => {
-                // check if device has been licensed with an iControl call
-                return testRequest(null, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    `${ICONTROL_API}/tm/sys/license`, HTTP_SUCCESS, 'GET', errors);
+                // check if device has been licensed with an iControl call to the BIG-IQ
+                return getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth);
             })
-            .then(JSON.parse)
-            .then((iControlResponse) => {
-                passed = passed && check('device was licensed', ('entries' in iControlResponse), errors);
+            .then((auditLink) => {
+                oldAuditLink = auditLink;
+                passed = passed && check('device was licensed', true, errors);
             })
             .then(() => {
-                return common.readFile(bodyFileRevoking);
+                // now revoke and re-license using another license pool
+                return common.readFile(bodyFileRevokingRelicensing);
             })
             .then(JSON.parse)
             .then((body) => {
-                // revoke license through BIG-IQ
-                return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    DO_API, HTTP_ACCEPTED, 'POST', errors);
+                return testRequest(body, `${hostname(bigIpAddress)}${DO_API}`, bigIpAuth,
+                    HTTP_ACCEPTED, 'POST', errors);
             })
             .then(() => {
-                // check if device is no longer licensed
-                return testRequest(null, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    `${ICONTROL_API}/tm/sys/license`, HTTP_SUCCESS, 'GET', errors);
+                // wait until status is 200, try 30 times, 60 secs each trial
+                return testGetStatus(30, 60 * 1000, bigIpAddress, bigIpAuth, HTTP_SUCCESS, errors);
+            })
+            .then(() => {
+                // check BIG-IQ for new license assignment and revocation of previous license
+                return getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth);
+            })
+            .then((newAuditLink) => {
+                // if the new audit link is equal to the old, it means the old license wasn't
+                // revoked, because an audit link represents a licensed device (see getAuditLink)
+                passed = passed && check('re-licensed device with new pool',
+                    (newAuditLink !== oldAuditLink), errors);
+                return getF5Token(bigIqAddress, bigIqAuth);
+            })
+            .then((token) => {
+                const options = buildBody(oldAuditLink, null, { token }, 'GET');
+                return sendRequest(options);
+            })
+            .then((response) => {
+                if (response.response.statusCode !== HTTP_SUCCESS) {
+                    reject(new Error('could not check revoking'));
+                }
+                return response.body;
             })
             .then(JSON.parse)
-            .then((iControlResponse) => {
-                passed = passed && check('device is no longer licensed', (!('entries' in iControlResponse)),
-                    errors);
-            })
-            .then(() => {
+            .then((assignment) => {
+                passed = passed && check('old license revoked', (assignment.status === 'REVOKED'), errors);
                 resolve(passed);
             })
             .catch((error) => {
@@ -300,19 +378,19 @@ function testNetworking(bigipAddress) {
         let body;
         const errors = [];
         let passed = 1;
+        const auth = { username: bigipAdminUsername, password: bigipAdminPassword };
 
         common.readFile(bodyFile)
             .then((fileRead) => {
                 body = JSON.parse(fileRead);
             })
             .then(() => {
-                return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    DO_API, HTTP_ACCEPTED, 'POST', errors);
+                return testRequest(body, `${hostname(bigipAddress)}${DO_API}`,
+                    auth, HTTP_ACCEPTED, 'POST', errors);
             })
             .then(() => {
                 // try 30 times, 60 secs each trial
-                return testGetStatus(30, 60 * 1000, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    HTTP_SUCCESS, errors);
+                return testGetStatus(30, 60 * 1000, bigipAddress, auth, HTTP_SUCCESS, errors);
             })
             .then((response) => {
                 return response.currentConfig.Common;
@@ -355,9 +433,10 @@ function testRollbacking(bigipAddress) {
         let currentConfiguration;
         const errors = [];
         let passed = 1;
+        const auth = { username: bigipAdminUsername, password: bigipAdminPassword };
 
         // get current configuration to compare against later
-        testGetStatus(1, 1, bigipAddress, bigipAdminUsername, bigipAdminPassword, HTTP_SUCCESS, errors)
+        testGetStatus(1, 1, bigipAddress, auth, HTTP_SUCCESS, errors)
             .then((response) => {
                 passed = passed && check('test current status is ok', response, errors);
                 currentConfiguration = response.currentConfig.Common;
@@ -368,12 +447,11 @@ function testRollbacking(bigipAddress) {
             })
             .then((fileRead) => {
                 const body = JSON.parse(fileRead);
-                return testRequest(body, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    DO_API, HTTP_ACCEPTED, 'POST', errors);
+                return testRequest(body, `${hostname(bigipAddress)}${DO_API}`, auth,
+                    HTTP_ACCEPTED, 'POST', errors);
             })
             .then(() => {
-                return testGetStatus(3, 60 * 1000, bigipAddress, bigipAdminUsername, bigipAdminPassword,
-                    HTTP_UNPROCESSABLE, errors);
+                return testGetStatus(3, 60 * 1000, bigipAddress, auth, HTTP_UNPROCESSABLE, errors);
             })
             .then((response) => {
                 passed = passed && check('test new status is rollbacked', response, errors);
@@ -487,24 +565,22 @@ function testRoute(target, response, errors) {
     return compareSimple(target, response.Route.myRoute, ['gw', 'network', 'mtu'], errors);
 }
 
+
 /**
  * testRequest - sends a request with the body and credentials to the hostname based on the ip provided,
  *               and tests if response was successful and issued the expected HTTP status code.
  * @body {Object} : request body
- * @ipAddress {String} : BIG-IP's ip address
- * @username {String} : BIG-IP's admin username
- * @password {String} : BIG-IP's admin password
- * @endpoint {String} : API endpoint
+ * @url {String} : complete url with ip + endpoint for API call
+ * @auth {Object} : authorization dictionary with (username, password) or F5 token
  * @expectedCode {int} : expected HTTP status code for the request
  * @method {String} : HTTP request method (POST, GET)
  * @errors {Array} : list of mismatched pairs
  * Returns Promise which resolves with response body on success or rejects with error
 */
-function testRequest(body, ipAddress, username, password, endpoint, expectedCode, method, errors) {
+function testRequest(body, url, auth, expectedCode, method, errors) {
     const func = function () {
         return new Promise((resolve, reject) => {
-            const auth = buildAuthenticationString({ username, password });
-            const options = buildBody(hostname(ipAddress), endpoint, body, auth, method);
+            const options = buildBody(url, body, auth, method);
             sendRequest(options)
                 .then((response) => {
                     if (response.response.statusCode === expectedCode) {
@@ -601,17 +677,15 @@ function pushError(errors, keyActual, keyExpected, actual, expected) {
  * @trials {Integer} - number of allowed trials
  * @timeInterval {Integer} - time in ms to wait before trying again
  * @ipAddress {String} - BIG-IP address for DO call
- * @adminUsername {String} - BIG-IP admin username
- * @adminPassword {String} - BIG-IP admin password
+ * @auth {Object} : authorization dictionary with (username, password) or F5 token
  * @expectedCode {String} - expected HTTP status code for when the API responds; typically HTTP_SUCCESS
  * @errors {Array} : list of mismatched pairs
  * Returns a Promise with response/error
 */
-function testGetStatus(trials, timeInterval, ipAddress, adminUsername, adminPassword, expectedCode, errors) {
+function testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode, errors) {
     const func = function () {
         return new Promise((resolve, reject) => {
-            const auth = buildAuthenticationString({ username: adminUsername, password: adminPassword });
-            const options = buildBody(hostname(ipAddress), `${DO_API}?show=full`, {}, auth, 'GET');
+            const options = buildBody(`${hostname(ipAddress)}${DO_API}?show=full`, null, auth, 'GET');
             sendRequest(options)
                 .then((response) => {
                     if (response.response.statusCode === expectedCode) {
@@ -685,22 +759,28 @@ function buildAuthenticationString(credentials) {
 
 /**
  * buildBody - builds a request body to be sent over the network
- * @ipAddress {String} : host's ip address of the request
- * @endpoint {String} : endpoint to be hit by request
+ * url {String} : complete url + endpoint string for API call
  * @data {Object} : data to be sent on request
- * @auth {Object} : base64-encoded Basic Auth header
+ * @auth {Object} : authorization dictionary with (username, password) or F5 token
  * @method {String} : request's method (POST, GET)
- * Returns fully-formatted body Object
+ * Returns fully-formatted body Object, or throws error if form of authentication is missing
+ * (either username/password or a token)
 */
-function buildBody(ipAddress, endpoint, data, auth, method) {
+function buildBody(url, data, auth, method) {
     const options = {
         method,
-        url: ipAddress + endpoint,
+        url,
         headers: {
-            'Content-Type': 'application/json',
-            Authorization: auth
+            'Content-Type': 'application/json'
         }
     };
+    if ('token' in auth) {
+        options.headers['X-F5-Auth-Token'] = auth.token;
+    } else if ('username' in auth && 'password' in auth) {
+        options.headers.Authorization = buildAuthenticationString(auth);
+    } else {
+        throw new Error('Missing authorization');
+    }
     if (data) {
         options.body = JSON.stringify(data);
     }
@@ -770,8 +850,9 @@ function installRpm(host) {
         packageFilePath: `${REMOTE_DIR}/${path.basename(RPM_PACKAGE)}`
         /* eslint-enable no-undef */
     };
-    return testRequest(installBody, host, bigipAdminUsername, bigipAdminPassword,
-        `${ICONTROL_API}/shared/iapp/package-management-tasks`, HTTP_ACCEPTED, 'POST', null);
+    return testRequest(installBody, `${hostname(host)}${ICONTROL_API}/shared/iapp/package-management-tasks`,
+        { username: bigipAdminUsername, password: bigipAdminPassword },
+        HTTP_ACCEPTED, 'POST', null);
 }
 
 /**

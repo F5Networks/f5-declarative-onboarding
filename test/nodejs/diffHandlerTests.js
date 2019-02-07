@@ -18,7 +18,8 @@
 
 const assert = require('assert');
 
-const CLASSES_OF_TRUTH = ['class1', 'class2'];
+const CLASSES_OF_TRUTH = ['class1', 'class2', 'class4'];
+const NAMELESS_CLASSES = ['class1', 'class2'];
 
 let DiffHandler;
 
@@ -57,7 +58,7 @@ describe('diffHandler', () => {
                 }
             };
 
-            const diffHandler = new DiffHandler(CLASSES_OF_TRUTH);
+            const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
             diffHandler.process(toDeclaration, fromDeclaration)
                 .then((diff) => {
                     assert.deepEqual(diff.toUpdate.Common.class1, toDeclaration.Common.class1);
@@ -95,11 +96,70 @@ describe('diffHandler', () => {
                 }
             };
 
-            const diffHandler = new DiffHandler(CLASSES_OF_TRUTH);
+            const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
             diffHandler.process(toDeclaration, fromDeclaration)
                 .then((diff) => {
                     assert.deepEqual(diff.toUpdate.Common.class3, toDeclaration.Common.class3);
                     assert.deepEqual(diff.toDelete.Common.class3, undefined);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should only modify the updated object for named classes', () => {
+        return new Promise((resolve, reject) => {
+            const toDeclaration = {
+                Common: {
+                    class4: {
+                        myUpdatedObject: {
+                            myString: 'foo',
+                            myObj: {
+                                foo: 'bar'
+                            },
+                            myArray: [1, 2, 3]
+                        },
+                        myNonUpdatedObject: {
+                            myString: 'foo',
+                            myObj: {
+                                foo: 'bar'
+                            },
+                            myArray: [1, 2, 3]
+                        }
+                    }
+                }
+            };
+            const fromDeclaration = {
+                Common: {
+                    class4: {
+                        myUpdatedObject: {
+                            myString: 'bar',
+                            myObj: {
+                                foo: 'bar'
+                            },
+                            myArray: [4, 5, 6]
+                        },
+                        myNonUpdatedObject: {
+                            myString: 'foo',
+                            myObj: {
+                                foo: 'bar'
+                            },
+                            myArray: [1, 2, 3]
+                        }
+                    }
+                }
+            };
+
+            const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
+            diffHandler.process(toDeclaration, fromDeclaration)
+                .then((diff) => {
+                    assert.deepEqual(
+                        diff.toUpdate.Common.class4.myUpdatedObject,
+                        toDeclaration.Common.class4.myUpdatedObject
+                    );
+                    assert.strictEqual(diff.toUpdate.Common.class4.myNonUpdatedObject, undefined);
                     resolve();
                 })
                 .catch((err) => {
@@ -123,7 +183,7 @@ describe('diffHandler', () => {
                 }
             };
 
-            const diffHandler = new DiffHandler(['hostname']);
+            const diffHandler = new DiffHandler(['hostname'], []);
             diffHandler.process(toDeclaration, fromDeclaration)
                 .then((diff) => {
                     assert.deepEqual(diff.toUpdate.Common.hostname, hostname);

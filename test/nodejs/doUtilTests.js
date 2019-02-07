@@ -19,6 +19,7 @@
 const assert = require('assert');
 const netMock = require('net');
 const BigIpMock = require('@f5devcentral/f5-cloud-libs').bigIp;
+const httpUtilMock = require('@f5devcentral/f5-cloud-libs').httpUtil;
 
 const doUtil = require('../../nodejs/doUtil');
 
@@ -167,6 +168,69 @@ describe('doUtil', () => {
                     })
                     .catch((err) => {
                         assert.strictEqual(err.message, initErr.message);
+                        resolve();
+                    });
+            });
+        });
+    });
+
+    describe('getCurrentPlatform', () => {
+        it('should work on BIG-IP/BIG-IQ', () => {
+            return new Promise((resolve, reject) => {
+                const platform = 'my product';
+                httpUtilMock.get = () => {
+                    return Promise.resolve(
+                        {
+                            slots: [
+                                {
+                                    product: platform
+                                }
+                            ]
+                        }
+                    );
+                };
+
+                doUtil.getCurrentPlatform()
+                    .then((resolvedPlatform) => {
+                        assert.strictEqual(resolvedPlatform, platform);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should work in a container', () => {
+            return new Promise((resolve, reject) => {
+                httpUtilMock.get = () => {
+                    return Promise.resolve({});
+                };
+
+                doUtil.getCurrentPlatform()
+                    .then((resolvedPlatform) => {
+                        assert.strictEqual(resolvedPlatform, 'CONTAINER');
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should handle errors', () => {
+            return new Promise((resolve, reject) => {
+                const error = 'http error';
+                httpUtilMock.get = () => {
+                    return Promise.reject(new Error(error));
+                };
+
+                doUtil.getCurrentPlatform()
+                    .then(() => {
+                        reject(new Error('should have rejected'));
+                    })
+                    .catch((err) => {
+                        assert.strictEqual(err.message, error);
                         resolve();
                     });
             });

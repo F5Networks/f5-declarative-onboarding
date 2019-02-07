@@ -24,6 +24,8 @@ const NetworkHandler = require('./networkHandler');
 const DscHandler = require('./dscHandler');
 const DeleteHandler = require('./deleteHandler');
 
+const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
+
 const logger = new Logger(module);
 
 // They are the classes for which we are the source of truth. We will
@@ -47,10 +49,14 @@ const CLASSES_OF_TRUTH = [
  * Main processing for a parsed declaration.
  *
  * @class
+ *
+ * @param {Object} bigIp - BigIp object.
+ * @param {EventEmitter} - Restnoded event channel.
  */
 class DeclarationHandler {
-    constructor(bigIp) {
+    constructor(bigIp, eventEmitter) {
         this.bigIp = bigIp;
+        this.eventEmitter = eventEmitter;
     }
 
     /**
@@ -90,7 +96,7 @@ class DeclarationHandler {
 
         applyDefaults(parsedNewDeclaration, state);
 
-        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH);
+        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
         let updateDeclaration;
         let deleteDeclaration;
         return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration)
@@ -100,16 +106,16 @@ class DeclarationHandler {
                 return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
             })
             .then(() => {
-                return new SystemHandler(updateDeclaration, this.bigIp).process();
+                return new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter).process();
             })
             .then(() => {
-                return new NetworkHandler(updateDeclaration, this.bigIp).process();
+                return new NetworkHandler(updateDeclaration, this.bigIp, this.eventEmitter).process();
             })
             .then(() => {
-                return new DscHandler(updateDeclaration, this.bigIp).process();
+                return new DscHandler(updateDeclaration, this.bigIp, this.eventEmitter).process();
             })
             .then(() => {
-                return new DeleteHandler(deleteDeclaration, this.bigIp).process();
+                return new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter).process();
             })
             .then(() => {
                 logger.info('Done processing declartion.');

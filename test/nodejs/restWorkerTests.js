@@ -19,6 +19,7 @@
 const assert = require('assert');
 const State = require('../../nodejs/state');
 const STATUS = require('../../nodejs/sharedConstants').STATUS;
+const EVENTS = require('../../nodejs/sharedConstants').EVENTS;
 
 /* eslint-disable global-require */
 
@@ -27,6 +28,7 @@ describe('restWorker', () => {
     let ConfigManagerMock;
     let RestWorker;
     let doUtilMock;
+    let cryptoUtilMock;
     let bigIpMock;
     let declaration;
     let restOperationMock;
@@ -34,6 +36,7 @@ describe('restWorker', () => {
 
     before(() => {
         doUtilMock = require('../../nodejs/doUtil');
+        cryptoUtilMock = require('../../nodejs/cryptoUtil');
         ConfigManagerMock = require('../../nodejs/configManager');
         DeclarationHandlerMock = require('../../nodejs/declarationHandler');
         RestWorker = require('../../nodejs/restWorker');
@@ -203,6 +206,225 @@ describe('restWorker', () => {
                 }
             });
         });
+
+        describe('revoking', () => {
+            const bigIpPassword = 'myBigIpPassword';
+            const bigIqPassword = 'myBigIqPassword';
+
+            let decryptedIds;
+            let restWorker;
+            let state;
+
+            beforeEach(() => {
+                ConfigManagerMock.prototype.get = () => {
+                    return Promise.resolve();
+                };
+
+                DeclarationHandlerMock.prototype.process = () => {
+                    return Promise.resolve();
+                };
+
+                decryptedIds = [];
+
+                bigIpMock = {
+                    save() {
+                        return Promise.resolve();
+                    },
+                    rebootRequired() {
+                        return Promise.resolve(true);
+                    }
+                };
+                doUtilMock.getBigIp = () => {
+                    return Promise.resolve(bigIpMock);
+                };
+                doUtilMock.getCurrentPlatform = () => {
+                    return Promise.resolve('BIG-IP');
+                };
+                cryptoUtilMock.decryptId = (id) => {
+                    let password;
+                    if (id === 'doBigIp') {
+                        password = bigIpPassword;
+                    } else if (id === 'doBigIq') {
+                        password = bigIqPassword;
+                    }
+                    decryptedIds.push(id);
+                    return Promise.resolve(password);
+                };
+                cryptoUtilMock.deleteEncryptedId = () => {
+                    return Promise.resolve();
+                };
+
+                RestWorker.prototype.saveState = (foo, theState, callback) => {
+                    callback();
+                };
+                RestWorker.prototype.loadState = (foo, callback) => {
+                    callback(null, state);
+                };
+
+                restWorker = new RestWorker();
+                restWorker.state = {
+                    doState: new State()
+                };
+            });
+
+            it('should remove the revokeFrom property from the license after revoking', () => {
+                return new Promise((resolve, reject) => {
+                    const success = () => {};
+                    const error = () => {
+                        reject(new Error('should have called success'));
+                    };
+
+                    state = {
+                        doState: {
+                            result: {
+                                status: STATUS.STATUS_REVOKING
+                            },
+                            internalDeclaration: {
+                                Common: {
+                                    myLicense: {
+                                        class: 'License',
+                                        revokeFrom: 'foo'
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    bigIpMock.reboot = () => {
+                        assert.strictEqual(
+                            restWorker.state.doState.internalDeclaration.Common.myLicense.revokeFrom,
+                            undefined
+                        );
+                        resolve();
+                    };
+
+                    try {
+                        restWorker.onStartCompleted(success, error);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
+
+            it('should decrypt ids if neccessary after revoking', () => {
+                return new Promise((resolve, reject) => {
+                    const success = () => {};
+                    const error = () => {
+                        reject(new Error('should have called success'));
+                    };
+
+                    state = {
+                        doState: {
+                            result: {
+                                status: STATUS.STATUS_REVOKING
+                            },
+                            internalDeclaration: {
+                                Common: {
+                                    myLicense: {
+                                        class: 'License',
+                                        revokeFrom: 'foo',
+                                        bigIpUsername: 'myBigIpUser',
+                                        bigIqUsername: 'myBigIqUser'
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    bigIpMock.reboot = () => {
+                        assert.strictEqual(decryptedIds.length, 2);
+                        assert.strictEqual(restWorker.state.doState.result.status, STATUS.STATUS_REBOOTING);
+                        assert.strictEqual(
+                            restWorker.state.doState.internalDeclaration.Common.myLicense.bigIpPassword,
+                            bigIpPassword
+                        );
+                        assert.strictEqual(
+                            restWorker.state.doState.internalDeclaration.Common.myLicense.bigIqPassword,
+                            bigIqPassword
+                        );
+                        resolve();
+                    };
+
+                    try {
+                        restWorker.onStartCompleted(success, error);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
+
+            it('should not decrypt ids if not neccessary after revoking', () => {
+                return new Promise((resolve, reject) => {
+                    const success = () => {};
+                    const error = () => {
+                        reject(new Error('should have called success'));
+                    };
+
+                    state = {
+                        doState: {
+                            result: {
+                                status: STATUS.STATUS_REVOKING
+                            },
+                            internalDeclaration: {
+                                Common: {
+                                    myLicense: {
+                                        class: 'License',
+                                        revokeFrom: 'foo'
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    bigIpMock.reboot = () => {
+                        assert.strictEqual(decryptedIds.length, 0);
+                        assert.strictEqual(restWorker.state.doState.result.status, STATUS.STATUS_REBOOTING);
+                        resolve();
+                    };
+
+                    try {
+                        restWorker.onStartCompleted(success, error);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
+        });
+
+        it('should handle DO_LICENSE_REVOKED event', () => {
+            return new Promise((resolve, reject) => {
+                const bigIpPassword = 'myBigIpPassword';
+                const bigIqPassword = 'myBigIqPassword';
+                const restWorker = new RestWorker();
+                const encryptedValues = [];
+                cryptoUtilMock.encryptValue = (value) => {
+                    encryptedValues.push(value);
+                    if (encryptedValues.length === 2) {
+                        assert.strictEqual(encryptedValues[0], bigIpPassword);
+                        assert.strictEqual(encryptedValues[1], bigIqPassword);
+                        resolve();
+                    }
+                };
+
+                const success = () => {
+                    restWorker.eventEmitter.emit(
+                        EVENTS.DO_LICENSE_REVOKED,
+                        bigIpPassword,
+                        bigIqPassword
+                    );
+                };
+                const error = () => {
+                    reject(new Error('should have called success'));
+                };
+
+                try {
+                    restWorker.platform = 'BIG-IP';
+                    restWorker.onStartCompleted(success, error);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
     });
 
     describe('onGet', () => {
@@ -263,6 +485,9 @@ describe('restWorker', () => {
             doUtilMock.getBigIp = (logger, bigIpOptions) => {
                 bigIpOptionsCalled = bigIpOptions;
                 return Promise.resolve(bigIpMock);
+            };
+            doUtilMock.getCurrentPlatform = () => {
+                return Promise.resolve('BIG-IP');
             };
 
             validatorMock.validate = () => {

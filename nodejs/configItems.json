@@ -11,7 +11,8 @@
         "properties": [
             { "id": "value" }
         ],
-        "singleValue": true
+        "singleValue": true,
+        "silent": true
     },
     {
         "path": "/tm/sys/provision",
