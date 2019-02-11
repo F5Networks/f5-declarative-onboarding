@@ -17,6 +17,7 @@
 'use strict';
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const isInSubnet = require('is-in-subnet').isInSubnet;
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 
@@ -152,24 +153,46 @@ function handleSelfIp() {
             }
         });
 
+        let routesToRecreate = [];
+
         // We can't modify a self IP - we need to delete it and re-add it.
-        deleteExistingSelfIps.call(this, floatingBodies.concat(nonFloatingBodies));
-
-        // We have to create non floating self IPs before floating self IPs
-        const promises = [];
-        nonFloatingBodies.forEach((selfIpBody) => {
-            promises.push(this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY));
-        });
-
-        Promise.all(promises)
-            .then(() => {
-                promises.length = 0;
-                floatingBodies.forEach((selfIpBody) => {
-                    promises.push(
+        deleteExistingSelfIps.call(this, floatingBodies.concat(nonFloatingBodies))
+            .then((deletedRoutes) => {
+                routesToRecreate = deletedRoutes.slice();
+                // We have to create non floating self IPs before floating self IPs
+                const createPromises = [];
+                nonFloatingBodies.forEach((selfIpBody) => {
+                    createPromises.push(
                         this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
                     );
                 });
-                return Promise.all(promises);
+
+                return Promise.all(createPromises);
+            })
+            .then(() => {
+                const createPromises = [];
+                floatingBodies.forEach((selfIpBody) => {
+                    createPromises.push(
+                        this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
+                    );
+                });
+                return Promise.all(createPromises);
+            })
+            .then(() => {
+                const createPromises = [];
+                routesToRecreate.forEach((route) => {
+                    const routeBody = {
+                        name: route.name,
+                        partition: route.partition,
+                        gw: route.gw,
+                        network: route.network,
+                        mtu: route.mtu
+                    };
+                    createPromises.push(
+                        this.bigIp.create(PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY)
+                    );
+                });
+                return Promise.all(createPromises);
             })
             .then(() => {
                 resolve();
@@ -242,40 +265,48 @@ function forEach(declaration, classToFetch, cb) {
     });
 }
 
+/**
+ * Deletes selfIps if they exist.
+ *
+ * Also deletes any Routes that are in the same subnet as the SelfIp as TMOS
+ * will not allow a SelfIp to be deleted if it would leave a route unreachable.
+ * A list of deleted Routes will be returned to the caller.
+ *
+ * @param {Object[]} selfIpBodies - SelfIps to delete if they exist
+ *
+ * @returns {Promise} A promise which is resolved with the list of Routes that
+ *                    were deleted to enable deleting the SeflIps
+ */
 function deleteExistingSelfIps(selfIpBodies) {
     const existsPromises = [];
+    const existingSelfIps = [];
+    const deletedRoutes = [];
+
     selfIpBodies.forEach((selfIpBody) => {
-        existsPromises.push(exists.call(PATHS.selfIp, selfIpBody.partition, selfIpBody.name));
+        existsPromises.push(exists.call(this, PATHS.SelfIp, selfIpBody.partition, selfIpBody.name));
     });
     return Promise.all(existsPromises)
         .then((results) => {
-            const findRoutePromises = [];
             results.forEach((result, index) => {
                 if (result) {
-                    findRoutePromises.push(findMatchingRoutes.call(this, selfIpBodies[index]));
+                    existingSelfIps.push(selfIpBodies[index]);
                 }
             });
-
-            return Promise.all(findRoutePromises);
+            return findMatchingRoutes.call(this, existingSelfIps);
         })
-        .then((results) => {
+        .then((matchingRoutes) => {
             const routeDeletePromises = [];
-            results.forEach((matchingRoutes) => {
-                matchingRoutes.forEach((matchingRoute) => {
-                    routeDeletePromises.push(
-                        this.bigIp.delete(
-                            PATHS.Route,
-                            {
-                                name: matchingRoute.name,
-                                partition: matchingRoute.partition
-                            },
-                            null,
-                            cloudUtil.MEDIUM_RETRY
-                        )
-                    );
-                });
+            matchingRoutes.forEach((matchingRoute) => {
+                routeDeletePromises.push(
+                    this.bigIp.delete(
+                        `${PATHS.Route}/~${matchingRoute.partition}~${matchingRoute.name}`,
+                        null,
+                        null,
+                        cloudUtil.MEDIUM_RETRY
+                    )
+                );
+                deletedRoutes.push(matchingRoute);
             });
-
             return Promise.all(routeDeletePromises);
         })
         .then(() => {
@@ -283,11 +314,8 @@ function deleteExistingSelfIps(selfIpBodies) {
             selfIpBodies.forEach((selfIpBody) => {
                 selfIpDeletePromises.push(
                     this.bigIp.delete(
-                        PATHS.selfIp,
-                        {
-                            name: selfIpBody.name,
-                            partition: selfIpBody.partition
-                        },
+                        `${PATHS.SelfIp}/~${selfIpBody.partition}~${selfIpBody.name}`,
+                        null,
                         null,
                         cloudUtil.MEDIUM_RETRY
                     )
@@ -297,7 +325,7 @@ function deleteExistingSelfIps(selfIpBodies) {
             return Promise.all(selfIpDeletePromises);
         })
         .then(() => {
-            // TODO: return list of routes to add back in
+            return Promise.resolve(deletedRoutes);
         })
         .catch((err) => {
             logger.severe(`Error deleting SelfIp: ${err.message}`);
@@ -305,8 +333,31 @@ function deleteExistingSelfIps(selfIpBodies) {
         });
 }
 
-function isInSubnet() {
-    return true;
+function findMatchingRoutes(selfIps) {
+    function routeMatches(route) {
+        return this.name === route.name;
+    }
+    const matchingRoutes = [];
+    return this.bigIp.list(PATHS.Route)
+        .then((routes) => {
+            const existingRoutes = routes && Array.isArray(routes) ? routes.slice() : [];
+
+            existingRoutes.forEach((route) => {
+                selfIps.forEach((selfIp) => {
+                    if (isInSubnet(route.gw, selfIp.address)) {
+                        if (matchingRoutes.findIndex(routeMatches, route) === -1) {
+                            matchingRoutes.push(route);
+                        }
+                    }
+                });
+            });
+
+            return Promise.resolve(matchingRoutes);
+        })
+        .catch((err) => {
+            logger.severe(`Error finding matching routes: ${err.message}`);
+            return Promise.reject(err);
+        });
 }
 
 function exists(path, partition, name) {
