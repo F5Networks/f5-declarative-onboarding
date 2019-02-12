@@ -338,7 +338,7 @@ function findMatchingRoutes(selfIps) {
         return this.name === route.name;
     }
     const matchingRoutes = [];
-    return this.bigIp.list(PATHS.Route)
+    return this.bigIp.list(PATHS.Route, null, cloudUtil.SHORT_RETRY)
         .then((routes) => {
             const existingRoutes = routes && Array.isArray(routes) ? routes.slice() : [];
 
@@ -364,7 +364,7 @@ function exists(path, partition, name) {
     return new Promise((resolve, reject) => {
         const partitionPath = `~${partition}~`;
 
-        this.bigIp.list(`${path}/${partitionPath}${name}`)
+        this.bigIp.list(`${path}/${partitionPath}${name}`, null, cloudUtil.SHORT_RETRY)
             .then(() => {
                 resolve(true);
             })
