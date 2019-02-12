@@ -3,6 +3,7 @@
 ## Version 1.3.0
 + Allow $schema property for use in local validation of declaration
 + Allow for licenses to be revoked when licensed via BIG-IQ
++ Allow modification of a SelfIp address
 + Add 'overwrite' option when licensing via BIG-IQ
 + Fix bug in which all self ips would be updated if there was a change to any of them
 
