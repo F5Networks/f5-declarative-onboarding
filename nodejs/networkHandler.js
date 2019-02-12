@@ -156,9 +156,15 @@ function handleSelfIp() {
         let routesToRecreate = [];
 
         // We can't modify a self IP - we need to delete it and re-add it.
-        deleteExistingSelfIps.call(this, floatingBodies.concat(nonFloatingBodies))
+        // We have to delete floating self IPs before non-floating self IPs
+        deleteExistingSelfIps.call(this, floatingBodies)
             .then((deletedRoutes) => {
                 routesToRecreate = deletedRoutes.slice();
+                return deleteExistingSelfIps.call(this, nonFloatingBodies);
+            })
+            .then((deletedRoutes) => {
+                routesToRecreate = routesToRecreate.concat(deletedRoutes);
+
                 // We have to create non floating self IPs before floating self IPs
                 const createPromises = [];
                 nonFloatingBodies.forEach((selfIpBody) => {
