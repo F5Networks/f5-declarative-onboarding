@@ -311,7 +311,7 @@ function deleteExistingSelfIps(selfIpBodies) {
         })
         .then(() => {
             const selfIpDeletePromises = [];
-            selfIpBodies.forEach((selfIpBody) => {
+            existingSelfIps.forEach((selfIpBody) => {
                 selfIpDeletePromises.push(
                     this.bigIp.delete(
                         `${PATHS.SelfIp}/~${selfIpBody.partition}~${selfIpBody.name}`,

@@ -40,6 +40,19 @@ describe('networkHandler', () => {
                 }
                 dataSent[path].push(data);
                 return Promise.resolve();
+            },
+            create(path, data) {
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
+                return Promise.resolve();
+            },
+            list() {
+                return Promise.resolve();
+            },
+            delete() {
+                return Promise.resolve();
             }
         };
     });
@@ -287,6 +300,149 @@ describe('networkHandler', () => {
                     .catch((err) => {
                         reject(err);
                     });
+            });
+        });
+
+        describe('modify self ip', () => {
+            const deletedPaths = [];
+            beforeEach(() => {
+                deletedPaths.length = 0;
+                bigIpMock.delete = (path) => {
+                    deletedPaths.push(path);
+                    return Promise.resolve();
+                };
+            });
+
+            it('should delete existing matching self ips', () => {
+                const declaration = {
+                    Common: {
+                        SelfIp: {
+                            selfIp1: {
+                                name: 'selfIp1',
+                                vlan: '/Common/vlan1'
+                            },
+                            selfIp2: {
+                                name: 'selfIp2',
+                                vlan: '/Common/vlan2'
+                            }
+                        }
+                    }
+                };
+
+                bigIpMock.list = (path) => {
+                    if (path.startsWith(PATHS.SelfIp)) {
+                        if (path === `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp1.name}`) {
+                            return Promise.resolve();
+                        }
+                        const error404 = new Error();
+                        error404.code = 404;
+                        return Promise.reject(error404);
+                    }
+                    return Promise.resolve();
+                };
+
+                return new Promise((resolve, reject) => {
+                    const networkHandler = new NetworkHandler(declaration, bigIpMock);
+                    networkHandler.process()
+                        .then(() => {
+                            assert.strictEqual(deletedPaths.length, 1);
+                            assert.strictEqual(
+                                deletedPaths[0],
+                                `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp1.name}`
+                            );
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+
+            it('should delete and re-add routes in the same subnet', () => {
+                const declaration = {
+                    Common: {
+                        SelfIp: {
+                            selfIp1: {
+                                name: 'selfIp1',
+                                vlan: '/Common/vlan1',
+                                address: '10.10.0.0/24'
+                            },
+                            selfIp2: {
+                                name: 'selfIp2',
+                                vlan: '/Common/vlan2',
+                                address: '10.20.0.0/24'
+                            },
+                            selfIp3: {
+                                name: 'selfIp3',
+                                vlan: '/Common/vlan3',
+                                address: '10.10.0.0/24'
+                            }
+                        }
+                    }
+                };
+
+                const routeToDelete = {
+                    name: 'default',
+                    partition: 'Common',
+                    gw: '10.10.0.1',
+                    network: 'default',
+                    mtu: 1500
+                };
+                const routeToKeep = {
+                    name: 'doNotDelete',
+                    partition: 'Common',
+                    gw: '10.20.0.1',
+                    network: 'other',
+                    mtu: 1400
+                };
+
+                // we need 2 existing self Ips to test that routes are not added to the delete list twice
+                bigIpMock.list = (path) => {
+                    if (path.startsWith(PATHS.SelfIp)) {
+                        if (path === `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp1.name}`
+                            || path === `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp3.name}`
+                        ) {
+                            return Promise.resolve();
+                        }
+                        const error404 = new Error();
+                        error404.code = 404;
+                        return Promise.reject(error404);
+                    }
+
+                    if (path.startsWith(PATHS.Route)) {
+                        return Promise.resolve([routeToDelete, routeToKeep]);
+                    }
+
+                    return Promise.resolve();
+                };
+
+                return new Promise((resolve, reject) => {
+                    const networkHandler = new NetworkHandler(declaration, bigIpMock);
+                    networkHandler.process()
+                        .then(() => {
+                            assert.strictEqual(deletedPaths.length, 3);
+                            assert.strictEqual(
+                                deletedPaths[0],
+                                `${PATHS.Route}/~Common~default`
+                            );
+                            assert.strictEqual(
+                                deletedPaths[1],
+                                `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp1.name}`
+                            );
+                            assert.strictEqual(
+                                deletedPaths[2],
+                                `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp3.name}`
+                            );
+                            assert.deepEqual(
+                                dataSent[PATHS.Route][0],
+                                routeToDelete
+                            );
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
             });
         });
     });
