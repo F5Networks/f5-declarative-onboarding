@@ -105,6 +105,22 @@ module.exports = {
         });
 
         return dereferenced;
+    },
+
+    /**
+     * Removes the CIDR from an IP address
+     *
+     * @param {String} address - IP address with CIDR.
+     *
+     * @returns {String} - The IP address without the CIDR.
+     */
+    stripCidr(address) {
+        let stripped = address;
+        const slashIndex = address.indexOf('/');
+        if (slashIndex !== -1) {
+            stripped = address.substring(0, slashIndex);
+        }
+        return stripped;
     }
 };
 

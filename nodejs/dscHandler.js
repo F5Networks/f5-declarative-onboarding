@@ -19,6 +19,7 @@
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
+const PATHS = require('./sharedConstants').PATHS;
 
 const logger = new Logger(module);
 
@@ -56,8 +57,8 @@ class DscHandler {
                 return handleFailoverUnicast.call(this);
             })
             .then(() => {
-                logger.fine('Checking DeviceTrust.');
-                return handleDeviceTrust.call(this);
+                logger.fine('Checking DeviceTrust and group.');
+                return handleDeviceTrustAndGroup.call(this);
             })
             .then(() => {
                 logger.fine('Checking DeviceGroup.');
@@ -130,16 +131,81 @@ function handleFailoverUnicast() {
 }
 
 /**
+ * Checks to see if we are joining a cluster. If so, process that as one big operation.
+ * Otherwise, handle device trust and group separately.
+ */
+function handleDeviceTrustAndGroup() {
+    if (this.declaration.Common.DeviceTrust && this.declaration.Common.DeviceGroup) {
+        const deviceTrust = this.declaration.Common.DeviceTrust;
+        const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
+        const deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
+
+        let joingingCluster = true;
+        return this.bigIp.deviceInfo()
+            .then((deviceInfo) => {
+                if (deviceInfo.hostname !== deviceGroup.owner) {
+                    return isRemostHost.call(this, deviceInfo, deviceTrust.remoteHost);
+                }
+                return Promise.resolve(false);
+            })
+            .then((isRemote) => {
+                if (!isRemote) {
+                    logger.fine('Passing off to join cluster function.');
+                    return handleJoinCluster.call(this);
+                }
+                joingingCluster = false;
+                return handleDeviceTrust.call(this);
+            })
+            .then(() => {
+                if (!joingingCluster) {
+                    return handleDeviceGroup.call(this);
+                }
+                return Promise.resolve();
+            });
+    }
+
+    return handleDeviceTrust.call(this)
+        .then(() => {
+            return handleDeviceGroup.call(this);
+        });
+}
+
+/**
+ * Handles joinging a cluster. There is a lot to this, especially when ASM is
+ * provisioned. f5-cloud-libs has all the logic for this.
+ */
+function handleJoinCluster() {
+    if (this.declaration.Common.DeviceTrust && this.declaration.Common.DeviceGroup) {
+        const deviceTrust = this.declaration.Common.DeviceTrust;
+        const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
+
+        return this.bigIp.cluster.joinCluster(
+            deviceGroupName,
+            deviceTrust.remoteHost,
+            deviceTrust.remoteUsername,
+            deviceTrust.remotePassword,
+            false
+        );
+    }
+    return Promise.resolve();
+}
+
+/**
  * Handles setting up the device trust.
  */
 function handleDeviceTrust() {
     if (this.declaration.Common.DeviceTrust) {
         const deviceTrust = this.declaration.Common.DeviceTrust;
+        let deviceInfo;
 
         return this.bigIp.deviceInfo()
-            .then((deviceInfo) => {
+            .then((response) => {
+                deviceInfo = response;
+                return isRemostHost.call(this, deviceInfo, deviceTrust.remoteHost);
+            })
+            .then((isRemote) => {
                 // If we are not the remote, check to see if we need to request to be added
-                if (deviceInfo.hostname !== deviceTrust.remoteHost) {
+                if (!isRemote) {
                     return doUtil.getBigIp(
                         logger,
                         {
@@ -314,6 +380,30 @@ function waitForDeviceGroup(deviceGroupName) {
     }
 
     return cloudUtil.tryUntil(this, cloudUtil.DEFAULT_RETRY, checkDeviceGroup);
+}
+
+function isRemostHost(deviceInfo, remoteHost) {
+    return new Promise((resolve, reject) => {
+        if (deviceInfo.hostname === remoteHost
+            || deviceInfo.managementAddress === remoteHost) {
+            resolve(true);
+        } else {
+            // Need to check self ips to see if any match
+            this.bigIp.list(PATHS.SelfIp)
+                .then((selfIps) => {
+                    if (selfIps && Array.isArray(selfIps)) {
+                        const match = selfIps.find((selfIp) => {
+                            return doUtil.stripCidr(selfIp.address) === remoteHost;
+                        });
+                        resolve(!!match);
+                    }
+                })
+                .catch((err) => {
+                    logger.severe(`Error determining if we are remote host: ${err.message}`);
+                    reject(err);
+                });
+        }
+    });
 }
 
 module.exports = DscHandler;

@@ -18,6 +18,7 @@
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const isInSubnet = require('is-in-subnet').isInSubnet;
+const doUtil = require('./doUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 
@@ -425,7 +426,7 @@ function findMatchingFloatingSelfIps(selfIpsToDelete) {
                 if (!existingSelfIp.trafficGroup.endsWith('traffic-group-local-only')) {
                     selfIpsToDelete.forEach((selfIp) => {
                         if (selfIp.trafficGroup.endsWith('traffic-group-local-only')) {
-                            if (isInSubnet(stripCidr(existingSelfIp.address), selfIp.address)) {
+                            if (isInSubnet(doUtil.stripCidr(existingSelfIp.address), selfIp.address)) {
                                 if (matchingSelfIps.findIndex(elementMatches, existingSelfIp) === -1) {
                                     matchingSelfIps.push(existingSelfIp);
                                 }
@@ -499,12 +500,4 @@ function elementMatches(element) {
     return this.name === element.name;
 }
 
-function stripCidr(address) {
-    let stripped = address;
-    const slashIndex = address.indexOf('/');
-    if (slashIndex !== -1) {
-        stripped = address.substring(0, slashIndex);
-    }
-    return stripped;
-}
 module.exports = NetworkHandler;
