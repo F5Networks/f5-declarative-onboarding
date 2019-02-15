@@ -478,4 +478,51 @@ describe('configManager', () => {
             });
         });
     });
+
+    it('should ignore ignored properties', () => {
+        return new Promise((resolve, reject) => {
+            configItems = [
+                {
+                    "path": "/tm/cm/device-group",
+                    "schemaClass": "DeviceGroup",
+                    "properties": [
+                        { "id": "type" }
+                    ],
+                    "ignore": [
+                        { "name": "^datasync-.+-dg$" },
+                        { "name": "^gtm$" }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/cm/device-group'] = [
+                {
+                    name: 'myDeviceGroup',
+                    members: []
+                },
+                {
+                    name: 'datasync-foo-dg',
+                    members: []
+                },
+                {
+                    name: 'gtm',
+                    members: []
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state)
+                .then(() => {
+                    assert.strictEqual(Object.keys(state.currentConfig.Common.DeviceGroup).length, 1);
+                    assert.deepEqual(
+                        state.currentConfig.Common.DeviceGroup.myDeviceGroup,
+                        listResponses['/tm/cm/device-group'][0]
+                    );
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
 });

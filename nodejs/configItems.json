@@ -92,6 +92,11 @@
             { "id": "networkFailover" },
             { "id": "fullLoadOnSync" },
             { "id": "asmSync" }
+        ],
+        "ignore": [
+            { "name": "^datasync-.+-dg$" },
+            { "name": "^device_trust_group$" },
+            { "name": "^gtm$" }
         ]
     }
 ]

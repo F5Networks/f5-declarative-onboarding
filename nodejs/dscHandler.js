@@ -59,7 +59,7 @@ class DscHandler {
                 return handleFailoverUnicast.call(this);
             })
             .then(() => {
-                logger.fine('Checking DeviceTrust and group.');
+                logger.fine('Checking DeviceTrust and DeviceGroup.');
                 return handleDeviceTrustAndGroup.call(this);
             })
             .then(() => {
@@ -67,7 +67,7 @@ class DscHandler {
                 return handleDeviceGroup.call(this);
             })
             .catch((err) => {
-                logger.severe(`Error processing network declaration: ${err.message}`);
+                logger.severe(`Error processing DSC declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -142,38 +142,38 @@ function handleDeviceTrustAndGroup() {
         const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
         const deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
 
-        let joingingCluster = true;
         return this.bigIp.deviceInfo()
             .then((deviceInfo) => {
                 if (deviceInfo.hostname !== deviceGroup.owner) {
                     return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
                 }
-                return Promise.resolve(false);
+                return Promise.resolve(true);
             })
             .then((isRemote) => {
                 if (!isRemote) {
                     logger.fine('Passing off to join cluster function.');
                     return handleJoinCluster.call(this);
                 }
-                joingingCluster = false;
-                return handleDeviceTrust.call(this);
+                return handleDeviceGroup.call(this);
             })
-            .then(() => {
-                if (!joingingCluster) {
-                    return handleDeviceGroup.call(this);
-                }
-                return Promise.resolve();
+            .catch((err) => {
+                logger.severe(`Error creating/joining device trust/group: ${err.message}`);
+                return Promise.reject(err);
             });
     }
 
     return handleDeviceTrust.call(this)
         .then(() => {
             return handleDeviceGroup.call(this);
+        })
+        .catch((err) => {
+            logger.severe(`Error handling device trust and group: ${err.message}`);
+            return Promise.reject(err);
         });
 }
 
 /**
- * Handles joinging a cluster. There is a lot to this, especially when ASM is
+ * Handles joining a cluster. There is a lot to this, especially when ASM is
  * provisioned. f5-cloud-libs has all the logic for this.
  */
 function handleJoinCluster() {
@@ -181,6 +181,8 @@ function handleJoinCluster() {
         const deviceTrust = this.declaration.Common.DeviceTrust;
         const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
 
+        this.bigIp.user = deviceTrust.localUsername;
+        this.bigIp.password = deviceTrust.localPassword;
         return this.bigIp.cluster.joinCluster(
             deviceGroupName,
             deviceTrust.remoteHost,
@@ -246,7 +248,7 @@ function handleDeviceTrust() {
 }
 
 /**
- * Handles creating or joinging the device group.
+ * Handles creating or joining the device group.
  */
 function handleDeviceGroup() {
     if (this.declaration.Common.DeviceGroup) {
@@ -264,7 +266,7 @@ function handleDeviceGroup() {
                 return joinDeviceGroup.call(this, deviceGroupName, deviceGroup, hostname);
             })
             .catch((err) => {
-                logger.severe(`Error creating/joining device group: ${err.message}`);
+                logger.severe(`Error handling device group: ${err.message}`);
                 return Promise.reject(err);
             });
     }
