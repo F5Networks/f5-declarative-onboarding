@@ -17,6 +17,8 @@
 'use strict';
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
+
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
@@ -144,7 +146,7 @@ function handleDeviceTrustAndGroup() {
         return this.bigIp.deviceInfo()
             .then((deviceInfo) => {
                 if (deviceInfo.hostname !== deviceGroup.owner) {
-                    return isRemostHost.call(this, deviceInfo, deviceTrust.remoteHost);
+                    return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
                 }
                 return Promise.resolve(false);
             })
@@ -184,7 +186,10 @@ function handleJoinCluster() {
             deviceTrust.remoteHost,
             deviceTrust.remoteUsername,
             deviceTrust.remotePassword,
-            false
+            false,
+            {
+                product: PRODUCTS.BIGIP
+            }
         );
     }
     return Promise.resolve();
@@ -201,7 +206,7 @@ function handleDeviceTrust() {
         return this.bigIp.deviceInfo()
             .then((response) => {
                 deviceInfo = response;
-                return isRemostHost.call(this, deviceInfo, deviceTrust.remoteHost);
+                return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
             })
             .then((isRemote) => {
                 // If we are not the remote, check to see if we need to request to be added
@@ -382,7 +387,7 @@ function waitForDeviceGroup(deviceGroupName) {
     return cloudUtil.tryUntil(this, cloudUtil.DEFAULT_RETRY, checkDeviceGroup);
 }
 
-function isRemostHost(deviceInfo, remoteHost) {
+function isRemoteHost(deviceInfo, remoteHost) {
     return new Promise((resolve, reject) => {
         if (deviceInfo.hostname === remoteHost
             || deviceInfo.managementAddress === remoteHost) {

@@ -17,6 +17,7 @@
 'use strict';
 
 const assert = require('assert');
+const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
 /* eslint-disable global-require */
 
@@ -207,6 +208,13 @@ describe('dscHandler', () => {
                 }
             };
 
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
             return new Promise((resolve, reject) => {
                 const dscHandler = new DscHandler(declaration, bigIpMock);
                 dscHandler.process()
@@ -230,7 +238,7 @@ describe('dscHandler', () => {
             });
         });
 
-        it('should not request remote big ip to add to trust if we are the remote', () => {
+        it('should not request remote big ip to add to trust if we are the remote based on hostname', () => {
             const declaration = {
                 Common: {
                     DeviceTrust: {
@@ -257,6 +265,47 @@ describe('dscHandler', () => {
                     });
             });
         });
+
+        it('should not request remote big ip to add to trust if we are the remote based on self ip', () => {
+            const declaration = {
+                Common: {
+                    DeviceTrust: {
+                        localUsername: 'admin',
+                        localPassword: 'pass1word',
+                        remoteHost: '10.10.0.1',
+                        remoteUsername: 'admin',
+                        remotePassword: 'pass2word'
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve(
+                        [
+                            {
+                                address: `${declaration.Common.DeviceTrust.remoteHost}/24`
+                            }
+                        ]
+                    );
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        assert.strictEqual(getBigIpOptions, undefined);
+                        assert.strictEqual(addToTrustHost, undefined);
+                        assert.strictEqual(syncCompleteCalled, false);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
     });
 
     describe('deviceGroup', () => {
@@ -265,14 +314,14 @@ describe('dscHandler', () => {
         let deviceGroupNameSent;
         let addToDeviceGroupNameSent;
         let devicesSent;
-        let addToTrustCalled;
+        let joinClusterCalled;
         let syncCalled;
         let syncCompleteCalled;
 
         beforeEach(() => {
             deviceGroupNameSent = undefined;
             addToDeviceGroupNameSent = undefined;
-            addToTrustCalled = false;
+            joinClusterCalled = false;
             syncCalled = false;
             syncCompleteCalled = false;
             bigIpMock.cluster = {
@@ -299,8 +348,8 @@ describe('dscHandler', () => {
                     addToDeviceGroupNameSent = deviceGroupName;
                     return Promise.resolve();
                 },
-                addToTrust() {
-                    addToTrustCalled = true;
+                joinCluster() {
+                    joinClusterCalled = true;
                     return Promise.resolve();
                 }
             };
@@ -378,9 +427,16 @@ describe('dscHandler', () => {
                         }
                     },
                     DeviceTrust: {
-
+                        remoteHost: 'someOtherHost'
                     }
                 }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
             };
 
             return new Promise((resolve, reject) => {
@@ -388,7 +444,7 @@ describe('dscHandler', () => {
                 dscHandler.process()
                     .then(() => {
                         assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
-                        assert.strictEqual(addToTrustCalled, true);
+                        assert.strictEqual(joinClusterCalled, true);
                         resolve();
                     })
                     .catch((err) => {
