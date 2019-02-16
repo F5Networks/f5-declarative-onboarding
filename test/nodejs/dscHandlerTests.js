@@ -24,6 +24,7 @@ const PATHS = require('../../nodejs/sharedConstants').PATHS;
 describe('dscHandler', () => {
     const hostname = 'my.bigip.com';
 
+    let cloudUtilMock;
     let doUtilMock;
     let bigIpMock;
     let DscHandler;
@@ -34,6 +35,7 @@ describe('dscHandler', () => {
     });
 
     beforeEach(() => {
+        cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
         bigIpMock = {
             deviceInfo() {
                 return Promise.resolve({ hostname });
@@ -355,7 +357,7 @@ describe('dscHandler', () => {
             };
         });
 
-        it('should create the device group if we are the owner', () => {
+        it('should create the device group if we are the owner with no device trust section', () => {
             const declaration = {
                 Common: {
                     DeviceGroup: {
@@ -364,6 +366,38 @@ describe('dscHandler', () => {
                             members: ['bigip1.example.com', 'bigip2.example.com'],
                             owner: hostname
                         }
+                    }
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
+                        assert.deepEqual(devicesSent, devices);
+                        assert.strictEqual(syncCalled, true);
+                        assert.strictEqual(syncCompleteCalled, true);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should create the device group if we are the owner with device trust section', () => {
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['bigip1.example.com', 'bigip2.example.com'],
+                            owner: hostname
+                        }
+                    },
+                    DeviceTrust: {
+                        remoteHost: hostname
                     }
                 }
             };
@@ -449,6 +483,50 @@ describe('dscHandler', () => {
                     })
                     .catch((err) => {
                         reject(err);
+                    });
+            });
+        });
+
+        it('should handle device group not existing on remote', () => {
+            cloudUtilMock.DEFAULT_RETRY = cloudUtilMock.NO_RETRY;
+            doUtilMock.getBigIp = () => {
+                return Promise.resolve(bigIpMock);
+            };
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['bigip1.example.com', 'bigip2.example.com'],
+                            owner: 'someOtherHost'
+                        }
+                    },
+                    DeviceTrust: {
+                        remoteHost: 'someOtherHost'
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+            bigIpMock.cluster.hasDeviceGroup = () => {
+                return Promise.resolve(false);
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        reject(new Error('should have thrown because of no device group on remote'));
+                    })
+                    .catch((err) => {
+                        assert.notStrictEqual(err.message.indexOf('failoverGroup does not exist'), -1);
+                        resolve();
                     });
             });
         });
