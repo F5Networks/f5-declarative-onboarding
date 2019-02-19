@@ -62,10 +62,6 @@ class DscHandler {
                 logger.fine('Checking DeviceTrust and DeviceGroup.');
                 return handleDeviceTrustAndGroup.call(this);
             })
-            .then(() => {
-                logger.fine('Checking DeviceGroup.');
-                return handleDeviceGroup.call(this);
-            })
             .catch((err) => {
                 logger.severe(`Error processing DSC declaration: ${err.message}`);
                 return Promise.reject(err);
@@ -154,6 +150,8 @@ function handleDeviceTrustAndGroup() {
                     logger.fine('Passing off to join cluster function.');
                     return handleJoinCluster.call(this);
                 }
+                // If this host is the remote host, we only create the device group and
+                // ignore device trust.
                 return handleDeviceGroup.call(this);
             })
             .catch((err) => {
@@ -325,9 +323,11 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
 }
 
 /**
- * Joins and existing device group and syncs from it
+ * Joins and existing device group.
  *
- * Expects that the device group exists prior to calling
+ * Expects that the device group exists prior to calling.
+ * Expects that if the declaration also has DeviceTrust info, syncying
+ * is handled by the f5-cloud-libs joinCluster function.
  *
  * @param {String} deviceGroupName - Name of the device gruop to create
  * @param {Object} deviceGroup - Device group from the declaration
@@ -343,28 +343,6 @@ function joinDeviceGroup(deviceGroupName, deviceGroup, hostname) {
     return waitForDeviceGroup.call(this, deviceGroupName)
         .then(() => {
             return this.bigIp.cluster.addToDeviceGroup(hostname, deviceGroupName);
-        })
-        .then(() => {
-            // If we have the owning device info, tell it to sync to the group
-            if (this.declaration.Common.DeviceTrust) {
-                const deviceTrust = this.declaration.Common.DeviceTrust;
-                return doUtil.getBigIp(
-                    logger,
-                    {
-                        host: deviceTrust.remoteHost,
-                        user: deviceTrust.remoteUsername,
-                        password: deviceTrust.remotePassword
-                    }
-                )
-                    .then((remoteBigIp) => {
-                        return remoteBigIp.cluster.sync('to-group', deviceGroupName);
-                    })
-                    .catch((err) => {
-                        logger.severe(`Error doing remote sync: ${err.message}`);
-                        return Promise.reject(err);
-                    });
-            }
-            return Promise.resolve();
         })
         .catch((err) => {
             logger.severe(`Error joining device group: ${err.message}`);
