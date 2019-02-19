@@ -261,7 +261,7 @@ function handleDeviceGroup() {
                     return createDeviceGroup.call(this, deviceGroupName, deviceGroup);
                 }
 
-                return joinDeviceGroup.call(this, deviceGroupName, deviceGroup, hostname);
+                return joinDeviceGroup.call(this, deviceGroupName, hostname);
             })
             .catch((err) => {
                 logger.severe(`Error handling device group: ${err.message}`);
@@ -330,13 +330,12 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
  * is handled by the f5-cloud-libs joinCluster function.
  *
  * @param {String} deviceGroupName - Name of the device gruop to create
- * @param {Object} deviceGroup - Device group from the declaration
  * @param {Object} hostnamne - Hostname to add
  *
  * @returns {Promise} A promise which is resolved when the operation is complete
  *                    or rejected if an error occurs.
  */
-function joinDeviceGroup(deviceGroupName, deviceGroup, hostname) {
+function joinDeviceGroup(deviceGroupName, hostname) {
     // Wait till we have the device group. Once addToTrust is finished
     // and the owning device creates the group, we should have it but maybe
     // we are coming up before the owner, so wait.
@@ -364,7 +363,7 @@ function waitForDeviceGroup(deviceGroupName) {
         });
     }
 
-    return cloudUtil.tryUntil(this, cloudUtil.DEFAULT_RETRY, checkDeviceGroup);
+    return cloudUtil.tryUntil(this, cloudUtil.SHORT_RETRY, checkDeviceGroup);
 }
 
 function isRemoteHost(deviceInfo, remoteHost) {
