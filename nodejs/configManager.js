@@ -69,13 +69,18 @@ class ConfigManager {
      *         },
      *         singleValue: <true_if_we_want_single_key_value_vs_whole_object_(Provision, for example)>,
      *         nameless: <true_if_we_do_not_want_the_name_property_in_the_result>,
-     *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>
+     *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>,
+     *         ignore: [
+     *             { <key_to_possibly_ignore>: <regex_for_value_to_ignore> }
+     *         ]
      *     }
      * ]
      *
      * 'path' can contain tokens which will be replaced as follows:
      *     {{hostName}} - The current hostname
      *     {{deviceName}} - The current cm device name for the host
+     * 'ignore' is a list of key/value pairs to ignore. If the regex matches the value
+     * associated with the key, then that item will be ignored
      *
      * @param {Object} declaration - The delcaration we are processing
      * @param {Object} state - The [doState]{@link State} object
@@ -163,31 +168,33 @@ class ConfigManager {
                         });
                     } else if (Array.isArray(currentItem)) {
                         currentItem.forEach((item) => {
-                            patchedItem = removeUnusedKeys.call(this, item);
-                            patchedItem = mapProperties.call(this, patchedItem, index);
+                            if (!shouldIgnore(item, this.configItems[index].ignore)) {
+                                patchedItem = removeUnusedKeys.call(this, item);
+                                patchedItem = mapProperties.call(this, patchedItem, index);
 
-                            // Self IPs are so odd that I don't see a generic way to handle this
-                            if (schemaClass === 'SelfIp') {
-                                patchedItem = patchSelfIp.call(this, patchedItem);
-                            }
-
-                            // Ditto for DB variables
-                            if (schemaClass === 'DbVariables') {
-                                if (dbVarsOfInterest.indexOf(item.name) === -1) {
-                                    patchedItem = null;
+                                // Self IPs are so odd that I don't see a generic way to handle this
+                                if (schemaClass === 'SelfIp') {
+                                    patchedItem = patchSelfIp.call(this, patchedItem);
                                 }
-                            }
 
-                            if (patchedItem) {
-                                if (!currentConfig[schemaClass]) {
-                                    currentConfig[schemaClass] = {};
+                                // Ditto for DB variables
+                                if (schemaClass === 'DbVariables') {
+                                    if (dbVarsOfInterest.indexOf(item.name) === -1) {
+                                        patchedItem = null;
+                                    }
                                 }
-                                currentConfig[schemaClass][item.name] = patchedItem;
-                            }
 
-                            getReferencedPaths.call(this, item, index, referencePromises, referenceInfo);
+                                if (patchedItem) {
+                                    if (!currentConfig[schemaClass]) {
+                                        currentConfig[schemaClass] = {};
+                                    }
+                                    currentConfig[schemaClass][item.name] = patchedItem;
+                                }
+
+                                getReferencedPaths.call(this, item, index, referencePromises, referenceInfo);
+                            }
                         });
-                    } else {
+                    } else if (!shouldIgnore(currentItem, this.configItems[index].ignore)) {
                         currentConfig[schemaClass] = {};
                         patchedItem = removeUnusedKeys.call(
                             this,
@@ -466,6 +473,23 @@ function patchSelfIp(selfIp) {
     }
 
     return patched;
+}
+
+function shouldIgnore(item, ignoreList) {
+    if (!ignoreList) {
+        return false;
+    }
+
+    const match = ignoreList.find((ignoreInfo) => {
+        const property = Object.keys(ignoreInfo)[0];
+        const regex = new RegExp(ignoreInfo[property]);
+        if (item[property] && regex.test(item[property])) {
+            return true;
+        }
+        return false;
+    });
+
+    return !!match;
 }
 
 module.exports = ConfigManager;

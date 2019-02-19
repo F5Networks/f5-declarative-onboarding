@@ -18,6 +18,7 @@
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const isInSubnet = require('is-in-subnet').isInSubnet;
+const doUtil = require('./doUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 
@@ -75,41 +76,44 @@ function handleVlan() {
     return new Promise((resolve, reject) => {
         const promises = [];
         forEach(this.declaration, 'VLAN', (tenant, vlan) => {
-            const interfaces = [];
-            vlan.interfaces.forEach((anInterface) => {
-                // Use the tagged property if it is there, otherwise, set tagged if the vlan has a tag
-                let tagged;
-                if (typeof anInterface.tagged === 'undefined') {
-                    tagged = !!vlan.tag;
-                } else {
-                    tagged = anInterface.tagged;
+            if (vlan && vlan.name) {
+                const vlanInterfaces = vlan && Array.isArray(vlan.interfaces) ? vlan.interfaces.slice() : [];
+                const interfaces = [];
+                vlanInterfaces.forEach((anInterface) => {
+                    // Use the tagged property if it is there, otherwise, set tagged if the vlan has a tag
+                    let tagged;
+                    if (typeof anInterface.tagged === 'undefined') {
+                        tagged = !!vlan.tag;
+                    } else {
+                        tagged = anInterface.tagged;
+                    }
+
+                    interfaces.push(
+                        {
+                            tagged,
+                            name: anInterface.name
+                        }
+                    );
+                });
+
+                const vlanBody = {
+                    interfaces,
+                    name: vlan.name,
+                    partition: tenant
+                };
+
+                if (vlan.mtu) {
+                    vlanBody.mtu = vlan.mtu;
                 }
 
-                interfaces.push(
-                    {
-                        tagged,
-                        name: anInterface.name
-                    }
+                if (vlan.tag) {
+                    vlanBody.tag = vlan.tag;
+                }
+
+                promises.push(
+                    this.bigIp.createOrModify(PATHS.VLAN, vlanBody, null, cloudUtil.MEDIUM_RETRY)
                 );
-            });
-
-            const vlanBody = {
-                interfaces,
-                name: vlan.name,
-                partition: tenant
-            };
-
-            if (vlan.mtu) {
-                vlanBody.mtu = vlan.mtu;
             }
-
-            if (vlan.tag) {
-                vlanBody.tag = vlan.tag;
-            }
-
-            promises.push(
-                this.bigIp.createOrModify(PATHS.VLAN, vlanBody, null, cloudUtil.MEDIUM_RETRY)
-            );
         });
 
         Promise.all(promises)
@@ -128,28 +132,31 @@ function handleSelfIp() {
         const nonFloatingBodies = [];
         const floatingBodies = [];
         forEach(this.declaration, 'SelfIp', (tenant, selfIp) => {
-            let vlan;
+            if (selfIp && selfIp.name) {
+                let vlan;
 
-            // If the vlan does not start with '/', assume it is in this tenant
-            if (selfIp.vlan.startsWith('/')) {
-                vlan = selfIp.vlan;
-            } else {
-                vlan = `/${tenant}/${selfIp.vlan}`;
-            }
+                // If the vlan does not start with '/', assume it is in this tenant
+                if (selfIp.vlan.startsWith('/')) {
+                    vlan = selfIp.vlan;
+                } else {
+                    vlan = `/${tenant}/${selfIp.vlan}`;
+                }
 
-            const selfIpBody = {
-                vlan,
-                name: selfIp.name,
-                partition: tenant,
-                address: selfIp.address,
-                trafficGroup: selfIp.trafficGroup,
-                allowService: selfIp.allowService
-            };
+                const selfIpBody = {
+                    vlan,
+                    name: selfIp.name,
+                    partition: tenant,
+                    address: selfIp.address,
+                    trafficGroup: selfIp.trafficGroup,
+                    allowService: selfIp.allowService
+                };
 
-            if (selfIpBody.trafficGroup && !selfIpBody.trafficGroup.endsWith('traffic-group-local-only')) {
-                floatingBodies.push(selfIpBody);
-            } else {
-                nonFloatingBodies.push(selfIpBody);
+                if (selfIpBody.trafficGroup
+                    && !selfIpBody.trafficGroup.endsWith('traffic-group-local-only')) {
+                    floatingBodies.push(selfIpBody);
+                } else {
+                    nonFloatingBodies.push(selfIpBody);
+                }
             }
         });
 
@@ -160,8 +167,10 @@ function handleSelfIp() {
         // We have to delete floating self IPs before non-floating self IPs
         deleteExistingSelfIps.call(this, floatingBodies)
             .then((deletedObjects) => {
-                selfIpsToRecreate = deletedObjects.deletedFloatingSelfIps.slice();
-                routesToRecreate = deletedObjects.deletedRoutes.slice();
+                if (deletedObjects) {
+                    selfIpsToRecreate = deletedObjects.deletedFloatingSelfIps.slice();
+                    routesToRecreate = deletedObjects.deletedRoutes.slice();
+                }
                 return deleteExistingSelfIps.call(this, nonFloatingBodies);
             })
             .then((deletedObjects) => {
@@ -234,17 +243,19 @@ function handleRoute() {
     return new Promise((resolve, reject) => {
         const promises = [];
         forEach(this.declaration, 'Route', (tenant, route) => {
-            const routeBody = {
-                name: route.name,
-                partition: tenant,
-                gw: route.gw,
-                network: route.network,
-                mtu: route.mtu
-            };
+            if (route && route.name) {
+                const routeBody = {
+                    name: route.name,
+                    partition: tenant,
+                    gw: route.gw,
+                    network: route.network,
+                    mtu: route.mtu
+                };
 
-            promises.push(
-                this.bigIp.createOrModify(PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY)
-            );
+                promises.push(
+                    this.bigIp.createOrModify(PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY)
+                );
+            }
         });
 
         Promise.all(promises)
@@ -319,19 +330,25 @@ function deleteExistingSelfIps(selfIpBodies) {
     const deletedFloatingSelfIps = [];
     const deletedRoutes = [];
 
+    if (!selfIpBodies || !Array.isArray(selfIpBodies)) {
+        return Promise.resolve({ deletedRoutes, deletedFloatingSelfIps });
+    }
+
     selfIpBodies.forEach((selfIpBody) => {
         existsPromises.push(exists.call(this, PATHS.SelfIp, selfIpBody.partition, selfIpBody.name));
     });
     return Promise.all(existsPromises)
         .then((results) => {
-            results.forEach((result, index) => {
+            const existsResults = results && Array.isArray(results) ? results.slice() : [];
+            existsResults.forEach((result, index) => {
                 if (result) {
                     existingSelfIps.push(selfIpBodies[index]);
                 }
             });
             return findMatchingRoutes.call(this, existingSelfIps);
         })
-        .then((matchingRoutes) => {
+        .then((results) => {
+            const matchingRoutes = results && Array.isArray(results) ? results.slice() : [];
             const routeDeletePromises = [];
             matchingRoutes.forEach((matchingRoute) => {
                 routeDeletePromises.push(
@@ -349,7 +366,8 @@ function deleteExistingSelfIps(selfIpBodies) {
         .then(() => {
             return findMatchingFloatingSelfIps.call(this, existingSelfIps);
         })
-        .then((matchingSelfIps) => {
+        .then((results) => {
+            const matchingSelfIps = results && Array.isArray(results) ? results.slice() : [];
             const selfIpDeletePromises = [];
 
             matchingSelfIps.forEach((selfIp) => {
@@ -425,7 +443,7 @@ function findMatchingFloatingSelfIps(selfIpsToDelete) {
                 if (!existingSelfIp.trafficGroup.endsWith('traffic-group-local-only')) {
                     selfIpsToDelete.forEach((selfIp) => {
                         if (selfIp.trafficGroup.endsWith('traffic-group-local-only')) {
-                            if (isInSubnet(stripCidr(existingSelfIp.address), selfIp.address)) {
+                            if (isInSubnet(doUtil.stripCidr(existingSelfIp.address), selfIp.address)) {
                                 if (matchingSelfIps.findIndex(elementMatches, existingSelfIp) === -1) {
                                     matchingSelfIps.push(existingSelfIp);
                                 }
@@ -499,12 +517,4 @@ function elementMatches(element) {
     return this.name === element.name;
 }
 
-function stripCidr(address) {
-    let stripped = address;
-    const slashIndex = address.indexOf('/');
-    if (slashIndex !== -1) {
-        stripped = address.substring(0, slashIndex);
-    }
-    return stripped;
-}
 module.exports = NetworkHandler;

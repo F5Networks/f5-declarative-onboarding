@@ -87,6 +87,11 @@ class DiffHandler {
                 if (this.namelessClasses.indexOf(schemaClass) === -1) {
                     objectName = diff.path[2];
                 }
+                // For additions of named classes, the object name will be in the rhs object
+                if (!objectName && diff.rhs) {
+                    objectName = Object.keys(diff.rhs)[0];
+                }
+
                 if (updatedClasses.indexOf(schemaClass) === -1) {
                     updatedClasses.push(schemaClass);
                 }
@@ -95,6 +100,8 @@ class DiffHandler {
                         updatedNames[schemaClass] = [];
                     }
                     updatedNames[schemaClass].push(objectName);
+                } else {
+                    updatedNames[schemaClass] = [];
                 }
 
                 // keep track of objects to delete since they require special handling

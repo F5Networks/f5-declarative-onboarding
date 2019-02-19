@@ -17,8 +17,11 @@
 'use strict';
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
+
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
+const PATHS = require('./sharedConstants').PATHS;
 
 const logger = new Logger(module);
 
@@ -56,15 +59,11 @@ class DscHandler {
                 return handleFailoverUnicast.call(this);
             })
             .then(() => {
-                logger.fine('Checking DeviceTrust.');
-                return handleDeviceTrust.call(this);
-            })
-            .then(() => {
-                logger.fine('Checking DeviceGroup.');
-                return handleDeviceGroup.call(this);
+                logger.fine('Checking DeviceTrust and DeviceGroup.');
+                return handleDeviceTrustAndGroup.call(this);
             })
             .catch((err) => {
-                logger.severe(`Error processing network declaration: ${err.message}`);
+                logger.severe(`Error processing DSC declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -130,16 +129,88 @@ function handleFailoverUnicast() {
 }
 
 /**
+ * Checks to see if we are joining a cluster. If so, process that as one big operation.
+ * Otherwise, handle device trust and group separately.
+ */
+function handleDeviceTrustAndGroup() {
+    if (this.declaration.Common.DeviceTrust && this.declaration.Common.DeviceGroup) {
+        const deviceTrust = this.declaration.Common.DeviceTrust;
+        const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
+        const deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
+
+        return this.bigIp.deviceInfo()
+            .then((deviceInfo) => {
+                if (deviceInfo.hostname !== deviceGroup.owner) {
+                    return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
+                }
+                return Promise.resolve(true);
+            })
+            .then((isRemote) => {
+                if (!isRemote) {
+                    logger.fine('Passing off to join cluster function.');
+                    return handleJoinCluster.call(this);
+                }
+                // If this host is the remote host, we only create the device group and
+                // ignore device trust.
+                return handleDeviceGroup.call(this);
+            })
+            .catch((err) => {
+                logger.severe(`Error creating/joining device trust/group: ${err.message}`);
+                return Promise.reject(err);
+            });
+    }
+
+    return handleDeviceTrust.call(this)
+        .then(() => {
+            return handleDeviceGroup.call(this);
+        })
+        .catch((err) => {
+            logger.severe(`Error handling device trust and group: ${err.message}`);
+            return Promise.reject(err);
+        });
+}
+
+/**
+ * Handles joining a cluster. There is a lot to this, especially when ASM is
+ * provisioned. f5-cloud-libs has all the logic for this.
+ */
+function handleJoinCluster() {
+    if (this.declaration.Common.DeviceTrust && this.declaration.Common.DeviceGroup) {
+        const deviceTrust = this.declaration.Common.DeviceTrust;
+        const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
+
+        this.bigIp.user = deviceTrust.localUsername;
+        this.bigIp.password = deviceTrust.localPassword;
+        return this.bigIp.cluster.joinCluster(
+            deviceGroupName,
+            deviceTrust.remoteHost,
+            deviceTrust.remoteUsername,
+            deviceTrust.remotePassword,
+            false,
+            {
+                product: PRODUCTS.BIGIP
+            }
+        );
+    }
+    return Promise.resolve();
+}
+
+/**
  * Handles setting up the device trust.
  */
 function handleDeviceTrust() {
     if (this.declaration.Common.DeviceTrust) {
         const deviceTrust = this.declaration.Common.DeviceTrust;
+        let deviceInfo;
 
         return this.bigIp.deviceInfo()
-            .then((deviceInfo) => {
+            .then((response) => {
+                deviceInfo = response;
+                return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
+            })
+            .then((isRemote) => {
                 // If we are not the remote, check to see if we need to request to be added
-                if (deviceInfo.hostname !== deviceTrust.remoteHost) {
+                if (!isRemote) {
                     return doUtil.getBigIp(
                         logger,
                         {
@@ -175,7 +246,7 @@ function handleDeviceTrust() {
 }
 
 /**
- * Handles creating or joinging the device group.
+ * Handles creating or joining the device group.
  */
 function handleDeviceGroup() {
     if (this.declaration.Common.DeviceGroup) {
@@ -190,10 +261,10 @@ function handleDeviceGroup() {
                     return createDeviceGroup.call(this, deviceGroupName, deviceGroup);
                 }
 
-                return joinDeviceGroup.call(this, deviceGroupName, deviceGroup, hostname);
+                return joinDeviceGroup.call(this, deviceGroupName, hostname);
             })
             .catch((err) => {
-                logger.severe(`Error creating/joining device group: ${err.message}`);
+                logger.severe(`Error handling device group: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -252,46 +323,25 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
 }
 
 /**
- * Joins and existing device group and syncs from it
+ * Joins and existing device group.
  *
- * Expects that the device group exists prior to calling
+ * Expects that the device group exists prior to calling.
+ * Expects that if the declaration also has DeviceTrust info, syncying
+ * is handled by the f5-cloud-libs joinCluster function.
  *
  * @param {String} deviceGroupName - Name of the device gruop to create
- * @param {Object} deviceGroup - Device group from the declaration
  * @param {Object} hostnamne - Hostname to add
  *
  * @returns {Promise} A promise which is resolved when the operation is complete
  *                    or rejected if an error occurs.
  */
-function joinDeviceGroup(deviceGroupName, deviceGroup, hostname) {
+function joinDeviceGroup(deviceGroupName, hostname) {
     // Wait till we have the device group. Once addToTrust is finished
     // and the owning device creates the group, we should have it but maybe
     // we are coming up before the owner, so wait.
     return waitForDeviceGroup.call(this, deviceGroupName)
         .then(() => {
             return this.bigIp.cluster.addToDeviceGroup(hostname, deviceGroupName);
-        })
-        .then(() => {
-            // If we have the owning device info, tell it to sync to the group
-            if (this.declaration.Common.DeviceTrust) {
-                const deviceTrust = this.declaration.Common.DeviceTrust;
-                return doUtil.getBigIp(
-                    logger,
-                    {
-                        host: deviceTrust.remoteHost,
-                        user: deviceTrust.remoteUsername,
-                        password: deviceTrust.remotePassword
-                    }
-                )
-                    .then((remoteBigIp) => {
-                        return remoteBigIp.cluster.sync('to-group', deviceGroupName);
-                    })
-                    .catch((err) => {
-                        logger.severe(`Error doing remote sync: ${err.message}`);
-                        return Promise.reject(err);
-                    });
-            }
-            return Promise.resolve();
         })
         .catch((err) => {
             logger.severe(`Error joining device group: ${err.message}`);
@@ -313,7 +363,31 @@ function waitForDeviceGroup(deviceGroupName) {
         });
     }
 
-    return cloudUtil.tryUntil(this, cloudUtil.DEFAULT_RETRY, checkDeviceGroup);
+    return cloudUtil.tryUntil(this, cloudUtil.SHORT_RETRY, checkDeviceGroup);
+}
+
+function isRemoteHost(deviceInfo, remoteHost) {
+    return new Promise((resolve, reject) => {
+        if (deviceInfo.hostname === remoteHost
+            || deviceInfo.managementAddress === remoteHost) {
+            resolve(true);
+        } else {
+            // Need to check self ips to see if any match
+            this.bigIp.list(PATHS.SelfIp)
+                .then((selfIps) => {
+                    if (selfIps && Array.isArray(selfIps)) {
+                        const match = selfIps.find((selfIp) => {
+                            return doUtil.stripCidr(selfIp.address) === remoteHost;
+                        });
+                        resolve(!!match);
+                    }
+                })
+                .catch((err) => {
+                    logger.severe(`Error determining if we are remote host: ${err.message}`);
+                    reject(err);
+                });
+        }
+    });
 }
 
 module.exports = DscHandler;

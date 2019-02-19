@@ -17,6 +17,7 @@
 'use strict';
 
 const assert = require('assert');
+const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
 /* eslint-disable global-require */
 
@@ -207,6 +208,13 @@ describe('dscHandler', () => {
                 }
             };
 
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
             return new Promise((resolve, reject) => {
                 const dscHandler = new DscHandler(declaration, bigIpMock);
                 dscHandler.process()
@@ -230,7 +238,7 @@ describe('dscHandler', () => {
             });
         });
 
-        it('should not request remote big ip to add to trust if we are the remote', () => {
+        it('should not request remote big ip to add to trust if we are the remote based on hostname', () => {
             const declaration = {
                 Common: {
                     DeviceTrust: {
@@ -257,6 +265,47 @@ describe('dscHandler', () => {
                     });
             });
         });
+
+        it('should not request remote big ip to add to trust if we are the remote based on self ip', () => {
+            const declaration = {
+                Common: {
+                    DeviceTrust: {
+                        localUsername: 'admin',
+                        localPassword: 'pass1word',
+                        remoteHost: '10.10.0.1',
+                        remoteUsername: 'admin',
+                        remotePassword: 'pass2word'
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve(
+                        [
+                            {
+                                address: `${declaration.Common.DeviceTrust.remoteHost}/24`
+                            }
+                        ]
+                    );
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        assert.strictEqual(getBigIpOptions, undefined);
+                        assert.strictEqual(addToTrustHost, undefined);
+                        assert.strictEqual(syncCompleteCalled, false);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
     });
 
     describe('deviceGroup', () => {
@@ -265,14 +314,14 @@ describe('dscHandler', () => {
         let deviceGroupNameSent;
         let addToDeviceGroupNameSent;
         let devicesSent;
-        let addToTrustCalled;
+        let joinClusterCalled;
         let syncCalled;
         let syncCompleteCalled;
 
         beforeEach(() => {
             deviceGroupNameSent = undefined;
             addToDeviceGroupNameSent = undefined;
-            addToTrustCalled = false;
+            joinClusterCalled = false;
             syncCalled = false;
             syncCompleteCalled = false;
             bigIpMock.cluster = {
@@ -299,14 +348,15 @@ describe('dscHandler', () => {
                     addToDeviceGroupNameSent = deviceGroupName;
                     return Promise.resolve();
                 },
-                addToTrust() {
-                    addToTrustCalled = true;
+                joinCluster(deviceGroupName) {
+                    addToDeviceGroupNameSent = deviceGroupName;
+                    joinClusterCalled = true;
                     return Promise.resolve();
                 }
             };
         });
 
-        it('should create the device group if we are the owner', () => {
+        it('should create the device group if we are the owner with no device trust section', () => {
             const declaration = {
                 Common: {
                     DeviceGroup: {
@@ -315,6 +365,38 @@ describe('dscHandler', () => {
                             members: ['bigip1.example.com', 'bigip2.example.com'],
                             owner: hostname
                         }
+                    }
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
+                        assert.deepEqual(devicesSent, devices);
+                        assert.strictEqual(syncCalled, true);
+                        assert.strictEqual(syncCompleteCalled, true);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should create the device group if we are the owner with device trust section', () => {
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['bigip1.example.com', 'bigip2.example.com'],
+                            owner: hostname
+                        }
+                    },
+                    DeviceTrust: {
+                        remoteHost: hostname
                     }
                 }
             };
@@ -363,7 +445,7 @@ describe('dscHandler', () => {
             });
         });
 
-        it('should join device group if we are not the owner', () => {
+        it('should join device group if we are not the owner and we have DeviceGroup and DeviceTrust', () => {
             doUtilMock.getBigIp = () => {
                 return Promise.resolve(bigIpMock);
             };
@@ -378,7 +460,45 @@ describe('dscHandler', () => {
                         }
                     },
                     DeviceTrust: {
+                        remoteHost: 'someOtherHost'
+                    }
+                }
+            };
 
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
+                        assert.strictEqual(joinClusterCalled, true);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should join device group if we are not the owner and we only have DeviceGroup', () => {
+            doUtilMock.getBigIp = () => {
+                return Promise.resolve(bigIpMock);
+            };
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['bigip1.example.com', 'bigip2.example.com'],
+                            owner: 'someOtherHost'
+                        }
                     }
                 }
             };
@@ -388,11 +508,52 @@ describe('dscHandler', () => {
                 dscHandler.process()
                     .then(() => {
                         assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
-                        assert.strictEqual(addToTrustCalled, true);
+                        assert.strictEqual(joinClusterCalled, false);
                         resolve();
                     })
                     .catch((err) => {
                         reject(err);
+                    });
+            });
+        });
+
+        it('should handle device group not existing on remote', () => {
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['bigip1.example.com', 'bigip2.example.com'],
+                            owner: 'someOtherHost'
+                        }
+                    },
+                    DeviceTrust: {
+                        remoteHost: 'someOtherHost'
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            const errorMessage = 'group does not exist';
+            bigIpMock.cluster.joinCluster = () => {
+                return Promise.reject(new Error(errorMessage));
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        reject(new Error('should have thrown because of no device group on remote'));
+                    })
+                    .catch((err) => {
+                        assert.strictEqual(err.message, errorMessage);
+                        resolve();
                     });
             });
         });
