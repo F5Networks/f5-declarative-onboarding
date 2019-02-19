@@ -6,6 +6,7 @@
 + Allow modification of a SelfIp address
 + Add 'overwrite' option when licensing via BIG-IQ
 + Fix bug in which all self ips would be updated if there was a change to any of them
++ Fix bug in which clustering was not working if ASM was provisioned
 
 ## Version 1.2.0
 + Support for remote provisioning via ASG.
