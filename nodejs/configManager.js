@@ -69,13 +69,18 @@ class ConfigManager {
      *         },
      *         singleValue: <true_if_we_want_single_key_value_vs_whole_object_(Provision, for example)>,
      *         nameless: <true_if_we_do_not_want_the_name_property_in_the_result>,
-     *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>
+     *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>,
+     *         ignore: [
+     *             { <key_to_possibly_ignore>: <regex_for_value_to_ignore> }
+     *         ]
      *     }
      * ]
      *
      * 'path' can contain tokens which will be replaced as follows:
      *     {{hostName}} - The current hostname
      *     {{deviceName}} - The current cm device name for the host
+     * 'ignore' is a list of key/value pairs to ignore. If the regex matches the value
+     * associated with the key, then that item will be ignored
      *
      * @param {Object} declaration - The delcaration we are processing
      * @param {Object} state - The [doState]{@link State} object
