@@ -94,14 +94,16 @@ Again, for the full BIG-IQ Licensing example declaration, see :ref:`example3` an
 
 |
 
+.. _revoke-main:
+
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    The ability to revoke a license using Declarative Onboarding is available in version 1.3.0 and later.
 
-Revoking a license
-------------------
+Revoking a license from a BIG-IP with BIG-IQ
+============================================
 
-If you are using Declarative Onboarding 1.3.0 or later, you can use a declaration to revoke a license from a BIG-IP VE **(that you initially licensed using DO, or does it matter???)**, and optionally relicense the BIG-IP VE with a new license from a different license pool **(what about same pool, is that an option?)**.
+If you are using Declarative Onboarding 1.3.0 or later, you can use a declaration to revoke a license from a BIG-IP VE that was issued from a BIG-IQ license pool, and optionally relicense the BIG-IP VE with a new license.
 
 .. IMPORTANT:: If the BIG-IP is not reachable from the BIG-IQ ("reachable": false), you must use **overwrite** if you want to relicense a BIG-IP VE (as the BIG-IP will not know the license was revoked). 
 
@@ -109,7 +111,7 @@ To revoke a license, use the **revokeFrom** property in the License class as des
 
 
 Revoking a license without relicensing
-``````````````````````````````````````
+--------------------------------------
 If you want to revoke a license from a BIG-IP and not supply a new license, you simply add the **revokeFrom** property with name of the license pool to the license class.  For example ``"revokeFrom": "myPool"``.
 
 So the entire license class might look like the following:
@@ -130,11 +132,11 @@ So the entire license class might look like the following:
 This revokes the license from the BIG-IP VE, and leaves it in an unlicensed state. **(Mike, when using revokeFrom without relicensing, do you really have to include the entire declaration, or can you just have the license class)**
 
 Revoking a license and relicensing a BIG-IP from a different license pool
-`````````````````````````````````````````````````````````````````````````
+-------------------------------------------------------------------------
 If you want to revoke a license from a BIG-IP and give the BIG-IP a new license from a *different license pool*, you add the revokeFrom property with some additional information, depending on whether your BIG-IP VEs are reachable or not.  There is one additional example if you are relicensing a BIG-IP VE using a **new** BIG-IQ device.
 
 Relicensing a reachable BIG-IP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``````````````````````````````
 If you want to relicense a BIG-IP VE that is reachable from the BIG-IQ device, in your *reachable* declaration you simply add the **revokeFrom** property with name of the license pool you want to revoke the license from (for example ``"revokeFrom": "myPool"``). In the licensePool property, use the new license pool from which you want to give the BIG-IP a license.
 
 
@@ -163,7 +165,7 @@ This revokes the license from the BIG-IP VE from the **myPool** license pool and
 
 
 Relicensing an unreachable BIG-IP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````````````
 If you want to relicense a BIG-IP VE that is **unreachable** from the BIG-IQ device, in your *unreachable* declaration you must also use the **overwrite** property (``"overwrite": true``) in addition to the **revokeFrom** property with name of the license pool you want to revoke the license from (for example ``"revokeFrom": "myPool"``). In the licensePool property, use the new license pool from which you want to give the BIG-IP a license.
 
 
@@ -192,11 +194,10 @@ This revokes the license from the BIG-IP VE from the **myPool** license pool and
 
 
 Relicensing an unreachable BIG-IP using a different BIG-IQ device
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This section shows how to relicense a BIG-IP VE that is **unreachable**, AND you are using a different BIG-IQ device than the one you used to initially license the BIG-IP device. In this case, you also use the **revokeFrom** property, but you supply information about the BIG-IQ device you used to license the BIG-IP.  You must also use the **overwrite** property (``"overwrite": true``) in addition to the **revokeFrom** property. **((can/should we use different license pool names for the different bigiqs just to highlight the difference?)**.
+`````````````````````````````````````````````````````````````````
+This section shows how to relicense a BIG-IP VE that is **unreachable**, AND you are using a different BIG-IQ device than the one you used to initially license the BIG-IP device. In this case, you also use the **revokeFrom** property, but you supply information about the BIG-IQ device you used to license the BIG-IP.  You must also use the **overwrite** property (``"overwrite": true``) in addition to the **revokeFrom** property. 
 
-
-So the entire license class might look like the following:
+For example, to revoke a license issued from the BIG-IQ at 10.0.2.200 and re-license with a license from the BIG-IQ at 10.0.1.200, the entire license class might look like the following:
 
 .. code-block:: javascript
    :emphasize-lines: 8-14, 20
