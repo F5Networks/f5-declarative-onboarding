@@ -86,6 +86,17 @@ The following is another example using a declaration for use in a container, but
 
 :ref:`Back to top<examples>`
 
+Example 6: Using JSON Pointers
+------------------------------
+The following is another example using a declaration for use in a container, but in this case, it also contains a number of examples of using JSON pointers in a declaration.  For more information on JSON pointers, see :doc:`json-pointers`.
+
+.. literalinclude:: ../examples/reLicenseViaBigIqReachable.json
+   :language: json
+   :linenos:
+
+
+:ref:`Back to top<examples>`
+
 .. |br| raw:: html
 
    <br />

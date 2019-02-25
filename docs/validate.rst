@@ -4,7 +4,7 @@ Validating a declaration
 ------------------------
 In this section, we show you how to validate a Declarative Onboarding declaration against the schema using Microsoft |vsc|. Using this type of validation is useful when composing a declaration manually, or to check the accuracy of a declaration before deployment.
 
-For more information on editing JSON with Visual Studio Code, see |json|. 
+For more information on editing JSON with Visual Studio Code, see this |json|. 
 
 
 To validate a declaration
@@ -13,7 +13,7 @@ Use the following procedure to validate a declaration.
 
 1.  Download and install |vsc|.
 2.  Open Visual Studio Code, and use **File > New File** start a new JSON file. In our example, we name our file **myDeclaration.json**.  You must save the file in order for Visual Studio Code to recognize it as a JSON file.
-3.  At the top of your schema file, copy and paste the following lines:
+3.  At the top of your schema file, copy and paste the following lines (if you downloaded the schema file, use the path to the file on your device):
     
     .. code-block:: json
 
