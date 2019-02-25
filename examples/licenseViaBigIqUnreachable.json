@@ -1,6 +1,7 @@
 {
     "schemaVersion": "1.0.0",
     "class": "Device",
+    "async": true,
     "label": "License BIG-IP via BIG-IQ when BIG-IP is not reachable from BIG-IQ",
     "Common": {
         "class": "Tenant",
@@ -10,7 +11,7 @@
             "licenseType": "licensePool",
             "bigIqHost": "10.0.1.200",
             "bigIqUsername": "admin",
-            "bigIqPassword": "foofoo",
+            "bigIqPassword": "myPassword1",
             "licensePool": "myPool",
             "skuKeyword1": "key1",
             "skuKeyword2": "key2",

@@ -27,7 +27,7 @@ Example 2: Clustered declaration
 --------------------------------
 The following is an example declaration that onboards a clustered BIG-IP system.  See :doc:`clustering` for specific details on this example.
 
-.. literalinclude:: examples/example_02.json
+.. literalinclude:: ../examples/onboardFailover.json
    :language: json
 
 :ref:`Back to top<examples>`
@@ -39,10 +39,10 @@ Example 3: Licensing with BIG-IQ declaration - Route
 The following is an example of using a BIG-IQ to license your BIG-IP systems, where the BIG-IQ has an existing route to the BIG-IP.  In this example, our BIG-IQ license pool is a subscription pool, so we include skuKeyword1 and 2, and unitOfMeasure.
 In this example, the entire *License* class is unique to using BIG-IQ for licensing, and we've highlighted the lines that are specific to this Route example (reachable=true) and to a subscription pools.  See :doc:`big-iq-licensing` for specific details on this example.
 
-.. literalinclude:: examples/example_03.json
+.. literalinclude:: ../examples/reLicenseViaBigIqReachable.json
    :language: json
    :linenos:
-   :emphasize-lines: 14-19
+   :emphasize-lines: 16-21
 
 :ref:`Back to top<examples>`
 
@@ -50,13 +50,13 @@ In this example, the entire *License* class is unique to using BIG-IQ for licens
 
 Example 4: Licensing with BIG-IQ declaration - No Route
 -------------------------------------------------------
-The following is another example of using a BIG-IQ to license your BIG-IP systems. However, in this case the BIG-IQ does **not** have an existing route to the BIG-IP.  Also, this example is using a RegKey pool on the BIG-IQ device, so skuKeyword1 and 2, and unitOfMeasure are not needed.
+The following is another example of using a BIG-IQ to license your BIG-IP systems. However, in this case the BIG-IQ does **not** have an existing route to the BIG-IP. 
 In this example, the entire *License* class is unique to using BIG-IQ for licensing, and we've highlighted the lines that are specific to this No Route example (reachable=false).  See :doc:`big-iq-licensing` for specific details on this example.
 
-.. literalinclude:: examples/example_04.json
+.. literalinclude:: ../examples/licenseViaBigIqUnreachable.json
    :language: json
    :linenos:
-   :emphasize-lines: 14-15
+   :emphasize-lines: 19-20
 
 :ref:`Back to top<examples>`
 
@@ -66,7 +66,7 @@ The following is an example of a declaration for use in a container.  It contain
 
 The items specific to the DO class are highlighted. 
 
-.. literalinclude:: examples/example_05.json
+.. literalinclude:: ../examples/viaASG.json
    :language: json
    :linenos:
    :emphasize-lines: 2-6
@@ -79,14 +79,14 @@ Example 6: Using JSON Pointers
 ------------------------------
 The following is another example using a declaration for use in a container, but in this case, it also contains a number of examples of using JSON pointers in a declaration.  For more information on JSON pointers, see :doc:`json-pointers`.
 
-.. literalinclude:: examples/example_06.json
+.. literalinclude:: ../examples/licenseViaBigIqReachableASG.json
    :language: json
    :linenos:
 
 
 :ref:`Back to top<examples>`
 
-Example 6: Using JSON Pointers
+Example 7: 
 ------------------------------
 The following is another example using a declaration for use in a container, but in this case, it also contains a number of examples of using JSON pointers in a declaration.  For more information on JSON pointers, see :doc:`json-pointers`.
 

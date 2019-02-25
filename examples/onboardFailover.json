@@ -1,6 +1,7 @@
 {
     "schemaVersion": "1.0.0",
     "class": "Device",
+    "async": true,
     "label": "Onboard BIG-IP into an HA Pair",
     "Common": {
         "class": "Tenant",
@@ -8,7 +9,7 @@
         "myLicense": {
             "class": "License",
             "licenseType": "regKey",
-            "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+            "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
         },
         "myDns": {
             "class": "DNS",

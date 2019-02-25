@@ -1,20 +1,15 @@
 {
     "schemaVersion": "1.0.0",
     "class": "Device",
+    "async": true,
     "label": "Basic onboarding",
     "Common": {
         "class": "Tenant",
         "hostname": "bigip.example.com",
-        "dbvars": {
-        	"class": "DbVariables",
-        	"ui.advisory.enabled": true,
-        	"ui.advisory.color": "green",
-        	"ui.advisory.text": "/Common/hostname"
-        },
         "myLicense": {
             "class": "License",
             "licenseType": "regKey",
-            "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
+            "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
         },
         "myDns": {
             "class": "DNS",
@@ -38,8 +33,8 @@
         "root": {
             "class": "User",
             "userType": "root",
-            "oldPassword": "foo",
-            "newPassword": "bar"
+            "oldPassword": "default",
+            "newPassword": "myNewPass1word"
         },
         "admin": {
             "class": "User",
@@ -50,7 +45,7 @@
         "guestUser": {
             "class": "User",
             "userType": "regular",
-            "password": "foobar",
+            "password": "guestNewPass1",
             "partitionAccess": {
                 "Common": {
                     "role": "guest"
@@ -60,7 +55,7 @@
         "anotherUser": {
             "class": "User",
             "userType": "regular",
-            "password": "foobar",
+            "password": "myPass1word",
             "shell": "none",
             "partitionAccess": {
                 "all-partitions": {
@@ -70,7 +65,8 @@
         },
         "myProvisioning": {
             "class": "Provision",
-            "ltm": "nominal"
+            "ltm": "nominal",
+            "gtm": "minimum"
         },
         "internal": {
             "class": "VLAN",
@@ -113,6 +109,12 @@
             "gw": "10.10.0.1",
             "network": "default",
             "mtu": 1500
+        },
+        "dbvars": {
+        	"class": "DbVariables",
+        	"ui.advisory.enabled": true,
+        	"ui.advisory.color": "green",
+        	"ui.advisory.text": "/Common/hostname"
         }
     }
 }

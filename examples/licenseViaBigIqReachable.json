@@ -1,6 +1,7 @@
 {
     "schemaVersion": "1.0.0",
     "class": "Device",
+    "async": true,
     "label": "License BIG-IP via BIG-IQ when BIG-IP is reachable from BIG-IQ",
     "Common": {
         "class": "Tenant",

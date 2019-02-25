@@ -28,7 +28,7 @@ In this section, we show an example of a standalone (non-clustered) declaration 
 This example is the entire declaration.  The following sections break down each class of this example declaration. 
 
 
-.. literalinclude:: examples/example_01.json
+.. literalinclude:: ../examples/onboard.json
    :language: json
    :linenos:
 
@@ -56,8 +56,8 @@ The first few lines of your declaration are a part of the base components and de
     {
         "schemaVersion": "1.0.0",
         "class": "Device",
-        "async": "true",
-        "label": "my BIG-IP declaration for declarative onboarding",
+        "async": true,
+        "label": "Basic onboarding",
         
         
         
@@ -209,7 +209,8 @@ The name *myNTP* we use in this example is arbitrary; it is not used anywhere in
         "class": "NTP",
         "servers": [
             "0.pool.ntp.org",
-            "1.pool.ntp.org"
+            "1.pool.ntp.org",
+            "2.pool.ntp.org"
         ],
         "timezone": "UTC"
     },
@@ -247,7 +248,7 @@ If you are modifying the root password, you must supply the existing root passwo
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 32
+   :lineno-start: 33
 
 
     "root": {
@@ -322,7 +323,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 65
+   :lineno-start: 66
 
 
     "myProvisioning": {
@@ -356,7 +357,7 @@ The next lines of the declaration configure VLANs on the BIG-IP system. In this 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 70
+   :lineno-start: 71
 
     "external": {
         "class": "VLAN",
@@ -409,13 +410,13 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 92
+   :lineno-start: 93
 
     "external-self": {
         "class": "SelfIp",
         "address": "1.2.3.4/24",
         "vlan": "external",
-        "allowService": "default",
+        "allowService": "none",
         "trafficGroup": "traffic-group-local-only"
     },
     "internal-self": {
@@ -436,7 +437,7 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
 +--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | vlan               | string                                                   |   Yes      |  The VLAN to which the self IP should be associated. This field should match any VLANs you are including in this declaration.      |
 +--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| allowService       | all, none, **default**, or array of <service:port>       |   No       |  Specifies which services (ports) to allow on the self IP.                                                                         |
+| allowService       | all, none, **default**, or array of <service:port>       |   No       |  Specifies which services (ports) to allow on the self IP. For the external-self, we use none.                                     |
 +--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | trafficGroup       | **traffic-group-local-only**, traffic-group-1            |   No       |  Traffic group for the Self IP.                                                                                                    |
 +--------------------+----------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
@@ -454,7 +455,7 @@ The next lines of the declaration configure routes on the BIG-IP system.   In th
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 106
+   :lineno-start: 107
 
         "myRoute": {
                 "class": "Route",
@@ -499,14 +500,16 @@ The next lines of the declaration enable the ability to set arbitrary database v
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 112
+   :lineno-start: 113
 
-        "dbvars": {
-            "class": "DbVariables",
-            "ui.advisory.enabled": true,
-            "ui.advisory.color": "green",
-            "ui.advisory.text": "/Common/hostname"
-        },
+                "dbvars": {
+                    "class": "DbVariables",
+                    "ui.advisory.enabled": true,
+                    "ui.advisory.color": "green",
+                    "ui.advisory.text": "/Common/hostname"
+                }
+            }
+        }
 
        
 
