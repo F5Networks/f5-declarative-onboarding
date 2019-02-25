@@ -16,12 +16,14 @@ In this section, we first show the sample declaration, and then we break it down
 
 Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
 
+To see how to use BIG-IQ to license your BIG-IP VEs, see :doc:`big-iq-licensing`.  If you want to use Declarative Onboarding in a Docker Container, see :doc:`do-container`.
+
 
 
 Sample declaration for a standalone BIG-IP
 ------------------------------------------
 
-In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of the parts of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`. To see how to use BIG-IQ to license your BIG-IP VEs, see :doc:`big-iq-licensing`.
+In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of the parts of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`. 
 
 This example is the entire declaration.  The following sections break down each class of this example declaration. 
 
