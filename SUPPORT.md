@@ -15,6 +15,8 @@ Currently supported versions:
 |------------------ |---------------|---------------------|-----------------|
 | DO 1.1.0          | Feature       | 20-Dec-2018         | 20-Mar-2019     |
 | DO 1.2.0          | Feature       | 16-Jan-2019         | 16-Apr-2019     |
+| DO 1.3.0	        | Feature	    | 27-Feb-2019	      | 27-May-2019     |
+
 
 See the [Release notes](https://github.com/F5Networks/f5-declarative-onboarding/releases) and [Declarative Onboarding documentation](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/) for new features and issues resolved for each release. 
 
