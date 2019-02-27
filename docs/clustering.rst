@@ -134,6 +134,8 @@ Device Group class
 The next class specific to clustering is the device group class. A device group is a collection of BIG-IP devices that trust each other and can synchronize (and fail over if you choose sync-failover), their BIG-IP configuration data.
 For more information on Device Groups on the BIG-IP, see |group|.  In this example, for the *owner* parameter, we are using a JSON pointer. The value in the example means that the first object in the *members* array. 
 
+.. NOTE:: The DeviceTrust and DeviceGroup sections in both declarations should be identical. For DeviceTrust, if the remoteHost matches the management IP or one of the self IPs of the host on which it is running, that DeviceTrust section is ignored. If it does not match, then the device processing the declaration will send a request to the remote host to be added to trust. There is similar logic regarding the DeviceGroup owner. The owning device just creates the group, the other device requests to be added to the group.
+
 **Important**: You cannot use *autoSync* and *fullLoadOnSync* together. 
 
 .. code-block:: javascript
