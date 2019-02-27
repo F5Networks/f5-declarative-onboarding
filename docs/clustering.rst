@@ -20,6 +20,8 @@ In this example, we include the classes that are specific to clustering.  For a 
 
 For some of the clustering components, like ConfigSync and failoverAddress, you can use JSON pointers to reference objects/properties in declarations.
 
+.. NOTE:: The DeviceTrust and DeviceGroup sections in both declarations should be identical. For DeviceTrust, if the remoteHost matches the management IP or one of the self IPs of the host on which it is running, that DeviceTrust section is ignored. If it does not match, then the device processing the declaration will send a request to the remote host to be added to trust. There is similar logic regarding the DeviceGroup owner. The owning device just creates the group, the other device requests to be added to the group.
+
 The following declaration snippet could continue after the :ref:`route-class` in the standalone BIG-IP example.
 
 .. code-block:: javascript
