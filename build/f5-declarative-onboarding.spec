@@ -7,6 +7,8 @@ Group: Development/Tools
 License: Commercial
 Packager: F5 Networks <support@f5.com>
 
+AutoReqProv: no
+
 %description
 Declarative onboarding for BIG-IP
 
