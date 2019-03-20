@@ -3,7 +3,9 @@ image: node:8
 stages:
     - test
     - build
+    - deploy
     - functional test
+    - teardown
     - post build
     - publish
 
@@ -16,173 +18,64 @@ test:
         - npm run lint
         - npm test
 
-build rpm:
-    image: node:8-alpine
-    stage: build
-    except:
-        - tags
+deploy bigip:
+    image: ${CICD_CONTAINER_DEPLOY}
+    stage: deploy
     tags:
-        - docker-executor
-    script:
-        - apk add rpm bash
-        - build/buildRpm.sh
+        - cm-official-docker-executor
+    variables:
+        PROJECT_NAME: ${CI_PROJECT_NAME}
+        PROJECT_DIR: /root/deploy-projects/${CI_PROJECT_NAME}
+        BIGIP_VERSION: 13.1.1.4
+        BIGIP_BUILD: 0.0.4
+        NUMBER_OF_BIGIP: 3
+        DO_LICENSING: 'false'
+        DO_PROVISIONING: 'false'
     artifacts:
-        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
+        name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
         paths:
-            - build/rpmbuild/RPMS/noarch/
-        expire_in: 1 week
+            - ${CI_PROJECT_DIR}/harness_facts_flat.json
+        expire_in: 40min
+    only:
+        - schedules
+    script:
+        - cd /root/cicd-bigip-deploy && make configure &&
+            make printvars && cat ${PROJECT_DIR}/project-vars &&
+            make setup && ls -als ${PROJECT_DIR} &&
+            cp ${PROJECT_DIR}/harness_facts_flat.json ${CI_PROJECT_DIR}/harness_facts_flat.json
+        - cd ${CI_PROJECT_DIR}
+        #- export RPM_PACKAGE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
+        - export RPM_PACKAGE=dist/f5-declarative-onboarding-1.3.0-4.noarch.rpm
+        - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
+        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+        - yum install -y nodejs
+        - npm install
+        - node test/functional/setup.js
 
 functional test:
     image: centos
     stage: functional test
     tags:
-        - docker-executor
+       - cm-official-docker-executor
     only:
         - schedules
-    dependencies:
-        - build rpm
     script:
-        - export RPM_PACKAGE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
-        - 'curl -H "Authorization: Bearer ${ARTIFACTORY_AUTO_VIO_TOKEN}" -X GET "${ARTIFACTORY_BASE_URL}/cloudsolutions/auto-vio/${AUTO_VIO_RPM}" -o "${AUTO_VIO_RPM}"'
-        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
-        - yum install -y nodejs
-        - yum install -y "${AUTO_VIO_RPM}"
-        - npm install
-        - npm run functional
+       - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
+       - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+       - yum install -y nodejs
+       - npm install
+       - npm run functional
 
-build asg:
-    image: docker:latest
-    stage: post build
-    except:
-        - tags
+teardown bigip:
+    image: ${CICD_CONTAINER_DEPLOY}
+    stage: teardown
+    tags:
+        - cm-official-docker-executor
+    variables:
+        PROJECT_NAME: do-testing
+        PROJECT_DIR: /root/deploy-projects/do-testing
+    script:
+      - cd /root/cicd-bigip-deploy && make configure && make teardown
+    when: always 
+    only:
         - schedules
-    tags:
-        - docker-executor
-    dependencies:
-        - build rpm
-    script:
-        - IMAGE_NAME=f5-do-container
-        - ORGANIZATION_NAME=f5devcentral
-        - TARGET=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
-        # TAG is VERSION-RELEASE. Use awk to remove everything else
-        - IMAGE_TAG=$(echo $(basename $TARGET) | awk -F- -v PROJECT_NAME=${CI_PROJECT_NAME}- '{sub(PROJECT_NAME, ""); sub(".noarch.rpm", ""); print}')
-        - if [[ ${CI_COMMIT_REF_NAME} == 'master' ]]; then
-        -     IMAGE_TAG=$(echo $IMAGE_TAG | grep -o "^[^-]\+")
-        - elif [[ ${CI_COMMIT_REF_NAME} != 'develop' ]]; then
-        -     IMAGE_TAG=$CI_COMMIT_REF_NAME
-        - fi
-        - docker build -f build/Dockerfile.asg -t ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
-        - docker save ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${ORGANIZATION_NAME}-${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
-    artifacts:
-        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
-        paths:
-            - dist/*.tar.gz
-        expire_in: 1 week
-
-create postman collection:
-    stage: post build
-    except:
-        - tags
-        - schedules
-    tags:
-        - docker-executor
-    script:
-        - node build/generatePostmanCollection.js
-    artifacts:
-        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
-        paths:
-            - dist/do.examples.collection.json
-        expire_in: 1 week
-
-publish to artifactory:
-    stage: publish
-    only:
-        - tags
-    tags:
-        - docker-executor
-    script:
-        - RPM_FILE=$(ls dist/*.rpm)
-        - RPM_NAME=$(basename $RPM_FILE)
-        - >-
-            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_NAME}
-            ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${RPM_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during upload; exit 1; fi
-
-create docs:
-    image: ${CONTAINTHEDOCS_IMAGE}
-    stage: post build
-    except:
-        - tags
-        - schedules
-    script:
-        - make html
-        - echo "Checking grammar and style"
-        # Runs the grammar check on everything except the /docs/drafts directory
-        - vale --glob='*.rst' .
-        - echo "Checking links"
-        - make linkcheck
-    tags:
-        - cm-official-docker-executor
-    artifacts:
-        expire_in: 1 week
-        name: sphinx-docs_$CI_COMMIT_SHA
-        paths:
-            - docs/_build/html
-
-# Deploy docs to Pages for review
-# Docs are staged on this projects pages site
-pages:
-    stage: publish
-    environment:
-        name: review
-        url: https://${CI_PROJECT_NAMESPACE}.${PAGES_DOMAIN}/${CI_PROJECT_NAME}/
-    tags:
-        - cm-official-docker-executor
-    dependencies:
-        - create docs
-    script:
-        - mkdir -p ./public
-        - cp -R docs/_build/html/* ./public
-    artifacts:
-        paths:
-            - public
-    only:
-        - branches
-
-publish docs to staging:
-    image: ${CONTAINTHEDOCS_IMAGE}
-    stage: publish
-    environment:
-        name: staging
-        url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-    tags:
-        - cm-official-docker-executor
-    only:
-        - doc-staging@cloudsolutions/f5-declarative-onboarding
-    dependencies:
-        - create docs
-    script:
-        - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-        # create invalidation to clear cloudfront cache
-        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest/
-
-publish docs to production:
-    image: ${CONTAINTHEDOCS_IMAGE}
-    stage: publish
-    environment:
-        name: production
-        url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest
-    only:
-        # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
-        # fill in desired release branch name and uncomment to add deployment from a branch
-        - doc-publish@cloudsolutions/f5-declarative-onboarding
-    tags:
-        - cm-official-docker-executor
-    dependencies:
-        - create docs
-    script:
-        # Publish docs to clouddocs.f5.com (live site).
-        - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
-        # create invalidation to clear cloudfront cache
-        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding

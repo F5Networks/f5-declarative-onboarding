@@ -37,7 +37,7 @@
   },
   "scripts": {
     "test": "nyc mocha --recursive test/nodejs test/schema",
-    "functional": "node test/functional/test.js",
+    "functional": "nyc mocha test/functional/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "coverage": "nyc report --reporter=html",
     "lint": "eslint nodejs test"

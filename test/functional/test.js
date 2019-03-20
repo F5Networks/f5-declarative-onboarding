@@ -23,184 +23,475 @@
 
 'use strict';
 
-require('colors');
-const request = require('request');
-const NodeSSH = require('node-ssh');
-const path = require('path');
+const assert = require('assert');
+const constants = require('./constants.js');
 const common = require('./common.js');
-/* eslint-disable import/no-absolute-path, import/no-unresolved  */
-const vio = require('/var/rpm/auto-vio/vio-lib.js');
-/* eslint-enable import/no-absolute-path, import/no-unresolved  */
-const ICONTROL_API = '/mgmt';
-const DO_API = `${ICONTROL_API}/shared/declarative-onboarding`;
-// HTTP status codes
-const HTTP_ACCEPTED = 202;
-const HTTP_SUCCESS = 200;
-const HTTP_UNAVAILABLE = 503;
-const HTTP_UNPROCESSABLE = 422;
-// DO API port
-const PORT = 443;
 // location of DO test JSON bodies
 const BODIES = 'test/functional/bodies';
-// directory on the BIG-IPs to copy rpm package to
-const REMOTE_DIR = '/var/config/rest/downloads';
-// iControl REST API endpoint
-const RPM_PACKAGE = process.env.RPM_PACKAGE;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+const machines = [];
 
-// iControl and DO credentials for deployed BIG-IPs
-const bigipAdminUsername = 'admin';
-const bigipAdminPassword = 'admin';
-// ssh and scp credentials for deployed BIG-IPs
-const bigipUsername = 'root';
-const bigipPassword = 'default';
+/* eslint-disable no-undef */
+/* eslint-disable no-console */
 
-(function main() {
-    let machines = [];
-    let allPassed = 1;
-
-    getMachines(3)
+before(() => {
+    return common.readFile(process.env.TEST_HARNESS_FILE)
+        .then(JSON.parse)
         .then((deployedMachines) => {
-            /* eslint-disable no-console */
-            console.log('Deployed');
-            machines = deployedMachines;
-        })
-        .catch((error) => {
-            console.log('An error occurred on deployment. Exiting.');
-            console.log(error);
-            process.exit(1);
-        })
-        .then(() => {
-            console.log('Onboarding Tests');
-            return testOnboard(machines[0].ip);
-        })
-        .then((onboardTest) => {
-            allPassed = allPassed && onboardTest;
-        })
-        .catch((error) => {
-            allPassed = allPassed && 0;
-            console.log(new Error(error));
-        })
-        .then(() => {
-            console.log('Networking Tests');
-            return testNetworking(machines[1].ip);
-        })
-        .then((networkingTest) => {
-            allPassed = allPassed && networkingTest;
-        })
-        .catch((error) => {
-            allPassed = allPassed && 0;
-            console.log(new Error(error));
-        })
-        .then(() => {
-            console.log('Licensing Tests');
-            return testLicensing(machines[2].ip);
-        })
-        .catch((error) => {
-            allPassed = allPassed && 0;
-            console.log(new Error(error));
-        })
-        .then(() => {
-            console.log('Rollbacking Tests');
-            return testRollbacking(machines[0].ip);
-        })
-        .then((rollbackingTest) => {
-            allPassed = allPassed && rollbackingTest;
-        })
-        .catch((error) => {
-            allPassed = allPassed && 0;
-            console.log(new Error(error));
-        })
-        .then(() => {
-            const machineIds = [];
-            machines.forEach((machine) => {
-                machineIds.push(machine.id);
+            deployedMachines.forEach((deployedMachine) => {
+                machines.push({
+                    ip: deployedMachine.admin_ip,
+                    adminUsername: deployedMachine.admin_username,
+                    adminPassword: deployedMachine.admin_password
+                });
             });
-            return vio.teardown(machineIds);
+            return Promise.resolve();
         })
         .then(() => {
-            console.log('Finished');
-            // we return a non-zero exit code if any of the tests
-            // do not pass
-            process.exit(!allPassed);
+            if (!process.env.BIG_IQ_HOST || !process.env.BIG_IQ_USERNAME || !process.env.BIG_IQ_PASSWORD) {
+                return Promise.reject(new Error('At least one of BIG_IQ_HOST, BIG_IQ_USERNAME,'
+                    + 'BIG_IQ_PASSWORD not set'));
+            }
+            return Promise.resolve();
         })
         .catch((error) => {
-            console.log(error);
+            return Promise.reject(error);
         });
-}());
+});
 
-/**
- * testOnboard - test for an onboard declaration type
- * @bigipAddress {String} : ip addrress of target BIG-IP
- * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
-*/
-function testOnboard(bigipAddress) {
-    return new Promise((resolve, reject) => {
-        const bodyFile = `${BODIES}/onboard.json`;
+/* eslint-enable no-undef */
+
+it('Declarative Onboarding Functional Test Suite', () => {
+    describe('Test Onboard', function testOnboard() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        const thisMachine = machines[0];
+        const bigipAddress = thisMachine.ip;
         let body;
-        const errors = [];
-        let passed = 1;
-        const auth = { username: bigipAdminUsername, password: bigipAdminPassword };
+        let currentState;
 
-        common.readFile(bodyFile)
-            .then(JSON.parse)
-            .then((readBody) => {
-                body = readBody;
-            })
-            .then(() => {
-                return testRequest(body, `${hostname(bigipAddress)}${DO_API}`, auth,
-                    HTTP_ACCEPTED, 'POST', errors);
-            })
-            .then(() => {
-                // we make a single status call (retrying it if it doesn't succeed),
-                // and check everything against the response we get from it. Then all
-                // of the tests become local
-                // try 30 times, for 1min each trial
-                return testGetStatus(30, 60 * 1000, bigipAddress, auth, HTTP_SUCCESS, errors);
-            })
-            .then((response) => {
-                // get the part that interests us
-                return response.currentConfig.Common;
-            })
-            .then((response) => {
-                passed = passed && check('hostname matches', testHostname(body.Common, response, errors),
-                    errors);
-                return response;
-            })
-            .then((response) => {
-                passed = passed && check('dns matches', testDns(body.Common.myDns, response, errors), errors);
-                return response;
-            })
-            .then((response) => {
-                passed = passed && check('ntp matches', testNtp(body.Common.myNtp, response, errors), errors);
-                return response;
-            })
-            .then((response) => {
-                // we're done; resolve
-                const provisionModules = ['ltm'];
-                passed = passed && check('provisioning matches', testProvisioning(body.Common.myProvisioning,
-                    response, provisionModules, errors), errors);
-                return response;
-            })
-            .then((response) => {
-                passed = passed && check('vlan matches', testVlan(body.Common.myVlan, response, errors),
-                    errors);
-                return response;
-            })
-            .then((response) => {
-                passed = passed && check('route matches', testRoute(body.Common.myRoute, response, errors),
-                    errors);
-            })
-            .then(() => {
-                // we're done; resolve
-                resolve(passed);
-            })
-            .catch((error) => {
-                reportMismatch(errors);
-                reject(error);
+        before(() => {
+            return new Promise((resolve, reject) => {
+                const bodyFile = `${BODIES}/onboard.json`;
+                const auth = {
+                    username: thisMachine.adminUsername,
+                    password: thisMachine.adminPassword
+                };
+                return common.readFile(bodyFile)
+                    .then(JSON.parse)
+                    .then((readBody) => {
+                        body = readBody;
+                    })
+                    .then(() => {
+                        return common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, auth,
+                        constants.HTTP_ACCEPTED, 'POST');
+                    })
+                    .then(() => {
+                        // we make a single status call (retrying it if it doesn't succeed),
+                        // and check everything against the response we get from it. Then all
+                        // of the tests become local
+                        // try 30 times, for 1min each trial
+                        return common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
+                            constants.HTTP_SUCCESS);
+                    })
+                    .then((response) => {
+                        currentState = response.currentConfig.Common;
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, auth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(declarationStatus));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
             });
+        });
+
+        it('should match the hostname', () => {
+            assert.ok(testHostname(body.Common, currentState));
+        });
+
+        it('should match the DNS', () => {
+            assert.ok(testDns(body.Common.myDns, currentState));
+        });
+
+        it('should match the NTP', () => {
+            assert.ok(testNtp(body.Common.myNtp, currentState));
+        });
+
+        it('should match provisioning', () => {
+            const provisionModules = ['ltm'];
+            assert.ok(testProvisioning(body.Common.myProvisioning, currentState, provisionModules));
+        });
+
+        it('should match VLAN', () => {
+            assert.ok(testVlan(body.Common.myVlan, currentState));
+        });
+
+        it('should match routing', () => {
+            assert.ok(testRoute(body.Common.myRoute, currentState));
+        });
     });
-}
+
+    describe('Test Networking', function testNetworking() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        const thisMachine = machines[1];
+        const bigipAddress = thisMachine.ip;
+        const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
+        let body;
+        let currentState;
+
+        before(() => {
+            const bodyFile = `${BODIES}/network.json`;
+            return new Promise((resolve, reject) => {
+                common.readFile(bodyFile)
+                    .then((fileRead) => {
+                        body = JSON.parse(fileRead);
+                    })
+                    .then(() => {
+                        return common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST');
+                    })
+                    .then(() => {
+                        return common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
+                            constants.HTTP_SUCCESS);
+                    })
+                    .then((response) => {
+                        currentState = response.currentConfig.Common;
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, auth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(declarationStatus));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should match self ip', () => {
+            assert.ok(testSelfIp(body.Common.mySelfIp, currentState));
+        });
+
+        it('should match VLAN', () => {
+            assert.ok(testVlan(body.Common.myVlan, currentState));
+        });
+
+        it('should match routing', () => {
+            assert.ok(testRoute(body.Common.myRoute, currentState));
+        });
+    });
+
+    describe('Test Licensing', function testLicensing() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        const thisMachine = machines[2];
+        const bigipAddress = thisMachine.ip;
+        const bigipAuth = {
+            username: thisMachine.adminUsername,
+            password: thisMachine.adminPassword
+        };
+        const bigIqAuth = { username: process.env.BIG_IQ_USERNAME, password: process.env.BIG_IQ_PASSWORD };
+        const bigIqAddress = process.env.BIG_IQ_HOST;
+        let oldAuditLink; let
+            newAuditLink;
+
+        before(() => {
+            const bodyFileLicensing = `${BODIES}/licensing_big_iq.json`;
+            return new Promise((resolve, reject) => {
+                common.readFile(bodyFileLicensing)
+                    .then(JSON.parse)
+                    .then((body) => {
+                        // need to replace credentials and ip address for BIG-IQ in the
+                        // declaration by those we got from environment
+                        body.Common.myLicense.bigIqHost = bigIqAddress;
+                        body.Common.myLicense.bigIqUsername = bigIqAuth.username;
+                        body.Common.myLicense.bigIqPassword = bigIqAuth.password;
+                        // also update BIG-IP credentials
+                        body.Common.myLicense.bigIpUsername = bigipAuth.username;
+                        body.Common.myLicense.bigIpPassword = bigipAuth.password;
+                        return body;
+                    })
+                    .then((body) => {
+                        // license the BIG-IP through a BIG-IQ
+                        return common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST');
+                    })
+                    .then(() => {
+                        // wait until status is 200, try 20 times, 60 secs each trial
+                        return common.testGetStatus(20, 60 * 1000, bigipAddress, bigipAuth,
+                            constants.HTTP_SUCCESS);
+                    })
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, bigipAuth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(declarationStatus));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should have licensed', () => {
+            return new Promise((resolve, reject) => {
+                // check if device has been licensed with an iControl call to the BIG-IQ
+                return getAuditLink(bigIqAddress, bigipAddress, bigIqAuth)
+                    .then((auditLink) => {
+                        // save the licensing link to compare against later
+                        oldAuditLink = auditLink;
+                        assert.ok(auditLink);
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, bigipAuth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(declarationStatus));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should have re-licensed with new pool', () => {
+            return new Promise((resolve, reject) => {
+                const bodyFileRevokingRelicensing = `${BODIES}/revoking_relicensing_big_iq.json`;
+                // now revoke and re-license using another license pool
+                return common.readFile(bodyFileRevokingRelicensing)
+                    .then(JSON.parse)
+                    .then((body) => {
+                        body.Common.myLicense.bigIqHost = bigIqAddress;
+                        body.Common.myLicense.bigIqUsername = bigIqAuth.username;
+                        body.Common.myLicense.bigIqPassword = bigIqAuth.password;
+                        body.Common.myLicense.bigIpUsername = bigipAuth.username;
+                        body.Common.myLicense.bigIpPassword = bigipAuth.password;
+                        return body;
+                    })
+                    .then((body) => {
+                        return common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST');
+                    })
+                    .then(() => {
+                        // wait until status is 200, try 20 times, 60 secs each trial
+                        return common.testGetStatus(20, 60 * 1000, bigipAddress,
+                            bigipAuth, constants.HTTP_SUCCESS);
+                    })
+                    .then(() => {
+                        return getAuditLink(bigIqAddress, bigipAddress, bigIqAuth);
+                    })
+                    .then((auditLink) => {
+                        // if the new audit link is equal to the old, it means the old license wasn't
+                        // revoked, because an audit link represents a licensed device (see getAuditLink)
+                        assert.notStrictEqual(oldAuditLink, auditLink);
+                        newAuditLink = auditLink;
+                    })
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, bigipAuth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(declarationStatus));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should have revoked old license', () => {
+            return new Promise((resolve, reject) => {
+                return getF5Token(bigIqAddress, bigIqAuth)
+                    .then((token) => {
+                        const options = common.buildBody(oldAuditLink, null, { token }, 'GET');
+                        return common.sendRequest(options);
+                    })
+                    .then((response) => {
+                        if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+                            reject(new Error('could not check revoking'));
+                        }
+                        return response.body;
+                    })
+                    .then(JSON.parse)
+                    .then((assignment) => {
+                        assert.strictEqual(assignment.status, 'REVOKED');
+                    })
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, bigipAuth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(declarationStatus));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should have revoked new license', () => {
+            // finally, we want to clean up, and revoke the newly assigned license.
+            return new Promise((resolve, reject) => {
+                let body;
+                const bodyFileRevoking = `${BODIES}/revoke_from_bigiq.json`;
+                return common.readFile(bodyFileRevoking)
+                    .then(JSON.parse)
+                    .then((bodyStub) => {
+                        body = bodyStub;
+                        body.address = bigipAddress;
+                        body.user = bigipAuth.username;
+                        body.password = bigipAuth.password;
+                    })
+                    .then(() => {
+                        return getF5Token(bigIqAddress, bigIqAuth);
+                    })
+                    .then((token) => {
+                        const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
+                            + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
+                        body, { token }, 'POST');
+                        return common.sendRequest(options);
+                    })
+                    .then((response) => {
+                        if (response.response.statusCode !== constants.HTTP_ACCEPTED) {
+                            reject(new Error('could not request to revoke license'));
+                        }
+                        return response.body;
+                    })
+                    .then(JSON.parse)
+                    .then((response) => {
+                        assert.strictEqual(response.status, 'STARTED');
+                    })
+                    .then(() => {
+                        const func = function () {
+                            return new Promise((resolveThis, rejectThis) => {
+                                return getF5Token(bigIqAddress, bigIqAuth)
+                                    .then((token) => {
+                                        const options = common.buildBody(newAuditLink, null,
+                                            { token }, 'GET');
+                                        return common.sendRequest(options);
+                                    })
+                                    .then((response) => {
+                                        if (response.response.statusCode === constants.HTTP_SUCCESS) {
+                                            if (JSON.parse(response.body).status === 'REVOKED') {
+                                                resolveThis();
+                                            } else {
+                                                rejectThis(new Error(JSON.parse(response.body).status));
+                                            }
+                                        } else {
+                                            rejectThis(new Error(response.response.statusCode));
+                                        }
+                                    })
+                                    .catch((err) => {
+                                        rejectThis(new Error(err));
+                                    });
+                            });
+                        };
+                        return common.tryOften(func, 5, 30, [constants.HTTP_ACCEPTED, 'GRANTED'], true);
+                    })
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, bigipAuth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(declarationStatus));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+    });
+
+    describe('Test Rollbacking', function testRollbacking() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        const thisMachine = machines[0];
+        const bigipAddress = thisMachine.ip;
+        let body;
+        let currentState;
+
+        before(() => {
+            const bodyFile = `${BODIES}/bogus.json`;
+            const auth = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
+            return new Promise((resolve, reject) => {
+                // get current configuration to compare against later
+                common.testGetStatus(1, 1, bigipAddress, auth, constants.HTTP_SUCCESS)
+                    .then((response) => {
+                        body = response.currentConfig.Common;
+                    })
+                    // send out request with invalid config declaration
+                    .then(() => {
+                        return common.readFile(bodyFile);
+                    })
+                    .then((fileRead) => {
+                        const bodyRequest = JSON.parse(fileRead);
+                        return common.testRequest(bodyRequest,
+                            `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST');
+                    })
+                    .then(() => {
+                        return common.testGetStatus(3, 60 * 1000, bigipAddress, auth,
+                            constants.HTTP_UNPROCESSABLE);
+                    })
+                    .then((response) => {
+                        currentState = response.currentConfig.Common;
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, auth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(declarationStatus));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should have rollback status', () => {
+            // this is a bit weird, because testGetStatus will resolve if the status we passed in
+            // is the one found after the request. Since we asked for HTTP_UNPROCESSABLE, it will actually
+            // resolve iff the configuration was indeed rollbacked. At this point then, since before has
+            // resolved, we can just assert the response
+            assert.ok(currentState);
+        });
+
+        it('should match VLAN', () => {
+            assert.ok(testVlan(body.VLAN.myVlan, currentState));
+        });
+
+        it('should match routing', () => {
+            assert.ok(testRoute(body.Route.myRoute, currentState));
+        });
+    });
+});
 
 /**
  * getF5Token - returns a new Promise which resolves with a new authorization token for
@@ -210,11 +501,11 @@ function testOnboard(bigipAddress) {
 */
 function getF5Token(deviceIp, auth) {
     return new Promise((resolve, reject) => {
-        const options = buildBody(`${hostname(deviceIp)}${ICONTROL_API}/shared/authn/login`,
-            auth, auth, 'POST');
-        return sendRequest(options)
+        const options = common.buildBody(`${common.hostname(deviceIp, constants.PORT)}`
+            + `${constants.ICONTROL_API}/shared/authn/login`, auth, auth, 'POST');
+        return common.sendRequest(options)
             .then((response) => {
-                if (response.response.statusCode !== HTTP_SUCCESS) {
+                if (response.response.statusCode !== constants.HTTP_SUCCESS) {
                     reject(new Error('could not get token'));
                 }
                 return response.body;
@@ -241,13 +532,13 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
     return new Promise((resolve, reject) => {
         return getF5Token(bigIqAddress, bigIqAuth)
             .then((token) => {
-                const options = buildBody(`${hostname(bigIqAddress)}${ICONTROL_API}`
-                    + '/cm/device/licensing/assignments',
+                const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
+                    + `${constants.ICONTROL_API}/cm/device/licensing/assignments`,
                 null, { token }, 'GET');
-                return sendRequest(options);
+                return common.sendRequest(options);
             })
             .then((response) => {
-                if (response.response.statusCode !== HTTP_SUCCESS) {
+                if (response.response.statusCode !== constants.HTTP_SUCCESS) {
                     reject(new Error('could not license'));
                 }
                 return response.body;
@@ -278,218 +569,17 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
 }
 
 /**
- * testLicensing - test for licensing, revoking using a BIG-IQ, and relicensing. We revoke at the end so as to
- *                 clean up licenses on BIG-IPs that are going to be killed after the test suite.
- * @bigIpAddress {String} : ip address of target BIG-IP
- * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
-*/
-function testLicensing(bigIpAddress) {
-    return new Promise((resolve, reject) => {
-        const bodyFileLicensing = `${BODIES}/licensing_big_iq.json`;
-        const bodyFileRevokingRelicensing = `${BODIES}/revoking_relicensing_big_iq.json`;
-        const errors = [];
-        let passed = 1;
-        const bigIpAuth = { username: bigipAdminUsername, password: bigipAdminPassword };
-        const bigIqAuth = {};
-        let bigIqAddress;
-        let oldAuditLink;
-
-        common.readFile(bodyFileLicensing)
-            .then(JSON.parse)
-            .then((body) => {
-                // get BIG-IQ credentials
-                bigIqAuth.username = body.Common.myLicense.bigIqUsername;
-                bigIqAuth.password = body.Common.myLicense.bigIqPassword;
-                // and its ip address
-                bigIqAddress = body.Common.myLicense.bigIqHost;
-                return body;
-            })
-            .then((body) => {
-                // license the BIG-IP through a BIG-IQ
-                return testRequest(body, `${hostname(bigIpAddress)}${DO_API}`, bigIpAuth,
-                    HTTP_ACCEPTED, 'POST', errors);
-            })
-            .then(() => {
-                // wait until status is 200, try 30 times, 60 secs each trial
-                return testGetStatus(30, 60 * 1000, bigIpAddress, bigIpAuth, HTTP_SUCCESS, errors);
-            })
-            .then(() => {
-                // check if device has been licensed with an iControl call to the BIG-IQ
-                return getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth);
-            })
-            .then((auditLink) => {
-                oldAuditLink = auditLink;
-                passed = passed && check('device was licensed', true, errors);
-            })
-            .then(() => {
-                // now revoke and re-license using another license pool
-                return common.readFile(bodyFileRevokingRelicensing);
-            })
-            .then(JSON.parse)
-            .then((body) => {
-                return testRequest(body, `${hostname(bigIpAddress)}${DO_API}`, bigIpAuth,
-                    HTTP_ACCEPTED, 'POST', errors);
-            })
-            .then(() => {
-                // wait until status is 200, try 30 times, 60 secs each trial
-                return testGetStatus(30, 60 * 1000, bigIpAddress, bigIpAuth, HTTP_SUCCESS, errors);
-            })
-            .then(() => {
-                // check BIG-IQ for new license assignment and revocation of previous license
-                return getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth);
-            })
-            .then((newAuditLink) => {
-                // if the new audit link is equal to the old, it means the old license wasn't
-                // revoked, because an audit link represents a licensed device (see getAuditLink)
-                passed = passed && check('re-licensed device with new pool',
-                    (newAuditLink !== oldAuditLink), errors);
-                return getF5Token(bigIqAddress, bigIqAuth);
-            })
-            .then((token) => {
-                const options = buildBody(oldAuditLink, null, { token }, 'GET');
-                return sendRequest(options);
-            })
-            .then((response) => {
-                if (response.response.statusCode !== HTTP_SUCCESS) {
-                    reject(new Error('could not check revoking'));
-                }
-                return response.body;
-            })
-            .then(JSON.parse)
-            .then((assignment) => {
-                passed = passed && check('old license revoked', (assignment.status === 'REVOKED'), errors);
-                resolve(passed);
-            })
-            .catch((error) => {
-                reportMismatch(errors);
-                reject(error);
-            });
-    });
-}
-
-/**
- * testNetworking - test for a networking declaration type
- * @bigipAddress {String} : ip addrress of target BIG-IP
- * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
-*/
-function testNetworking(bigipAddress) {
-    return new Promise((resolve, reject) => {
-        const bodyFile = `${BODIES}/network.json`;
-        let body;
-        const errors = [];
-        let passed = 1;
-        const auth = { username: bigipAdminUsername, password: bigipAdminPassword };
-
-        common.readFile(bodyFile)
-            .then((fileRead) => {
-                body = JSON.parse(fileRead);
-            })
-            .then(() => {
-                return testRequest(body, `${hostname(bigipAddress)}${DO_API}`,
-                    auth, HTTP_ACCEPTED, 'POST', errors);
-            })
-            .then(() => {
-                // try 30 times, 60 secs each trial
-                return testGetStatus(30, 60 * 1000, bigipAddress, auth, HTTP_SUCCESS, errors);
-            })
-            .then((response) => {
-                return response.currentConfig.Common;
-            })
-            .then((response) => {
-                passed = passed && check('self ip matches', testSelfIp(body.Common.mySelfIp, response,
-                    errors), errors);
-                return response;
-            })
-            .then((response) => {
-                passed = passed && check('vlan matches', testVlan(body.Common.myVlan, response, errors),
-                    errors);
-                return response;
-            })
-            .then((response) => {
-                passed = passed && check('route matches', testRoute(body.Common.myRoute, response, errors),
-                    errors);
-            })
-            .then(() => {
-                resolve(passed);
-            })
-            .catch((error) => {
-                reportMismatch(errors);
-                reject(error);
-            });
-    });
-}
-
-/**
- * testRollbacking - test for the rollbacking feature; we issue an initial
- *                   request if invalid configuration for a particular BIG-IP,
- *                   and we get the status later on to see if we have rolled back
- *                   to the previously working configuration
- * @bigipAddress {String} : ip addrress of target BIG-IP
- * Returns a Promise which is resolved with 1 if tests pass, or 0 if any test fails, or rejects with an error
-*/
-function testRollbacking(bigipAddress) {
-    return new Promise((resolve, reject) => {
-        const bodyFile = `${BODIES}/bogus.json`;
-        let currentConfiguration;
-        const errors = [];
-        let passed = 1;
-        const auth = { username: bigipAdminUsername, password: bigipAdminPassword };
-
-        // get current configuration to compare against later
-        testGetStatus(1, 1, bigipAddress, auth, HTTP_SUCCESS, errors)
-            .then((response) => {
-                passed = passed && check('test current status is ok', response, errors);
-                currentConfiguration = response.currentConfig.Common;
-            })
-            // send out request with invalid config declaration
-            .then(() => {
-                return common.readFile(bodyFile);
-            })
-            .then((fileRead) => {
-                const body = JSON.parse(fileRead);
-                return testRequest(body, `${hostname(bigipAddress)}${DO_API}`, auth,
-                    HTTP_ACCEPTED, 'POST', errors);
-            })
-            .then(() => {
-                return testGetStatus(3, 60 * 1000, bigipAddress, auth, HTTP_UNPROCESSABLE, errors);
-            })
-            .then((response) => {
-                passed = passed && check('test new status is rollbacked', response, errors);
-                return response.currentConfig.Common;
-            })
-            // check that configuration is still the same as before
-            .then((config) => {
-                passed = passed && check('vlan matches', testVlan(currentConfiguration.VLAN.myVlan, config,
-                    errors), errors);
-                return config;
-            })
-            .then((config) => {
-                passed = passed && check('route matches', testRoute(currentConfiguration.Route.myRoute,
-                    config, errors), errors);
-            })
-            .then(() => {
-                resolve(passed);
-            })
-            .catch((error) => {
-                reportMismatch(errors);
-                reject(error);
-            });
-    });
-}
-
-/**
  * testProvisioning - test a provisioning configuration patter from an
  *                    iControl call against a target object schemed on a
  *                    declaration
  * @target {Object}: object to be tested against
  * @response {Object} : object from status response to compare with target
  * @provisionModules {Array} : list of modules to be tested
- * @errors {Array}: list of mismatched pairs
  * Returns Promise true/false
  *
 */
-function testProvisioning(target, response, provisionModules, errors) {
-    return compareSimple(target, response.Provision, provisionModules, errors);
+function testProvisioning(target, response, provisionModules) {
+    return compareSimple(target, response.Provision, provisionModules);
 }
 
 /**
@@ -497,11 +587,10 @@ function testProvisioning(target, response, provisionModules, errors) {
  *              against a target object schemed on a declaration
  * @target {Object} : object to be tested against
  * @response {Object} : object from status response to compare with target
- * @errors {Array} : list of mismatched pairs
  * Returns Promise true/false
 */
-function testSelfIp(target, response, errors) {
-    return compareSimple(target, response.SelfIp.mySelfIp, ['address', 'allowService'], errors);
+function testSelfIp(target, response) {
+    return compareSimple(target, response.SelfIp.mySelfIp, ['address', 'allowService']);
 }
 
 /**
@@ -509,11 +598,10 @@ function testSelfIp(target, response, errors) {
  *                against a target object schemed on a declaration
  * @target {Object} : object to be tested against
  * @response {Object} : object from status response to compare with target
- * @errors {Array} : list of mismatched pairs
  * Returns Promise true/false
 */
-function testHostname(target, response, errors) {
-    return compareSimple(target, response, ['hostname'], errors);
+function testHostname(target, response) {
+    return compareSimple(target, response, ['hostname']);
 }
 
 /**
@@ -521,11 +609,10 @@ function testHostname(target, response, errors) {
  *           against a target object schemed on a declaration
  * @target {Object} : object to be tested against
  * @response {Object} : object from status response to compare with target
- * @errors {Array} : list of mismatched pairs
  * Returns Promise true/false
 */
-function testDns(target, response, errors) {
-    return compareSimple(target, response.DNS, ['search', 'nameServers'], errors);
+function testDns(target, response) {
+    return compareSimple(target, response.DNS, ['search', 'nameServers']);
 }
 
 /**
@@ -533,11 +620,10 @@ function testDns(target, response, errors) {
  *           against a target object schemed on a declaration
  * @target {Object} : object to be tested against
  * @response {Object} : object from status response to compare with target
- * @errors {Array} : list of mismatched pairs
  * Returns Promise true/false
 */
-function testNtp(target, response, errors) {
-    return compareSimple(target, response.NTP, ['servers', 'timezone'], errors);
+function testNtp(target, response) {
+    return compareSimple(target, response.NTP, ['servers', 'timezone']);
 }
 
 /**
@@ -545,12 +631,10 @@ function testNtp(target, response, errors) {
  *            against a target object schemed on a declaration
  * @target {Object} : object to be tested against
  * @response {Object} : object from status response to compare with target
- * @errors {Array} : list of mismatched pairs
  * Returns Promise true/false
 */
-function testVlan(target, response, errors) {
-    return compareSimple(target, response.VLAN.myVlan, ['tag', 'mtu', 'interfaces'],
-        errors);
+function testVlan(target, response) {
+    return compareSimple(target, response.VLAN.myVlan, ['tag', 'mtu', 'interfaces']);
 }
 
 /**
@@ -558,47 +642,10 @@ function testVlan(target, response, errors) {
  *             against a target object schemed on a declaration
  * @target {Object} : object to be tested against
  * @response {Object} : object from status response to compare with target
- * @errors {Array} : list of mismatched pairs
  * Returns Promise true/false
 */
-function testRoute(target, response, errors) {
-    return compareSimple(target, response.Route.myRoute, ['gw', 'network', 'mtu'], errors);
-}
-
-
-/**
- * testRequest - sends a request with the body and credentials to the hostname based on the ip provided,
- *               and tests if response was successful and issued the expected HTTP status code.
- * @body {Object} : request body
- * @url {String} : complete url with ip + endpoint for API call
- * @auth {Object} : authorization dictionary with (username, password) or F5 token
- * @expectedCode {int} : expected HTTP status code for the request
- * @method {String} : HTTP request method (POST, GET)
- * @errors {Array} : list of mismatched pairs
- * Returns Promise which resolves with response body on success or rejects with error
-*/
-function testRequest(body, url, auth, expectedCode, method, errors) {
-    const func = function () {
-        return new Promise((resolve, reject) => {
-            const options = buildBody(url, body, auth, method);
-            sendRequest(options)
-                .then((response) => {
-                    if (response.response.statusCode === expectedCode) {
-                        resolve(response.body);
-                    } else {
-                        if (errors) {
-                            pushError(errors, 'status code', 'status code', response.response.statusCode,
-                                expectedCode);
-                        }
-                        reject(new Error(response.response.statusCode));
-                    }
-                })
-                .catch((error) => {
-                    reject(error);
-                });
-        });
-    };
-    return common.tryOften(func, 10, 60 * 1000, [HTTP_UNAVAILABLE], true);
+function testRoute(target, response) {
+    return compareSimple(target, response.Route.myRoute, ['gw', 'network', 'mtu']);
 }
 
 /**
@@ -609,12 +656,11 @@ function testRequest(body, url, auth, expectedCode, method, errors) {
  * @target {Object} : object to be tested against
  * @response {Object} : object from status response to compare with target
  * @strings {Array} : list of key strings to be compared on both status call response and target
- * @errors {Array} : list of mismatched pairs
  * Returns true/false
 */
-function compareSimple(target, response, strings, errors) {
+function compareSimple(target, response, strings) {
     return strings.every((str) => {
-        return compareObjects(str, str, target, response, errors);
+        return compareObjects(str, str, target, response);
     });
 }
 
@@ -625,268 +671,11 @@ function compareSimple(target, response, strings, errors) {
  * @key2 {String} : key on value on target
  * source {Object} : first object to be compared
  * target {Object} : second object to be compared
- * errors {Array} : list of pairs that mismatch if any (initially empty)
  * Returns true/false
 */
-function compareObjects(key, key2, source, target, errors) {
+function compareObjects(key, key2, source, target) {
     if (JSON.stringify(source[key]) !== JSON.stringify(target[key2])) {
-        pushError(errors, key, key2, source[key], target[key2]);
         return false;
     }
     return true;
-}
-
-/**
- * reportMismatch - prints to the console the output mismatch between the values
- *                  reported in the errors list of pairs
- * @errors {Array} : list of mismatched pairs
- * Clears the errors array after printing mismatched output
-*/
-function reportMismatch(errors) {
-    errors.forEach((error) => {
-        console.log(' Mismatch: ');
-        console.log(`   ${error.first.name} : ${'+'.bgRed.black} ${error.first.value}`);
-        console.log(`   ${error.second.name} : ${'-'.bgGreen.black} ${error.second.value}`);
-    });
-    // clear the errors for future usage
-    errors.length = 0;
-}
-
-/**
- * pushError - pushes a pair of mismatched values to an errors list
- * @errors {Array} : list of mismatched pairs
- * @keyActual : name of first field
- * @keyExpected : name of second field
- * @actual : actual value of an evaluated variable
- * @expected : expected value of evaluated variable
-*/
-function pushError(errors, keyActual, keyExpected, actual, expected) {
-    errors.push({
-        first: {
-            name: keyActual, value: JSON.stringify(actual)
-        },
-        second: {
-            name: keyExpected, value: JSON.stringify(expected)
-        }
-    });
-}
-
-/**
- * testGetStatus - tries for a DO status response given a time interval and number of tries,
- *                 and if ever successful, returns the response
- * @trials {Integer} - number of allowed trials
- * @timeInterval {Integer} - time in ms to wait before trying again
- * @ipAddress {String} - BIG-IP address for DO call
- * @auth {Object} : authorization dictionary with (username, password) or F5 token
- * @expectedCode {String} - expected HTTP status code for when the API responds; typically HTTP_SUCCESS
- * @errors {Array} : list of mismatched pairs
- * Returns a Promise with response/error
-*/
-function testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode, errors) {
-    const func = function () {
-        return new Promise((resolve, reject) => {
-            const options = buildBody(`${hostname(ipAddress)}${DO_API}?show=full`, null, auth, 'GET');
-            sendRequest(options)
-                .then((response) => {
-                    if (response.response.statusCode === expectedCode) {
-                        resolve(JSON.parse(response.body));
-                    } else {
-                        pushError(errors, 'status code', 'status code', response.response.statusCode,
-                            expectedCode);
-                        reject(new Error(response.response.statusCode));
-                    }
-                })
-                .catch((error) => {
-                    reject(error);
-                });
-        });
-    };
-    return common.tryOften(func, trials, timeInterval, [HTTP_ACCEPTED, HTTP_UNAVAILABLE], true);
-}
-
-/**
- * hostname - prepends https and appends PORT to the ip address
- * @ipAddress {String} : base ip of the hostname
- * Returns full hostname + port string
-*/
-function hostname(ipAddress) {
-    return `https://${ipAddress}:${PORT}`;
-}
-
-/**
- * sendRequest - prepares and sends a request with some configuration
- * @options {Object} : configuration options for request
- * Returns Promise with response/error
-*/
-function sendRequest(options) {
-    return new Promise((resolve, reject) => {
-        request(options, (error, response, body) => {
-            if (error) { reject(error); }
-            const responseObj = { response, body };
-            resolve(responseObj);
-        });
-    });
-}
-
-/**
- * check - verifies that a value is true, and outputs OK or FAIL with
- *         an optional error message
- * @description {String} : test description
- * @testValue {Boolean} : variable to test for truth
- * @errors {Array} list of errors to be reported if test fails
- * Returns 1 if test passed, 0 otherwise
-*/
-function check(description, testValue, errors) {
-    if (testValue) {
-        console.log(`${' OK'.bgGreen.black} ${description.green}`);
-        return 1;
-    }
-    console.log(`${' FAIL'.bgRed.black} ${description.red}`);
-    reportMismatch(errors);
-    return 0;
-}
-
-/**
- * buildAuthenticationString - builds a base64 Basic Auth header
- * @credentials {Object} : username and password dictionary to be encoded
- *                         in the BasicAuth header {username : <user>, password : <pass>}
-*/
-function buildAuthenticationString(credentials) {
-    const username = credentials.username;
-    const password = credentials.password;
-    return (`Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`);
-}
-
-/**
- * buildBody - builds a request body to be sent over the network
- * url {String} : complete url + endpoint string for API call
- * @data {Object} : data to be sent on request
- * @auth {Object} : authorization dictionary with (username, password) or F5 token
- * @method {String} : request's method (POST, GET)
- * Returns fully-formatted body Object, or throws error if form of authentication is missing
- * (either username/password or a token)
-*/
-function buildBody(url, data, auth, method) {
-    const options = {
-        method,
-        url,
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-    if ('token' in auth) {
-        options.headers['X-F5-Auth-Token'] = auth.token;
-    } else if ('username' in auth && 'password' in auth) {
-        options.headers.Authorization = buildAuthenticationString(auth);
-    } else {
-        throw new Error('Missing authorization');
-    }
-    if (data) {
-        options.body = JSON.stringify(data);
-    }
-    return options;
-}
-
-/**
- * getMachines - deployed a number of machines, copies the DO rpm package to each
- *               one of them, and installs the package.
- * @numberOfMachines {Integer} : number of BIG-IPs you wish to deploy
- * Retrurns a Promise with an array of deployed machines, each element containing an
- * object with id of deployed machine, and ip address. { id : <machine_id>, ip : <ip_address> }
- * Rejects if a machine couldn't be deployed, or if either the scp or installation failed
-*/
-function getMachines(numberOfMachines) {
-    return new Promise((resolveOuter, rejectOuter) => {
-        return vio.deploy(numberOfMachines)
-            .then(JSON.parse)
-            .then((machines) => {
-                const installPromises = [];
-                machines.forEach((machine) => {
-                    installPromises.push(new Promise((resolve, reject) => {
-                        // retrieve ip address and machine id
-                        const machineId = machine.id;
-                        const ipAddress = machine.networking.AdminNetwork2[0].addr;
-                        // need to wait a little bit before machine is up
-                        scpRpm(ipAddress)
-                            .then(() => {
-                                return installRpm(ipAddress);
-                            })
-                            .then(JSON.parse)
-                            .then((response) => {
-                                if (response.status === 'CREATED') {
-                                    // we're done; the rpm package was installed
-                                    // resolve with the machine's ip address for later ref
-                                    resolve({ id: machineId, ip: ipAddress });
-                                } else {
-                                    // oops... we did request to install the rpm, but something failed
-                                    reject(new Error(`failed : ${response.status}`));
-                                }
-                            })
-                            .catch((error) => {
-                                reject(error);
-                            });
-                    }));
-                });
-                return Promise.all(installPromises);
-            })
-            .then((machines) => {
-                resolveOuter(machines);
-            })
-            .catch((error) => {
-                console.log(error);
-                rejectOuter(error);
-            });
-    });
-}
-
-/**
- * installRpm - tries to install the rpm package on the machine until we run out of attempts
- * @host {String} : BIG-IP's ip address
-*/
-function installRpm(host) {
-    const installBody = {
-        operation: 'INSTALL',
-        /* eslint-disable no-undef */
-        packageFilePath: `${REMOTE_DIR}/${path.basename(RPM_PACKAGE)}`
-        /* eslint-enable no-undef */
-    };
-    return testRequest(installBody, `${hostname(host)}${ICONTROL_API}/shared/iapp/package-management-tasks`,
-        { username: bigipAdminUsername, password: bigipAdminPassword },
-        HTTP_ACCEPTED, 'POST', null);
-}
-
-/**
- * scpRpm - tries to secure copy the RPM package to a target BIG-IP until we run
- *          out of attempts
- * @host {String} : BIG-IP's ip address
-*/
-function scpRpm(host) {
-    const ssh = new NodeSSH();
-    const func = function () {
-        return new Promise((resolve, reject) => {
-            ssh.connect({
-                host,
-                username: bigipUsername,
-                tryKeyboard: true,
-                onKeyboardInteractive: (name, instructions, instructionsLang, prompts, finish) => {
-                    if (prompts.length > 0 && prompts[0].prompt.toLowerCase().includes('password')) {
-                        finish([bigipPassword]);
-                    }
-                }
-            })
-                .then(() => {
-                    /* eslint-disable no-undef */
-                    return ssh.putFile(RPM_PACKAGE, `${REMOTE_DIR}/${path.basename(RPM_PACKAGE)}`);
-                    /* eslint-enable no-undef */
-                })
-                .then(() => {
-                    resolve('copied');
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    };
-    // try 10 times, with 1min for each time, and do not reject on error
-    return common.tryOften(func, 10, 60 * 1000, null, false);
 }

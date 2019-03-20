@@ -27,22 +27,6 @@
           "class": "Provision",
           "ltm": "nominal"
         },
-        "admin": {
-            "class": "User",
-            "userType": "regular",
-            "password": "admin",
-            "shell": "bash"
-        },
-        "anotherUser": {
-            "class": "User",
-            "userType": "regular",
-            "password": "admin",
-            "partitionAccess": {
-                "Common": {
-                    "role": "guest"
-                }
-            }
-        },
         "myVlan": {
             "class": "VLAN",
             "tag": 1234,
@@ -52,6 +36,17 @@
                     "name": "1.1",
                     "tagged": true
                 }
+            ]
+        },
+        "internal" : {
+            "class" : "VLAN",
+            "tag" : 4094,
+            "mtu" : 1500,
+            "interfaces" : [
+              {
+                "name" : "1.1",
+                "tagged" : false
+              }
             ]
         },
         "mySelfIp": {
