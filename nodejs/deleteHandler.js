@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,11 +39,13 @@ class DeleteHandler {
      * @param {Object} declaration - Parsed declaration of objects to delete.
      * @param {Object} bigIp - BigIp object.
      * @param {EventEmitter} - DO event emitter.
+     * @param {State} - The doState.
      */
-    constructor(declaration, bigIp, eventEmitter) {
+    constructor(declaration, bigIp, eventEmitter, state) {
         this.declaration = declaration;
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
+        this.state = state;
     }
 
     /**
