@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 'use strict';
+
+const uuidv4 = require('uuid/v4');
 
 const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 
@@ -32,136 +34,305 @@ class State {
      * @param {Object} existingState - The existing state data
      */
     constructor(existingState) {
-        this.result = {};
-        this.internalDeclaration = {};
-
         if (existingState) {
-            Object.assign(this.result, existingState.result);
-            Object.assign(this.internalDeclaration, existingState.internalDeclaration);
-
-            if (existingState.currentConfig) {
-                this.currentConfig = {};
-                Object.assign(this.currentConfig, existingState.currentConfig);
-            }
-
-            if (existingState.originalConfig) {
-                this.originalConfig = {};
-                Object.assign(this.originalConfig, existingState.originalConfig);
-            }
+            const state = copyAndUpgradeState(existingState);
+            this.tasks = state.tasks;
+            this.mostRecentTask = state.mostRecentTask;
+        } else {
+            this.tasks = {};
+            this.mostRecentTask = null;
         }
     }
 
     /**
-     * Sets the current result code
-     */
-    set code(code) {
-        this.result.code = code;
-    }
-
-    /**
-     * Gets the current result code
-     */
-    get code() {
-        return this.result.code;
-    }
-
-    /**
-     * Sets the current result message
-     */
-    set message(message) {
-        this.result.message = message;
-    }
-
-    /**
-     * Gets the current result message
-     */
-    get message() {
-        return this.result.message;
-    }
-
-    /**
-     * Sets the current status string
-     */
-    set status(status) {
-        this.result.status = status;
-    }
-
-    /**
-     * Gets the current status string
-     */
-    get status() {
-        return this.result.status;
-    }
-
-    /**
-     * Sets the current errors
+     * Adds a task to the current tasks.
      *
-     * @param {String[]} errors - The error array to set
+     * @returns {Number} - The id of the added task.
      */
-    set errors(errors) {
-        if (errors) {
-            this.result.errors = errors.slice();
-        } else if (this.result.errors) {
-            this.result.errors.length = 0;
+    addTask() {
+        const taskId = uuidv4();
+        this.tasks[taskId] = {
+            id: taskId,
+            result: {},
+            internalDeclaration: {}
+        };
+        this.mostRecentTask = taskId;
+        return taskId;
+    }
+
+    /**
+     * Gets the task state for a task id.
+     *
+     * @param {String} taskId - The id of the task.
+     *
+     * @returns {Object} The task state for the given taskId.
+     */
+    getTask(taskId) {
+        return this.tasks[taskId];
+    }
+
+    /**
+     * Gets all of the task ids
+     *
+     * @returns {String[]} Array of task ids
+     */
+    getTaskIds() {
+        return Object.keys(this.tasks);
+    }
+
+    /**
+     * Sets the current configuration of the BIG-IP.
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} currentConfig - Configuration to store. This should be in the format
+     *                                 that the {@link DeclarationParser} would create.
+     */
+    setCurrentConfig(taskId, currentConfig) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].currentConfig = JSON.parse(JSON.stringify(currentConfig));
+        } else {
+            throw new Error('taskId does not exist');
         }
     }
 
     /**
-     * Gets the current result message
+     * Gets the current configuration.
+     *
+     * @param {String} taskId - The id of the task.
+     *
+     * @returns {Object} The current configuration in the format
+     *                   that the {@link DeclarationParser} would create.
      */
-    get errors() {
-        return this.result.errors;
+    getCurrentConfig(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].currentConfig;
+        }
+        throw new Error('taskId does not exist');
     }
 
     /**
-     * Sets the declaration masking certain values
+     * Sets the original configuration of the BIG-IP.
      *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} originalConfig - Configuration to store. This should be in the format
+     *                                  that the {@link DeclarationParser} would create.
+     */
+    setOriginalConfig(taskId, originalConfig) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].originalConfig = JSON.parse(JSON.stringify(originalConfig));
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the original configuration.
+     *
+     * @param {String} taskId - The id of the task.
+     *
+     * @returns {Object} The original configuration in the format
+     *                   that the {@link DeclarationParser} would create.
+     */
+    getOriginalConfig(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].originalConfig;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets the result code for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Number} code - The status code to set.
+     */
+    setCode(taskId, code) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].result.code = code;
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the current result code for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getCode(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].result.code;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets the current result message for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {String} result - The result message to set.
+     */
+    setMessage(taskId, message) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].result.message = message;
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the current result message for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getMessage(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].result.message;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets the current status string for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {String} status - The status string to set.
+     */
+    setStatus(taskId, status) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].result.status = status;
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the current status string for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getStatus(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].result.status;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets the current errors for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {String[]} errors - The error array to set.
+     */
+    setErrors(taskId, errors) {
+        if (this.tasks[taskId]) {
+            if (errors) {
+                this.tasks[taskId].result.errors = errors.slice();
+            } else if (this.tasks[taskId].result.errors) {
+                this.tasks[taskId].result.errors.length = 0;
+            }
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the current result message for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getErrors(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].result.errors;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets the declaration for a task, masking certain values
+     *
+     * @param {String} taskId - The id of the task.
      * @param {Object} declaration - The declaration to set.
      */
-    set declaration(declaration) {
-        this.internalDeclaration = mask(declaration);
+    setDeclaration(taskId, declaration) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].internalDeclaration = mask(declaration);
+        } else {
+            throw new Error('taskId does not exist');
+        }
     }
 
     /**
-     * Gets the declaration
-     */
-    get declaration() {
-        return this.internalDeclaration;
-    }
-
-    /**
-     * Updates the result
+     * Gets the declaration for a task
      *
+     * @param {String} taskId - The id of the task.
+     */
+    getDeclaration(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].internalDeclaration;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Updates the result for a task
+     *
+     * @param {String} taskId - The id of the task.
      * @param {number} code - The f5-declarative-onboarding result code.
      * @param {string} status - The f5-declarative-onboarding status string from sharedConstants.STATUS.
      * @param {string} message - The user friendly error message if there is one.
-     * @param {string | array} - An error message or array of messages
+     * @param {string | array} - An error message or array of messages.
      */
-    updateResult(code, status, message, errors) {
-        if (code) {
-            this.result.code = code;
-        }
-
-        if (status) {
-            this.result.status = status;
-        }
-
-        if (message) {
-            this.result.message = message;
-        }
-
-        if (errors) {
-            if (!this.result.errors) {
-                this.result.errors = [];
+    updateResult(taskId, code, status, message, errors) {
+        if (this.tasks[taskId]) {
+            const result = this.tasks[taskId].result;
+            if (code) {
+                result.code = code;
             }
 
-            if (Array.isArray(errors)) {
-                this.result.errors = this.result.errors.concat(errors);
-            } else {
-                this.result.errors.push(errors);
+            if (status) {
+                result.status = status;
             }
+
+            if (message) {
+                result.message = message;
+            }
+
+            if (errors) {
+                if (!result.errors) {
+                    result.errors = [];
+                }
+
+                if (Array.isArray(errors)) {
+                    result.errors = result.errors.concat(errors);
+                } else {
+                    result.errors.push(errors);
+                }
+            }
+        } else {
+            throw new Error('taskId does not exist');
         }
     }
+}
+
+/**
+ * Upgades the state object from a prior release of DO
+ *
+ * @param {Object} existingState - The current doState data
+ *
+ * @returns {Object} A copy of existingState upgraded to match the current data model
+ */
+function copyAndUpgradeState(existingState) {
+    if (!existingState.tasks) {
+        const state = {
+            tasks: {}
+        };
+        const taskId = uuidv4();
+        state.tasks[taskId] = JSON.parse(JSON.stringify(existingState));
+        state.mostRecentTask = taskId;
+        return state;
+    }
+    return JSON.parse(JSON.stringify(existingState));
 }
 
 function mask(declaration) {

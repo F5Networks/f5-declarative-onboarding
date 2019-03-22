@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,34 +21,56 @@
  *
  * @class
  *
- * @param {Object} state - The current [doState]{@link State}
+ * @param {Object} doState - The current [doState]{@link State}
+ * @param {String} [taskId] - The id of the task to send the response for. Default is to send
+ *                            result for all tasks.
  * @param {Object} [options] - Query options
  * @param {String} [options.show] - What to show of the state. Only current option is 'full'
  */
 class Response {
-    constructor(state, options) {
-        if (state.code < 300) {
-            this.result = {
-                class: 'Result',
-                code: state.code,
-                status: state.status,
-                message: state.message,
-                errors: state.errors
-            };
-        } else {
-            this.code = state.code;
-            this.status = state.status;
-            this.message = state.message;
-            this.errors = state.errors;
+    constructor(doState, taskId, options) {
+        if (taskId) {
+            return getResponse(doState, taskId, options);
         }
 
-        this.declaration = state.declaration;
-
-        if (options && options.show && options.show === 'full') {
-            this.currentConfig = state.currentConfig;
-            this.originalConfig = state.originalConfig;
-        }
+        const taskIds = doState.getTaskIds();
+        return taskIds.map((id) => {
+            return getResponse(doState, id, options);
+        });
     }
+}
+
+function getResponse(doState, taskId, options) {
+    const task = doState.getTask(taskId);
+    if (!task) {
+        return {
+            id: taskId,
+            result: {
+                code: 404,
+                message: 'Task does not exist',
+                errors: ['Task does not exist']
+            }
+        };
+    }
+    const response = {
+        id: taskId,
+        selfLink: `https://localhost/mgmt/shared/declarative-onboarding/task/${taskId}`,
+        result: {
+            class: 'Result',
+            code: doState.getCode(taskId),
+            status: doState.getStatus(taskId),
+            message: doState.getMessage(taskId),
+            errors: doState.getErrors(taskId)
+        },
+        declaration: doState.getDeclaration(taskId)
+    };
+
+    if (options && options.show && options.show === 'full') {
+        response.currentConfig = doState.getCurrentConfig(taskId);
+        response.originalConfig = doState.getOriginalConfig(taskId);
+    }
+
+    return response;
 }
 
 module.exports = Response;

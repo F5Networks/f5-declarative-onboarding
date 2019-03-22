@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,66 +20,89 @@ const assert = require('assert');
 
 const Response = require('../../nodejs/response');
 
+const state = {
+    getTask(taskId) {
+        return this.tasks[taskId];
+    },
+    getTaskIds() {
+        return Object.keys(this.tasks);
+    },
+    getCode(taskId) {
+        return this.tasks[taskId].result.code;
+    },
+    getStatus(taskId) {
+        return this.tasks[taskId].result.status;
+    },
+    getMessage(taskId) {
+        return this.tasks[taskId].result.message;
+    },
+    getErrors(taskId) {
+        return this.tasks[taskId].result.errors;
+    },
+    getDeclaration(taskId) {
+        return this.tasks[taskId].declaration;
+    },
+    getCurrentConfig(taskId) {
+        return this.tasks[taskId].currentConfig;
+    },
+    getOriginalConfig(taskId) {
+        return this.tasks[taskId].originalConfig;
+    },
+    tasks: {
+        1234: {
+            result: {
+                code: 200,
+                status: 'my status',
+                message: 'my message',
+                errors: ['error 1', 'error 2'],
+            },
+            currentConfig: {
+                foo: 'bar'
+            },
+            originalConfig: {
+                hello: 'world'
+            }
+        },
+        5678: {
+            result: {
+                code: 200,
+                status: 'my status',
+                message: 'my message',
+                errors: ['error 1', 'error 2'],
+            },
+            currentConfig: {
+                foo: 'bar'
+            },
+            originalConfig: {
+                hello: 'world'
+            }
+        }
+    }
+};
+
 describe('response', () => {
     it('should set success response in result', () => {
-        const state = {
-            code: 200,
-            status: 'my status',
-            message: 'my message',
-            errors: ['error 1', 'error 2'],
-            currentConfig: {
-                foo: 'bar'
-            },
-            originalConfig: {
-                hello: 'world'
-            }
-        };
-        const response = new Response(state);
-        assert.strictEqual(response.result.code, state.code);
-        assert.strictEqual(response.result.status, state.status);
-        assert.strictEqual(response.result.message, state.message);
-        assert.deepEqual(response.result.errors, state.errors);
-        assert.strictEqual(response.currentConfig, undefined);
-        assert.strictEqual(response.originalConfig, undefined);
-    });
-
-    it('should set error response at top level', () => {
-        const state = {
-            code: 300,
-            status: 'my status',
-            message: 'my message',
-            errors: ['error 1', 'error 2'],
-            currentConfig: {
-                foo: 'bar'
-            },
-            originalConfig: {
-                hello: 'world'
-            }
-        };
-        const response = new Response(state);
-        assert.strictEqual(response.code, state.code);
-        assert.strictEqual(response.status, state.status);
-        assert.strictEqual(response.message, state.message);
-        assert.deepEqual(response.errors, state.errors);
+        const response = new Response(state, 1234);
+        assert.strictEqual(response.id, 1234);
+        assert.strictEqual(response.result.code, state.tasks[1234].result.code);
+        assert.strictEqual(response.result.status, state.tasks[1234].result.status);
+        assert.strictEqual(response.result.message, state.tasks[1234].result.message);
+        assert.deepEqual(response.result.errors, state.tasks[1234].result.errors);
         assert.strictEqual(response.currentConfig, undefined);
         assert.strictEqual(response.originalConfig, undefined);
     });
 
     it('should include full response if options say so', () => {
-        const state = {
-            code: 200,
-            status: 'my status',
-            message: 'my message',
-            errors: ['error 1', 'error 2'],
-            currentConfig: {
-                foo: 'bar'
-            },
-            originalConfig: {
-                hello: 'world'
-            }
-        };
-        const response = new Response(state, { show: 'full' });
-        assert.deepEqual(response.currentConfig, state.currentConfig);
-        assert.deepEqual(response.originalConfig, state.originalConfig);
+        const response = new Response(state, 1234, { show: 'full' });
+        assert.deepEqual(response.currentConfig, state.tasks[1234].currentConfig);
+        assert.deepEqual(response.originalConfig, state.tasks[1234].originalConfig);
+    });
+
+    it('should return an array of tasks if no task id is set', () => {
+        const response = new Response(state);
+        assert.ok(Array.isArray(response));
+        assert.strictEqual(response.length, 2);
+        assert.strictEqual(response[0].id, '1234');
+        assert.strictEqual(response[1].id, '5678');
     });
 });

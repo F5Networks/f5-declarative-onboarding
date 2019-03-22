@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,6 +106,12 @@ describe('restWorker', () => {
     });
 
     describe('onStartCompleted', () => {
+        beforeEach(() => {
+            doUtilMock.getCurrentPlatform = () => {
+                return Promise.resolve('BIG-IP');
+            };
+        });
+
         it('should call error if given an error message', () => {
             return new Promise((resolve, reject) => {
                 const restWorker = new RestWorker();
@@ -130,7 +136,16 @@ describe('restWorker', () => {
             RestWorker.prototype.loadState = (foo, callback) => {
                 loadStateCalled = true;
                 const state = {
-                    doState: {}
+                    doState: {
+                        mostRecentTask: 1234,
+                        tasks: {
+                            1234: {
+                                result: {
+                                    status: STATUS.STATUS_OK
+                                }
+                            }
+                        }
+                    }
                 };
                 callback(null, state);
             };
@@ -179,7 +194,7 @@ describe('restWorker', () => {
             return new Promise((resolve, reject) => {
                 const restWorker = new RestWorker();
                 const success = () => {
-                    assert.strictEqual(restWorker.state.doState.result.status, STATUS.STATUS_OK);
+                    assert.strictEqual(restWorker.state.doState.tasks[1234].result.status, STATUS.STATUS_OK);
                     resolve();
                 };
                 const error = () => {
@@ -189,8 +204,13 @@ describe('restWorker', () => {
                 RestWorker.prototype.loadState = (foo, callback) => {
                     const state = {
                         doState: {
-                            result: {
-                                status: STATUS.STATUS_REBOOTING
+                            mostRecentTask: 1234,
+                            tasks: {
+                                1234: {
+                                    result: {
+                                        status: STATUS.STATUS_REBOOTING
+                                    }
+                                }
                             }
                         }
                     };
@@ -263,7 +283,16 @@ describe('restWorker', () => {
 
                 restWorker = new RestWorker();
                 restWorker.state = {
-                    doState: new State()
+                    doState: {
+                        mostRecentTask: 1234,
+                        tasks: {
+                            1234: {
+                                result: {
+                                    status: STATUS.STATUS_OK
+                                }
+                            }
+                        }
+                    }
                 };
             });
 
@@ -276,14 +305,19 @@ describe('restWorker', () => {
 
                     state = {
                         doState: {
-                            result: {
-                                status: STATUS.STATUS_REVOKING
-                            },
-                            internalDeclaration: {
-                                Common: {
-                                    myLicense: {
-                                        class: 'License',
-                                        revokeFrom: 'foo'
+                            mostRecentTask: 1234,
+                            tasks: {
+                                1234: {
+                                    result: {
+                                        status: STATUS.STATUS_REVOKING
+                                    },
+                                    internalDeclaration: {
+                                        Common: {
+                                            myLicense: {
+                                                class: 'License',
+                                                revokeFrom: 'foo'
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -292,7 +326,8 @@ describe('restWorker', () => {
 
                     bigIpMock.reboot = () => {
                         assert.strictEqual(
-                            restWorker.state.doState.internalDeclaration.Common.myLicense.revokeFrom,
+                            restWorker
+                                .state.doState.tasks[1234].internalDeclaration.Common.myLicense.revokeFrom,
                             undefined
                         );
                         resolve();
@@ -315,16 +350,21 @@ describe('restWorker', () => {
 
                     state = {
                         doState: {
-                            result: {
-                                status: STATUS.STATUS_REVOKING
-                            },
-                            internalDeclaration: {
-                                Common: {
-                                    myLicense: {
-                                        class: 'License',
-                                        revokeFrom: 'foo',
-                                        bigIpUsername: 'myBigIpUser',
-                                        bigIqUsername: 'myBigIqUser'
+                            mostRecentTask: 1234,
+                            tasks: {
+                                1234: {
+                                    result: {
+                                        status: STATUS.STATUS_REVOKING
+                                    },
+                                    internalDeclaration: {
+                                        Common: {
+                                            myLicense: {
+                                                class: 'License',
+                                                revokeFrom: 'foo',
+                                                bigIpUsername: 'myBigIpUser',
+                                                bigIqUsername: 'myBigIqUser'
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -333,13 +373,17 @@ describe('restWorker', () => {
 
                     bigIpMock.reboot = () => {
                         assert.strictEqual(decryptedIds.length, 2);
-                        assert.strictEqual(restWorker.state.doState.result.status, STATUS.STATUS_REBOOTING);
                         assert.strictEqual(
-                            restWorker.state.doState.internalDeclaration.Common.myLicense.bigIpPassword,
+                            restWorker.state.doState.tasks[1234].result.status, STATUS.STATUS_REBOOTING
+                        );
+                        assert.strictEqual(
+                            restWorker
+                                .state.doState.tasks[1234].internalDeclaration.Common.myLicense.bigIpPassword,
                             bigIpPassword
                         );
                         assert.strictEqual(
-                            restWorker.state.doState.internalDeclaration.Common.myLicense.bigIqPassword,
+                            restWorker
+                                .state.doState.tasks[1234].internalDeclaration.Common.myLicense.bigIqPassword,
                             bigIqPassword
                         );
                         resolve();
@@ -362,14 +406,19 @@ describe('restWorker', () => {
 
                     state = {
                         doState: {
-                            result: {
-                                status: STATUS.STATUS_REVOKING
-                            },
-                            internalDeclaration: {
-                                Common: {
-                                    myLicense: {
-                                        class: 'License',
-                                        revokeFrom: 'foo'
+                            mostRecentTask: 1234,
+                            tasks: {
+                                1234: {
+                                    result: {
+                                        status: STATUS.STATUS_REVOKING
+                                    },
+                                    internalDeclaration: {
+                                        Common: {
+                                            myLicense: {
+                                                class: 'License',
+                                                revokeFrom: 'foo'
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -378,7 +427,9 @@ describe('restWorker', () => {
 
                     bigIpMock.reboot = () => {
                         assert.strictEqual(decryptedIds.length, 0);
-                        assert.strictEqual(restWorker.state.doState.result.status, STATUS.STATUS_REBOOTING);
+                        assert.strictEqual(
+                            restWorker.state.doState.tasks[1234].result.status, STATUS.STATUS_REBOOTING
+                        );
                         resolve();
                     };
 
@@ -409,6 +460,7 @@ describe('restWorker', () => {
                 const success = () => {
                     restWorker.eventEmitter.emit(
                         EVENTS.DO_LICENSE_REVOKED,
+                        1234,
                         bigIpPassword,
                         bigIqPassword
                     );
@@ -428,22 +480,99 @@ describe('restWorker', () => {
     });
 
     describe('onGet', () => {
-        it('should return current state', () => {
-            return new Promise((resolve, reject) => {
-                declaration = {
-                    foo: 'bar'
-                };
+        let restWorker;
 
+        const code1234 = 200;
+        const code5678 = 300;
+        const declaration1234 = {
+            foo: 'bar'
+        };
+        const declaration5678 = {
+            hello: 'world'
+        };
+
+        beforeEach(() => {
+            restWorker = new RestWorker();
+            restWorker.state = {
+                doState: {
+                    tasks: {
+                        1234: {
+                            internalDeclaration: declaration1234,
+                            result: {
+                                code: code1234
+                            }
+                        },
+                        5678: {
+                            internalDeclaration: declaration5678,
+                            result: {
+                                code: code5678
+                            }
+                        }
+                    }
+                }
+            };
+        });
+
+        it('should return state for all tasks if no path is specified', () => {
+            return new Promise((resolve, reject) => {
                 restOperationMock.complete = () => {
-                    assert.deepEqual(responseBody.declaration, declaration);
+                    assert.ok(Array.isArray(responseBody));
+                    assert.deepEqual(responseBody[0].declaration, declaration1234);
+                    assert.strictEqual(responseBody[0].result.code, code1234);
+                    assert.deepEqual(responseBody[1].declaration, declaration5678);
+                    assert.strictEqual(responseBody[1].result.code, code5678);
                     resolve();
                 };
+                restOperationMock.getUri = () => {
+                    return {
+                        pathname: '/shared/declarative-onboarding'
+                    };
+                };
 
-                const restWorker = new RestWorker();
-                restWorker.state = {
-                    doState: {
-                        internalDeclaration: declaration
-                    }
+                try {
+                    restWorker.onGet(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should return state for all tasks if tasks path is specified with no task', () => {
+            return new Promise((resolve, reject) => {
+                restOperationMock.complete = () => {
+                    assert.ok(Array.isArray(responseBody));
+                    assert.deepEqual(responseBody[0].declaration, declaration1234);
+                    assert.strictEqual(responseBody[0].result.code, code1234);
+                    assert.deepEqual(responseBody[1].declaration, declaration5678);
+                    assert.strictEqual(responseBody[1].result.code, code5678);
+                    resolve();
+                };
+                restOperationMock.getUri = () => {
+                    return {
+                        pathname: '/shared/declarative-onboarding/task'
+                    };
+                };
+
+                try {
+                    restWorker.onGet(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should return state for specified task if tasks path is specified with a task', () => {
+            return new Promise((resolve, reject) => {
+                restOperationMock.complete = () => {
+                    assert.strictEqual(Array.isArray(responseBody), false);
+                    assert.deepEqual(responseBody.declaration, declaration1234);
+                    assert.strictEqual(responseBody.result.code, code1234);
+                    resolve();
+                };
+                restOperationMock.getUri = () => {
+                    return {
+                        pathname: '/shared/declarative-onboarding/task/1234'
+                    };
                 };
 
                 try {
@@ -485,9 +614,6 @@ describe('restWorker', () => {
             doUtilMock.getBigIp = (logger, bigIpOptions) => {
                 bigIpOptionsCalled = bigIpOptions;
                 return Promise.resolve(bigIpMock);
-            };
-            doUtilMock.getCurrentPlatform = () => {
-                return Promise.resolve('BIG-IP');
             };
 
             validatorMock.validate = () => {
@@ -572,9 +698,9 @@ describe('restWorker', () => {
                 };
 
                 restOperationMock.complete = () => {
-                    assert.strictEqual(responseBody.code, 400);
-                    assert.strictEqual(responseBody.status, STATUS.STATUS_ERROR);
-                    assert.notStrictEqual(responseBody.message.indexOf('bad declaration'), -1);
+                    assert.strictEqual(responseBody.result.code, 400);
+                    assert.strictEqual(responseBody.result.status, STATUS.STATUS_ERROR);
+                    assert.notStrictEqual(responseBody.result.message.indexOf('bad declaration'), -1);
                     resolve();
                 };
 
@@ -605,10 +731,10 @@ describe('restWorker', () => {
         it('should handle missing content header with invalid content', () => {
             return new Promise((resolve, reject) => {
                 restOperationMock.complete = () => {
-                    assert.strictEqual(responseBody.code, 400);
-                    assert.strictEqual(responseBody.status, STATUS.STATUS_ERROR);
-                    assert.notStrictEqual(responseBody.message.indexOf('bad declaration'), -1);
-                    assert.notStrictEqual(responseBody.errors[0].indexOf('Should be JSON format'), -1);
+                    assert.strictEqual(responseBody.result.code, 400);
+                    assert.strictEqual(responseBody.result.status, STATUS.STATUS_ERROR);
+                    assert.notStrictEqual(responseBody.result.message.indexOf('bad declaration'), -1);
+                    assert.notStrictEqual(responseBody.result.errors[0].indexOf('Should be JSON format'), -1);
                     resolve();
                 };
 
@@ -673,9 +799,9 @@ describe('restWorker', () => {
                 };
 
                 restOperationMock.complete = () => {
-                    assert.strictEqual(responseBody.status, STATUS.STATUS_ERROR);
-                    assert.notStrictEqual(responseBody.message.indexOf('rolled back'), -1);
-                    assert.strictEqual(responseBody.errors[0], rollbackReason);
+                    assert.strictEqual(responseBody.result.status, STATUS.STATUS_ERROR);
+                    assert.notStrictEqual(responseBody.result.message.indexOf('rolled back'), -1);
+                    assert.strictEqual(responseBody.result.errors[0], rollbackReason);
                     resolve();
                 };
 
@@ -704,10 +830,10 @@ describe('restWorker', () => {
                 };
 
                 restOperationMock.complete = () => {
-                    assert.strictEqual(responseBody.status, STATUS.STATUS_ERROR);
-                    assert.notStrictEqual(responseBody.message.indexOf('rollback failed'), -1);
-                    assert.strictEqual(responseBody.errors[0], rollbackReason);
-                    assert.strictEqual(responseBody.errors[1], rollbackFailReason);
+                    assert.strictEqual(responseBody.result.status, STATUS.STATUS_ERROR);
+                    assert.notStrictEqual(responseBody.result.message.indexOf('rollback failed'), -1);
+                    assert.strictEqual(responseBody.result.errors[0], rollbackReason);
+                    assert.strictEqual(responseBody.result.errors[1], rollbackFailReason);
                     resolve();
                 };
 

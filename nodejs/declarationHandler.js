@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,16 +106,16 @@ class DeclarationHandler {
                 return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
             })
             .then(() => {
-                return new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter).process();
+                return new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process();
             })
             .then(() => {
-                return new NetworkHandler(updateDeclaration, this.bigIp, this.eventEmitter).process();
+                return new NetworkHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process();
             })
             .then(() => {
-                return new DscHandler(updateDeclaration, this.bigIp, this.eventEmitter).process();
+                return new DscHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process();
             })
             .then(() => {
-                return new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter).process();
+                return new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter, state).process();
             })
             .then(() => {
                 logger.info('Done processing declartion.');

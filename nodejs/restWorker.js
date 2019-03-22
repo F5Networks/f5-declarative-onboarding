@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ class RestWorker {
     constructor() {
         this.WORKER_URI_PATH = 'shared/declarative-onboarding';
         this.isPublic = true;
-
+        this.isPassThrough = true;
         this.eventEmitter = new EventEmitter();
     }
 
@@ -85,13 +85,13 @@ class RestWorker {
 
         // If this device's license is going to be revoked, services will
         // restart and we need to know that's what happened when this worker is restarted.
-        this.eventEmitter.on(EVENTS.DO_LICENSE_REVOKED, (bigIpPassword, bigIqPassword) => {
+        this.eventEmitter.on(EVENTS.DO_LICENSE_REVOKED, (taskId, bigIpPassword, bigIqPassword) => {
             if (this.platform === PRODUCTS.BIGIP) {
                 // if we need to relicense after we restart, so store passwords
                 cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID);
                 cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID);
 
-                this.state.doState.updateResult(202, STATUS.STATUS_REVOKING, 'revoking license');
+                this.state.doState.updateResult(taskId, 202, STATUS.STATUS_REVOKING, 'revoking license');
                 save.call(this);
             }
         });
@@ -99,96 +99,13 @@ class RestWorker {
         // The framework is supposed to pass in our state, but does not.
         load.call(this)
             .then(() => {
-                switch (this.state.doState.status) {
-                case STATUS.STATUS_REBOOTING:
-                    // If we were rebooting and are now in this function, all should be well
-                    this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
-                    save.call(this)
-                        .then(() => {
-                            logger.fine('Rebooting complete. Onboarding complete.');
-                            success();
-                        })
-                        .catch((saveErr) => {
-                            const message = `error saving state after reboot: ${saveErr.message}`;
-                            logger.severe(message);
-                            error(message);
-                        });
-                    break;
-                case STATUS.STATUS_REVOKING:
-                    // If our status is REVOKING, restnoded was just restarted
-                    // and we need to finish processing the declaration.
-                    // This should only be the case when we are running on a BIG-IP.
+                return doUtil.getCurrentPlatform();
+            })
+            .then((platform) => {
+                logger.info(`Platform: ${platform}`);
+                this.platform = platform;
 
-                    // call success then start onboarding
-                    setImmediate(success);
-                    setImmediate(() => {
-                        // In this case, we should be running locally on a BIG-IP since
-                        // revoking the BIG-IP license will not restart our restnoded in
-                        // other environments (ASG, for example)
-                        logger.fine('Onboard resuming.');
-                        this.state.doState.updateResult(202, STATUS.STATUS_RUNNING, 'processing');
-                        save.call(this);
-
-                        // Make sure we don't try to revoke again and if we need to relicense,
-                        // fill in the BIG-IQ and BIG-IP passwords
-                        const declaration = Object.assign({}, this.state.doState.declaration);
-                        const deletePromises = [];
-                        let licenseName;
-                        let hasBigIpUser = false;
-                        let hasBigIqUser = false;
-
-                        Object.keys(declaration.Common).forEach((key) => {
-                            if (declaration.Common[key].class === 'License') {
-                                licenseName = key;
-                                delete declaration.Common[licenseName].revokeFrom;
-
-                                if (declaration.Common[licenseName].bigIpUsername) {
-                                    hasBigIpUser = true;
-                                }
-                                if (declaration.Common[licenseName].bigIqUsername) {
-                                    hasBigIqUser = true;
-                                }
-                            }
-                        });
-
-                        Promise.resolve()
-                            .then(() => {
-                                if (hasBigIpUser) {
-                                    return cryptoUtil.decryptId(BIG_IP_ENCRYPTION_ID);
-                                }
-                                return Promise.resolve();
-                            })
-                            .then((password) => {
-                                if (password) {
-                                    declaration.Common[licenseName].bigIpPassword = password;
-                                    deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID));
-                                }
-                                if (hasBigIqUser) {
-                                    return cryptoUtil.decryptId(BIG_IQ_ENCRYPTION_ID);
-                                }
-                                return Promise.resolve();
-                            })
-                            .then((password) => {
-                                if (password) {
-                                    declaration.Common[licenseName].bigIqPassword = password;
-                                    deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID));
-                                }
-                                return Promise.all(deletePromises);
-                            })
-                            .then(() => {
-                                return onboard.call(this, declaration, {});
-                            })
-                            .then((rebootRequired) => {
-                                if (rebootRequired) {
-                                    this.bigIp.reboot();
-                                }
-                            });
-                    });
-
-                    break;
-                default:
-                    success();
-                }
+                return handleStartupState.call(this, success, error);
             })
             .catch((err) => {
                 const message = `error creating state: ${err.message}`;
@@ -205,7 +122,27 @@ class RestWorker {
      * @param {Object} restOperation - The restOperation containing request info.
      */
     onGet(restOperation) {
-        sendResponse.call(this, restOperation);
+        const pathParts = restOperation.getUri().pathname.split('/');
+        if (pathParts.length === 3) {
+            // Just a GET to our base URI - return all tasks
+            sendResponse.call(this, restOperation);
+        } else {
+            switch (pathParts[3]) {
+            case 'task':
+                if (pathParts.length === 4) {
+                    // No task id specified, return all tasks
+                    sendResponse.call(this, restOperation);
+                } else if (pathParts.length === 5) {
+                    // Send the specific task
+                    sendResponse.call(this, restOperation, pathParts[4]);
+                } else {
+                    sendError(restOperation, 400, 'Bad URI. Should be task/<taskId>');
+                }
+                break;
+            default:
+                sendError(restOperation, 400, 'Bad URI. Should be task/<taskId>');
+            }
+        }
     }
 
     /**
@@ -216,6 +153,8 @@ class RestWorker {
     onPost(restOperation) {
         logger.finest('Got onboarding request.');
 
+        const taskId = this.state.doState.addTask();
+
         const contentType = restOperation.getContentType() || '';
         let body = restOperation.getBody();
         if (contentType.toLowerCase() !== 'application/json') {
@@ -224,10 +163,10 @@ class RestWorker {
             } catch (err) {
                 const message = 'Unable to parse request body. Should be JSON format.';
                 logger.info(message);
-                this.state.doState.declaration = {};
-                this.state.doState.errors = null;
-                this.state.doState.updateResult(400, STATUS.STATUS_ERROR, 'bad declaration', message);
-                sendResponse.call(this, restOperation);
+                this.state.doState.setDeclaration(taskId, {});
+                this.state.doState.setErrors(taskId, null);
+                this.state.doState.updateResult(taskId, 400, STATUS.STATUS_ERROR, 'bad declaration', message);
+                sendResponse.call(this, restOperation, taskId);
                 return;
             }
         }
@@ -247,53 +186,60 @@ class RestWorker {
         }
 
         const validation = this.validator.validate(wrapper);
-        this.state.doState.declaration = declaration;
-        this.state.doState.errors = null;
+        this.state.doState.setDeclaration(taskId, declaration);
+        this.state.doState.setErrors(taskId, null);
 
         if (!validation.isValid) {
             const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
             logger.info(message);
-            this.state.doState.updateResult(400, STATUS.STATUS_ERROR, 'bad declaration', validation.errors);
+            this.state.doState.updateResult(
+                taskId,
+                400,
+                STATUS.STATUS_ERROR,
+                'bad declaration',
+                validation.errors
+            );
             save.call(this)
                 .then(() => {
-                    sendResponse.call(this, restOperation);
+                    sendResponse.call(this, restOperation, taskId);
                 });
         } else {
-            logger.fine('Onboard starting.');
-            this.state.doState.updateResult(202, STATUS.STATUS_RUNNING, 'processing');
-            save.call(this);
-
-            if (declaration.async) {
-                sendResponse.call(this, restOperation);
-            }
-
-            // Fill in anything in the wrapper that is a json-pointer
-            const bigIpOptions = doUtil.dereference(
-                wrapper,
-                {
-                    host: wrapper.targetHost,
-                    port: wrapper.targetPort,
-                    user: wrapper.targetUsername,
-                    password: wrapper.targetPassphrase
-                }
-            );
-
-            const targetTokens = wrapper.targetTokens || {};
-            Object.keys(targetTokens).forEach((key) => {
-                if (key.toLowerCase() === 'x-f5-auth-token') {
-                    bigIpOptions.authToken = targetTokens[key];
-                }
-            });
-
-            onboard.call(this, declaration, bigIpOptions)
-                .then((rebootRequired) => {
-                    if (!declaration.async) {
-                        logger.fine('Sending response.');
-                        sendResponse.call(this, restOperation);
+            logger.fine(`Onboard starting for task ${taskId}`);
+            this.state.doState.updateResult(taskId, 202, STATUS.STATUS_RUNNING, 'processing');
+            save.call(this)
+                .then(() => {
+                    if (declaration.async) {
+                        sendResponse.call(this, restOperation, taskId);
                     }
-                    if (rebootRequired) {
-                        this.bigIp.reboot();
-                    }
+
+                    // Fill in anything in the wrapper that is a json-pointer
+                    const bigIpOptions = doUtil.dereference(
+                        wrapper,
+                        {
+                            host: wrapper.targetHost,
+                            port: wrapper.targetPort,
+                            user: wrapper.targetUsername,
+                            password: wrapper.targetPassphrase
+                        }
+                    );
+
+                    const targetTokens = wrapper.targetTokens || {};
+                    Object.keys(targetTokens).forEach((key) => {
+                        if (key.toLowerCase() === 'x-f5-auth-token') {
+                            bigIpOptions.authToken = targetTokens[key];
+                        }
+                    });
+
+                    onboard.call(this, declaration, bigIpOptions, taskId)
+                        .then((rebootRequired) => {
+                            if (!declaration.async) {
+                                logger.fine('Sending response.');
+                                sendResponse.call(this, restOperation, taskId);
+                            }
+                            if (rebootRequired) {
+                                this.bigIp.reboot();
+                            }
+                        });
                 });
         }
     }
@@ -323,25 +269,19 @@ class RestWorker {
     /* eslint-enable class-methods-use-this */
 }
 
-function onboard(declaration, bigIpOptions) {
+function onboard(declaration, bigIpOptions, taskId) {
     let rebootRequired = false;
 
     return doUtil.getBigIp(logger, bigIpOptions)
         .then((bigIp) => {
             this.bigIp = bigIp;
-            this.declarationHandler = new DeclarationHandler(this.bigIp, this.eventEmitter);
-            logger.fine('Determining platform');
-            return doUtil.getCurrentPlatform(bigIpOptions);
-        })
-        .then((platform) => {
-            logger.fine('Running in a', platform);
-            this.platform = platform;
 
             logger.fine('Getting and saving current configuration');
-            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
+            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId);
         })
         .then(() => {
-            return this.declarationHandler.process(declaration, this.state.doState);
+            this.declarationHandler = new DeclarationHandler(this.bigIp, this.eventEmitter);
+            return this.declarationHandler.process(declaration, this.state.doState.getTask(taskId));
         })
         .then(() => {
             logger.fine('Saving sys config.');
@@ -355,13 +295,13 @@ function onboard(declaration, bigIpOptions) {
             rebootRequired = needsReboot;
             if (!rebootRequired) {
                 logger.fine('No reboot required');
-                this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
+                this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
             } else {
                 logger.fine('Reboot required. Rebooting.');
-                this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
+                this.state.doState.updateResult(taskId, 202, STATUS.STATUS_REBOOTING, 'reboot required');
             }
             logger.fine('Getting and saving current configuration');
-            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
+            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId);
         })
         .then(() => {
             if (!rebootRequired) {
@@ -374,6 +314,7 @@ function onboard(declaration, bigIpOptions) {
             logger.info('Rolling back configuration');
             const deconCode = err.code === 400 ? 422 : 500;
             this.state.doState.updateResult(
+                taskId,
                 deconCode,
                 STATUS.STATUS_ROLLING_BACK,
                 'invalid config - rolling back',
@@ -382,14 +323,17 @@ function onboard(declaration, bigIpOptions) {
             return save.call(this)
                 .then(() => {
                     const rollbackTo = {};
-                    Object.assign(rollbackTo, this.state.doState.currentConfig);
-                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration)
+                    Object.assign(rollbackTo, this.state.doState.getTask(taskId).currentConfig);
+                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId)
                         .then(() => {
-                            return this.declarationHandler.process(rollbackTo, this.state.doState);
+                            return this.declarationHandler.process(
+                                rollbackTo,
+                                this.state.doState.getTask(taskId)
+                            );
                         })
                         .then(() => {
-                            this.state.doState.status = STATUS.STATUS_ERROR;
-                            this.state.doState.message = 'invalid config - rolled back';
+                            this.state.doState.setStatus(taskId, STATUS.STATUS_ERROR);
+                            this.state.doState.setMessage(taskId, 'invalid config - rolled back');
                             return save.call(this);
                         })
                         .catch((rollbackError) => {
@@ -402,6 +346,7 @@ function onboard(declaration, bigIpOptions) {
             logger.severe(`Error rolling back configuration: ${err.message}`);
             const deconCode = 500;
             this.state.doState.updateResult(
+                taskId,
                 deconCode,
                 STATUS.STATUS_ERROR,
                 'rollback failed',
@@ -413,9 +358,12 @@ function onboard(declaration, bigIpOptions) {
         });
 }
 
-function getAndSaveCurrentConfig(bigIp, declaration) {
+function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
     const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
-    return configManager.get(declaration, this.state.doState)
+    return configManager.get(declaration, this.state.doState.getTask(taskId))
         .then(() => {
             return save.call(this);
         });
@@ -470,20 +418,147 @@ function load() {
     });
 }
 
+function handleStartupState(success, error) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
+    // TODO: What to do if we are not on BIG-IP (DECONBDING-259)?
+    if (this.platform !== PRODUCTS.BIGIP) {
+        success();
+        return;
+    }
+
+    const currentTaskId = this.state.doState.mostRecentTask;
+    if (!currentTaskId) {
+        logger.info('Initial startup');
+        success();
+        return;
+    }
+
+    switch (this.state.doState.getStatus(currentTaskId)) {
+    case STATUS.STATUS_REBOOTING:
+        // If we were rebooting and are now in this function, all should be well
+        this.state.doState.updateResult(currentTaskId, 200, STATUS.STATUS_OK, 'success');
+        save.call(this)
+            .then(() => {
+                logger.fine('Rebooting complete. Onboarding complete.');
+                success();
+            })
+            .catch((saveErr) => {
+                const message = `error saving state after reboot: ${saveErr.message}`;
+                logger.severe(message);
+                error(message);
+            });
+        break;
+    case STATUS.STATUS_REVOKING:
+        // If our status is REVOKING, restnoded was just restarted
+        // and we need to finish processing the declaration.
+        // This should only be the case when we are running on a BIG-IP.
+
+        // call success then start onboarding
+        setImmediate(success);
+        setImmediate(() => {
+            // In this case, we should be running locally on a BIG-IP since
+            // revoking the BIG-IP license will not restart our restnoded in
+            // other environments (ASG, for example)
+            logger.fine('Onboard resuming.');
+            this.state.doState.updateResult(currentTaskId, 202, STATUS.STATUS_RUNNING, 'processing');
+            save.call(this);
+
+            // Make sure we don't try to revoke again and if we need to relicense,
+            // fill in the BIG-IQ and BIG-IP passwords
+            const declaration = Object.assign({}, this.state.doState.getDeclaration(currentTaskId));
+            const deletePromises = [];
+            let licenseName;
+            let hasBigIpUser = false;
+            let hasBigIqUser = false;
+
+            Object.keys(declaration.Common).forEach((key) => {
+                if (declaration.Common[key].class === 'License') {
+                    licenseName = key;
+                    delete declaration.Common[licenseName].revokeFrom;
+
+                    if (declaration.Common[licenseName].bigIpUsername) {
+                        hasBigIpUser = true;
+                    }
+                    if (declaration.Common[licenseName].bigIqUsername) {
+                        hasBigIqUser = true;
+                    }
+                }
+            });
+
+            Promise.resolve()
+                .then(() => {
+                    if (hasBigIpUser) {
+                        return cryptoUtil.decryptId(BIG_IP_ENCRYPTION_ID);
+                    }
+                    return Promise.resolve();
+                })
+                .then((password) => {
+                    if (password) {
+                        declaration.Common[licenseName].bigIpPassword = password;
+                        deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID));
+                    }
+                    if (hasBigIqUser) {
+                        return cryptoUtil.decryptId(BIG_IQ_ENCRYPTION_ID);
+                    }
+                    return Promise.resolve();
+                })
+                .then((password) => {
+                    if (password) {
+                        declaration.Common[licenseName].bigIqPassword = password;
+                        deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID));
+                    }
+                    return Promise.all(deletePromises);
+                })
+                .then(() => {
+                    return onboard.call(this, declaration, {}, currentTaskId);
+                })
+                .then((rebootRequired) => {
+                    if (rebootRequired) {
+                        this.bigIp.reboot();
+                    }
+                });
+        });
+
+        break;
+    default:
+        success();
+    }
+}
+
 /**
  * Sends a response for a restOperation.
  *
  * @param {Object} restOperation - The restOperation to send the response for.
  * @param {Number} code - The HTTP status code.
+ * @param {String} [taskId] - The id of the task to send the response for. Default is to send
+ *                            result for all tasks.
  */
-function sendResponse(restOperation) {
+function sendResponse(restOperation, taskId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
+
     const doState = new State(this.state.doState);
     restOperation.setContentType('application/json');
-    restOperation.setStatusCode(doState.code);
-    restOperation.setBody(new Response(doState, restOperation.getUri().query));
+    if (taskId) {
+        const task = doState.getTask(taskId);
+        if (task) {
+            restOperation.setStatusCode(doState.getCode(taskId));
+        } else {
+            restOperation.setStatusCode(404);
+        }
+    } else {
+        restOperation.setStatusCode(200);
+    }
+    restOperation.setBody(new Response(doState, taskId, restOperation.getUri().query));
     restOperation.complete();
+}
+
+function sendError(restOperation, code, message) {
+    restOperation.setContentType('application/json');
+    restOperation.setStatusCode(code);
+    restOperation.fail(new Error(message));
 }
 
 module.exports = RestWorker;
