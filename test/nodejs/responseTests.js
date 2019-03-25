@@ -48,6 +48,9 @@ const state = {
     getOriginalConfig(taskId) {
         return this.tasks[taskId].originalConfig;
     },
+    getLastUpdate(taskId) {
+        return this.tasks[taskId].lastUpdate;
+    },
     tasks: {
         1234: {
             result: {
@@ -61,7 +64,8 @@ const state = {
             },
             originalConfig: {
                 hello: 'world'
-            }
+            },
+            lastUpdate: 'foo'
         },
         5678: {
             result: {
@@ -75,7 +79,8 @@ const state = {
             },
             originalConfig: {
                 hello: 'world'
-            }
+            },
+            lastUpdate: 'bar'
         }
     }
 };
@@ -96,6 +101,7 @@ describe('response', () => {
         const response = new Response(state, 1234, { show: 'full' });
         assert.deepEqual(response.currentConfig, state.tasks[1234].currentConfig);
         assert.deepEqual(response.originalConfig, state.tasks[1234].originalConfig);
+        assert.deepEqual(response.lastUpdate, state.tasks[1234].lastUpdate);
     });
 
     it('should return an array of tasks if no task id is set', () => {
