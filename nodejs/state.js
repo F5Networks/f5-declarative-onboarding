@@ -20,6 +20,8 @@ const uuidv4 = require('uuid/v4');
 
 const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 
+const TASK_RETENTION_DAYS = 7;
+
 /**
  * Represents the declarative onboarding state
  *
@@ -53,10 +55,14 @@ class State {
         const taskId = uuidv4();
         this.tasks[taskId] = {
             id: taskId,
+            lastUpdate: new Date(),
             result: {},
             internalDeclaration: {}
         };
         this.mostRecentTask = taskId;
+
+        cleanupOldTasks(this.tasks);
+
         return taskId;
     }
 
@@ -275,6 +281,18 @@ class State {
     }
 
     /**
+     * Gets the last update time for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getLastUpdate(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].lastUpdate;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
      * Updates the result for a task
      *
      * @param {String} taskId - The id of the task.
@@ -285,6 +303,7 @@ class State {
      */
     updateResult(taskId, code, status, message, errors) {
         if (this.tasks[taskId]) {
+            this.tasks[taskId].lastUpdate = new Date();
             const result = this.tasks[taskId].result;
             if (code) {
                 result.code = code;
@@ -329,6 +348,8 @@ function copyAndUpgradeState(existingState) {
         };
         const taskId = uuidv4();
         state.tasks[taskId] = JSON.parse(JSON.stringify(existingState));
+        state.tasks[taskId].lastUpdate = new Date();
+        state.tasks[taskId].id = taskId;
         state.mostRecentTask = taskId;
         return state;
     }
@@ -353,6 +374,16 @@ function mask(declaration) {
     });
 
     return masked;
+}
+
+function cleanupOldTasks(tasks) {
+    const maxAge = TASK_RETENTION_DAYS * 1000 * 3600 * 24;
+    const now = new Date();
+    Object.keys(tasks).forEach((taskId) => {
+        if (now - tasks[taskId].lastUpdate > maxAge) {
+            delete tasks[taskId];
+        }
+    });
 }
 
 module.exports = State;
