@@ -112,8 +112,6 @@ teardown bigip:
 build rpm:
     image: node:8-alpine
     stage: build
-    except:
-        - tags
     tags:
         - docker-executor
     script:
@@ -176,7 +174,13 @@ publish to artifactory:
     tags:
         - docker-executor
     script:
-        - RPM_FILE=$(ls dist/*.rpm)
+        # If the tag contains a '-', then get RPM from the build artifact, otherwise, get it from dist
+        # since no '-' in the tag means it's s release and should have been committed to dist.
+        - if [[ $CI_COMMIT_TAG == *"-"* ]]; then
+            - RPM_FILE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
+        - else
+            - RPM_FILE=$(ls dist/*.rpm)
+        - fi
         - RPM_NAME=$(basename $RPM_FILE)
         - >-
             UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_NAME}
