@@ -1,6 +1,7 @@
 image: node:8
 
 stages:
+    - lint
     - test
     - build
     - deploy
@@ -9,14 +10,33 @@ stages:
     - post build
     - publish
 
+lint:
+    image: node:8
+    stage: lint
+    tags:
+        - docker-executor
+    script:
+        - npm ci
+        - npm run lint
+
 test_node4:
     image: node:4
     stage: test
     tags:
         - docker-executor
     script:
+        - npm install --global npm@5.10.0
         - npm install
-        - npm run lint
+        - npm install mocha@5.2.0
+        - npm test
+
+test_node6:
+    image: node:6
+    stage: test
+    tags:
+        - docker-executor
+    script:
+        - npm install
         - npm test
 
 test_node8:
@@ -25,7 +45,6 @@ test_node8:
         - docker-executor
     script:
         - npm ci
-        - npm run lint
         - npm test
 
 deploy bigip:

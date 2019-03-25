@@ -17,7 +17,7 @@
 'use strict';
 
 const assert = require('assert');
-const URL = require('url').URL;
+const URL = require('url');
 
 /* eslint-disable global-require, quote-props, quotes */
 
@@ -41,7 +41,7 @@ describe('configManager', () => {
             list(path) {
                 // The path name here does not have a domain, but does include
                 // a query. listResponses are set up with just the pathname part.
-                const pathname = new URL(path, 'https://foo').pathname;
+                const pathname = URL.parse(path, 'https://foo').pathname;
                 return Promise.resolve(listResponses[pathname] || {});
             }
         };
