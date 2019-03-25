@@ -46,6 +46,31 @@ describe('state', () => {
         assert.deepEqual(state, existingState);
     });
 
+    it('should delete old tasks when new tasks are added', () => {
+        const now = new Date();
+        const tooOld = now - (7 * 1000 * 3600 * 24) - 1;
+        const notTooOld = now - (7 * 1000 * 3600 * 24) + 100; // account for time to get to deletion code
+        const existingState = {
+            tasks: {
+                1234: {
+                    lastUpdate: tooOld
+                },
+                5678: {
+                    lastUpdate: notTooOld
+                }
+            }
+        };
+        const state = new State(existingState);
+        assert.ok(state.tasks['1234']);
+        assert.ok(state.tasks['5678']);
+
+        state.addTask();
+
+        assert.strictEqual(Object.keys(state.tasks).length, 2);
+        assert.strictEqual(state.tasks['1234'], undefined);
+        assert.ok(state.tasks['5678']);
+    });
+
     it('should upgrade a state from an older version', () => {
         const existingState = {
             result: {
@@ -66,6 +91,9 @@ describe('state', () => {
         assert.ok(state.tasks);
         assert.ok(state.mostRecentTask);
         const mostRecentTask = state.mostRecentTask;
+        existingState.id = mostRecentTask;
+        assert.ok(state.tasks[mostRecentTask].lastUpdate);
+        delete state.tasks[mostRecentTask].lastUpdate;
         assert.deepEqual(state.tasks[mostRecentTask], existingState);
     });
 

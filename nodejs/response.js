@@ -68,6 +68,7 @@ function getResponse(doState, taskId, options) {
     if (options && options.show && options.show === 'full') {
         response.currentConfig = doState.getCurrentConfig(taskId);
         response.originalConfig = doState.getOriginalConfig(taskId);
+        response.lastUpdate = doState.getLastUpdate(taskId);
     }
 
     return response;
