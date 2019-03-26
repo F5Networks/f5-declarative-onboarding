@@ -23,6 +23,15 @@ const State = require('../../nodejs/state');
 describe('state', () => {
     it('should create a new state from an exsiting state', () => {
         const existingState = {
+            originalConfig: {
+                ABCD: {
+                    this: {
+                        id: {
+                            my: 'state'
+                        }
+                    }
+                }
+            },
             tasks: {
                 1234: {
                     result: {
@@ -148,7 +157,7 @@ describe('state', () => {
         assert.deepEqual(state.getCurrentConfig(taskId), currentConfig);
     });
 
-    it('should set the original config', () => {
+    it('should get the original config by task id', () => {
         const state = new State();
         const originalConfig = {
             foo: {
@@ -159,9 +168,22 @@ describe('state', () => {
         };
 
         const taskId = state.addTask();
+        state.tasks[taskId].originalConfig = originalConfig;
+        assert.deepEqual(state.getOriginalConfigByTaskId(taskId), originalConfig);
+    });
 
-        state.setOriginalConfig(taskId, originalConfig);
-        assert.deepEqual(state.getOriginalConfig(taskId), originalConfig);
+    it('should set the original config by config id', () => {
+        const state = new State();
+        const originalConfig = {
+            foo: {
+                bar: {
+                    hello: 'world'
+                }
+            }
+        };
+
+        state.setOriginalConfigByConfigId('1234', originalConfig);
+        assert.deepEqual(state.getOriginalConfigByConfigId('1234'), originalConfig);
     });
 
     it('should mask passwords', () => {

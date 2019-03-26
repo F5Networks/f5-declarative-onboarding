@@ -363,7 +363,7 @@ function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
     /* jshint validthis: true */
 
     const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
-    return configManager.get(declaration, this.state.doState.getTask(taskId))
+    return configManager.get(declaration, this.state.doState.getTask(taskId), this.state.doState)
         .then(() => {
             return save.call(this);
         });

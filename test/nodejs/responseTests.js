@@ -51,6 +51,9 @@ const state = {
     getLastUpdate(taskId) {
         return this.tasks[taskId].lastUpdate;
     },
+    getOriginalConfigByTaskId(taskId) {
+        return this.tasks[taskId].originalConfig;
+    },
     tasks: {
         1234: {
             result: {
