@@ -183,7 +183,7 @@ publish to artifactory:
         - fi
         - RPM_NAME=$(basename $RPM_FILE)
         - >-
-            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_NAME}
+            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_FILE}
             ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${RPM_NAME})
         - echo $UPLOAD_RESULT
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during upload; exit 1; fi
