@@ -38,9 +38,11 @@ class State {
     constructor(existingState) {
         if (existingState) {
             const state = copyAndUpgradeState(existingState);
+            this.originalConfig = state.originalConfig;
             this.tasks = state.tasks;
             this.mostRecentTask = state.mostRecentTask;
         } else {
+            this.originalConfig = {};
             this.tasks = {};
             this.mostRecentTask = null;
         }
@@ -117,29 +119,40 @@ class State {
     }
 
     /**
-     * Sets the original configuration of the BIG-IP.
+     * Sets the original configuration of the BIG-IP by config id.
      *
-     * @param {String} taskId - The id of the task.
+     * @param {String} id - Unique id for this BIG-IP (machineId, for example).
      * @param {Object} originalConfig - Configuration to store. This should be in the format
      *                                  that the {@link DeclarationParser} would create.
      */
-    setOriginalConfig(taskId, originalConfig) {
-        if (this.tasks[taskId]) {
-            this.tasks[taskId].originalConfig = JSON.parse(JSON.stringify(originalConfig));
-        } else {
-            throw new Error('taskId does not exist');
-        }
+    setOriginalConfigByConfigId(id, originalConfig) {
+        this.originalConfig[id] = JSON.parse(JSON.stringify(originalConfig));
     }
 
     /**
-     * Gets the original configuration.
+     * Gets the original configuration of BIG-IP by config id.
+     *
+     * @param {String} id - Unique id for this BIG-IP (machineId, for example).
+     *
+     * @returns {Object} The original configuration in the format
+     *                   that the {@link DeclarationParser} would create.
+     */
+    getOriginalConfigByConfigId(id) {
+        if (this.originalConfig[id]) {
+            return this.originalConfig[id];
+        }
+        return null;
+    }
+
+    /**
+     * Gets the original configuration of the BIG-IP by taskId.
      *
      * @param {String} taskId - The id of the task.
      *
      * @returns {Object} The original configuration in the format
      *                   that the {@link DeclarationParser} would create.
      */
-    getOriginalConfig(taskId) {
+    getOriginalConfigByTaskId(taskId) {
         if (this.tasks[taskId]) {
             return this.tasks[taskId].originalConfig;
         }
@@ -352,6 +365,9 @@ function copyAndUpgradeState(existingState) {
         state.tasks[taskId].id = taskId;
         state.mostRecentTask = taskId;
         return state;
+    }
+    if (!existingState.originalConfig) {
+        existingState.originalConfig = {};
     }
     return JSON.parse(JSON.stringify(existingState));
 }
