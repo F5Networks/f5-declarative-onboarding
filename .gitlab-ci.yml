@@ -177,9 +177,9 @@ publish to artifactory:
         # If the tag contains a '-', then get RPM from the build artifact, otherwise, get it from dist
         # since no '-' in the tag means it's s release and should have been committed to dist.
         - if [[ $CI_COMMIT_TAG == *"-"* ]]; then
-            - RPM_FILE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
+        -     RPM_FILE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
         - else
-            - RPM_FILE=$(ls dist/*.rpm)
+        -     RPM_FILE=$(ls dist/*.rpm)
         - fi
         - RPM_NAME=$(basename $RPM_FILE)
         - >-
