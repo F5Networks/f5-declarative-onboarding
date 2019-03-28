@@ -844,5 +844,135 @@ describe('restWorker', () => {
                 }
             });
         });
+
+        describe('running on BIG-IQ', () => {
+            let taskId;
+            beforeEach(() => {
+                restWorker.platform = 'BIG-IQ';
+                restWorker.restOperationFactory = {
+                    createRestOperationInstance() {
+                        return {
+                            setUri() { return this; },
+                            setContentType() { return this; },
+                            setBody(body) {
+                                taskId = body.id;
+                                return this;
+                            }
+                        };
+                    }
+                };
+                restWorker.restRequestSender = {
+                    sendPost() { return Promise.resolve({}); },
+                    sendGet() {
+                        return Promise.resolve({
+                            status: 'FINISHED'
+                        });
+                    }
+                };
+                restWorker.retryInterval = 1;
+            });
+
+            afterEach(() => {
+                restWorker.platform = null;
+            });
+
+            it('should pass initial request to TCW if running on BIG-IQ', () => {
+                return new Promise((resolve, reject) => {
+                    restOperationMock.complete = () => {
+                        assert.notStrictEqual(taskId, undefined);
+                        assert.strictEqual(taskId, responseBody.id);
+                        resolve();
+                    };
+
+                    try {
+                        restWorker.onPost(restOperationMock);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
+
+            it('should poll TCW until FINISHED and report success', () => {
+                let pollRequests = 0;
+                restWorker.restRequestSender.sendGet = () => {
+                    let status = 'STARTED';
+                    pollRequests += 1;
+                    if (pollRequests === 2) {
+                        status = 'FINISHED';
+                    }
+                    return Promise.resolve({ status });
+                };
+
+                return new Promise((resolve, reject) => {
+                    restOperationMock.complete = () => {
+                        assert.strictEqual(pollRequests, 2);
+                        assert.strictEqual(responseBody.result.status, 'OK');
+                        resolve();
+                    };
+
+                    try {
+                        restWorker.onPost(restOperationMock);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
+
+            it('should poll TCW until FAILED and report error', () => {
+                let pollRequests = 0;
+                restWorker.restRequestSender.sendGet = () => {
+                    let status = 'STARTED';
+                    pollRequests += 1;
+                    if (pollRequests === 2) {
+                        status = 'FAILED';
+                    }
+                    return Promise.resolve({ status });
+                };
+
+                return new Promise((resolve, reject) => {
+                    restOperationMock.complete = () => {
+                        assert.strictEqual(pollRequests, 2);
+                        assert.strictEqual(responseBody.result.status, 'ERROR');
+                        resolve();
+                    };
+
+                    try {
+                        restWorker.onPost(restOperationMock);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
+
+            it('should act normally if this is an internal request', () => {
+                restOperationMock.getUri = () => {
+                    return {
+                        query: {
+                            internal: true
+                        }
+                    };
+                };
+
+                let pollRequests = 0;
+                restWorker.restRequestSender.sendGet = () => {
+                    pollRequests += 1;
+                    return Promise.resolve({});
+                };
+
+                return new Promise((resolve, reject) => {
+                    restOperationMock.complete = () => {
+                        assert.ok(saveCalled);
+                        assert.strictEqual(pollRequests, 0);
+                        resolve();
+                    };
+
+                    try {
+                        restWorker.onPost(restOperationMock);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
+        });
     });
 });

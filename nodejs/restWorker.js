@@ -206,6 +206,7 @@ class RestWorker {
         } else {
             logger.fine(`Onboard starting for task ${taskId}`);
             this.state.doState.updateResult(taskId, 202, STATUS.STATUS_RUNNING, 'processing');
+
             save.call(this)
                 .then(() => {
                     if (declaration.async) {
@@ -223,23 +224,40 @@ class RestWorker {
                         }
                     );
 
-                    const targetTokens = wrapper.targetTokens || {};
-                    Object.keys(targetTokens).forEach((key) => {
-                        if (key.toLowerCase() === 'x-f5-auth-token') {
-                            bigIpOptions.authToken = targetTokens[key];
-                        }
-                    });
-
-                    onboard.call(this, declaration, bigIpOptions, taskId)
-                        .then((rebootRequired) => {
-                            if (!declaration.async) {
-                                logger.fine('Sending response.');
-                                sendResponse.call(this, restOperation, taskId);
-                            }
-                            if (rebootRequired) {
-                                this.bigIp.reboot();
+                    // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
+                    const query = restOperation.getUri().query;
+                    if (this.platform === PRODUCTS.BIGIQ && !query.internal) {
+                        logger.finest('Passing to TCW');
+                        passToTcw.call(this, wrapper, taskId)
+                            .then((tcwId) => {
+                                return pollTcw.call(this, tcwId, taskId);
+                            })
+                            .then(() => {
+                                logger.finest('TCW is done');
+                                if (!declaration.async) {
+                                    logger.fine('Sending response.');
+                                    sendResponse.call(this, restOperation, taskId);
+                                }
+                            });
+                    } else {
+                        const targetTokens = wrapper.targetTokens || {};
+                        Object.keys(targetTokens).forEach((key) => {
+                            if (key.toLowerCase() === 'x-f5-auth-token') {
+                                bigIpOptions.authToken = targetTokens[key];
                             }
                         });
+
+                        onboard.call(this, declaration, bigIpOptions, taskId)
+                            .then((rebootRequired) => {
+                                if (!declaration.async) {
+                                    logger.fine('Sending response.');
+                                    sendResponse.call(this, restOperation, taskId);
+                                }
+                                if (rebootRequired) {
+                                    this.bigIp.reboot();
+                                }
+                            });
+                    }
                 });
         }
     }
@@ -358,6 +376,71 @@ function onboard(declaration, bigIpOptions, taskId) {
         });
 }
 
+function passToTcw(wrapper, taskId) {
+    const restOperation = this.restOperationFactory.createRestOperationInstance()
+        .setUri('http://localhost:8100/cm/global/tasks/declarative-onboarding')
+        .setContentType('application/json')
+        .setBody({
+            id: taskId,
+            declaration: wrapper
+        });
+    return this.restRequestSender.sendPost(restOperation)
+        .then((response) => {
+            return response.id;
+        });
+}
+
+function pollTcw(tcwId, taskId) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
+    const restOperation = this.restOperationFactory.createRestOperationInstance()
+        .setUri(`http://localhost:8100/cm/global/tasks/declarative-onboarding/${tcwId}`);
+
+    const retryFunc = () => {
+        return this.restRequestSender.sendGet(restOperation)
+            .then((response) => {
+                if (response.status === 'FAILED' || response.status === 'FINISHED') {
+                    return Promise.resolve(response);
+                }
+                return Promise.reject();
+            })
+            .catch(() => {
+                return Promise.reject();
+            });
+    };
+
+    return cloudUtil.tryUntil(
+        this,
+        { retryIntervalMs: this.retryInterval || 5000, maxRetries: 120 }, // this.retryInterval for testing
+        retryFunc
+    )
+        .then((response) => {
+            switch (response.status) {
+            case 'FINISHED':
+                this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
+                break;
+            case 'FAILED':
+                this.state.doState.updateResult(
+                    taskId,
+                    422,
+                    STATUS.STATUS_ERROR,
+                    'failed',
+                    response.errorMessage
+                );
+                break;
+            default:
+                this.state.updateResult(
+                    taskId,
+                    500,
+                    STATUS.STATUS_ERROR,
+                    'internal server error',
+                    `unexpected status: ${response.status}`
+                );
+            }
+            return Promise.resolve();
+        });
+}
 function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
