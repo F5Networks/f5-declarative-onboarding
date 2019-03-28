@@ -513,14 +513,12 @@ describe('restWorker', () => {
             };
         });
 
-        it('should return state for all tasks if no path is specified', () => {
+        it('should return state for most recent task if no path is specified', () => {
             return new Promise((resolve, reject) => {
                 restOperationMock.complete = () => {
-                    assert.ok(Array.isArray(responseBody));
-                    assert.deepEqual(responseBody[0].declaration, declaration1234);
-                    assert.strictEqual(responseBody[0].result.code, code1234);
-                    assert.deepEqual(responseBody[1].declaration, declaration5678);
-                    assert.strictEqual(responseBody[1].result.code, code5678);
+                    assert.strictEqual(Array.isArray(responseBody), false);
+                    assert.deepEqual(responseBody.declaration, declaration1234);
+                    assert.strictEqual(responseBody.result.code, code1234);
                     resolve();
                 };
                 restOperationMock.getUri = () => {
@@ -528,6 +526,8 @@ describe('restWorker', () => {
                         pathname: '/shared/declarative-onboarding'
                     };
                 };
+
+                restWorker.state.doState.mostRecentTask = 1234;
 
                 try {
                     restWorker.onGet(restOperationMock);

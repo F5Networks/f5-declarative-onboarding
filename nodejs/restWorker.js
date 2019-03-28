@@ -123,9 +123,9 @@ class RestWorker {
      */
     onGet(restOperation) {
         const pathParts = restOperation.getUri().pathname.split('/');
-        if (pathParts.length === 3) {
-            // Just a GET to our base URI - return all tasks
-            sendResponse.call(this, restOperation);
+        if (pathParts.length === 3 || pathParts[3] === '') {
+            // Just a GET to our base URI - return most recent task
+            sendResponse.call(this, restOperation, this.state.doState.mostRecentTask);
         } else {
             switch (pathParts[3]) {
             case 'task':
