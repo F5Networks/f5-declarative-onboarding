@@ -30,13 +30,17 @@
 class Response {
     constructor(doState, taskId, options) {
         if (taskId) {
-            return getResponse(doState, taskId, options);
+            this.response = getResponse(doState, taskId, options);
+        } else {
+            const taskIds = doState.getTaskIds();
+            this.response = taskIds.map((id) => {
+                return getResponse(doState, id, options);
+            });
         }
+    }
 
-        const taskIds = doState.getTaskIds();
-        return taskIds.map((id) => {
-            return getResponse(doState, id, options);
-        });
+    getResponse() {
+        return this.response;
     }
 }
 
@@ -52,18 +56,30 @@ function getResponse(doState, taskId, options) {
             }
         };
     }
+
     const response = {
         id: taskId,
-        selfLink: `https://localhost/mgmt/shared/declarative-onboarding/task/${taskId}`,
-        result: {
-            class: 'Result',
-            code: doState.getCode(taskId),
-            status: doState.getStatus(taskId),
-            message: doState.getMessage(taskId),
-            errors: doState.getErrors(taskId)
-        },
-        declaration: doState.getDeclaration(taskId)
+        selfLink: `https://localhost/mgmt/shared/declarative-onboarding/task/${taskId}`
     };
+
+    // For error statuses, restnoded requires message at the top level
+    // Other items at the top level for backwards compatibility
+    if (doState.getCode(taskId) >= 300) {
+        response.code = doState.getCode(taskId);
+        response.status = doState.getStatus(taskId);
+        response.message = doState.getMessage(taskId);
+        response.errors = doState.getErrors(taskId);
+    }
+
+    response.result = {
+        class: 'Result',
+        code: doState.getCode(taskId),
+        status: doState.getStatus(taskId),
+        message: doState.getMessage(taskId),
+        errors: doState.getErrors(taskId)
+    };
+
+    response.declaration = doState.getDeclaration(taskId);
 
     if (options && options.show && options.show === 'full') {
         response.currentConfig = doState.getCurrentConfig(taskId);

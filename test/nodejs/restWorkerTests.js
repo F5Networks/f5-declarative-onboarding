@@ -857,17 +857,28 @@ describe('restWorker', () => {
                             setBody(body) {
                                 taskId = body.id;
                                 return this;
-                            }
+                            },
+                            setIsSetBasicAuthHeader() { return this; },
+                            setReferer() { return this; }
                         };
                     }
                 };
                 restWorker.restRequestSender = {
-                    sendPost() { return Promise.resolve({}); },
+                    sendPost() {
+                        return Promise.resolve({
+                            getBody() { return {}; }
+                        });
+                    },
                     sendGet() {
                         return Promise.resolve({
-                            status: 'FINISHED'
+                            getBody() {
+                                return { status: 'FINISHED' };
+                            }
                         });
                     }
+                };
+                restWorker.restHelper = {
+                    makeRestjavadUri() {}
                 };
                 restWorker.retryInterval = 1;
             });
@@ -900,7 +911,11 @@ describe('restWorker', () => {
                     if (pollRequests === 2) {
                         status = 'FINISHED';
                     }
-                    return Promise.resolve({ status });
+                    return Promise.resolve({
+                        getBody() {
+                            return { status };
+                        }
+                    });
                 };
 
                 return new Promise((resolve, reject) => {
@@ -926,7 +941,11 @@ describe('restWorker', () => {
                     if (pollRequests === 2) {
                         status = 'FAILED';
                     }
-                    return Promise.resolve({ status });
+                    return Promise.resolve({
+                        getBody() {
+                            return { status };
+                        }
+                    });
                 };
 
                 return new Promise((resolve, reject) => {
@@ -956,7 +975,11 @@ describe('restWorker', () => {
                 let pollRequests = 0;
                 restWorker.restRequestSender.sendGet = () => {
                     pollRequests += 1;
-                    return Promise.resolve({});
+                    return Promise.resolve({
+                        getBody() {
+                            return {};
+                        }
+                    });
                 };
 
                 return new Promise((resolve, reject) => {

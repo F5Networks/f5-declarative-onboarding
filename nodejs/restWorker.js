@@ -228,9 +228,9 @@ class RestWorker {
                     const query = restOperation.getUri().query;
                     if (this.platform === PRODUCTS.BIGIQ && !query.internal) {
                         logger.finest('Passing to TCW');
-                        passToTcw.call(this, wrapper, taskId)
+                        passToTcw.call(this, wrapper, taskId, restOperation)
                             .then((tcwId) => {
-                                return pollTcw.call(this, tcwId, taskId);
+                                return pollTcw.call(this, tcwId, taskId, restOperation);
                             })
                             .then(() => {
                                 logger.finest('TCW is done');
@@ -238,6 +238,13 @@ class RestWorker {
                                     logger.fine('Sending response.');
                                     sendResponse.call(this, restOperation, taskId);
                                 }
+                            })
+                            .then(() => {
+                                return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId);
+                            })
+                            .catch((err) => {
+                                logger.info(`TCW task failed: ${err.message}`);
+                                return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId);
                             });
                     } else {
                         const targetTokens = wrapper.targetTokens || {};
@@ -376,9 +383,23 @@ function onboard(declaration, bigIpOptions, taskId) {
         });
 }
 
-function passToTcw(wrapper, taskId) {
+/**
+ * Sends a task to the TCW for processing before DO does its work.
+ *
+ * @param {Object} wrapper - The wrapped declaration.
+ * @param {String} taskId - ID of the external task created by DO.
+ * @param {Object} incomingRestOp - RestOperation that created this task.
+ *
+ * @returns {Promise} A promise that is resolved with the ID of the TCW task to poll.
+ */
+function passToTcw(wrapper, taskId, incomingRestOp) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
     const restOperation = this.restOperationFactory.createRestOperationInstance()
-        .setUri('http://localhost:8100/cm/global/tasks/declarative-onboarding')
+        .setUri(this.restHelper.makeRestjavadUri('/cm/global/tasks/declarative-onboarding'))
+        .setIsSetBasicAuthHeader(true)
+        .setReferer(incomingRestOp.getUri().href)
         .setContentType('application/json')
         .setBody({
             id: taskId,
@@ -386,22 +407,35 @@ function passToTcw(wrapper, taskId) {
         });
     return this.restRequestSender.sendPost(restOperation)
         .then((response) => {
-            return response.id;
+            return response.getBody().id;
         });
 }
 
-function pollTcw(tcwId, taskId) {
+/**
+ * Polls TCW until its task either finishes or fails.
+ *
+ * @param {String} tcwId - ID of the TCW task.
+ * @param {String} taskId - ID of the external task created by DO.
+ * @param {Object} incomingRestOp - RestOperation that created this task.
+ *
+ * @returns {Promise} A promise that is resolved when the TCW task either
+ *                    finishes or fails.
+ */
+function pollTcw(tcwId, taskId, incomingRestOp) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
     const restOperation = this.restOperationFactory.createRestOperationInstance()
-        .setUri(`http://localhost:8100/cm/global/tasks/declarative-onboarding/${tcwId}`);
+        .setUri(this.restHelper.makeRestjavadUri(`/cm/global/tasks/declarative-onboarding/${tcwId}`))
+        .setIsSetBasicAuthHeader(true)
+        .setReferer(incomingRestOp.getUri().href);
 
     const retryFunc = () => {
         return this.restRequestSender.sendGet(restOperation)
             .then((response) => {
-                if (response.status === 'FAILED' || response.status === 'FINISHED') {
-                    return Promise.resolve(response);
+                const body = response.getBody();
+                if (body.status === 'FAILED' || body.status === 'FINISHED') {
+                    return Promise.resolve(body);
                 }
                 return Promise.reject();
             })
@@ -439,6 +473,11 @@ function pollTcw(tcwId, taskId) {
                 );
             }
             return Promise.resolve();
+        })
+        .catch(() => {
+            const message = 'TCW task failed to finish or fail';
+            logger.info(message);
+            return Promise.reject(new Error(message));
         });
 }
 function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
@@ -634,14 +673,16 @@ function sendResponse(restOperation, taskId) {
     } else {
         restOperation.setStatusCode(200);
     }
-    restOperation.setBody(new Response(doState, taskId, restOperation.getUri().query));
+    const body = new Response(doState, taskId, restOperation.getUri().query).getResponse();
+    restOperation.setBody(body);
     restOperation.complete();
 }
 
 function sendError(restOperation, code, message) {
     restOperation.setContentType('application/json');
     restOperation.setStatusCode(code);
-    restOperation.fail(new Error(message));
+    restOperation.setBody(message);
+    restOperation.complete();
 }
 
 module.exports = RestWorker;

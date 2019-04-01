@@ -14,7 +14,7 @@ lint:
     image: node:8
     stage: lint
     tags:
-        - docker-executor
+        - cm-official-docker-executor
     script:
         - npm ci
         - npm run lint
@@ -23,7 +23,7 @@ test_node4:
     image: node:4
     stage: test
     tags:
-        - docker-executor
+        - cm-official-docker-executor
     script:
         - npm install --global npm@5.10.0
         - npm install
@@ -34,7 +34,7 @@ test_node6:
     image: node:6
     stage: test
     tags:
-        - docker-executor
+        - cm-official-docker-executor
     script:
         - npm install
         - npm test
@@ -42,11 +42,15 @@ test_node6:
 test_node8:
     stage: test
     tags:
-        - docker-executor
+        - cm-official-docker-executor
     script:
         - npm ci
         - npm test
 
+# for this job following variables should be defined:
+# CICD_AUTH_OS_USERNAME - VIO user
+# CICD_AUTH_OS_PASSWORD - VIO password
+# CICD_AUTH_OS_PROJECT  - VIO project
 deploy bigip:
     image: ${CICD_CONTAINER_DEPLOY}
     stage: deploy
@@ -60,34 +64,37 @@ deploy bigip:
         NUMBER_OF_BIGIP: 3
         DO_LICENSING: 'false'
         DO_PROVISIONING: 'false'
-    artifacts:
-        name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
-        paths:
-            - ${CI_PROJECT_DIR}/harness_facts_flat.json
-        expire_in: 40min
-    only:
-        - schedules
+#    only:
+#        - schedules
     script:
         - cd /root/cicd-bigip-deploy && make configure &&
             make printvars && cat ${PROJECT_DIR}/project-vars &&
             make setup && ls -als ${PROJECT_DIR} &&
             cp ${PROJECT_DIR}/harness_facts_flat.json ${CI_PROJECT_DIR}/harness_facts_flat.json
+        - if [[ $? != 0 ]]; then
+        -     echo setup failed
+        -     exit 1
+        - fi
         - cd ${CI_PROJECT_DIR}
-        #- export RPM_PACKAGE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
-        - export RPM_PACKAGE=dist/f5-declarative-onboarding-1.3.0-4.noarch.rpm
+        - export RPM_PACKAGE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
         - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
         - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
         - yum install -y nodejs
         - npm install
         - node test/functional/setup.js
+    artifacts:
+        name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
+        paths:
+            - ${CI_PROJECT_DIR}/harness_facts_flat.json
+        expire_in: 40min
 
 functional test:
     image: centos
     stage: functional test
     tags:
        - cm-official-docker-executor
-    only:
-        - schedules
+#    only:
+#        - schedules
     script:
        - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
@@ -101,19 +108,20 @@ teardown bigip:
     tags:
         - cm-official-docker-executor
     variables:
-        PROJECT_NAME: do-testing
-        PROJECT_DIR: /root/deploy-projects/do-testing
+        PROJECT_NAME: ${CI_PROJECT_NAME}
+        PROJECT_DIR: /root/deploy-projects/${CI_PROJECT_NAME}
+        NUMBER_OF_BIGIP: 3
     script:
       - cd /root/cicd-bigip-deploy && make configure && make teardown
     when: always
-    only:
-        - schedules
+#    only:
+#        - schedules
 
 build rpm:
     image: node:8-alpine
     stage: build
     tags:
-        - docker-executor
+        - cm-official-docker-executor
     script:
         - apk add rpm bash
         - build/buildRpm.sh
@@ -130,7 +138,7 @@ build asg:
         - tags
         - schedules
     tags:
-        - docker-executor
+        - cm-official-docker-executor
     dependencies:
         - build rpm
     script:
@@ -158,7 +166,7 @@ create postman collection:
         - tags
         - schedules
     tags:
-        - docker-executor
+        - cm-official-docker-executor
     script:
         - node build/generatePostmanCollection.js
     artifacts:
@@ -172,7 +180,7 @@ publish to artifactory:
     only:
         - tags
     tags:
-        - docker-executor
+        - cm-official-docker-executor
     script:
         # If the tag contains a '-', then get RPM from the build artifact, otherwise, get it from dist
         # since no '-' in the tag means it's s release and should have been committed to dist.

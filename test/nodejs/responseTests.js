@@ -90,7 +90,7 @@ const state = {
 
 describe('response', () => {
     it('should set success response in result', () => {
-        const response = new Response(state, 1234);
+        const response = new Response(state, 1234).getResponse();
         assert.strictEqual(response.id, 1234);
         assert.strictEqual(response.result.code, state.tasks[1234].result.code);
         assert.strictEqual(response.result.status, state.tasks[1234].result.status);
@@ -101,14 +101,14 @@ describe('response', () => {
     });
 
     it('should include full response if options say so', () => {
-        const response = new Response(state, 1234, { show: 'full' });
+        const response = new Response(state, 1234, { show: 'full' }).getResponse();
         assert.deepEqual(response.currentConfig, state.tasks[1234].currentConfig);
         assert.deepEqual(response.originalConfig, state.tasks[1234].originalConfig);
         assert.deepEqual(response.lastUpdate, state.tasks[1234].lastUpdate);
     });
 
     it('should return an array of tasks if no task id is set', () => {
-        const response = new Response(state);
+        const response = new Response(state).getResponse();
         assert.ok(Array.isArray(response));
         assert.strictEqual(response.length, 2);
         assert.strictEqual(response[0].id, '1234');
