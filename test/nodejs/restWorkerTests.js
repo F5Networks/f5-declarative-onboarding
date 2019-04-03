@@ -1075,6 +1075,31 @@ describe('restWorker', () => {
                     }
                 });
             });
+
+            it('should save bigIp object if externalId is sent', () => {
+                restOperationMock.getUri = () => {
+                    return {
+                        query: {
+                            internal: true,
+                            externalId: 'myExternalId'
+                        }
+                    };
+                };
+
+                return new Promise((resolve, reject) => {
+                    restOperationMock.complete = () => {
+                        assert.ok(saveCalled);
+                        assert.notStrictEqual(restWorker.bigIps.myExternalId, undefined);
+                        resolve();
+                    };
+
+                    try {
+                        restWorker.onPost(restOperationMock);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
         });
     });
 });

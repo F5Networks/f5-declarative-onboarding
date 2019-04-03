@@ -51,6 +51,7 @@ class RestWorker {
         this.isPublic = true;
         this.isPassThrough = true;
         this.eventEmitter = new EventEmitter();
+        this.bigIps = {}; // map of task ID -> big IP
     }
 
     /**
@@ -213,9 +214,14 @@ class RestWorker {
                         }
                     );
 
-                    // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
                     const query = restOperation.getUri().query;
-                    if (this.platform === PRODUCTS.BIGIQ && !query.internal) {
+                    const insensitiveQuery = {};
+                    Object.keys(query).forEach((key) => {
+                        insensitiveQuery[key.toLowerCase()] = query[key];
+                    });
+
+                    // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
+                    if (this.platform === PRODUCTS.BIGIQ && !insensitiveQuery.internal) {
                         logger.finest('Passing to TCW');
                         passToTcw.call(this, wrapper, taskId, restOperation)
                             .then((tcwId) => {
@@ -229,13 +235,24 @@ class RestWorker {
                                 }
                             })
                             .then(() => {
-                                return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId);
+                                return getAndSaveCurrentConfig.call(
+                                    this,
+                                    this.bigIps[taskId],
+                                    declaration,
+                                    taskId
+                                );
                             })
                             .catch((err) => {
                                 logger.info(`TCW task failed: ${err.message}`);
-                                return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId);
+                                return getAndSaveCurrentConfig.call(
+                                    this,
+                                    this.bigIps[taskId],
+                                    declaration,
+                                    taskId
+                                );
                             });
                     } else {
+                        const originalDoId = insensitiveQuery.externalid;
                         const targetTokens = wrapper.targetTokens || {};
                         Object.keys(targetTokens).forEach((key) => {
                             if (key.toLowerCase() === 'x-f5-auth-token') {
@@ -245,12 +262,18 @@ class RestWorker {
 
                         onboard.call(this, declaration, bigIpOptions, taskId)
                             .then((rebootRequired) => {
+                                // We store the bigIp object under the original ID so the polling
+                                // task knows which state to update. This is only sent by the TCW.
+                                if (originalDoId) {
+                                    this.bigIps[originalDoId] = this.bigIps[taskId];
+                                }
+
                                 if (!declaration.async) {
                                     logger.fine('Sending response.');
                                     sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                                 }
                                 if (rebootRequired) {
-                                    this.bigIp.reboot();
+                                    this.bigIps[taskId].reboot();
                                 }
                             });
                     }
@@ -305,25 +328,26 @@ class RestWorker {
 
 function onboard(declaration, bigIpOptions, taskId) {
     let rebootRequired = false;
+    let declarationHandler;
 
     return doUtil.getBigIp(logger, bigIpOptions)
         .then((bigIp) => {
-            this.bigIp = bigIp;
+            this.bigIps[taskId] = bigIp;
 
             logger.fine('Getting and saving current configuration');
-            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId);
+            return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId);
         })
         .then(() => {
-            this.declarationHandler = new DeclarationHandler(this.bigIp, this.eventEmitter);
-            return this.declarationHandler.process(declaration, this.state.doState.getTask(taskId));
+            declarationHandler = new DeclarationHandler(this.bigIps[taskId], this.eventEmitter);
+            return declarationHandler.process(declaration, this.state.doState.getTask(taskId));
         })
         .then(() => {
             logger.fine('Saving sys config.');
-            return this.bigIp.save();
+            return this.bigIps[taskId].save();
         })
         .then(() => {
             logger.fine('Onboard configuration complete. Checking for reboot.');
-            return this.bigIp.rebootRequired();
+            return this.bigIps[taskId].rebootRequired();
         })
         .then((needsReboot) => {
             rebootRequired = needsReboot;
@@ -335,7 +359,7 @@ function onboard(declaration, bigIpOptions, taskId) {
                 this.state.doState.updateResult(taskId, 202, STATUS.STATUS_REBOOTING, 'reboot required');
             }
             logger.fine('Getting and saving current configuration');
-            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId);
+            return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId);
         })
         .then(() => {
             if (!rebootRequired) {
@@ -358,9 +382,9 @@ function onboard(declaration, bigIpOptions, taskId) {
                 .then(() => {
                     const rollbackTo = {};
                     Object.assign(rollbackTo, this.state.doState.getTask(taskId).currentConfig);
-                    return getAndSaveCurrentConfig.call(this, this.bigIp, declaration, taskId)
+                    return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId)
                         .then(() => {
-                            return this.declarationHandler.process(
+                            return declarationHandler.process(
                                 rollbackTo,
                                 this.state.doState.getTask(taskId)
                             );
@@ -647,7 +671,7 @@ function handleStartupState(success, error) {
                 })
                 .then((rebootRequired) => {
                     if (rebootRequired) {
-                        this.bigIp.reboot();
+                        this.bigIps[currentTaskId].reboot();
                     }
                 });
         });
