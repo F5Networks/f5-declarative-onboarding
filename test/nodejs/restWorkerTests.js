@@ -33,6 +33,7 @@ describe('restWorker', () => {
     let declaration;
     let restOperationMock;
     let responseBody;
+    let statusCode;
 
     before(() => {
         doUtilMock = require('../../nodejs/doUtil');
@@ -44,8 +45,11 @@ describe('restWorker', () => {
 
     beforeEach(() => {
         declaration = {};
+        responseBody = null;
+        statusCode = null;
+
         restOperationMock = {
-            setStatusCode() {},
+            setStatusCode(code) { statusCode = code; },
             setContentType() {},
             getContentType() { return 'application/json'; },
             setBody(body) { responseBody = body; },
@@ -577,6 +581,81 @@ describe('restWorker', () => {
 
                 try {
                     restWorker.onGet(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+    });
+
+    describe('onDelete', () => {
+        let restWorker;
+        let deletedId;
+
+        const config1234 = {
+            foo: 'bar'
+        };
+        const config5678 = {
+            hello: 'world'
+        };
+
+        beforeEach(() => {
+            deletedId = null;
+            restWorker = new RestWorker();
+            restWorker.state = {
+                doState: {
+                    originalConfig: {
+                        1234: config1234,
+                        5678: config5678
+                    },
+                    getOriginalConfigByConfigId(id) {
+                        return this.originalConfig[id];
+                    },
+                    deleteOriginalConfigByConfigId(id) {
+                        deletedId = id;
+                    }
+                }
+            };
+
+            RestWorker.prototype.saveState = (foo, state, callback) => {
+                callback();
+            };
+        });
+
+        it('should delete original config', () => {
+            return new Promise((resolve, reject) => {
+                restOperationMock.complete = () => {
+                    assert.strictEqual(deletedId, '1234');
+                    resolve();
+                };
+                restOperationMock.getUri = () => {
+                    return {
+                        pathname: '/shared/declarative-onboarding/config/1234'
+                    };
+                };
+
+                try {
+                    restWorker.onDelete(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should return 404 for non-existing id', () => {
+            return new Promise((resolve, reject) => {
+                restOperationMock.complete = () => {
+                    assert.strictEqual(statusCode, 404);
+                    resolve();
+                };
+                restOperationMock.getUri = () => {
+                    return {
+                        pathname: '/shared/declarative-onboarding/config/9999'
+                    };
+                };
+
+                try {
+                    restWorker.onDelete(restOperationMock);
                 } catch (err) {
                     reject(err);
                 }

@@ -26,11 +26,14 @@ const ConfigManager = require('./configManager');
 const DeclarationHandler = require('./declarationHandler');
 const Logger = require('./logger');
 const Response = require('./response');
+const ConfigResponse = require('./configResponse');
+const TaskResponse = require('./taskResponse');
 const State = require('./state');
 const Validator = require('./validator');
 
 const STATUS = require('./sharedConstants').STATUS;
 const EVENTS = require('./sharedConstants').EVENTS;
+const ENDPOINTS = require('./sharedConstants').ENDPOINTS;
 
 const logger = new Logger(module);
 
@@ -122,26 +125,12 @@ class RestWorker {
      * @param {Object} restOperation - The restOperation containing request info.
      */
     onGet(restOperation) {
-        const pathParts = restOperation.getUri().pathname.split('/');
-        if (pathParts.length === 3 || pathParts[3] === '') {
-            // Just a GET to our base URI - return most recent task
-            sendResponse.call(this, restOperation, this.state.doState.mostRecentTask);
+        const pathInfo = getPathInfo(restOperation.getUri());
+        if (!pathInfo.path) {
+            // Just a GET to our base URI - return most recent task for backwards compatibility
+            sendResponse.call(this, restOperation, ENDPOINTS.TASK, this.state.doState.mostRecentTask);
         } else {
-            switch (pathParts[3]) {
-            case 'task':
-                if (pathParts.length === 4) {
-                    // No task id specified, return all tasks
-                    sendResponse.call(this, restOperation);
-                } else if (pathParts.length === 5) {
-                    // Send the specific task
-                    sendResponse.call(this, restOperation, pathParts[4]);
-                } else {
-                    sendError(restOperation, 400, 'Bad URI. Should be task/<taskId>');
-                }
-                break;
-            default:
-                sendError(restOperation, 400, 'Bad URI. Should be task/<taskId>');
-            }
+            sendResponse.call(this, restOperation, pathInfo.path, pathInfo.id);
         }
     }
 
@@ -166,7 +155,7 @@ class RestWorker {
                 this.state.doState.setDeclaration(taskId, {});
                 this.state.doState.setErrors(taskId, null);
                 this.state.doState.updateResult(taskId, 400, STATUS.STATUS_ERROR, 'bad declaration', message);
-                sendResponse.call(this, restOperation, taskId);
+                sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                 return;
             }
         }
@@ -201,7 +190,7 @@ class RestWorker {
             );
             save.call(this)
                 .then(() => {
-                    sendResponse.call(this, restOperation, taskId);
+                    sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                 });
         } else {
             logger.fine(`Onboard starting for task ${taskId}`);
@@ -210,7 +199,7 @@ class RestWorker {
             save.call(this)
                 .then(() => {
                     if (declaration.async) {
-                        sendResponse.call(this, restOperation, taskId);
+                        sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                     }
 
                     // Fill in anything in the wrapper that is a json-pointer
@@ -236,7 +225,7 @@ class RestWorker {
                                 logger.finest('TCW is done');
                                 if (!declaration.async) {
                                     logger.fine('Sending response.');
-                                    sendResponse.call(this, restOperation, taskId);
+                                    sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                                 }
                             })
                             .then(() => {
@@ -258,7 +247,7 @@ class RestWorker {
                             .then((rebootRequired) => {
                                 if (!declaration.async) {
                                     logger.fine('Sending response.');
-                                    sendResponse.call(this, restOperation, taskId);
+                                    sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                                 }
                                 if (rebootRequired) {
                                     this.bigIp.reboot();
@@ -266,6 +255,26 @@ class RestWorker {
                             });
                     }
                 });
+        }
+    }
+
+    onDelete(restOperation) {
+        const pathInfo = getPathInfo(restOperation.getUri());
+        if (pathInfo.path !== ENDPOINTS.CONFIG) {
+            sendError(restOperation, 400, `DELETE is only supported for the ${ENDPOINTS.CONFIG} endpoint`);
+        } else if (!pathInfo.id) {
+            sendError(restOperation, 400, 'id must be specified for DELETE');
+        } else if (this.state.doState.getOriginalConfigByConfigId(pathInfo.id)) {
+            this.state.doState.deleteOriginalConfigByConfigId(pathInfo.id);
+            save.call(this)
+                .then(() => {
+                    sendResponse.call(this, restOperation, ENDPOINTS.CONFIG);
+                })
+                .catch((err) => {
+                    sendError(restOperation, 500, err.message);
+                });
+        } else {
+            sendError(restOperation, 404, `${pathInfo.id} does not exist`);
         }
     }
 
@@ -653,28 +662,42 @@ function handleStartupState(success, error) {
  * Sends a response for a restOperation.
  *
  * @param {Object} restOperation - The restOperation to send the response for.
- * @param {Number} code - The HTTP status code.
- * @param {String} [taskId] - The id of the task to send the response for. Default is to send
- *                            result for all tasks.
+ * @param {String} endpoint - The endpoint that we are responding to (task, config, etc.)
+ * @param {String} [itemId] - The id of the item to send the response for. Default is to send
+ *                            result for all items at the endpoint.
  */
-function sendResponse(restOperation, taskId) {
+function sendResponse(restOperation, endpoint, itemId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
     const doState = new State(this.state.doState);
+    let responder;
+    switch (endpoint) {
+    case ENDPOINTS.CONFIG:
+        responder = new ConfigResponse(doState);
+        break;
+    case ENDPOINTS.TASK: {
+        responder = new TaskResponse(doState);
+        break;
+    }
+    default:
+        logger.warning(`No responder for endpoint: ${endpoint}`);
+        throw new Error(`No responder for endpoint: ${endpoint}`);
+    }
+
     restOperation.setContentType('application/json');
-    if (taskId) {
-        const task = doState.getTask(taskId);
-        if (task) {
-            restOperation.setStatusCode(doState.getCode(taskId));
-        } else {
-            restOperation.setStatusCode(404);
-        }
+    const response = new Response(itemId, responder, restOperation.getUri().query);
+    const body = response.getResponse();
+    restOperation.setBody(body);
+
+    if (Array.isArray(response)) {
+        restOperation.setStatusCode(200);
+    } else if (body && body.result && body.result.code) {
+        restOperation.setStatusCode(body.result.code);
     } else {
         restOperation.setStatusCode(200);
     }
-    const body = new Response(doState, taskId, restOperation.getUri().query).getResponse();
-    restOperation.setBody(body);
+
     restOperation.complete();
 }
 
@@ -683,6 +706,29 @@ function sendError(restOperation, code, message) {
     restOperation.setStatusCode(code);
     restOperation.setBody(message);
     restOperation.complete();
+}
+
+/**
+ *
+ * @param {URL} uri - The uri in the request
+ *
+ * @returns {Object} Object describing the path
+ *
+ *     {
+ *         path: <path_that_was_requested_not_including_base_uri_or_id>,
+ *         id: <id_that_was_requested>
+ *     }
+ */
+function getPathInfo(uri) {
+    const pathParts = uri.pathname.split('/');
+    const pathInfo = {};
+    if (pathParts.length > 3 && pathParts[3] !== '') {
+        pathInfo.path = pathParts[3];
+        if (pathParts.length > 4 && pathParts[4] !== '') {
+            pathInfo.id = pathParts[4];
+        }
+    }
+    return pathInfo;
 }
 
 module.exports = RestWorker;

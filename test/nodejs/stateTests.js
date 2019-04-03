@@ -186,6 +186,21 @@ describe('state', () => {
         assert.deepEqual(state.getOriginalConfigByConfigId('1234'), originalConfig);
     });
 
+    it('should delete original config by config id', () => {
+        const state = new State();
+        const originalConfig = {
+            foo: {
+                bar: {
+                    hello: 'world'
+                }
+            }
+        };
+
+        state.setOriginalConfigByConfigId('1234', originalConfig);
+        state.deleteOriginalConfigByConfigId('1234', originalConfig);
+        assert.deepEqual(state.getOriginalConfigByConfigId('1234'), undefined);
+    });
+
     it('should mask passwords', () => {
         const state = new State();
         const declaration = {

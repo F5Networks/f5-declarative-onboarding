@@ -160,6 +160,24 @@ class State {
     }
 
     /**
+     * Deletes original config by config id.
+     *
+     * @param {String} id - The id of the task.
+     */
+    deleteOriginalConfigByConfigId(id) {
+        delete this.originalConfig[id];
+    }
+
+    /**
+     * Gets all of the config ids.
+     *
+     * @returns {String[]} Array of config ids.
+     */
+    getOriginalConfigIds() {
+        return Object.keys(this.originalConfig);
+    }
+
+    /**
      * Sets the result code for a task
      *
      * @param {String} taskId - The id of the task.

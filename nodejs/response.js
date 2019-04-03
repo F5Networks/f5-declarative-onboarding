@@ -28,13 +28,13 @@
  * @param {String} [options.show] - What to show of the state. Only current option is 'full'
  */
 class Response {
-    constructor(doState, taskId, options) {
-        if (taskId) {
-            this.response = getResponse(doState, taskId, options);
+    constructor(itemId, responder, options) {
+        if (itemId) {
+            this.response = getResponse(itemId, responder, options);
         } else {
-            const taskIds = doState.getTaskIds();
-            this.response = taskIds.map((id) => {
-                return getResponse(doState, id, options);
+            const ids = responder.getIds() || [];
+            this.response = ids.map((id) => {
+                return getResponse(id, responder, options);
             });
         }
     }
@@ -44,48 +44,44 @@ class Response {
     }
 }
 
-function getResponse(doState, taskId, options) {
-    const task = doState.getTask(taskId);
-    if (!task) {
+function getResponse(id, responder, options) {
+    if (!responder.exists(id)) {
         return {
-            id: taskId,
+            id,
             result: {
                 code: 404,
-                message: 'Task does not exist',
-                errors: ['Task does not exist']
+                message: 'item does not exist',
+                errors: ['item does not exist']
             }
         };
     }
 
     const response = {
-        id: taskId,
-        selfLink: `https://localhost/mgmt/shared/declarative-onboarding/task/${taskId}`
+        id,
+        selfLink: responder.getSelfLink(id)
     };
 
     // For error statuses, restnoded requires message at the top level
     // Other items at the top level for backwards compatibility
-    if (doState.getCode(taskId) >= 300) {
-        response.code = doState.getCode(taskId);
-        response.status = doState.getStatus(taskId);
-        response.message = doState.getMessage(taskId);
-        response.errors = doState.getErrors(taskId);
+    if (responder.getCode(id) >= 300) {
+        response.code = responder.getCode(id);
+        response.status = responder.getStatus(id);
+        response.message = responder.getMessage(id);
+        response.errors = responder.getErrors(id);
     }
 
     response.result = {
         class: 'Result',
-        code: doState.getCode(taskId),
-        status: doState.getStatus(taskId),
-        message: doState.getMessage(taskId),
-        errors: doState.getErrors(taskId)
+        code: responder.getCode(id),
+        status: responder.getStatus(id),
+        message: responder.getMessage(id),
+        errors: responder.getErrors(id)
     };
 
-    response.declaration = doState.getDeclaration(taskId);
-
-    if (options && options.show && options.show === 'full') {
-        response.currentConfig = doState.getCurrentConfig(taskId);
-        response.originalConfig = doState.getOriginalConfigByTaskId(taskId);
-        response.lastUpdate = doState.getLastUpdate(taskId);
-    }
+    const data = responder.getData(id, options);
+    Object.keys(data).forEach((key) => {
+        response[key] = data[key];
+    });
 
     return response;
 }
