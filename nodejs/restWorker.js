@@ -213,6 +213,10 @@ class RestWorker {
                             password: wrapper.targetPassphrase
                         }
                     );
+                    wrapper.targetHost = bigIpOptions.host;
+                    wrapper.targetPort = bigIpOptions.port;
+                    wrapper.targetUsername = bigIpOptions.user;
+                    wrapper.targetPassphrase = bigIpOptions.password;
 
                     const query = restOperation.getUri().query;
                     const insensitiveQuery = {};
