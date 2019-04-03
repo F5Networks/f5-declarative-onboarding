@@ -64,8 +64,9 @@ deploy bigip:
         NUMBER_OF_BIGIP: 3
         DO_LICENSING: 'false'
         DO_PROVISIONING: 'false'
-#    only:
-#        - schedules
+    only:
+        - schedules
+        - tags
     script:
         - cd /root/cicd-bigip-deploy && make configure &&
             make printvars && cat ${PROJECT_DIR}/project-vars &&
@@ -93,8 +94,9 @@ functional test:
     stage: functional test
     tags:
        - cm-official-docker-executor
-#    only:
-#        - schedules
+    only:
+        - schedules
+        - tags
     script:
        - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
@@ -114,8 +116,9 @@ teardown bigip:
     script:
       - cd /root/cicd-bigip-deploy && make configure && make teardown
     when: always
-#    only:
-#        - schedules
+    only:
+        - schedules
+        - tags
 
 build rpm:
     image: node:8-alpine
