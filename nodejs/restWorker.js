@@ -276,8 +276,17 @@ class RestWorker {
                                     logger.fine('Sending response.');
                                     sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                                 }
+
                                 if (rebootRequired) {
                                     this.bigIps[taskId].reboot();
+
+                                    // If we're running on BIG-IP, recovering from reboot will be handled
+                                    // by the startup code (onStartCompleted). Otherwise, wait
+                                    // until the BIG-IP is ready again (after a slight delay to make sure
+                                    // the reboot has started).
+                                    if (this.platform !== PRODUCTS.BIGIP) {
+                                        setTimeout(waitForRebootComplete, 10000, this, taskId);
+                                    }
                                 }
                             });
                     }
@@ -581,7 +590,6 @@ function handleStartupState(success, error) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
-    // TODO: What to do if we are not on BIG-IP (DECONBDING-259)?
     if (this.platform !== PRODUCTS.BIGIP) {
         success();
         return;
@@ -596,18 +604,7 @@ function handleStartupState(success, error) {
 
     switch (this.state.doState.getStatus(currentTaskId)) {
     case STATUS.STATUS_REBOOTING:
-        // If we were rebooting and are now in this function, all should be well
-        this.state.doState.updateResult(currentTaskId, 200, STATUS.STATUS_OK, 'success');
-        save.call(this)
-            .then(() => {
-                logger.fine('Rebooting complete. Onboarding complete.');
-                success();
-            })
-            .catch((saveErr) => {
-                const message = `error saving state after reboot: ${saveErr.message}`;
-                logger.severe(message);
-                error(message);
-            });
+        updateStateAfterReboot.call(this, currentTaskId, success, error);
         break;
     case STATUS.STATUS_REVOKING:
         // If our status is REVOKING, restnoded was just restarted
@@ -684,6 +681,49 @@ function handleStartupState(success, error) {
     default:
         success();
     }
+}
+
+function updateStateAfterReboot(taskId, success, error) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
+    // If we were rebooting and are now in this function, all should be well
+    this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
+    save.call(this)
+        .then(() => {
+            logger.fine('Rebooting complete. Onboarding complete.');
+            if (success) {
+                success();
+            }
+        })
+        .catch((saveErr) => {
+            const message = `error saving state after reboot: ${saveErr.message}`;
+            logger.severe(message);
+            if (error) {
+                error(message);
+            }
+        });
+}
+
+function waitForRebootComplete(context, taskId) {
+    logger.info('Waiting for BIG-IP to reboot to complete onboarding.');
+    context.bigIps[taskId].ready()
+        .then(() => {
+            updateStateAfterReboot.call(context, taskId);
+        })
+        .catch((err) => {
+            context.state.doState.updateResult(
+                taskId,
+                500,
+                STATUS.STATUS_ERROR,
+                'reboot failed',
+                err.message
+            );
+            save.call(this)
+                .then(() => {
+                    logger.fine(`Error onboarding: reboot failed. ${err.message}`);
+                });
+        });
 }
 
 /**

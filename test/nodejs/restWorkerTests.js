@@ -690,6 +690,7 @@ describe('restWorker', () => {
                 },
                 reboot() {}
             };
+
             doUtilMock.getBigIp = (logger, bigIpOptions) => {
                 bigIpOptionsCalled = bigIpOptions;
                 return Promise.resolve(bigIpMock);
@@ -710,6 +711,7 @@ describe('restWorker', () => {
             restWorker.state = {
                 doState: new State()
             };
+            restWorker.platform = 'BIG-IP';
         });
 
         it('should pass off auth token if provided', () => {
@@ -926,7 +928,11 @@ describe('restWorker', () => {
 
         describe('running on BIG-IQ', () => {
             let taskId;
+            let realSetTimeout;
+
             beforeEach(() => {
+                realSetTimeout = setTimeout;
+
                 restWorker.platform = 'BIG-IQ';
                 restWorker.restOperationFactory = {
                     createRestOperationInstance() {
@@ -963,6 +969,7 @@ describe('restWorker', () => {
             });
 
             afterEach(() => {
+                setTimeout = realSetTimeout; // eslint-disable-line no-global-assign
                 restWorker.platform = null;
             });
 
@@ -1091,6 +1098,54 @@ describe('restWorker', () => {
                         assert.ok(saveCalled);
                         assert.notStrictEqual(restWorker.bigIps.myExternalId, undefined);
                         resolve();
+                    };
+
+                    try {
+                        restWorker.onPost(restOperationMock);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
+
+            it('should poll for ready if reboot is required', () => {
+                let readyCalled;
+
+                const tid = 1234;
+
+                return new Promise((resolve, reject) => {
+                    setTimeout = (cb) => { // eslint-disable-line no-global-assign
+                        const context = restWorker;
+                        context.bigIps[tid] = bigIpMock;
+                        cb(context, tid);
+                    };
+
+                    restOperationMock.complete = () => {};
+
+                    bigIpMock.ready = () => {
+                        readyCalled = true;
+                        return Promise.resolve();
+                    };
+
+                    bigIpMock.rebootRequired = () => {
+                        return Promise.resolve(true);
+                    };
+
+                    restOperationMock.getUri = () => {
+                        return {
+                            query: { internal: true }
+                        };
+                    };
+
+                    restWorker.saveState = (dummy, state, callback) => {
+                        callback();
+                    };
+
+                    restWorker.state.doState.updateResult = (id, code, status) => {
+                        if (status === STATUS.STATUS_OK) {
+                            assert.strictEqual(readyCalled, true);
+                            resolve();
+                        }
                     };
 
                     try {
