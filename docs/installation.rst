@@ -8,6 +8,9 @@ Downloading the RPM file
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The first task is to download the latest RPM file.  Go to the |github|, and download the latest (highest numbered) RPM file.
 
+.. TIP:: Once you have downloaded the RPM, we recommend :ref:`hash-ref`.
+
+
 Uploading and installing the Declarative Onboarding RPM file on the BIG-IP
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 After you download the RPM, you must upload and then install it on your BIG-IP system.  In this section, we show how to upload the RPM using :ref:`cURL<uploadcurl>` or :ref:`SCP<uploadscp>`.  Use only one of the following procedures.
