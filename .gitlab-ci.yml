@@ -224,6 +224,9 @@ create docs:
 # Docs are staged on this projects pages site
 pages:
     stage: publish
+    except:
+        - tags
+        - schedules
     environment:
         name: review
         url: https://${CI_PROJECT_NAMESPACE}.${PAGES_DOMAIN}/${CI_PROJECT_NAME}/
