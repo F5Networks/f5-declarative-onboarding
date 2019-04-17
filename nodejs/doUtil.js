@@ -96,7 +96,7 @@ module.exports = {
 
         Object.keys(dereferenced).forEach((key) => {
             if (typeof dereferenced[key] === 'string' && dereferenced[key].startsWith('/')) {
-                const value = dereferencePointer(declaration, dereferenced[key]);
+                const value = this.dereferencePointer(declaration, dereferenced[key]);
 
                 if (typeof value === 'string') {
                     dereferenced[key] = value;
@@ -105,6 +105,28 @@ module.exports = {
         });
 
         return dereferenced;
+    },
+
+    /**
+     * Dereferences a JSON pointer in an object
+     *
+     * @param {Object} declaration - Object containing pointer
+     * @param {String} pointer - The pointer to some other value in the object
+     */
+    dereferencePointer(declaration, pointer) {
+        if (!pointer.startsWith('/')) {
+            return pointer;
+        }
+
+        let value = declaration;
+        const keys = pointer.split('/');
+        keys.forEach((key) => {
+            if (key && value) {
+                value = value[key];
+            }
+        });
+
+        return value;
     },
 
     /**
@@ -129,7 +151,7 @@ function initializeBigIp(bigIp, host, port, user, password, options) {
     if (port) {
         portPromise = Promise.resolve(port);
     } else {
-        portPromise = getPort();
+        portPromise = getPort(host);
     }
     return portPromise
         .then((managmentPort) => {
@@ -179,20 +201,4 @@ function getPort(host) {
     return new Promise((resolve, reject) => {
         tryPort(0, resolve, reject);
     });
-}
-
-function dereferencePointer(declaration, pointer) {
-    if (!pointer.startsWith('/')) {
-        return pointer;
-    }
-
-    let value = declaration;
-    const keys = pointer.split('/');
-    keys.forEach((key) => {
-        if (key && value) {
-            value = value[key];
-        }
-    });
-
-    return value;
 }

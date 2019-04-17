@@ -34,12 +34,14 @@ describe('restWorker', () => {
     let restOperationMock;
     let responseBody;
     let statusCode;
+    let SshUtilMock;
 
     before(() => {
         doUtilMock = require('../../nodejs/doUtil');
         cryptoUtilMock = require('../../nodejs/cryptoUtil');
         ConfigManagerMock = require('../../nodejs/configManager');
         DeclarationHandlerMock = require('../../nodejs/declarationHandler');
+        SshUtilMock = require('../../nodejs/sshUtil');
         RestWorker = require('../../nodejs/restWorker');
     });
 
@@ -1153,6 +1155,127 @@ describe('restWorker', () => {
                     } catch (err) {
                         reject(err);
                     }
+                });
+            });
+
+            describe('initial account setup', () => {
+                let sshCommand;
+
+                beforeEach(() => {
+                    sshCommand = null;
+                    SshUtilMock.prototype.executeCommand = (command) => {
+                        sshCommand = command;
+                        return Promise.resolve();
+                    };
+                });
+
+                it('should ssh to BIG-IP if an ssh key is provided', () => {
+                    return new Promise((resolve, reject) => {
+                        declaration = {
+                            class: 'DO',
+                            targetHost: '1.2.3.4',
+                            targetUsername: 'admin',
+                            targetSshKey: {
+                                path: '~/.ssh/id_rsa'
+                            },
+                            declaration: {
+                                Common: {
+                                    admin: {
+                                        class: 'User',
+                                        password: 'foofoo'
+                                    }
+                                }
+                            }
+                        };
+
+                        restOperationMock.complete = () => {
+                            assert.strictEqual(sshCommand, 'modify auth user admin password foofoo');
+                            resolve();
+                        };
+
+                        try {
+                            restWorker.onPost(restOperationMock);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    });
+                });
+
+                it('should dereference user password if it is a pointer', () => {
+                    return new Promise((resolve, reject) => {
+                        declaration = {
+                            class: 'DO',
+                            targetHost: '1.2.3.4',
+                            targetUsername: 'admin',
+                            targetSshKey: {
+                                path: '~/.ssh/id_rsa'
+                            },
+                            declaration: {
+                                Credentials: {
+                                    foo: {
+                                        bar: 'foofoo'
+                                    }
+                                },
+                                Common: {
+                                    admin: {
+                                        class: 'User',
+                                        password: '/Credentials/foo/bar'
+                                    }
+                                }
+                            }
+                        };
+
+                        restOperationMock.complete = () => {
+                            assert.strictEqual(sshCommand, 'modify auth user admin password foofoo');
+                            resolve();
+                        };
+
+                        try {
+                            restWorker.onPost(restOperationMock);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    });
+                });
+
+                it('should use password value if it is not really a pointer', () => {
+                    return new Promise((resolve, reject) => {
+                        declaration = {
+                            class: 'DO',
+                            targetHost: '1.2.3.4',
+                            targetUsername: 'admin',
+                            targetSshKey: {
+                                path: '~/.ssh/id_rsa'
+                            },
+                            declaration: {
+                                Credentials: {
+                                    foo: {
+                                        notMyPassword: 'foofoo'
+                                    }
+                                },
+                                Common: {
+                                    admin: {
+                                        class: 'User',
+                                        password: '/Credentials/foo/bar'
+                                    }
+                                }
+                            }
+                        };
+
+                        restOperationMock.complete = () => {
+                            assert.strictEqual(
+                                sshCommand,
+                                'modify auth user admin password /Credentials/foo/bar'
+                            );
+                            resolve();
+                        };
+
+                        try {
+                            restWorker.onPost(restOperationMock);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    });
                 });
             });
         });

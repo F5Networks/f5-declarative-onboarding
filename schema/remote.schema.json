@@ -5,6 +5,28 @@
     "description": "Wrapper for remote onboarding of a BIG-IP device using F5 Declarative Onboarding",
     "type": "object",
     "required": ["class", "declaration"],
+    "if": {
+        "required": ["targetPassphrase"]
+    },
+    "then": {
+        "dependencies": {
+            "targetSshKey": {
+                "not": {}
+            }
+        }
+    },
+    "else": {
+        "if": {
+            "required": ["targetSsshKey"]
+        },
+        "then": {
+            "dependencies": {
+                "targetPassphrase": {
+                    "not": {}
+                }
+            }
+        }
+    },
     "properties": {
         "class": {
             "description": "Indicates that this is a Declarative Onboarding request",
@@ -43,6 +65,18 @@
                 { "format": "json-pointer" },
                 { "pattern": "^.{0,254}$" }
             ]
+        },
+        "targetSshKey": {
+            "description": "Private key for use in ssh operations. Corresponding public key must be in the targetUsername's ~/.ssh/authorized_keys file on the targetHost. This is only used to do initial account creation in environments where that is necessary. If this value is present, DO will look in the declaration for a user matching targetUsername and set its password via ssh.",
+            "type": "object",
+            "required": ["path"],
+            "properties": {
+                "path": {
+                    "description": "Full path to private ssh key. File must be owned by restnoded.",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
         },
         "targetTokens": {
             "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the targetHost management service as authentication/authorization tokens",

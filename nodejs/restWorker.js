@@ -29,6 +29,7 @@ const Response = require('./response');
 const ConfigResponse = require('./configResponse');
 const TaskResponse = require('./taskResponse');
 const State = require('./state');
+const SshUtil = require('./sshUtil');
 const Validator = require('./validator');
 
 const STATUS = require('./sharedConstants').STATUS;
@@ -147,6 +148,8 @@ class RestWorker {
 
         const contentType = restOperation.getContentType() || '';
         let body = restOperation.getBody();
+        let bigIpOptions;
+
         if (contentType.toLowerCase() !== 'application/json') {
             try {
                 body = JSON.parse(body);
@@ -197,6 +200,19 @@ class RestWorker {
             logger.fine(`Onboard starting for task ${taskId}`);
             this.state.doState.updateResult(taskId, 202, STATUS.STATUS_RUNNING, 'processing');
 
+            // Get case insensitive query parameters
+            const query = restOperation.getUri().query;
+            const insensitiveQuery = {};
+            Object.keys(query).forEach((key) => {
+                insensitiveQuery[key.toLowerCase()] = query[key];
+            });
+
+            // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
+            let isFromTcw = false;
+            if (this.platform === PRODUCTS.BIGIQ && insensitiveQuery.internal) {
+                isFromTcw = true;
+            }
+
             save.call(this)
                 .then(() => {
                     if (declaration.async) {
@@ -204,7 +220,7 @@ class RestWorker {
                     }
 
                     // Fill in anything in the wrapper that is a json-pointer
-                    const bigIpOptions = doUtil.dereference(
+                    bigIpOptions = doUtil.dereference(
                         wrapper,
                         {
                             host: wrapper.targetHost,
@@ -218,14 +234,19 @@ class RestWorker {
                     wrapper.targetUsername = bigIpOptions.user;
                     wrapper.targetPassphrase = bigIpOptions.password;
 
-                    const query = restOperation.getUri().query;
-                    const insensitiveQuery = {};
-                    Object.keys(query).forEach((key) => {
-                        insensitiveQuery[key.toLowerCase()] = query[key];
-                    });
+                    if (!isFromTcw) {
+                        return initialAccountSetup(wrapper);
+                    }
+
+                    return Promise.resolve();
+                })
+                .then((updatedPassword) => {
+                    if (updatedPassword) {
+                        wrapper.targetPassphrase = updatedPassword;
+                    }
 
                     // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
-                    if (this.platform === PRODUCTS.BIGIQ && !insensitiveQuery.internal) {
+                    if (this.platform === PRODUCTS.BIGIQ && !isFromTcw) {
                         logger.finest('Passing to TCW');
                         passToTcw.call(this, wrapper, taskId, restOperation)
                             .then((tcwId) => {
@@ -681,6 +702,44 @@ function handleStartupState(success, error) {
     default:
         success();
     }
+}
+
+function initialAccountSetup(wrapper) {
+    if (wrapper.targetSshKey && wrapper.targetUsername && wrapper.declaration && wrapper.declaration.Common) {
+        return new Promise((resolve, reject) => {
+            const commonDeclaration = wrapper.declaration.Common;
+            const targetUsername = wrapper.targetUsername;
+            const users = Object.keys(commonDeclaration).filter((key) => {
+                return commonDeclaration[key].class === 'User';
+            });
+            if (users.indexOf(targetUsername) !== -1) {
+                const user = commonDeclaration[targetUsername];
+                if (user.password) {
+                    const sshOptions = {
+                        ignoreHostKeyVerification: true,
+                        sshKeyPath: wrapper.targetSshKey.path
+                    };
+                    const sshUtil = new SshUtil(targetUsername, wrapper.targetHost, sshOptions);
+
+                    // Check to see if the password can be dereferenced
+                    const dereferenced = doUtil.dereferencePointer(wrapper.declaration, user.password);
+                    if (typeof dereferenced === 'string') {
+                        user.password = dereferenced;
+                    }
+
+                    sshUtil.executeCommand(`modify auth user ${targetUsername} password ${user.password}`)
+                        .then(() => {
+                            resolve(user.password);
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                }
+            }
+        });
+    }
+
+    return Promise.resolve();
 }
 
 function updateStateAfterReboot(taskId, success, error) {

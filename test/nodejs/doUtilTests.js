@@ -236,4 +236,40 @@ describe('doUtil', () => {
             });
         });
     });
+
+    describe('dereference', () => {
+        it('should dereference json-pointers to strings in an object', () => {
+            const declaration = {
+                foo: {
+                    bar: {
+                        item: '123'
+                    }
+                }
+            };
+
+            const container = {
+                stringValue: '/foo/bar/item'
+            };
+
+            const dereferenced = doUtil.dereference(declaration, container);
+            assert.strictEqual(dereferenced.stringValue, declaration.foo.bar.item);
+        });
+
+        it('should not dereference json-pointer to objects in an object', () => {
+            const declaration = {
+                blue: {
+                    green: {
+                        yellow: 'yellow'
+                    }
+                }
+            };
+
+            const container = {
+                objectValue: '/blue/green'
+            };
+
+            const dereferenced = doUtil.dereference(declaration, container);
+            assert.strictEqual(dereferenced.objectValue, container.objectValue);
+        });
+    });
 });
