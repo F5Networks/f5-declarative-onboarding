@@ -295,7 +295,7 @@ What happens in the system internals between request and response?
             - [SystemHandler](../nodejs/systemHandler.js)
             - [NetworkHandler](../nodejs/networkHandler.js)
             - [DscHandler](../nodejs/dscHandler.js)
-        - Deletes any items that need to be deleted by handing off to the [DiffHandler](../nodejs/diffHandler.js).
+        - Deletes any items that need to be deleted by handing off to the [DeleteHandler](../nodejs/deleteHandler.js).
 - After onboarding, if reboot is necessary, status is updated to indicate this and restWorker reboots the BIG-IP.
 - On restWorker startup (after reboot), if status is found to be rebooting, status is updated to success.
 - All configuration is handled via iControl REST.
