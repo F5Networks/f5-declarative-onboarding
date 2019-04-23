@@ -235,7 +235,7 @@ class RestWorker {
                     wrapper.targetPassphrase = bigIpOptions.password;
 
                     if (!isFromTcw) {
-                        return initialAccountSetup(wrapper);
+                        return initialAccountSetup.call(this, wrapper);
                     }
 
                     return Promise.resolve();
@@ -311,6 +311,15 @@ class RestWorker {
                                 }
                             });
                     }
+                })
+                .catch((err) => {
+                    this.state.doState.updateResult(
+                        taskId,
+                        500,
+                        STATUS.STATUS_ERROR,
+                        'error during onboarding',
+                        err.message
+                    );
                 });
         }
     }
@@ -705,41 +714,191 @@ function handleStartupState(success, error) {
 }
 
 function initialAccountSetup(wrapper) {
-    if (wrapper.targetSshKey && wrapper.targetUsername && wrapper.declaration && wrapper.declaration.Common) {
-        return new Promise((resolve, reject) => {
-            const commonDeclaration = wrapper.declaration.Common;
-            const targetUsername = wrapper.targetUsername;
-            const users = Object.keys(commonDeclaration).filter((key) => {
-                return commonDeclaration[key].class === 'User';
-            });
-            if (users.indexOf(targetUsername) !== -1) {
-                const user = commonDeclaration[targetUsername];
-                if (user.password) {
-                    const sshOptions = {
-                        ignoreHostKeyVerification: true,
-                        sshKeyPath: wrapper.targetSshKey.path
-                    };
-                    const sshUtil = new SshUtil(targetUsername, wrapper.targetHost, sshOptions);
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
 
-                    // Check to see if the password can be dereferenced
-                    const dereferenced = doUtil.dereferencePointer(wrapper.declaration, user.password);
-                    if (typeof dereferenced === 'string') {
-                        user.password = dereferenced;
-                    }
-
-                    sshUtil.executeCommand(`modify auth user ${targetUsername} password ${user.password}`)
-                        .then(() => {
-                            resolve(user.password);
-                        })
-                        .catch((err) => {
-                            reject(err);
-                        });
-                }
-            }
-        });
+    let promise = Promise.resolve();
+    if (mightNeedPasswordReset(wrapper)) {
+        promise = tryInitialPasswordReset.call(this, wrapper);
+    } else if (mightNeedPasswordSetViaSsh(wrapper)) {
+        promise = tryInitialPasswordSetViaSsh.call(this, wrapper);
     }
 
-    return Promise.resolve();
+    return promise
+        .then((updatedPassword) => {
+            logger.finest('done w/ initial accout setup');
+            return Promise.resolve(updatedPassword);
+        })
+        .catch((err) => {
+            logger.warning(`Error during initial account setup: ${err.message}`);
+            return Promise.reject(err);
+        });
+}
+
+function mightNeedPasswordReset(wrapper) {
+    return wrapper.targetUsername
+    && wrapper.targetPassphrase
+    && wrapper.targetUsername === 'admin'
+    && wrapper.targetPassphrase === 'admin';
+}
+
+function mightNeedPasswordSetViaSsh(wrapper) {
+    return wrapper.targetSshKey
+    && wrapper.targetUsername
+    && wrapper.declaration
+    && wrapper.declaration.Common;
+}
+
+function tryInitialPasswordReset(wrapper) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
+    return new Promise((resolve, reject) => {
+        let updatedPassword;
+        isPasswordResetRequired.call(this, wrapper)
+            .then((passwordResetRequired) => {
+                if (passwordResetRequired) {
+                    const user = getUserFromDeclaration(wrapper.targetUsername, wrapper.declaration);
+                    if (user && user.password) {
+                        getPort(wrapper)
+                            .then((port) => {
+                                // Check to see if the password can be dereferenced
+                                const dereferenced = doUtil.dereferencePointer(
+                                    wrapper.declaration,
+                                    user.password
+                                );
+                                if (typeof dereferenced === 'string') {
+                                    updatedPassword = dereferenced;
+                                } else {
+                                    updatedPassword = user.password;
+                                }
+                                const credentials = cloudUtil.createBufferFrom(
+                                    'admin:admin',
+                                    'ascii'
+                                ).toString('base64');
+                                const auth = `Basic ${credentials}`;
+                                const restOperation = this.restOperationFactory.createRestOperationInstance()
+                                    .setUri(
+                                        `https://${wrapper.targetHost}:${port}/mgmt/shared/authz/users/admin`
+                                    )
+                                    .setIsSetBasicAuthHeader(true)
+                                    .setBasicAuthorization(auth)
+                                    .setContentType('application/json')
+                                    .setBody(
+                                        {
+                                            oldPassword: 'admin',
+                                            password: updatedPassword
+                                        }
+                                    );
+                                return this.restRequestSender.sendPatch(restOperation);
+                            })
+                            .then(() => {
+                                resolve(updatedPassword);
+                            })
+                            .catch((err) => {
+                                logger.warning(`Error during initial password reset: ${err.message}`);
+                                reject(err);
+                            });
+                    } else {
+                        resolve();
+                    }
+                } else {
+                    resolve();
+                }
+            })
+            .catch((err) => {
+                logger.warning(`Error during initial password reset: ${err.message}`);
+                reject(err);
+            });
+    });
+}
+
+function isPasswordResetRequired(wrapper) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
+    return new Promise((resolve, reject) => {
+        if (wrapper.targetUsername
+            && wrapper.targetPassphrase
+            && wrapper.targetUsername === 'admin'
+            && wrapper.targetPassphrase === 'admin') {
+            getPort(wrapper)
+                .then((port) => {
+                    const credentials = cloudUtil.createBufferFrom('admin:admin', 'ascii').toString('base64');
+                    const auth = `Basic ${credentials}`;
+                    const restOperation = this.restOperationFactory.createRestOperationInstance()
+                        .setUri(`https://${wrapper.targetHost}:${port}/mgmt/shared/echo`)
+                        .setIsSetBasicAuthHeader(true)
+                        .setBasicAuthorization(auth);
+                    return this.restRequestSender.sendGet(restOperation)
+                        .then(() => {
+                            resolve(false);
+                        })
+                        .catch((err) => {
+                            const result = err.getResponseOperation();
+                            if (result.statusCode === 401) {
+                                resolve(true);
+                            } else {
+                                resolve(false);
+                            }
+                        });
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        } else {
+            resolve(false);
+        }
+    });
+}
+
+function tryInitialPasswordSetViaSsh(wrapper) {
+    return new Promise((resolve, reject) => {
+        const user = getUserFromDeclaration(wrapper.targetUsername, wrapper.declaration);
+        if (user && user.password) {
+            const sshOptions = {
+                ignoreHostKeyVerification: true,
+                sshKeyPath: wrapper.targetSshKey.path
+            };
+            const sshUtil = new SshUtil(wrapper.targetUsername, wrapper.targetHost, sshOptions);
+
+            // Check to see if the password can be dereferenced
+            const dereferenced = doUtil.dereferencePointer(wrapper.declaration, user.password);
+            if (typeof dereferenced === 'string') {
+                user.password = dereferenced;
+            }
+
+            sshUtil.executeCommand(`modify auth user ${wrapper.targetUsername} password ${user.password}`)
+                .then(() => {
+                    resolve(user.password);
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        } else {
+            resolve();
+        }
+    });
+}
+
+function getPort(wrapper) {
+    if (wrapper.targetPort) {
+        return Promise.resolve(wrapper.targetPort);
+    }
+
+    return doUtil.getPort(wrapper.targetHost);
+}
+
+function getUserFromDeclaration(username, declaration) {
+    const commonDeclaration = declaration.Common || {};
+    const users = Object.keys(commonDeclaration).filter((key) => {
+        return commonDeclaration[key].class === 'User';
+    });
+    let user;
+    if (users.indexOf(username) !== -1) {
+        user = commonDeclaration[username];
+    }
+    return user;
 }
 
 function updateStateAfterReboot(taskId, success, error) {

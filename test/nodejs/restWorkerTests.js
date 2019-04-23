@@ -942,10 +942,15 @@ describe('restWorker', () => {
                             setUri() { return this; },
                             setContentType() { return this; },
                             setBody(body) {
+                                this.body = body;
                                 taskId = body.id;
                                 return this;
                             },
+                            getBody() {
+                                return this.body;
+                            },
                             setIsSetBasicAuthHeader() { return this; },
+                            setBasicAuthorization() { return this; },
                             setReferer() { return this; }
                         };
                     }
@@ -1167,6 +1172,51 @@ describe('restWorker', () => {
                         sshCommand = command;
                         return Promise.resolve();
                     };
+                });
+
+                it('should handle initial password set if user/password is admin/admin', () => {
+                    return new Promise((resolve, reject) => {
+                        declaration = {
+                            class: 'DO',
+                            targetHost: '1.2.3.4',
+                            targetPort: 443,
+                            targetUsername: 'admin',
+                            targetPassphrase: 'admin',
+                            declaration: {
+                                Common: {
+                                    admin: {
+                                        class: 'User',
+                                        password: 'foofoo'
+                                    }
+                                }
+                            }
+                        };
+
+                        restWorker.restRequestSender.sendGet = () => {
+                            const err = new Error();
+                            err.getResponseOperation = () => {
+                                return {
+                                    statusCode: 401
+                                };
+                            };
+                            return Promise.reject(err);
+                        };
+
+                        restWorker.restRequestSender.sendPatch = (restOperation) => {
+                            assert.strictEqual(
+                                restOperation.getBody().password,
+                                declaration.declaration.Common.admin.password
+                            );
+                            resolve();
+                            return Promise.resolve();
+                        };
+
+                        try {
+                            restWorker.onPost(restOperationMock);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    });
                 });
 
                 it('should ssh to BIG-IP if an ssh key is provided', () => {
