@@ -47,7 +47,7 @@ module.exports = {
         const optionalArgs = {};
         Object.assign(optionalArgs, options);
         const bigIp = new BigIp({ logger: callingLogger });
-        return initializeBigIp(
+        return this.initializeBigIp(
             bigIp,
             optionalArgs.host || 'localhost',
             optionalArgs.port,
@@ -59,6 +59,62 @@ module.exports = {
         );
     },
 
+    initializeBigIp(bigIp, host, port, user, password, options) {
+        let portPromise;
+        if (port) {
+            portPromise = Promise.resolve(port);
+        } else {
+            portPromise = this.getPort(host);
+        }
+        return portPromise
+            .then((managmentPort) => {
+                return bigIp.init(
+                    host,
+                    user,
+                    password,
+                    {
+                        port: managmentPort,
+                        product: 'BIG-IP',
+                        passwordIsToken: options.passwordIsToken
+                    }
+                );
+            })
+            .then(() => {
+                return Promise.resolve(bigIp);
+            })
+            .catch((err) => {
+                logger.severe(`Error initializing BigIp: ${err.message}`);
+                return Promise.reject(err);
+            });
+    },
+
+    /**
+     * Gets the port for the management address when running on a BIG-IP
+     */
+    getPort(host) {
+        const ports = [8443, 443];
+
+        function tryPort(index, resolve, reject) {
+            if (index < ports.length) {
+                const port = ports[index];
+                const socket = net.createConnection({ host, port });
+                socket.on('connect', () => {
+                    socket.end();
+                    resolve(port);
+                });
+                socket.on('error', () => {
+                    socket.destroy();
+                    tryPort(index + 1, resolve, reject);
+                });
+            } else {
+                reject(new Error('Could not determine device port'));
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            tryPort(0, resolve, reject);
+        });
+    },
 
     /**
      * Determines the platform on which we are currently running
@@ -145,60 +201,3 @@ module.exports = {
         return stripped;
     }
 };
-
-function initializeBigIp(bigIp, host, port, user, password, options) {
-    let portPromise;
-    if (port) {
-        portPromise = Promise.resolve(port);
-    } else {
-        portPromise = getPort(host);
-    }
-    return portPromise
-        .then((managmentPort) => {
-            return bigIp.init(
-                host,
-                user,
-                password,
-                {
-                    port: managmentPort,
-                    product: 'BIG-IP',
-                    passwordIsToken: options.passwordIsToken
-                }
-            );
-        })
-        .then(() => {
-            return Promise.resolve(bigIp);
-        })
-        .catch((err) => {
-            logger.severe(`Error initializing BigIp: ${err.message}`);
-            return Promise.reject(err);
-        });
-}
-
-/**
- * Gets the port for the management address when running on a BIG-IP
- */
-function getPort(host) {
-    const ports = [8443, 443];
-
-    function tryPort(index, resolve, reject) {
-        if (index < ports.length) {
-            const port = ports[index];
-            const socket = net.createConnection({ host, port });
-            socket.on('connect', () => {
-                socket.end();
-                resolve(port);
-            });
-            socket.on('error', () => {
-                socket.destroy();
-                tryPort(index + 1, resolve, reject);
-            });
-        } else {
-            reject(new Error('Could not determine device port'));
-        }
-    }
-
-    return new Promise((resolve, reject) => {
-        tryPort(0, resolve, reject);
-    });
-}
