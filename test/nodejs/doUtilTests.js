@@ -183,7 +183,12 @@ describe('doUtil', () => {
                         {
                             slots: [
                                 {
-                                    product: platform
+                                    product: 'foo',
+                                    isActive: false
+                                },
+                                {
+                                    product: platform,
+                                    isActive: true
                                 }
                             ]
                         }

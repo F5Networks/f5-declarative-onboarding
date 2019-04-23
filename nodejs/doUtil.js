@@ -125,14 +125,17 @@ module.exports = {
         return new Promise((resolve, reject) => {
             httpUtil.get('http://localhost:8100/shared/identified-devices/config/device-info')
                 .then((deviceInfo) => {
-                    if (deviceInfo
-                        && deviceInfo.slots
-                        && deviceInfo.slots[0]
-                        && deviceInfo.slots[0].product) {
-                        resolve(deviceInfo.slots[0].product);
-                    } else {
-                        resolve('CONTAINER');
+                    let product = 'CONTAINER';
+                    if (deviceInfo && deviceInfo.slots) {
+                        const activeSlot = deviceInfo.slots.find((slot) => {
+                            return slot.isActive && slot.product;
+                        });
+
+                        if (activeSlot) {
+                            product = activeSlot.product;
+                        }
                     }
+                    resolve(product);
                 })
                 .catch((err) => {
                     reject(err);
