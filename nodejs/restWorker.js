@@ -718,10 +718,10 @@ function initialAccountSetup(wrapper) {
     /* jshint validthis: true */
 
     let promise = Promise.resolve();
-    if (mightNeedPasswordReset(wrapper)) {
-        promise = tryInitialPasswordReset.call(this, wrapper);
-    } else if (mightNeedPasswordSetViaSsh(wrapper)) {
-        promise = tryInitialPasswordSetViaSsh.call(this, wrapper);
+    if (needsPasswordReset(wrapper)) {
+        promise = initialPasswordSet.call(this, wrapper);
+    } else if (needsPasswordSetViaSsh(wrapper)) {
+        promise = initialPasswordSetViaSsh.call(this, wrapper);
     }
 
     return promise
@@ -735,124 +735,102 @@ function initialAccountSetup(wrapper) {
         });
 }
 
-function mightNeedPasswordReset(wrapper) {
-    return wrapper.targetUsername
-    && wrapper.targetPassphrase
-    && wrapper.targetUsername === 'admin'
-    && wrapper.targetPassphrase === 'admin';
+/**
+ * Determines if we need to reset the password
+ *
+ * Any time the wrapper user's password is different from that user's password in the
+ * declaration, we need to update the password before forwarding the declaration anywhere.
+ * We do this so that we can forward the updated password to other code that needs it
+ * (BIG-IQ TCW, for example)
+ *
+ * @param {Object} wrapper - Remote declaration wrapper
+ */
+function needsPasswordReset(wrapper) {
+    if (wrapper.targetUsername && wrapper.targetPassphrase) {
+        const user = getUserFromDeclaration(wrapper.targetUsername, wrapper.declaration);
+        if (user && user.password && user.password !== wrapper.targetPassphrase) {
+            return true;
+        }
+        return false;
+    }
+    return false;
 }
 
-function mightNeedPasswordSetViaSsh(wrapper) {
-    return wrapper.targetSshKey
-    && wrapper.targetUsername
-    && wrapper.declaration
-    && wrapper.declaration.Common;
+/**
+ * Determines if we need to reset the password
+ *
+ * Any time the wrapper has an ssh key and the the wrapper's user in the declaration has
+ * a password, we need to update the password before forwarding the declaration anywhere.
+ * We do this so that we can forward the updated password to other code that needs it
+ * (BIG-IQ TCW, for example)
+ *
+ * @param {Object} wrapper - Remote declaration wrapper
+ */
+function needsPasswordSetViaSsh(wrapper) {
+    if (wrapper.targetUsername && wrapper.targetSshKey) {
+        const user = getUserFromDeclaration(wrapper.targetUsername, wrapper.declaration);
+        if (user && user.password) {
+            return true;
+        }
+        return false;
+    }
+    return false;
 }
 
-function tryInitialPasswordReset(wrapper) {
+function initialPasswordSet(wrapper) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
     return new Promise((resolve, reject) => {
         let updatedPassword;
-        isPasswordResetRequired.call(this, wrapper)
-            .then((passwordResetRequired) => {
-                if (passwordResetRequired) {
-                    const user = getUserFromDeclaration(wrapper.targetUsername, wrapper.declaration);
-                    if (user && user.password) {
-                        getPort(wrapper)
-                            .then((port) => {
-                                // Check to see if the password can be dereferenced
-                                const dereferenced = doUtil.dereferencePointer(
-                                    wrapper.declaration,
-                                    user.password
-                                );
-                                if (typeof dereferenced === 'string') {
-                                    updatedPassword = dereferenced;
-                                } else {
-                                    updatedPassword = user.password;
-                                }
-                                const credentials = cloudUtil.createBufferFrom(
-                                    'admin:admin',
-                                    'ascii'
-                                ).toString('base64');
-                                const auth = `Basic ${credentials}`;
-                                const restOperation = this.restOperationFactory.createRestOperationInstance()
-                                    .setUri(
-                                        `https://${wrapper.targetHost}:${port}/mgmt/shared/authz/users/admin`
-                                    )
-                                    .setIsSetBasicAuthHeader(true)
-                                    .setBasicAuthorization(auth)
-                                    .setContentType('application/json')
-                                    .setBody(
-                                        {
-                                            oldPassword: 'admin',
-                                            password: updatedPassword
-                                        }
-                                    );
-                                return this.restRequestSender.sendPatch(restOperation);
-                            })
-                            .then(() => {
-                                resolve(updatedPassword);
-                            })
-                            .catch((err) => {
-                                logger.warning(`Error during initial password reset: ${err.message}`);
-                                reject(err);
-                            });
-                    } else {
-                        resolve();
-                    }
-                } else {
-                    resolve();
-                }
-            })
-            .catch((err) => {
-                logger.warning(`Error during initial password reset: ${err.message}`);
-                reject(err);
-            });
-    });
-}
-
-function isPasswordResetRequired(wrapper) {
-    // Rest framework complains about 'this' because of 'strict', but we use call(this)
-    /* jshint validthis: true */
-
-    return new Promise((resolve, reject) => {
-        if (wrapper.targetUsername
-            && wrapper.targetPassphrase
-            && wrapper.targetUsername === 'admin'
-            && wrapper.targetPassphrase === 'admin') {
+        const user = getUserFromDeclaration(wrapper.targetUsername, wrapper.declaration);
+        if (user && user.password) {
             getPort(wrapper)
                 .then((port) => {
-                    const credentials = cloudUtil.createBufferFrom('admin:admin', 'ascii').toString('base64');
+                    // Check to see if the password can be dereferenced
+                    const dereferenced = doUtil.dereferencePointer(
+                        wrapper.declaration,
+                        user.password
+                    );
+                    if (typeof dereferenced === 'string') {
+                        updatedPassword = dereferenced;
+                    } else {
+                        updatedPassword = user.password;
+                    }
+                    const credentials = cloudUtil.createBufferFrom(
+                        `${wrapper.targetUsername}:${wrapper.targetPassphrase}`,
+                        'ascii'
+                    ).toString('base64');
                     const auth = `Basic ${credentials}`;
                     const restOperation = this.restOperationFactory.createRestOperationInstance()
-                        .setUri(`https://${wrapper.targetHost}:${port}/mgmt/shared/echo`)
+                        .setUri(
+                            `https://${wrapper.targetHost}:${port}/mgmt/shared/authz/users/admin`
+                        )
                         .setIsSetBasicAuthHeader(true)
-                        .setBasicAuthorization(auth);
-                    return this.restRequestSender.sendGet(restOperation)
-                        .then(() => {
-                            resolve(false);
-                        })
-                        .catch((err) => {
-                            const result = err.getResponseOperation();
-                            if (result.statusCode === 401) {
-                                resolve(true);
-                            } else {
-                                resolve(false);
+                        .setBasicAuthorization(auth)
+                        .setContentType('application/json')
+                        .setBody(
+                            {
+                                oldPassword: wrapper.targetPassphrase,
+                                password: updatedPassword
                             }
-                        });
+                        );
+                    return this.restRequestSender.sendPatch(restOperation);
+                })
+                .then(() => {
+                    resolve(updatedPassword);
                 })
                 .catch((err) => {
+                    logger.warning(`Error during initial password reset: ${err.message}`);
                     reject(err);
                 });
         } else {
-            resolve(false);
+            resolve();
         }
     });
 }
 
-function tryInitialPasswordSetViaSsh(wrapper) {
+function initialPasswordSetViaSsh(wrapper) {
     return new Promise((resolve, reject) => {
         const user = getUserFromDeclaration(wrapper.targetUsername, wrapper.declaration);
         if (user && user.password) {
