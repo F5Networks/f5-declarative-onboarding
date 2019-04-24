@@ -1192,16 +1192,6 @@ describe('restWorker', () => {
                             }
                         };
 
-                        restWorker.restRequestSender.sendGet = () => {
-                            const err = new Error();
-                            err.getResponseOperation = () => {
-                                return {
-                                    statusCode: 401
-                                };
-                            };
-                            return Promise.reject(err);
-                        };
-
                         restWorker.restRequestSender.sendPatch = (restOperation) => {
                             assert.strictEqual(
                                 restOperation.getBody().password,
