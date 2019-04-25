@@ -26,6 +26,7 @@ module.exports = {
     MASK_REGEX: new RegExp('pass(word|phrase)', 'i'),
     ENDPOINTS: {
         CONFIG: 'config',
+        INFO: 'info',
         TASK: 'task'
     },
     PATHS: {

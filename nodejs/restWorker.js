@@ -27,6 +27,7 @@ const DeclarationHandler = require('./declarationHandler');
 const Logger = require('./logger');
 const Response = require('./response');
 const ConfigResponse = require('./configResponse');
+const InfoResponse = require('./infoResponse');
 const TaskResponse = require('./taskResponse');
 const State = require('./state');
 const SshUtil = require('./sshUtil');
@@ -939,6 +940,9 @@ function sendResponse(restOperation, endpoint, itemId) {
     switch (endpoint) {
     case ENDPOINTS.CONFIG:
         responder = new ConfigResponse(doState);
+        break;
+    case ENDPOINTS.INFO:
+        responder = new InfoResponse();
         break;
     case ENDPOINTS.TASK: {
         responder = new TaskResponse(doState);
