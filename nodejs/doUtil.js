@@ -125,19 +125,21 @@ module.exports = {
         return new Promise((resolve, reject) => {
             httpUtil.get('http://localhost:8100/shared/identified-devices/config/device-info')
                 .then((deviceInfo) => {
-                    let product = 'CONTAINER';
+                    let platform = 'CONTAINER';
                     if (deviceInfo && deviceInfo.slots) {
                         const activeSlot = deviceInfo.slots.find((slot) => {
                             return slot.isActive && slot.product;
                         });
 
                         if (activeSlot) {
-                            product = activeSlot.product;
+                            platform = activeSlot.product;
                         }
                     }
-                    resolve(product);
+                    logger.info(`Platform: ${platform}`);
+                    resolve(platform);
                 })
                 .catch((err) => {
+                    logger.warning(`Error detecting current platform: ${err.message}`);
                     reject(err);
                 });
         });

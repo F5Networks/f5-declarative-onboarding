@@ -92,25 +92,30 @@ class RestWorker {
         // If this device's license is going to be revoked, services will
         // restart and we need to know that's what happened when this worker is restarted.
         this.eventEmitter.on(EVENTS.DO_LICENSE_REVOKED, (taskId, bigIpPassword, bigIqPassword) => {
-            if (this.platform === PRODUCTS.BIGIP) {
-                // if we need to relicense after we restart, so store passwords
-                cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID);
-                cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID);
+            doUtil.getCurrentPlatform()
+                .then((platform) => {
+                    if (platform === PRODUCTS.BIGIP) {
+                        // if we need to relicense after we restart, so store passwords
+                        cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID);
+                        cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID);
 
-                this.state.doState.updateResult(taskId, 202, STATUS.STATUS_REVOKING, 'revoking license');
-                save.call(this);
-            }
+                        this.state.doState.updateResult(
+                            taskId,
+                            202,
+                            STATUS.STATUS_REVOKING,
+                            'revoking license'
+                        );
+                        save.call(this);
+                    }
+                })
+                .catch((err) => {
+                    logger.warning(`Error handling onStartCompleted: ${err.message}`);
+                });
         });
 
         // The framework is supposed to pass in our state, but does not.
         load.call(this)
             .then(() => {
-                return doUtil.getCurrentPlatform();
-            })
-            .then((platform) => {
-                logger.info(`Platform: ${platform}`);
-                this.platform = platform;
-
                 return handleStartupState.call(this, success, error);
             })
             .catch((err) => {
@@ -149,7 +154,9 @@ class RestWorker {
 
         const contentType = restOperation.getContentType() || '';
         let body = restOperation.getBody();
+        let isFromTcw = false;
         let bigIpOptions;
+        let platform;
 
         if (contentType.toLowerCase() !== 'application/json') {
             try {
@@ -208,14 +215,18 @@ class RestWorker {
                 insensitiveQuery[key.toLowerCase()] = query[key];
             });
 
-            // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
-            let isFromTcw = false;
-            if (this.platform === PRODUCTS.BIGIQ && insensitiveQuery.internal) {
-                isFromTcw = true;
-            }
-
             save.call(this)
                 .then(() => {
+                    return doUtil.getCurrentPlatform();
+                })
+                .then((currentPlatform) => {
+                    platform = currentPlatform;
+
+                    // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
+                    if (platform === PRODUCTS.BIGIQ && insensitiveQuery.internal) {
+                        isFromTcw = true;
+                    }
+
                     if (declaration.async) {
                         sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                     }
@@ -247,7 +258,7 @@ class RestWorker {
                     }
 
                     // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
-                    if (this.platform === PRODUCTS.BIGIQ && !isFromTcw) {
+                    if (platform === PRODUCTS.BIGIQ && !isFromTcw) {
                         logger.finest('Passing to TCW');
                         passToTcw.call(this, wrapper, taskId, restOperation)
                             .then((tcwId) => {
@@ -306,7 +317,7 @@ class RestWorker {
                                     // by the startup code (onStartCompleted). Otherwise, wait
                                     // until the BIG-IP is ready again (after a slight delay to make sure
                                     // the reboot has started).
-                                    if (this.platform !== PRODUCTS.BIGIP) {
+                                    if (platform !== PRODUCTS.BIGIP) {
                                         setTimeout(waitForRebootComplete, 10000, this, taskId);
                                     }
                                 }
@@ -621,97 +632,105 @@ function handleStartupState(success, error) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
-    if (this.platform !== PRODUCTS.BIGIP) {
-        success();
-        return;
-    }
+    doUtil.getCurrentPlatform()
+        .then((platform) => {
+            if (platform !== PRODUCTS.BIGIP) {
+                success();
+                return;
+            }
 
-    const currentTaskId = this.state.doState.mostRecentTask;
-    if (!currentTaskId) {
-        logger.info('Initial startup');
-        success();
-        return;
-    }
+            const currentTaskId = this.state.doState.mostRecentTask;
+            if (!currentTaskId) {
+                logger.info('Initial startup');
+                success();
+                return;
+            }
 
-    switch (this.state.doState.getStatus(currentTaskId)) {
-    case STATUS.STATUS_REBOOTING:
-        updateStateAfterReboot.call(this, currentTaskId, success, error);
-        break;
-    case STATUS.STATUS_REVOKING:
-        // If our status is REVOKING, restnoded was just restarted
-        // and we need to finish processing the declaration.
-        // This should only be the case when we are running on a BIG-IP.
+            switch (this.state.doState.getStatus(currentTaskId)) {
+            case STATUS.STATUS_REBOOTING:
+                updateStateAfterReboot.call(this, currentTaskId, success, error);
+                break;
+            case STATUS.STATUS_REVOKING:
+                // If our status is REVOKING, restnoded was just restarted
+                // and we need to finish processing the declaration.
+                // This should only be the case when we are running on a BIG-IP.
 
-        // call success then start onboarding
-        setImmediate(success);
-        setImmediate(() => {
-            // In this case, we should be running locally on a BIG-IP since
-            // revoking the BIG-IP license will not restart our restnoded in
-            // other environments (ASG, for example)
-            logger.fine('Onboard resuming.');
-            this.state.doState.updateResult(currentTaskId, 202, STATUS.STATUS_RUNNING, 'processing');
-            save.call(this);
+                // call success then start onboarding
+                setImmediate(success);
+                setImmediate(() => {
+                    // In this case, we should be running locally on a BIG-IP since
+                    // revoking the BIG-IP license will not restart our restnoded in
+                    // other environments (ASG, for example)
+                    logger.fine('Onboard resuming.');
+                    this.state.doState.updateResult(currentTaskId, 202, STATUS.STATUS_RUNNING, 'processing');
+                    save.call(this);
 
-            // Make sure we don't try to revoke again and if we need to relicense,
-            // fill in the BIG-IQ and BIG-IP passwords
-            const declaration = Object.assign({}, this.state.doState.getDeclaration(currentTaskId));
-            const deletePromises = [];
-            let licenseName;
-            let hasBigIpUser = false;
-            let hasBigIqUser = false;
+                    // Make sure we don't try to revoke again and if we need to relicense,
+                    // fill in the BIG-IQ and BIG-IP passwords
+                    const declaration = Object.assign({}, this.state.doState.getDeclaration(currentTaskId));
+                    const deletePromises = [];
+                    let licenseName;
+                    let hasBigIpUser = false;
+                    let hasBigIqUser = false;
 
-            Object.keys(declaration.Common).forEach((key) => {
-                if (declaration.Common[key].class === 'License') {
-                    licenseName = key;
-                    delete declaration.Common[licenseName].revokeFrom;
+                    Object.keys(declaration.Common).forEach((key) => {
+                        if (declaration.Common[key].class === 'License') {
+                            licenseName = key;
+                            delete declaration.Common[licenseName].revokeFrom;
 
-                    if (declaration.Common[licenseName].bigIpUsername) {
-                        hasBigIpUser = true;
-                    }
-                    if (declaration.Common[licenseName].bigIqUsername) {
-                        hasBigIqUser = true;
-                    }
-                }
-            });
+                            if (declaration.Common[licenseName].bigIpUsername) {
+                                hasBigIpUser = true;
+                            }
+                            if (declaration.Common[licenseName].bigIqUsername) {
+                                hasBigIqUser = true;
+                            }
+                        }
+                    });
 
-            Promise.resolve()
-                .then(() => {
-                    if (hasBigIpUser) {
-                        return cryptoUtil.decryptId(BIG_IP_ENCRYPTION_ID);
-                    }
-                    return Promise.resolve();
-                })
-                .then((password) => {
-                    if (password) {
-                        declaration.Common[licenseName].bigIpPassword = password;
-                        deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID));
-                    }
-                    if (hasBigIqUser) {
-                        return cryptoUtil.decryptId(BIG_IQ_ENCRYPTION_ID);
-                    }
-                    return Promise.resolve();
-                })
-                .then((password) => {
-                    if (password) {
-                        declaration.Common[licenseName].bigIqPassword = password;
-                        deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID));
-                    }
-                    return Promise.all(deletePromises);
-                })
-                .then(() => {
-                    return onboard.call(this, declaration, {}, currentTaskId);
-                })
-                .then((rebootRequired) => {
-                    if (rebootRequired) {
-                        this.bigIps[currentTaskId].reboot();
-                    }
+                    Promise.resolve()
+                        .then(() => {
+                            if (hasBigIpUser) {
+                                return cryptoUtil.decryptId(BIG_IP_ENCRYPTION_ID);
+                            }
+                            return Promise.resolve();
+                        })
+                        .then((password) => {
+                            if (password) {
+                                declaration.Common[licenseName].bigIpPassword = password;
+                                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID));
+                            }
+                            if (hasBigIqUser) {
+                                return cryptoUtil.decryptId(BIG_IQ_ENCRYPTION_ID);
+                            }
+                            return Promise.resolve();
+                        })
+                        .then((password) => {
+                            if (password) {
+                                declaration.Common[licenseName].bigIqPassword = password;
+                                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID));
+                            }
+                            return Promise.all(deletePromises);
+                        })
+                        .then(() => {
+                            return onboard.call(this, declaration, {}, currentTaskId);
+                        })
+                        .then((rebootRequired) => {
+                            if (rebootRequired) {
+                                this.bigIps[currentTaskId].reboot();
+                            }
+                        });
                 });
-        });
 
-        break;
-    default:
-        success();
-    }
+                break;
+            default:
+                success();
+            }
+        })
+        .catch((err) => {
+            const message = `Error handling startup state: ${err.message}`;
+            logger.warning(message);
+            error(message);
+        });
 }
 
 function initialAccountSetup(wrapper) {
