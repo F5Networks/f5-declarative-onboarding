@@ -935,7 +935,10 @@ describe('restWorker', () => {
             beforeEach(() => {
                 realSetTimeout = setTimeout;
 
-                restWorker.platform = 'BIG-IQ';
+                doUtilMock.getCurrentPlatform = () => {
+                    return Promise.resolve('BIG-IQ');
+                };
+
                 restWorker.restOperationFactory = {
                     createRestOperationInstance() {
                         return {
