@@ -138,28 +138,32 @@ function handleDeviceTrustAndGroup() {
     if (this.declaration.Common.DeviceTrust && this.declaration.Common.DeviceGroup) {
         const deviceTrust = this.declaration.Common.DeviceTrust;
         const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
-        const deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
-
-        return this.bigIp.deviceInfo()
-            .then((deviceInfo) => {
-                if (deviceInfo.hostname !== deviceGroup.owner) {
-                    return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
-                }
-                return Promise.resolve(true);
-            })
-            .then((isRemote) => {
-                if (!isRemote) {
-                    logger.fine('Passing off to join cluster function.');
-                    return handleJoinCluster.call(this);
-                }
-                // If this host is the remote host, we only create the device group and
-                // ignore device trust.
-                return handleDeviceGroup.call(this);
-            })
-            .catch((err) => {
-                logger.severe(`Error creating/joining device trust/group: ${err.message}`);
-                return Promise.reject(err);
-            });
+        let deviceGroup;
+        if (deviceGroupName) {
+            deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
+        }
+        if (deviceGroup) {
+            return this.bigIp.deviceInfo()
+                .then((deviceInfo) => {
+                    if (deviceInfo.hostname !== deviceGroup.owner) {
+                        return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
+                    }
+                    return Promise.resolve(true);
+                })
+                .then((isRemote) => {
+                    if (!isRemote) {
+                        logger.fine('Passing off to join cluster function.');
+                        return handleJoinCluster.call(this);
+                    }
+                    // If this host is the remote host, we only create the device group and
+                    // ignore device trust.
+                    return handleDeviceGroup.call(this);
+                })
+                .catch((err) => {
+                    logger.severe(`Error creating/joining device trust/group: ${err.message}`);
+                    return Promise.reject(err);
+                });
+        }
     }
 
     return handleDeviceTrust.call(this)
@@ -253,22 +257,27 @@ function handleDeviceTrust() {
 function handleDeviceGroup() {
     if (this.declaration.Common.DeviceGroup) {
         const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
-        const deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
+        let deviceGroup;
+        if (deviceGroupName) {
+            deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
+        }
 
-        return this.bigIp.deviceInfo()
-            .then((deviceInfo) => {
-                const hostname = deviceInfo.hostname;
-                // If we are the owner, create the group
-                if (hostname === deviceGroup.owner) {
-                    return createDeviceGroup.call(this, deviceGroupName, deviceGroup);
-                }
+        if (deviceGroup) {
+            return this.bigIp.deviceInfo()
+                .then((deviceInfo) => {
+                    const hostname = deviceInfo.hostname;
+                    // If we are the owner, create the group
+                    if (hostname === deviceGroup.owner) {
+                        return createDeviceGroup.call(this, deviceGroupName, deviceGroup);
+                    }
 
-                return joinDeviceGroup.call(this, deviceGroupName, hostname);
-            })
-            .catch((err) => {
-                logger.severe(`Error handling device group: ${err.message}`);
-                return Promise.reject(err);
-            });
+                    return joinDeviceGroup.call(this, deviceGroupName, hostname);
+                })
+                .catch((err) => {
+                    logger.severe(`Error handling device group: ${err.message}`);
+                    return Promise.reject(err);
+                });
+        }
     }
 
     return Promise.resolve();
