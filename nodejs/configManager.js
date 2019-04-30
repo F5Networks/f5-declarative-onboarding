@@ -172,33 +172,43 @@ class ConfigManager {
                             currentConfig[key] = currentItem[key];
                         });
                     } else if (Array.isArray(currentItem)) {
-                        currentItem.forEach((item) => {
-                            if (!shouldIgnore(item, this.configItems[index].ignore)) {
-                                patchedItem = removeUnusedKeys.call(this, item);
-                                patchedItem = mapProperties.call(this, patchedItem, index);
+                        if (currentItem.length === 0 && !currentConfig[schemaClass]) {
+                            currentConfig[schemaClass] = {};
+                        } else {
+                            currentItem.forEach((item) => {
+                                if (!shouldIgnore(item, this.configItems[index].ignore)) {
+                                    patchedItem = removeUnusedKeys.call(this, item);
+                                    patchedItem = mapProperties.call(this, patchedItem, index);
 
-                                // Self IPs are so odd that I don't see a generic way to handle this
-                                if (schemaClass === 'SelfIp') {
-                                    patchedItem = patchSelfIp.call(this, patchedItem);
-                                }
-
-                                // Ditto for DB variables
-                                if (schemaClass === 'DbVariables') {
-                                    if (dbVarsOfInterest.indexOf(item.name) === -1) {
-                                        patchedItem = null;
+                                    // Self IPs are so odd that I don't see a generic way to handle this
+                                    if (schemaClass === 'SelfIp') {
+                                        patchedItem = patchSelfIp.call(this, patchedItem);
                                     }
-                                }
 
-                                if (patchedItem) {
-                                    if (!currentConfig[schemaClass]) {
-                                        currentConfig[schemaClass] = {};
+                                    // Ditto for DB variables
+                                    if (schemaClass === 'DbVariables') {
+                                        if (dbVarsOfInterest.indexOf(item.name) === -1) {
+                                            patchedItem = null;
+                                        }
                                     }
-                                    currentConfig[schemaClass][item.name] = patchedItem;
-                                }
 
-                                getReferencedPaths.call(this, item, index, referencePromises, referenceInfo);
-                            }
-                        });
+                                    if (patchedItem) {
+                                        if (!currentConfig[schemaClass]) {
+                                            currentConfig[schemaClass] = {};
+                                        }
+                                        currentConfig[schemaClass][item.name] = patchedItem;
+                                    }
+
+                                    getReferencedPaths.call(
+                                        this,
+                                        item,
+                                        index,
+                                        referencePromises,
+                                        referenceInfo
+                                    );
+                                }
+                            });
+                        }
                     } else if (!shouldIgnore(currentItem, this.configItems[index].ignore)) {
                         currentConfig[schemaClass] = {};
                         patchedItem = removeUnusedKeys.call(
