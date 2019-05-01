@@ -15,7 +15,7 @@ Example 1: Standalone declaration
 ---------------------------------
 The following is an example declaration that onboards a standalone BIG-IP system. See :doc:`composing-a-declaration` for specific details on this example.
 
-.. literalinclude:: examples/example_01.json
+.. literalinclude:: ../examples/onboard.json
    :language: json
    
 

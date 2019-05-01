@@ -2,7 +2,7 @@
     "schemaVersion": "1.0.0",
     "class": "Device",
     "async": true,
-    "label": "Basic onboarding",
+    "label": "my BIG-IP declaration for declarative onboarding",
     "Common": {
         "class": "Tenant",
         "hostname": "bigip.example.com",
