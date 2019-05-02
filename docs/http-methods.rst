@@ -27,7 +27,7 @@ You can also use ``https://<BIG-IP>/mgmt/shared/declarative-onboarding?show=full
 
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The following two new GET APIs are available in Declarative Onboarding v1.4 and later.
+   The following two new GET endpoints are available in Declarative Onboarding v1.4 and later.
 
 **Declarative Onboarding v1.4 introduces two new options for the GET method**
 
