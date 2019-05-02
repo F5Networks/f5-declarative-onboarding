@@ -33,6 +33,11 @@
             "type": "string",
             "const": "DO"
         },
+        "$schema": {
+            "description": "URL of schema against which to validate. Used by validation in your local environment only (via Visual Studio Code, for example)",
+            "type": "string",
+            "format": "uri"
+        },
         "targetHost": {
             "description": "Hostname or IP address of ADC to which request applies (default localhost)",
             "type": "string",
