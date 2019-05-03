@@ -259,7 +259,7 @@ describe('doUtil', () => {
 
             it('should return true if the prompt is REBOOT REQUIRED', () => {
                 return new Promise((resolve, reject) => {
-                    doUtil.executeBashCommandExec = () => {
+                    doUtil.executeBashCommandLocal = () => {
                         return Promise.resolve('REBOOT REQUIRED');
                     };
 
@@ -276,7 +276,7 @@ describe('doUtil', () => {
 
             it('should return false if the prompt is REBOOT REQUIRED', () => {
                 return new Promise((resolve, reject) => {
-                    doUtil.executeBashCommandExec = () => {
+                    doUtil.executeBashCommandLocal = () => {
                         return Promise.resolve('Active');
                     };
 
@@ -299,14 +299,13 @@ describe('doUtil', () => {
                 };
             });
 
-            it('should return true if bigIp.rebootRequired returns true', () => {
+            it('should return true if the prompt is REBOOT REQUIRED', () => {
                 return new Promise((resolve, reject) => {
-                    BigIpMock.prototype.rebootRequired = () => {
-                        return Promise.resolve(true);
+                    doUtil.executeBashCommandRemote = () => {
+                        return Promise.resolve('REBOOT REQUIRED');
                     };
-                    const bigIpMock = new BigIpMock();
 
-                    doUtil.rebootRequired(bigIpMock)
+                    doUtil.rebootRequired()
                         .then((rebootRequired) => {
                             assert.strictEqual(rebootRequired, true);
                             resolve();
@@ -317,14 +316,13 @@ describe('doUtil', () => {
                 });
             });
 
-            it('should return false if bigIp.rebootRequired returns false', () => {
+            it('should return false if the prompt is REBOOT REQUIRED', () => {
                 return new Promise((resolve, reject) => {
-                    BigIpMock.prototype.rebootRequired = () => {
-                        return Promise.resolve(false);
+                    doUtil.executeBashCommandRemote = () => {
+                        return Promise.resolve('Active');
                     };
-                    const bigIpMock = new BigIpMock();
 
-                    doUtil.rebootRequired(bigIpMock)
+                    doUtil.rebootRequired()
                         .then((rebootRequired) => {
                             assert.strictEqual(rebootRequired, false);
                             resolve();

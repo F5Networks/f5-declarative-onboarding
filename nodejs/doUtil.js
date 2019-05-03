@@ -20,6 +20,7 @@ const net = require('net');
 const exec = require('child_process').exec;
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const Logger = require('./logger');
 
@@ -98,19 +99,22 @@ module.exports = {
     rebootRequired(bigIp) {
         return this.getCurrentPlatform()
             .then((platform) => {
-                // If we are running on  a BIG-IP, check the ps1 prompt, as it is more reliable
+                let promise;
                 if (platform === PRODUCTS.BIGIP) {
-                    return this.executeBashCommandExec('cat /var/prompt/ps1')
-                        .then((ps1Prompt) => {
-                            if (ps1Prompt.trim() === 'REBOOT REQUIRED') {
-                                return Promise.resolve(true);
-                            }
-                            return Promise.resolve(false);
-                        });
+                    // If we are running on  a BIG-IP, run a local tmsh command
+                    promise = this.executeBashCommandLocal('cat /var/prompt/ps1');
+                } else {
+                    // Otherwise, use a remote command
+                    promise = this.executeBashCommandRemote(bigIp, 'cat /var/prompt/ps1');
                 }
 
-                // Otherwise, do the best we can
-                return bigIp.rebootRequired();
+                return promise;
+            })
+            .then((ps1Prompt) => {
+                if (ps1Prompt.trim() === 'REBOOT REQUIRED') {
+                    return Promise.resolve(true);
+                }
+                return Promise.resolve(false);
             });
     },
 
@@ -118,11 +122,10 @@ module.exports = {
      * Return a promise to execute a bash command on a BIG-IP using
      * child-process.exec.
      *
-     * @public
      * @param {string} command - bash command to execute
      * @returns {Promise} - A promise which resolves to a string containing the command output
      */
-    executeBashCommandExec(command) {
+    executeBashCommandLocal(command) {
         return new Promise((resolve, reject) => {
             exec(command, (error, stdout) => {
                 if (error !== null) {
@@ -132,6 +135,30 @@ module.exports = {
                 }
             });
         });
+    },
+
+    /**
+     * Returns a promise to execute a bash command on a BIG-IP remotely.
+     *
+     * @param {string} command - bash command to execute
+     *
+     * @returns {Promise} - resolves to a string containing the command output
+     */
+    executeBashCommandRemote(bigIp, command) {
+        const commandBody = {
+            command: 'run',
+            utilCmdArgs: `-c "${command}"`
+        };
+
+        return bigIp.create(
+            '/tm/util/bash',
+            commandBody,
+            null,
+            cloudUtil.NO_RETRY
+        )
+            .then((result) => {
+                return result.commandResult;
+            });
     },
 
     /**
