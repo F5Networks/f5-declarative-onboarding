@@ -116,7 +116,7 @@ module.exports = {
 
     /**
      * Return a promise to execute a bash command on a BIG-IP using
-     * child-process.exec.  Runs wherever AS3 is running!
+     * child-process.exec.
      *
      * @public
      * @param {string} command - bash command to execute
