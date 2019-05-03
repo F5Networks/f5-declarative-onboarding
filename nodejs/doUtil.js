@@ -17,8 +17,10 @@
 'use strict';
 
 const net = require('net');
+const exec = require('child_process').exec;
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
+const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const Logger = require('./logger');
 
 const logger = new Logger(module);
@@ -81,6 +83,54 @@ module.exports = {
                 .catch((err) => {
                     reject(err);
                 });
+        });
+    },
+
+
+    /**
+     * Determines if a reboot is required.
+     *
+     * @param {BigOp} bigIp - BigIp object
+     *
+     * @returns {Promise} - A promise which resolves true or false based on whehter or not
+     *                      the BigIp requires a reboot.
+     */
+    rebootRequired(bigIp) {
+        return this.getCurrentPlatform()
+            .then((platform) => {
+                // If we are running on  a BIG-IP, check the ps1 prompt, as it is more reliable
+                if (platform === PRODUCTS.BIGIP) {
+                    return this.executeBashCommandExec('cat /var/prompt/ps1')
+                        .then((ps1Prompt) => {
+                            if (ps1Prompt.trim() === 'REBOOT REQUIRED') {
+                                return Promise.resolve(true);
+                            }
+                            return Promise.resolve(false);
+                        });
+                }
+
+                // Otherwise, do the best we can
+                return bigIp.rebootRequired();
+            });
+    },
+
+    /**
+     * Return a promise to execute a bash command on a BIG-IP using
+     * child-process.exec.  Runs wherever AS3 is running!
+     *
+     * @public
+     * @param {string} command - bash command to execute
+     * @returns {Promise} - A promise which resolves to a string containing the command output
+     */
+    executeBashCommandExec(command) {
+        return new Promise((resolve, reject) => {
+            exec(command, (error, stdout) => {
+                if (error !== null) {
+                    reject(error);
+                } else {
+                    resolve(stdout);
+                }
+            });
         });
     },
 

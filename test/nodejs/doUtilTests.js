@@ -236,4 +236,104 @@ describe('doUtil', () => {
             });
         });
     });
+
+    describe('rebootRequired', () => {
+        let getCurrentPlatform;
+        let executeBashCommandExec;
+        beforeEach(() => {
+            executeBashCommandExec = doUtil.executeBashCommandExec;
+            getCurrentPlatform = doUtil.getCurrentPlatform;
+        });
+
+        afterEach(() => {
+            doUtil.executeBashCommandExec = executeBashCommandExec;
+            doUtil.getCurrentPlatform = getCurrentPlatform;
+        });
+
+        describe('running on BIG-IP', () => {
+            beforeEach(() => {
+                doUtil.getCurrentPlatform = () => {
+                    return Promise.resolve('BIG-IP');
+                };
+            });
+
+            it('should return true if the prompt is REBOOT REQUIRED', () => {
+                return new Promise((resolve, reject) => {
+                    doUtil.executeBashCommandExec = () => {
+                        return Promise.resolve('REBOOT REQUIRED');
+                    };
+
+                    doUtil.rebootRequired()
+                        .then((rebootRequired) => {
+                            assert.strictEqual(rebootRequired, true);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+
+            it('should return false if the prompt is REBOOT REQUIRED', () => {
+                return new Promise((resolve, reject) => {
+                    doUtil.executeBashCommandExec = () => {
+                        return Promise.resolve('Active');
+                    };
+
+                    doUtil.rebootRequired()
+                        .then((rebootRequired) => {
+                            assert.strictEqual(rebootRequired, false);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+        });
+
+        describe('not running on BIG-IP', () => {
+            beforeEach(() => {
+                doUtil.getCurrentPlatform = () => {
+                    return Promise.resolve('BIG-IQ');
+                };
+            });
+
+            it('should return true if bigIp.rebootRequired returns true', () => {
+                return new Promise((resolve, reject) => {
+                    BigIpMock.prototype.rebootRequired = () => {
+                        return Promise.resolve(true);
+                    };
+                    const bigIpMock = new BigIpMock();
+
+                    doUtil.rebootRequired(bigIpMock)
+                        .then((rebootRequired) => {
+                            assert.strictEqual(rebootRequired, true);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+
+            it('should return false if bigIp.rebootRequired returns false', () => {
+                return new Promise((resolve, reject) => {
+                    BigIpMock.prototype.rebootRequired = () => {
+                        return Promise.resolve(false);
+                    };
+                    const bigIpMock = new BigIpMock();
+
+                    doUtil.rebootRequired(bigIpMock)
+                        .then((rebootRequired) => {
+                            assert.strictEqual(rebootRequired, false);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+        });
+    });
 });
