@@ -178,10 +178,27 @@ class RestWorker {
                             .then(() => {
                                 return onboard.call(this, declaration, {});
                             })
-                            .then((rebootRequired) => {
-                                if (rebootRequired) {
-                                    this.bigIp.reboot();
-                                }
+                            .then(() => {
+                                logger.fine('Onboard configuration complete. Saving sys config.');
+                                return this.bigIp.save();
+                            })
+                            .then(() => {
+                                return setPostOnboardStatus.call(this, this.bigIp, declaration);
+                            })
+                            .then(() => {
+                                return rebootIfRequired.call(this, this.bigIp);
+                            })
+                            .then(() => {
+                                logger.fine('Onboard complete.');
+                            })
+                            .catch((err) => {
+                                logger.severe(`Error during onboarding: ${err.message}`);
+                                this.state.doState.updateResult(
+                                    500,
+                                    STATUS.STATUS_ERROR,
+                                    'failed',
+                                    err.message
+                                );
                             });
                     });
 
@@ -286,14 +303,31 @@ class RestWorker {
             });
 
             onboard.call(this, declaration, bigIpOptions)
-                .then((rebootRequired) => {
+                .then(() => {
+                    logger.fine('Onboard configuration complete. Saving sys config.');
+                    return this.bigIp.save();
+                })
+                .then(() => {
+                    return setPostOnboardStatus.call(this, this.bigIp, declaration);
+                })
+                .then(() => {
                     if (!declaration.async) {
                         logger.fine('Sending response.');
                         sendResponse.call(this, restOperation);
                     }
-                    if (rebootRequired) {
-                        this.bigIp.reboot();
-                    }
+                    return rebootIfRequired.call(this, this.bigIp);
+                })
+                .then(() => {
+                    logger.fine('Onboard complete.');
+                })
+                .catch((err) => {
+                    logger.severe(`Error during onboarding: ${err.message}`);
+                    this.state.doState.updateResult(
+                        500,
+                        STATUS.STATUS_ERROR,
+                        'failed',
+                        err.message
+                    );
                 });
         }
     }
@@ -324,8 +358,6 @@ class RestWorker {
 }
 
 function onboard(declaration, bigIpOptions) {
-    let rebootRequired = false;
-
     return doUtil.getBigIp(logger, bigIpOptions)
         .then((bigIp) => {
             this.bigIp = bigIp;
@@ -342,32 +374,6 @@ function onboard(declaration, bigIpOptions) {
         })
         .then(() => {
             return this.declarationHandler.process(declaration, this.state.doState);
-        })
-        .then(() => {
-            logger.fine('Saving sys config.');
-            return this.bigIp.save();
-        })
-        .then(() => {
-            logger.fine('Onboard configuration complete. Checking for reboot.');
-            return this.bigIp.rebootRequired();
-        })
-        .then((needsReboot) => {
-            rebootRequired = needsReboot;
-            if (!rebootRequired) {
-                logger.fine('No reboot required');
-                this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
-            } else {
-                logger.fine('Reboot required. Rebooting.');
-                this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
-            }
-            logger.fine('Getting and saving current configuration');
-            return getAndSaveCurrentConfig.call(this, this.bigIp, declaration);
-        })
-        .then(() => {
-            if (!rebootRequired) {
-                logger.fine('Onboard complete.');
-            }
-            return Promise.resolve();
         })
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
@@ -400,16 +406,53 @@ function onboard(declaration, bigIpOptions) {
         })
         .catch((err) => {
             logger.severe(`Error rolling back configuration: ${err.message}`);
-            const deconCode = 500;
             this.state.doState.updateResult(
-                deconCode,
+                500,
                 STATUS.STATUS_ERROR,
                 'rollback failed',
                 err.message
             );
         })
         .then(() => {
-            return Promise.resolve(rebootRequired);
+            return Promise.resolve();
+        });
+}
+
+function setPostOnboardStatus(bigIp, declaration) {
+    let promise = Promise.resolve();
+    // Don't overwrite the error state if it's there
+    if (this.state.doState.status !== STATUS.STATUS_ERROR) {
+        promise = promise.then(() => {
+            return bigIp.rebootRequired()
+                .then((rebootRequired) => {
+                    if (!rebootRequired) {
+                        logger.fine('No reboot required');
+                        this.state.doState.updateResult(200, STATUS.STATUS_OK, 'success');
+                    } else {
+                        logger.fine('Reboot required.');
+                        this.state.doState.updateResult(202, STATUS.STATUS_REBOOTING, 'reboot required');
+                    }
+                    return Promise.resolve();
+                });
+        });
+    }
+
+    return promise
+        .then(() => {
+            logger.fine('Getting and saving current configuration');
+            return getAndSaveCurrentConfig.call(this, bigIp, declaration);
+        });
+}
+
+function rebootIfRequired(bigIp) {
+    return bigIp.rebootRequired()
+        .then((rebootRequired) => {
+            if (rebootRequired) {
+                logger.info('Reboot required. Rebooting...');
+                bigIp.reboot();
+            } else {
+                logger.fine('No reboot required.');
+            }
         });
 }
 
