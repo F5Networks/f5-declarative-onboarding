@@ -115,6 +115,20 @@ module.exports = {
                     return Promise.resolve(true);
                 }
                 return Promise.resolve(false);
+            })
+            .then((promptSaysRebootRequired) => {
+                // Double check the db var. If either the prompt or the db var says
+                // reboot required, then reboot is required.
+                if (!promptSaysRebootRequired) {
+                    return bigIp.list('/tm/sys/db/provision.action', null, cloudUtil.NO_RETRY)
+                        .then((response) => {
+                            return Promise.resolve(response.value === 'reboot');
+                        });
+                }
+                return Promise.resolve(true);
+            })
+            .then((rebootRequired) => {
+                return Promise.resolve(rebootRequired);
             });
     },
 
