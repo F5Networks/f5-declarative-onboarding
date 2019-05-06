@@ -229,9 +229,6 @@ describe('restWorker', () => {
                 bigIpMock = {
                     save() {
                         return Promise.resolve();
-                    },
-                    rebootRequired() {
-                        return Promise.resolve(true);
                     }
                 };
                 doUtilMock.getBigIp = () => {
@@ -239,6 +236,9 @@ describe('restWorker', () => {
                 };
                 doUtilMock.getCurrentPlatform = () => {
                     return Promise.resolve('BIG-IP');
+                };
+                doUtilMock.rebootRequired = () => {
+                    return Promise.resolve(true);
                 };
                 cryptoUtilMock.decryptId = (id) => {
                     let password;
@@ -477,9 +477,6 @@ describe('restWorker', () => {
                     saveCalled = true;
                     return Promise.resolve();
                 },
-                rebootRequired() {
-                    return Promise.resolve(false);
-                },
                 reboot() {}
             };
             doUtilMock.getBigIp = (logger, bigIpOptions) => {
@@ -488,6 +485,9 @@ describe('restWorker', () => {
             };
             doUtilMock.getCurrentPlatform = () => {
                 return Promise.resolve('BIG-IP');
+            };
+            doUtilMock.rebootRequired = () => {
+                return Promise.resolve(false);
             };
 
             validatorMock.validate = () => {
@@ -645,7 +645,7 @@ describe('restWorker', () => {
                     resolve();
                 };
 
-                bigIpMock.rebootRequired = () => {
+                doUtilMock.rebootRequired = () => {
                     return Promise.resolve(true);
                 };
 
@@ -737,7 +737,7 @@ describe('restWorker', () => {
 
                 restOperationMock.complete = () => {};
 
-                bigIpMock.rebootRequired = () => {
+                doUtilMock.rebootRequired = () => {
                     return Promise.resolve(true);
                 };
 

@@ -423,7 +423,7 @@ function setPostOnboardStatus(bigIp, declaration) {
     // Don't overwrite the error state if it's there
     if (this.state.doState.status !== STATUS.STATUS_ERROR) {
         promise = promise.then(() => {
-            return bigIp.rebootRequired()
+            return doUtil.rebootRequired(bigIp)
                 .then((rebootRequired) => {
                     if (!rebootRequired) {
                         logger.fine('No reboot required');
@@ -445,7 +445,7 @@ function setPostOnboardStatus(bigIp, declaration) {
 }
 
 function rebootIfRequired(bigIp) {
-    return bigIp.rebootRequired()
+    return doUtil.rebootRequired(bigIp)
         .then((rebootRequired) => {
             if (rebootRequired) {
                 logger.info('Reboot required. Rebooting...');
