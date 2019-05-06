@@ -285,13 +285,20 @@ function handleLicensePool(license) {
                         skuKeyword2: license.skuKeyword2,
                         unitOfMeasure: license.unitOfMeasure,
                         noUnreachable: !!license.reachable,
-                        overwrite: !!license.overwrite
+                        overwrite: !!license.overwrite,
+                        autoApiType: true
                     }
                 );
             }
+
             return Promise.resolve();
         })
         .then(() => {
+            // Don't try to check for active state if we only revoked
+            // An unlicensed device will return OFFLINE status
+            if (typeof license.licensePool === 'undefined') {
+                return Promise.resolve();
+            }
             return this.bigIp.active();
         });
 }
