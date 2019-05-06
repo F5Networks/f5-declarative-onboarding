@@ -1,6 +1,6 @@
 #!/bin/bash
 VERSION=$(npm version | grep f5-declarative-onboarding | cut -d : -f 2 | awk -F \' '{print $2}')
-RELEASE=1
+RELEASE=2
 RPM_NAME=f5-declarative-onboarding-${VERSION}-${RELEASE}.noarch.rpm
 rm -rf node_modules
 npm install --production
