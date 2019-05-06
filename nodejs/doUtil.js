@@ -168,7 +168,7 @@ module.exports = {
             '/tm/util/bash',
             commandBody,
             null,
-            cloudUtil.NO_RETRY
+            cloudUtil.SHORT_RETRY
         )
             .then((result) => {
                 return result.commandResult;
