@@ -12,7 +12,7 @@ The following are prerequisites for using F5 Declarative Onboarding:
 
 - You must have an existing user account with the Administrator role. If you are using 13.1.x, the BIG-IP contains an admin user by default. If you are using 14.x, you **must** reset the admin password before installing Declarative Onboarding. See :ref:`14andlater` for instructions.  
 
-- Declarative Onboarding is not supported on F5 vCMP systems.
+- While Declarative onboarding is supported on F5 vCMP systems, network stitching to vCMP Guests or Hosts is not supported.
 
 - If you are using an F5 BYOL license, you must have a valid F5 Networks License Registration Key to include in your declaration.  If you do not have one, contact your F5 sales representative. If you do not use a valid F5 license key, your declaration will fail.  This is not a requirement if you are using a BIG-IP with pay-as-you-go licensing. 
 
@@ -23,7 +23,7 @@ The following are prerequisites for using F5 Declarative Onboarding:
 Notes and tips
 ~~~~~~~~~~~~~~
 
-- With the release of Declarative Onboarding 1.2.0, the GitHub repository now includes a |github| with all of the example declarations. For information on importing this collection and using Postman collections, see the |postman|.  
+- With the release of Declarative Onboarding 1.2.0, the GitHub repository includes a |github| with all of the example declarations. For information on importing this collection and using Postman collections, see the |postman|.  
 
 - The first time you POST a Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration. Declarative Onboarding is meant to initially configure a BIG-IP device. However, if you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.  **Important**: No matter what you send in a subsequent declaration, Declarative Onboarding will never unlicense a BIG-IP device, it will never delete a user, and it never break the device trust once it has been established.
 
