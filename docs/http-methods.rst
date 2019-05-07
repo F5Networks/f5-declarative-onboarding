@@ -2,6 +2,7 @@ HTTP Methods
 ------------
 This section contains the current HTTP methods available with Declarative Onboarding.
 
+
 POST
 ~~~~
 To send your declaration, use the POST method to the URI
@@ -13,7 +14,28 @@ echoes your declaration back to you.
 
 The first time you POST a Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration.  If you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.
 
-When using Declarative Onboarding 1.4.0 and later, the response to a POST includes additional fields that help handle onboarding multiple BIG-IP devices.  These fields are **id** and **selfLink**.  For example, a POST using 1.4.0 returns the following:
+.. _postnote:
+
+**NOTE**: When using Declarative Onboarding 1.4.0 and later, the response to a POST includes additional fields that help handle onboarding multiple BIG-IP devices using the Container without waiting for previous declarations to finish onboarding.  These fields are **id** and **selfLink**.  For example, a POST using 1.4.0 returns the following:
+
+.. code-block:: bash
+   :emphasize-lines: 2-3
+
+    {
+        "id": "d1f131b6-9e93-49a5-9fed-a068d34e274a",
+        "selfLink": "https://localhost/mgmt/shared/declarative-onboarding/task/d1f131b6-9e93-49a5-9fed-a068d34e274a",
+        "result": {
+            "class": "Result",
+            "code": 202,
+            "status": "RUNNING",
+            "message": "processing"
+        },
+        "declaration": {…
+        }
+    }
+
+
+
 
 GET
 ~~~
@@ -29,6 +51,8 @@ You can also use ``https://<BIG-IP>/mgmt/shared/declarative-onboarding?show=full
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    The following two new GET endpoints are available in Declarative Onboarding v1.4 and later.
+
+.. _getnote:
 
 **Declarative Onboarding v1.4 introduces two new endpoints for the GET method**
 
