@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,13 @@ class SystemHandler {
      * @param {Object} declaration - Parsed declaration.
      * @param {Object} bigIp - BigIp object.
      * @param {EventEmitter} - DO event emitter.
+     * @param {State} - The doState.
      */
-    constructor(declaration, bigIp, eventEmitter) {
+    constructor(declaration, bigIp, eventEmitter, state) {
         this.declaration = declaration;
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
+        this.state = state;
     }
 
     /**
@@ -182,9 +184,10 @@ function handleRegKey(license) {
             return this.bigIp.active();
         })
         .catch((err) => {
-            const errorLicensing = `Error licensing: ${err}`;
+            const errorLicensing = `Error licensing: ${err.message}`;
             logger.severe(errorLicensing);
-            return Promise.reject(errorLicensing);
+            err.message = errorLicensing;
+            return Promise.reject(err);
         });
 }
 
@@ -210,7 +213,7 @@ function handleLicensePool(license) {
                     resolve(resolvedBigIp);
                 })
                 .catch((err) => {
-                    logger.severe(`Error getting big ip for reachable API: ${err}`);
+                    logger.severe(`Error getting big ip for reachable API: ${err.message}`);
                     reject(err);
                 });
         });
@@ -247,6 +250,7 @@ function handleLicensePool(license) {
                 if (licenseInfo.reachable) {
                     this.eventEmitter.emit(
                         EVENTS.DO_LICENSE_REVOKED,
+                        this.state.id,
                         licenseInfo.bigIpPassword,
                         licenseInfo.bigIqPassword
                     );
@@ -282,13 +286,20 @@ function handleLicensePool(license) {
                         skuKeyword2: license.skuKeyword2,
                         unitOfMeasure: license.unitOfMeasure,
                         noUnreachable: !!license.reachable,
-                        overwrite: !!license.overwrite
+                        overwrite: !!license.overwrite,
+                        autoApiType: true
                     }
                 );
             }
+
             return Promise.resolve();
         })
         .then(() => {
+            // Don't try to check for active state if we only revoked
+            // An unlicensed device will return OFFLINE status
+            if (typeof license.licensePool === 'undefined') {
+                return Promise.resolve();
+            }
             return this.bigIp.active();
         });
 }
@@ -363,7 +374,7 @@ function createOrUpdateUser(username, data) {
             return Promise.resolve();
         })
         .catch((err) => {
-            logger.severe(`Error creating/updating user: ${err}`);
+            logger.severe(`Error creating/updating user: ${err.message}`);
             return Promise.reject(err);
         });
 }

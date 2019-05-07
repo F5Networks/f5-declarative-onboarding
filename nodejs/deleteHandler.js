@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,11 +39,13 @@ class DeleteHandler {
      * @param {Object} declaration - Parsed declaration of objects to delete.
      * @param {Object} bigIp - BigIp object.
      * @param {EventEmitter} - DO event emitter.
+     * @param {State} - The doState.
      */
-    constructor(declaration, bigIp, eventEmitter) {
+    constructor(declaration, bigIp, eventEmitter, state) {
         this.declaration = declaration;
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
+        this.state = state;
     }
 
     /**
@@ -67,28 +69,40 @@ class DeleteHandler {
         const promises = [];
         DELETABLE_CLASSES.forEach((deleteableClass) => {
             if (this.declaration.Common[deleteableClass]) {
+                const classPromises = [];
                 Object.keys(this.declaration.Common[deleteableClass]).forEach((itemToDelete) => {
                     // Special case for device groups
                     if (deleteableClass === 'DeviceGroup') {
                         if (READ_ONLY_DEVICE_GROUPS.indexOf(itemToDelete) === -1) {
-                            promises.push(this.bigIp.cluster.deleteDeviceGroup(itemToDelete));
+                            classPromises.push(this.bigIp.cluster.deleteDeviceGroup(itemToDelete));
                         }
                     } else {
                         const path = `${PATHS[deleteableClass]}/~Common~${itemToDelete}`;
-                        promises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
                     }
                 });
+                if (classPromises.length > 0) {
+                    promises.push(classPromises);
+                }
             }
         });
 
-        return Promise.all(promises)
-            .then(() => {
-                logger.fine('Done processing deletes.');
-                return Promise.resolve();
-            })
+        function runInSerial(promiseArr) {
+            return promiseArr.reduce((chain, curr) => {
+                return chain.then(() => {
+                    return Promise.all(curr);
+                });
+            }, Promise.resolve());
+        }
+
+        return runInSerial(promises)
             .catch((err) => {
                 logger.severe(`Error processing deletes: ${err.message}`);
                 return Promise.reject(err);
+            })
+            .then(() => {
+                logger.fine('Done processing deletes.');
+                return Promise.resolve();
             });
     }
 }

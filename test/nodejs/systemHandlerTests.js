@@ -30,6 +30,7 @@ describe('systemHandler', () => {
     let pathSent;
     let dataSent;
     let bigIpMock;
+    let activeCalled;
 
     before(() => {
         cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
@@ -40,6 +41,7 @@ describe('systemHandler', () => {
     beforeEach(() => {
         pathSent = null;
         dataSent = null;
+        activeCalled = false;
         bigIpMock = {
             replace(path, data) {
                 pathSent = path;
@@ -47,6 +49,7 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             },
             active() {
+                activeCalled = true;
                 return Promise.resolve();
             }
         };
@@ -341,13 +344,13 @@ describe('systemHandler', () => {
                     reject(new Error('should have rejected'));
                 })
                 .catch((err) => {
-                    assert.strictEqual(err.startsWith('Error licensing'), true);
+                    assert.strictEqual(err.message.startsWith('Error licensing'), true);
                     resolve();
                 });
         });
     });
 
-    it('should handle licene pool licenses with unreachable BIG-IP', () => {
+    it('should handle license pool licenses with unreachable BIG-IP', () => {
         const declaration = {
             Common: {
                 License: {
@@ -397,6 +400,8 @@ describe('systemHandler', () => {
                     assert.strictEqual(optionsSent.unitOfMeasure, declaration.Common.License.unitOfMeasure);
                     assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
                     assert.strictEqual(optionsSent.overwrite, declaration.Common.License.overwrite);
+                    assert.strictEqual(optionsSent.autoApiType, true);
+                    assert.strictEqual(activeCalled, true);
                     resolve();
                 })
                 .catch((err) => {
@@ -453,6 +458,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(bigIpUsernameSent, declaration.Common.License.bigIpUsername);
                     assert.strictEqual(bigIpPasswordSent, declaration.Common.License.bigIpPassword);
                     assert.strictEqual(bigIpHostSent, managementAddress);
+                    assert.strictEqual(activeCalled, true);
                     resolve();
                 })
                 .catch((err) => {
@@ -500,6 +506,7 @@ describe('systemHandler', () => {
                         assert.strictEqual(bigIqPasswordSent, declaration.Common.License.bigIqPassword);
                         assert.strictEqual(licensePoolSent, declaration.Common.License.revokeFrom);
                         assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
+                        assert.strictEqual(activeCalled, false);
                         resolve();
                     })
                     .catch((err) => {
@@ -564,6 +571,7 @@ describe('systemHandler', () => {
                             optionsSent.noUnreachable,
                             declaration.Common.License.revokeFrom.reachable
                         );
+                        assert.strictEqual(activeCalled, false);
                         resolve();
                     })
                     .catch((err) => {

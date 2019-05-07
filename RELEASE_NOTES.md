@@ -1,5 +1,18 @@
 # Release Notes
 
+## Version 1.4.0
++ Allow for onboarding multiple devices at once.
+    + taskId is now returned from POST onboard requests
+    + New /task API to retrieve status by task
++ Initial port to run on BIG-IQ for use in onboarding BIG-IP from BIG-IQ
+
+## Version 1.3.1
++ Resolve [Issue 7](https://github.com/F5Networks/f5-declarative-onboarding/issues/7)
++ Resolve [Issue 17](https://github.com/F5Networks/f5-declarative-onboarding/issues/17)
++ Resolve [Issue 18](https://github.com/F5Networks/f5-declarative-onboarding/issues/18)
++ Resolve [Issue 21](https://github.com/F5Networks/f5-declarative-onboarding/issues/21)
++ Resolve [Issue 32](https://github.com/F5Networks/f5-declarative-onboarding/issues/32)
+
 ## Version 1.3.0
 + Allow $schema property for use in local validation of declaration
 + Allow for licenses to be revoked when licensed via BIG-IQ

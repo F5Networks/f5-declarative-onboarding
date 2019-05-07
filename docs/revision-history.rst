@@ -11,6 +11,14 @@ Document Revision History
         - Description
         - Date
              
+      * - 1.8
+        - Updated the documentation for Declarative Onboarding v1.4.0. This release contains the following changes: |br| * Using the Declarative Onboarding Container now allows you to send declarations to multiple BIG-IPs without waiting for previous declarations to finish onboarding. |br| * **taskId** is now returned from POST onboard requests (see :ref:`Note in POST documentation <postnote>`) |br| * New **/task** endpoint to retrieve status by task (see :ref:`Note in GET documentation <getnote>`) 
+        - 05-08-19
+      
+      * - 1.7
+        - Released Declarative Onboarding v1.3.1. This maintenance release contains only fixes for the following GitHub issues: |br| * `Issue 7: Does not remove SelfIP and VLAN <https://github.com/F5Networks/f5-declarative-onboarding/issues/7>`_ |br| * `Issue 17: BIG-IP requesting reboot after declaration <https://github.com/F5Networks/f5-declarative-onboarding/issues/17>`_ |br| * `Issue 18: wrong GW IP in declaration leads to DO problems <https://github.com/F5Networks/f5-declarative-onboarding/issues/18>`_ |br| * `Issue 21: DO declaration with multiple modules requires manual reboot and re-post <https://github.com/F5Networks/f5-declarative-onboarding/issues/21>`_ |br| * `Issue 32: DOv1.3.0 to create multiple vlans / self-ip need to run twice on v14.1 <https://github.com/F5Networks/f5-declarative-onboarding/issues/32>`_
+        - 05-07-19
+      
       * - 1.6
         - Updated the documentation for Declarative Onboarding v1.3.0. This release contains the following changes: |br| * Added support for revoking a license from a BIG-IP with BIG-IQ, as well as relicensing and overwriting a license (see :ref:`Revoking a license using BIG-IQ<revoke-main>`). |br| * Added instructions for validating a declaration using Microsoft Visual Studio Code (see :doc:`validate`). |br| * Added support for modifying a Self IP address.  |br| |br| Issues Resolved: |br| * Corrected an issue in which all Self IPs would be updated if there was a change to any of them. |br| * Corrected an issue in which clustering was not working if ASM was provisioned.
         - 02-27-19
@@ -43,6 +51,8 @@ Document Revision History
 
 
 .. |br| raw:: html
+
+
    
    <br />
 

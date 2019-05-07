@@ -17,7 +17,7 @@
 'use strict';
 
 const assert = require('assert');
-const URL = require('url').URL;
+const URL = require('url');
 
 /* eslint-disable global-require, quote-props, quotes */
 
@@ -30,6 +30,7 @@ describe('configManager', () => {
     let ConfigManager;
     let bigIpMock;
     let state;
+    let doState;
 
     before(() => {
         ConfigManager = require('../../nodejs/configManager');
@@ -41,7 +42,7 @@ describe('configManager', () => {
             list(path) {
                 // The path name here does not have a domain, but does include
                 // a query. listResponses are set up with just the pathname part.
-                const pathname = new URL(path, 'https://foo').pathname;
+                const pathname = URL.parse(path, 'https://foo').pathname;
                 return Promise.resolve(listResponses[pathname] || {});
             }
         };
@@ -57,6 +58,10 @@ describe('configManager', () => {
             ]
         };
         state = {};
+        doState = {
+            getOriginalConfigByConfigId() {},
+            setOriginalConfigByConfigId() {}
+        };
     });
 
     it('should handle simple string values', () => {
@@ -73,7 +78,7 @@ describe('configManager', () => {
             listResponses['/tm/sys/global-settings'] = { hostname };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state)
+            configManager.get({}, state, doState)
                 .then(() => {
                     assert.strictEqual(
                         state.currentConfig.Common.hostname,
@@ -106,7 +111,7 @@ describe('configManager', () => {
             };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state)
+            configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(state.currentConfig.Common.NTP, listResponses['/tm/sys/ntp']);
                     resolve();
@@ -147,7 +152,7 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state)
+            configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.Route.default,
@@ -157,6 +162,62 @@ describe('configManager', () => {
                         state.currentConfig.Common.Route.route1,
                         listResponses['/tm/net/route'][1]
                     );
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle arrays when none are already defined on BIG-IP < 14.x', () => {
+        return new Promise((resolve, reject) => {
+            configItems = [
+                {
+                    "path": "/tm/net/route",
+                    "schemaClass": "Route",
+                    "properties": [
+                        { "id": "gw" },
+                        { "id": "network" },
+                        { "id": "mtu" }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/net/route'] = {};
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(state.currentConfig.Common.Route, {});
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle arrays when none are already defined on BIG-IP > 14.x', () => {
+        return new Promise((resolve, reject) => {
+            configItems = [
+                {
+                    "path": "/tm/net/route",
+                    "schemaClass": "Route",
+                    "properties": [
+                        { "id": "gw" },
+                        { "id": "network" },
+                        { "id": "mtu" }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/net/route'] = [];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(state.currentConfig.Common.Route, {});
                     resolve();
                 })
                 .catch((err) => {
@@ -190,7 +251,7 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state)
+            configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.Provision,
@@ -240,7 +301,7 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state)
+            configManager.get({}, state, doState)
                 .then(() => {
                     assert.strictEqual(
                         state.currentConfig.Common.VLAN.external.interfaces.name,
@@ -275,7 +336,7 @@ describe('configManager', () => {
                 ];
 
                 const configManager = new ConfigManager(configItems, bigIpMock);
-                configManager.get({}, state)
+                configManager.get({}, state, doState)
                     .then(() => {
                         assert.strictEqual(state.currentConfig.Common.SelfIp.selfIp1.vlan, 'external');
                         resolve();
@@ -306,7 +367,7 @@ describe('configManager', () => {
                 ];
 
                 const configManager = new ConfigManager(configItems, bigIpMock);
-                configManager.get({}, state)
+                configManager.get({}, state, doState)
                     .then(() => {
                         assert.strictEqual(state.currentConfig.Common.SelfIp.selfIp1.allowService, 'default');
                         resolve();
@@ -336,7 +397,7 @@ describe('configManager', () => {
                 ];
 
                 const configManager = new ConfigManager(configItems, bigIpMock);
-                configManager.get({}, state)
+                configManager.get({}, state, doState)
                     .then(() => {
                         assert.strictEqual(state.currentConfig.Common.SelfIp.selfIp1.allowService, 'none');
                         resolve();
@@ -374,7 +435,7 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state)
+            configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(state.originalConfig, state.currentConfig);
                     resolve();
@@ -414,10 +475,19 @@ describe('configManager', () => {
                 foo: 'bar'
             };
 
+            let updatedOriginalConfig;
+            doState.getOriginalConfigByConfigId = () => {
+                return state.originalConfig;
+            };
+            doState.setOriginalConfigByConfigId = (id, config) => {
+                updatedOriginalConfig = config;
+            };
+
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state)
+            configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(state.originalConfig, { foo: 'bar' });
+                    assert.deepEqual(updatedOriginalConfig, state.originalConfig);
                     resolve();
                 })
                 .catch((err) => {
@@ -465,7 +535,7 @@ describe('configManager', () => {
                     }
                 };
                 const configManager = new ConfigManager(configItems, bigIpMock);
-                configManager.get(declaration, state)
+                configManager.get(declaration, state, doState)
                     .then(() => {
                         assert.strictEqual(state.currentConfig.Common.DbVariables.dbVar1, 'oldfoo');
                         assert.strictEqual(state.currentConfig.Common.DbVariables.dbVar2, 'oldbar');
@@ -511,7 +581,7 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state)
+            configManager.get({}, state, doState)
                 .then(() => {
                     assert.strictEqual(Object.keys(state.currentConfig.Common.DeviceGroup).length, 1);
                     assert.deepEqual(

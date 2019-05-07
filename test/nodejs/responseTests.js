@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,67 +19,117 @@
 const assert = require('assert');
 
 const Response = require('../../nodejs/response');
+const state = require('./stateMock');
 
-describe('response', () => {
-    it('should set success response in result', () => {
-        const state = {
+state.tasks = {
+    1234: {
+        result: {
             code: 200,
             status: 'my status',
             message: 'my message',
             errors: ['error 1', 'error 2'],
-            currentConfig: {
-                foo: 'bar'
-            },
-            originalConfig: {
-                hello: 'world'
-            }
-        };
-        const response = new Response(state);
-        assert.strictEqual(response.result.code, state.code);
-        assert.strictEqual(response.result.status, state.status);
-        assert.strictEqual(response.result.message, state.message);
-        assert.deepEqual(response.result.errors, state.errors);
-        assert.strictEqual(response.currentConfig, undefined);
-        assert.strictEqual(response.originalConfig, undefined);
-    });
-
-    it('should set error response at top level', () => {
-        const state = {
-            code: 300,
+        },
+        currentConfig: {
+            foo: 'bar'
+        },
+        originalConfig: {
+            hello: 'world'
+        },
+        lastUpdate: 'foo'
+    },
+    5678: {
+        result: {
+            code: 200,
             status: 'my status',
             message: 'my message',
             errors: ['error 1', 'error 2'],
-            currentConfig: {
-                foo: 'bar'
-            },
-            originalConfig: {
-                hello: 'world'
-            }
+        },
+        currentConfig: {
+            foo: 'bar'
+        },
+        originalConfig: {
+            hello: 'world'
+        },
+        lastUpdate: 'bar'
+    }
+};
+
+class Responder {
+    constructor(aState) {
+        this.state = aState;
+    }
+
+    // can't be a class method because the caller does not know the class type
+    /* eslint-disable class-methods-use-this */
+    getSelfLink(id) {
+        return `https://foo.com/task/${id}`;
+    }
+    /* eslint-ensable class-methods-use-this */
+
+    exists(id) {
+        return !!this.state.getTask(id);
+    }
+
+    getIds() {
+        return this.state.getTaskIds();
+    }
+
+    getCode(id) {
+        return this.state.getCode(id);
+    }
+
+    getStatus(id) {
+        return this.state.getStatus(id);
+    }
+
+    getMessage(id) {
+        return this.state.getMessage(id);
+    }
+
+    getErrors(id) {
+        return this.state.getErrors(id);
+    }
+
+    getData(id, options) {
+        const data = {
+            declaration: this.state.getDeclaration(id)
         };
-        const response = new Response(state);
-        assert.strictEqual(response.code, state.code);
-        assert.strictEqual(response.status, state.status);
-        assert.strictEqual(response.message, state.message);
-        assert.deepEqual(response.errors, state.errors);
+
+        if (options && options.show && options.show === 'full') {
+            data.currentConfig = this.state.getCurrentConfig(id);
+            data.originalConfig = this.state.getOriginalConfigByTaskId(id);
+            data.lastUpdate = this.state.getLastUpdate(id);
+        }
+        return data;
+    }
+}
+
+const responder = new Responder(state);
+
+describe('response', () => {
+    it('should set success response in result', () => {
+        const response = new Response(1234, responder).getResponse();
+        assert.strictEqual(response.id, 1234);
+        assert.strictEqual(response.result.code, state.tasks[1234].result.code);
+        assert.strictEqual(response.result.status, state.tasks[1234].result.status);
+        assert.strictEqual(response.result.message, state.tasks[1234].result.message);
+        assert.deepEqual(response.result.errors, state.tasks[1234].result.errors);
         assert.strictEqual(response.currentConfig, undefined);
         assert.strictEqual(response.originalConfig, undefined);
     });
 
     it('should include full response if options say so', () => {
-        const state = {
-            code: 200,
-            status: 'my status',
-            message: 'my message',
-            errors: ['error 1', 'error 2'],
-            currentConfig: {
-                foo: 'bar'
-            },
-            originalConfig: {
-                hello: 'world'
-            }
-        };
-        const response = new Response(state, { show: 'full' });
-        assert.deepEqual(response.currentConfig, state.currentConfig);
-        assert.deepEqual(response.originalConfig, state.originalConfig);
+        const response = new Response(1234, responder, { show: 'full' }).getResponse();
+        assert.deepEqual(response.currentConfig, state.tasks[1234].currentConfig);
+        assert.deepEqual(response.originalConfig, state.tasks[1234].originalConfig);
+        assert.deepEqual(response.lastUpdate, state.tasks[1234].lastUpdate);
+    });
+
+    it('should return an array of tasks if no task id is set', () => {
+        const response = new Response(null, responder).getResponse();
+        assert.ok(Array.isArray(response));
+        assert.strictEqual(response.length, 2);
+        assert.strictEqual(response[0].id, '1234');
+        assert.strictEqual(response[1].id, '5678');
     });
 });

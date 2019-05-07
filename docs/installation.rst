@@ -8,6 +8,9 @@ Downloading the RPM file
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The first task is to download the latest RPM file.  Go to the |github|, and download the latest (highest numbered) RPM file.
 
+.. TIP:: Once you have downloaded the RPM, we recommend :ref:`hash-ref`.
+
+
 Uploading and installing the Declarative Onboarding RPM file on the BIG-IP
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 After you download the RPM, you must upload and then install it on your BIG-IP system.  In this section, we show how to upload the RPM using :ref:`cURL<uploadcurl>` or :ref:`SCP<uploadscp>`.  Use only one of the following procedures.
@@ -96,17 +99,31 @@ Checking for a successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 After you have uploaded and installed Declarative Onboarding, you can test for a successful installation by using the following methods:
 
-- From your RESTful client, after entering your credentials, use **GET** to send ``https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding``  
+- From your RESTful client, after entering your credentials, use **GET** to send ``https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding/info``  
 
-- Run the following cURL command: ``curl -sku $CREDS https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding``  
+- Run the following cURL command: ``curl -sku $CREDS https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding/info``  
 
-In either case, if installation was successful, you should see an empty declaration returned:
+In either case, if installation was successful, you should see something similar to the following returned:
 
 .. code-block:: json
 
-   {
-    "declaration": {}
-   }
+   [
+    {
+        "id": 0,
+        "selfLink": "https://localhost/mgmt/shared/declarative-onboarding/info",
+        "result": {
+            "class": "Result",
+            "code": 200,
+            "status": "OK",
+            "message": "",
+            "errors": []
+        },
+        "version": "1.4.0",
+        "release": "beta.7",
+        "schemaCurrent": "1.3.0",
+        "schemaMinimum": "1.0.0"
+    }
+]
 
 
 You can also GET to send ``https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding/example`` to retrieve an example declaration.
@@ -124,6 +141,12 @@ Reverting to a previous version
 ```````````````````````````````
 If for any reason you want to revert to a previous version of Declarative Onboarding, you must first remove the version on your BIG-IP system (:guilabel:`iApps > Package Management LX > f5-declarative-onboarding > Uninstall`).  After you uninstall, you can import the RPM for the version of Declarative Onboarding you want to use.
 
+
+Viewing the Declarative Onboarding package in the BIG-IP Configuration utility
+``````````````````````````````````````````````````````````````````````````````
+If you are using BIG-IP v13.x and want to see the Declarative Onboarding package in the BIG-IP Configuration utility (GUI), from the BIG-IP CLI, you must type the following command:  ``touch /var/config/rest/iapps/enable``.  You only need to run this command once (per BIG-IP system). This is not necessary with 14.0 and later.
+
+After running that command, you can log into the Configuration utility, and then click **iApps > Package Management LX** and you see the Declarative Onboarding package.  If you already had the Configuration utility open, you may need to refresh the page.
 
 |
 

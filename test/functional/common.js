@@ -18,79 +18,232 @@
 'use strict';
 
 const fs = require('fs');
-const util = require('util');
 const request = require('request');
+const util = require('util');
+const constants = require('./constants.js');
 
-// async wrapper for fs.readFile
-module.exports.readFile = function readFile(filename) {
-    return util.promisify(fs.readFile)(filename, 'utf-8');
-};
+module.exports = {
 
-// async wrapper for fs.writeFile
-module.exports.writeFile = function writeFile(filename, data) {
-    return util.promisify(fs.writeFile)(filename, data);
-};
+    readFile(filename) {
+        return util.promisify(fs.readFile)(filename, 'utf-8');
+    },
 
-// async wrapper for fs.appendFile
-module.exports.appendFile = function appendFile(filename, data) {
-    return util.promisify(fs.appendFile)(filename, data);
-};
+    writeFile(filename, data) {
+        return util.promisify(fs.writeFile)(filename, data);
+    },
 
-/**
- * requestPromise - async/await wrapper for request
- * @options {Object} - options for request
- * Returns a Promise with response/error
-*/
-module.exports.requestPromise = function requestPromise(options) {
-    return util.promisify(request)(options);
-};
+    appendFile(filename, data) {
+        return util.promisify(fs.appendFile)(filename, data);
+    },
 
-/**
- * tryOften - tries a function that is a Promise for a definite amount of times, spacing the trials out
- *            by the defined interval, until runs out of trials, rejects and rejectOnError is set, or resolves
- * @targetFunction {Promise} - Promise to attempt to resolve
- * @trials {Integer} - number of trials available until settlement
- * @timeInterval {Integer} - number of ms until new trial is triggered
- * @acceptErrors {Array} - if we get a reject on the targetFunction with the error message equal to any of
- *                         the errors in acceptErrors, we don't reject, and retry
- * @checkError {Boolean} - determines whether to check for acceptError
- *                         (i.e. is checkError is false, never rejects on error)
- * Returns a Promise which resolves with the targetFunction's result, or rejects with 'out of trials' or
- * targetFunction's error
- * (Inspired by the cloud-libs.util's tryUntil, except without some of the machinery we won't need here
-*/
-module.exports.tryOften = function tryOften(targetFunction, trials, timeInterval, acceptErrors, checkError) {
-    return new Promise((resolve, reject) => {
-        let timer;
-        let trialsCopy = trials;
-        const intervalFunction = function () {
-            if (trialsCopy === 0) {
-                clearInterval(timer);
-                reject(new Error('number of trials exhausted'));
-            }
-            targetFunction.apply(this)
-                .then((response) => {
+    /**
+     * requestPromise - async/await wrapper for request
+     * @options {Object} - options for request
+     * Returns a Promise with response/error
+    */
+    requestPromise(options) {
+        return util.promisify(request)(options);
+    },
+
+    /**
+     * tryOften - tries a function that is a Promise for a definite amount of times, spacing the trials out
+     *            by the defined interval, until runs out of trials,
+     *            rejects and rejectOnError is set, or resolves
+     * @targetFunction {Promise} - Promise to attempt to resolve
+     * @trials {Integer} - number of trials available until settlement
+     * @timeInterval {Integer} - number of ms until new trial is triggered
+     * @acceptErrors {Array} - if we get a reject on the targetFunction with the error message equal to any of
+     *                         the errors in acceptErrors, we don't reject, and retry
+     * @checkError {Boolean} - determines whether to check for acceptError
+     *                         (i.e. is checkError is false, never rejects on error)
+     * Returns a Promise which resolves with the targetFunction's result, or rejects with 'out of trials' or
+     * targetFunction's error
+     * (Inspired by the cloud-libs.util's tryUntil, except without some of the machinery we won't need here
+    */
+    tryOften(targetFunction, trials, timeInterval, acceptErrors, checkError) {
+        return new Promise((resolve, reject) => {
+            let timer;
+            let trialsCopy = trials;
+            const intervalFunction = function () {
+                if (trialsCopy === 0) {
                     clearInterval(timer);
-                    resolve(response);
+                    reject(new Error('number of trials exhausted'));
+                }
+                targetFunction.apply(this)
+                    .then((response) => {
+                        clearInterval(timer);
+                        resolve(response);
+                    })
+                    .catch((error) => {
+                        /* eslint-disable no-console */
+                        trialsCopy -= 1;
+                        if (checkError) {
+                            let willReject = true;
+                            acceptErrors.forEach((err) => {
+                                if (err === parseInt(error.message, 10) || err === error.message) {
+                                    willReject = false;
+                                }
+                            });
+                            if (willReject) {
+                                // non-trivial error, we reject
+                                reject(new Error(`error is unrecoverable : ${error.message}`));
+                                clearInterval(timer);
+                            }
+                        }
+                    });
+            };
+            timer = setInterval(intervalFunction, timeInterval);
+        });
+    },
+
+    /**
+     * testRequest - sends a request with the body and credentials to the hostname based on the ip provided,
+     *               and tests if response was successful and issued the expected HTTP status code.
+     * @body {Object} : request body
+     * @url {String} : complete url with ip + endpoint for API call
+     * @auth {Object} : authorization dictionary with (username, password) or F5 token
+     * @expectedCode {int} : expected HTTP status code for the request
+     * @method {String} : HTTP request method (POST, GET)
+     * Returns Promise which resolves with response body on success or rejects with error
+    */
+    testRequest(body, url, auth, expectedCode, method) {
+        const func = function () {
+            return new Promise((resolve, reject) => {
+                const options = module.exports.buildBody(url, body, auth, method);
+                module.exports.sendRequest(options)
+                    .then((response) => {
+                        if (response.response.statusCode === expectedCode) {
+                            resolve(response.body);
+                        } else {
+                            reject(new Error(response.response.statusCode));
+                        }
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        };
+        return module.exports.tryOften(func, 10, 60 * 1000, [constants.HTTP_UNAVAILABLE], true);
+    },
+
+    /**
+     * testGetStatus - tries for a DO status response given a time interval and number of tries,
+     *                 and if ever successful, returns the response
+     * @trials {Integer} - number of allowed trials
+     * @timeInterval {Integer} - time in ms to wait before trying again
+     * @ipAddress {String} - BIG-IP address for DO call
+     * @auth {Object} : authorization dictionary with (username, password) or F5 token
+     * @expectedCode {String} - expected HTTP status code for when the API responds; typically HTTP_SUCCESS
+     * Returns a Promise with response/error
+    */
+    testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode) {
+        const func = function () {
+            return new Promise((resolve, reject) => {
+                const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
+                    constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
+                module.exports.sendRequest(options)
+                    .then((response) => {
+                        if (response.response.statusCode === expectedCode) {
+                            resolve(JSON.parse(response.body));
+                        } else {
+                            reject(new Error(response.response.statusCode));
+                        }
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        };
+        return module.exports.tryOften(func, trials, timeInterval,
+            [constants.HTTP_ACCEPTED, constants.HTTP_UNAVAILABLE], true);
+    },
+
+    /**
+     * dumpDeclaration - returns declaration status from DO
+     * @ipAddress {String} - BIG-IP address for DO call
+     * @auth {Object} : authorization dictionary with (username, password) or F5 token
+    */
+    dumpDeclaration(ipAddress, auth) {
+        return new Promise((resolve, reject) => {
+            const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
+                constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
+            module.exports.sendRequest(options)
+                .then((response) => {
+                    return response.body;
+                })
+                .then(JSON.parse)
+                .then((parsedResponse) => {
+                    resolve(parsedResponse);
                 })
                 .catch((error) => {
-                    trialsCopy -= 1;
-                    if (checkError) {
-                        // ok, if none of the acceptable errors match, we will reject
-                        let willReject = true;
-                        acceptErrors.forEach((err) => {
-                            if (err === parseInt(error.message, 10)) {
-                                willReject = false;
-                            }
-                        });
-                        if (willReject) {
-                            // non-trivial error, we reject
-                            reject(new Error(`error is unrecoverable : ${error.message}`));
-                            clearInterval(timer);
-                        }
-                    }
+                    reject(error);
                 });
+        });
+    },
+
+    /**
+     * hostname - prepends https and appends port to the ip address
+     * @ipAddress {String} : base ip of the hostname
+     * @port {String} : port to connect to ip
+     * Returns full hostname + port string
+    */
+    hostname(ipAddress, port) {
+        return `https://${ipAddress}:${port}`;
+    },
+
+    /**
+     * sendRequest - prepares and sends a request with some configuration
+     * @options {Object} : configuration options for request
+     * Returns Promise with response/error
+    */
+    sendRequest(options) {
+        return new Promise((resolve, reject) => {
+            request(options, (error, response, body) => {
+                if (error) { reject(error); }
+                const responseObj = { response, body };
+                resolve(responseObj);
+            });
+        });
+    },
+
+    /**
+     * buildAuthenticationString - builds a base64 Basic Auth header
+     * @credentials {Object} : username and password dictionary to be encoded
+     *                         in the BasicAuth header {username : <user>, password : <pass>}
+    */
+    buildAuthenticationString(credentials) {
+        const username = credentials.username;
+        const password = credentials.password;
+        return (`Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`);
+    },
+
+    /**
+     * buildBody - builds a request body to be sent over the network
+     * url {String} : complete url + endpoint string for API call
+     * @data {Object} : data to be sent on request
+     * @auth {Object} : authorization dictionary with (username, password) or F5 token
+     * @method {String} : request's method (POST, GET)
+     * Returns fully-formatted body Object, or throws error if form of authentication is missing
+     * (either username/password or a token)
+    */
+    buildBody(url, data, auth, method) {
+        const options = {
+            method,
+            url,
+            headers: {
+                'Content-Type': 'application/json'
+            }
         };
-        timer = setInterval(intervalFunction, timeInterval);
-    });
+        if ('token' in auth) {
+            options.headers['X-F5-Auth-Token'] = auth.token;
+        } else if ('username' in auth && 'password' in auth) {
+            options.headers.Authorization = module.exports.buildAuthenticationString(auth);
+        } else {
+            throw new Error('Missing authorization');
+        }
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        return options;
+    }
 };

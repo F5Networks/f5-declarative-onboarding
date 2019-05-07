@@ -22,7 +22,13 @@
  * @module
  */
 module.exports = {
+    BASE_URL: 'https://localhost/mgmt/shared/declarative-onboarding',
     MASK_REGEX: new RegExp('pass(word|phrase)', 'i'),
+    ENDPOINTS: {
+        CONFIG: 'config',
+        INFO: 'info',
+        TASK: 'task'
+    },
     PATHS: {
         DNS: '/tm/sys/dns',
         NTP: '/tm/sys/ntp',
