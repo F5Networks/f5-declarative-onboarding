@@ -255,9 +255,6 @@ describe('restWorker', () => {
                 bigIpMock = {
                     save() {
                         return Promise.resolve();
-                    },
-                    rebootRequired() {
-                        return Promise.resolve(true);
                     }
                 };
                 doUtilMock.getBigIp = () => {
@@ -265,6 +262,9 @@ describe('restWorker', () => {
                 };
                 doUtilMock.getCurrentPlatform = () => {
                     return Promise.resolve('BIG-IP');
+                };
+                doUtilMock.rebootRequired = () => {
+                    return Promise.resolve(true);
                 };
                 cryptoUtilMock.decryptId = (id) => {
                     let password;
@@ -380,9 +380,6 @@ describe('restWorker', () => {
                     bigIpMock.reboot = () => {
                         assert.strictEqual(decryptedIds.length, 2);
                         assert.strictEqual(
-                            restWorker.state.doState.tasks[1234].result.status, STATUS.STATUS_REBOOTING
-                        );
-                        assert.strictEqual(
                             restWorker
                                 .state.doState.tasks[1234].internalDeclaration.Common.myLicense.bigIpPassword,
                             bigIpPassword
@@ -433,9 +430,6 @@ describe('restWorker', () => {
 
                     bigIpMock.reboot = () => {
                         assert.strictEqual(decryptedIds.length, 0);
-                        assert.strictEqual(
-                            restWorker.state.doState.tasks[1234].result.status, STATUS.STATUS_REBOOTING
-                        );
                         resolve();
                     };
 
@@ -687,15 +681,15 @@ describe('restWorker', () => {
                     saveCalled = true;
                     return Promise.resolve();
                 },
-                rebootRequired() {
-                    return Promise.resolve(false);
-                },
                 reboot() {}
             };
 
             doUtilMock.getBigIp = (logger, bigIpOptions) => {
                 bigIpOptionsCalled = bigIpOptions;
                 return Promise.resolve(bigIpMock);
+            };
+            doUtilMock.rebootRequired = () => {
+                return Promise.resolve(false);
             };
 
             validatorMock.validate = () => {
@@ -854,7 +848,7 @@ describe('restWorker', () => {
                     resolve();
                 };
 
-                bigIpMock.rebootRequired = () => {
+                doUtilMock.rebootRequired = () => {
                     return Promise.resolve(true);
                 };
 
@@ -1137,7 +1131,7 @@ describe('restWorker', () => {
                         return Promise.resolve();
                     };
 
-                    bigIpMock.rebootRequired = () => {
+                    doUtilMock.rebootRequired = () => {
                         return Promise.resolve(true);
                     };
 

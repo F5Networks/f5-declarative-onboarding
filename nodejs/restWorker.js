@@ -397,7 +397,6 @@ class RestWorker {
 }
 
 function onboard(declaration, bigIpOptions, taskId) {
-    let rebootRequired = false;
     let declarationHandler;
 
     return doUtil.getBigIp(logger, bigIpOptions)
@@ -417,25 +416,7 @@ function onboard(declaration, bigIpOptions, taskId) {
         })
         .then(() => {
             logger.fine('Onboard configuration complete. Checking for reboot.');
-            return this.bigIps[taskId].rebootRequired();
-        })
-        .then((needsReboot) => {
-            rebootRequired = needsReboot;
-            if (!rebootRequired) {
-                logger.fine('No reboot required');
-                this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
-            } else {
-                logger.fine('Reboot required. Rebooting.');
-                this.state.doState.updateResult(taskId, 202, STATUS.STATUS_REBOOTING, 'reboot required');
-            }
-            logger.fine('Getting and saving current configuration');
-            return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId);
-        })
-        .then(() => {
-            if (!rebootRequired) {
-                logger.fine('Onboard complete.');
-            }
-            return Promise.resolve();
+            return doUtil.rebootRequired(this.bigIps[taskId]);
         })
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
@@ -481,7 +462,7 @@ function onboard(declaration, bigIpOptions, taskId) {
             );
         })
         .then(() => {
-            return Promise.resolve(rebootRequired);
+            return Promise.resolve();
         });
 }
 
@@ -490,7 +471,7 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
     // Don't overwrite the error state if it's there
     if (this.state.doState.getStatus(taskId) !== STATUS.STATUS_ERROR) {
         promise = promise.then(() => {
-            return bigIp.rebootRequired()
+            return doUtil.rebootRequired(bigIp)
                 .then((rebootRequired) => {
                     if (!rebootRequired) {
                         logger.fine('No reboot required');
@@ -518,7 +499,7 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
 
 function rebootIfRequired(bigIp, taskId) {
     return new Promise((resolve, reject) => {
-        bigIp.rebootRequired()
+        doUtil.rebootRequired(bigIp)
             .then((rebootRequired) => {
                 if (rebootRequired) {
                     logger.info('Reboot required. Rebooting...');
