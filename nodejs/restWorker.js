@@ -493,7 +493,7 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
     return promise
         .then(() => {
             logger.fine('Getting and saving current configuration');
-            return getAndSaveCurrentConfig.call(this, bigIp, declaration);
+            return getAndSaveCurrentConfig.call(this, bigIp, declaration, taskId);
         });
 }
 
