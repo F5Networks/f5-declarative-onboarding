@@ -344,7 +344,7 @@ describe('systemHandler', () => {
                     reject(new Error('should have rejected'));
                 })
                 .catch((err) => {
-                    assert.strictEqual(err.startsWith('Error licensing'), true);
+                    assert.strictEqual(err.message.startsWith('Error licensing'), true);
                     resolve();
                 });
         });

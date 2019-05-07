@@ -298,29 +298,44 @@ class RestWorker {
                         });
 
                         onboard.call(this, declaration, bigIpOptions, taskId)
-                            .then((rebootRequired) => {
+                            .then(() => {
+                                logger.fine('Onboard configuration complete. Saving sys config.');
+
                                 // We store the bigIp object under the original ID so the polling
                                 // task knows which state to update. This is only sent by the TCW.
                                 if (originalDoId) {
                                     this.bigIps[originalDoId] = this.bigIps[taskId];
                                 }
 
+                                return this.bigIps[taskId].save();
+                            })
+                            .then(() => {
+                                return setPostOnboardStatus.call(
+                                    this,
+                                    this.bigIps[taskId],
+                                    taskId,
+                                    declaration
+                                );
+                            })
+                            .then(() => {
                                 if (!declaration.async) {
                                     logger.fine('Sending response.');
                                     sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                                 }
-
-                                if (rebootRequired) {
-                                    this.bigIps[taskId].reboot();
-
-                                    // If we're running on BIG-IP, recovering from reboot will be handled
-                                    // by the startup code (onStartCompleted). Otherwise, wait
-                                    // until the BIG-IP is ready again (after a slight delay to make sure
-                                    // the reboot has started).
-                                    if (platform !== PRODUCTS.BIGIP) {
-                                        setTimeout(waitForRebootComplete, 10000, this, taskId);
-                                    }
-                                }
+                                return rebootIfRequired.call(this, this.bigIps[taskId], taskId);
+                            })
+                            .then(() => {
+                                logger.fine('Onboard complete.');
+                            })
+                            .catch((err) => {
+                                logger.severe(`Error during onboarding: ${err.message}`);
+                                this.state.doState.updateResult(
+                                    taskId,
+                                    500,
+                                    STATUS.STATUS_ERROR,
+                                    'failed',
+                                    err.message
+                                );
                             });
                     }
                 })
@@ -457,10 +472,9 @@ function onboard(declaration, bigIpOptions, taskId) {
         })
         .catch((err) => {
             logger.severe(`Error rolling back configuration: ${err.message}`);
-            const deconCode = 500;
             this.state.doState.updateResult(
                 taskId,
-                deconCode,
+                500,
                 STATUS.STATUS_ERROR,
                 'rollback failed',
                 err.message
@@ -469,6 +483,65 @@ function onboard(declaration, bigIpOptions, taskId) {
         .then(() => {
             return Promise.resolve(rebootRequired);
         });
+}
+
+function setPostOnboardStatus(bigIp, taskId, declaration) {
+    let promise = Promise.resolve();
+    // Don't overwrite the error state if it's there
+    if (this.state.doState.getStatus(taskId) !== STATUS.STATUS_ERROR) {
+        promise = promise.then(() => {
+            return bigIp.rebootRequired()
+                .then((rebootRequired) => {
+                    if (!rebootRequired) {
+                        logger.fine('No reboot required');
+                        this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
+                    } else {
+                        logger.fine('Reboot required.');
+                        this.state.doState.updateResult(
+                            taskId,
+                            202,
+                            STATUS.STATUS_REBOOTING,
+                            'reboot required'
+                        );
+                    }
+                    return Promise.resolve();
+                });
+        });
+    }
+
+    return promise
+        .then(() => {
+            logger.fine('Getting and saving current configuration');
+            return getAndSaveCurrentConfig.call(this, bigIp, declaration);
+        });
+}
+
+function rebootIfRequired(bigIp, taskId) {
+    return new Promise((resolve, reject) => {
+        bigIp.rebootRequired()
+            .then((rebootRequired) => {
+                if (rebootRequired) {
+                    logger.info('Reboot required. Rebooting...');
+                    bigIp.reboot();
+
+                    // If we're running on BIG-IP, recovering from reboot will be handled
+                    // by the startup code (onStartCompleted). Otherwise, wait
+                    // until the BIG-IP is ready again (after a slight delay to make sure
+                    // the reboot has started).
+                    doUtil.getCurrentPlatform()
+                        .then((platform) => {
+                            if (platform !== PRODUCTS.BIGIP) {
+                                setTimeout(waitForRebootComplete, 10000, this, taskId, resolve, reject);
+                            } else {
+                                resolve();
+                            }
+                        });
+                } else {
+                    logger.fine('No reboot required.');
+                    resolve();
+                }
+            });
+    });
 }
 
 /**
@@ -714,10 +787,33 @@ function handleStartupState(success, error) {
                         .then(() => {
                             return onboard.call(this, declaration, {}, currentTaskId);
                         })
-                        .then((rebootRequired) => {
-                            if (rebootRequired) {
-                                this.bigIps[currentTaskId].reboot();
-                            }
+                        .then(() => {
+                            logger.fine('Onboard configuration complete. Saving sys config.');
+                            return this.bigIps[currentTaskId].save();
+                        })
+                        .then(() => {
+                            return setPostOnboardStatus.call(
+                                this,
+                                this.bigIps[currentTaskId],
+                                currentTaskId,
+                                declaration
+                            );
+                        })
+                        .then(() => {
+                            return rebootIfRequired.call(this, this.bigIps[currentTaskId], currentTaskId);
+                        })
+                        .then(() => {
+                            logger.fine('Onboard complete.');
+                        })
+                        .catch((err) => {
+                            logger.severe(`Error during onboarding: ${err.message}`);
+                            this.state.doState.updateResult(
+                                currentTaskId,
+                                500,
+                                STATUS.STATUS_ERROR,
+                                'failed',
+                                err.message
+                            );
                         });
                 });
 
@@ -921,11 +1017,14 @@ function updateStateAfterReboot(taskId, success, error) {
         });
 }
 
-function waitForRebootComplete(context, taskId) {
+function waitForRebootComplete(context, taskId, resolve, reject) {
     logger.info('Waiting for BIG-IP to reboot to complete onboarding.');
     context.bigIps[taskId].ready()
         .then(() => {
-            updateStateAfterReboot.call(context, taskId);
+            return updateStateAfterReboot.call(context, taskId);
+        })
+        .then(() => {
+            resolve();
         })
         .catch((err) => {
             context.state.doState.updateResult(
@@ -938,6 +1037,7 @@ function waitForRebootComplete(context, taskId) {
             save.call(this)
                 .then(() => {
                     logger.fine(`Error onboarding: reboot failed. ${err.message}`);
+                    reject(err);
                 });
         });
 }
