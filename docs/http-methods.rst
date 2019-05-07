@@ -13,10 +13,11 @@ echoes your declaration back to you.
 
 The first time you POST a Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration.  If you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.
 
+When using Declarative Onboarding 1.4.0 and later, the response to a POST includes additional fields that help handle onboarding multiple BIG-IP devices.  These fields are **id** and **selfLink**.  For example, a POST using 1.4.0 returns the following:
+
 GET
 ~~~
-You can use the GET method to retrieve the declaration you previously sent to
-Declarative Onboarding. Use the GET method to the URI
+You can use the GET method to retrieve the status of declarations you previously sent to Declarative Onboarding. Use the GET method to the URI
 ``https://<BIG-IP>/mgmt/shared/declarative-onboarding``.  Only declarations you create
 in Declarative Onboarding return, GET does not return anything that was not created by Declarative Onboarding.
 You can also use ``https://<BIG-IP>/mgmt/shared/declarative-onboarding?show=full`` to retrieve the original and current configuration.
@@ -29,7 +30,7 @@ You can also use ``https://<BIG-IP>/mgmt/shared/declarative-onboarding?show=full
 
    The following two new GET endpoints are available in Declarative Onboarding v1.4 and later.
 
-**Declarative Onboarding v1.4 introduces two new options for the GET method**
+**Declarative Onboarding v1.4 introduces two new endpoints for the GET method**
 
 - ``/shared/declarative-onboarding/task`` with optional ``/<taskId>``  
   If you do not specify a taskId, DO returns an array of all tasks. If you use the taskId, DO returns the specific task.  The response looks like that for the POST response.
@@ -79,7 +80,7 @@ When the task has completed, you see the code, status and message change:
 |
 
 - ``/shared/declarative-onboarding/config/<machineId>``  
-  Returns the original configuration of the specified device (identified by device machineId), or all devices if no machineId is given.   
+  Returns the original configuration of the specified device (identified by device machineId), or all devices if no machineId is given.  This endpoint is for informational/debugging purposes only, and is not something you need in the day-to-day use of Declarative Onboarding.
   
 Example response from sending GET to /shared/declarative-onboarding/config:
 
