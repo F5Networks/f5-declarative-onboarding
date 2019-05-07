@@ -17,8 +17,11 @@
 'use strict';
 
 const net = require('net');
+const exec = require('child_process').exec;
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const Logger = require('./logger');
 
 const logger = new Logger(module);
@@ -82,6 +85,94 @@ module.exports = {
                     reject(err);
                 });
         });
+    },
+
+
+    /**
+     * Determines if a reboot is required.
+     *
+     * @param {BigOp} bigIp - BigIp object
+     *
+     * @returns {Promise} - A promise which resolves true or false based on whehter or not
+     *                      the BigIp requires a reboot.
+     */
+    rebootRequired(bigIp) {
+        return this.getCurrentPlatform()
+            .then((platform) => {
+                let promise;
+                if (platform === PRODUCTS.BIGIP) {
+                    // If we are running on  a BIG-IP, run a local tmsh command
+                    promise = this.executeBashCommandLocal('cat /var/prompt/ps1');
+                } else {
+                    // Otherwise, use a remote command
+                    promise = this.executeBashCommandRemote(bigIp, 'cat /var/prompt/ps1');
+                }
+
+                return promise;
+            })
+            .then((ps1Prompt) => {
+                if (ps1Prompt.trim() === 'REBOOT REQUIRED') {
+                    return Promise.resolve(true);
+                }
+                return Promise.resolve(false);
+            })
+            .then((promptSaysRebootRequired) => {
+                // Double check the db var. If either the prompt or the db var says
+                // reboot required, then reboot is required.
+                if (!promptSaysRebootRequired) {
+                    return bigIp.list('/tm/sys/db/provision.action', null, cloudUtil.NO_RETRY)
+                        .then((response) => {
+                            return Promise.resolve(response.value === 'reboot');
+                        });
+                }
+                return Promise.resolve(true);
+            })
+            .then((rebootRequired) => {
+                return Promise.resolve(rebootRequired);
+            });
+    },
+
+    /**
+     * Return a promise to execute a bash command on a BIG-IP using
+     * child-process.exec.
+     *
+     * @param {string} command - bash command to execute
+     * @returns {Promise} - A promise which resolves to a string containing the command output
+     */
+    executeBashCommandLocal(command) {
+        return new Promise((resolve, reject) => {
+            exec(command, (error, stdout) => {
+                if (error !== null) {
+                    reject(error);
+                } else {
+                    resolve(stdout);
+                }
+            });
+        });
+    },
+
+    /**
+     * Returns a promise to execute a bash command on a BIG-IP remotely.
+     *
+     * @param {string} command - bash command to execute
+     *
+     * @returns {Promise} - resolves to a string containing the command output
+     */
+    executeBashCommandRemote(bigIp, command) {
+        const commandBody = {
+            command: 'run',
+            utilCmdArgs: `-c "${command}"`
+        };
+
+        return bigIp.create(
+            '/tm/util/bash',
+            commandBody,
+            null,
+            cloudUtil.SHORT_RETRY
+        )
+            .then((result) => {
+                return result.commandResult;
+            });
     },
 
     /**

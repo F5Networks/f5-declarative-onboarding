@@ -229,9 +229,6 @@ describe('restWorker', () => {
                 bigIpMock = {
                     save() {
                         return Promise.resolve();
-                    },
-                    rebootRequired() {
-                        return Promise.resolve(true);
                     }
                 };
                 doUtilMock.getBigIp = () => {
@@ -239,6 +236,9 @@ describe('restWorker', () => {
                 };
                 doUtilMock.getCurrentPlatform = () => {
                     return Promise.resolve('BIG-IP');
+                };
+                doUtilMock.rebootRequired = () => {
+                    return Promise.resolve(true);
                 };
                 cryptoUtilMock.decryptId = (id) => {
                     let password;
@@ -477,9 +477,6 @@ describe('restWorker', () => {
                     saveCalled = true;
                     return Promise.resolve();
                 },
-                rebootRequired() {
-                    return Promise.resolve(false);
-                },
                 reboot() {}
             };
             doUtilMock.getBigIp = (logger, bigIpOptions) => {
@@ -488,6 +485,9 @@ describe('restWorker', () => {
             };
             doUtilMock.getCurrentPlatform = () => {
                 return Promise.resolve('BIG-IP');
+            };
+            doUtilMock.rebootRequired = () => {
+                return Promise.resolve(false);
             };
 
             validatorMock.validate = () => {
@@ -645,7 +645,7 @@ describe('restWorker', () => {
                     resolve();
                 };
 
-                bigIpMock.rebootRequired = () => {
+                doUtilMock.rebootRequired = () => {
                     return Promise.resolve(true);
                 };
 
@@ -658,7 +658,7 @@ describe('restWorker', () => {
         });
 
         it('should set status to rolling back if an error occurs', () => {
-            const rollbackReason = 'this it the rollback reason';
+            const rollbackReason = 'this is the rollback reason';
             let proccessCallCount = 0;
             return new Promise((resolve, reject) => {
                 DeclarationHandlerMock.prototype.process = () => {
@@ -708,6 +708,42 @@ describe('restWorker', () => {
                     assert.notStrictEqual(responseBody.message.indexOf('rollback failed'), -1);
                     assert.strictEqual(responseBody.errors[0], rollbackReason);
                     assert.strictEqual(responseBody.errors[1], rollbackFailReason);
+                    resolve();
+                };
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should reboot if reboot required after rollback', () => {
+            const rollbackReason = 'this it the rollback reason';
+            const rollbackFailReason = 'this is the rollback fail reason';
+            let proccessCallCount = 0;
+            return new Promise((resolve, reject) => {
+                DeclarationHandlerMock.prototype.process = () => {
+                    // For this test, we want to reject the first call to simulate
+                    // an error but resolve the second call to simulate successful
+                    // rollback
+                    proccessCallCount += 1;
+                    if (proccessCallCount === 1) {
+                        return Promise.reject(new Error(rollbackReason));
+                    }
+                    return Promise.reject(new Error(rollbackFailReason));
+                };
+
+                restOperationMock.complete = () => {};
+
+                doUtilMock.rebootRequired = () => {
+                    return Promise.resolve(true);
+                };
+
+                bigIpMock.reboot = () => {
+                    assert.strictEqual(restWorker.state.doState.status, STATUS.STATUS_ERROR);
+                    assert.strictEqual(restWorker.state.doState.errors[0], rollbackReason);
                     resolve();
                 };
 

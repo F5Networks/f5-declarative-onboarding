@@ -165,6 +165,62 @@ describe('configManager', () => {
         });
     });
 
+    it('should handle arrays when none are already defined on BIG-IP < 14.x', () => {
+        return new Promise((resolve, reject) => {
+            configItems = [
+                {
+                    "path": "/tm/net/route",
+                    "schemaClass": "Route",
+                    "properties": [
+                        { "id": "gw" },
+                        { "id": "network" },
+                        { "id": "mtu" }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/net/route'] = {};
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state)
+                .then(() => {
+                    assert.deepEqual(state.currentConfig.Common.Route, {});
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle arrays when none are already defined on BIG-IP > 14.x', () => {
+        return new Promise((resolve, reject) => {
+            configItems = [
+                {
+                    "path": "/tm/net/route",
+                    "schemaClass": "Route",
+                    "properties": [
+                        { "id": "gw" },
+                        { "id": "network" },
+                        { "id": "mtu" }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/net/route'] = [];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state)
+                .then(() => {
+                    assert.deepEqual(state.currentConfig.Common.Route, {});
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
     it('should handle config items where we to map property name to value', () => {
         return new Promise((resolve, reject) => {
             configItems = [

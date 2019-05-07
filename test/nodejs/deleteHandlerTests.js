@@ -23,7 +23,8 @@ let DeleteHandler;
 
 /* eslint-disable global-require */
 
-describe(('deleteHandler'), () => {
+describe(('deleteHandler'), function testDeleteHandler() {
+    this.timeout(10 * 1000);
     let bigIpMock;
     const deletedPaths = [];
     const deletedDeviceGroups = [];
@@ -32,10 +33,6 @@ describe(('deleteHandler'), () => {
         DeleteHandler = require('../../nodejs/deleteHandler');
 
         bigIpMock = {
-            delete(path) {
-                deletedPaths.push(path);
-                return Promise.resolve();
-            },
             cluster: {
                 deleteDeviceGroup(deviceGroup) {
                     deletedDeviceGroups.push(deviceGroup);
@@ -45,21 +42,37 @@ describe(('deleteHandler'), () => {
     });
 
     beforeEach(() => {
+        bigIpMock.delete = (path) => {
+            deletedPaths.push(path);
+            return Promise.resolve();
+        };
         deletedPaths.length = 0;
         deletedDeviceGroups.length = 0;
     });
 
     it('should issue deletes for Routes, SelfIps, and VLANs in that order', () => {
+        bigIpMock.delete = (path) => {
+            return new Promise((resolve) => {
+                deletedPaths.push(path);
+                setTimeout(() => {
+                    resolve();
+                }, path.includes(PATHS.Route) ? 50 : 0);
+            });
+        };
+
         const declaration = {
             Common: {
                 VLAN: {
-                    deleteThisVLAN: {}
+                    deleteThisVLAN1: {},
+                    deleteThisVLAN2: {}
                 },
                 Route: {
                     deleteThisRoute: {}
                 },
                 SelfIp: {
-                    deleteThisSelfIp: {}
+                    deleteThisSelfIp1: {},
+                    deleteThisSelfIp2: {},
+                    deleteThisSelfIp3: {}
                 }
             }
         };
@@ -68,10 +81,13 @@ describe(('deleteHandler'), () => {
             const deleteHandler = new DeleteHandler(declaration, bigIpMock);
             deleteHandler.process()
                 .then(() => {
-                    assert.strictEqual(deletedPaths.length, 3);
+                    assert.strictEqual(deletedPaths.length, 6);
                     assert.strictEqual(deletedPaths[0], `${PATHS.Route}/~Common~deleteThisRoute`);
-                    assert.strictEqual(deletedPaths[1], `${PATHS.SelfIp}/~Common~deleteThisSelfIp`);
-                    assert.strictEqual(deletedPaths[2], `${PATHS.VLAN}/~Common~deleteThisVLAN`);
+                    assert.strictEqual(deletedPaths[1], `${PATHS.SelfIp}/~Common~deleteThisSelfIp1`);
+                    assert.strictEqual(deletedPaths[2], `${PATHS.SelfIp}/~Common~deleteThisSelfIp2`);
+                    assert.strictEqual(deletedPaths[3], `${PATHS.SelfIp}/~Common~deleteThisSelfIp3`);
+                    assert.strictEqual(deletedPaths[4], `${PATHS.VLAN}/~Common~deleteThisVLAN1`);
+                    assert.strictEqual(deletedPaths[5], `${PATHS.VLAN}/~Common~deleteThisVLAN2`);
                     resolve();
                 })
                 .catch((err) => {

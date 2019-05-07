@@ -182,9 +182,10 @@ function handleRegKey(license) {
             return this.bigIp.active();
         })
         .catch((err) => {
-            const errorLicensing = `Error licensing: ${err}`;
+            const errorLicensing = `Error licensing: ${err.message}`;
             logger.severe(errorLicensing);
-            return Promise.reject(errorLicensing);
+            err.message = errorLicensing;
+            return Promise.reject(err);
         });
 }
 
@@ -210,7 +211,7 @@ function handleLicensePool(license) {
                     resolve(resolvedBigIp);
                 })
                 .catch((err) => {
-                    logger.severe(`Error getting big ip for reachable API: ${err}`);
+                    logger.severe(`Error getting big ip for reachable API: ${err.message}`);
                     reject(err);
                 });
         });
@@ -363,7 +364,7 @@ function createOrUpdateUser(username, data) {
             return Promise.resolve();
         })
         .catch((err) => {
-            logger.severe(`Error creating/updating user: ${err}`);
+            logger.severe(`Error creating/updating user: ${err.message}`);
             return Promise.reject(err);
         });
 }

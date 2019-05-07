@@ -236,4 +236,133 @@ describe('doUtil', () => {
             });
         });
     });
+
+    describe('rebootRequired', () => {
+        let getCurrentPlatform;
+        let executeBashCommandExec;
+        let bigIpMock;
+
+        beforeEach(() => {
+            executeBashCommandExec = doUtil.executeBashCommandExec;
+            getCurrentPlatform = doUtil.getCurrentPlatform;
+            bigIpMock = new BigIpMock();
+            bigIpMock.list = () => {
+                return Promise.resolve({
+                    value: 'none'
+                });
+            };
+        });
+
+        afterEach(() => {
+            doUtil.executeBashCommandExec = executeBashCommandExec;
+            doUtil.getCurrentPlatform = getCurrentPlatform;
+        });
+
+        describe('running on BIG-IP', () => {
+            beforeEach(() => {
+                doUtil.getCurrentPlatform = () => {
+                    return Promise.resolve('BIG-IP');
+                };
+            });
+
+            it('should return true if the prompt is REBOOT REQUIRED', () => {
+                return new Promise((resolve, reject) => {
+                    doUtil.executeBashCommandLocal = () => {
+                        return Promise.resolve('REBOOT REQUIRED');
+                    };
+
+                    doUtil.rebootRequired(bigIpMock)
+                        .then((rebootRequired) => {
+                            assert.strictEqual(rebootRequired, true);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+
+            it('should return false if the prompt is not REBOOT REQUIRED', () => {
+                return new Promise((resolve, reject) => {
+                    doUtil.executeBashCommandLocal = () => {
+                        return Promise.resolve('Active');
+                    };
+
+                    doUtil.rebootRequired(bigIpMock)
+                        .then((rebootRequired) => {
+                            assert.strictEqual(rebootRequired, false);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+
+            it('should return true if the prompt is not REBOOT REQUIRED but the db var is true', () => {
+                return new Promise((resolve, reject) => {
+                    doUtil.executeBashCommandLocal = () => {
+                        return Promise.resolve('Active');
+                    };
+
+                    bigIpMock.list = () => {
+                        return Promise.resolve({
+                            value: 'reboot'
+                        });
+                    };
+
+                    doUtil.rebootRequired(bigIpMock)
+                        .then((rebootRequired) => {
+                            assert.strictEqual(rebootRequired, true);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+        });
+
+        describe('not running on BIG-IP', () => {
+            beforeEach(() => {
+                doUtil.getCurrentPlatform = () => {
+                    return Promise.resolve('BIG-IQ');
+                };
+            });
+
+            it('should return true if the prompt is REBOOT REQUIRED', () => {
+                return new Promise((resolve, reject) => {
+                    doUtil.executeBashCommandRemote = () => {
+                        return Promise.resolve('REBOOT REQUIRED');
+                    };
+
+                    doUtil.rebootRequired(bigIpMock)
+                        .then((rebootRequired) => {
+                            assert.strictEqual(rebootRequired, true);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+
+            it('should return false if the prompt is REBOOT REQUIRED', () => {
+                return new Promise((resolve, reject) => {
+                    doUtil.executeBashCommandRemote = () => {
+                        return Promise.resolve('Active');
+                    };
+
+                    doUtil.rebootRequired(bigIpMock)
+                        .then((rebootRequired) => {
+                            assert.strictEqual(rebootRequired, false);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+        });
+    });
 });
