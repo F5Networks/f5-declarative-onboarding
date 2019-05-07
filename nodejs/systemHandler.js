@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,13 @@ class SystemHandler {
      * @param {Object} declaration - Parsed declaration.
      * @param {Object} bigIp - BigIp object.
      * @param {EventEmitter} - DO event emitter.
+     * @param {State} - The doState.
      */
-    constructor(declaration, bigIp, eventEmitter) {
+    constructor(declaration, bigIp, eventEmitter, state) {
         this.declaration = declaration;
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
+        this.state = state;
     }
 
     /**
@@ -248,6 +250,7 @@ function handleLicensePool(license) {
                 if (licenseInfo.reachable) {
                     this.eventEmitter.emit(
                         EVENTS.DO_LICENSE_REVOKED,
+                        this.state.id,
                         licenseInfo.bigIpPassword,
                         licenseInfo.bigIqPassword
                     );
@@ -283,13 +286,20 @@ function handleLicensePool(license) {
                         skuKeyword2: license.skuKeyword2,
                         unitOfMeasure: license.unitOfMeasure,
                         noUnreachable: !!license.reachable,
-                        overwrite: !!license.overwrite
+                        overwrite: !!license.overwrite,
+                        autoApiType: true
                     }
                 );
             }
+
             return Promise.resolve();
         })
         .then(() => {
+            // Don't try to check for active state if we only revoked
+            // An unlicensed device will return OFFLINE status
+            if (typeof license.licensePool === 'undefined') {
+                return Promise.resolve();
+            }
             return this.bigIp.active();
         });
 }

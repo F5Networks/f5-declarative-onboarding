@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,65 @@ const State = require('../../nodejs/state');
 describe('state', () => {
     it('should create a new state from an exsiting state', () => {
         const existingState = {
+            originalConfig: {
+                ABCD: {
+                    this: {
+                        id: {
+                            my: 'state'
+                        }
+                    }
+                }
+            },
+            tasks: {
+                1234: {
+                    result: {
+                        foo: 'bar'
+                    },
+                    internalDeclaration: {
+                        hello: 'world'
+                    },
+                    currentConfig: {
+                        DNS: '1234'
+                    },
+                    originalConfig: {
+                        NTP: '5678'
+                    }
+                }
+            },
+            mostRecentTask: 1234
+        };
+
+        const state = new State(existingState);
+        assert.deepEqual(state, existingState);
+    });
+
+    it('should delete old tasks when new tasks are added', () => {
+        const now = new Date();
+        const tooOld = now - (7 * 1000 * 3600 * 24) - 1;
+        const notTooOld = now - (7 * 1000 * 3600 * 24) + 100; // account for time to get to deletion code
+        const existingState = {
+            tasks: {
+                1234: {
+                    lastUpdate: tooOld
+                },
+                5678: {
+                    lastUpdate: notTooOld
+                }
+            }
+        };
+        const state = new State(existingState);
+        assert.ok(state.tasks['1234']);
+        assert.ok(state.tasks['5678']);
+
+        state.addTask();
+
+        assert.strictEqual(Object.keys(state.tasks).length, 2);
+        assert.strictEqual(state.tasks['1234'], undefined);
+        assert.ok(state.tasks['5678']);
+    });
+
+    it('should upgrade a state from an older version', () => {
+        const existingState = {
             result: {
                 foo: 'bar'
             },
@@ -38,7 +97,13 @@ describe('state', () => {
         };
 
         const state = new State(existingState);
-        assert.deepEqual(state, existingState);
+        assert.ok(state.tasks);
+        assert.ok(state.mostRecentTask);
+        const mostRecentTask = state.mostRecentTask;
+        existingState.id = mostRecentTask;
+        assert.ok(state.tasks[mostRecentTask].lastUpdate);
+        delete state.tasks[mostRecentTask].lastUpdate;
+        assert.deepEqual(state.tasks[mostRecentTask], existingState);
     });
 
     it('should set the result properties', () => {
@@ -48,15 +113,17 @@ describe('state', () => {
         const status = 'bar';
         const errors = ['my', 'list', 'of', 'errors'];
 
-        state.code = code;
-        state.message = message;
-        state.status = status;
-        state.errors = errors;
+        const taskId = state.addTask();
 
-        assert.strictEqual(state.code, code);
-        assert.strictEqual(state.message, message);
-        assert.strictEqual(state.status, status);
-        assert.deepEqual(state.errors, errors);
+        state.setCode(taskId, code);
+        state.setMessage(taskId, message);
+        state.setStatus(taskId, status);
+        state.setErrors(taskId, errors);
+
+        assert.strictEqual(state.getCode(taskId), code);
+        assert.strictEqual(state.getMessage(taskId), message);
+        assert.strictEqual(state.getStatus(taskId), status);
+        assert.deepEqual(state.getErrors(taskId), errors);
     });
 
     it('should set internalDeclaration', () => {
@@ -68,8 +135,70 @@ describe('state', () => {
                 }
             }
         };
-        state.declaration = declaration;
-        assert.deepEqual(state.declaration, declaration);
+
+        const taskId = state.addTask();
+
+        state.setDeclaration(taskId, declaration);
+        assert.deepEqual(state.getDeclaration(taskId), declaration);
+    });
+
+    it('should set the current config', () => {
+        const state = new State();
+        const currentConfig = {
+            foo: {
+                bar: {
+                    hello: 'world'
+                }
+            }
+        };
+
+        const taskId = state.addTask();
+        state.setCurrentConfig(taskId, currentConfig);
+        assert.deepEqual(state.getCurrentConfig(taskId), currentConfig);
+    });
+
+    it('should get the original config by task id', () => {
+        const state = new State();
+        const originalConfig = {
+            foo: {
+                bar: {
+                    hello: 'world'
+                }
+            }
+        };
+
+        const taskId = state.addTask();
+        state.tasks[taskId].originalConfig = originalConfig;
+        assert.deepEqual(state.getOriginalConfigByTaskId(taskId), originalConfig);
+    });
+
+    it('should set the original config by config id', () => {
+        const state = new State();
+        const originalConfig = {
+            foo: {
+                bar: {
+                    hello: 'world'
+                }
+            }
+        };
+
+        state.setOriginalConfigByConfigId('1234', originalConfig);
+        assert.deepEqual(state.getOriginalConfigByConfigId('1234'), originalConfig);
+    });
+
+    it('should delete original config by config id', () => {
+        const state = new State();
+        const originalConfig = {
+            foo: {
+                bar: {
+                    hello: 'world'
+                }
+            }
+        };
+
+        state.setOriginalConfigByConfigId('1234', originalConfig);
+        state.deleteOriginalConfigByConfigId('1234', originalConfig);
+        assert.deepEqual(state.getOriginalConfigByConfigId('1234'), undefined);
     });
 
     it('should mask passwords', () => {
@@ -88,13 +217,20 @@ describe('state', () => {
                 }
             ]
         };
-        state.declaration = declaration;
-        assert.strictEqual(state.declaration.foo.bar.hello, declaration.foo.bar.hello);
-        assert.strictEqual(state.declaration.foo.bar.password, undefined);
-        assert.notStrictEqual(declaration.foo.bar.password, undefined);
-        assert.strictEqual(state.declaration.fooArray[0].okie, declaration.fooArray[0].okie);
-        assert.strictEqual(state.declaration.fooArray[0].password, undefined);
+
+        const taskId = state.addTask();
+
+        state.setDeclaration(taskId, declaration);
+        const internalDeclaration = state.getDeclaration(taskId);
+
+        assert.strictEqual(internalDeclaration.foo.bar.hello, declaration.foo.bar.hello);
+        assert.strictEqual(internalDeclaration.foo.bar.password, undefined);
+        assert.strictEqual(internalDeclaration.fooArray[0].okie, declaration.fooArray[0].okie);
+        assert.strictEqual(internalDeclaration.fooArray[0].password, undefined);
+
+        // make sure we are not altering the passed in data
         assert.notStrictEqual(declaration.fooArray[0].password, undefined);
+        assert.notStrictEqual(declaration.foo.bar.password, undefined);
     });
 
     it('should update results', () => {
@@ -104,11 +240,23 @@ describe('state', () => {
         const status = 'bar';
         const errors = ['my', 'list', 'of', 'errors'];
 
-        state.updateResult(code, status, message, errors);
+        const taskId = state.addTask();
+        state.updateResult(taskId, code, status, message, errors);
 
-        assert.strictEqual(state.code, code);
-        assert.strictEqual(state.message, message);
-        assert.strictEqual(state.status, status);
-        assert.deepEqual(state.errors, errors);
+        assert.strictEqual(state.getCode(taskId), code);
+        assert.strictEqual(state.getMessage(taskId), message);
+        assert.strictEqual(state.getStatus(taskId), status);
+        assert.deepEqual(state.getErrors(taskId), errors);
+    });
+
+    it('should retrieve task by id', () => {
+        const state = new State();
+        const message = 'foo';
+
+        const taskId = state.addTask();
+        state.setMessage(taskId, message);
+
+        const task = state.getTask(taskId);
+        assert.strictEqual(task.result.message, message);
     });
 });

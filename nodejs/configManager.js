@@ -83,12 +83,13 @@ class ConfigManager {
      * associated with the key, then that item will be ignored
      *
      * @param {Object} declaration - The delcaration we are processing
-     * @param {Object} state - The [doState]{@link State} object
+     * @param {Object} state - The state of the current task. See {@link State}.
+     * @param {State} doState - The doState object.
      *
      * @returns {Promise} A promise which is resolved when the operation is complete
      *                    or rejected if an error occurs.
      */
-    get(declaration, state) {
+    get(declaration, state, doState) {
         const currentCurrentConfig = state.currentConfig || {};
         const currentConfig = {};
         const promises = [];
@@ -127,7 +128,11 @@ class ConfigManager {
             });
         }
 
-        return getTokenMap.call(this)
+        return this.bigIp.deviceInfo()
+            .then((deviceInfo) => {
+                this.configId = deviceInfo.machineId;
+                return getTokenMap.call(this, deviceInfo);
+            })
             .then((tokenMap) => {
                 const hostNameRegex = /{{hostName}}/;
                 const deviceNameRegex = /{{deviceName}}/;
@@ -246,9 +251,13 @@ class ConfigManager {
                     Common: currentConfig
                 };
 
-                if (!state.originalConfig) {
-                    state.originalConfig = JSON.parse(JSON.stringify(state.currentConfig));
+                if (state.originalConfig && !doState.getOriginalConfigByConfigId(this.configId)) {
+                    // This state was saved from a prior version of DO
+                    doState.setOriginalConfigByConfigId(this.configId, state.originalConfig);
                 }
+
+                const originalConfig = doState.getOriginalConfigByConfigId(this.configId)
+                    || state.currentConfig;
 
                 // Fill in any db vars that we don't currently have in the original config. If
                 // a user does not set a db var on the first POST but does on a subsequent POST
@@ -256,15 +265,18 @@ class ConfigManager {
                 // POST with out the variable
                 const currentDbVariables = state.currentConfig.Common.DbVariables;
                 if (currentDbVariables) {
-                    if (!state.originalConfig.Common.DbVariables) {
-                        state.originalConfig.Common.DbVariables = {};
+                    if (!originalConfig.Common.DbVariables) {
+                        originalConfig.Common.DbVariables = {};
                     }
                     Object.keys(currentDbVariables).forEach((dbVar) => {
-                        if (!state.originalConfig.Common.DbVariables[dbVar]) {
-                            state.originalConfig.Common.DbVariables[dbVar] = currentDbVariables[dbVar];
+                        if (!originalConfig.Common.DbVariables[dbVar]) {
+                            originalConfig.Common.DbVariables[dbVar] = currentDbVariables[dbVar];
                         }
                     });
                 }
+
+                doState.setOriginalConfigByConfigId(this.configId, originalConfig);
+                state.originalConfig = originalConfig;
 
                 return Promise.resolve();
             })
@@ -419,6 +431,8 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
 /**
  * Gets values we use to replace tokens in configItems.json
  *
+ * @param {Object} deviceInfo - The deviceInfo for the BIG-IP.
+ *
  * @returns {Promise} A promise which is resolved with the replacement
  *                    map
  *     {
@@ -426,13 +440,9 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
  *         deviceName: device name for the host
  *     }
  */
-function getTokenMap() {
-    let hostName;
-    return this.bigIp.deviceInfo()
-        .then((deviceInfo) => {
-            hostName = deviceInfo.hostname;
-            return this.bigIp.list('/tm/cm/device');
-        })
+function getTokenMap(deviceInfo) {
+    const hostName = deviceInfo.hostname;
+    return this.bigIp.list('/tm/cm/device')
         .then((cmDeviceInfo) => {
             const devices = cmDeviceInfo.filter((device) => {
                 return device.hostname === hostName;

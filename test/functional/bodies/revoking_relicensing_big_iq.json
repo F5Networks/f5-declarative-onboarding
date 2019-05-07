@@ -7,14 +7,14 @@
     "myLicense" : {
         "class" : "License",
         "licenseType" : "licensePool",
-        "bigIqHost" : "10.145.65.76",
-        "bigIqUsername" : "admin",
-        "bigIqPassword" : "f5netW0rks!",
+        "bigIqHost" : "<bigiq_host>",
+        "bigIqUsername" : "<big_iq_username>",
+        "bigIqPassword" : "<big_iq_password>",
         "revokeFrom" : "myLicense",
         "licensePool" : "myOtherLicensePool",
         "reachable" : true,
-        "bigIpUsername" : "admin",
-        "bigIpPassword" : "admin"
+        "bigIpUsername" : "<bigIpUsername>",
+        "bigIpPassword" : "<bigIpPassword>"
     }
   }
 }

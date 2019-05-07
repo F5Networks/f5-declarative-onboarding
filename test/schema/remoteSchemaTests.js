@@ -219,6 +219,46 @@ describe('remote.schema.json', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
         });
+
+        describe('invalid', () => {
+            it('should not allow both targetPassphrase and targetSshKey', () => {
+                const data = {
+                    "class": "DO",
+                    "targetPassphrase": "foofoo",
+                    "targetSshKey": {
+                        "path": "barbar"
+                    },
+                    "declaration": {
+                        "schemaVersion": "1.0.0",
+                        "class": "Device"
+                    }
+                };
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'including targetPassphrase and targetSshKey should not be valid'
+                );
+                assert.notStrictEqual(getErrorString().indexOf('dependencies/targetSshKey/not'), -1);
+            });
+        });
+    });
+
+    describe('targetSshKey', () => {
+        describe('valid', () => {
+            it('should validate targetSshKey', () => {
+                const data = {
+                    "class": "DO",
+                    "targetSshKey": {
+                        "path": "foo"
+                    },
+                    "declaration": {
+                        "schemaVersion": "1.0.0",
+                        "class": "Device"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
     });
 
     describe('targetTokens', () => {

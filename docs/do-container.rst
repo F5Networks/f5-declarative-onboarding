@@ -160,7 +160,7 @@ Full declaration using the Declarative Onboarding container
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This example uses a simple example declaration using the container.
 
-.. literalinclude:: examples/example_05.json
+.. literalinclude:: ../examples/viaASG.json
    :language: json
 
 

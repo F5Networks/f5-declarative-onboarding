@@ -18,6 +18,7 @@
 
 const Logger = require('./logger');
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
+const doUtil = require('./doUtil');
 
 const logger = new Logger(module);
 
@@ -280,7 +281,7 @@ function dereference(property) {
 
     Object.keys(dereferenced).forEach((key) => {
         if (typeof dereferenced[key] === 'string' && dereferenced[key].startsWith('/')) {
-            const value = dereferencePointer.call(this, dereferenced[key]);
+            const value = doUtil.dereferencePointer(this.declaration, dereferenced[key]);
 
             // If we get a string value, do a replacement. Otherwise, just leave the
             // initial value. This allows us to write a declaration with 'vlan: /Common/myVlan'
@@ -295,22 +296,6 @@ function dereference(property) {
     });
 
     return dereferenced;
-}
-
-function dereferencePointer(pointer) {
-    if (!pointer.startsWith('/')) {
-        return pointer;
-    }
-
-    let value = this.declaration;
-    const keys = pointer.split('/');
-    keys.forEach((key) => {
-        if (key && value) {
-            value = value[key];
-        }
-    });
-
-    return value;
 }
 
 module.exports = DeclarationParser;

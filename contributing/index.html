@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Declarative Onboarding Contributor Presentation</title>
+
+		<link rel="stylesheet" href="node_modules/reveal.js/css/reset.css">
+		<link rel="stylesheet" href="node_modules/reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="node_modules/reveal.js/css/theme/black.css" id="theme">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="node_modules/reveal.js/lib/css/monokai.css">
+
+		<!-- Custom stylesheet -->
+		<link rel="stylesheet" href="main.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'node_modules/reveal.js/css/print/pdf.css' : 'node_modules/reveal.js/css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section class="scrollable-slide"
+						data-markdown="README.md"
+						data-separator="^\r?\n---$">
+				</section>
+			</div>
+		</div>
+
+		<script src="node_modules/reveal.js/js/reveal.js"></script>
+		<script>
+			Reveal.initialize({
+				width: '100%',
+				height: '100%',
+				margin: 0.05,
+				minScale: 0.1,
+				maxScale: 1.5,
+				hash: true,
+				dependencies: [
+					// Interpret Markdown in <section> elements
+					{ src: 'node_modules/reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'node_modules/reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					// Syntax highlight for <code> elements
+					{ src: 'node_modules/reveal.js/plugin/highlight/highlight.js', async: true },
+					// Speaker notes
+					{ src: 'node_modules/reveal.js/plugin/notes/notes.js', async: true },
+					// Zoom in and out with Alt+click
+					{ src: 'node_modules/reveal.js/plugin/zoom-js/zoom.js', async: true }
+				]
+			});
+		</script>
+	</body>
+</html>
