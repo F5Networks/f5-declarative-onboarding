@@ -311,14 +311,16 @@ module.exports = {
             try {
                 dns.resolve(address, (error) => {
                     if (error !== null) {
-                        reject(new Error(`Unable to resolve host ${address}`));
+                        error.message = `Unable to resolve host ${address}: ${error.message}`;
+                        reject(error);
                         return;
                     }
                     resolve(true);
                 });
             } catch (error) {
                 // if DNS.resolve errors it throws an exception instead of rejecting
-                reject(new Error(`Unable to resolve host ${address}`));
+                error.message = `Unable to resolve host ${address}: ${error.message}`;
+                reject(error);
             }
         });
     }
