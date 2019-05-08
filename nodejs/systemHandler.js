@@ -105,7 +105,7 @@ function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
         const promises = ntp.servers.map((server) => {
-            return doUtil.checkHostnameResolution(server);
+            return doUtil.checkDnsResolution(server);
         });
 
         return Promise.all(promises)
@@ -228,7 +228,7 @@ function handleLicensePool(license) {
         getBigIp = Promise.resolve(this.bigIp);
     }
 
-    return doUtil.checkHostnameResolution(license.bigIqHost)
+    return doUtil.checkDnsResolution(license.bigIqHost)
         .then(() => { return getBigIp; })
         .then((resolvedBigIp) => {
             bigIp = resolvedBigIp;

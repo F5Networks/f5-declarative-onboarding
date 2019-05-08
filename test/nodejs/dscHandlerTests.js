@@ -307,7 +307,7 @@ describe('dscHandler', () => {
             });
         });
 
-        it('should reject with an invalid remoteHost', () => {
+        it('should reject with an invalid remoteHost and we are not the remote', () => {
             const testCase = 'example.cant';
             const declaration = {
                 Common: {
@@ -323,13 +323,7 @@ describe('dscHandler', () => {
 
             bigIpMock.list = (path) => {
                 if (path === PATHS.SelfIp) {
-                    return Promise.resolve(
-                        [
-                            {
-                                address: `${declaration.Common.DeviceTrust.remoteHost}/24`
-                            }
-                        ]
-                    );
+                    return Promise.resolve([]);
                 }
                 return Promise.reject(new Error('Unexpected path'));
             };

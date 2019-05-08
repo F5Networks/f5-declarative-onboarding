@@ -303,7 +303,7 @@ module.exports = {
      * @param {String} address - URL address
      * @returns {boolean} found - Returns if the hostname was found
      */
-    checkHostnameResolution(address) {
+    checkDnsResolution(address) {
         return new Promise((resolve, reject) => {
             if (ipF5(address)) {
                 resolve(true);
@@ -311,14 +311,14 @@ module.exports = {
             try {
                 dns.resolve(address, (error) => {
                     if (error !== null) {
-                        reject(error);
+                        reject(new Error(`Unable to resolve host ${address}`));
                         return;
                     }
                     resolve(true);
                 });
             } catch (error) {
                 // if DNS.resolve errors it throws an exception instead of rejecting
-                reject(error);
+                reject(new Error(`Unable to resolve host ${address}`));
             }
         });
     }

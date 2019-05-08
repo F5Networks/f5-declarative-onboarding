@@ -212,22 +212,22 @@ function handleDeviceTrust() {
         return this.bigIp.deviceInfo()
             .then((response) => {
                 deviceInfo = response;
-                return doUtil.checkHostnameResolution(deviceTrust.remoteHost);
-            })
-            .then(() => {
                 return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
             })
             .then((isRemote) => {
                 // If we are not the remote, check to see if we need to request to be added
                 if (!isRemote) {
-                    return doUtil.getBigIp(
-                        logger,
-                        {
-                            host: deviceTrust.remoteHost,
-                            user: deviceTrust.remoteUsername,
-                            password: deviceTrust.remotePassword
-                        }
-                    )
+                    return doUtil.checkDnsResolution(deviceTrust.remoteHost)
+                        .then(() => {
+                            return doUtil.getBigIp(
+                                logger,
+                                {
+                                    host: deviceTrust.remoteHost,
+                                    user: deviceTrust.remoteUsername,
+                                    password: deviceTrust.remotePassword
+                                }
+                            );
+                        })
                         .then((remoteBigIp) => {
                             return remoteBigIp.cluster.addToTrust(
                                 deviceInfo.hostname,

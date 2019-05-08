@@ -407,7 +407,7 @@ describe('doUtil', () => {
         });
     });
 
-    describe('checkHostnameResolution', () => {
+    describe('checkDnsResolution', () => {
         it('should return false if undefined, invalid ip, or hostname does not exist', () => {
             const testCases = [
                 undefined,
@@ -417,7 +417,7 @@ describe('doUtil', () => {
 
             const promises = testCases.map((testCase) => {
                 let didFail = false;
-                return doUtil.checkHostnameResolution(testCase)
+                return doUtil.checkDnsResolution(testCase)
                     .catch(() => {
                         didFail = true;
                     })
@@ -439,7 +439,7 @@ describe('doUtil', () => {
             ];
 
             const promises = testCases.map((testCase) => {
-                return doUtil.checkHostnameResolution(testCase)
+                return doUtil.checkDnsResolution(testCase)
                     .catch((e) => { return e; })
                     .then((res) => {
                         if (res === true) {
