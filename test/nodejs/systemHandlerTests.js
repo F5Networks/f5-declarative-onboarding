@@ -501,17 +501,7 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 License: {
-                    licenseType: 'licensePool',
-                    bigIqHost: testCase,
-                    bigIqUsername: 'admin',
-                    bigIqPassword: 'foofoo',
-                    licensePool: 'clpv2',
-                    unitOfMeasure: 'daily',
-                    skuKeyword1: 'my skukeyword1',
-                    skuKeyword2: 'my skukeyword2',
-                    reachable: true,
-                    bigIpUsername: 'mybigipuser',
-                    bigIpPassword: 'barbar'
+                    bigIqHost: testCase
                 }
             }
         };
