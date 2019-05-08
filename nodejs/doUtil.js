@@ -309,7 +309,7 @@ module.exports = {
                 resolve(true);
             }
             try {
-                dns.resolve(address, 'ANY', (error) => {
+                dns.resolve(address, (error) => {
                     if (error !== null) {
                         reject(error);
                         return;
