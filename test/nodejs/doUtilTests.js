@@ -406,4 +406,50 @@ describe('doUtil', () => {
             assert.strictEqual(dereferenced.objectValue, container.objectValue);
         });
     });
+
+    describe('checkHostnameResolution', () => {
+        it('should return false if undefined, invalid ip, or hostname does not exist', () => {
+            const testCases = [
+                undefined,
+                '260.84.18.2',
+                'example.cant'
+            ];
+
+            const promises = testCases.map((testCase) => {
+                let didFail = false;
+                return doUtil.checkHostnameResolution(testCase)
+                    .catch(() => {
+                        didFail = true;
+                    })
+                    .then(() => {
+                        if (!didFail) {
+                            assert.fail(`testCase: ${testCase} does exist, and it should NOT`);
+                        }
+                    });
+            });
+            return Promise.all(promises);
+        });
+
+        it('should return true if a valid ip, empty string, or valid hostname is given', () => {
+            const testCases = [
+                '',
+                '::',
+                '10.10.10.10',
+                'www.google.com'
+            ];
+
+            const promises = testCases.map((testCase) => {
+                return doUtil.checkHostnameResolution(testCase)
+                    .catch((e) => { return e; })
+                    .then((res) => {
+                        if (res === true) {
+                            assert.ok(res);
+                            return;
+                        }
+                        assert.fail(`testCase: ${testCase} does NOT exist, and it should`);
+                    });
+            });
+            return Promise.all(promises);
+        });
+    });
 });

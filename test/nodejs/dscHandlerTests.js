@@ -201,7 +201,7 @@ describe('dscHandler', () => {
                     DeviceTrust: {
                         localUsername: 'admin',
                         localPassword: 'pass1word',
-                        remoteHost: 'otherHostname',
+                        remoteHost: '10.35.48.12',
                         remoteUsername: 'admin',
                         remotePassword: 'pass2word'
                     }
@@ -305,6 +305,47 @@ describe('dscHandler', () => {
                         reject(err);
                     });
             });
+        });
+
+        it('should reject with an invalid remoteHost', () => {
+            const testCase = 'example.cant';
+            const declaration = {
+                Common: {
+                    DeviceTrust: {
+                        localUsername: 'admin',
+                        localPassword: 'pass1word',
+                        remoteHost: testCase,
+                        remoteUsername: 'admin',
+                        remotePassword: 'pass2word'
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve(
+                        [
+                            {
+                                address: `${declaration.Common.DeviceTrust.remoteHost}/24`
+                            }
+                        ]
+                    );
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            let didFail = false;
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .catch(() => {
+                    didFail = true;
+                })
+                .then(() => {
+                    if (!didFail) {
+                        const message = `testCase: ${testCase} does exist, and it should NOT`;
+                        assert.fail(message);
+                    }
+                });
         });
     });
 

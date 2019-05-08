@@ -212,6 +212,9 @@ function handleDeviceTrust() {
         return this.bigIp.deviceInfo()
             .then((response) => {
                 deviceInfo = response;
+                return doUtil.checkHostnameResolution(deviceTrust.remoteHost);
+            })
+            .then(() => {
                 return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
             })
             .then((isRemote) => {
