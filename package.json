@@ -37,6 +37,7 @@
     "request": "^2.88.0"
   },
   "scripts": {
+    "build": "./build/buildRpm.sh",
     "test": "mocha --recursive test/nodejs test/schema",
     "functional": "mocha test/functional/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
