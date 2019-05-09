@@ -16,8 +16,11 @@
 
 'use strict';
 
-const sinon = require('sinon');
 const assert = require('assert');
+const dns = require('dns');
+
+const sinon = require('sinon');
+
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
 let stubs = [];
@@ -469,6 +472,11 @@ describe('dscHandler', () => {
         });
 
         it('should reject if a member has an invalid hostname', () => {
+            stubs.push(
+                sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+                    callback(new Error());
+                })
+            );
             const testCase = 'example.cant';
 
             const declaration = {
@@ -528,6 +536,11 @@ describe('dscHandler', () => {
         });
 
         it('should reject if the remoteHost has an invalid hostname', () => {
+            stubs.push(
+                sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+                    callback(new Error());
+                })
+            );
             const testCase = 'example.cant';
 
             doUtilMock.getBigIp = () => {

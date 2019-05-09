@@ -17,6 +17,9 @@
 'use strict';
 
 const assert = require('assert');
+const dns = require('dns');
+
+const sinon = require('sinon');
 
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
@@ -59,6 +62,16 @@ describe('systemHandler', () => {
         Object.keys(require.cache).forEach((key) => {
             delete require.cache[key];
         });
+    });
+
+    let dnsStub = null;
+    beforeEach(() => {
+        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+            callback();
+        });
+    });
+    afterEach(() => {
+        dnsStub.restore();
     });
 
     it('should handle DbVariables', () => {
@@ -121,6 +134,11 @@ describe('systemHandler', () => {
     });
 
     it('should reject NTP if bad hostname is sent', () => {
+        dnsStub.restore();
+        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+            callback(new Error('bad hostname'));
+        });
+
         const testServers = [
             'example.cant',
             'www.google.com',
@@ -496,7 +514,12 @@ describe('systemHandler', () => {
         });
     });
 
-    it('should reject if the bigIqHost is given a bad address', () => {
+    it('should reject if the bigIqHost is given a bad hostname', () => {
+        dnsStub.restore();
+        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+            callback(new Error('bad hostname'));
+        });
+
         const testCase = 'example.cant';
         const declaration = {
             Common: {

@@ -307,10 +307,11 @@ module.exports = {
         return new Promise((resolve, reject) => {
             if (ipF5(address)) {
                 resolve(true);
+                return;
             }
             try {
                 dns.lookup(address, (error) => {
-                    if (error !== null) {
+                    if (error) {
                         error.message = `Unable to resolve host ${address}: ${error.message}`;
                         reject(error);
                         return;
