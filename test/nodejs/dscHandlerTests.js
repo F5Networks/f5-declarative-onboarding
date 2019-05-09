@@ -363,6 +363,11 @@ describe('dscHandler', () => {
         let joinClusterCalled;
         let syncCalled;
         let syncCompleteCalled;
+        let removeDeviceNames;
+        let removeDeviceGroup;
+        let removeFromDeviceGroupCalled;
+        let syncCompleteConnectedDevices;
+        let deviceList;
 
         beforeEach(() => {
             deviceGroupNameSent = undefined;
@@ -370,6 +375,15 @@ describe('dscHandler', () => {
             joinClusterCalled = false;
             syncCalled = false;
             syncCompleteCalled = false;
+            removeDeviceNames = undefined;
+            removeDeviceGroup = undefined;
+            removeFromDeviceGroupCalled = false;
+            syncCompleteConnectedDevices = undefined;
+            deviceList = [
+                { name: 'bigip1.example.com' },
+                { name: 'bigip2.example.com' },
+                { name: 'remove.example.com' }
+            ];
             bigIpMock.cluster = {
                 areInTrustGroup() {
                     return Promise.resolve(devices);
@@ -383,8 +397,9 @@ describe('dscHandler', () => {
                     syncCalled = true;
                     return Promise.resolve();
                 },
-                syncComplete() {
+                syncComplete(retryOptions, options) {
                     syncCompleteCalled = true;
+                    syncCompleteConnectedDevices = options.connectedDevices;
                     return Promise.resolve();
                 },
                 hasDeviceGroup(deviceGroup) {
@@ -398,7 +413,22 @@ describe('dscHandler', () => {
                     addToDeviceGroupNameSent = deviceGroupName;
                     joinClusterCalled = true;
                     return Promise.resolve();
+                },
+                removeFromDeviceGroup(deviceNames, deviceGroup) {
+                    removeDeviceNames = deviceNames;
+                    removeDeviceGroup = deviceGroup;
+                    removeFromDeviceGroupCalled = true;
+                    return Promise.resolve();
+                },
+                getCmSyncStatus() {
+                    return Promise.resolve({ connected: [], disconnected: [] });
                 }
+            };
+            bigIpMock.list = (path) => {
+                if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
+                    return Promise.resolve(deviceList);
+                }
+                return Promise.reject(new Error('Unexpected path'));
             };
         });
 
@@ -414,7 +444,11 @@ describe('dscHandler', () => {
                 }
             };
             const dscHandler = new DscHandler(declaration, bigIpMock);
-            return dscHandler.process();
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(removeFromDeviceGroupCalled, false,
+                        'Should not call removeFromDeviceGroup');
+                });
         });
 
         it('should create the device group if we are the owner with no device trust section', () => {
@@ -436,8 +470,16 @@ describe('dscHandler', () => {
                     .then(() => {
                         assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
                         assert.deepEqual(devicesSent, devices);
+                        assert.strictEqual(removeFromDeviceGroupCalled, true,
+                            'Should call removeFromDeviceGroup');
+                        assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
+                            'Should remove old device');
+                        assert.strictEqual(removeDeviceGroup, 'failoverGroup',
+                            'Should remove old device from device group');
                         assert.strictEqual(syncCalled, true);
                         assert.strictEqual(syncCompleteCalled, true);
+                        assert.deepStrictEqual(syncCompleteConnectedDevices,
+                            ['bigip1.example.com', 'bigip2.example.com']);
                         resolve();
                     })
                     .catch((err) => {
@@ -468,8 +510,16 @@ describe('dscHandler', () => {
                     .then(() => {
                         assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
                         assert.deepEqual(devicesSent, devices);
+                        assert.strictEqual(removeFromDeviceGroupCalled, true,
+                            'Should call removeFromDeviceGroup');
+                        assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
+                            'Should remove old device');
+                        assert.strictEqual(removeDeviceGroup, 'failoverGroup',
+                            'Should remove old device from device group');
                         assert.strictEqual(syncCalled, true);
                         assert.strictEqual(syncCompleteCalled, true);
+                        assert.deepStrictEqual(syncCompleteConnectedDevices,
+                            ['bigip1.example.com', 'bigip2.example.com']);
                         resolve();
                     })
                     .catch((err) => {
@@ -478,7 +528,7 @@ describe('dscHandler', () => {
             });
         });
 
-        it('should not call sync if no devices are in the device trust', () => {
+        it('should not call sync if no devices are in the device trust or need to be pruned', () => {
             bigIpMock.cluster.areInTrustGroup = () => { return Promise.resolve([]); };
 
             const declaration = {
@@ -493,10 +543,14 @@ describe('dscHandler', () => {
                 }
             };
 
+            deviceList = [];
+
             return new Promise((resolve, reject) => {
                 const dscHandler = new DscHandler(declaration, bigIpMock);
                 dscHandler.process()
                     .then(() => {
+                        assert.strictEqual(removeFromDeviceGroupCalled, false,
+                            'Should not call removeFromDeviceGroup');
                         assert.strictEqual(syncCalled, false);
                         resolve();
                     })
@@ -575,6 +629,9 @@ describe('dscHandler', () => {
                 if (path === PATHS.SelfIp) {
                     return Promise.resolve([]);
                 }
+                if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
+                    return Promise.resolve(deviceList);
+                }
                 return Promise.reject(new Error('Unexpected path'));
             };
 
@@ -584,6 +641,12 @@ describe('dscHandler', () => {
                     .then(() => {
                         assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
                         assert.strictEqual(joinClusterCalled, true);
+                        assert.strictEqual(removeFromDeviceGroupCalled, true,
+                            'Should call removeFromDeviceGroup');
+                        assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
+                            'Should remove old device');
+                        assert.strictEqual(removeDeviceGroup, 'failoverGroup',
+                            'Should remove old device from device group');
                         resolve();
                     })
                     .catch((err) => {
@@ -615,6 +678,12 @@ describe('dscHandler', () => {
                     .then(() => {
                         assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
                         assert.strictEqual(joinClusterCalled, false);
+                        assert.strictEqual(removeFromDeviceGroupCalled, true,
+                            'Should call removeFromDeviceGroup');
+                        assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
+                            'Should remove old device');
+                        assert.strictEqual(removeDeviceGroup, 'failoverGroup',
+                            'Should remove old device from device group');
                         resolve();
                     })
                     .catch((err) => {
