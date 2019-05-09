@@ -1,5 +1,8 @@
 # Release Notes
 
+## Version 1.5.0
++ Resolve [Issue 26](https://github.com/F5Networks/f5-declarative-onboarding/issues/26)
+
 ## Version 1.4.0
 + Allow for onboarding multiple devices at once.
     + taskId is now returned from POST onboard requests
