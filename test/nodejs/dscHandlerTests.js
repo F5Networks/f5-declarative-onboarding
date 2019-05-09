@@ -16,8 +16,11 @@
 
 'use strict';
 
+const sinon = require('sinon');
 const assert = require('assert');
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
+
+let stubs = [];
 
 /* eslint-disable global-require */
 
@@ -34,6 +37,7 @@ describe('dscHandler', () => {
     });
 
     beforeEach(() => {
+        stubs = [];
         bigIpMock = {
             deviceInfo() {
                 return Promise.resolve({ hostname });
@@ -44,6 +48,12 @@ describe('dscHandler', () => {
     after(() => {
         Object.keys(require.cache).forEach((key) => {
             delete require.cache[key];
+        });
+    });
+
+    afterEach(() => {
+        stubs.forEach((stub) => {
+            stub.restore();
         });
     });
 
@@ -196,12 +206,14 @@ describe('dscHandler', () => {
         });
 
         it('should request remote big ip to add to trust if we are not the remote', () => {
+            stubs.push(sinon.stub(doUtilMock, 'checkDnsResolution').resolves(true));
+
             const declaration = {
                 Common: {
                     DeviceTrust: {
                         localUsername: 'admin',
                         localPassword: 'pass1word',
-                        remoteHost: '10.35.48.12',
+                        remoteHost: 'someOtherHost',
                         remoteUsername: 'admin',
                         remotePassword: 'pass2word'
                     }
@@ -392,6 +404,8 @@ describe('dscHandler', () => {
         });
 
         it('should create the device group if we are the owner with no device trust section', () => {
+            stubs.push(sinon.stub(doUtilMock, 'checkDnsResolution').resolves(true));
+
             const declaration = {
                 Common: {
                     DeviceGroup: {
@@ -421,6 +435,8 @@ describe('dscHandler', () => {
         });
 
         it('should create the device group if we are the owner with device trust section', () => {
+            stubs.push(sinon.stub(doUtilMock, 'checkDnsResolution').resolves(true));
+
             const declaration = {
                 Common: {
                     DeviceGroup: {
@@ -452,7 +468,38 @@ describe('dscHandler', () => {
             });
         });
 
+        it('should reject if a member has an invalid hostname', () => {
+            const testCase = 'example.cant';
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: [testCase, 'www.google.com'],
+                            owner: hostname
+                        }
+                    }
+                }
+            };
+
+            let didFail = false;
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .catch(() => {
+                    didFail = true;
+                })
+                .then(() => {
+                    if (!didFail) {
+                        const message = `testCase: ${testCase} does exist, and it should NOT`;
+                        assert.fail(message);
+                    }
+                });
+        });
+
         it('should not call sync if no devices are in the device trust', () => {
+            stubs.push(sinon.stub(doUtilMock, 'checkDnsResolution').resolves(true));
+
             bigIpMock.cluster.areInTrustGroup = () => { return Promise.resolve([]); };
 
             const declaration = {
@@ -480,7 +527,52 @@ describe('dscHandler', () => {
             });
         });
 
+        it('should reject if the remoteHost has an invalid hostname', () => {
+            const testCase = 'example.cant';
+
+            doUtilMock.getBigIp = () => {
+                return Promise.resolve(bigIpMock);
+            };
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['bigip1.example.com', 'bigip2.example.com'],
+                            owner: '10.20.30.40'
+                        }
+                    },
+                    DeviceTrust: {
+                        remoteHost: testCase
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            let didFail = false;
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .catch(() => {
+                    didFail = true;
+                })
+                .then(() => {
+                    if (!didFail) {
+                        const message = `testCase: ${testCase} does exist, and it should NOT`;
+                        assert.fail(message);
+                    }
+                });
+        });
+
         it('should join device group if we are not the owner and we have DeviceGroup and DeviceTrust', () => {
+            stubs.push(sinon.stub(doUtilMock, 'checkDnsResolution').resolves(true));
+
             doUtilMock.getBigIp = () => {
                 return Promise.resolve(bigIpMock);
             };
@@ -553,6 +645,8 @@ describe('dscHandler', () => {
         });
 
         it('should handle device group not existing on remote', () => {
+            stubs.push(sinon.stub(doUtilMock, 'checkDnsResolution').resolves(true));
+
             const declaration = {
                 Common: {
                     DeviceGroup: {

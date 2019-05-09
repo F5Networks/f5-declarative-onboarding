@@ -187,16 +187,19 @@ function handleJoinCluster() {
 
         this.bigIp.user = deviceTrust.localUsername;
         this.bigIp.password = deviceTrust.localPassword;
-        return this.bigIp.cluster.joinCluster(
-            deviceGroupName,
-            deviceTrust.remoteHost,
-            deviceTrust.remoteUsername,
-            deviceTrust.remotePassword,
-            false,
-            {
-                product: PRODUCTS.BIGIP
-            }
-        );
+        return doUtil.checkDnsResolution(deviceTrust.remoteHost)
+            .then(() => {
+                return this.bigIp.cluster.joinCluster(
+                    deviceGroupName,
+                    deviceTrust.remoteHost,
+                    deviceTrust.remoteUsername,
+                    deviceTrust.remotePassword,
+                    false,
+                    {
+                        product: PRODUCTS.BIGIP
+                    }
+                );
+            });
     }
     return Promise.resolve();
 }
@@ -298,8 +301,16 @@ function handleDeviceGroup() {
 function createDeviceGroup(deviceGroupName, deviceGroup) {
     let needsSync = false;
 
+    // Check deviceGroup.members for valid DNS
+    const promises = deviceGroup.members.map((member) => {
+        return doUtil.checkDnsResolution(member);
+    });
+
     // Get the device group members that are currently trusted
-    return this.bigIp.cluster.areInTrustGroup(deviceGroup.members || [])
+    return Promise.all(promises)
+        .then(() => {
+            return this.bigIp.cluster.areInTrustGroup(deviceGroup.members || []);
+        })
         .then((devices) => {
             // If we're adding something besides ourselves do
             // an initial sync after createion
