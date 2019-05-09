@@ -124,6 +124,11 @@ describe('system.schema.json', () => {
                         ]
                     };
                     assert.ok(validate(data), getErrorString(validate));
+                    assert.strictEqual(
+                        data.unitOfMeasure,
+                        undefined,
+                        'unitOfMeasure should not have default when licenseType regKey'
+                    );
                 });
 
                 it('should validate dev keys', () => {
@@ -133,6 +138,11 @@ describe('system.schema.json', () => {
                         "regKey": "A1234-56789-12345-66890-1234567"
                     };
                     assert.ok(validate(data), getErrorString(validate));
+                    assert.strictEqual(
+                        data.unitOfMeasure,
+                        undefined,
+                        'unitOfMeasure should not have default when licenseType regKey'
+                    );
                 });
             });
 
@@ -176,6 +186,11 @@ describe('system.schema.json', () => {
                         "bigIpPassword": "barbar"
                     };
                     assert.ok(validate(data), getErrorString(validate));
+                    assert.strictEqual(
+                        data.unitOfMeasure,
+                        'monthly',
+                        'unitOfMeasure should default to monthly when licenseType licensePool'
+                    );
                 });
 
                 it('should validate with bigIqPasswordUri', () => {

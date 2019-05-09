@@ -10,7 +10,15 @@
                 "oneOf": [
                     { "$ref": "#/definitions/regKeyInfo" },
                     { "$ref": "#/definitions/licensePoolInfo" }
-                ]
+                ],
+                "if": {"properties": { "licenseType": { "const": "licensePool" } } },
+                "then": {
+                    "properties": {
+                        "unitOfMeasure": {
+                            "default": "monthly"
+                        }
+                    }
+                }
             }
         },
         {
@@ -324,8 +332,7 @@
                 "unitOfMeasure": {
                     "description": "unitOfMeasure parameter for subscription licensing.",
                     "type": "string",
-                    "enum": ["yearly", "monthly", "daily", "hourly"],
-                    "default": "monthly"
+                    "enum": ["yearly", "monthly", "daily", "hourly"]
                 },
                 "hypervisor": {
                     "description": "Hypervisor which is running the BIG-IP. Required by BIG-IQ if 'reachable' is false.",
