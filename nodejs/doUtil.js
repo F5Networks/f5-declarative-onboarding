@@ -309,7 +309,7 @@ module.exports = {
                 resolve(true);
             }
             try {
-                dns.resolve(address, (error) => {
+                dns.lookup(address, (error) => {
                     if (error !== null) {
                         error.message = `Unable to resolve host ${address}: ${error.message}`;
                         reject(error);
