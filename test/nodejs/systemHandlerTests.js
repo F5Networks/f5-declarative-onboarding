@@ -120,6 +120,35 @@ describe('systemHandler', () => {
         });
     });
 
+    it('should reject NTP if bad hostname is sent', () => {
+        const testServers = [
+            'example.cant',
+            'www.google.com',
+            '10.56.48.3'
+        ];
+        const declaration = {
+            Common: {
+                NTP: {
+                    servers: testServers,
+                    timezone: 'UTC'
+                }
+            }
+        };
+
+        let didFail = false;
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .catch(() => {
+                didFail = true;
+            })
+            .then(() => {
+                if (!didFail) {
+                    const message = `All of these ${JSON.stringify(testServers)} exist, and one should NOT`;
+                    assert.fail(message);
+                }
+            });
+    });
+
     it('should handle DNS', () => {
         const declaration = {
             Common: {
@@ -465,6 +494,42 @@ describe('systemHandler', () => {
                     reject(err);
                 });
         });
+    });
+
+    it('should reject if the bigIqHost is given a bad address', () => {
+        const testCase = 'example.cant';
+        const declaration = {
+            Common: {
+                License: {
+                    bigIqHost: testCase
+                }
+            }
+        };
+        const managementAddress = '1.2.3.4';
+
+        bigIpMock.onboard = {
+            licenseViaBigIq() {}
+        };
+        bigIpMock.deviceInfo = () => {
+            return Promise.resolve({ managementAddress });
+        };
+
+        doUtilMock.getBigIp = () => {
+            return Promise.resolve(bigIpMock);
+        };
+
+        let didFail = false;
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .catch(() => {
+                didFail = true;
+            })
+            .then(() => {
+                if (!didFail) {
+                    const message = `testCase: ${testCase} does exist, and it should NOT`;
+                    assert.fail(message);
+                }
+            });
     });
 
     describe('revoke', () => {

@@ -18,11 +18,13 @@
 
 const net = require('net');
 const exec = require('child_process').exec;
+const dns = require('dns');
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const Logger = require('./logger');
+const ipF5 = require('../schema/formats').f5ip;
 
 const logger = new Logger(module);
 
@@ -294,5 +296,32 @@ module.exports = {
             stripped = address.substring(0, slashIndex);
         }
         return stripped;
+    },
+
+    /**
+     * Checks if hostname exists
+     * @param {String} address - URL address
+     * @returns {boolean} found - Returns if the hostname was found
+     */
+    checkDnsResolution(address) {
+        return new Promise((resolve, reject) => {
+            if (ipF5(address)) {
+                resolve(true);
+            }
+            try {
+                dns.resolve(address, (error) => {
+                    if (error !== null) {
+                        error.message = `Unable to resolve host ${address}: ${error.message}`;
+                        reject(error);
+                        return;
+                    }
+                    resolve(true);
+                });
+            } catch (error) {
+                // if DNS.resolve errors it throws an exception instead of rejecting
+                error.message = `Unable to resolve host ${address}: ${error.message}`;
+                reject(error);
+            }
+        });
     }
 };

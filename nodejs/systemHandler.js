@@ -104,13 +104,20 @@ function handleDbVars() {
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        return this.bigIp.replace(
-            PATHS.NTP,
-            {
-                servers: ntp.servers,
-                timezone: ntp.timezone
-            }
-        );
+        const promises = ntp.servers.map((server) => {
+            return doUtil.checkDnsResolution(server);
+        });
+
+        return Promise.all(promises)
+            .then(() => {
+                this.bigIp.replace(
+                    PATHS.NTP,
+                    {
+                        servers: ntp.servers,
+                        timezone: ntp.timezone
+                    }
+                );
+            });
     }
     return Promise.resolve();
 }
@@ -221,7 +228,8 @@ function handleLicensePool(license) {
         getBigIp = Promise.resolve(this.bigIp);
     }
 
-    return getBigIp
+    return doUtil.checkDnsResolution(license.bigIqHost)
+        .then(() => { return getBigIp; })
         .then((resolvedBigIp) => {
             bigIp = resolvedBigIp;
             let possiblyRevoke;
@@ -301,6 +309,9 @@ function handleLicensePool(license) {
                 return Promise.resolve();
             }
             return this.bigIp.active();
+        })
+        .catch((err) => {
+            return Promise.reject(err);
         });
 }
 
