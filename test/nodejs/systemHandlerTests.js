@@ -172,9 +172,7 @@ describe('systemHandler', () => {
         let isDnsConfigured = false;
         dnsStub.restore();
         stubs.push(
-            sinon.stub(bigIpMock, 'replace').callsFake((path, data) => {
-                pathSent = path;
-                dataSent = data;
+            sinon.stub(bigIpMock, 'replace').callsFake((path) => {
                 if (path === PATHS.DNS) {
                     isDnsConfigured = true;
                 }
@@ -182,7 +180,7 @@ describe('systemHandler', () => {
             })
         );
         dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
-            const message = 'DNS must be configured before NTP supplied hostnames cannot be checked';
+            const message = 'DNS must be configured before NTP, so server hostnames can be checked';
             assert.strictEqual(isDnsConfigured, true, message);
             callback();
         });
