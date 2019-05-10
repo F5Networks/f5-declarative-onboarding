@@ -60,12 +60,12 @@ class SystemHandler {
         logger.fine('Checking db variables.');
         return handleDbVars.call(this)
             .then(() => {
-                logger.fine('Checking NTP.');
-                return handleNTP.call(this);
-            })
-            .then(() => {
                 logger.fine('Checking DNS.');
                 return handleDNS.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking NTP.');
+                return handleNTP.call(this);
             })
             .then(() => {
                 logger.fine('Checking hostname.');

@@ -34,6 +34,8 @@ describe('systemHandler', () => {
     let dataSent;
     let bigIpMock;
     let activeCalled;
+    let dnsStub = null;
+    let stubs = [];
 
     before(() => {
         cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
@@ -56,6 +58,10 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             }
         };
+        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+            callback();
+        });
+        stubs = [];
     });
 
     after(() => {
@@ -64,14 +70,9 @@ describe('systemHandler', () => {
         });
     });
 
-    let dnsStub = null;
-    beforeEach(() => {
-        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
-            callback();
-        });
-    });
     afterEach(() => {
         dnsStub.restore();
+        stubs.forEach((stub) => { stub.restore(); });
     });
 
     it('should handle DbVariables', () => {
@@ -165,6 +166,49 @@ describe('systemHandler', () => {
                     assert.fail(message);
                 }
             });
+    });
+
+    it('should reject if DNS configured after NTP is configured', () => {
+        let isDnsConfigured = false;
+        dnsStub.restore();
+        stubs.push(
+            sinon.stub(bigIpMock, 'replace').callsFake((path, data) => {
+                pathSent = path;
+                dataSent = data;
+                if (path === PATHS.DNS) {
+                    isDnsConfigured = true;
+                }
+                return Promise.resolve();
+            })
+        );
+        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+            const message = 'DNS must be configured before NTP supplied hostnames cannot be checked';
+            assert.strictEqual(isDnsConfigured, true, message);
+            callback();
+        });
+
+        const testServers = [
+            'www.google.com',
+            '10.56.48.3'
+        ];
+        const declaration = {
+            Common: {
+                DNS: {
+                    nameServers: [
+                        '8.8.8.8',
+                        '2001:4860:4860::8844'
+                    ],
+                    search: ['one.com', 'two.com']
+                },
+                NTP: {
+                    servers: testServers,
+                    timezone: 'UTC'
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process();
     });
 
     it('should handle DNS', () => {

@@ -473,7 +473,6 @@ describe('doUtil', () => {
 
             return doUtil.checkDnsResolution('test')
                 .catch((error) => {
-                    console.log(error.message);
                     assert.notEqual(error.message, errorMessage);
                 });
         });
