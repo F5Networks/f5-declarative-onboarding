@@ -468,7 +468,7 @@ describe('doUtil', () => {
         it('should provide a better error message on uncaught exceptions', () => {
             dns.lookup.restore();
             const errorMessage = 'Hello world!';
-            sinon.stub(dns, 'lookup').callsArgWith(1, new Error(errorMessage));
+            sinon.stub(dns, 'lookup').throws(new Error(errorMessage));
 
             return doUtil.checkDnsResolution('test')
                 .catch((error) => {
