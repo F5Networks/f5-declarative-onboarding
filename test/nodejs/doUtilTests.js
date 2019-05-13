@@ -411,15 +411,17 @@ describe('doUtil', () => {
     });
 
     describe('checkDnsResolution', () => {
-        let stubs = [];
+        beforeEach(() => {
+            sinon.stub(dns, 'lookup').callsArg(1);
+        });
         afterEach(() => {
-            stubs.forEach((stub) => {
-                stub.restore();
-            });
-            stubs = [];
+            sinon.restore();
         });
 
         it('should reject if undefined, invalid ip, or hostname does not exist', () => {
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
+
             const testCases = [
                 undefined,
                 '260.84.18.2',
@@ -464,12 +466,9 @@ describe('doUtil', () => {
         });
 
         it('should provide a better error message on uncaught exceptions', () => {
+            dns.lookup.restore();
             const errorMessage = 'Hello world!';
-            stubs.push(
-                sinon.stub(dns, 'lookup').callsFake(() => {
-                    throw new Error(errorMessage);
-                })
-            );
+            sinon.stub(dns, 'lookup').callsArgWith(1, new Error(errorMessage));
 
             return doUtil.checkDnsResolution('test')
                 .catch((error) => {
