@@ -34,8 +34,6 @@ describe('systemHandler', () => {
     let dataSent;
     let bigIpMock;
     let activeCalled;
-    let dnsStub = null;
-    let stubs = [];
 
     before(() => {
         cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
@@ -58,10 +56,7 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             }
         };
-        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
-            callback();
-        });
-        stubs = [];
+        sinon.stub(dns, 'lookup').callsArg(1);
     });
 
     after(() => {
@@ -71,8 +66,7 @@ describe('systemHandler', () => {
     });
 
     afterEach(() => {
-        dnsStub.restore();
-        stubs.forEach((stub) => { stub.restore(); });
+        sinon.restore();
     });
 
     it('should handle DbVariables', () => {
@@ -148,10 +142,8 @@ describe('systemHandler', () => {
     });
 
     it('should reject NTP if bad hostname is sent', () => {
-        dnsStub.restore();
-        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
-            callback(new Error('bad hostname'));
-        });
+        dns.lookup.restore();
+        sinon.stub(dns, 'lookup').callsArgWith(1, new Error('bad hostname'));
 
         const testServers = [
             'example.cant',
@@ -183,16 +175,14 @@ describe('systemHandler', () => {
 
     it('should reject if DNS configured after NTP is configured', () => {
         let isDnsConfigured = false;
-        dnsStub.restore();
-        stubs.push(
-            sinon.stub(bigIpMock, 'replace').callsFake((path) => {
-                if (path === PATHS.DNS) {
-                    isDnsConfigured = true;
-                }
-                return Promise.resolve();
-            })
-        );
-        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+        sinon.stub(bigIpMock, 'replace').callsFake((path) => {
+            if (path === PATHS.DNS) {
+                isDnsConfigured = true;
+            }
+            return Promise.resolve();
+        });
+        dns.lookup.restore();
+        sinon.stub(dns, 'lookup').callsFake((address, callback) => {
             const message = 'DNS must be configured before NTP, so server hostnames can be checked';
             assert.strictEqual(isDnsConfigured, true, message);
             callback();
@@ -570,10 +560,8 @@ describe('systemHandler', () => {
     });
 
     it('should reject if the bigIqHost is given a bad hostname', () => {
-        dnsStub.restore();
-        dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {
-            callback(new Error('bad hostname'));
-        });
+        dns.lookup.restore();
+        sinon.stub(dns, 'lookup').callsArgWith(1, new Error('bad hostname'));
 
         const testCase = 'example.cant';
         const declaration = {
