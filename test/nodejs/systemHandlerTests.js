@@ -134,6 +134,19 @@ describe('systemHandler', () => {
         });
     });
 
+    it('should handle NTP with no servers declared', () => {
+        const declaration = {
+            Common: {
+                NTP: {
+                    timezone: 'UTC'
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process();
+    });
+
     it('should reject NTP if bad hostname is sent', () => {
         dnsStub.restore();
         dnsStub = sinon.stub(dns, 'lookup').callsFake((address, callback) => {

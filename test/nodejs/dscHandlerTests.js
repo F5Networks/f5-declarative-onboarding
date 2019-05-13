@@ -406,6 +406,21 @@ describe('dscHandler', () => {
             };
         });
 
+        it('should handle device groups with no members', () => {
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            owner: hostname
+                        }
+                    }
+                }
+            };
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process();
+        });
+
         it('should create the device group if we are the owner with no device trust section', () => {
             stubs.push(sinon.stub(doUtilMock, 'checkDnsResolution').resolves(true));
 

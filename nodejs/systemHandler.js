@@ -104,7 +104,7 @@ function handleDbVars() {
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        const promises = ntp.servers.map((server) => {
+        const promises = (ntp.servers || []).map((server) => {
             return doUtil.checkDnsResolution(server);
         });
 

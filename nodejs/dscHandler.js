@@ -302,7 +302,7 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
     let needsSync = false;
 
     // Check deviceGroup.members for valid DNS
-    const promises = deviceGroup.members.map((member) => {
+    const promises = (deviceGroup.members || []).map((member) => {
         return doUtil.checkDnsResolution(member);
     });
 
