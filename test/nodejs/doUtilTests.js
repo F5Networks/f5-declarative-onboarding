@@ -17,7 +17,10 @@
 'use strict';
 
 const assert = require('assert');
+const dns = require('dns');
 const netMock = require('net');
+
+const sinon = require('sinon');
 const BigIpMock = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtilMock = require('@f5devcentral/f5-cloud-libs').httpUtil;
 
@@ -408,7 +411,17 @@ describe('doUtil', () => {
     });
 
     describe('checkDnsResolution', () => {
-        it('should return false if undefined, invalid ip, or hostname does not exist', () => {
+        beforeEach(() => {
+            sinon.stub(dns, 'lookup').callsArg(1);
+        });
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it('should reject if undefined, invalid ip, or hostname does not exist', () => {
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
+
             const testCases = [
                 undefined,
                 '260.84.18.2',
@@ -430,7 +443,7 @@ describe('doUtil', () => {
             return Promise.all(promises);
         });
 
-        it('should return true if a valid ip, empty string, or valid hostname is given', () => {
+        it('should resolve true if a valid ip, empty string, or valid hostname is given', () => {
             const testCases = [
                 '',
                 '::',
@@ -450,6 +463,17 @@ describe('doUtil', () => {
                     });
             });
             return Promise.all(promises);
+        });
+
+        it('should provide a better error message on uncaught exceptions', () => {
+            dns.lookup.restore();
+            const errorMessage = 'Hello world!';
+            sinon.stub(dns, 'lookup').throws(new Error(errorMessage));
+
+            return doUtil.checkDnsResolution('test')
+                .catch((error) => {
+                    assert.notEqual(error.message, errorMessage);
+                });
         });
     });
 });

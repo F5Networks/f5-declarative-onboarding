@@ -28,37 +28,6 @@ const DeclarationHandler = require('../../nodejs/declarationHandler');
 let parsedDeclarations;
 let declarationWithDefaults;
 
-DeclarationParser.prototype.parse = function parse() {
-    parsedDeclarations.push(this.declaration);
-    return {
-        parsedDeclaration: {
-            Common: {}
-        }
-    };
-};
-
-DiffHandler.prototype.process = (declaration) => {
-    declarationWithDefaults = declaration;
-    return Promise.resolve(
-        {
-            toUpdate: {},
-            toDelete: {}
-        }
-    );
-};
-SystemHandler.prototype.process = () => {
-    return Promise.resolve();
-};
-NetworkHandler.prototype.process = () => {
-    return Promise.resolve();
-};
-DscHandler.prototype.process = () => {
-    return Promise.resolve();
-};
-DeleteHandler.prototype.process = () => {
-    return Promise.resolve();
-};
-
 const bigIpMock = {
     modify() {
         return Promise.resolve();
@@ -66,6 +35,39 @@ const bigIpMock = {
 };
 
 describe('declarationHandler', () => {
+    before(() => {
+        DeclarationParser.prototype.parse = function parse() {
+            parsedDeclarations.push(this.declaration);
+            return {
+                parsedDeclaration: {
+                    Common: {}
+                }
+            };
+        };
+
+        DiffHandler.prototype.process = (declaration) => {
+            declarationWithDefaults = declaration;
+            return Promise.resolve(
+                {
+                    toUpdate: {},
+                    toDelete: {}
+                }
+            );
+        };
+        SystemHandler.prototype.process = () => {
+            return Promise.resolve();
+        };
+        NetworkHandler.prototype.process = () => {
+            return Promise.resolve();
+        };
+        DscHandler.prototype.process = () => {
+            return Promise.resolve();
+        };
+        DeleteHandler.prototype.process = () => {
+            return Promise.resolve();
+        };
+    });
+
     beforeEach(() => {
         parsedDeclarations = [];
         declarationWithDefaults = {};

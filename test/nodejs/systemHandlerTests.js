@@ -17,6 +17,9 @@
 'use strict';
 
 const assert = require('assert');
+const dns = require('dns');
+
+const sinon = require('sinon');
 
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
@@ -53,12 +56,17 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             }
         };
+        sinon.stub(dns, 'lookup').callsArg(1);
     });
 
     after(() => {
         Object.keys(require.cache).forEach((key) => {
             delete require.cache[key];
         });
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     it('should handle DbVariables', () => {
@@ -120,7 +128,23 @@ describe('systemHandler', () => {
         });
     });
 
+    it('should handle NTP with no servers declared', () => {
+        const declaration = {
+            Common: {
+                NTP: {
+                    timezone: 'UTC'
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process();
+    });
+
     it('should reject NTP if bad hostname is sent', () => {
+        dns.lookup.restore();
+        sinon.stub(dns, 'lookup').callsArgWith(1, new Error('bad hostname'));
+
         const testServers = [
             'example.cant',
             'www.google.com',
@@ -147,6 +171,45 @@ describe('systemHandler', () => {
                     assert.fail(message);
                 }
             });
+    });
+
+    it('should reject if DNS configured after NTP is configured', () => {
+        let isDnsConfigured = false;
+        sinon.stub(bigIpMock, 'replace').callsFake((path) => {
+            if (path === PATHS.DNS) {
+                isDnsConfigured = true;
+            }
+            return Promise.resolve();
+        });
+        dns.lookup.restore();
+        sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+            const message = 'DNS must be configured before NTP, so server hostnames can be checked';
+            assert.strictEqual(isDnsConfigured, true, message);
+            callback();
+        });
+
+        const testServers = [
+            'www.google.com',
+            '10.56.48.3'
+        ];
+        const declaration = {
+            Common: {
+                DNS: {
+                    nameServers: [
+                        '8.8.8.8',
+                        '2001:4860:4860::8844'
+                    ],
+                    search: ['one.com', 'two.com']
+                },
+                NTP: {
+                    servers: testServers,
+                    timezone: 'UTC'
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process();
     });
 
     it('should handle DNS', () => {
@@ -496,7 +559,10 @@ describe('systemHandler', () => {
         });
     });
 
-    it('should reject if the bigIqHost is given a bad address', () => {
+    it('should reject if the bigIqHost is given a bad hostname', () => {
+        dns.lookup.restore();
+        sinon.stub(dns, 'lookup').callsArgWith(1, new Error('bad hostname'));
+
         const testCase = 'example.cant';
         const declaration = {
             Common: {

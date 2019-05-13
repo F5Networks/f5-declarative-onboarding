@@ -60,12 +60,12 @@ class SystemHandler {
         logger.fine('Checking db variables.');
         return handleDbVars.call(this)
             .then(() => {
-                logger.fine('Checking NTP.');
-                return handleNTP.call(this);
-            })
-            .then(() => {
                 logger.fine('Checking DNS.');
                 return handleDNS.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking NTP.');
+                return handleNTP.call(this);
             })
             .then(() => {
                 logger.fine('Checking hostname.');
@@ -104,7 +104,7 @@ function handleDbVars() {
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        const promises = ntp.servers.map((server) => {
+        const promises = (ntp.servers || []).map((server) => {
             return doUtil.checkDnsResolution(server);
         });
 
