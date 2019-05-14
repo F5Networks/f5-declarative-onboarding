@@ -27,7 +27,6 @@ const assert = require('assert');
 const constants = require('./constants.js');
 const common = require('./common.js');
 
-const configItems = require(`${__dirname}/../../nodejs/configItems.json`);
 // location of DO test JSON bodies
 const BODIES = 'test/functional/bodies';
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -64,29 +63,6 @@ before(() => {
 /* eslint-enable no-undef */
 
 it('Declarative Onboarding Functional Test Suite', () => {
-    describe('Test Configuration Scope', () => {
-        it('should not overlap with config items in the AS3 project', () => {
-            const options = common.buildBody(`${process.env.ARTIFACTORY_BASE_URL}\
-                /artifactory/orchestration-as3-generic/as3-properties-latest.json`, null, null, 'GET');
-            options.rejectUnauthorized = false;
-            return common.sendRequest(options)
-                .then((res) => {
-                    const as3Properties = JSON.parse(res);
-                    const keyCount = Object.keys(as3Properties).length;
-                    if (keyCount === 0) {
-                        assert.fail('No properties in AS3 properties.json');
-                    }
-                    configItems.forEach((item) => {
-                        const prop = item.path.replace(/\/tm\//, '').replace(/\//g, ' ');
-                        assert.ok(as3Properties[prop] === undefined);
-                    });
-                })
-                .catch((err) => {
-                    assert.fail(err);
-                });
-        });
-    });
-
     describe('Test Onboard', function testOnboard() {
         this.timeout(1000 * 60 * 30); // 30 minutes
         const thisMachine = machines[0];
