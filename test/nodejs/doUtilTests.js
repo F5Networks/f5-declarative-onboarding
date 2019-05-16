@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -371,6 +371,49 @@ describe('doUtil', () => {
                         });
                 });
             });
+        });
+    });
+
+    describe('getClassObject', () => {
+        it('should find matching classes', () => {
+            const classToMatch = 'matchMe';
+            const declaration = {
+                Common: {
+                    match1: {
+                        class: classToMatch,
+                        foo: {
+                            bar: 'x'
+                        }
+                    },
+                    noMatch1: {
+                        class: 'notAMatch',
+                        hello: 'world'
+                    },
+                    match2: {
+                        class: classToMatch,
+                        okie: 'dokie'
+                    },
+                    noMatch2: 'qwerty'
+                }
+            };
+            const matches = doUtil.getClassObjects(declaration, classToMatch);
+            assert.strictEqual(Object.keys(matches).length, 2);
+            assert.deepEqual(matches.match1, declaration.Common.match1);
+            assert.deepEqual(matches.match2, declaration.Common.match2);
+        });
+
+        it('should return null if no matching classes are found', () => {
+            const classToMatch = 'matchMe';
+            const declaration = {
+                Common: {
+                    noMatch: {
+                        class: 'notAMatch',
+                        hello: 'world'
+                    }
+                }
+            };
+            const matches = doUtil.getClassObjects(declaration, classToMatch);
+            assert.strictEqual(matches, null);
         });
     });
 

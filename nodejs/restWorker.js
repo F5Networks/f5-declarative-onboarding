@@ -186,169 +186,173 @@ class RestWorker {
             declaration = wrapper.declaration;
         }
 
-        const validation = this.validator.validate(wrapper);
         this.state.doState.setDeclaration(taskId, declaration);
         this.state.doState.setErrors(taskId, null);
 
-        if (!validation.isValid) {
-            const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
-            logger.info(message);
-            this.state.doState.updateResult(
-                taskId,
-                400,
-                STATUS.STATUS_ERROR,
-                'bad declaration',
-                validation.errors
-            );
-            save.call(this)
-                .then(() => {
-                    sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
-                });
-        } else {
-            logger.fine(`Onboard starting for task ${taskId}`);
-            this.state.doState.updateResult(taskId, 202, STATUS.STATUS_RUNNING, 'processing');
-
-            // Get case insensitive query parameters
-            const query = restOperation.getUri().query;
-            const insensitiveQuery = {};
-            Object.keys(query).forEach((key) => {
-                insensitiveQuery[key.toLowerCase()] = query[key];
-            });
-
-            save.call(this)
-                .then(() => {
-                    return doUtil.getCurrentPlatform();
-                })
-                .then((currentPlatform) => {
-                    platform = currentPlatform;
-
-                    // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
-                    if (platform === PRODUCTS.BIGIQ && insensitiveQuery.internal) {
-                        isFromTcw = true;
-                    }
-
-                    if (declaration.async) {
-                        sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
-                    }
-
-                    // Fill in anything in the wrapper that is a json-pointer
-                    bigIpOptions = doUtil.dereference(
-                        wrapper,
-                        {
-                            host: wrapper.targetHost,
-                            port: wrapper.targetPort,
-                            user: wrapper.targetUsername,
-                            password: wrapper.targetPassphrase
-                        }
-                    );
-                    wrapper.targetHost = bigIpOptions.host;
-                    wrapper.targetPort = bigIpOptions.port;
-                    wrapper.targetUsername = bigIpOptions.user;
-                    wrapper.targetPassphrase = bigIpOptions.password;
-
-                    if (!isFromTcw) {
-                        return initialAccountSetup.call(this, wrapper);
-                    }
-
-                    return Promise.resolve();
-                })
-                .then((updatedPassword) => {
-                    if (updatedPassword) {
-                        wrapper.targetPassphrase = updatedPassword;
-                    }
-
-                    // Determine if this is an internal task (coming back to us from the TCW on BIG-IQ)
-                    if (platform === PRODUCTS.BIGIQ && !isFromTcw) {
-                        logger.finest('Passing to TCW');
-                        passToTcw.call(this, wrapper, taskId, restOperation)
-                            .then((tcwId) => {
-                                return pollTcw.call(this, tcwId, taskId, restOperation);
-                            })
-                            .then(() => {
-                                logger.finest('TCW is done');
-                                if (!declaration.async) {
-                                    logger.fine('Sending response.');
-                                    sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
-                                }
-                            })
-                            .then(() => {
-                                return getAndSaveCurrentConfig.call(
-                                    this,
-                                    this.bigIps[taskId],
-                                    declaration,
-                                    taskId
-                                );
-                            })
-                            .catch((err) => {
-                                logger.info(`TCW task failed: ${err.message}`);
-                                return getAndSaveCurrentConfig.call(
-                                    this,
-                                    this.bigIps[taskId],
-                                    declaration,
-                                    taskId
-                                );
-                            });
-                    } else {
-                        const originalDoId = insensitiveQuery.externalid;
-                        const targetTokens = wrapper.targetTokens || {};
-                        Object.keys(targetTokens).forEach((key) => {
-                            if (key.toLowerCase() === 'x-f5-auth-token') {
-                                bigIpOptions.authToken = targetTokens[key];
-                            }
-                        });
-
-                        onboard.call(this, declaration, bigIpOptions, taskId)
-                            .then(() => {
-                                logger.fine('Onboard configuration complete. Saving sys config.');
-
-                                // We store the bigIp object under the original ID so the polling
-                                // task knows which state to update. This is only sent by the TCW.
-                                if (originalDoId) {
-                                    this.bigIps[originalDoId] = this.bigIps[taskId];
-                                }
-
-                                return this.bigIps[taskId].save();
-                            })
-                            .then(() => {
-                                return setPostOnboardStatus.call(
-                                    this,
-                                    this.bigIps[taskId],
-                                    taskId,
-                                    declaration
-                                );
-                            })
-                            .then(() => {
-                                if (!declaration.async) {
-                                    logger.fine('Sending response.');
-                                    sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
-                                }
-                                return rebootIfRequired.call(this, this.bigIps[taskId], taskId);
-                            })
-                            .then(() => {
-                                logger.fine('Onboard complete.');
-                            })
-                            .catch((err) => {
-                                logger.severe(`Error during onboarding: ${err.message}`);
-                                this.state.doState.updateResult(
-                                    taskId,
-                                    500,
-                                    STATUS.STATUS_ERROR,
-                                    'failed',
-                                    err.message
-                                );
-                            });
-                    }
-                })
-                .catch((err) => {
+        this.validator.validate(wrapper)
+            .then((validation) => {
+                if (!validation.isValid) {
+                    const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
+                    logger.info(message);
                     this.state.doState.updateResult(
                         taskId,
-                        500,
+                        400,
                         STATUS.STATUS_ERROR,
-                        'error during onboarding',
-                        err.message
+                        'bad declaration',
+                        validation.errors
                     );
-                });
-        }
+                    save.call(this)
+                        .then(() => {
+                            sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
+                        });
+                } else {
+                    logger.fine(`Onboard starting for task ${taskId}`);
+                    this.state.doState.updateResult(taskId, 202, STATUS.STATUS_RUNNING, 'processing');
+
+                    // Get case insensitive query parameters
+                    const query = restOperation.getUri().query;
+                    const insensitiveQuery = {};
+                    Object.keys(query).forEach((key) => {
+                        insensitiveQuery[key.toLowerCase()] = query[key];
+                    });
+
+                    save.call(this)
+                        .then(() => {
+                            return doUtil.getCurrentPlatform();
+                        })
+                        .then((currentPlatform) => {
+                            platform = currentPlatform;
+
+                            // Determine if this is an internal task (coming back to us
+                            // from the TCW on BIG-IQ)
+                            if (platform === PRODUCTS.BIGIQ && insensitiveQuery.internal) {
+                                isFromTcw = true;
+                            }
+
+                            if (declaration.async) {
+                                sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
+                            }
+
+                            // Fill in anything in the wrapper that is a json-pointer
+                            bigIpOptions = doUtil.dereference(
+                                wrapper,
+                                {
+                                    host: wrapper.targetHost,
+                                    port: wrapper.targetPort,
+                                    user: wrapper.targetUsername,
+                                    password: wrapper.targetPassphrase
+                                }
+                            );
+                            wrapper.targetHost = bigIpOptions.host;
+                            wrapper.targetPort = bigIpOptions.port;
+                            wrapper.targetUsername = bigIpOptions.user;
+                            wrapper.targetPassphrase = bigIpOptions.password;
+
+                            if (!isFromTcw) {
+                                return initialAccountSetup.call(this, wrapper);
+                            }
+
+                            return Promise.resolve();
+                        })
+                        .then((updatedPassword) => {
+                            if (updatedPassword) {
+                                wrapper.targetPassphrase = updatedPassword;
+                            }
+
+                            // Determine if this is an internal task (coming back to us
+                            // from the TCW on BIG-IQ)
+                            if (platform === PRODUCTS.BIGIQ && !isFromTcw) {
+                                logger.finest('Passing to TCW');
+                                passToTcw.call(this, wrapper, taskId, restOperation)
+                                    .then((tcwId) => {
+                                        return pollTcw.call(this, tcwId, taskId, restOperation);
+                                    })
+                                    .then(() => {
+                                        logger.finest('TCW is done');
+                                        if (!declaration.async) {
+                                            logger.fine('Sending response.');
+                                            sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
+                                        }
+                                    })
+                                    .then(() => {
+                                        return getAndSaveCurrentConfig.call(
+                                            this,
+                                            this.bigIps[taskId],
+                                            declaration,
+                                            taskId
+                                        );
+                                    })
+                                    .catch((err) => {
+                                        logger.info(`TCW task failed: ${err.message}`);
+                                        return getAndSaveCurrentConfig.call(
+                                            this,
+                                            this.bigIps[taskId],
+                                            declaration,
+                                            taskId
+                                        );
+                                    });
+                            } else {
+                                const originalDoId = insensitiveQuery.externalid;
+                                const targetTokens = wrapper.targetTokens || {};
+                                Object.keys(targetTokens).forEach((key) => {
+                                    if (key.toLowerCase() === 'x-f5-auth-token') {
+                                        bigIpOptions.authToken = targetTokens[key];
+                                    }
+                                });
+
+                                onboard.call(this, declaration, bigIpOptions, taskId)
+                                    .then(() => {
+                                        logger.fine('Onboard configuration complete. Saving sys config.');
+
+                                        // We store the bigIp object under the original ID so the polling
+                                        // task knows which state to update. This is only sent by the TCW.
+                                        if (originalDoId) {
+                                            this.bigIps[originalDoId] = this.bigIps[taskId];
+                                        }
+
+                                        return this.bigIps[taskId].save();
+                                    })
+                                    .then(() => {
+                                        return setPostOnboardStatus.call(
+                                            this,
+                                            this.bigIps[taskId],
+                                            taskId,
+                                            declaration
+                                        );
+                                    })
+                                    .then(() => {
+                                        if (!declaration.async) {
+                                            logger.fine('Sending response.');
+                                            sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
+                                        }
+                                        return rebootIfRequired.call(this, this.bigIps[taskId], taskId);
+                                    })
+                                    .then(() => {
+                                        logger.fine('Onboard complete.');
+                                    })
+                                    .catch((err) => {
+                                        logger.severe(`Error during onboarding: ${err.message}`);
+                                        this.state.doState.updateResult(
+                                            taskId,
+                                            500,
+                                            STATUS.STATUS_ERROR,
+                                            'failed',
+                                            err.message
+                                        );
+                                    });
+                            }
+                        })
+                        .catch((err) => {
+                            this.state.doState.updateResult(
+                                taskId,
+                                500,
+                                STATUS.STATUS_ERROR,
+                                'error during onboarding',
+                                err.message
+                            );
+                        });
+                }
+            });
     }
 
     onDelete(restOperation) {

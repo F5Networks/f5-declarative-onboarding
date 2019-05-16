@@ -238,6 +238,33 @@ module.exports = {
     },
 
     /**
+     * Extracts the object in a declaration with a given class name.
+     *
+     * @param {Object} declaration - The declaration part of a declaration
+     * @param {String} className - The class name of interest
+     *
+     * @returns {Object} An object whose only members have a class matching the given class name
+     *                   or null if class is not in declaration.
+     */
+    getClassObjects(declaration, className) {
+        const common = declaration.Common || {};
+        const keys = Object.keys(common).filter((key) => {
+            return typeof common[key] === 'object'
+            && common[key].class
+            && common[key].class === className;
+        });
+
+        if (keys.length > 0) {
+            const classes = {};
+            keys.forEach((key) => {
+                classes[key] = JSON.parse(JSON.stringify(common[key]));
+            });
+            return classes;
+        }
+        return null;
+    },
+
+    /**
      * Fills in values that are referenced by json-pointers.
      *
      * @param {Object} declaration - The declaration containing potentially referenced values
