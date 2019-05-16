@@ -32,17 +32,19 @@ describe('validator', () => {
                 "class": "Device"
             }
         };
-        const validation = validator.validate(data);
-        assert.strictEqual(validation.isValid, true);
-        assert.strictEqual(validation.errors, null);
+        return validator.validate(data)
+            .then((validation) => {
+                assert.strictEqual(validation.isValid, true);
+                assert.strictEqual(validation.errors, null);
+            });
     });
 
     it('should invalidate invalid data', () => {
-        it('should validate valid data', () => {
-            const data = {};
-            const validation = validator.validate(data);
-            assert.strictEqual(validation.isValid, false);
-            assert.strictEqual(Array.isArray(validation.errors), true);
-        });
+        const data = {};
+        return validator.validate(data)
+            .then((validation) => {
+                assert.strictEqual(validation.isValid, false);
+                assert.strictEqual(Array.isArray(validation.errors), true);
+            });
     });
 });

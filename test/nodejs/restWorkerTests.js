@@ -693,9 +693,9 @@ describe('restWorker', () => {
             };
 
             validatorMock.validate = () => {
-                return {
+                return Promise.resolve({
                     isValid: true
-                };
+                });
             };
 
             RestWorker.prototype.saveState = (foo, state, callback) => {
@@ -769,9 +769,9 @@ describe('restWorker', () => {
         it('should handle validation errors', () => {
             return new Promise((resolve, reject) => {
                 validatorMock.validate = () => {
-                    return {
+                    return Promise.resolve({
                         isValid: false
-                    };
+                    });
                 };
 
                 restOperationMock.complete = () => {

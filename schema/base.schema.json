@@ -15,7 +15,7 @@
         "schemaVersion": {
             "description": "Version of Declarative Onboarding schema this declaration uses.",
             "type": "string",
-            "enum": ["1.3.0", "1.2.0", "1.1.0", "1.0.0"]
+            "enum": ["1.5.0", "1.4.0", "1.3.0", "1.2.0", "1.1.0", "1.0.0"]
         },
         "class": {
             "description": "Indicates this JSON document is a Device declaration",
