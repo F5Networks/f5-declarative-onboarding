@@ -9,7 +9,7 @@
             "class": "DNS",
             "nameServers": [
               "8.8.8.8",
-                "2001:4860:4860::8844"
+              "2001:4860:4860::8844"
             ],
             "search": [
                 "f5.com"
@@ -19,7 +19,7 @@
             "class": "NTP",
             "servers": [
               "0.pool.ntp.org",
-                "1.pool.ntp.org"
+              "1.pool.ntp.org"
             ],
             "timezone": "UTC"
         },
@@ -59,7 +59,7 @@
         "myRoute": {
             "class": "Route",
             "gw": "10.148.75.1",
-            "network": "default",
+            "network": "10.20.30.0/24",
             "mtu": 1500
         }
     }

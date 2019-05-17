@@ -425,7 +425,7 @@ function onboard(declaration, bigIpOptions, taskId) {
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
             logger.info('Rolling back configuration');
-            const deconCode = err.code === 400 ? 422 : 500;
+            const deconCode = err.code === 400 ? 422 : (err.code || 500);
             this.state.doState.updateResult(
                 taskId,
                 deconCode,

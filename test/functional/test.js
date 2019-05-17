@@ -27,50 +27,51 @@ const assert = require('assert');
 const constants = require('./constants.js');
 const common = require('./common.js');
 
-// location of DO test JSON bodies
-const BODIES = 'test/functional/bodies';
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-const machines = [];
 
 /* eslint-disable no-undef */
 /* eslint-disable no-console */
+/* eslint-disable prefer-arrow-callback */
 
-before(() => {
-    return common.readFile(process.env.TEST_HARNESS_FILE)
-        .then(JSON.parse)
-        .then((deployedMachines) => {
-            deployedMachines.forEach((deployedMachine) => {
-                machines.push({
-                    ip: deployedMachine.admin_ip,
-                    adminUsername: deployedMachine.admin_username,
-                    adminPassword: deployedMachine.admin_password
+
+describe('Declarative Onboarding Functional Test Suite', function performFunctionalTest() {
+    // location of DO test JSON bodies
+    const BODIES = 'test/functional/bodies';
+    const machines = [];
+    before(function setup() {
+        return common.readFile(process.env.TEST_HARNESS_FILE)
+            .then((file) => { return JSON.parse(file); })
+            .then((deployedMachines) => {
+                deployedMachines.forEach((deployedMachine) => {
+                    machines.push({
+                        ip: deployedMachine.admin_ip,
+                        adminUsername: deployedMachine.admin_username,
+                        adminPassword: deployedMachine.admin_password
+                    });
                 });
+                return Promise.resolve();
+            })
+            .then(() => {
+                if (!process.env.BIG_IQ_HOST || !process.env.BIG_IQ_USERNAME
+                    || !process.env.BIG_IQ_PASSWORD) {
+                    return Promise.reject(new Error('At least one of BIG_IQ_HOST, BIG_IQ_USERNAME,'
+                        + 'BIG_IQ_PASSWORD not set'));
+                }
+                return Promise.resolve();
+            })
+            .catch((error) => {
+                return Promise.reject(error);
             });
-            return Promise.resolve();
-        })
-        .then(() => {
-            if (!process.env.BIG_IQ_HOST || !process.env.BIG_IQ_USERNAME || !process.env.BIG_IQ_PASSWORD) {
-                return Promise.reject(new Error('At least one of BIG_IQ_HOST, BIG_IQ_USERNAME,'
-                    + 'BIG_IQ_PASSWORD not set'));
-            }
-            return Promise.resolve();
-        })
-        .catch((error) => {
-            return Promise.reject(error);
-        });
-});
+    });
 
-/* eslint-enable no-undef */
-
-it('Declarative Onboarding Functional Test Suite', () => {
     describe('Test Onboard', function testOnboard() {
         this.timeout(1000 * 60 * 30); // 30 minutes
-        const thisMachine = machines[0];
-        const bigipAddress = thisMachine.ip;
         let body;
         let currentState;
 
         before(() => {
+            const thisMachine = machines[0];
+            const bigipAddress = thisMachine.ip;
             return new Promise((resolve, reject) => {
                 const bodyFile = `${BODIES}/onboard.json`;
                 const auth = {
@@ -140,13 +141,13 @@ it('Declarative Onboarding Functional Test Suite', () => {
 
     describe('Test Networking', function testNetworking() {
         this.timeout(1000 * 60 * 30); // 30 minutes
-        const thisMachine = machines[1];
-        const bigipAddress = thisMachine.ip;
-        const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
         let body;
         let currentState;
 
         before(() => {
+            const thisMachine = machines[1];
+            const bigipAddress = thisMachine.ip;
+            const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
             const bodyFile = `${BODIES}/network.json`;
             return new Promise((resolve, reject) => {
                 common.readFile(bodyFile)
@@ -193,19 +194,26 @@ it('Declarative Onboarding Functional Test Suite', () => {
 
     describe('Test Licensing', function testLicensing() {
         this.timeout(1000 * 60 * 30); // 30 minutes
-        const thisMachine = machines[2];
-        const bigipAddress = thisMachine.ip;
-        const bigipAuth = {
-            username: thisMachine.adminUsername,
-            password: thisMachine.adminPassword
+
+        const bigIqAuth = {
+            username: process.env.BIG_IQ_USERNAME,
+            password: process.env.BIG_IQ_PASSWORD
         };
-        const bigIqAuth = { username: process.env.BIG_IQ_USERNAME, password: process.env.BIG_IQ_PASSWORD };
         const bigIqAddress = process.env.BIG_IQ_HOST;
-        let oldAuditLink; let
-            newAuditLink;
+        const bodyFileLicensing = `${BODIES}/licensing_big_iq.json`;
+
+        let bigipAddress;
+        let bigipAuth;
+        let oldAuditLink;
+        let newAuditLink;
 
         before(() => {
-            const bodyFileLicensing = `${BODIES}/licensing_big_iq.json`;
+            const thisMachine = machines[2];
+            bigipAddress = thisMachine.ip;
+            bigipAuth = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
             return new Promise((resolve, reject) => {
                 common.readFile(bodyFileLicensing)
                     .then(JSON.parse)
@@ -428,12 +436,12 @@ it('Declarative Onboarding Functional Test Suite', () => {
 
     describe('Test Rollbacking', function testRollbacking() {
         this.timeout(1000 * 60 * 30); // 30 minutes
-        const thisMachine = machines[0];
-        const bigipAddress = thisMachine.ip;
         let body;
         let currentState;
 
         before(() => {
+            const thisMachine = machines[0];
+            const bigipAddress = thisMachine.ip;
             const bodyFile = `${BODIES}/bogus.json`;
             const auth = {
                 username: thisMachine.adminUsername,
