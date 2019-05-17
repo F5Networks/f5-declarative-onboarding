@@ -730,7 +730,8 @@ function handleStartupState(success, error) {
 
                     // Make sure we don't try to revoke again and if we need to relicense,
                     // fill in the BIG-IQ and BIG-IP passwords
-                    const declaration = Object.assign({}, this.state.doState.getDeclaration(currentTaskId));
+                    const stateDecRef = this.state.doState.getDeclaration(currentTaskId);
+                    const declaration = JSON.parse(JSON.stringify(stateDecRef));
                     const deletePromises = [];
                     let licenseName;
                     let hasBigIpUser = false;
@@ -740,6 +741,8 @@ function handleStartupState(success, error) {
                         if (declaration.Common[key].class === 'License') {
                             licenseName = key;
                             delete declaration.Common[licenseName].revokeFrom;
+                            // Remove revokeFrom from the stored state as well
+                            delete stateDecRef.Common[licenseName].revokeFrom;
 
                             if (declaration.Common[licenseName].bigIpUsername) {
                                 hasBigIpUser = true;

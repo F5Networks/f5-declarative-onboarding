@@ -409,12 +409,14 @@ describe('restWorker', () => {
                         assert.strictEqual(
                             restWorker
                                 .state.doState.tasks[1234].internalDeclaration.Common.myLicense.bigIpPassword,
-                            bigIpPassword
+                            undefined,
+                            'Stored state should not save decryptedId'
                         );
                         assert.strictEqual(
                             restWorker
                                 .state.doState.tasks[1234].internalDeclaration.Common.myLicense.bigIqPassword,
-                            bigIqPassword
+                            undefined,
+                            'Stored state should not save decryptedId'
                         );
                         resolve();
                     };
