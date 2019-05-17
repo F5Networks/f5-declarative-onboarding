@@ -53,15 +53,30 @@
                 "default": false
             }
         },
-        "if": {
-            "properties": {
-                "offboxProtocol": { "const": "tcp" }
+        "allOf": [
+            {
+                "if": {
+                    "properties": {
+                        "offboxEnabled" : { "const": true }
+                    },
+                    "required": ["offboxEnabled"]
+                },
+                "then": {
+                    "required": ["offboxProtocol"]
+                }
             },
-            "required": ["offboxProtocol"]
-        },
-        "then": {
-            "required": ["offboxTcpAddresses", "offboxTcpPort"]
-        },
+            {
+                "if": {
+                    "properties": {
+                        "offboxProtocol": { "enum": ["tcp"] }
+                    },
+                    "required": ["offboxProtocol"]
+                },
+                "then": {
+                    "required": ["offboxTcpAddresses", "offboxTcpPort"]
+                }
+            }
+        ],
         "additionalProperties": false
     }
 }

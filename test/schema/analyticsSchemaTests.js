@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,98 +36,171 @@ Object.keys(customFormats).forEach((customFormat) => {
 
 const validate = ajv.compile(analyticsSchema);
 
-/* eslint-disable quotes, quote-props */
-
 describe('analytics.schema.json', () => {
     describe('Analytics', () => {
         describe('valid', () => {
             it('should validate analytics data', () => {
                 const data = {
-                    "class": "Analytics",
-                    "offboxProtocol": "tcp",
-                    "offboxTcpAddresses": [
-                        "10.10.15.30",
-                        "10.10.15.31"
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'tcp',
+                    offboxTcpAddresses: [
+                        '10.10.15.30',
+                        '10.10.15.31'
                     ],
-                    "offboxTcpPort": 12345,
-                    "offboxEnabled": true
+                    offboxTcpPort: 12345,
+                    debugEnabled: true
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
             it('should also validate analytics data', () => {
                 const data = {
-                    "class": "Analytics",
-                    "offboxProtocol": "tcp",
-                    "offboxTcpAddresses": [
-                        "FE80:0000:0000:0000:0202:B3FF:FE1E:8330"
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'tcp',
+                    offboxTcpAddresses: [
+                        'FE80:0000:0000:0000:0202:B3FF:FE1E:8330'
                     ],
-                    "offboxTcpPort": 12345,
-                    "offboxEnabled": true
+                    offboxTcpPort: 12345,
+                    debugEnabled: true,
+                    interval: 180
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
             it('should yet again validate analytics data', () => {
                 const data = {
-                    "class": "Analytics",
-                    "offboxProtocol": "https",
-                    "offboxEnabled": true
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'https',
+                    debugEnabled: false
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
-            it.only('should validate analytics data one more time', () => {
+            it('should validate analytics data one more time', () => {
                 const data = {
-                    "class": "Analytics",
-                    "offboxEnabled": false
+                    class: 'Analytics'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
         });
 
         describe('invalid', () => {
-            it('should invalidate illegal offboxProtocol', () => {
+            it('should invalidate illegal debugEnabled value', () => {
                 const data = {
-                    "class": "Analytics",
-                    "offboxProtocol": "udp"
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    debugEnabled: 'enabled'
                 };
-                assert.strictEqual(validate(data), false, 'illegal offboxProtocol should not be valid');
+                assert.strictEqual(validate(data), false, 'illegal debugEnabled value should not be valied');
             });
 
-            it('should invalidate illegal offboxTcpAddresses', () => {
+            it('should invalidate undersized interval value', () => {
                 const data = {
-                    "class": "Analytics",
-                    "offboxTcpAddresses": [
-                        "10.10.15.256"
-                    ]
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'ecm-tm',
+                    debugEnabled: true,
+                    interval: 19
                 };
-                assert.strictEqual(validate(data), false, 'non ip address should not be valid');
+                assert.strictEqual(validate(data), false, 'undersized interval value should not be valid');
+            });
+
+            it('should invalidate oversized interval value', () => {
+                const data = {
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'ecm-tm',
+                    debugEnabled: true,
+                    interval: 301
+                };
+                assert.strictEqual(validate(data), false, 'oversized interval value should not be valid');
+            });
+
+            it('should invalidate illegal offboxProtocol', () => {
+                const data = {
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'udp'
+                };
+                assert.strictEqual(validate(data), false, 'illegal offboxProtocol value should not be valid');
+            });
+
+            it('should invalidate illegal offboxTcpAddresses value', () => {
+                const data = {
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'tcp',
+                    offboxTcpAddresses: [
+                        '10.10.15.256'
+                    ],
+                    offboxTcpPort: 666
+                };
+                assert.strictEqual(validate(data), false, 'illegal ip address should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"format": "ipv4"'), -1);
             });
 
-            it('should invalidate illegal offboxTcpPort', () => {
+            it('should invalidate illegal offboxTcpPort value', () => {
                 const data = {
-                    "class": "Analytics",
-                    "ecmPort": 65536
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'tcp',
+                    offboxTcpAddresses: [
+                        '10.10.7.7'
+                    ],
+                    offboxTcpPort: 65536
                 };
                 assert.strictEqual(validate(data), false, 'out of range offbox port should not be valid');
             });
 
-            it('should invalidate illegal useEcm', () => {
+            it('should invalidate illegal offboxEnabled value', () => {
                 const data = {
-                    "class": "Analytics",
-                    "elasticComputeManagementEnabled": "enabled"
+                    class: 'Analytics',
+                    offboxEnabled: 'disabled'
                 };
-                assert.strictEqual(validate(data), false, 'illegal useEcm value should not be valid');
+                assert.strictEqual(validate(data), false, 'illegal offboxEnabled value should not be valid');
             });
 
-            it('should invalidate illegal useOffbox', () => {
+            it('should invalidate missing offboxProtocol value when offboxEnabled true', () => {
                 const data = {
-                    "class": "Analytics",
-                    "offboxEnabled": "disabled"
+                    class: 'Analytics',
+                    offboxEnabled: true
                 };
-                assert.strictEqual(validate(data), false, 'illegal useOffbox value should not be valid');
+                assert.strictEqual(validate(data), false, 'missing offboxProtocol value should not be valid');
+            });
+
+            it('should invalidate missing offboxTcpPort when offboxProtocol is tcp', () => {
+                const data = {
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'tcp',
+                    offboxTcpAddresses: [
+                        '10.10.33.33'
+                    ]
+                };
+                assert.strictEqual(validate(data), false,
+                    'missing offboxTcpPort with tcp protocol should not be valid');
+            });
+
+            it('should invalidate missing offboxTcpAddresses when offboxProtocol tcp', () => {
+                const data = {
+                    class: 'Analytics',
+                    offboxEnabled: true,
+                    offboxProtocol: 'tcp',
+                    offboxTcpPort: 666
+                };
+                assert.strictEqual(validate(data), false,
+                    'missing offboxTcpAddresses with tcp protocol should not be valid');
+            });
+
+            it('should invalidate additional properties', () => {
+                const data = {
+                    class: 'Analytics',
+                    enabled: true
+                };
+                assert.strictEqual(validate(data), false, 'additional properties hsould not be valid');
             });
         });
     });
