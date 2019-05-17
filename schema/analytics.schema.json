@@ -56,7 +56,8 @@
         "if": {
             "properties": {
                 "offboxProtocol": { "const": "tcp" }
-            }
+            },
+            "required": ["offboxProtocol"]
         },
         "then": {
             "required": ["offboxTcpAddresses", "offboxTcpPort"]
