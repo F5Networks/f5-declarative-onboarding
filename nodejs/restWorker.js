@@ -64,6 +64,11 @@ class RestWorker {
      */
     onStart(success, error) {
         try {
+            const deviceInfo = this.restHelper.makeRestjavadUri(
+                '/shared/identified-devices/config/device-info'
+            );
+            this.dependencies.push(deviceInfo);
+
             this.validator = new Validator();
             logger.info('Created Declarative onboarding worker');
             success();
