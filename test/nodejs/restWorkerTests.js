@@ -71,7 +71,13 @@ describe('restWorker', () => {
     });
 
     describe('onStart', () => {
+        let restWorker;
         beforeEach(() => {
+            restWorker = new RestWorker();
+            restWorker.restHelper = {
+                makeRestjavadUri() {}
+            };
+            restWorker.dependencies = [];
         });
 
         it('should respond handle success', () => {
@@ -83,7 +89,6 @@ describe('restWorker', () => {
                     reject(new Error('should have called success'));
                 };
 
-                const restWorker = new RestWorker();
                 try {
                     restWorker.onStart(success, error);
                 } catch (err) {
@@ -101,7 +106,29 @@ describe('restWorker', () => {
                     resolve();
                 };
 
-                const restWorker = new RestWorker();
+                try {
+                    restWorker.onStart(success, error);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should set dependencies', () => {
+            return new Promise((resolve, reject) => {
+                const deviceInfoUri = 'https://path/to/deviceInfo';
+                restWorker.restHelper.makeRestjavadUri = () => {
+                    return deviceInfoUri;
+                };
+
+                const success = () => {
+                    assert.strictEqual(restWorker.dependencies[0], deviceInfoUri);
+                    resolve();
+                };
+                const error = () => {
+                    reject(new Error('should have called success'));
+                };
+
                 try {
                     restWorker.onStart(success, error);
                 } catch (err) {
