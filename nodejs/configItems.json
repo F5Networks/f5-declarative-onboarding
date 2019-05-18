@@ -98,5 +98,17 @@
             { "name": "^device_trust_group$" },
             { "name": "^gtm$" }
         ]
+    },
+    {
+        "path": "/tm/analytics/global-settings",
+        "schemaClass": "Analytics",
+        "properties": [
+            { "id": "avrdDebugMode", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "avrdInterval" },
+            { "id": "offboxProtocol" },
+            { "id": "offboxTcpAddresses" },
+            { "id": "offboxTcpPort" },
+            { "id": "useOffbox", "truth": "enabled", "falsehood": "disabled" }
+        ]
     }
 ]

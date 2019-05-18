@@ -22,6 +22,7 @@ const Logger = require('./logger');
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
 const DscHandler = require('./dscHandler');
+const AnalyticsHandler = require('./analyticsHandler');
 const DeleteHandler = require('./deleteHandler');
 
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
@@ -42,7 +43,8 @@ const CLASSES_OF_TRUTH = [
     'Route',
     'ConfigSync',
     'DeviceGroup',
-    'FailoverUnicast'
+    'FailoverUnicast',
+    'Analytics'
 ];
 
 /**
@@ -113,6 +115,10 @@ class DeclarationHandler {
             })
             .then(() => {
                 return new DscHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process();
+            })
+            .then(() => {
+                return new AnalyticsHandler(updateDeclaration, this.bigIp, this.eventEmitter, state)
+                    .process();
             })
             .then(() => {
                 return new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter, state).process();
