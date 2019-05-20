@@ -47,4 +47,27 @@ describe('validator', () => {
                 assert.strictEqual(Array.isArray(validation.errors), true);
             });
     });
+
+    it('should add defaults to the declaration', () => {
+        const data = {
+            "class": "DO",
+            "declaration": {
+                "schemaVersion": "1.0.0",
+                "class": "Device",
+                "Common": {
+                    "class": "Tenant",
+                    "mySelfIp": {
+                        "class": "SelfIp",
+                        "address": "1.2.3.4",
+                        "vlan": "foo"
+                    }
+                }
+            }
+        };
+
+        return validator.validate(data)
+            .then(() => {
+                assert.strictEqual(data.declaration.Common.mySelfIp.trafficGroup, 'traffic-group-local-only');
+            });
+    });
 });

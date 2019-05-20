@@ -191,11 +191,11 @@ class RestWorker {
             declaration = wrapper.declaration;
         }
 
-        this.state.doState.setDeclaration(taskId, declaration);
         this.state.doState.setErrors(taskId, null);
 
         this.validator.validate(wrapper)
             .then((validation) => {
+                this.state.doState.setDeclaration(taskId, declaration);
                 if (!validation.isValid) {
                     const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
                     logger.info(message);
