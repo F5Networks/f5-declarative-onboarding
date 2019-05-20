@@ -54,6 +54,15 @@ describe('systemHandler', () => {
             active() {
                 activeCalled = true;
                 return Promise.resolve();
+            },
+            create() {
+                return Promise.resolve();
+            },
+            list() {
+                return Promise.resolve();
+            },
+            modify() {
+                return Promise.resolve();
             }
         };
         sinon.stub(dns, 'lookup').callsArg(1);
@@ -136,6 +145,34 @@ describe('systemHandler', () => {
                 }
             }
         };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process();
+    });
+
+    it('should turn off DHCP of NTP if we configure NTP', () => {
+        const declaration = {
+            Common: {
+                NTP: {
+                    timezone: 'UTC'
+                }
+            }
+        };
+
+        sinon.stub(bigIpMock, 'list').callsFake((path) => {
+            if (path === '/tm/sys/management-dhcp/sys-mgmt-dhcp-config') {
+                return Promise.resolve({
+                    requestOptions: ['one', 'two', 'ntp-servers', 'three']
+                });
+            }
+            return Promise.resolve();
+        });
+
+        sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
+            assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
+            assert.strictEqual(body.requestOptions.length, 3);
+            assert.strictEqual(body.requestOptions.indexOf('ntp-servers'), -1);
+        });
 
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process();
@@ -238,6 +275,34 @@ describe('systemHandler', () => {
                     reject(err);
                 });
         });
+    });
+
+    it('should turn off DHCP of DNS if we configure DNS', () => {
+        const declaration = {
+            Common: {
+                DNS: {
+                    nameServers: ['1.2.3.4']
+                }
+            }
+        };
+
+        sinon.stub(bigIpMock, 'list').callsFake((path) => {
+            if (path === '/tm/sys/management-dhcp/sys-mgmt-dhcp-config') {
+                return Promise.resolve({
+                    requestOptions: ['one', 'two', 'domain-name-servers', 'three']
+                });
+            }
+            return Promise.resolve();
+        });
+
+        sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
+            assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
+            assert.strictEqual(body.requestOptions.length, 3);
+            assert.strictEqual(body.requestOptions.indexOf('domain-name-servers'), -1);
+        });
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process();
     });
 
     it('should handle hostname', () => {
