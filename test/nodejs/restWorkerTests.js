@@ -18,6 +18,7 @@
 
 const assert = require('assert');
 const State = require('../../nodejs/state');
+const RealValidator = require('../../nodejs/validator');
 const STATUS = require('../../nodejs/sharedConstants').STATUS;
 const EVENTS = require('../../nodejs/sharedConstants').EVENTS;
 
@@ -846,6 +847,40 @@ describe('restWorker', () => {
 
                 restOperationMock.getContentType = () => {};
                 restOperationMock.getBody = () => { return 'foobar'; };
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should add defaults to the declaration', () => {
+            return new Promise((resolve, reject) => {
+                declaration = {
+                    schemaVersion: '1.0.0',
+                    class: 'Device',
+                    Common: {
+                        mySelfIp: {
+                            class: 'SelfIp',
+                            address: '1.2.3.4',
+                            vlan: 'foo'
+                        }
+                    }
+
+                };
+                restWorker.validator = new RealValidator();
+
+                restOperationMock.complete = () => {
+                    const state = restWorker.state.doState;
+                    const taskId = Object.keys(state.tasks)[0];
+                    assert.strictEqual(
+                        state.tasks[taskId].internalDeclaration.Common.mySelfIp.trafficGroup,
+                        'traffic-group-local-only'
+                    );
+                    resolve();
+                };
 
                 try {
                     restWorker.onPost(restOperationMock);
