@@ -6,6 +6,9 @@
 + Fix bug in which credentials could appear in declaration results when revoking a license.
 + Disable DHCP for DNS/NTP if DO will be configuring them.
 
+## Version 1.4.1
++ Fix vulnerability CVE-2019-5021 in DO container
+
 ## Version 1.4.0
 + Allow for onboarding multiple devices at once.
     + taskId is now returned from POST onboard requests
