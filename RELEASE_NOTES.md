@@ -1,5 +1,8 @@
 # Release Notes
 
+## Version 1.4.1
++ Fix vulnerability CVE-2019-5021 in DO container
+
 ## Version 1.4.0
 + Allow for onboarding multiple devices at once.
     + taskId is now returned from POST onboard requests
