@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,10 @@
 'use strict';
 
 const assert = require('assert');
+const dns = require('dns');
 const netMock = require('net');
+
+const sinon = require('sinon');
 const BigIpMock = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtilMock = require('@f5devcentral/f5-cloud-libs').httpUtil;
 
@@ -371,6 +374,49 @@ describe('doUtil', () => {
         });
     });
 
+    describe('getClassObject', () => {
+        it('should find matching classes', () => {
+            const classToMatch = 'matchMe';
+            const declaration = {
+                Common: {
+                    match1: {
+                        class: classToMatch,
+                        foo: {
+                            bar: 'x'
+                        }
+                    },
+                    noMatch1: {
+                        class: 'notAMatch',
+                        hello: 'world'
+                    },
+                    match2: {
+                        class: classToMatch,
+                        okie: 'dokie'
+                    },
+                    noMatch2: 'qwerty'
+                }
+            };
+            const matches = doUtil.getClassObjects(declaration, classToMatch);
+            assert.strictEqual(Object.keys(matches).length, 2);
+            assert.deepEqual(matches.match1, declaration.Common.match1);
+            assert.deepEqual(matches.match2, declaration.Common.match2);
+        });
+
+        it('should return null if no matching classes are found', () => {
+            const classToMatch = 'matchMe';
+            const declaration = {
+                Common: {
+                    noMatch: {
+                        class: 'notAMatch',
+                        hello: 'world'
+                    }
+                }
+            };
+            const matches = doUtil.getClassObjects(declaration, classToMatch);
+            assert.strictEqual(matches, null);
+        });
+    });
+
     describe('dereference', () => {
         it('should dereference json-pointers to strings in an object', () => {
             const declaration = {
@@ -404,6 +450,73 @@ describe('doUtil', () => {
 
             const dereferenced = doUtil.dereference(declaration, container);
             assert.strictEqual(dereferenced.objectValue, container.objectValue);
+        });
+    });
+
+    describe('checkDnsResolution', () => {
+        beforeEach(() => {
+            sinon.stub(dns, 'lookup').callsArg(1);
+        });
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it('should reject if undefined, invalid ip, or hostname does not exist', () => {
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
+
+            const testCases = [
+                undefined,
+                '260.84.18.2',
+                'example.cant'
+            ];
+
+            const promises = testCases.map((testCase) => {
+                let didFail = false;
+                return doUtil.checkDnsResolution(testCase)
+                    .catch(() => {
+                        didFail = true;
+                    })
+                    .then(() => {
+                        if (!didFail) {
+                            assert.fail(`testCase: ${testCase} does exist, and it should NOT`);
+                        }
+                    });
+            });
+            return Promise.all(promises);
+        });
+
+        it('should resolve true if a valid ip, empty string, or valid hostname is given', () => {
+            const testCases = [
+                '',
+                '::',
+                '10.10.10.10',
+                'www.google.com'
+            ];
+
+            const promises = testCases.map((testCase) => {
+                return doUtil.checkDnsResolution(testCase)
+                    .catch((e) => { return e; })
+                    .then((res) => {
+                        if (res === true) {
+                            assert.ok(res);
+                            return;
+                        }
+                        assert.fail(`testCase: ${testCase} does NOT exist, and it should`);
+                    });
+            });
+            return Promise.all(promises);
+        });
+
+        it('should provide a better error message on uncaught exceptions', () => {
+            dns.lookup.restore();
+            const errorMessage = 'Hello world!';
+            sinon.stub(dns, 'lookup').throws(new Error(errorMessage));
+
+            return doUtil.checkDnsResolution('test')
+                .catch((error) => {
+                    assert.notEqual(error.message, errorMessage);
+                });
         });
     });
 });

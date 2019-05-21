@@ -1,5 +1,14 @@
 # Release Notes
 
+## Version 1.5.0
++ Resolve [Issue 26](https://github.com/F5Networks/f5-declarative-onboarding/issues/26)
++ Updates for running on BIG-IQ. remote.schema.json now has a bigIqSettings object. These values are passed to BIG-IQ as options it needs for managing a BIG-IP.
++ Fix bug in which credentials could appear in declaration results when revoking a license.
++ Disable DHCP for DNS/NTP if DO will be configuring them.
+
+## Version 1.4.1
++ Fix vulnerability CVE-2019-5021 in DO container
+
 ## Version 1.4.0
 + Allow for onboarding multiple devices at once.
     + taskId is now returned from POST onboard requests

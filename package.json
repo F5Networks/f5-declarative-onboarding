@@ -1,6 +1,6 @@
 {
   "name": "f5-declarative-onboarding",
-  "version": "1.4.0-1",
+  "version": "1.5.0-4",
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
   "repository": {
@@ -34,9 +34,11 @@
     "mocha": "^5.2.0",
     "node-ssh": "^5.1.2",
     "nyc": "^13.3.0",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "sinon": "^7.3.2"
   },
   "scripts": {
+    "build": "./build/buildRpm.sh",
     "test": "mocha --recursive test/nodejs test/schema",
     "functional": "mocha test/functional/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",

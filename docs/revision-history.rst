@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 1.9
+        - Released Declarative Onboarding v1.4.1. This maintenance release contains no changes for Declarative Onboarding from 1.4.0 but does include a new version of the Docker Container.  
+        - 05-21-19
+      
       * - 1.8
         - Updated the documentation for Declarative Onboarding v1.4.0. This release contains the following changes: |br| * Using the Declarative Onboarding Container now allows you to send declarations to multiple BIG-IPs without waiting for previous declarations to finish onboarding. |br| * **taskId** is now returned from POST onboard requests (see :ref:`Note in POST documentation <postnote>`) |br| * New **/task** endpoint to retrieve status by task (see :ref:`Note in GET documentation <getnote>`) 
         - 05-08-19

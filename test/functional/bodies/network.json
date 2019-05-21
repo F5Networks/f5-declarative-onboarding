@@ -34,7 +34,7 @@
         "myRoute": {
             "class": "Route",
             "gw": "10.148.75.1",
-            "network": "default",
+            "network": "10.20.30.0/24",
             "mtu" : 1500
         }
     }

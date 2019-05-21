@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,40 @@
 
 'use strict';
 
-const Ajv = require('ajv');
-
-const remoteSchema = require('../schema/remote.schema.json');
-const baseSchema = require('../schema/base.schema.json');
-const systemSchema = require('../schema/system.schema.json');
-const networkSchema = require('../schema/network.schema.json');
-const dscSchema = require('../schema/dsc.schema.json');
-
-const customFormats = require('../schema/formats.js');
+const AjvValidator = require('./ajvValidator');
+const BigIqSettingsValidator = require('./bigIqSettingsValidator');
 
 class Validator {
     constructor() {
-        const ajv = new Ajv(
-            {
-                allErrors: false,
-                useDefaults: true,
-                coerceTypes: true,
-                extendRefs: 'fail'
-            }
-        );
-
-        Object.keys(customFormats).forEach((customFormat) => {
-            ajv.addFormat(customFormat, customFormats[customFormat]);
-        });
-
-        this.validator = ajv
-            .addSchema(systemSchema)
-            .addSchema(networkSchema)
-            .addSchema(dscSchema)
-            .addSchema(baseSchema)
-            .compile(remoteSchema);
+        this.validators = [
+            new AjvValidator(),
+            new BigIqSettingsValidator()
+        ];
     }
 
     validate(data) {
-        const isValid = this.validator(data);
-        return {
-            isValid,
-            errors: this.validator.errors
-        };
+        // We want to run the validators serially so that we can control which errors
+        // show up first. Namely, we want JSON validation errors first.
+        const runInSerial = this.validators.reduce((promiseChain, currentValidator) => {
+            return promiseChain.then((results) => {
+                return currentValidator.validate(data).then((currentResult) => {
+                    results.push(currentResult);
+                    return results;
+                });
+            });
+        }, Promise.resolve([]));
+
+        return runInSerial
+            .then((results) => {
+                const firstError = results.find((currentResult) => {
+                    return !currentResult.isValid;
+                });
+
+                return firstError || {
+                    isValid: true,
+                    errors: null
+                };
+            });
     }
 }
 

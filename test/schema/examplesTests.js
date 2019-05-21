@@ -34,8 +34,10 @@ describe('examples', () => {
                     class: 'DO'
                 };
             }
-            const validation = validator.validate(declaration);
-            assert.ok(validation.isValid, JSON.stringify(validation.errors, null, 4));
+            return validator.validate(declaration)
+                .then((validation) => {
+                    assert.ok(validation.isValid, JSON.stringify(validation.errors, null, 4));
+                });
         });
     });
 });

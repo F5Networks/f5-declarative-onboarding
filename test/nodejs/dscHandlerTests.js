@@ -17,6 +17,10 @@
 'use strict';
 
 const assert = require('assert');
+const dns = require('dns');
+
+const sinon = require('sinon');
+
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
 /* eslint-disable global-require */
@@ -34,6 +38,7 @@ describe('dscHandler', () => {
     });
 
     beforeEach(() => {
+        sinon.stub(dns, 'lookup').callsArg(1);
         bigIpMock = {
             deviceInfo() {
                 return Promise.resolve({ hostname });
@@ -45,6 +50,10 @@ describe('dscHandler', () => {
         Object.keys(require.cache).forEach((key) => {
             delete require.cache[key];
         });
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     describe('configSyncIp', () => {
@@ -201,7 +210,7 @@ describe('dscHandler', () => {
                     DeviceTrust: {
                         localUsername: 'admin',
                         localPassword: 'pass1word',
-                        remoteHost: 'otherHostname',
+                        remoteHost: 'someOtherHost',
                         remoteUsername: 'admin',
                         remotePassword: 'pass2word'
                     }
@@ -306,6 +315,43 @@ describe('dscHandler', () => {
                     });
             });
         });
+
+        it('should reject with an invalid remoteHost and we are not the remote', () => {
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
+            const testCase = 'example.cant';
+            const declaration = {
+                Common: {
+                    DeviceTrust: {
+                        localUsername: 'admin',
+                        localPassword: 'pass1word',
+                        remoteHost: testCase,
+                        remoteUsername: 'admin',
+                        remotePassword: 'pass2word'
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            let didFail = false;
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .catch(() => {
+                    didFail = true;
+                })
+                .then(() => {
+                    if (!didFail) {
+                        const message = `testCase: ${testCase} does exist, and it should NOT`;
+                        assert.fail(message);
+                    }
+                });
+        });
     });
 
     describe('deviceGroup', () => {
@@ -354,6 +400,21 @@ describe('dscHandler', () => {
                     return Promise.resolve();
                 }
             };
+        });
+
+        it('should handle device groups with no members', () => {
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            owner: hostname
+                        }
+                    }
+                }
+            };
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process();
         });
 
         it('should create the device group if we are the owner with no device trust section', () => {
@@ -417,6 +478,38 @@ describe('dscHandler', () => {
             });
         });
 
+        it('should reject if a member has an invalid hostname', () => {
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
+
+            const testCase = 'example.cant';
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: [testCase, 'www.google.com'],
+                            owner: hostname
+                        }
+                    }
+                }
+            };
+
+            let didFail = false;
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .catch(() => {
+                    didFail = true;
+                })
+                .then(() => {
+                    if (!didFail) {
+                        const message = `testCase: ${testCase} does exist, and it should NOT`;
+                        assert.fail(message);
+                    }
+                });
+        });
+
         it('should not call sync if no devices are in the device trust', () => {
             bigIpMock.cluster.areInTrustGroup = () => { return Promise.resolve([]); };
 
@@ -443,6 +536,51 @@ describe('dscHandler', () => {
                         reject(err);
                     });
             });
+        });
+
+        it('should reject if the remoteHost has an invalid hostname', () => {
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
+            const testCase = 'example.cant';
+
+            doUtilMock.getBigIp = () => {
+                return Promise.resolve(bigIpMock);
+            };
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['bigip1.example.com', 'bigip2.example.com'],
+                            owner: '10.20.30.40'
+                        }
+                    },
+                    DeviceTrust: {
+                        remoteHost: testCase
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            let didFail = false;
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .catch(() => {
+                    didFail = true;
+                })
+                .then(() => {
+                    if (!didFail) {
+                        const message = `testCase: ${testCase} does exist, and it should NOT`;
+                        assert.fail(message);
+                    }
+                });
         });
 
         it('should join device group if we are not the owner and we have DeviceGroup and DeviceTrust', () => {

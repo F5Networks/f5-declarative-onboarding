@@ -18,11 +18,13 @@
 
 const net = require('net');
 const exec = require('child_process').exec;
+const dns = require('dns');
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const Logger = require('./logger');
+const ipF5 = require('../schema/formats').f5ip;
 
 const logger = new Logger(module);
 
@@ -236,6 +238,33 @@ module.exports = {
     },
 
     /**
+     * Extracts the object in a declaration with a given class name.
+     *
+     * @param {Object} declaration - The declaration part of a declaration
+     * @param {String} className - The class name of interest
+     *
+     * @returns {Object} An object whose only members have a class matching the given class name
+     *                   or null if class is not in declaration.
+     */
+    getClassObjects(declaration, className) {
+        const common = declaration.Common || {};
+        const keys = Object.keys(common).filter((key) => {
+            return typeof common[key] === 'object'
+            && common[key].class
+            && common[key].class === className;
+        });
+
+        if (keys.length > 0) {
+            const classes = {};
+            keys.forEach((key) => {
+                classes[key] = JSON.parse(JSON.stringify(common[key]));
+            });
+            return classes;
+        }
+        return null;
+    },
+
+    /**
      * Fills in values that are referenced by json-pointers.
      *
      * @param {Object} declaration - The declaration containing potentially referenced values
@@ -294,5 +323,35 @@ module.exports = {
             stripped = address.substring(0, slashIndex);
         }
         return stripped;
+    },
+
+    /**
+     * Checks if hostname exists
+     * @param {String} address - URL address
+     * @returns {boolean} found - Returns if the hostname was found
+     */
+    checkDnsResolution(address) {
+        return new Promise((resolve, reject) => {
+            if (ipF5(address)) {
+                resolve(true);
+                return;
+            }
+            try {
+                dns.lookup(address, (error) => {
+                    if (error) {
+                        error.message = `Unable to resolve host ${address}: ${error.message}`;
+                        error.code = 424;
+                        reject(error);
+                        return;
+                    }
+                    resolve(true);
+                });
+            } catch (error) {
+                // if DNS.resolve errors it throws an exception instead of rejecting
+                error.message = `Unable to resolve host ${address}: ${error.message}`;
+                error.code = 424;
+                reject(error);
+            }
+        });
     }
 };
