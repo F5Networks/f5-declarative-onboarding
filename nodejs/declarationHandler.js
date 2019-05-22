@@ -124,7 +124,7 @@ class DeclarationHandler {
                 return new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter, state).process();
             })
             .then(() => {
-                logger.info('Done processing declartion.');
+                logger.info('Done processing declaration.');
                 return Promise.resolve();
             })
             .catch((err) => {

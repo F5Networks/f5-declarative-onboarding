@@ -60,12 +60,12 @@ class SystemHandler {
         logger.fine('Checking db variables.');
         return handleDbVars.call(this)
             .then(() => {
-                logger.fine('Checking NTP.');
-                return handleNTP.call(this);
-            })
-            .then(() => {
                 logger.fine('Checking DNS.');
                 return handleDNS.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking NTP.');
+                return handleNTP.call(this);
             })
             .then(() => {
                 logger.fine('Checking hostname.');
@@ -104,11 +104,14 @@ function handleDbVars() {
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        const promises = ntp.servers.map((server) => {
+        const promises = (ntp.servers || []).map((server) => {
             return doUtil.checkDnsResolution(server);
         });
 
         return Promise.all(promises)
+            .then(() => {
+                return disableDhcpOption.call(this, 'ntp-servers');
+            })
             .then(() => {
                 this.bigIp.replace(
                     PATHS.NTP,
@@ -124,14 +127,17 @@ function handleNTP() {
 
 function handleDNS() {
     if (this.declaration.Common.DNS) {
-        const dns = this.declaration.Common.DNS;
-        return this.bigIp.replace(
-            PATHS.DNS,
-            {
-                'name-servers': dns.nameServers,
-                search: dns.search || []
-            }
-        );
+        return disableDhcpOption.call(this, 'domain-name-servers')
+            .then(() => {
+                const dns = this.declaration.Common.DNS;
+                return this.bigIp.replace(
+                    PATHS.DNS,
+                    {
+                        'name-servers': dns.nameServers,
+                        search: dns.search || []
+                    }
+                );
+            });
     }
     return Promise.resolve();
 }
@@ -387,6 +393,48 @@ function createOrUpdateUser(username, data) {
         .catch((err) => {
             logger.severe(`Error creating/updating user: ${err.message}`);
             return Promise.reject(err);
+        });
+}
+
+function disableDhcpOption(optionToDisable) {
+    let requiresDhcpRestart;
+
+    return this.bigIp.list(
+        '/tm/sys/management-dhcp/sys-mgmt-dhcp-config'
+    )
+        .then((dhcpOptions) => {
+            if (!dhcpOptions || !dhcpOptions.requestOptions) {
+                return Promise.resolve();
+            }
+
+            const currentOptions = dhcpOptions.requestOptions;
+            const newOptions = currentOptions.filter((option) => {
+                return option !== optionToDisable;
+            });
+
+            if (currentOptions.length === newOptions.length) {
+                return Promise.resolve();
+            }
+
+            requiresDhcpRestart = true;
+            return this.bigIp.modify(
+                '/tm/sys/management-dhcp/sys-mgmt-dhcp-config',
+                {
+                    requestOptions: newOptions
+                }
+            );
+        })
+        .then(() => {
+            if (!requiresDhcpRestart) {
+                return Promise.resolve();
+            }
+            return this.bigIp.create(
+                '/tm/sys/service',
+                {
+                    command: 'restart',
+                    name: 'dhclient'
+                }
+            );
         });
 }
 

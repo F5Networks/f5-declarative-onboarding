@@ -32,17 +32,42 @@ describe('validator', () => {
                 "class": "Device"
             }
         };
-        const validation = validator.validate(data);
-        assert.strictEqual(validation.isValid, true);
-        assert.strictEqual(validation.errors, null);
+        return validator.validate(data)
+            .then((validation) => {
+                assert.strictEqual(validation.isValid, true);
+                assert.strictEqual(validation.errors, null);
+            });
     });
 
     it('should invalidate invalid data', () => {
-        it('should validate valid data', () => {
-            const data = {};
-            const validation = validator.validate(data);
-            assert.strictEqual(validation.isValid, false);
-            assert.strictEqual(Array.isArray(validation.errors), true);
-        });
+        const data = {};
+        return validator.validate(data)
+            .then((validation) => {
+                assert.strictEqual(validation.isValid, false);
+                assert.strictEqual(Array.isArray(validation.errors), true);
+            });
+    });
+
+    it('should add defaults to the declaration', () => {
+        const data = {
+            "class": "DO",
+            "declaration": {
+                "schemaVersion": "1.0.0",
+                "class": "Device",
+                "Common": {
+                    "class": "Tenant",
+                    "mySelfIp": {
+                        "class": "SelfIp",
+                        "address": "1.2.3.4",
+                        "vlan": "foo"
+                    }
+                }
+            }
+        };
+
+        return validator.validate(data)
+            .then(() => {
+                assert.strictEqual(data.declaration.Common.mySelfIp.trafficGroup, 'traffic-group-local-only');
+            });
     });
 });

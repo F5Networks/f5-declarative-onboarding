@@ -342,6 +342,76 @@ describe('remote.schema.json', () => {
             });
         });
     });
+
+    describe('bigIqSettings', () => {
+        describe('valid', () => {
+            it('should validate bigIqSettings', () => {
+                const data = {
+                    "class": "DO",
+                    "bigIqSettings": {
+                        "snapshotWorkingConfig": true,
+                        "accessModuleProperties": {
+                            "cm:access:import-shared": true
+                        },
+                        "failImportOnConflict": true,
+                        "conflictPolicy": "USE_BIGIP",
+                        "deviceConflictPolicy": "USE_BIGIQ",
+                        "versionedConflictPolicy": "KEEP_VERSION",
+                        "clusterName": "foo",
+                        "useBigIqSync": true,
+                        "deployWhenDscChangesPending": true,
+                        "statsConfig": {
+                            "enabled": true,
+                            "zone": "bar"
+                        }
+                    },
+                    "declaration": {
+                        "schemaVersion": "1.0.0",
+                        "class": "Device"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate bigIqSettings with failImportOnConflict true and no conflictPolicy', () => {
+                const data = {
+                    "class": "DO",
+                    "bigIqSettings": {
+                        "failImportOnConflict": true
+                    },
+                    "declaration": {
+                        "schemaVersion": "1.0.0",
+                        "class": "Device"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should should invalidate failOnImportConflict with no conflictPolicy', () => {
+                const data = {
+                    "class": "DO",
+                    "bigIqSettings": {
+                        "failImportOnConflict": false
+                    },
+                    "declaration": {
+                        "schemaVersion": "1.0.0",
+                        "class": "Device"
+                    }
+                };
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'failOnImportConflict with no conflictPolicy should not be valid'
+                );
+                assert.notStrictEqual(
+                    getErrorString().indexOf("should have required property '.conflictPolicy'"),
+                    -1
+                );
+            });
+        });
+    });
 });
 
 function getErrorString() {
