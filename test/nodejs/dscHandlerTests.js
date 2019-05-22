@@ -478,38 +478,6 @@ describe('dscHandler', () => {
             });
         });
 
-        it('should reject if a member has an invalid hostname', () => {
-            dns.lookup.restore();
-            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
-
-            const testCase = 'example.cant';
-
-            const declaration = {
-                Common: {
-                    DeviceGroup: {
-                        failoverGroup: {
-                            type: 'sync-failover',
-                            members: [testCase, 'www.google.com'],
-                            owner: hostname
-                        }
-                    }
-                }
-            };
-
-            let didFail = false;
-            const dscHandler = new DscHandler(declaration, bigIpMock);
-            return dscHandler.process()
-                .catch(() => {
-                    didFail = true;
-                })
-                .then(() => {
-                    if (!didFail) {
-                        const message = `testCase: ${testCase} does exist, and it should NOT`;
-                        assert.fail(message);
-                    }
-                });
-        });
-
         it('should not call sync if no devices are in the device trust', () => {
             bigIpMock.cluster.areInTrustGroup = () => { return Promise.resolve([]); };
 
