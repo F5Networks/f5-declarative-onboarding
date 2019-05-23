@@ -17,6 +17,9 @@
 'use strict';
 
 const assert = require('assert');
+
+const sinon = require('sinon');
+
 const DeclarationParser = require('../../nodejs/declarationParser');
 const DiffHandler = require('../../nodejs/diffHandler');
 const SystemHandler = require('../../nodejs/systemHandler');
@@ -35,17 +38,20 @@ const bigIpMock = {
 };
 
 describe('declarationHandler', () => {
-    before(() => {
-        DeclarationParser.prototype.parse = function parse() {
+    beforeEach(() => {
+        parsedDeclarations = [];
+        declarationWithDefaults = {};
+
+        sinon.stub(DeclarationParser.prototype, 'parse').callsFake(function parse() {
             parsedDeclarations.push(this.declaration);
             return {
                 parsedDeclaration: {
                     Common: {}
                 }
             };
-        };
+        });
 
-        DiffHandler.prototype.process = (declaration) => {
+        sinon.stub(DiffHandler.prototype, 'process').callsFake((declaration) => {
             declarationWithDefaults = declaration;
             return Promise.resolve(
                 {
@@ -53,30 +59,16 @@ describe('declarationHandler', () => {
                     toDelete: {}
                 }
             );
-        };
-        SystemHandler.prototype.process = () => {
-            return Promise.resolve();
-        };
-        NetworkHandler.prototype.process = () => {
-            return Promise.resolve();
-        };
-        DscHandler.prototype.process = () => {
-            return Promise.resolve();
-        };
-        DeleteHandler.prototype.process = () => {
-            return Promise.resolve();
-        };
-    });
-
-    beforeEach(() => {
-        parsedDeclarations = [];
-        declarationWithDefaults = {};
-    });
-
-    after(() => {
-        Object.keys(require.cache).forEach((key) => {
-            delete require.cache[key];
         });
+
+        sinon.stub(SystemHandler.prototype, 'process').resolves();
+        sinon.stub(NetworkHandler.prototype, 'process').resolves();
+        sinon.stub(DscHandler.prototype, 'process').resolves();
+        sinon.stub(DeleteHandler.prototype, 'process').resolves();
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     it('should parse declarations if not parsed', () => {
@@ -207,5 +199,85 @@ describe('declarationHandler', () => {
                     resolve();
                 });
         });
+    });
+});
+
+describe('AVR dependencies', () => {
+    let isAvrProvisioned;
+    function AvrBigIpMock() {
+        return {
+            modify: () => {
+                return Promise.resolve();
+            },
+            replace: (path) => {
+                if (path === '/tm/analytics/global-settings') {
+                    assert(isAvrProvisioned, 'Trying to change AVR settings without AVR provisioned');
+                }
+                return Promise.resolve();
+            },
+            onboard: {
+                provision: (data) => {
+                    isAvrProvisioned = typeof data.avr !== 'undefined';
+                    return Promise.resolve([]);
+                }
+            }
+        };
+    }
+
+    beforeEach(() => {
+        isAvrProvisioned = false;
+    });
+
+    it('should add analytics and avr provisioning in the same declaration', () => {
+        const declaration = {
+            parsed: true,
+            Common: {
+                Analytics: {
+                    interval: 60
+                },
+                Provision: {
+                    avr: 'nominal'
+                }
+            }
+        };
+
+        const state = {
+            originalConfig: {
+                Common: {}
+            },
+            currentConfig: {
+                parsed: true,
+                Common: {}
+            }
+        };
+        const handler = new DeclarationHandler(new AvrBigIpMock());
+        return handler.process(declaration, state);
+    });
+
+    it('should remove analytics and avr provisioning in the same declaration', () => {
+        isAvrProvisioned = true;
+        const declaration = {
+            parsed: true,
+            Common: {}
+        };
+
+        const state = {
+            originalConfig: {
+                Common: {}
+            },
+            currentConfig: {
+                parsed: true,
+                Common: {
+                    Analytics: {
+                        interval: 60
+                    },
+                    Provision: {
+                        avr: 'nominal'
+                    }
+                }
+            }
+        };
+        const handler = new DeclarationHandler(new AvrBigIpMock());
+        return handler.process(declaration, state);
     });
 });
