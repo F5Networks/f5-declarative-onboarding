@@ -157,7 +157,7 @@ describe('network.schema.json', () => {
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "vlan"'), -1);
             });
 
-            it('should invlalidate bad selfIp addresses', () => {
+            it('should invalidate bad selfIp addresses', () => {
                 const data = {
                     "class": "SelfIp",
                     "address": "foo",

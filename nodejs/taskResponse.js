@@ -29,7 +29,7 @@ class TaskResponse {
     getSelfLink(id) {
         return `${BASE_URL}/${ENDPOINTS.TASK}/${id}`;
     }
-    /* eslint-ensable class-methods-use-this */
+    /* eslint-enable class-methods-use-this */
 
     exists(id) {
         return !!this.state.getTask(id);

@@ -64,7 +64,7 @@ class Responder {
     getSelfLink(id) {
         return `https://foo.com/task/${id}`;
     }
-    /* eslint-ensable class-methods-use-this */
+    /* eslint-enable class-methods-use-this */
 
     exists(id) {
         return !!this.state.getTask(id);
