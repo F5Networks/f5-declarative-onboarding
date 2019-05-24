@@ -27,6 +27,8 @@ const assert = require('assert');
 const constants = require('./constants.js');
 const common = require('./common.js');
 
+const configItems = require(`${__dirname}/../../nodejs/configItems.json`);
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 /* eslint-disable no-undef */
@@ -62,6 +64,30 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
             .catch((error) => {
                 return Promise.reject(error);
             });
+    });
+
+    describe('Test Configuration Scope', () => {
+        it('should not overlap with config items in the AS3 project', () => {
+            const path = '/orchestration-as3-generic/as3-properties-latest.json';
+            const options = common.buildBody(process.env.ARTIFACTORY_BASE_URL + path, null, null, 'GET');
+            options.rejectUnauthorized = false;
+            return common.sendRequest(options)
+                .then((res) => {
+                    const as3Properties = JSON.parse(res.response.body.replace(/\\n/g, ''));
+                    const keyCount = Object.keys(as3Properties).length;
+                    if (keyCount === 0) {
+                        assert.fail('No properties in AS3 properties.json');
+                    }
+                    configItems.forEach((item) => {
+                        const prop = item.path.replace(/\/tm\//, '').replace(/\//g, ' ');
+                        assert.ok(as3Properties[prop] === undefined);
+                    });
+                })
+                .catch((err) => {
+                    console.log(JSON.stringify(options));
+                    assert.fail(err);
+                });
+        });
     });
 
     describe('Test Onboard', function testOnboard() {
