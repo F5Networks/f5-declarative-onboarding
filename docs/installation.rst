@@ -108,22 +108,22 @@ In either case, if installation was successful, you should see something similar
 .. code-block:: json
 
    [
-    {
-        "id": 0,
-        "selfLink": "https://localhost/mgmt/shared/declarative-onboarding/info",
-        "result": {
-            "class": "Result",
-            "code": 200,
-            "status": "OK",
-            "message": "",
-            "errors": []
-        },
-        "version": "1.4.0",
-        "release": "beta.7",
-        "schemaCurrent": "1.3.0",
-        "schemaMinimum": "1.0.0"
-    }
-]
+        {
+            "id": 0,
+            "selfLink": "https://localhost/mgmt/shared/declarative-onboarding/info",
+            "result": {
+                "class": "Result",
+                "code": 200,
+                "status": "OK",
+                "message": "",
+                "errors": []
+            },
+            "version": "1.4.0",
+            "release": "beta.7",
+            "schemaCurrent": "1.3.0",
+            "schemaMinimum": "1.0.0"
+        }
+   ]
 
 
 You can also GET to send ``https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding/example`` to retrieve an example declaration.
