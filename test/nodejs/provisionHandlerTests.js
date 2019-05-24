@@ -1,0 +1,68 @@
+/**
+ * Copyright 2018 F5 Networks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+const assert = require('assert');
+
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+
+const ProvisionHandler = require('../../nodejs/provisionHandler');
+
+/* eslint-disable global-require */
+
+describe('provisionHandler', () => {
+    it('should handle provisioning', () => {
+        const declaration = {
+            Common: {
+                Provision: {
+                    module1: 'level 1',
+                    module2: 'level 2'
+                }
+            }
+        };
+
+        let provisioningSent;
+        const bigIpMock = {
+            onboard: {
+                provision(provisioning) {
+                    provisioningSent = provisioning;
+                    return Promise.resolve([{}]);
+                }
+            }
+        };
+
+        let numActiveRequests = 0;
+        cloudUtil.callInSerial = (bigIp, activeRequests) => {
+            numActiveRequests = activeRequests.length;
+            return Promise.resolve();
+        };
+
+        return new Promise((resolve, reject) => {
+            const handler = new ProvisionHandler(declaration, bigIpMock);
+            handler.process()
+                .then(() => {
+                    assert.strictEqual(provisioningSent.module1, declaration.Common.Provision.module1);
+                    assert.strictEqual(provisioningSent.module2, declaration.Common.Provision.module2);
+                    assert.ok(numActiveRequests > 0);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+});

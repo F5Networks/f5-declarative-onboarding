@@ -24,6 +24,7 @@ const NetworkHandler = require('./networkHandler');
 const DscHandler = require('./dscHandler');
 const AnalyticsHandler = require('./analyticsHandler');
 const DeleteHandler = require('./deleteHandler');
+const ProvisionHandler = require('./provisionHandler');
 
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 
@@ -109,6 +110,14 @@ class DeclarationHandler {
             })
             .then(() => {
                 return new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process();
+            })
+            .then(() => {
+                return new ProvisionHandler(
+                    updateDeclaration,
+                    this.bigIp,
+                    this.eventEmitter,
+                    state
+                ).process();
             })
             .then(() => {
                 return new NetworkHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process();

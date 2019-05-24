@@ -217,7 +217,7 @@ describe('AVR dependencies', () => {
             },
             onboard: {
                 provision: (data) => {
-                    isAvrProvisioned = typeof data.avr !== 'undefined';
+                    isAvrProvisioned = data.avr && data.avr !== 'none';
                     return Promise.resolve([]);
                 }
             }
@@ -254,7 +254,7 @@ describe('AVR dependencies', () => {
         return handler.process(declaration, state);
     });
 
-    it('should remove analytics and avr provisioning in the same declaration', () => {
+    it.skip('should remove analytics and avr provisioning in the same declaration', () => {
         isAvrProvisioned = true;
         const declaration = {
             parsed: true,
@@ -263,7 +263,11 @@ describe('AVR dependencies', () => {
 
         const state = {
             originalConfig: {
-                Common: {}
+                Common: {
+                    Provision: {
+                        avr: 'none'
+                    }
+                }
             },
             currentConfig: {
                 parsed: true,
@@ -278,6 +282,9 @@ describe('AVR dependencies', () => {
             }
         };
         const handler = new DeclarationHandler(new AvrBigIpMock());
-        return handler.process(declaration, state);
+        return handler.process(declaration, state)
+            .then(() => {
+                assert(!isAvrProvisioned, 'AVR was not de-provisioned');
+            });
     });
 });

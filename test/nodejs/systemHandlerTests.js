@@ -23,7 +23,6 @@ const sinon = require('sinon');
 
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
-let cloudUtilMock;
 let doUtilMock;
 let SystemHandler;
 
@@ -36,7 +35,6 @@ describe('systemHandler', () => {
     let activeCalled;
 
     before(() => {
-        cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
         doUtilMock = require('../../nodejs/doUtil');
         SystemHandler = require('../../nodejs/systemHandler');
     });
@@ -774,45 +772,6 @@ describe('systemHandler', () => {
                         reject(err);
                     });
             });
-        });
-    });
-
-    it('should handle provisioning', () => {
-        const declaration = {
-            Common: {
-                Provision: {
-                    module1: 'level 1',
-                    module2: 'level 2'
-                }
-            }
-        };
-
-        let provisioningSent;
-        bigIpMock.onboard = {
-            provision(provisioning) {
-                provisioningSent = provisioning;
-                return Promise.resolve([{}]);
-            }
-        };
-
-        let numActiveRequests = 0;
-        cloudUtilMock.callInSerial = (bigIp, activeRequests) => {
-            numActiveRequests = activeRequests.length;
-            return Promise.resolve();
-        };
-
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(provisioningSent.module1, declaration.Common.Provision.module1);
-                    assert.strictEqual(provisioningSent.module2, declaration.Common.Provision.module2);
-                    assert.ok(numActiveRequests > 0);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
         });
     });
 });
