@@ -17,6 +17,7 @@
 'use strict';
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
@@ -209,6 +210,8 @@ function handleLicensePool(license) {
     // that has the right credentials and host IP
     let getBigIp;
     let bigIp;
+    let currentPlatform;
+
     if (license.reachable) {
         getBigIp = new Promise((resolve, reject) => {
             this.bigIp.deviceInfo()
@@ -234,8 +237,21 @@ function handleLicensePool(license) {
         getBigIp = Promise.resolve(this.bigIp);
     }
 
-    return doUtil.checkDnsResolution(license.bigIqHost)
-        .then(() => { return getBigIp; })
+    let promise = Promise.resolve();
+    if (license.bigIqHost) {
+        promise = promise.then(() => {
+            return doUtil.checkDnsResolution(license.bigIqHost);
+        });
+    }
+
+    return promise
+        .then(() => {
+            return doUtil.getCurrentPlatform();
+        })
+        .then((platform) => {
+            currentPlatform = platform;
+            return getBigIp;
+        })
         .then((resolvedBigIp) => {
             bigIp = resolvedBigIp;
             let possiblyRevoke;
@@ -271,11 +287,12 @@ function handleLicensePool(license) {
                 }
 
                 possiblyRevoke = bigIp.onboard.revokeLicenseViaBigIq(
-                    options.bigIqHost,
+                    options.bigIqHost || 'localhost',
                     options.bigIqUser,
                     options.bigIqPassword || options.bigIqPasswordUri,
                     options.licensePoolName,
                     {
+                        bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, licenseInfo),
                         passwordIsUri: !!options.bigIqPasswordUri,
                         noUnreachable: !!license.reachable
                     }
@@ -289,12 +306,13 @@ function handleLicensePool(license) {
         .then(() => {
             if (license.licensePool) {
                 return bigIp.onboard.licenseViaBigIq(
-                    license.bigIqHost,
+                    license.bigIqHost || 'localhost',
                     license.bigIqUsername,
                     license.bigIqPassword || license.bigIqPasswordUri,
                     license.licensePool,
                     license.hypervisor,
                     {
+                        bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, license),
                         passwordIsUri: !!license.bigIqPasswordUri,
                         skuKeyword1: license.skuKeyword1,
                         skuKeyword2: license.skuKeyword2,
@@ -436,6 +454,17 @@ function disableDhcpOption(optionToDisable) {
                 }
             );
         });
+}
+
+function getBigIqManagementPort(currentPlatform, license) {
+    let bigIqMgmtPort;
+    // If we're on BIG-IQ and we're going to license from this device
+    // set up for no auth via port 8100
+    if (currentPlatform === PRODUCTS.BIGIQ
+        && (!license.bigIqHost || license.bigIqHost === 'localhost')) {
+        bigIqMgmtPort = 8100;
+    }
+    return bigIqMgmtPort;
 }
 
 module.exports = SystemHandler;

@@ -358,50 +358,6 @@ describe('system.schema.json', () => {
                     );
                 });
 
-                it('should invalidate revokeFrom with missing bigIqHost', () => {
-                    const data = {
-                        "class": "License",
-                        "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
-                        "bigIqUsername": "admin",
-                        "bigIqPassword": "foofoo",
-                        "reachable": false,
-                        "revokeFrom": {
-                            "bigIqUsername": "admin",
-                            "bigIqPassword": "foofoo",
-                            "licensePool": "myPool"
-                        }
-                    };
-                    assert.strictEqual(
-                        validate(data),
-                        false,
-                        'if revokeFrom is an object, bigIqHost is required'
-                    );
-                    assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "bigIqHost"'), -1);
-                });
-
-                it('should invalidate revokeFrom with missing bigIqUsername', () => {
-                    const data = {
-                        "class": "License",
-                        "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
-                        "bigIqUsername": "admin",
-                        "bigIqPassword": "foofoo",
-                        "reachable": false,
-                        "revokeFrom": {
-                            "bigIqHost": "1.2.3.4",
-                            "bigIqPassword": "foofoo",
-                            "licensePool": "myPool"
-                        }
-                    };
-                    assert.strictEqual(
-                        validate(data),
-                        false,
-                        'if revokeFrom is an object, bigIqHost is required'
-                    );
-                    assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "bigIqUsername"'), -1);
-                });
-
                 it('should invalidate revokeFrom with missing licensePool', () => {
                     const data = {
                         "class": "License",
@@ -422,6 +378,48 @@ describe('system.schema.json', () => {
                         'if revokeFrom is an object, licensePool is required'
                     );
                     assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "licensePool"'), -1);
+                });
+
+                it('should invalidate bigIqHost !== localhost with no bigIqUsername', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqPassword": "foofoo",
+                        "licensePool": "barbar",
+                        "reachable": false,
+                        "hypervisor": "aws"
+                    };
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'if bigIqHost is not localhost, bigIqUsername is required'
+                    );
+                    assert.notStrictEqual(
+                        getErrorString().indexOf('"missingProperty": ".bigIqUsername"'),
+                        -1
+                    );
+                });
+
+                it('should invalidate bigIqHost !== localhost with no password or password URI', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "licensePool": "barbar",
+                        "reachable": false,
+                        "hypervisor": "aws"
+                    };
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'if bigIqHost is not localhost, bigIqPassword is required'
+                    );
+                    assert.notStrictEqual(
+                        getErrorString().indexOf("should have required property '.bigIqPassword'"),
+                        -1
+                    );
                 });
             });
         });

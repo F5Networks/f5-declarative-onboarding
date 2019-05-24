@@ -2,7 +2,9 @@
 
 ## Version 1.5.0
 + Resolve [Issue 26](https://github.com/F5Networks/f5-declarative-onboarding/issues/26)
-+ Updates for running on BIG-IQ. remote.schema.json now has a bigIqSettings object. These values are passed to BIG-IQ as options it needs for managing a BIG-IP.
++ Updates for running on BIG-IQ.
+    + remote.schema.json now has a bigIqSettings object. These values are passed to BIG-IQ as options it needs for managing a BIG-IP.
+    + BIG-IQ credentials not required in licensePool object when licensing from the BIG-IQ on which DO is running.
 + Fix bug in which credentials could appear in declaration results when revoking a license.
 + Disable DHCP for DNS/NTP if DO will be configuring them.
 

@@ -386,13 +386,33 @@
         "bigIqHostInfo": {
             "description": "BIG-IQ host/credentials information",
             "type": "object",
-            "required": ["bigIqHost", "bigIqUsername"],
-            "oneOf": [
+            "allOf": [
                 {
-                    "required": ["bigIqPassword"]
+                    "if": {
+                        "required": ["bigIqPassword"]
+                    },
+                    "then": {
+                        "dependencies": {
+                            "bigIqPasswordUri": {
+                                "not": {}
+                            }
+                        }
+                    }
                 },
                 {
-                    "required": ["bigIqPasswordUri"]
+                    "if": {
+                        "required": ["bigIqHost"]
+                    },
+                    "then": {
+                        "if": { "not": {"properties": { "bigIqHost": { "const": "localhost" } } } },
+                        "then": {
+                            "required": ["bigIqUsername"],
+                            "oneOf": [
+                                { "required": ["bigIqPassword"] },
+                                { "required": ["bigIqPasswordUri"] }
+                            ]
+                        }
+                    }
                 }
             ],
             "properties": {

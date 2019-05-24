@@ -18,12 +18,14 @@
 
 const AjvValidator = require('./ajvValidator');
 const BigIqSettingsValidator = require('./bigIqSettingsValidator');
+const LicensePoolValidator = require('./licensePoolValidator');
 
 class Validator {
     constructor() {
         this.validators = [
             new AjvValidator(),
-            new BigIqSettingsValidator()
+            new BigIqSettingsValidator(),
+            new LicensePoolValidator()
         ];
     }
 

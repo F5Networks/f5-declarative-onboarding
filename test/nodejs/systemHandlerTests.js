@@ -24,7 +24,6 @@ const sinon = require('sinon');
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
 let cloudUtilMock;
-let doUtilMock;
 let SystemHandler;
 
 /* eslint-disable global-require */
@@ -33,6 +32,8 @@ describe('systemHandler', () => {
     let pathSent;
     let dataSent;
     let bigIpMock;
+    let doUtilMock;
+    let doUtilStub;
     let activeCalled;
 
     before(() => {
@@ -65,6 +66,9 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             }
         };
+        doUtilStub = sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => {
+            return Promise.resolve('BIG-IP');
+        });
         sinon.stub(dns, 'lookup').callsArg(1);
     });
 
@@ -616,6 +620,45 @@ describe('systemHandler', () => {
                     assert.strictEqual(bigIpPasswordSent, declaration.Common.License.bigIpPassword);
                     assert.strictEqual(bigIpHostSent, managementAddress);
                     assert.strictEqual(activeCalled, true);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle license pool when running on BIG-IQ', () => {
+        const declaration = {
+            Common: {
+                License: {
+                    licenseType: 'licensePool',
+                    licensePool: 'clpv2'
+                }
+            }
+        };
+
+        let bigIqHostSent;
+        let optionsSent;
+
+        doUtilStub.restore();
+        sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => {
+            return Promise.resolve('BIG-IQ');
+        });
+
+        bigIpMock.onboard = {
+            licenseViaBigIq(bigIqHost, bigIqUsername, bigIqPassword, licensePool, hypervisor, options) {
+                bigIqHostSent = bigIqHost;
+                optionsSent = options;
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIqHostSent, 'localhost');
+                    assert.strictEqual(optionsSent.bigIqMgmtPort, 8100);
                     resolve();
                 })
                 .catch((err) => {
