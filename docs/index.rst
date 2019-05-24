@@ -11,6 +11,12 @@ This guide contains information on downloading, installing, and using F5 Declara
 
 .. NOTE:: To see what's new in Declarative Onboarding, see the the :ref:`revision-history`. 
 
+.. _video:
+
+You can also see our AS3 overview video:
+
+|vid|
+
 To provide feedback on this documentation, you can file a GitHub Issue or email us at solutionsfeedback@f5.com. 
 
 Use the following links, the navigation on the left, and/or the Next and Previous buttons to explore the documentation.
@@ -38,4 +44,9 @@ Use the following links, the navigation on the left, and/or the Next and Previou
 .. |as3| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/3/" target="_blank">Application Services 3 (AS3)</a>
+
+.. |vid| raw:: html
+
+   <iframe width="560" height="315" src="https://www.youtube.com/embed/zNlLVZA6Aic" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
 
