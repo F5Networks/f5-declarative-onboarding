@@ -25,6 +25,7 @@ const DscHandler = require('./dscHandler');
 const AnalyticsHandler = require('./analyticsHandler');
 const DeleteHandler = require('./deleteHandler');
 const ProvisionHandler = require('./provisionHandler');
+const DeprovisionHandler = require('./deprovisionHandler');
 
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 
@@ -131,6 +132,14 @@ class DeclarationHandler {
             })
             .then(() => {
                 return new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter, state).process();
+            })
+            .then(() => {
+                return new DeprovisionHandler(
+                    updateDeclaration,
+                    this.bigIp,
+                    this.eventEmitter,
+                    state
+                ).process();
             })
             .then(() => {
                 logger.info('Done processing declaration.');

@@ -22,11 +22,11 @@ const sinon = require('sinon');
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 
-const ProvisionHandler = require('../../nodejs/provisionHandler');
+const DeprovisionHandler = require('../../nodejs/deprovisionHandler');
 
 /* eslint-disable global-require */
 
-describe('provisionHandler', () => {
+describe('deprovisionHandler', () => {
     let provisioningSent;
     const bigIpMock = {
         onboard: {
@@ -46,39 +46,7 @@ describe('provisionHandler', () => {
         sinon.restore();
     });
 
-    it('should handle provisioning', () => {
-        const declaration = {
-            Common: {
-                Provision: {
-                    module1: 'level 1',
-                    module2: 'level 2'
-                }
-            }
-        };
-
-        const state = {
-            currentConfig: {
-                Common: { }
-            }
-        };
-
-        let numActiveRequests = 0;
-        cloudUtil.callInSerial.restore();
-        sinon.stub(cloudUtil, 'callInSerial').callsFake((bigIp, activeRequests) => {
-            numActiveRequests = activeRequests.length;
-            return Promise.resolve();
-        });
-
-        const handler = new ProvisionHandler(declaration, bigIpMock, null, state);
-        return handler.process()
-            .then(() => {
-                assert.strictEqual(provisioningSent.module1, declaration.Common.Provision.module1);
-                assert.strictEqual(provisioningSent.module2, declaration.Common.Provision.module2);
-                assert.ok(numActiveRequests > 0);
-            });
-    });
-
-    it('should not de-provision', () => {
+    it('should handle de-provisioning', () => {
         const declaration = {
             Common: {
                 Provision: {
@@ -102,16 +70,15 @@ describe('provisionHandler', () => {
             }
         };
 
-        const handler = new ProvisionHandler(declaration, bigIpMock, null, state);
+        const handler = new DeprovisionHandler(declaration, bigIpMock, null, state);
         return handler.process()
             .then(() => {
                 assert.deepEqual(
                     provisioningSent,
                     {
                         module1: 'nominal',
-                        module2: 'nominal',
+                        module2: 'none',
                         module3: 'nominal',
-                        module4: 'nominal'
                     }
                 );
             });

@@ -40,6 +40,7 @@ class ProvisionHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.isDeprovisioning = false;
     }
 
     /**
@@ -62,29 +63,54 @@ class ProvisionHandler {
     }
 }
 
-function handleProvision() {
-    if (this.declaration.Common.Provision) {
-        const provision = this.declaration.Common.Provision;
-        return this.bigIp.onboard.provision(provision)
-            .then((results) => {
-                // If we provisioned something make sure we are active for a while.
-                // BIG-IP has a way of reporting active after provisioning, but then
-                // flipping to not active. We love you BIG-IP!
-                if (results.length > 0) {
-                    const activeRequests = [];
-                    for (let i = 0; i < 10; i++) {
-                        activeRequests.push(
-                            {
-                                promise: this.bigIp.active
-                            }
-                        );
-                    }
-                    return cloudUtil.callInSerial(this.bigIp, activeRequests, 100);
-                }
-                return Promise.resolve();
-            });
+function getProvision() {
+    function pruneNone(modules) {
+        const modulesCopy = JSON.parse(JSON.stringify(modules));
+        Object.keys(modules).forEach((module) => {
+            const level = modules[module];
+            if (level === 'none') {
+                delete modulesCopy[module];
+            }
+        });
+        return modulesCopy;
     }
-    return Promise.resolve();
+
+    let provision = this.declaration.Common.Provision;
+    if (!this.isDeprovisioning && this.state.currentConfig.Common.Provision) {
+        provision = Object.assign(
+            {},
+            pruneNone(this.state.currentConfig.Common.Provision),
+            pruneNone(provision)
+        );
+    }
+
+    return provision;
+}
+
+function handleProvision() {
+    if (!this.declaration.Common.Provision) {
+        return Promise.resolve();
+    }
+
+    const provision = getProvision.call(this);
+    return this.bigIp.onboard.provision(provision)
+        .then((results) => {
+            // If we provisioned something make sure we are active for a while.
+            // BIG-IP has a way of reporting active after provisioning, but then
+            // flipping to not active. We love you BIG-IP!
+            if (results.length > 0) {
+                const activeRequests = [];
+                for (let i = 0; i < 10; i++) {
+                    activeRequests.push(
+                        {
+                            promise: this.bigIp.active
+                        }
+                    );
+                }
+                return cloudUtil.callInSerial(this.bigIp, activeRequests, 100);
+            }
+            return Promise.resolve();
+        });
 }
 
 module.exports = ProvisionHandler;

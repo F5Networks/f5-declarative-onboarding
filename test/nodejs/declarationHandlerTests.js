@@ -254,7 +254,7 @@ describe('AVR dependencies', () => {
         return handler.process(declaration, state);
     });
 
-    it.skip('should remove analytics and avr provisioning in the same declaration', () => {
+    it('should remove analytics and avr provisioning in the same declaration', () => {
         isAvrProvisioned = true;
         const declaration = {
             parsed: true,
