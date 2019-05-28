@@ -19,7 +19,7 @@
 const assert = require('assert');
 const URL = require('url');
 
-/* eslint-disable global-require, quote-props, quotes */
+const ConfigManager = require('../../nodejs/configManager');
 
 describe('configManager', () => {
     const hostname = 'myhost.bigip.com';
@@ -27,14 +27,11 @@ describe('configManager', () => {
 
     let listResponses;
     let configItems;
-    let ConfigManager;
     let bigIpMock;
     let state;
     let doState;
 
     before(() => {
-        ConfigManager = require('../../nodejs/configManager');
-
         bigIpMock = {
             deviceInfo() {
                 return Promise.resolve({ hostname });
@@ -68,9 +65,9 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/sys/global-settings",
-                    "properties": [
-                        { "id": "hostname" }
+                    path: '/tm/sys/global-settings',
+                    properties: [
+                        { id: 'hostname' }
                     ]
                 }
             ];
@@ -96,11 +93,11 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/sys/ntp",
-                    "schemaClass": "NTP",
-                    "properties": [
-                        { "id": "servers" },
-                        { "id": "timezone" }
+                    path: '/tm/sys/ntp',
+                    schemaClass: 'NTP',
+                    properties: [
+                        { id: 'servers' },
+                        { id: 'timezone' }
                     ]
                 }
             ];
@@ -126,12 +123,12 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/net/route",
-                    "schemaClass": "Route",
-                    "properties": [
-                        { "id": "gw" },
-                        { "id": "network" },
-                        { "id": "mtu" }
+                    path: '/tm/net/route',
+                    schemaClass: 'Route',
+                    properties: [
+                        { id: 'gw' },
+                        { id: 'network' },
+                        { id: 'mtu' }
                     ]
                 }
             ];
@@ -174,12 +171,12 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/net/route",
-                    "schemaClass": "Route",
-                    "properties": [
-                        { "id": "gw" },
-                        { "id": "network" },
-                        { "id": "mtu" }
+                    path: '/tm/net/route',
+                    schemaClass: 'Route',
+                    properties: [
+                        { id: 'gw' },
+                        { id: 'network' },
+                        { id: 'mtu' }
                     ]
                 }
             ];
@@ -202,12 +199,12 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/net/route",
-                    "schemaClass": "Route",
-                    "properties": [
-                        { "id": "gw" },
-                        { "id": "network" },
-                        { "id": "mtu" }
+                    path: '/tm/net/route',
+                    schemaClass: 'Route',
+                    properties: [
+                        { id: 'gw' },
+                        { id: 'network' },
+                        { id: 'mtu' }
                     ]
                 }
             ];
@@ -230,12 +227,12 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/sys/provision",
-                    "schemaClass": "Provision",
-                    "properties": [
-                        { "id": "level" }
+                    path: '/tm/sys/provision',
+                    schemaClass: 'Provision',
+                    properties: [
+                        { id: 'level' }
                     ],
-                    "singleValue": true
+                    singleValue: true
                 }
             ];
 
@@ -255,7 +252,7 @@ describe('configManager', () => {
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.Provision,
-                        { 'afm': 'none', 'ltm': 'nominal' }
+                        { afm: 'none', ltm: 'nominal' }
                     );
                     resolve();
                 })
@@ -269,16 +266,16 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/net/vlan",
-                    "schemaClass": "VLAN",
-                    "properties": [
-                        { "id": "mtu" },
-                        { "id": "tag" },
-                        { "id": "interfacesReference" }
+                    path: '/tm/net/vlan',
+                    schemaClass: 'VLAN',
+                    properties: [
+                        { id: 'mtu' },
+                        { id: 'tag' },
+                        { id: 'interfacesReference' }
                     ],
-                    "references": {
-                        "interfacesReference": [
-                            { "id": "tagged", "truth": true, "falsehood": false }
+                    references: {
+                        interfacesReference: [
+                            { id: 'tagged', truth: true, falsehood: false }
                         ]
                     }
                 }
@@ -320,10 +317,10 @@ describe('configManager', () => {
             return new Promise((resolve, reject) => {
                 configItems = [
                     {
-                        "path": "/tm/net/self",
-                        "schemaClass": "SelfIp",
-                        "properties": [
-                            { "id": "vlan" }
+                        path: '/tm/net/self',
+                        schemaClass: 'SelfIp',
+                        properties: [
+                            { id: 'vlan' }
                         ]
                     }
                 ];
@@ -351,10 +348,10 @@ describe('configManager', () => {
             return new Promise((resolve, reject) => {
                 configItems = [
                     {
-                        "path": "/tm/net/self",
-                        "schemaClass": "SelfIp",
-                        "properties": [
-                            { "id": "allowService" }
+                        path: '/tm/net/self',
+                        schemaClass: 'SelfIp',
+                        properties: [
+                            { id: 'allowService' }
                         ]
                     }
                 ];
@@ -382,10 +379,10 @@ describe('configManager', () => {
             return new Promise((resolve, reject) => {
                 configItems = [
                     {
-                        "path": "/tm/net/self",
-                        "schemaClass": "SelfIp",
-                        "properties": [
-                            { "id": "allowService" }
+                        path: '/tm/net/self',
+                        schemaClass: 'SelfIp',
+                        properties: [
+                            { id: 'allowService' }
                         ]
                     }
                 ];
@@ -413,16 +410,16 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/sys/global-settings",
-                    "properties": [
-                        { "id": "hostname" }
+                    path: '/tm/sys/global-settings',
+                    properties: [
+                        { id: 'hostname' }
                     ]
                 },
                 {
-                    "path": "/tm/net/self",
-                    "schemaClass": "SelfIp",
-                    "properties": [
-                        { "id": "allowService" }
+                    path: '/tm/net/self',
+                    schemaClass: 'SelfIp',
+                    properties: [
+                        { id: 'allowService' }
                     ]
                 }
             ];
@@ -450,16 +447,16 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/sys/global-settings",
-                    "properties": [
-                        { "id": "hostname" }
+                    path: '/tm/sys/global-settings',
+                    properties: [
+                        { id: 'hostname' }
                     ]
                 },
                 {
-                    "path": "/tm/net/self",
-                    "schemaClass": "SelfIp",
-                    "properties": [
-                        { "id": "allowService" }
+                    path: '/tm/net/self',
+                    schemaClass: 'SelfIp',
+                    properties: [
+                        { id: 'allowService' }
                     ]
                 }
             ];
@@ -500,12 +497,12 @@ describe('configManager', () => {
         it('should get DB variables if in declaration', () => {
             configItems = [
                 {
-                    "path": "/tm/sys/db",
-                    "schemaClass": "DbVariables",
-                    "properties": [
-                        { "id": "value" }
+                    path: '/tm/sys/db',
+                    schemaClass: 'DbVariables',
+                    properties: [
+                        { id: 'value' }
                     ],
-                    "singleValue": true
+                    singleValue: true
                 }
             ];
 
@@ -553,14 +550,14 @@ describe('configManager', () => {
         return new Promise((resolve, reject) => {
             configItems = [
                 {
-                    "path": "/tm/cm/device-group",
-                    "schemaClass": "DeviceGroup",
-                    "properties": [
-                        { "id": "type" }
+                    path: '/tm/cm/device-group',
+                    schemaClass: 'DeviceGroup',
+                    properties: [
+                        { id: 'type' }
                     ],
-                    "ignore": [
-                        { "name": "^datasync-.+-dg$" },
-                        { "name": "^gtm$" }
+                    ignore: [
+                        { name: '^datasync-.+-dg$' },
+                        { name: '^gtm$' }
                     ]
                 }
             ];
