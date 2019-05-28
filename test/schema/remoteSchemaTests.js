@@ -23,6 +23,7 @@ const baseSchema = require('../../schema/base.schema.json');
 const systemSchema = require('../../schema/system.schema.json');
 const networkSchema = require('../../schema/network.schema.json');
 const dscSchema = require('../../schema/dsc.schema.json');
+const analyticsSchema = require('../../schema/analytics.schema.json');
 const requestSchema = require('../../schema/remote.schema.json');
 const customFormats = require('../../schema/formats.js');
 
@@ -43,6 +44,7 @@ const validate = ajv
     .addSchema(systemSchema)
     .addSchema(networkSchema)
     .addSchema(dscSchema)
+    .addSchema(analyticsSchema)
     .addSchema(baseSchema)
     .compile(requestSchema);
 

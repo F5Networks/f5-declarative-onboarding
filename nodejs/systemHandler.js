@@ -16,7 +16,6 @@
 
 'use strict';
 
-const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
@@ -79,10 +78,6 @@ class SystemHandler {
             .then(() => {
                 logger.fine('Checking License.');
                 return handleLicense.call(this);
-            })
-            .then(() => {
-                logger.info('Checking Provision.');
-                return handleProvision.call(this);
             })
             .then(() => {
                 logger.fine('Done processing system declaration.');
@@ -337,31 +332,6 @@ function handleLicensePool(license) {
         .catch((err) => {
             return Promise.reject(err);
         });
-}
-
-function handleProvision() {
-    if (this.declaration.Common.Provision) {
-        const provision = this.declaration.Common.Provision;
-        return this.bigIp.onboard.provision(provision)
-            .then((results) => {
-                // If we provisioned something make sure we are active for a while.
-                // BIG-IP has a way of reporting active after provisioning, but then
-                // flipping to not active. We love you BIG-IP!
-                if (results.length > 0) {
-                    const activeRequests = [];
-                    for (let i = 0; i < 10; i++) {
-                        activeRequests.push(
-                            {
-                                promise: this.bigIp.active
-                            }
-                        );
-                    }
-                    return cloudUtil.callInSerial(this.bigIp, activeRequests, 100);
-                }
-                return Promise.resolve();
-            });
-    }
-    return Promise.resolve();
 }
 
 function createOrUpdateUser(username, data) {

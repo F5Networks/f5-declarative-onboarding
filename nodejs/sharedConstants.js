@@ -35,7 +35,8 @@ module.exports = {
         Route: '/tm/net/route',
         SelfIp: '/tm/net/self',
         VLAN: '/tm/net/vlan',
-        DeviceGroup: '/tm/cm/device-group'
+        DeviceGroup: '/tm/cm/device-group',
+        Analytics: '/tm/analytics/global-settings'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -56,6 +57,7 @@ module.exports = {
         'Provision',
         'ConfigSync',
         'FailoverUnicast',
-        'DeviceTrust'
+        'DeviceTrust',
+        'Analytics'
     ]
 };
