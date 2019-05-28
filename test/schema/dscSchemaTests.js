@@ -260,7 +260,7 @@ describe('dsc.schema.json', () => {
             });
         });
 
-        describe('invlalid', () => {
+        describe('invalid', () => {
             it('should invalidate missing localUsername', () => {
                 const data = {
                     "class": "DeviceTrust",

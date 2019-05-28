@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 2.0
+        - Documentation only update: Added the :ref:`Declarative Onboarding Overview video<video>` to the home page.  
+        - 05-24-19
+
       * - 1.9
         - Released Declarative Onboarding v1.4.1. This maintenance release contains no changes for Declarative Onboarding from 1.4.0 but does include a new version of the Docker Container.  
         - 05-21-19

@@ -60,7 +60,7 @@ describe('base.schema.json', () => {
             });
         });
 
-        describe('invlalid', () => {
+        describe('invalid', () => {
             it('should invalidate missing schemaVersion', () => {
                 const data = {
                     "class": "Device"
