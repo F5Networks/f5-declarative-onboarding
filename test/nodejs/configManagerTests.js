@@ -26,7 +26,6 @@ describe('configManager', () => {
     const deviceName = 'device1';
 
     let listResponses;
-    let configItems;
     let bigIpMock;
     let state;
     let doState;
@@ -52,7 +51,8 @@ describe('configManager', () => {
                     hostname,
                     name: deviceName
                 }
-            ]
+            ],
+            '/tm/sys/provision': []
         };
         state = {};
         doState = {
@@ -63,7 +63,7 @@ describe('configManager', () => {
 
     it('should handle simple string values', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/sys/global-settings',
                     properties: [
@@ -91,7 +91,7 @@ describe('configManager', () => {
 
     it('should handle objects', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/sys/ntp',
                     schemaClass: 'NTP',
@@ -121,7 +121,7 @@ describe('configManager', () => {
 
     it('should handle arrays', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/net/route',
                     schemaClass: 'Route',
@@ -169,7 +169,7 @@ describe('configManager', () => {
 
     it('should handle arrays when none are already defined on BIG-IP < 14.x', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/net/route',
                     schemaClass: 'Route',
@@ -197,7 +197,7 @@ describe('configManager', () => {
 
     it('should handle arrays when none are already defined on BIG-IP > 14.x', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/net/route',
                     schemaClass: 'Route',
@@ -225,7 +225,7 @@ describe('configManager', () => {
 
     it('should handle config items where we to map property name to value', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/sys/provision',
                     schemaClass: 'Provision',
@@ -264,7 +264,7 @@ describe('configManager', () => {
 
     it('should handle references', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/net/vlan',
                     schemaClass: 'VLAN',
@@ -315,7 +315,7 @@ describe('configManager', () => {
     describe('SelfIp oddities', () => {
         it('should strip /Common from vlan', () => {
             return new Promise((resolve, reject) => {
-                configItems = [
+                const configItems = [
                     {
                         path: '/tm/net/self',
                         schemaClass: 'SelfIp',
@@ -346,7 +346,7 @@ describe('configManager', () => {
 
         it('should handle allowService with ["default"]', () => {
             return new Promise((resolve, reject) => {
-                configItems = [
+                const configItems = [
                     {
                         path: '/tm/net/self',
                         schemaClass: 'SelfIp',
@@ -377,7 +377,7 @@ describe('configManager', () => {
 
         it('should handle allowService none', () => {
             return new Promise((resolve, reject) => {
-                configItems = [
+                const configItems = [
                     {
                         path: '/tm/net/self',
                         schemaClass: 'SelfIp',
@@ -408,7 +408,7 @@ describe('configManager', () => {
 
     it('should set original config if missing', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/sys/global-settings',
                     properties: [
@@ -445,7 +445,7 @@ describe('configManager', () => {
 
     it('should not overwrite original config if present', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/sys/global-settings',
                     properties: [
@@ -495,7 +495,7 @@ describe('configManager', () => {
 
     describe('DbVariables', () => {
         it('should get DB variables if in declaration', () => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/sys/db',
                     schemaClass: 'DbVariables',
@@ -548,7 +548,7 @@ describe('configManager', () => {
 
     it('should ignore ignored properties', () => {
         return new Promise((resolve, reject) => {
-            configItems = [
+            const configItems = [
                 {
                     path: '/tm/cm/device-group',
                     schemaClass: 'DeviceGroup',
@@ -591,5 +591,34 @@ describe('configManager', () => {
                     reject(err);
                 });
         });
+    });
+
+    it('should skip unprovisioned modules', () => {
+        const configItems = [
+            {
+                path: '/tm/analytics/global-settings',
+                requiredModule: 'avr',
+                schemaClass: 'Analytics',
+                properties: []
+            }
+        ];
+
+        const bigip = {
+            deviceInfo() {
+                return Promise.resolve({ hostname });
+            },
+            list(path) {
+                const pathname = URL.parse(path, 'https://foo').pathname;
+                assert(
+                    pathname !== '/tm/analytics/global-settings',
+                    'Analytics was checked but not provisioned'
+                );
+                return Promise.resolve(listResponses[pathname] || {});
+            }
+        };
+        const configManager = new ConfigManager(configItems, bigip);
+        return configManager.get({}, state, doState)
+            .then(() => {
+            });
     });
 });
