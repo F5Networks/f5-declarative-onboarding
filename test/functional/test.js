@@ -131,7 +131,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         return common.dumpDeclaration(bigipAddress, auth);
                     })
                     .then((declarationStatus) => {
-                        reject(new Error(declarationStatus));
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
                     })
                     .catch((err) => {
                         reject(err);
@@ -197,7 +197,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         return common.dumpDeclaration(bigipAddress, auth);
                     })
                     .then((declarationStatus) => {
-                        reject(new Error(declarationStatus));
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
                     })
                     .catch((err) => {
                         reject(err);
@@ -272,7 +272,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         return common.dumpDeclaration(bigipAddress, bigipAuth);
                     })
                     .then((declarationStatus) => {
-                        reject(new Error(declarationStatus));
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
                     })
                     .catch((err) => {
                         reject(err);
@@ -295,7 +295,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         return common.dumpDeclaration(bigipAddress, bigipAuth);
                     })
                     .then((declarationStatus) => {
-                        reject(new Error(declarationStatus));
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
                     })
                     .catch((err) => {
                         reject(err);
@@ -343,7 +343,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         return common.dumpDeclaration(bigipAddress, bigipAuth);
                     })
                     .then((declarationStatus) => {
-                        reject(new Error(declarationStatus));
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
                     })
                     .catch((err) => {
                         reject(err);
@@ -376,7 +376,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         return common.dumpDeclaration(bigipAddress, bigipAuth);
                     })
                     .then((declarationStatus) => {
-                        reject(new Error(declarationStatus));
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
                     })
                     .catch((err) => {
                         reject(err);
@@ -451,7 +451,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         return common.dumpDeclaration(bigipAddress, bigipAuth);
                     })
                     .then((declarationStatus) => {
-                        reject(new Error(declarationStatus));
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
                     })
                     .catch((err) => {
                         reject(err);
@@ -502,7 +502,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         return common.dumpDeclaration(bigipAddress, auth);
                     })
                     .then((declarationStatus) => {
-                        reject(new Error(declarationStatus));
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
                     })
                     .catch((err) => {
                         reject(err);
