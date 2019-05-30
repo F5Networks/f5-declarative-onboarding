@@ -476,6 +476,9 @@ function onboard(declaration, bigIpOptions, taskId) {
 }
 
 function setPostOnboardStatus(bigIp, taskId, declaration) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
     let promise = Promise.resolve();
     // Don't overwrite the error state if it's there
     if (this.state.doState.getStatus(taskId) !== STATUS.STATUS_ERROR) {
