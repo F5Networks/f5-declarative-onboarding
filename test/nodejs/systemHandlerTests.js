@@ -111,200 +111,219 @@ describe('systemHandler', () => {
         });
     });
 
-    it('should handle NTP', () => {
-        const declaration = {
-            Common: {
-                NTP: {
-                    servers: [
-                        '0.pool.ntp.org',
-                        '1.pool.ntp.org'
-                    ],
-                    timezone: 'UTC'
-                }
+    describe('DNS/NTP', () => {
+        let bigIpStub;
+
+        function setUpBigIpStubWithRequestOptions(requestOptions) {
+            if (bigIpStub) {
+                bigIpStub.restore();
             }
-        };
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(pathSent, PATHS.NTP);
-                    assert.deepEqual(dataSent.servers, declaration.Common.NTP.servers);
-                    assert.deepEqual(dataSent.timezone, declaration.Common.NTP.timezone);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    });
-
-    it('should handle NTP with no servers declared', () => {
-        const declaration = {
-            Common: {
-                NTP: {
-                    timezone: 'UTC'
+            bigIpStub = sinon.stub(bigIpMock, 'list').callsFake((path) => {
+                if (path === '/tm/sys/management-dhcp/sys-mgmt-dhcp-config') {
+                    return Promise.resolve({ requestOptions });
                 }
-            }
-        };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process();
-    });
-
-    it('should turn off DHCP of NTP if we configure NTP', () => {
-        const declaration = {
-            Common: {
-                NTP: {
-                    timezone: 'UTC'
+                if (path === '/tm/sys/service/dhclient/stats') {
+                    return Promise.resolve({
+                        apiRawValues: {
+                            apiAnonymous: 'dhclient (pid  12049) is running...'
+                        }
+                    });
                 }
-            }
-        };
 
-        sinon.stub(bigIpMock, 'list').callsFake((path) => {
-            if (path === '/tm/sys/management-dhcp/sys-mgmt-dhcp-config') {
-                return Promise.resolve({
-                    requestOptions: ['one', 'two', 'ntp-servers', 'three']
-                });
-            }
-            return Promise.resolve();
-        });
-
-        sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
-            assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
-            assert.strictEqual(body.requestOptions.length, 3);
-            assert.strictEqual(body.requestOptions.indexOf('ntp-servers'), -1);
-        });
-
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process();
-    });
-
-    it('should reject NTP if bad hostname is sent', () => {
-        dns.lookup.restore();
-        sinon.stub(dns, 'lookup').callsArgWith(1, new Error('bad hostname'));
-
-        const testServers = [
-            'example.cant',
-            'www.google.com',
-            '10.56.48.3'
-        ];
-        const declaration = {
-            Common: {
-                NTP: {
-                    servers: testServers,
-                    timezone: 'UTC'
-                }
-            }
-        };
-
-        let didFail = false;
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .catch(() => {
-                didFail = true;
-            })
-            .then(() => {
-                if (!didFail) {
-                    const message = `All of these ${JSON.stringify(testServers)} exist, and one should NOT`;
-                    assert.fail(message);
-                }
+                return Promise.resolve();
             });
-    });
+        }
 
-    it('should reject if DNS configured after NTP is configured', () => {
-        let isDnsConfigured = false;
-        sinon.stub(bigIpMock, 'replace').callsFake((path) => {
-            if (path === PATHS.DNS) {
-                isDnsConfigured = true;
-            }
-            return Promise.resolve();
-        });
-        dns.lookup.restore();
-        sinon.stub(dns, 'lookup').callsFake((address, callback) => {
-            const message = 'DNS must be configured before NTP, so server hostnames can be checked';
-            assert.strictEqual(isDnsConfigured, true, message);
-            callback();
+        beforeEach(() => {
+            setUpBigIpStubWithRequestOptions([]);
         });
 
-        const testServers = [
-            'www.google.com',
-            '10.56.48.3'
-        ];
-        const declaration = {
-            Common: {
-                DNS: {
-                    nameServers: [
-                        '8.8.8.8',
-                        '2001:4860:4860::8844'
-                    ],
-                    search: ['one.com', 'two.com']
-                },
-                NTP: {
-                    servers: testServers,
-                    timezone: 'UTC'
+        it('should handle NTP', () => {
+            const declaration = {
+                Common: {
+                    NTP: {
+                        servers: [
+                            '0.pool.ntp.org',
+                            '1.pool.ntp.org'
+                        ],
+                        timezone: 'UTC'
+                    }
                 }
-            }
-        };
+            };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process();
-    });
+            return new Promise((resolve, reject) => {
+                const systemHandler = new SystemHandler(declaration, bigIpMock);
+                systemHandler.process()
+                    .then(() => {
+                        assert.strictEqual(pathSent, PATHS.NTP);
+                        assert.deepEqual(dataSent.servers, declaration.Common.NTP.servers);
+                        assert.deepEqual(dataSent.timezone, declaration.Common.NTP.timezone);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
 
-    it('should handle DNS', () => {
-        const declaration = {
-            Common: {
-                DNS: {
-                    nameServers: [
-                        '8.8.8.8',
-                        '2001:4860:4860::8844'
-                    ],
-                    search: ['one.com', 'two.com']
+        it('should handle NTP with no servers declared', () => {
+            const declaration = {
+                Common: {
+                    NTP: {
+                        timezone: 'UTC'
+                    }
                 }
-            }
-        };
+            };
 
-        return new Promise((resolve, reject) => {
             const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(pathSent, PATHS.DNS);
-                    assert.deepEqual(dataSent.nameServers, declaration.Common.DNS.servers);
-                    assert.deepEqual(dataSent.search, declaration.Common.DNS.search);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
+            return systemHandler.process();
         });
-    });
 
-    it('should turn off DHCP of DNS if we configure DNS', () => {
-        const declaration = {
-            Common: {
-                DNS: {
-                    nameServers: ['1.2.3.4']
+        it('should turn off DHCP of NTP if we configure NTP', () => {
+            const declaration = {
+                Common: {
+                    NTP: {
+                        timezone: 'UTC'
+                    }
                 }
-            }
-        };
+            };
 
-        sinon.stub(bigIpMock, 'list').callsFake((path) => {
-            if (path === '/tm/sys/management-dhcp/sys-mgmt-dhcp-config') {
-                return Promise.resolve({
-                    requestOptions: ['one', 'two', 'domain-name-servers', 'three']
+            setUpBigIpStubWithRequestOptions(['one', 'two', 'ntp-servers', 'three']);
+
+            sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
+                assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
+                assert.strictEqual(body.requestOptions.length, 3);
+                assert.strictEqual(body.requestOptions.indexOf('ntp-servers'), -1);
+            });
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process();
+        });
+
+        it('should reject NTP if bad hostname is sent', () => {
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsArgWith(1, new Error('bad hostname'));
+
+            const testServers = [
+                'example.cant',
+                'www.google.com',
+                '10.56.48.3'
+            ];
+            const declaration = {
+                Common: {
+                    NTP: {
+                        servers: testServers,
+                        timezone: 'UTC'
+                    }
+                }
+            };
+
+            let didFail = false;
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .catch(() => {
+                    didFail = true;
+                })
+                .then(() => {
+                    if (!didFail) {
+                        // eslint-disable-next-line max-len
+                        const message = `All of these ${JSON.stringify(testServers)} exist, and one should NOT`;
+                        assert.fail(message);
+                    }
                 });
-            }
-            return Promise.resolve();
         });
 
-        sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
-            assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
-            assert.strictEqual(body.requestOptions.length, 3);
-            assert.strictEqual(body.requestOptions.indexOf('domain-name-servers'), -1);
+        it('should reject if DNS configured after NTP is configured', () => {
+            let isDnsConfigured = false;
+            sinon.stub(bigIpMock, 'replace').callsFake((path) => {
+                if (path === PATHS.DNS) {
+                    isDnsConfigured = true;
+                }
+                return Promise.resolve();
+            });
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+                const message = 'DNS must be configured before NTP, so server hostnames can be checked';
+                assert.strictEqual(isDnsConfigured, true, message);
+                callback();
+            });
+
+            const testServers = [
+                'www.google.com',
+                '10.56.48.3'
+            ];
+            const declaration = {
+                Common: {
+                    DNS: {
+                        nameServers: [
+                            '8.8.8.8',
+                            '2001:4860:4860::8844'
+                        ],
+                        search: ['one.com', 'two.com']
+                    },
+                    NTP: {
+                        servers: testServers,
+                        timezone: 'UTC'
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process();
         });
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process();
+        it('should handle DNS', () => {
+            const declaration = {
+                Common: {
+                    DNS: {
+                        nameServers: [
+                            '8.8.8.8',
+                            '2001:4860:4860::8844'
+                        ],
+                        search: ['one.com', 'two.com']
+                    }
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const systemHandler = new SystemHandler(declaration, bigIpMock);
+                systemHandler.process()
+                    .then(() => {
+                        assert.strictEqual(pathSent, PATHS.DNS);
+                        assert.deepEqual(dataSent.nameServers, declaration.Common.DNS.servers);
+                        assert.deepEqual(dataSent.search, declaration.Common.DNS.search);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should turn off DHCP of DNS if we configure DNS', () => {
+            const declaration = {
+                Common: {
+                    DNS: {
+                        nameServers: ['1.2.3.4'],
+                        search: ['f5.com']
+                    }
+                }
+            };
+
+            setUpBigIpStubWithRequestOptions(['one', 'two', 'domain-name-servers', 'domain-name', 'three']);
+
+            sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
+                assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
+                assert.strictEqual(body.requestOptions.length, 3);
+                assert.strictEqual(body.requestOptions.indexOf('domain-name-servers'), -1);
+                assert.strictEqual(body.requestOptions.indexOf('domain-name'), -1);
+            });
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process();
+        });
     });
 
     it('should handle hostname', () => {

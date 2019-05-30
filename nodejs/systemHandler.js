@@ -16,6 +16,7 @@
 
 'use strict';
 
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
@@ -106,10 +107,10 @@ function handleNTP() {
 
         return Promise.all(promises)
             .then(() => {
-                return disableDhcpOption.call(this, 'ntp-servers');
+                return disableDhcpOptions.call(this, ['ntp-servers']);
             })
             .then(() => {
-                this.bigIp.replace(
+                return this.bigIp.replace(
                     PATHS.NTP,
                     {
                         servers: ntp.servers,
@@ -123,9 +124,19 @@ function handleNTP() {
 
 function handleDNS() {
     if (this.declaration.Common.DNS) {
-        return disableDhcpOption.call(this, 'domain-name-servers')
+        const dns = this.declaration.Common.DNS;
+        const dhcpOptionsToDisable = [];
+
+        if (dns.nameServers) {
+            dhcpOptionsToDisable.push('domain-name-servers');
+        }
+        if (dns.search) {
+            // dhclient calls search 'domain-name'
+            dhcpOptionsToDisable.push('domain-name');
+        }
+
+        return disableDhcpOptions.call(this, dhcpOptionsToDisable)
             .then(() => {
-                const dns = this.declaration.Common.DNS;
                 return this.bigIp.replace(
                     PATHS.DNS,
                     {
@@ -133,6 +144,9 @@ function handleDNS() {
                         search: dns.search || []
                     }
                 );
+            })
+            .then(() => {
+                return restartDhcp.call(this);
             });
     }
     return Promise.resolve();
@@ -384,7 +398,7 @@ function createOrUpdateUser(username, data) {
         });
 }
 
-function disableDhcpOption(optionToDisable) {
+function disableDhcpOptions(optionsToDisable) {
     let requiresDhcpRestart;
 
     return this.bigIp.list(
@@ -397,7 +411,7 @@ function disableDhcpOption(optionToDisable) {
 
             const currentOptions = dhcpOptions.requestOptions;
             const newOptions = currentOptions.filter((option) => {
-                return option !== optionToDisable;
+                return optionsToDisable.indexOf(option) === -1;
             });
 
             if (currentOptions.length === newOptions.length) {
@@ -416,13 +430,7 @@ function disableDhcpOption(optionToDisable) {
             if (!requiresDhcpRestart) {
                 return Promise.resolve();
             }
-            return this.bigIp.create(
-                '/tm/sys/service',
-                {
-                    command: 'restart',
-                    name: 'dhclient'
-                }
-            );
+            return restartDhcp.call(this);
         });
 }
 
@@ -435,6 +443,38 @@ function getBigIqManagementPort(currentPlatform, license) {
         bigIqMgmtPort = 8100;
     }
     return bigIqMgmtPort;
+}
+
+function restartDhcp() {
+    return this.bigIp.create(
+        '/tm/sys/service',
+        {
+            command: 'restart',
+            name: 'dhclient'
+        }
+    )
+        .then(() => {
+            function isDhcpRunning() {
+                return this.bigIp.list('/tm/sys/service/dhclient/stats')
+                    .then((dhcpStats) => {
+                        if (dhcpStats.apiRawValues
+                            && dhcpStats.apiRawValues.apiAnonymous
+                            && dhcpStats.apiRawValues.apiAnonymous.indexOf('is running') !== -1) {
+                            return Promise.resolve();
+                        }
+
+                        let message;
+                        if (dhcpStats.apiRawValues && dhcpStats.apiRawValues.apiAnonymous) {
+                            message = `dhclient status is ${dhcpStats.apiRawValues.apiAnonymous}`;
+                        } else {
+                            message = 'Unable to read dhclient status';
+                        }
+                        return Promise.reject(new Error(message));
+                    });
+            }
+
+            return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isDhcpRunning);
+        });
 }
 
 module.exports = SystemHandler;
