@@ -184,6 +184,7 @@ function handleJoinCluster() {
     if (this.declaration.Common.DeviceTrust && this.declaration.Common.DeviceGroup) {
         const deviceTrust = this.declaration.Common.DeviceTrust;
         const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
+        const deviceGroupMembers = this.declaration.Common.DeviceGroup[deviceGroupName].members;
 
         this.bigIp.user = deviceTrust.localUsername;
         this.bigIp.password = deviceTrust.localPassword;
@@ -196,9 +197,13 @@ function handleJoinCluster() {
                     deviceTrust.remotePassword,
                     false,
                     {
-                        product: PRODUCTS.BIGIP
+                        product: PRODUCTS.BIGIP,
+                        syncCompDevices: deviceGroupMembers
                     }
                 );
+            })
+            .then(() => {
+                return pruneDeviceGroup.call(this, deviceGroupName, deviceGroupMembers);
             });
     }
     return Promise.resolve();
@@ -264,8 +269,10 @@ function handleDeviceGroup() {
     if (this.declaration.Common.DeviceGroup) {
         const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
         let deviceGroup;
+        let deviceGroupMembers;
         if (deviceGroupName) {
             deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
+            deviceGroupMembers = this.declaration.Common.DeviceGroup[deviceGroupName].members;
         }
 
         if (deviceGroup) {
@@ -277,7 +284,10 @@ function handleDeviceGroup() {
                         return createDeviceGroup.call(this, deviceGroupName, deviceGroup);
                     }
 
-                    return joinDeviceGroup.call(this, deviceGroupName, hostname);
+                    return joinDeviceGroup.call(this, deviceGroupName, hostname)
+                        .then(() => {
+                            return pruneDeviceGroup.call(this, deviceGroupName, deviceGroupMembers);
+                        });
                 })
                 .catch((err) => {
                     logger.severe(`Error handling device group: ${err.message}`);
@@ -324,6 +334,12 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
             );
         })
         .then(() => {
+            return pruneDeviceGroup.call(this, deviceGroupName, deviceGroup.members)
+                .then((pruned) => {
+                    needsSync = needsSync || pruned;
+                });
+        })
+        .then(() => {
             if (needsSync) {
                 // We are the owner, so sync to the group
                 return this.bigIp.cluster.sync('to-group', deviceGroupName);
@@ -331,7 +347,10 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
             return Promise.resolve();
         })
         .then(() => {
-            return this.bigIp.cluster.syncComplete();
+            return this.bigIp.cluster.syncComplete(
+                { maxRetries: 3, retryIntervalMs: 10000 },
+                { connectedDevices: deviceGroup.members }
+            );
         })
         .catch((err) => {
             logger.severe(`Error creating device group: ${err.message}`);
@@ -405,6 +424,45 @@ function isRemoteHost(deviceInfo, remoteHost) {
                 });
         }
     });
+}
+
+/**
+ * Removes unwanted devices from device group.
+ *
+ * @param {String} deviceGroupName - Name of the device group.
+ * @param {String[]} deviceNames - Devices that should remain in device group.
+ *
+ * @returns {Promise} A promise which is resolved when the operation is complete
+ *                    or rejected if an error occurs. Promise resolves with true
+ *                    if one or more devices were pruned from the device group.
+ */
+function pruneDeviceGroup(deviceGroupName, deviceNames) {
+    if (!Array.isArray(deviceNames)) {
+        return Promise.resolve(false);
+    }
+
+    return this.bigIp.list(`${PATHS.DeviceGroup}/~Common~${deviceGroupName}/devices`)
+        .then((devices) => {
+            if (!Array.isArray(devices)) {
+                return Promise.resolve(false);
+            }
+
+            const devicesToRemove = [];
+            devices.forEach((device) => {
+                if (deviceNames.indexOf(device.name) === -1) {
+                    devicesToRemove.push(device.name);
+                }
+            });
+
+            if (devicesToRemove.length === 0) {
+                return Promise.resolve(false);
+            }
+
+            return this.bigIp.cluster.removeFromDeviceGroup(devicesToRemove, deviceGroupName)
+                .then(() => {
+                    return Promise.resolve(true);
+                });
+        });
 }
 
 module.exports = DscHandler;
