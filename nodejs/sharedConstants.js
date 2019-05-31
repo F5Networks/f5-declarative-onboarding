@@ -23,7 +23,7 @@
  */
 module.exports = {
     BASE_URL: 'https://localhost/mgmt/shared/declarative-onboarding',
-    MASK_REGEX: new RegExp('pass(word|phrase)', 'i'),
+    MASK_REGEX: new RegExp('pass(word|phrase)|secret', 'i'),
     ENDPOINTS: {
         CONFIG: 'config',
         INFO: 'info',
