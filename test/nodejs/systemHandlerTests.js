@@ -607,6 +607,7 @@ describe('systemHandler', () => {
             }
         };
         const managementAddress = '1.2.3.4';
+        const managementPort = 5678;
 
         let optionsSent;
         bigIpMock.onboard = {
@@ -617,14 +618,17 @@ describe('systemHandler', () => {
         bigIpMock.deviceInfo = () => {
             return Promise.resolve({ managementAddress });
         };
+        bigIpMock.port = managementPort;
 
         let bigIpUsernameSent;
         let bigIpPasswordSent;
         let bigIpHostSent;
+        let bigIpPortSent;
         doUtilMock.getBigIp = (logger, options) => {
             bigIpUsernameSent = options.user;
             bigIpPasswordSent = options.password;
             bigIpHostSent = options.host;
+            bigIpPortSent = options.port;
             return Promise.resolve(bigIpMock);
         };
 
@@ -636,6 +640,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(bigIpUsernameSent, declaration.Common.License.bigIpUsername);
                     assert.strictEqual(bigIpPasswordSent, declaration.Common.License.bigIpPassword);
                     assert.strictEqual(bigIpHostSent, managementAddress);
+                    assert.strictEqual(bigIpPortSent, managementPort);
                     assert.strictEqual(activeCalled, true);
                     resolve();
                 })
