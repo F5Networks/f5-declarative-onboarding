@@ -9,6 +9,7 @@
 + Fix bug in which credentials could appear in declaration results when revoking a license.
 + Disable DHCP for DNS/NTP if DO will be configuring them.
 + Allow setting global analytics settings.
++ License keys wil no longer appear in the log.
 
 ## Version 1.4.1
 + Fix vulnerability CVE-2019-5021 in DO container
