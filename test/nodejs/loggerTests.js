@@ -86,6 +86,14 @@ describe('logger', () => {
         assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
     });
 
+    it('should mask a secret', () => {
+        const mySecret = 'f5site02';
+        logger.info({ secret: mySecret });
+        assert.strictEqual(loggedMessages.info[0].indexOf(mySecret), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('secret:', -1));
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+    });
+
     it('should mask reg key', () => {
         const myRegKey = 'D3548-07483-24256-24104-0863690';
         logger.info({ regKey: myRegKey });
