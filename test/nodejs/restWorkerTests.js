@@ -989,9 +989,11 @@ describe('restWorker', () => {
         describe('running on BIG-IQ', () => {
             let taskId;
             let realSetTimeout;
+            let bodySet;
 
             beforeEach(() => {
                 realSetTimeout = setTimeout;
+                bodySet = null;
 
                 doUtilMock.getCurrentPlatform = () => {
                     return Promise.resolve('BIG-IQ');
@@ -1004,6 +1006,7 @@ describe('restWorker', () => {
                             setContentType() { return this; },
                             setBody(body) {
                                 this.body = body;
+                                bodySet = body;
                                 taskId = body.id;
                                 return this;
                             },
@@ -1328,6 +1331,44 @@ describe('restWorker', () => {
 
                         restOperationMock.complete = () => {
                             assert.strictEqual(sshCommand, 'modify auth user admin password foofoo');
+                            resolve();
+                        };
+
+                        try {
+                            restWorker.onPost(restOperationMock);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    });
+                });
+
+                it('should delete targetSshKey when setting targetPassphrase', () => {
+                    return new Promise((resolve, reject) => {
+                        declaration = {
+                            class: 'DO',
+                            targetHost: '1.2.3.4',
+                            targetUsername: 'admin',
+                            targetSshKey: {
+                                path: '~/.ssh/id_rsa'
+                            },
+                            declaration: {
+                                Credentials: {
+                                    foo: {
+                                        bar: 'foofoo'
+                                    }
+                                },
+                                Common: {
+                                    admin: {
+                                        class: 'User',
+                                        password: '/Credentials/foo/bar'
+                                    }
+                                }
+                            }
+                        };
+
+                        restOperationMock.complete = () => {
+                            assert.strictEqual(bodySet.declaration.targetPassphrase, 'foofoo');
+                            assert.strictEqual(bodySet.declaration.targetSshKey, undefined);
                             resolve();
                         };
 

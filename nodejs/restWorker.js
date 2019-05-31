@@ -262,6 +262,7 @@ class RestWorker {
                         .then((updatedPassword) => {
                             if (updatedPassword) {
                                 wrapper.targetPassphrase = updatedPassword;
+                                delete wrapper.targetSshKey;
                             }
 
                             // Determine if this is an internal task (coming back to us
