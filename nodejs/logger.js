@@ -19,6 +19,8 @@
 const path = require('path');
 const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 
+const MASK_REGEX_REGKEY = new RegExp('[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{7}', 'i');
+
 let f5Logger;
 try {
     /* eslint-disable global-require */
@@ -130,21 +132,38 @@ function log(level, message, extraArgs) {
         }
         fullMessage = `${fullMessage} ${expandedArg}`;
     });
+
     this.logger[level](`[${this.tag}: ${this.filename}] ${fullMessage}`);
 }
 
 function mask(message) {
     let masked;
+    const replacement = '********';
     if (typeof message === 'object') {
-        masked = {};
-        Object.assign(masked, message);
+        masked = JSON.parse(JSON.stringify(message));
         Object.keys(masked).forEach((key) => {
             if (MASK_REGEX.test(key)) {
-                masked[key] = '********';
+                masked[key] = replacement;
             }
         });
     } else {
         masked = message;
+    }
+    masked = searchAndReplace(masked, MASK_REGEX_REGKEY, replacement);
+    return masked;
+}
+
+function searchAndReplace(searched, matchRegex, replacementString) {
+    let masked;
+    if (typeof searched === 'object') {
+        masked = JSON.parse(JSON.stringify(searched));
+        Object.keys(masked).forEach((key) => {
+            masked[key] = searchAndReplace(masked[key], matchRegex, replacementString);
+        });
+    } else if (typeof searched === 'string') {
+        masked = searched.replace(matchRegex, replacementString);
+    } else {
+        masked = searched;
     }
     return masked;
 }
