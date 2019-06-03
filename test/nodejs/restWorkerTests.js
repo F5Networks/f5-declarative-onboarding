@@ -1380,6 +1380,49 @@ describe('restWorker', () => {
                     });
                 });
 
+                it('should update password used to create bigIp', () => {
+                    return new Promise((resolve, reject) => {
+                        declaration = {
+                            class: 'DO',
+                            targetHost: '1.2.3.4',
+                            targetUsername: 'admin',
+                            targetSshKey: {
+                                path: '~/.ssh/id_rsa'
+                            },
+                            declaration: {
+                                Credentials: {
+                                    foo: {
+                                        bar: 'foofoo'
+                                    }
+                                },
+                                Common: {
+                                    admin: {
+                                        class: 'User',
+                                        password: '/Credentials/foo/bar'
+                                    }
+                                }
+                            }
+                        };
+
+                        restOperationMock.getUri = () => {
+                            return {
+                                query: { internal: true }
+                            };
+                        };
+
+                        restOperationMock.complete = () => {
+                            assert.strictEqual(bigIpOptionsCalled.password, 'foofoo');
+                            resolve();
+                        };
+
+                        try {
+                            restWorker.onPost(restOperationMock);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    });
+                });
+
                 it('should use password value if it is not really a pointer', () => {
                     return new Promise((resolve, reject) => {
                         declaration = {

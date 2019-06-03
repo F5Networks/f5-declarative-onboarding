@@ -253,15 +253,12 @@ class RestWorker {
                             wrapper.targetUsername = bigIpOptions.user;
                             wrapper.targetPassphrase = bigIpOptions.password;
 
-                            if (!isFromTcw) {
-                                return initialAccountSetup.call(this, wrapper);
-                            }
-
-                            return Promise.resolve();
+                            return initialAccountSetup.call(this, wrapper);
                         })
                         .then((updatedPassword) => {
                             if (updatedPassword) {
                                 wrapper.targetPassphrase = updatedPassword;
+                                bigIpOptions.password = updatedPassword;
                                 delete wrapper.targetSshKey;
                             }
 
