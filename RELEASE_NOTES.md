@@ -12,6 +12,7 @@
 + Allow setting global analytics settings.
 + License keys wil no longer appear in the log.
 + RADIUS server secret will no longer appear in the log.
++ LicensePool now respects custom management access port of BIG-IP that is being licensed.
 
 ## Version 1.4.1
 + Fix vulnerability CVE-2019-5021 in DO container

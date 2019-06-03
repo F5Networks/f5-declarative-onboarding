@@ -229,6 +229,7 @@ function handleLicensePool(license) {
                         logger,
                         {
                             host: deviceInfo.managementAddress,
+                            port: this.bigIp.port,
                             user: license.bigIpUsername,
                             password: license.bigIpPassword
                         }
