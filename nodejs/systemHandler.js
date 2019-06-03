@@ -144,9 +144,6 @@ function handleDNS() {
                         search: dns.search || []
                     }
                 );
-            })
-            .then(() => {
-                return restartDhcp.call(this);
             });
     }
     return Promise.resolve();
@@ -460,7 +457,7 @@ function restartDhcp() {
                     .then((dhcpStats) => {
                         if (dhcpStats.apiRawValues
                             && dhcpStats.apiRawValues.apiAnonymous
-                            && dhcpStats.apiRawValues.apiAnonymous.indexOf('is running') !== -1) {
+                            && dhcpStats.apiRawValues.apiAnonymous.indexOf('running') !== -1) {
                             return Promise.resolve();
                         }
 
