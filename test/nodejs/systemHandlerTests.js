@@ -114,7 +114,7 @@ describe('systemHandler', () => {
     describe('DNS/NTP', () => {
         let bigIpStub;
 
-        function setUpBigIpStubWithRequestOptions(requestOptions) {
+        function setUpBigIpStubWithRequestOptions(requestOptions, bigIpVersion) {
             if (bigIpStub) {
                 bigIpStub.restore();
             }
@@ -124,10 +124,14 @@ describe('systemHandler', () => {
                     return Promise.resolve({ requestOptions });
                 }
 
+                const bigIpDhclientStatus = 'dhclient (pid  12049) is running...';
+                // eslint-disable-next-line max-len
+                const bigIp14DhclientStatus = '* dhclient.service - SYSV: dhclient automatically configures the management interface when DHCP is available.\n   Loaded: loaded (/etc/rc.d/init.d/dhclient; bad; vendor preset: disabled)\n   Active: active (running) since Sat 2019-06-01 22:16:34 UTC; 8min ago\n     Docs: man:systemd-sysv-generator(8)\n  Process: 18049 ExecStop=/etc/rc.d/init.d/dhclient stop (code=exited, status=0/SUCCESS)\n  Process: 18099 ExecStart=/etc/rc.d/init.d/dhclient start (code=exited, status=0/SUCCESS)\n   CGroup: /system.slice/dhclient.service\n           `-18131 /sbin/dhclient -nw mgmt -cf /etc/dhclient.conf -lf /var/lib/dhclient/dhclient.leases -pf /var/run/dhclient.pid\n\nJun 01 22:16:34 localhost.localdomain dhclient[18099]: Current management-ip configuration mode for IPV4 is: DHCP.\nJun 01 22:16:34 localhost.localdomain dhclient[18114]: DHCPREQUEST on mgmt to 255.255.255.255 port 67 (xid=0x4646e482)\nJun 01 22:16:34 localhost.localdomain dhclient[18131]: DHCPACK from 10.145.64.1 (xid=0x4646e482)\nJun 01 22:16:34 localhost.localdomain dhclient[18099]: Starting /sbin/dhclient: [  OK  ]\nJun 01 22:16:34 localhost.localdomain systemd[1]: Started SYSV: dhclient automatically configures the management interface when DHCP is available..\nJun 01 22:16:36 localhost.localdomain tmsh[18057]: 01420002:5: AUDIT - pid=18057 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:40 localhost.localdomain tmsh[18189]: 01420002:5: AUDIT - pid=18189 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:40 localhost.localdomain tmsh[18192]: 01420002:5: AUDIT - pid=18192 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:42 localhost.localdomain tmsh[18216]: 01420002:5: AUDIT - pid=18216 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:42 localhost.localdomain dhclient[18131]: bound to 10.145.69.240 -- renewal in 1614 seconds.\n"';
                 if (path === '/tm/sys/service/dhclient/stats') {
                     return Promise.resolve({
                         apiRawValues: {
-                            apiAnonymous: 'dhclient (pid  12049) is running...'
+                            apiAnonymous:
+                                bigIpVersion === '14.1' ? bigIp14DhclientStatus : bigIpDhclientStatus
                         }
                     });
                 }
@@ -313,6 +317,31 @@ describe('systemHandler', () => {
             };
 
             setUpBigIpStubWithRequestOptions(['one', 'two', 'domain-name-servers', 'domain-name', 'three']);
+
+            sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
+                assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
+                assert.strictEqual(body.requestOptions.length, 3);
+                assert.strictEqual(body.requestOptions.indexOf('domain-name-servers'), -1);
+                assert.strictEqual(body.requestOptions.indexOf('domain-name'), -1);
+            });
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process();
+        });
+
+        it('should turn off DHCP of DNS if we configure DNS on BIG-IP 14.1', () => {
+            const declaration = {
+                Common: {
+                    DNS: {
+                        nameServers: ['1.2.3.4'],
+                        search: ['f5.com']
+                    }
+                }
+            };
+
+            setUpBigIpStubWithRequestOptions(
+                ['one', 'two', 'domain-name-servers', 'domain-name', 'three'], '14.1'
+            );
 
             sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
                 assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
