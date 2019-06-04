@@ -218,32 +218,6 @@ function handleLicensePool(license) {
     let bigIp;
     let currentPlatform;
 
-    if (license.reachable) {
-        getBigIp = new Promise((resolve, reject) => {
-            this.bigIp.deviceInfo()
-                .then((deviceInfo) => {
-                    return doUtil.getBigIp(
-                        logger,
-                        {
-                            host: deviceInfo.managementAddress,
-                            port: this.bigIp.port,
-                            user: license.bigIpUsername,
-                            password: license.bigIpPassword
-                        }
-                    );
-                })
-                .then((resolvedBigIp) => {
-                    resolve(resolvedBigIp);
-                })
-                .catch((err) => {
-                    logger.severe(`Error getting big ip for reachable API: ${err.message}`);
-                    reject(err);
-                });
-        });
-    } else {
-        getBigIp = Promise.resolve(this.bigIp);
-    }
-
     let promise = Promise.resolve();
     if (license.bigIqHost) {
         promise = promise.then(() => {
@@ -257,6 +231,36 @@ function handleLicensePool(license) {
         })
         .then((platform) => {
             currentPlatform = platform;
+
+            // If we're running on BIG-IP, get the real address info (since it might be 'localhost'
+            // which won't work). Otherwise, assume we can already reach the BIG-IP through
+            // it's current address and port (since that is what we've been using to get this far)
+            if (currentPlatform === PRODUCTS.BIGIP && license.reachable) {
+                getBigIp = new Promise((resolve, reject) => {
+                    this.bigIp.deviceInfo()
+                        .then((deviceInfo) => {
+                            return doUtil.getBigIp(
+                                logger,
+                                {
+                                    host: deviceInfo.managementAddress,
+                                    port: this.bigIp.port,
+                                    user: license.bigIpUsername,
+                                    password: license.bigIpPassword
+                                }
+                            );
+                        })
+                        .then((resolvedBigIp) => {
+                            resolve(resolvedBigIp);
+                        })
+                        .catch((err) => {
+                            logger.severe(`Error getting big ip for reachable API: ${err.message}`);
+                            reject(err);
+                        });
+                });
+            } else {
+                getBigIp = Promise.resolve(this.bigIp);
+            }
+
             return getBigIp;
         })
         .then((resolvedBigIp) => {
@@ -312,6 +316,14 @@ function handleLicensePool(license) {
         })
         .then(() => {
             if (license.licensePool) {
+                let bigIpMgmtAddress;
+
+                // If we're running on BIG-IQ or a container, we know our host info
+                // is correct and reachable, so use it, otherwise, let licensing code figure it out
+                if (currentPlatform !== PRODUCTS.BIGIP) {
+                    bigIpMgmtAddress = bigIp.host;
+                }
+
                 return bigIp.onboard.licenseViaBigIq(
                     license.bigIqHost || 'localhost',
                     license.bigIqUsername,
@@ -319,6 +331,7 @@ function handleLicensePool(license) {
                     license.licensePool,
                     license.hypervisor,
                     {
+                        bigIpMgmtAddress,
                         bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, license),
                         passwordIsUri: !!license.bigIqPasswordUri,
                         skuKeyword1: license.skuKeyword1,
