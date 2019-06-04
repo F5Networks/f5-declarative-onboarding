@@ -575,6 +575,7 @@ describe('systemHandler', () => {
                 }
             }
         };
+        const host = '11.12.13.14';
 
         let bigIqHostSent;
         let bigIqUsernameSent;
@@ -582,6 +583,8 @@ describe('systemHandler', () => {
         let licensePoolSent;
         let hypervisorSent;
         let optionsSent;
+
+        bigIpMock.host = host;
         bigIpMock.onboard = {
             licenseViaBigIq(bigIqHost, bigIqUsername, bigIqPassword, licensePool, hypervisor, options) {
                 bigIqHostSent = bigIqHost;
@@ -602,6 +605,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(bigIqPasswordSent, declaration.Common.License.bigIqPassword);
                     assert.strictEqual(licensePoolSent, declaration.Common.License.licensePool);
                     assert.strictEqual(hypervisorSent, declaration.Common.License.hypervisor);
+                    assert.strictEqual(optionsSent.bigIpMgmtAddress, undefined);
                     assert.strictEqual(optionsSent.skuKeyword1, declaration.Common.License.skuKeyword1);
                     assert.strictEqual(optionsSent.skuKeyword2, declaration.Common.License.skuKeyword2);
                     assert.strictEqual(optionsSent.unitOfMeasure, declaration.Common.License.unitOfMeasure);
@@ -635,6 +639,7 @@ describe('systemHandler', () => {
                 }
             }
         };
+        const host = '11.12.13.14';
         const managementAddress = '1.2.3.4';
         const managementPort = 5678;
 
@@ -647,6 +652,7 @@ describe('systemHandler', () => {
         bigIpMock.deviceInfo = () => {
             return Promise.resolve({ managementAddress });
         };
+        bigIpMock.host = host;
         bigIpMock.port = managementPort;
 
         let bigIpUsernameSent;
@@ -665,6 +671,7 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock);
             systemHandler.process()
                 .then(() => {
+                    assert.strictEqual(optionsSent.bigIpMgmtAddress, undefined);
                     assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
                     assert.strictEqual(bigIpUsernameSent, declaration.Common.License.bigIpUsername);
                     assert.strictEqual(bigIpPasswordSent, declaration.Common.License.bigIpPassword);
@@ -688,6 +695,7 @@ describe('systemHandler', () => {
                 }
             }
         };
+        const host = '11.12.13.14';
 
         let bigIqHostSent;
         let optionsSent;
@@ -697,6 +705,7 @@ describe('systemHandler', () => {
             return Promise.resolve('BIG-IQ');
         });
 
+        bigIpMock.host = host;
         bigIpMock.onboard = {
             licenseViaBigIq(bigIqHost, bigIqUsername, bigIqPassword, licensePool, hypervisor, options) {
                 bigIqHostSent = bigIqHost;
@@ -709,6 +718,7 @@ describe('systemHandler', () => {
             systemHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIqHostSent, 'localhost');
+                    assert.strictEqual(optionsSent.bigIpMgmtAddress, host);
                     assert.strictEqual(optionsSent.bigIqMgmtPort, 8100);
                     resolve();
                 })
