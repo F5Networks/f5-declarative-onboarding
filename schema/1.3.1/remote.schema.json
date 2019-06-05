@@ -1,0 +1,82 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/remote.schema.json",
+    "title": "F5 Declarative Onboarding request declaration",
+    "description": "Wrapper for remote onboarding of a BIG-IP device using F5 Declarative Onboarding",
+    "type": "object",
+    "required": ["class", "declaration"],
+    "properties": {
+        "class": {
+            "description": "Indicates that this is a Declarative Onboarding request",
+            "type": "string",
+            "const": "DO"
+        },
+        "targetHost": {
+            "description": "Hostname or IP address of ADC to which request applies (default localhost)",
+            "type": "string",
+            "anyOf": [
+                { "format": "ipv4" },
+                { "format": "ipv6" },
+                { "format": "hostname" }
+            ],
+            "default": "localhost"
+        },
+        "targetPort": {
+            "description": "TCP port number of management service on targetHost; default 0 means try common ports",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535,
+            "default": 0
+        },
+        "targetUsername": {
+            "description": "Username of principal authorized to modify configuration of targetHost (may not include the character ':').  NOTE:  this is generally not required to configure 'localhost' because client authentication and authorization precede invocation of DO.  It is also not required for any targetHost if you populate targetTokens",
+            "type": "string",
+            "anyOf": [
+                { "format": "json-pointer" },
+                { "pattern": "^[^:]{0,254}$" }
+            ]
+        },
+        "targetPassphrase": {
+            "description": "Passphrase for targetUsername account.  This is generally not required to configure 'localhost' and is not required when you populate targetTokens",
+            "type": "string",
+            "anyOf": [
+                { "format": "json-pointer" },
+                { "pattern": "^.{0,254}$" }
+            ]
+        },
+        "targetTokens": {
+            "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the targetHost management service as authentication/authorization tokens",
+            "oneOf": [
+                {
+                    "description": "Pointer to tokens in a format that matches the 'object' schema below",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "json-pointer" }
+                    ]
+                },
+                {
+                    "type": "object",
+                    "patternProperties": {
+                        "^[^\\x00-\\x20:\\x7f-\\xff]{1,254}$": {
+                            "type": "string",
+                            "pattern": "^[^\\x00-\\x1f\\x7f-\\xff]{0,8192}$"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "targetTimeout": {
+            "description": "Maximum delay allowed while communicating with targetHost device (seconds, default 900)",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 900
+        },
+        "declaration": {
+            "description": "Declaration to deploy to targetHost",
+            "$ref": "base.schema.json#"
+        }
+    },
+    "additionalProperties": false
+}

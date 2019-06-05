@@ -15,6 +15,7 @@
 + RADIUS server secret will no longer appear in the log.
 + LicensePool now respects custom management access port of BIG-IP that is being licensed.
 + When a 400 is received from restjavad, DO will now retry licensing.
++ Add legacy schemas to /schema for validation.
 
 ## Version 1.4.1
 + Fix vulnerability CVE-2019-5021 in DO container
