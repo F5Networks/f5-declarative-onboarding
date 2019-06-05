@@ -108,28 +108,37 @@ function log(level, message, extraArgs) {
     let expandedArg;
     let masked;
 
-    masked = mask(message);
-    if (typeof masked === 'object') {
-        try {
-            fullMessage = JSON.stringify(masked);
-        } catch (err) {
+    if (message === null) {
+        fullMessage = 'null';
+    } else {
+        masked = mask(message);
+        if (typeof masked === 'object') {
+            try {
+                fullMessage = JSON.stringify(masked);
+            } catch (err) {
+                fullMessage = masked;
+            }
+        } else {
             fullMessage = masked;
         }
-    } else {
-        fullMessage = masked;
     }
 
     extraArgs.forEach((extraArg) => {
-        masked = mask(extraArg);
-        if (typeof masked === 'object') {
-            try {
-                expandedArg = JSON.stringify(masked);
-            } catch (err) {
+        if (extraArg === null) {
+            expandedArg = 'null';
+        } else {
+            masked = mask(extraArg);
+            if (typeof masked === 'object') {
+                try {
+                    expandedArg = JSON.stringify(masked);
+                } catch (err) {
+                    expandedArg = masked;
+                }
+            } else {
                 expandedArg = masked;
             }
-        } else {
-            expandedArg = masked;
         }
+
         fullMessage = `${fullMessage} ${expandedArg}`;
     });
 
@@ -137,8 +146,13 @@ function log(level, message, extraArgs) {
 }
 
 function mask(message) {
+    if (message === null) {
+        return 'null';
+    }
+
     let masked;
     const replacement = '********';
+
     if (typeof message === 'object') {
         masked = JSON.parse(JSON.stringify(message));
         Object.keys(masked).forEach((key) => {
@@ -154,6 +168,10 @@ function mask(message) {
 }
 
 function searchAndReplace(searched, matchRegex, replacementString) {
+    if (searched === null) {
+        return 'null';
+    }
+
     let masked;
     if (typeof searched === 'object') {
         masked = JSON.parse(JSON.stringify(searched));

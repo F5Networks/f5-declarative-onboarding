@@ -78,6 +78,29 @@ describe('logger', () => {
         assert.notStrictEqual(loggedMessages.info[0].indexOf('part 1 part 2 part 3'), -1);
     });
 
+    it('should log different types of arguments', () => {
+        function assertMessage(level, expectedMsg, args) {
+            const caller = logger;
+            logger[level].apply(caller, args);
+
+            const fullMsg = `[f5-declarative-onboarding: loggerTests.js] ${expectedMsg}`;
+            assert.notStrictEqual(
+                loggedMessages[level][0].indexOf(fullMsg),
+                -1,
+                `Failed for arg value: ${args}`
+            );
+        }
+
+        const msg = 'string';
+        const msgObject = { yes: 'no', theType: 'object' };
+
+        assertMessage('info', msg, [msg]);
+        assertMessage('severe', 'undefined', [undefined]);
+        assertMessage('fine', 'null', [null]);
+        assertMessage('warning', JSON.stringify(msgObject), [msgObject]);
+        assertMessage('finest', `null ${JSON.stringify(msgObject)}`, [null, msgObject]);
+    });
+
     it('should mask passwords', () => {
         const myPassword = 'foofoo';
         logger.info({ password: myPassword });
