@@ -10,7 +10,7 @@
 + Fix bug in which credentials could appear in declaration results when revoking a license.
 + Disable DHCP for DNS/NTP if DO will be configuring them.
 + Allow setting global analytics settings.
-+ License keys wil no longer appear in the log.
++ License keys will no longer appear in the log.
 + RADIUS server secret will no longer appear in the log.
 + LicensePool now respects custom management access port of BIG-IP that is being licensed.
 + When a 400 is received from restjavad, DO will now retry licensing.

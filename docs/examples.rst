@@ -47,7 +47,6 @@ In this example, the entire *License* class is unique to using BIG-IQ for licens
 
 .. literalinclude:: ../examples/reLicenseViaBigIqReachable.json
    :language: json
-   :linenos:
    :emphasize-lines: 16-21
 
 :ref:`Back to top<examples>`
@@ -63,7 +62,6 @@ In this example, the entire *License* class is unique to using BIG-IQ for licens
 
 .. literalinclude:: ../examples/licenseViaBigIqUnreachable.json
    :language: json
-   :linenos:
    :emphasize-lines: 19-20
 
 :ref:`Back to top<examples>`
@@ -79,7 +77,6 @@ The items specific to the DO class are highlighted.
 
 .. literalinclude:: ../examples/viaASG.json
    :language: json
-   :linenos:
    :emphasize-lines: 2-6
 
 :ref:`Back to top<examples>`
@@ -94,7 +91,6 @@ The following is another example using a declaration for use in a container, but
 
 .. literalinclude:: ../examples/licenseViaBigIqReachableASG.json
    :language: json
-   :linenos:
 
 
 :ref:`Back to top<examples>`
@@ -113,7 +109,6 @@ The following is an example of using BIG-IQ to revoke a license from an unreacha
 
 .. literalinclude:: ../examples/revokeViaBigIqUnreachable.json
    :language: json
-   :linenos:
    :emphasize-lines: 14
 
 
@@ -133,7 +128,6 @@ The following is an example of using BIG-IQ to revoke a license and then relicen
 
 .. literalinclude:: ../examples/reLicenseViaBigIqReachable.json
    :language: json
-   :linenos:
    :emphasize-lines: 14-15
 
 
@@ -153,7 +147,6 @@ The following is an example of using BIG-IQ to revoke a license and then relicen
 
 .. literalinclude:: ../examples/reLicenseViaBigIqUnreachable.json
    :language: json
-   :linenos:
    :emphasize-lines: 14-15, 21
 
 :ref:`Back to top<examples>`
@@ -172,8 +165,24 @@ This example is similar to example 9, however in this case, we are using a diffe
 
 .. literalinclude:: ../examples/reLicenseViaNewBigIqUnreachable.json
    :language: json
-   :linenos:
    :emphasize-lines: 15-21, 27 
+
+
+:ref:`Back to top<examples>`
+
+.. _avrstream:
+
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for the Analytics profile is available in Declarative Onboarding v1.5.0 and later.
+
+Example 11: Creating an Analytics profile to enable AVR data streaming
+----------------------------------------------------------------------
+In this example, we are licensing a new BIG-IP, provisioning AVR, and creating an Analytics profile (you must have AVR provisioned to create an Analytics profile).  This allows you to stream AVR data for consumption by F5 Telemetry Steaming or similar applications.
+
+.. literalinclude:: ../examples/avrStreamingSupport.json
+   :language: json
+   :emphasize-lines: 17, 19-29 
 
 
 :ref:`Back to top<examples>`
