@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 2.1
+        - Updated the documentation for Declarative Onboarding v1.5.0. This release contains the following changes: |br| * Support for creating an Analytics profile (see :ref:`Creating an Analytics profile <avrstream>`).  |br| * New **/task** endpoint to retrieve status by task (see :ref:`Note in GET documentation <getnote>`) |br| |br| Issues Resolved: |br| * Declarative Onboarding now disables DHCP for DNS/NTP if DO is configuring them |br| * License keys no longer appear in the log |br| * Radius server secrets no longer appears in the log |br| * LicensePool now respects custom management access port of the BIG-IP that is being licensed |br| * When a 400 is received from restjavad, DO now tries relicensing |br| *  **remote.schema.json** now has a **bigIqSettings** object. These values are passed to BIG-IQ as options it needs for managing a BIG-IP. |br| * BIG-IQ credentials not required in licensePool object when licensing from the BIG-IQ on which DO is running |br| * When running on BIG-IQ, use the BIG-IP public management address for licensing.
+        - 06-18-19
+      
       * - 2.0
         - Documentation only update: Added the :ref:`Declarative Onboarding Overview video<video>` to the home page.  
         - 05-24-19
