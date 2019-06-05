@@ -350,6 +350,9 @@ All core modules are included inside `../nodejs/`
 
 Build/publish makes heavy use of GitLab and [.gitlab-ci.yml](../.gitlab-ci.yml).  Check out CI file and GitLab documentation for more details.
 
+- Update /schema directory:
+    - .json and.js files in /schema should be copied into latest.
+    - A new directory should be added for the new release version.
 - RPMs are generated for every push to GitLab.
 - RPMs are pushed to Artifactory at f5-declarative-onboarding-rpm for every tag pushed to GitLab.
 - When ready for release:
