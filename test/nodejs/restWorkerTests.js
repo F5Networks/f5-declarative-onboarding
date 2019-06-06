@@ -926,14 +926,14 @@ describe('restWorker', () => {
 
         it('should set status to rolling back if an error occurs', () => {
             const rollbackReason = 'this it the rollback reason';
-            let proccessCallCount = 0;
+            let processCallCount = 0;
             return new Promise((resolve, reject) => {
                 DeclarationHandlerMock.prototype.process = () => {
                     // For this test, we want to reject the first call to simulate
                     // an error but resolve the second call to simulate successful
                     // rollback
-                    proccessCallCount += 1;
-                    if (proccessCallCount === 1) {
+                    processCallCount += 1;
+                    if (processCallCount === 1) {
                         return Promise.reject(new Error(rollbackReason));
                     }
                     return Promise.resolve();
@@ -1109,6 +1109,58 @@ describe('restWorker', () => {
                     restOperationMock.complete = () => {
                         assert.strictEqual(pollRequests, 2);
                         assert.strictEqual(responseBody.result.status, 'ERROR');
+                        resolve();
+                    };
+
+                    try {
+                        restWorker.onPost(restOperationMock);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            });
+
+            it('should handle TCW fail before onboard complete', () => {
+                let numCalls = 0;
+                const externalId = '1234';
+                restWorker.restRequestSender.sendGet = () => {
+                    // Fake a second call to onboard as though it is coming from TCW
+                    if (numCalls === 0) {
+                        restOperationMock.getUri = () => {
+                            return {
+                                query: {
+                                    externalId,
+                                    internal: true
+                                }
+                            };
+                        };
+
+                        restWorker.onPost(restOperationMock);
+                    }
+                    numCalls += 1;
+                    return Promise.resolve({
+                        // Fail on the second call so that we have a chance to call onboard again
+                        getBody() {
+                            return { status: numCalls > 1 ? 'FAILED' : 'STARTED' };
+                        }
+                    });
+                };
+
+                DeclarationHandlerMock.prototype.process = () => {
+                    // Fail some time after TCW is already failed
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            reject(new Error('declaration process failure'));
+                        }, 5000);
+                    });
+                };
+
+                restWorker.retryInterval = 100;
+
+                return new Promise((resolve, reject) => {
+                    restOperationMock.complete = () => {
+                        assert.strictEqual(Object.keys(restWorker.bigIps).length, 2);
+                        assert.notStrictEqual(restWorker.bigIps[externalId], undefined);
                         resolve();
                     };
 

@@ -303,16 +303,9 @@ class RestWorker {
                                     }
                                 });
 
-                                onboard.call(this, declaration, bigIpOptions, taskId)
+                                onboard.call(this, declaration, bigIpOptions, taskId, originalDoId)
                                     .then(() => {
                                         logger.fine('Onboard configuration complete. Saving sys config.');
-
-                                        // We store the bigIp object under the original ID so the polling
-                                        // task knows which state to update. This is only sent by the TCW.
-                                        if (originalDoId) {
-                                            this.bigIps[originalDoId] = this.bigIps[taskId];
-                                        }
-
                                         return this.bigIps[taskId].save();
                                     })
                                     .then(() => {
@@ -403,12 +396,18 @@ class RestWorker {
     /* eslint-enable class-methods-use-this */
 }
 
-function onboard(declaration, bigIpOptions, taskId) {
+function onboard(declaration, bigIpOptions, taskId, originalDoId) {
     let declarationHandler;
 
     return doUtil.getBigIp(logger, bigIpOptions)
         .then((bigIp) => {
             this.bigIps[taskId] = bigIp;
+
+            // We store the bigIp object under the original ID so the polling
+            // task knows which state to update. This is only sent by the TCW.
+            if (originalDoId) {
+                this.bigIps[originalDoId] = this.bigIps[taskId];
+            }
 
             logger.fine('Getting and saving current configuration');
             return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId);
