@@ -1122,6 +1122,7 @@ describe('restWorker', () => {
 
             it('should handle TCW fail before onboard complete', () => {
                 let numCalls = 0;
+                let timerId;
                 const externalId = '1234';
                 restWorker.restRequestSender.sendGet = () => {
                     // Fake a second call to onboard as though it is coming from TCW
@@ -1149,7 +1150,7 @@ describe('restWorker', () => {
                 DeclarationHandlerMock.prototype.process = () => {
                     // Fail some time after TCW is already failed
                     return new Promise((resolve, reject) => {
-                        setTimeout(() => {
+                        timerId = setTimeout(() => {
                             reject(new Error('declaration process failure'));
                         }, 5000);
                     });
@@ -1161,6 +1162,7 @@ describe('restWorker', () => {
                     restOperationMock.complete = () => {
                         assert.strictEqual(Object.keys(restWorker.bigIps).length, 2);
                         assert.notStrictEqual(restWorker.bigIps[externalId], undefined);
+                        clearTimeout(timerId);
                         resolve();
                     };
 
