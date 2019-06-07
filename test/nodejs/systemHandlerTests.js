@@ -432,7 +432,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(userSent, 'root');
                     assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
                     assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
-                    assert.strictEqual(superuserKey, declaration.Common.User.root.keys.join('\n'));
+                    assert.strictEqual(declaration.Common.User.root.keys.join('\n'), superuserKey);
                     resolve();
                 })
                 .catch((err) => {
@@ -478,7 +478,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(userSent, 'root');
                     assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
                     assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
-                    assert.strictEqual(expectedKeys, declaration.Common.User.root.keys.join('\n'));
+                    assert.strictEqual(declaration.Common.User.root.keys.join('\n'), expectedKeys);
                     resolve();
                 })
                 .catch((err) => {
@@ -488,7 +488,35 @@ describe('systemHandler', () => {
     });
 
     it('should handle non-root users with & without keys', () => {
-        const stubCounter = sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
+        const bashCmds = [];
+        sinon.stub(doUtilMock, 'executeBashCommandRemote').callsFake((bigIp, bashCmd) => {
+            bashCmds.push(bashCmd);
+            return Promise.resolve(superuserKey);
+        });
+
+        const sshPaths = [
+            '/home/user1/.ssh',
+            '/home/user2/.ssh'
+        ];
+
+        const expBash = [
+            [
+                ` mkdir -p ${sshPaths[0]}; `,
+                `echo '${testKey}' > `,
+                `${sshPaths[0]}/authorized_keys; `,
+                `chown -R "user1":webusers ${sshPaths[0]}; `,
+                `chmod -R 700 ${sshPaths[0]}; `,
+                `chmod 600 ${sshPaths[0]}/authorized_keys`
+            ].join(''),
+            [
+                ` mkdir -p ${sshPaths[1]}; `,
+                'echo \'\' > ',
+                `${sshPaths[1]}/authorized_keys; `,
+                `chown -R "user2":webusers ${sshPaths[1]}; `,
+                `chmod -R 700 ${sshPaths[1]}; `,
+                `chmod 600 ${sshPaths[1]}/authorized_keys`
+            ].join('')
+        ];
 
         const declaration = {
             Common: {
@@ -551,8 +579,8 @@ describe('systemHandler', () => {
                         ]
                     );
                     assert.deepEqual(bodiesSent[1].shell, 'tmsh');
-                    const callCountMess = 'Both users should hit the bash endpoint.';
-                    assert.strictEqual(stubCounter.callCount, 2, callCountMess);
+                    assert.strictEqual(bashCmds[0], expBash[0]);
+                    assert.strictEqual(bashCmds[1], expBash[1]);
                     resolve();
                 })
                 .catch((err) => {
