@@ -81,7 +81,7 @@ describe('remote.schema.json', () => {
                         "schemaVersion": "1.0.0",
                         "class": "Device",
                         "Common": {
-                            "class": "foo",
+                            "class": "foo"
                         }
                     }
                 };

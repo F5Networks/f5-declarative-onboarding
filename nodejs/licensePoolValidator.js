@@ -20,7 +20,6 @@ const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS
 const doUtil = require('./doUtil');
 
 class LicensePoolValidator {
-    /* eslint-disable class-methods-use-this, max-len */
     validate(data) {
         if (!data || !data.declaration) {
             return Promise.resolve({

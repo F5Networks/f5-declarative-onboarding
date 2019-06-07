@@ -57,12 +57,8 @@ describe('analyticsHandler', () => {
     it('should translate debugEnabled', () => {
         const assertTranslate = makeAssertTranslate('debugEnabled', 'avrd-debug-mode');
         return Promise.resolve()
-            .then(() => {
-                return assertTranslate(true, 'enabled');
-            })
-            .then(() => {
-                return assertTranslate(false, 'disabled');
-            });
+            .then(() => assertTranslate(true, 'enabled'))
+            .then(() => assertTranslate(false, 'disabled'));
     });
 
     it('should translate interval', () => {
@@ -73,12 +69,8 @@ describe('analyticsHandler', () => {
     it('should translate offboxProtocol', () => {
         const assertTranslate = makeAssertTranslate('offboxProtocol', 'offbox-protocol');
         return Promise.resolve()
-            .then(() => {
-                return assertTranslate('tcp', 'tcp');
-            })
-            .then(() => {
-                return assertTranslate(undefined, 'none');
-            });
+            .then(() => assertTranslate('tcp', 'tcp'))
+            .then(() => assertTranslate(undefined, 'none'));
     });
 
     it('should translate offboxTcpAddresses', () => {
@@ -94,11 +86,7 @@ describe('analyticsHandler', () => {
     it('should translate offboxEnabled', () => {
         const assertTranslate = makeAssertTranslate('offboxEnabled', 'use-offbox');
         return Promise.resolve()
-            .then(() => {
-                return assertTranslate(true, 'enabled');
-            })
-            .then(() => {
-                return assertTranslate(false, 'disabled');
-            });
+            .then(() => assertTranslate(true, 'enabled'))
+            .then(() => assertTranslate(false, 'disabled'));
     });
 });

@@ -21,15 +21,11 @@ const fs = require('fs');
 const examplesDir = 'examples';
 const outputFile = 'dist/do.examples.collection.json';
 
-const readdir = (path) => {
-    return fs.readdirSync(path)
-        .map((example) => {
-            return {
-                json: JSON.parse(fs.readFileSync(`${path}/${example}`)),
-                name: example.split('.')[0]
-            };
-        });
-};
+const readdir = path => fs.readdirSync(path)
+    .map(example => ({
+        json: JSON.parse(fs.readFileSync(`${path}/${example}`)),
+        name: example.split('.')[0]
+    }));
 
 
 const buildCollection = () => {

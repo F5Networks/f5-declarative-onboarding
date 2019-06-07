@@ -101,23 +101,17 @@ function handleDbVars() {
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        const promises = (ntp.servers || []).map((server) => {
-            return doUtil.checkDnsResolution(server);
-        });
+        const promises = (ntp.servers || []).map(server => doUtil.checkDnsResolution(server));
 
         return Promise.all(promises)
-            .then(() => {
-                return disableDhcpOptions.call(this, ['ntp-servers']);
-            })
-            .then(() => {
-                return this.bigIp.replace(
-                    PATHS.NTP,
-                    {
-                        servers: ntp.servers,
-                        timezone: ntp.timezone
-                    }
-                );
-            });
+            .then(() => disableDhcpOptions.call(this, ['ntp-servers']))
+            .then(() => this.bigIp.replace(
+                PATHS.NTP,
+                {
+                    servers: ntp.servers,
+                    timezone: ntp.timezone
+                }
+            ));
     }
     return Promise.resolve();
 }
@@ -136,15 +130,13 @@ function handleDNS() {
         }
 
         return disableDhcpOptions.call(this, dhcpOptionsToDisable)
-            .then(() => {
-                return this.bigIp.replace(
-                    PATHS.DNS,
-                    {
-                        'name-servers': dns.nameServers,
-                        search: dns.search || []
-                    }
-                );
-            });
+            .then(() => this.bigIp.replace(
+                PATHS.DNS,
+                {
+                    'name-servers': dns.nameServers,
+                    search: dns.search || []
+                }
+            ));
     }
     return Promise.resolve();
 }
@@ -200,9 +192,7 @@ function handleRegKey(license) {
             overwrite: license.overwrite
         }
     )
-        .then(() => {
-            return this.bigIp.active();
-        })
+        .then(() => this.bigIp.active())
         .catch((err) => {
             const errorLicensing = `Error licensing: ${err.message}`;
             logger.severe(errorLicensing);
@@ -220,15 +210,11 @@ function handleLicensePool(license) {
 
     let promise = Promise.resolve();
     if (license.bigIqHost) {
-        promise = promise.then(() => {
-            return doUtil.checkDnsResolution(license.bigIqHost);
-        });
+        promise = promise.then(() => doUtil.checkDnsResolution(license.bigIqHost));
     }
 
     return promise
-        .then(() => {
-            return doUtil.getCurrentPlatform();
-        })
+        .then(() => doUtil.getCurrentPlatform())
         .then((platform) => {
             currentPlatform = platform;
 
@@ -238,17 +224,15 @@ function handleLicensePool(license) {
             if (currentPlatform === PRODUCTS.BIGIP && license.reachable) {
                 getBigIp = new Promise((resolve, reject) => {
                     this.bigIp.deviceInfo()
-                        .then((deviceInfo) => {
-                            return doUtil.getBigIp(
-                                logger,
-                                {
-                                    host: deviceInfo.managementAddress,
-                                    port: this.bigIp.port,
-                                    user: license.bigIpUsername,
-                                    password: license.bigIpPassword
-                                }
-                            );
-                        })
+                        .then(deviceInfo => doUtil.getBigIp(
+                            logger,
+                            {
+                                host: deviceInfo.managementAddress,
+                                port: this.bigIp.port,
+                                user: license.bigIpUsername,
+                                password: license.bigIpPassword
+                            }
+                        ))
                         .then((resolvedBigIp) => {
                             resolve(resolvedBigIp);
                         })
@@ -354,9 +338,7 @@ function handleLicensePool(license) {
             }
             return this.bigIp.active();
         })
-        .catch((err) => {
-            return Promise.reject(err);
-        });
+        .catch(err => Promise.reject(err));
 }
 
 function createOrUpdateUser(username, data) {
@@ -421,9 +403,7 @@ function disableDhcpOptions(optionsToDisable) {
             }
 
             const currentOptions = dhcpOptions.requestOptions;
-            const newOptions = currentOptions.filter((option) => {
-                return optionsToDisable.indexOf(option) === -1;
-            });
+            const newOptions = currentOptions.filter(option => optionsToDisable.indexOf(option) === -1);
 
             if (currentOptions.length === newOptions.length) {
                 return Promise.resolve();

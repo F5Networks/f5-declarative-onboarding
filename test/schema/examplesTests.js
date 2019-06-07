@@ -28,9 +28,7 @@ describe('examples', () => {
     const files = fs.readdirSync(`${__dirname}/../../examples`);
 
     beforeEach(() => {
-        sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => {
-            return Promise.resolve('BIG-IP');
-        });
+        sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));
     });
 
     afterEach(() => {

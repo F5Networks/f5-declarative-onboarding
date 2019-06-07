@@ -26,7 +26,6 @@ const schema = require('../schema/base.schema.json');
 class InfoResponse {
     // Many of these methods do not need 'this' as they return constants
     // but the must be instance methods for consistency with other responders
-    /* eslint-disable class-methods-use-this */
     getSelfLink() {
         return `${BASE_URL}/${ENDPOINTS.INFO}`;
     }

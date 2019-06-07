@@ -88,11 +88,7 @@ class DeleteHandler {
         });
 
         function runInSerial(promiseArr) {
-            return promiseArr.reduce((chain, curr) => {
-                return chain.then(() => {
-                    return Promise.all(curr);
-                });
-            }, Promise.resolve());
+            return promiseArr.reduce((chain, curr) => chain.then(() => Promise.all(curr)), Promise.resolve());
         }
 
         return runInSerial(promises)

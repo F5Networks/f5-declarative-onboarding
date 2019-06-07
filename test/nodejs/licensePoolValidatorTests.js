@@ -64,9 +64,7 @@ describe('licensePoolValidator', () => {
 
     describe('onBigIp', () => {
         beforeEach(() => {
-            doUtilMock = sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => {
-                return Promise.resolve('BIG-IP');
-            });
+            doUtilMock = sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));
         });
 
         it('should validate declarations with valid licenseSettings', () => {
@@ -169,16 +167,12 @@ describe('licensePoolValidator', () => {
 
     describe('onBigIq', () => {
         beforeEach(() => {
-            doUtilMock = sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => {
-                return Promise.resolve('BIG-IQ');
-            });
+            doUtilMock = sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IQ'));
         });
 
         it('should validate declarations with valid licenseSettings', () => {
             doUtilMock.restore();
-            sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => {
-                return Promise.resolve('BIG-IQ');
-            });
+            sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IQ'));
 
             const wrapper = {
                 declaration: {

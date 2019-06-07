@@ -27,11 +27,10 @@ const assert = require('assert');
 const constants = require('./constants.js');
 const common = require('./common.js');
 
-const configItems = require(`${__dirname}/../../nodejs/configItems.json`);
+const configItems = require('../../nodejs/configItems.json');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-/* eslint-disable no-undef */
 /* eslint-disable no-console */
 /* eslint-disable prefer-arrow-callback */
 
@@ -42,7 +41,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
     const machines = [];
     before(function setup() {
         return common.readFile(process.env.TEST_HARNESS_FILE)
-            .then((file) => { return JSON.parse(file); })
+            .then(file => JSON.parse(file))
             .then((deployedMachines) => {
                 deployedMachines.forEach((deployedMachine) => {
                     machines.push({
@@ -61,9 +60,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                 }
                 return Promise.resolve();
             })
-            .catch((error) => {
-                return Promise.reject(error);
-            });
+            .catch(error => Promise.reject(error));
     });
 
     describe('Test Configuration Scope', () => {
@@ -109,19 +106,11 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                     .then((readBody) => {
                         body = readBody;
                     })
-                    .then(() => {
-                        return common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                    .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
                             + `${constants.DO_API}`, auth,
-                        constants.HTTP_ACCEPTED, 'POST');
-                    })
-                    .then(() => {
-                        // we make a single status call (retrying it if it doesn't succeed),
-                        // and check everything against the response we get from it. Then all
-                        // of the tests become local
-                        // try 30 times, for 1min each trial
-                        return common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
-                            constants.HTTP_SUCCESS);
-                    })
+                    constants.HTTP_ACCEPTED, 'POST'))
+                    .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
+                        constants.HTTP_SUCCESS))
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                         resolve();
@@ -180,14 +169,10 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                     .then((fileRead) => {
                         body = JSON.parse(fileRead);
                     })
-                    .then(() => {
-                        return common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST');
-                    })
-                    .then(() => {
-                        return common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
-                            constants.HTTP_SUCCESS);
-                    })
+                    .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
+                    .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
+                        constants.HTTP_SUCCESS))
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                         resolve();
@@ -254,16 +239,10 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         body.Common.myLicense.bigIpPassword = bigipAuth.password;
                         return body;
                     })
-                    .then((body) => {
-                        // license the BIG-IP through a BIG-IQ
-                        return common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST');
-                    })
-                    .then(() => {
-                        // wait until status is 200, try 20 times, 60 secs each trial
-                        return common.testGetStatus(20, 60 * 1000, bigipAddress, bigipAuth,
-                            constants.HTTP_SUCCESS);
-                    })
+                    .then(body => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
+                    .then(() => common.testGetStatus(20, 60 * 1000, bigipAddress, bigipAuth,
+                        constants.HTTP_SUCCESS))
                     .then(() => {
                         resolve();
                     })
@@ -280,184 +259,159 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
             });
         });
 
-        it('should have licensed', () => {
-            return new Promise((resolve, reject) => {
-                // check if device has been licensed with an iControl call to the BIG-IQ
-                return getAuditLink(bigIqAddress, bigipAddress, bigIqAuth)
-                    .then((auditLink) => {
-                        // save the licensing link to compare against later
-                        oldAuditLink = auditLink;
-                        assert.ok(auditLink);
-                        resolve();
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        return common.dumpDeclaration(bigipAddress, bigipAuth);
-                    })
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
-        });
+        it('should have licensed', () => new Promise((resolve, reject) => getAuditLink(bigIqAddress, bigipAddress, bigIqAuth)
+            .then((auditLink) => {
+                // save the licensing link to compare against later
+                oldAuditLink = auditLink;
+                assert.ok(auditLink);
+                resolve();
+            })
+            .catch((error) => {
+                console.log(error);
+                return common.dumpDeclaration(bigipAddress, bigipAuth);
+            })
+            .then((declarationStatus) => {
+                reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+            })
+            .catch((err) => {
+                reject(err);
+            })));
 
-        it('should have re-licensed with new pool', () => {
-            return new Promise((resolve, reject) => {
-                const bodyFileRevokingRelicensing = `${BODIES}/revoking_relicensing_big_iq.json`;
-                // now revoke and re-license using another license pool
-                return common.readFile(bodyFileRevokingRelicensing)
-                    .then(JSON.parse)
-                    .then((body) => {
-                        body.Common.myLicense.bigIqHost = bigIqAddress;
-                        body.Common.myLicense.bigIqUsername = bigIqAuth.username;
-                        body.Common.myLicense.bigIqPassword = bigIqAuth.password;
-                        body.Common.myLicense.bigIpUsername = bigipAuth.username;
-                        body.Common.myLicense.bigIpPassword = bigipAuth.password;
-                        return body;
-                    })
-                    .then((body) => {
-                        return common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST');
-                    })
-                    .then(() => {
-                        // wait until status is 200, try 20 times, 60 secs each trial
-                        return common.testGetStatus(20, 60 * 1000, bigipAddress,
-                            bigipAuth, constants.HTTP_SUCCESS);
-                    })
-                    .then(() => {
-                        return getAuditLink(bigIqAddress, bigipAddress, bigIqAuth);
-                    })
-                    .then((auditLink) => {
-                        // if the new audit link is equal to the old, it means the old license wasn't
-                        // revoked, because an audit link represents a licensed device (see getAuditLink)
-                        assert.notStrictEqual(oldAuditLink, auditLink);
-                        newAuditLink = auditLink;
-                    })
-                    .then(() => {
-                        resolve();
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        return common.dumpDeclaration(bigipAddress, bigipAuth);
-                    })
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
-        });
+        it('should have re-licensed with new pool', () => new Promise((resolve, reject) => {
+            const bodyFileRevokingRelicensing = `${BODIES}/revoking_relicensing_big_iq.json`;
+            // now revoke and re-license using another license pool
+            return common.readFile(bodyFileRevokingRelicensing)
+                .then(JSON.parse)
+                .then((body) => {
+                    body.Common.myLicense.bigIqHost = bigIqAddress;
+                    body.Common.myLicense.bigIqUsername = bigIqAuth.username;
+                    body.Common.myLicense.bigIqPassword = bigIqAuth.password;
+                    body.Common.myLicense.bigIpUsername = bigipAuth.username;
+                    body.Common.myLicense.bigIpPassword = bigipAuth.password;
+                    return body;
+                })
+                .then(body => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
+                .then(() => common.testGetStatus(20, 60 * 1000, bigipAddress,
+                    bigipAuth, constants.HTTP_SUCCESS))
+                .then(() => getAuditLink(bigIqAddress, bigipAddress, bigIqAuth))
+                .then((auditLink) => {
+                    // if the new audit link is equal to the old, it means the old license wasn't
+                    // revoked, because an audit link represents a licensed device (see getAuditLink)
+                    assert.notStrictEqual(oldAuditLink, auditLink);
+                    newAuditLink = auditLink;
+                })
+                .then(() => {
+                    resolve();
+                })
+                .catch((error) => {
+                    console.log(error);
+                    return common.dumpDeclaration(bigipAddress, bigipAuth);
+                })
+                .then((declarationStatus) => {
+                    reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
 
-        it('should have revoked old license', () => {
-            return new Promise((resolve, reject) => {
-                return getF5Token(bigIqAddress, bigIqAuth)
-                    .then((token) => {
-                        const options = common.buildBody(oldAuditLink, null, { token }, 'GET');
-                        return common.sendRequest(options);
-                    })
-                    .then((response) => {
-                        if (response.response.statusCode !== constants.HTTP_SUCCESS) {
-                            reject(new Error('could not check revoking'));
-                        }
-                        return response.body;
-                    })
-                    .then(JSON.parse)
-                    .then((assignment) => {
-                        assert.strictEqual(assignment.status, 'REVOKED');
-                    })
-                    .then(() => {
-                        resolve();
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        return common.dumpDeclaration(bigipAddress, bigipAuth);
-                    })
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
-        });
+        it('should have revoked old license', () => new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
+            .then((token) => {
+                const options = common.buildBody(oldAuditLink, null, { token }, 'GET');
+                return common.sendRequest(options);
+            })
+            .then((response) => {
+                if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+                    reject(new Error('could not check revoking'));
+                }
+                return response.body;
+            })
+            .then(JSON.parse)
+            .then((assignment) => {
+                assert.strictEqual(assignment.status, 'REVOKED');
+            })
+            .then(() => {
+                resolve();
+            })
+            .catch((error) => {
+                console.log(error);
+                return common.dumpDeclaration(bigipAddress, bigipAuth);
+            })
+            .then((declarationStatus) => {
+                reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+            })
+            .catch((err) => {
+                reject(err);
+            })));
 
-        it('should have revoked new license', () => {
-            // finally, we want to clean up, and revoke the newly assigned license.
-            return new Promise((resolve, reject) => {
-                let body;
-                const bodyFileRevoking = `${BODIES}/revoke_from_bigiq.json`;
-                return common.readFile(bodyFileRevoking)
-                    .then(JSON.parse)
-                    .then((bodyStub) => {
-                        body = bodyStub;
-                        body.address = bigipAddress;
-                        body.user = bigipAuth.username;
-                        body.password = bigipAuth.password;
-                    })
-                    .then(() => {
-                        return getF5Token(bigIqAddress, bigIqAuth);
-                    })
-                    .then((token) => {
-                        const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
+        it('should have revoked new license', () => new Promise((resolve, reject) => {
+            let body;
+            const bodyFileRevoking = `${BODIES}/revoke_from_bigiq.json`;
+            return common.readFile(bodyFileRevoking)
+                .then(JSON.parse)
+                .then((bodyStub) => {
+                    body = bodyStub;
+                    body.address = bigipAddress;
+                    body.user = bigipAuth.username;
+                    body.password = bigipAuth.password;
+                })
+                .then(() => getF5Token(bigIqAddress, bigIqAuth))
+                .then((token) => {
+                    const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
                             + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
-                        body, { token }, 'POST');
-                        return common.sendRequest(options);
-                    })
-                    .then((response) => {
-                        if (response.response.statusCode !== constants.HTTP_ACCEPTED) {
-                            reject(new Error('could not request to revoke license'));
-                        }
-                        return response.body;
-                    })
-                    .then(JSON.parse)
-                    .then((response) => {
-                        assert.strictEqual(response.status, 'STARTED');
-                    })
-                    .then(() => {
-                        const func = function () {
-                            return new Promise((resolveThis, rejectThis) => {
-                                return getF5Token(bigIqAddress, bigIqAuth)
-                                    .then((token) => {
-                                        const options = common.buildBody(newAuditLink, null,
-                                            { token }, 'GET');
-                                        return common.sendRequest(options);
-                                    })
-                                    .then((response) => {
-                                        if (response.response.statusCode === constants.HTTP_SUCCESS) {
-                                            if (JSON.parse(response.body).status === 'REVOKED') {
-                                                resolveThis();
-                                            } else {
-                                                rejectThis(new Error(JSON.parse(response.body).status));
-                                            }
-                                        } else {
-                                            rejectThis(new Error(response.response.statusCode));
-                                        }
-                                    })
-                                    .catch((err) => {
-                                        rejectThis(new Error(err));
-                                    });
-                            });
-                        };
-                        return common.tryOften(func, 5, 30, [constants.HTTP_ACCEPTED, 'GRANTED'], true);
-                    })
-                    .then(() => {
-                        resolve();
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        return common.dumpDeclaration(bigipAddress, bigipAuth);
-                    })
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
-        });
+                    body, { token }, 'POST');
+                    return common.sendRequest(options);
+                })
+                .then((response) => {
+                    if (response.response.statusCode !== constants.HTTP_ACCEPTED) {
+                        reject(new Error('could not request to revoke license'));
+                    }
+                    return response.body;
+                })
+                .then(JSON.parse)
+                .then((response) => {
+                    assert.strictEqual(response.status, 'STARTED');
+                })
+                .then(() => {
+                    const func = function () {
+                        return new Promise((resolveThis, rejectThis) => getF5Token(bigIqAddress, bigIqAuth)
+                            .then((token) => {
+                                const options = common.buildBody(newAuditLink, null,
+                                    { token }, 'GET');
+                                return common.sendRequest(options);
+                            })
+                            .then((response) => {
+                                if (response.response.statusCode === constants.HTTP_SUCCESS) {
+                                    if (JSON.parse(response.body).status === 'REVOKED') {
+                                        resolveThis();
+                                    } else {
+                                        rejectThis(new Error(JSON.parse(response.body).status));
+                                    }
+                                } else {
+                                    rejectThis(new Error(response.response.statusCode));
+                                }
+                            })
+                            .catch((err) => {
+                                rejectThis(new Error(err));
+                            }));
+                    };
+                    return common.tryOften(func, 5, 30, [constants.HTTP_ACCEPTED, 'GRANTED'], true);
+                })
+                .then(() => {
+                    resolve();
+                })
+                .catch((error) => {
+                    console.log(error);
+                    return common.dumpDeclaration(bigipAddress, bigipAuth);
+                })
+                .then((declarationStatus) => {
+                    reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
     });
 
     describe('Test Rollbacking', function testRollbacking() {
@@ -480,19 +434,15 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                         body = response.currentConfig.Common;
                     })
                     // send out request with invalid config declaration
-                    .then(() => {
-                        return common.readFile(bodyFile);
-                    })
+                    .then(() => common.readFile(bodyFile))
                     .then((fileRead) => {
                         const bodyRequest = JSON.parse(fileRead);
                         return common.testRequest(bodyRequest,
                             `${common.hostname(bigipAddress, constants.PORT)}`
                             + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST');
                     })
-                    .then(() => {
-                        return common.testGetStatus(3, 60 * 1000, bigipAddress, auth,
-                            constants.HTTP_UNPROCESSABLE);
-                    })
+                    .then(() => common.testGetStatus(3, 60 * 1000, bigipAddress, auth,
+                        constants.HTTP_UNPROCESSABLE))
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                         resolve();
@@ -564,43 +514,39 @@ function getF5Token(deviceIp, auth) {
  * @auth {Object} : authorization body for BIG-IQ (username/password)
 */
 function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
-    return new Promise((resolve, reject) => {
-        return getF5Token(bigIqAddress, bigIqAuth)
-            .then((token) => {
-                const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
+    return new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
+        .then((token) => {
+            const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
                     + `${constants.ICONTROL_API}/cm/device/licensing/assignments`,
-                null, { token }, 'GET');
-                return common.sendRequest(options);
-            })
-            .then((response) => {
-                if (response.response.statusCode !== constants.HTTP_SUCCESS) {
-                    reject(new Error('could not license'));
+            null, { token }, 'GET');
+            return common.sendRequest(options);
+        })
+        .then((response) => {
+            if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+                reject(new Error('could not license'));
+            }
+            return response.body;
+        })
+        .then(JSON.parse)
+        .then(response => response.items)
+        .then((assignments) => {
+            assignments.forEach((assignment) => {
+                if (assignment.deviceAddress === bigIpAddress) {
+                    const licensingStatus = assignment.status;
+                    const auditLink = assignment.auditRecordReference.link;
+                    // audit links come with the ip address as localhost, we need to
+                    // replace it with the address of the BIG-IQ, in order to use it later
+                    // to check licensing of a particular device
+                    const auditLinkRemote = auditLink.replace(/localhost/gi, bigIqAddress);
+                    if (assignment.status === 'LICENSED') resolve(auditLinkRemote);
+                    else reject(new Error(`device license status : ${licensingStatus}`));
                 }
-                return response.body;
-            })
-            .then(JSON.parse)
-            .then((response) => {
-                return response.items;
-            })
-            .then((assignments) => {
-                assignments.forEach((assignment) => {
-                    if (assignment.deviceAddress === bigIpAddress) {
-                        const licensingStatus = assignment.status;
-                        const auditLink = assignment.auditRecordReference.link;
-                        // audit links come with the ip address as localhost, we need to
-                        // replace it with the address of the BIG-IQ, in order to use it later
-                        // to check licensing of a particular device
-                        const auditLinkRemote = auditLink.replace(/localhost/gi, bigIqAddress);
-                        if (assignment.status === 'LICENSED') resolve(auditLinkRemote);
-                        else reject(new Error(`device license status : ${licensingStatus}`));
-                    }
-                });
-                reject(new Error('no license match for device address'));
-            })
-            .catch((error) => {
-                reject(error);
             });
-    });
+            reject(new Error('no license match for device address'));
+        })
+        .catch((error) => {
+            reject(error);
+        }));
 }
 
 /**
@@ -694,9 +640,7 @@ function testRoute(target, response) {
  * Returns true/false
 */
 function compareSimple(target, response, strings) {
-    return strings.every((str) => {
-        return compareObjects(str, str, target, response);
-    });
+    return strings.every(str => compareObjects(str, str, target, response));
 }
 
 /**

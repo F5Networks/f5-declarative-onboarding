@@ -24,8 +24,6 @@ const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 
 const ProvisionHandler = require('../../nodejs/provisionHandler');
 
-/* eslint-disable global-require */
-
 describe('provisionHandler', () => {
     let provisioningSent;
     const bigIpMock = {

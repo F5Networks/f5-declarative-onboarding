@@ -72,21 +72,17 @@ module.exports = {
             portPromise = this.getPort(host);
         }
         return portPromise
-            .then((managmentPort) => {
-                return bigIp.init(
-                    host,
-                    user,
-                    password,
-                    {
-                        port: managmentPort,
-                        product: 'BIG-IP',
-                        passwordIsToken: options.passwordIsToken
-                    }
-                );
-            })
-            .then(() => {
-                return Promise.resolve(bigIp);
-            })
+            .then(managmentPort => bigIp.init(
+                host,
+                user,
+                password,
+                {
+                    port: managmentPort,
+                    product: 'BIG-IP',
+                    passwordIsToken: options.passwordIsToken
+                }
+            ))
+            .then(() => Promise.resolve(bigIp))
             .catch((err) => {
                 logger.severe(`Error initializing BigIp: ${err.message}`);
                 return Promise.reject(err);
@@ -132,9 +128,7 @@ module.exports = {
                 .then((deviceInfo) => {
                     let platform = 'CONTAINER';
                     if (deviceInfo && deviceInfo.slots) {
-                        const activeSlot = deviceInfo.slots.find((slot) => {
-                            return slot.isActive && slot.product;
-                        });
+                        const activeSlot = deviceInfo.slots.find(slot => slot.isActive && slot.product);
 
                         if (activeSlot) {
                             platform = activeSlot.product;
@@ -183,15 +177,11 @@ module.exports = {
                 // reboot required, then reboot is required.
                 if (!promptSaysRebootRequired) {
                     return bigIp.list('/tm/sys/db/provision.action', null, cloudUtil.NO_RETRY)
-                        .then((response) => {
-                            return Promise.resolve(response.value === 'reboot');
-                        });
+                        .then(response => Promise.resolve(response.value === 'reboot'));
                 }
                 return Promise.resolve(true);
             })
-            .then((rebootRequired) => {
-                return Promise.resolve(rebootRequired);
-            });
+            .then(rebootRequired => Promise.resolve(rebootRequired));
     },
 
     /**
@@ -232,9 +222,7 @@ module.exports = {
             null,
             cloudUtil.SHORT_RETRY
         )
-            .then((result) => {
-                return result.commandResult;
-            });
+            .then(result => result.commandResult);
     },
 
     /**
@@ -248,11 +236,9 @@ module.exports = {
      */
     getClassObjects(declaration, className) {
         const common = declaration.Common || {};
-        const keys = Object.keys(common).filter((key) => {
-            return typeof common[key] === 'object'
+        const keys = Object.keys(common).filter(key => typeof common[key] === 'object'
             && common[key].class
-            && common[key].class === className;
-        });
+            && common[key].class === className);
 
         if (keys.length > 0) {
             const classes = {};

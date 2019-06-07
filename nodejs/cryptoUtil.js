@@ -97,9 +97,7 @@ module.exports = {
      */
     deleteEncryptedId(id) {
         return doUtil.getBigIp(logger)
-            .then((bigIp) => {
-                return bigIp.delete(`${ENCRYPT_PATH}/${id}`);
-            }).catch((err) => {
+            .then(bigIp => bigIp.delete(`${ENCRYPT_PATH}/${id}`)).catch((err) => {
                 logger.warning('Failed to delete encrypted data with id', id, err);
                 return Promise.reject(err);
             });
