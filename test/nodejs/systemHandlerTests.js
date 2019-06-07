@@ -28,6 +28,19 @@ let SystemHandler;
 /* eslint-disable global-require */
 
 describe('systemHandler', () => {
+    const superuserKey = [
+        'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+',
+        'yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTP',
+        'lvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXv',
+        'V7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8',
+        'blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser'
+    ].join('');
+    const testKey = [
+        'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtz',
+        'tbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG',
+        '8KxNp2fO1/U/ioA9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test'
+    ].join('');
+
     let pathSent;
     let dataSent;
     let bigIpMock;
@@ -385,10 +398,7 @@ describe('systemHandler', () => {
 
     it('should handle root users without keys', () => {
         // Stubs out the remote call to confirm the key is not added to the user
-        sinon.stub(doUtilMock, 'executeBashCommandRemote').callsFake(() => {
-            // eslint-disable-next-line max-len
-            return 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTPlvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXvV7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser';
-        });
+        sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
 
         const declaration = {
             Common: {
@@ -431,10 +441,7 @@ describe('systemHandler', () => {
     });
 
     it('should handle root users with keys', () => {
-        sinon.stub(doUtilMock, 'executeBashCommandRemote').callsFake(() => {
-            // eslint-disable-next-line max-len
-            return 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTPlvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXvV7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser';
-        });
+        sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
 
         const declaration = {
             Common: {
@@ -443,10 +450,7 @@ describe('systemHandler', () => {
                         userType: 'root',
                         oldPassword: 'foo',
                         newPassword: 'bar',
-                        keys: [
-                            // eslint-disable-next-line max-len
-                            'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG8KxNp2fO1/U/ioA9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test'
-                        ]
+                        keys: [testKey]
                     }
                 }
             }
@@ -465,7 +469,7 @@ describe('systemHandler', () => {
         };
 
         // eslint-disable-next-line max-len
-        const expectedKeys = 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTPlvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXvV7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser\nssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG8KxNp2fO1/U/ioA9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test';
+        const expectedKeys = `${superuserKey}\n${testKey}`;
 
         return new Promise((resolve, reject) => {
             const systemHandler = new SystemHandler(declaration, bigIpMock);
@@ -484,10 +488,7 @@ describe('systemHandler', () => {
     });
 
     it('should handle non-root users with & without keys', () => {
-        const stubCounter = sinon.stub(doUtilMock, 'executeBashCommandRemote').callsFake(() => {
-            // eslint-disable-next-line max-len
-            return 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTPlvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXvV7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser';
-        });
+        const stubCounter = sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
 
         const declaration = {
             Common: {
@@ -501,10 +502,7 @@ describe('systemHandler', () => {
                             }
                         },
                         shell: 'bash',
-                        keys: [
-                            // eslint-disable-next-line max-len
-                            'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG8KxNp2fO1/U/ioA9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test'
-                        ]
+                        keys: [testKey]
                     },
                     user2: {
                         userType: 'regular',
