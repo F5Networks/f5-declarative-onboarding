@@ -182,7 +182,7 @@ describe('declarationParser', () => {
                     "bigIpUsername": "/Credentials/0/username",
                     "bigIqUsername": "/Credentials/1/username",
                     "notAPointer": "/foo/bar"
-                },
+                }
             }
         };
         const declarationParser = new DeclarationParser(declaration);

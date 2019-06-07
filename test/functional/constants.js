@@ -11,5 +11,5 @@ module.exports = Object.freeze({
     HTTP_UNPROCESSABLE: 422,
     ICONTROL_API: '/mgmt',
     PORT: 443,
-    DO_API: '/mgmt/shared/declarative-onboarding',
+    DO_API: '/mgmt/shared/declarative-onboarding'
 });

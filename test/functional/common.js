@@ -168,9 +168,7 @@ module.exports = {
             const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
                 constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
             module.exports.sendRequest(options)
-                .then((response) => {
-                    return response.body;
-                })
+                .then(response => response.body)
                 .then(JSON.parse)
                 .then((parsedResponse) => {
                     resolve(parsedResponse);

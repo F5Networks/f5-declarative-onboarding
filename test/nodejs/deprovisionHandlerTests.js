@@ -24,8 +24,6 @@ const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 
 const DeprovisionHandler = require('../../nodejs/deprovisionHandler');
 
-/* eslint-disable global-require */
-
 describe('deprovisionHandler', () => {
     let provisioningSent;
     const bigIpMock = {
@@ -78,7 +76,7 @@ describe('deprovisionHandler', () => {
                     {
                         module1: 'nominal',
                         module2: 'none',
-                        module3: 'nominal',
+                        module3: 'nominal'
                     }
                 );
             });

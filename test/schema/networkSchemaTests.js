@@ -171,7 +171,7 @@ describe('network.schema.json', () => {
                 const data = {
                     "class": "SelfIp",
                     "address": "1.2.3.4/33",
-                    "vlan": "myVlan",
+                    "vlan": "myVlan"
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
@@ -181,7 +181,7 @@ describe('network.schema.json', () => {
                 const data = {
                     "class": "SelfIp",
                     "address": "FE80:0000:0000:0000:0202:B3FF:FE1E:8329/129",
-                    "vlan": "myVlan",
+                    "vlan": "myVlan"
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);

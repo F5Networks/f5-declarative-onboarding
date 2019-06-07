@@ -27,7 +27,7 @@ state.tasks = {
             code: 200,
             status: 'my status',
             message: 'my message',
-            errors: ['error 1', 'error 2'],
+            errors: ['error 1', 'error 2']
         },
         currentConfig: {
             foo: 'bar'
@@ -42,7 +42,7 @@ state.tasks = {
             code: 200,
             status: 'my status',
             message: 'my message',
-            errors: ['error 1', 'error 2'],
+            errors: ['error 1', 'error 2']
         },
         currentConfig: {
             foo: 'bar'

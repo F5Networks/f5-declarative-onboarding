@@ -365,9 +365,7 @@ function deleteExistingSelfIps(selfIpBodies) {
             });
             return Promise.all(routeDeletePromises);
         })
-        .then(() => {
-            return findMatchingFloatingSelfIps.call(this, existingSelfIps);
-        })
+        .then(() => findMatchingFloatingSelfIps.call(this, existingSelfIps))
         .then((results) => {
             const matchingSelfIps = results && Array.isArray(results) ? results.slice() : [];
             const selfIpDeletePromises = [];
@@ -414,11 +412,9 @@ function deleteExistingSelfIps(selfIpBodies) {
 
             return Promise.all(selfIpDeletePromises);
         })
-        .then(() => {
-            return Promise.resolve(
-                { deletedRoutes, deletedFloatingSelfIps }
-            );
-        })
+        .then(() => Promise.resolve(
+            { deletedRoutes, deletedFloatingSelfIps }
+        ))
         .catch((err) => {
             logger.severe(`Error deleting SelfIp: ${err.message}`);
             return Promise.reject(err);

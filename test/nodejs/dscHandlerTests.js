@@ -529,7 +529,7 @@ describe('dscHandler', () => {
         });
 
         it('should not call sync if no devices are in the device trust or need to be pruned', () => {
-            bigIpMock.cluster.areInTrustGroup = () => { return Promise.resolve([]); };
+            bigIpMock.cluster.areInTrustGroup = () => Promise.resolve([]);
 
             const declaration = {
                 Common: {
@@ -565,9 +565,7 @@ describe('dscHandler', () => {
             sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
             const testCase = 'example.cant';
 
-            doUtilMock.getBigIp = () => {
-                return Promise.resolve(bigIpMock);
-            };
+            doUtilMock.getBigIp = () => Promise.resolve(bigIpMock);
 
             const declaration = {
                 Common: {
@@ -606,9 +604,7 @@ describe('dscHandler', () => {
         });
 
         it('should join device group if we are not the owner and we have DeviceGroup and DeviceTrust', () => {
-            doUtilMock.getBigIp = () => {
-                return Promise.resolve(bigIpMock);
-            };
+            doUtilMock.getBigIp = () => Promise.resolve(bigIpMock);
 
             const declaration = {
                 Common: {
@@ -656,9 +652,7 @@ describe('dscHandler', () => {
         });
 
         it('should join device group if we are not the owner and we only have DeviceGroup', () => {
-            doUtilMock.getBigIp = () => {
-                return Promise.resolve(bigIpMock);
-            };
+            doUtilMock.getBigIp = () => Promise.resolve(bigIpMock);
 
             const declaration = {
                 Common: {
@@ -716,9 +710,7 @@ describe('dscHandler', () => {
             };
 
             const errorMessage = 'group does not exist';
-            bigIpMock.cluster.joinCluster = () => {
-                return Promise.reject(new Error(errorMessage));
-            };
+            bigIpMock.cluster.joinCluster = () => Promise.reject(new Error(errorMessage));
 
             return new Promise((resolve, reject) => {
                 const dscHandler = new DscHandler(declaration, bigIpMock);

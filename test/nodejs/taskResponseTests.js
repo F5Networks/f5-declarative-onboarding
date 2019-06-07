@@ -29,7 +29,7 @@ state.tasks = {
             code: 200,
             status: 'my status 1234',
             message: 'my message 1234',
-            errors: ['error 1', 'error 2'],
+            errors: ['error 1', 'error 2']
         },
         declaration: {
             hello: 'declaration for 1234'
@@ -47,7 +47,7 @@ state.tasks = {
             code: 400,
             status: 'my status 5678',
             message: 'my message 5678',
-            errors: ['error 3', 'error 4'],
+            errors: ['error 3', 'error 4']
         },
         declaration: {
             hello: 'declaration for 1234'

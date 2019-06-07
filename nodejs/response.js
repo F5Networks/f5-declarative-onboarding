@@ -33,9 +33,7 @@ class Response {
             this.response = getResponse(itemId, responder, options);
         } else {
             const ids = responder.getIds() || [];
-            this.response = ids.map((id) => {
-                return getResponse(id, responder, options);
-            });
+            this.response = ids.map(id => getResponse(id, responder, options));
         }
     }
 

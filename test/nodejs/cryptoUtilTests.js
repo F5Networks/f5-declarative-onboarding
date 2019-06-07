@@ -40,185 +40,157 @@ describe('doUtil', () => {
     });
 
     describe('decryptValue', () => {
-        it('should decrypt values', () => {
-            return new Promise((resolve, reject) => {
-                const decrypted = 'decrypted value';
-                childProcessMock.exec = (command, callback) => {
-                    callback(null, decrypted);
-                };
-                cryptoUtil.decryptValue('foo')
-                    .then((result) => {
-                        assert.strictEqual(result, decrypted);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
-        });
+        it('should decrypt values', () => new Promise((resolve, reject) => {
+            const decrypted = 'decrypted value';
+            childProcessMock.exec = (command, callback) => {
+                callback(null, decrypted);
+            };
+            cryptoUtil.decryptValue('foo')
+                .then((result) => {
+                    assert.strictEqual(result, decrypted);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
 
-        it('should handle errors', () => {
-            return new Promise((resolve, reject) => {
-                const error = 'decrypted error';
-                childProcessMock.exec = (command, callback) => {
-                    callback(new Error(error));
-                };
-                cryptoUtil.decryptValue('foo')
-                    .then(() => {
-                        reject(new Error('should have caught error'));
-                    })
-                    .catch((err) => {
-                        assert.strictEqual(err.message, error);
-                        resolve();
-                    });
-            });
-        });
+        it('should handle errors', () => new Promise((resolve, reject) => {
+            const error = 'decrypted error';
+            childProcessMock.exec = (command, callback) => {
+                callback(new Error(error));
+            };
+            cryptoUtil.decryptValue('foo')
+                .then(() => {
+                    reject(new Error('should have caught error'));
+                })
+                .catch((err) => {
+                    assert.strictEqual(err.message, error);
+                    resolve();
+                });
+        }));
     });
 
     describe('decryptId', () => {
-        it('should decrypt ids', () => {
-            return new Promise((resolve, reject) => {
-                const secret = 'mySecret';
-                const tmshResponse = `foo {
+        it('should decrypt ids', () => new Promise((resolve, reject) => {
+            const secret = 'mySecret';
+            const tmshResponse = `foo {
                     server foo
                     secret ${secret}
                 }`;
 
-                let secretSent;
+            let secretSent;
 
-                cloudUtilMock.runTmshCommand = () => {
-                    return Promise.resolve(tmshResponse);
-                };
-                cryptoUtil.decryptValue = (value) => {
-                    secretSent = value;
-                };
+            cloudUtilMock.runTmshCommand = () => Promise.resolve(tmshResponse);
+            cryptoUtil.decryptValue = (value) => {
+                secretSent = value;
+            };
 
-                cryptoUtil.decryptId('foo')
-                    .then(() => {
-                        assert.strictEqual(secretSent, secret);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
-        });
+            cryptoUtil.decryptId('foo')
+                .then(() => {
+                    assert.strictEqual(secretSent, secret);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
 
-        it('should handle errors', () => {
-            return new Promise((resolve, reject) => {
-                const error = 'tmsh error';
-                cloudUtilMock.runTmshCommand = () => {
-                    return Promise.reject(new Error(error));
-                };
+        it('should handle errors', () => new Promise((resolve, reject) => {
+            const error = 'tmsh error';
+            cloudUtilMock.runTmshCommand = () => Promise.reject(new Error(error));
 
-                cryptoUtil.decryptId('foo')
-                    .then(() => {
-                        reject(new Error('should have caught error'));
-                    })
-                    .catch((err) => {
-                        assert.strictEqual(err.message, error);
-                        resolve();
-                    });
-            });
-        });
+            cryptoUtil.decryptId('foo')
+                .then(() => {
+                    reject(new Error('should have caught error'));
+                })
+                .catch((err) => {
+                    assert.strictEqual(err.message, error);
+                    resolve();
+                });
+        }));
     });
 
     describe('deleteEncryptedId', () => {
-        it('should delete the associated radius server', () => {
-            return new Promise((resolve, reject) => {
-                const id = 'foo';
-                let pathSent;
-                doUtilMock.getBigIp = () => {
-                    return Promise.resolve({
-                        delete(path) {
-                            pathSent = path;
-                            return Promise.resolve();
-                        }
-                    });
-                };
-
-                cryptoUtil.deleteEncryptedId(id)
-                    .then(() => {
-                        assert.strictEqual(pathSent, `${ENCRYPT_PATH}/${id}`);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
+        it('should delete the associated radius server', () => new Promise((resolve, reject) => {
+            const id = 'foo';
+            let pathSent;
+            doUtilMock.getBigIp = () => Promise.resolve({
+                delete(path) {
+                    pathSent = path;
+                    return Promise.resolve();
+                }
             });
-        });
 
-        it('should handle errors', () => {
-            return new Promise((resolve, reject) => {
-                const error = 'delete error';
-                doUtilMock.getBigIp = () => {
-                    return Promise.resolve({
-                        delete() {
-                            return Promise.reject(new Error(error));
-                        }
-                    });
-                };
+            cryptoUtil.deleteEncryptedId(id)
+                .then(() => {
+                    assert.strictEqual(pathSent, `${ENCRYPT_PATH}/${id}`);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
 
-                cryptoUtil.deleteEncryptedId('foo')
-                    .then(() => {
-                        reject(new Error('should have caught error'));
-                    })
-                    .catch((err) => {
-                        assert.strictEqual(err.message, error);
-                        resolve();
-                    });
+        it('should handle errors', () => new Promise((resolve, reject) => {
+            const error = 'delete error';
+            doUtilMock.getBigIp = () => Promise.resolve({
+                delete() {
+                    return Promise.reject(new Error(error));
+                }
             });
-        });
+
+            cryptoUtil.deleteEncryptedId('foo')
+                .then(() => {
+                    reject(new Error('should have caught error'));
+                })
+                .catch((err) => {
+                    assert.strictEqual(err.message, error);
+                    resolve();
+                });
+        }));
     });
 
     describe('encryptValue', () => {
-        it('should encrypt values', () => {
-            return new Promise((resolve, reject) => {
-                const value = 'myValue';
-                const id = 'myId';
+        it('should encrypt values', () => new Promise((resolve, reject) => {
+            const value = 'myValue';
+            const id = 'myId';
 
-                let bodySent;
-                doUtilMock.getBigIp = () => {
-                    return Promise.resolve({
-                        create(path, body) {
-                            bodySent = body;
-                            return Promise.resolve();
-                        }
-                    });
-                };
-
-                cryptoUtil.encryptValue(value, id)
-                    .then(() => {
-                        assert.strictEqual(bodySent.secret, value);
-                        assert.strictEqual(bodySent.name, id);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
+            let bodySent;
+            doUtilMock.getBigIp = () => Promise.resolve({
+                create(path, body) {
+                    bodySent = body;
+                    return Promise.resolve();
+                }
             });
-        });
 
-        it('should handle errors', () => {
-            return new Promise((resolve, reject) => {
-                const error = 'create error';
-                doUtilMock.getBigIp = () => {
-                    return Promise.resolve({
-                        create() {
-                            return Promise.reject(new Error(error));
-                        }
-                    });
-                };
+            cryptoUtil.encryptValue(value, id)
+                .then(() => {
+                    assert.strictEqual(bodySent.secret, value);
+                    assert.strictEqual(bodySent.name, id);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
 
-                cryptoUtil.encryptValue()
-                    .then(() => {
-                        reject(new Error('should have caught error'));
-                    })
-                    .catch((err) => {
-                        assert.strictEqual(err.message, error);
-                        resolve();
-                    });
+        it('should handle errors', () => new Promise((resolve, reject) => {
+            const error = 'create error';
+            doUtilMock.getBigIp = () => Promise.resolve({
+                create() {
+                    return Promise.reject(new Error(error));
+                }
             });
-        });
+
+            cryptoUtil.encryptValue()
+                .then(() => {
+                    reject(new Error('should have caught error'));
+                })
+                .catch((err) => {
+                    assert.strictEqual(err.message, error);
+                    resolve();
+                });
+        }));
     });
 });

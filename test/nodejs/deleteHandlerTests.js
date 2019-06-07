@@ -51,14 +51,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
     });
 
     it('should issue deletes for Routes, SelfIps, and VLANs in that order', () => {
-        bigIpMock.delete = (path) => {
-            return new Promise((resolve) => {
-                deletedPaths.push(path);
-                setTimeout(() => {
-                    resolve();
-                }, path.includes(PATHS.Route) ? 50 : 0);
-            });
-        };
+        bigIpMock.delete = path => new Promise((resolve) => {
+            deletedPaths.push(path);
+            setTimeout(() => {
+                resolve();
+            }, path.includes(PATHS.Route) ? 50 : 0);
+        });
 
         const declaration = {
             Common: {
@@ -174,9 +172,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
 
     it('should report processing errors', () => {
         const errorMessage = 'this is a processing error';
-        bigIpMock.delete = () => {
-            return Promise.reject(new Error(errorMessage));
-        };
+        bigIpMock.delete = () => Promise.reject(new Error(errorMessage));
 
         return new Promise((resolve, reject) => {
             const declaration = {

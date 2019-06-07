@@ -64,9 +64,7 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             }
         };
-        doUtilStub = sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => {
-            return Promise.resolve('BIG-IP');
-        });
+        doUtilStub = sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));
         sinon.stub(dns, 'lookup').callsArg(1);
     });
 
@@ -455,7 +453,7 @@ describe('systemHandler', () => {
         };
 
         const bodiesSent = [];
-        bigIpMock.isBigIq = () => { return false; };
+        bigIpMock.isBigIq = () => false;
         bigIpMock.createOrModify = (path, body) => {
             pathSent = path;
             bodiesSent.push(body);
@@ -649,9 +647,7 @@ describe('systemHandler', () => {
                 optionsSent = options;
             }
         };
-        bigIpMock.deviceInfo = () => {
-            return Promise.resolve({ managementAddress });
-        };
+        bigIpMock.deviceInfo = () => Promise.resolve({ managementAddress });
         bigIpMock.host = host;
         bigIpMock.port = managementPort;
 
@@ -701,9 +697,7 @@ describe('systemHandler', () => {
         let optionsSent;
 
         doUtilStub.restore();
-        sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => {
-            return Promise.resolve('BIG-IQ');
-        });
+        sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IQ'));
 
         bigIpMock.host = host;
         bigIpMock.onboard = {
@@ -745,13 +739,9 @@ describe('systemHandler', () => {
         bigIpMock.onboard = {
             licenseViaBigIq() {}
         };
-        bigIpMock.deviceInfo = () => {
-            return Promise.resolve({ managementAddress });
-        };
+        bigIpMock.deviceInfo = () => Promise.resolve({ managementAddress });
 
-        doUtilMock.getBigIp = () => {
-            return Promise.resolve(bigIpMock);
-        };
+        doUtilMock.getBigIp = () => Promise.resolve(bigIpMock);
 
         let didFail = false;
         const systemHandler = new SystemHandler(declaration, bigIpMock);

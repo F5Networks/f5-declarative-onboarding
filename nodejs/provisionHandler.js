@@ -100,7 +100,7 @@ function handleProvision() {
             // flipping to not active. We love you BIG-IP!
             if (results.length > 0) {
                 const activeRequests = [];
-                for (let i = 0; i < 10; i++) {
+                for (let i = 0; i < 10; i += 1) {
                     activeRequests.push(
                         {
                             promise: this.bigIp.active

@@ -130,21 +130,13 @@ class ConfigManager {
 
         let provisionedModules = [];
         return Promise.resolve()
-            .then(() => {
-                return this.bigIp.list('/tm/sys/provision');
-            })
+            .then(() => this.bigIp.list('/tm/sys/provision'))
             .then((provisioning) => {
                 provisionedModules = provisioning
-                    .filter((module) => {
-                        return module.level !== 'none';
-                    })
-                    .map((module) => {
-                        return module.name;
-                    });
+                    .filter(module => module.level !== 'none')
+                    .map(module => module.name);
             })
-            .then(() => {
-                return this.bigIp.deviceInfo();
-            })
+            .then(() => this.bigIp.deviceInfo())
             .then((deviceInfo) => {
                 this.configId = deviceInfo.machineId;
                 return getTokenMap.call(this, deviceInfo);
@@ -467,9 +459,7 @@ function getTokenMap(deviceInfo) {
     const hostName = deviceInfo.hostname;
     return this.bigIp.list('/tm/cm/device')
         .then((cmDeviceInfo) => {
-            const devices = cmDeviceInfo.filter((device) => {
-                return device.hostname === hostName;
-            });
+            const devices = cmDeviceInfo.filter(device => device.hostname === hostName);
 
             if (devices.length === 1) {
                 const deviceName = devices[0].name;
