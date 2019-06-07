@@ -468,7 +468,6 @@ describe('systemHandler', () => {
             }
         };
 
-        // eslint-disable-next-line max-len
         const expectedKeys = `${superuserKey}\n${testKey}`;
 
         return new Promise((resolve, reject) => {
