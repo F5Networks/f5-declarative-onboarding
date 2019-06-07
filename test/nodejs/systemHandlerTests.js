@@ -406,7 +406,8 @@ describe('systemHandler', () => {
                     root: {
                         userType: 'root',
                         oldPassword: 'foo',
-                        newPassword: 'bar'
+                        newPassword: 'bar',
+                        keys: []
                     }
                 }
             }
@@ -431,7 +432,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(userSent, 'root');
                     assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
                     assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
-                    assert.strictEqual(undefined, declaration.Common.User.root.keys);
+                    assert.strictEqual(superuserKey, declaration.Common.User.root.keys.join('\n'));
                     resolve();
                 })
                 .catch((err) => {
@@ -514,7 +515,8 @@ describe('systemHandler', () => {
                                 role: 'admin'
                             }
                         },
-                        shell: 'tmsh'
+                        shell: 'tmsh',
+                        keys: []
                     }
                 }
             }
@@ -549,8 +551,8 @@ describe('systemHandler', () => {
                         ]
                     );
                     assert.deepEqual(bodiesSent[1].shell, 'tmsh');
-                    const callCountMess = 'Only users with keys should hit the bash endpoint call';
-                    assert.strictEqual(stubCounter.callCount, 1, callCountMess);
+                    const callCountMess = 'Both users should hit the bash endpoint.';
+                    assert.strictEqual(stubCounter.callCount, 2, callCountMess);
                     resolve();
                 })
                 .catch((err) => {
