@@ -179,7 +179,8 @@
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            }
+                            },
+                            "default": []
                         }
                     },
                     "additionalProperties": false
@@ -229,7 +230,8 @@
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            }
+                            },
+                            "default": []
                         }
                     },
                     "additionalProperties": false

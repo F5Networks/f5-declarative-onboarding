@@ -170,10 +170,6 @@ function handleUser() {
                         user.oldPassword
                     )
                         .then(() => {
-                            if (!user.keys) {
-                                return Promise.resolve();
-                            }
-
                             const sshPath = '/root/.ssh';
                             const catCmd = `cat ${sshPath}/authorized_keys`;
                             return doUtil.executeBashCommandRemote(this.bigIp, catCmd)
@@ -200,23 +196,21 @@ function handleUser() {
                 promises.push(
                     createOrUpdateUser.call(this, username, user)
                         .then(() => {
-                            if (user.keys) {
-                                const sshPath = `/home/${username}/.ssh`;
-                                // The initial space is intentional, it is a bash shortcut
-                                // It prevents the command from being saved in bash_history
-                                const makeSshDir = ` mkdir -p ${sshPath}`;
-                                const echoKeys = [
-                                    `echo '${user.keys.join('\n')}' > `,
-                                    `${sshPath}/authorized_keys`
-                                ].join('');
-                                const chownUser = `chown -R "${username}":webusers ${sshPath}`;
-                                const chmodUser = `chmod -R 700 ${sshPath}`;
-                                const chmodKeys = `chmod 600 ${sshPath}/authorized_keys`;
-                                const bashCmd = [
-                                    makeSshDir, echoKeys, chownUser, chmodUser, chmodKeys
-                                ].join('; ');
-                                doUtil.executeBashCommandRemote(this.bigIp, bashCmd);
-                            }
+                            const sshPath = `/home/${username}/.ssh`;
+                            // The initial space is intentional, it is a bash shortcut
+                            // It prevents the command from being saved in bash_history
+                            const makeSshDir = ` mkdir -p ${sshPath}`;
+                            const echoKeys = [
+                                `echo '${user.keys.join('\n')}' > `,
+                                `${sshPath}/authorized_keys`
+                            ].join('');
+                            const chownUser = `chown -R "${username}":webusers ${sshPath}`;
+                            const chmodUser = `chmod -R 700 ${sshPath}`;
+                            const chmodKeys = `chmod 600 ${sshPath}/authorized_keys`;
+                            const bashCmd = [
+                                makeSshDir, echoKeys, chownUser, chmodUser, chmodKeys
+                            ].join('; ');
+                            doUtil.executeBashCommandRemote(this.bigIp, bashCmd);
                         })
                 );
             } else {
