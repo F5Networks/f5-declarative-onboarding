@@ -183,9 +183,15 @@ function handleUser() {
                                         .filter((key) => {
                                             return key.endsWith(' Host Processor Superuser');
                                         });
-                                    user.keys.unshift(masterKeys);
-                                    // eslint-disable-next-line max-len
-                                    const echoKeys = ` echo '${user.keys.join('\n')}' > ${sshPath}/authorized_keys`;
+                                    if (masterKeys !== '') {
+                                        user.keys.unshift(masterKeys);
+                                    }
+                                    // The initial space is intentional, it is a bash shortcut
+                                    // It prevents the command from being saved in bash_history
+                                    const echoKeys = [
+                                        ` echo '${user.keys.join('\n')}' > `,
+                                        `${sshPath}/authorized_keys`
+                                    ].join('');
                                     return doUtil.executeBashCommandRemote(this.bigIp, echoKeys);
                                 });
                         })
@@ -196,20 +202,24 @@ function handleUser() {
                         .then(() => {
                             if (user.keys) {
                                 const sshPath = `/home/${username}/.ssh`;
-                                const makeSshDir = `mkdir ${sshPath}`;
-                                // eslint-disable-next-line max-len
-                                const echoKeys = `echo '${user.keys.join('\n')}' > ${sshPath}/authorized_keys`;
+                                // The initial space is intentional, it is a bash shortcut
+                                // It prevents the command from being saved in bash_history
+                                const makeSshDir = ` mkdir -p ${sshPath}`;
+                                const echoKeys = [
+                                    `echo '${user.keys.join('\n')}' > `,
+                                    `${sshPath}/authorized_keys`
+                                ].join('');
                                 const chownUser = `chown -R "${username}":webusers ${sshPath}`;
                                 const chmodUser = `chmod -R 700 ${sshPath}`;
                                 const chmodKeys = `chmod 600 ${sshPath}/authorized_keys`;
-                                // eslint-disable-next-line max-len
-                                const bashCmd = ` ${makeSshDir}; ${echoKeys}; ${chownUser}; ${chmodUser}; ${chmodKeys}`;
+                                const bashCmd = [
+                                    makeSshDir, echoKeys, chownUser, chmodUser, chmodKeys
+                                ].join('; ');
                                 doUtil.executeBashCommandRemote(this.bigIp, bashCmd);
                             }
                         })
                 );
             } else {
-                // eslint-disable-next-line max-len
                 logger.warning(`${username} has userType root. Only the root user can have userType root.`);
             }
         });
