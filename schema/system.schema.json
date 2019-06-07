@@ -173,6 +173,13 @@
                                 { "format": "json-pointer" },
                                 { "pattern": "^.{0,254}$" }
                             ]
+                        },
+                        "keys": {
+                            "description": "An array of public keys for the user. If the user is root, this will preserve only the master key and then overwrite the rest in the file: /root/.ssh/authorized_keys.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
                         }
                     },
                     "additionalProperties": false
@@ -216,6 +223,13 @@
                             "type": "string",
                             "enum": ["bash", "tmsh", "none"],
                             "default": "tmsh"
+                        },
+                        "keys": {
+                            "description": "An array of public keys for the user. These will overwrite the /home/username/.ssh/authorized_keys if not root.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
                         }
                     },
                     "additionalProperties": false

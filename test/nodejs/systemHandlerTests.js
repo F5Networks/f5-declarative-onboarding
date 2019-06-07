@@ -383,7 +383,13 @@ describe('systemHandler', () => {
         });
     });
 
-    it('should handle root users', () => {
+    it('should handle root users without keys', () => {
+        // Stubs out the remote call to confirm the key is not added to the user
+        sinon.stub(doUtilMock, 'executeBashCommandRemote').callsFake(() => {
+            // eslint-disable-next-line max-len
+            return 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTPlvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXvV7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser';
+        });
+
         const declaration = {
             Common: {
                 User: {
@@ -415,6 +421,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(userSent, 'root');
                     assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
                     assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
+                    assert.strictEqual(undefined, declaration.Common.User.root.keys);
                     resolve();
                 })
                 .catch((err) => {
@@ -423,7 +430,65 @@ describe('systemHandler', () => {
         });
     });
 
-    it('should handle non-root users', () => {
+    it('should handle root users with keys', () => {
+        sinon.stub(doUtilMock, 'executeBashCommandRemote').callsFake(() => {
+            // eslint-disable-next-line max-len
+            return 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTPlvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXvV7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser';
+        });
+
+        const declaration = {
+            Common: {
+                User: {
+                    root: {
+                        userType: 'root',
+                        oldPassword: 'foo',
+                        newPassword: 'bar',
+                        keys: [
+                            // eslint-disable-next-line max-len
+                            'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG8KxNp2fO1/U/ioA9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test'
+                        ]
+                    }
+                }
+            }
+        };
+
+        let userSent;
+        let newPasswordSent;
+        let oldPasswordSent;
+        bigIpMock.onboard = {
+            password(user, newPassword, oldPassword) {
+                userSent = user;
+                newPasswordSent = newPassword;
+                oldPasswordSent = oldPassword;
+                return Promise.resolve();
+            }
+        };
+
+        // eslint-disable-next-line max-len
+        const expectedKeys = 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTPlvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXvV7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser\nssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG8KxNp2fO1/U/ioA9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test';
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(userSent, 'root');
+                    assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
+                    assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
+                    assert.strictEqual(expectedKeys, declaration.Common.User.root.keys.join('\n'));
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle non-root users with & without keys', () => {
+        const stubCounter = sinon.stub(doUtilMock, 'executeBashCommandRemote').callsFake(() => {
+            // eslint-disable-next-line max-len
+            return 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTPlvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXvV7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser';
+        });
+
         const declaration = {
             Common: {
                 User: {
@@ -435,7 +500,11 @@ describe('systemHandler', () => {
                                 role: 'guest'
                             }
                         },
-                        shell: 'bash'
+                        shell: 'bash',
+                        keys: [
+                            // eslint-disable-next-line max-len
+                            'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG8KxNp2fO1/U/ioA9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test'
+                        ]
                     },
                     user2: {
                         userType: 'regular',
@@ -483,6 +552,8 @@ describe('systemHandler', () => {
                         ]
                     );
                     assert.deepEqual(bodiesSent[1].shell, 'tmsh');
+                    const callCountMess = 'Only users with keys should hit the bash endpoint call';
+                    assert.strictEqual(stubCounter.callCount, 1, callCountMess);
                     resolve();
                 })
                 .catch((err) => {

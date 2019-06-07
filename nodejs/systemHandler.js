@@ -163,13 +163,51 @@ function handleUser() {
         userNames.forEach((username) => {
             const user = this.declaration.Common.User[username];
             if (user.userType === 'root' && username === 'root') {
-                promises.push(this.bigIp.onboard.password(
-                    'root',
-                    user.newPassword,
-                    user.oldPassword
-                ));
+                promises.push(
+                    this.bigIp.onboard.password(
+                        'root',
+                        user.newPassword,
+                        user.oldPassword
+                    )
+                        .then(() => {
+                            if (!user.keys) {
+                                return Promise.resolve();
+                            }
+
+                            const sshPath = '/root/.ssh';
+                            const catCmd = `cat ${sshPath}/authorized_keys`;
+                            return doUtil.executeBashCommandRemote(this.bigIp, catCmd)
+                                .then((origAuthKey) => {
+                                    const masterKeys = origAuthKey
+                                        .split('\n')
+                                        .filter((key) => {
+                                            return key.endsWith(' Host Processor Superuser');
+                                        });
+                                    user.keys.unshift(masterKeys);
+                                    // eslint-disable-next-line max-len
+                                    const echoKeys = ` echo '${user.keys.join('\n')}' > ${sshPath}/authorized_keys`;
+                                    return doUtil.executeBashCommandRemote(this.bigIp, echoKeys);
+                                });
+                        })
+                );
             } else if (user.userType === 'regular') {
-                promises.push(createOrUpdateUser.call(this, username, user));
+                promises.push(
+                    createOrUpdateUser.call(this, username, user)
+                        .then(() => {
+                            if (user.keys) {
+                                const sshPath = `/home/${username}/.ssh`;
+                                const makeSshDir = `mkdir ${sshPath}`;
+                                // eslint-disable-next-line max-len
+                                const echoKeys = `echo '${user.keys.join('\n')}' > ${sshPath}/authorized_keys`;
+                                const chownUser = `chown -R "${username}":webusers ${sshPath}`;
+                                const chmodUser = `chmod -R 700 ${sshPath}`;
+                                const chmodKeys = `chmod 600 ${sshPath}/authorized_keys`;
+                                // eslint-disable-next-line max-len
+                                const bashCmd = ` ${makeSshDir}; ${echoKeys}; ${chownUser}; ${chmodUser}; ${chmodKeys}`;
+                                doUtil.executeBashCommandRemote(this.bigIp, bashCmd);
+                            }
+                        })
+                );
             } else {
                 // eslint-disable-next-line max-len
                 logger.warning(`${username} has userType root. Only the root user can have userType root.`);
