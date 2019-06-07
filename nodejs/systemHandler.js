@@ -168,9 +168,7 @@ function handleUser() {
                                 .then((origAuthKey) => {
                                     const masterKeys = origAuthKey
                                         .split('\n')
-                                        .filter((key) => {
-                                            return key.endsWith(' Host Processor Superuser');
-                                        });
+                                        .filter(key => key.endsWith(' Host Processor Superuser'));
                                     if (masterKeys !== '') {
                                         user.keys.unshift(masterKeys);
                                     }
