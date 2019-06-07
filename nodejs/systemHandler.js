@@ -155,15 +155,57 @@ function handleUser() {
         userNames.forEach((username) => {
             const user = this.declaration.Common.User[username];
             if (user.userType === 'root' && username === 'root') {
-                promises.push(this.bigIp.onboard.password(
-                    'root',
-                    user.newPassword,
-                    user.oldPassword
-                ));
+                promises.push(
+                    this.bigIp.onboard.password(
+                        'root',
+                        user.newPassword,
+                        user.oldPassword
+                    )
+                        .then(() => {
+                            const sshPath = '/root/.ssh';
+                            const catCmd = `cat ${sshPath}/authorized_keys`;
+                            return doUtil.executeBashCommandRemote(this.bigIp, catCmd)
+                                .then((origAuthKey) => {
+                                    const masterKeys = origAuthKey
+                                        .split('\n')
+                                        .filter((key) => {
+                                            return key.endsWith(' Host Processor Superuser');
+                                        });
+                                    if (masterKeys !== '') {
+                                        user.keys.unshift(masterKeys);
+                                    }
+                                    // The initial space is intentional, it is a bash shortcut
+                                    // It prevents the command from being saved in bash_history
+                                    const echoKeys = [
+                                        ` echo '${user.keys.join('\n')}' > `,
+                                        `${sshPath}/authorized_keys`
+                                    ].join('');
+                                    return doUtil.executeBashCommandRemote(this.bigIp, echoKeys);
+                                });
+                        })
+                );
             } else if (user.userType === 'regular') {
-                promises.push(createOrUpdateUser.call(this, username, user));
+                promises.push(
+                    createOrUpdateUser.call(this, username, user)
+                        .then(() => {
+                            const sshPath = `/home/${username}/.ssh`;
+                            // The initial space is intentional, it is a bash shortcut
+                            // It prevents the command from being saved in bash_history
+                            const makeSshDir = ` mkdir -p ${sshPath}`;
+                            const echoKeys = [
+                                `echo '${user.keys.join('\n')}' > `,
+                                `${sshPath}/authorized_keys`
+                            ].join('');
+                            const chownUser = `chown -R "${username}":webusers ${sshPath}`;
+                            const chmodUser = `chmod -R 700 ${sshPath}`;
+                            const chmodKeys = `chmod 600 ${sshPath}/authorized_keys`;
+                            const bashCmd = [
+                                makeSshDir, echoKeys, chownUser, chmodUser, chmodKeys
+                            ].join('; ');
+                            doUtil.executeBashCommandRemote(this.bigIp, bashCmd);
+                        })
+                );
             } else {
-                // eslint-disable-next-line max-len
                 logger.warning(`${username} has userType root. Only the root user can have userType root.`);
             }
         });

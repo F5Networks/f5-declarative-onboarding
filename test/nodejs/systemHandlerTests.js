@@ -28,6 +28,19 @@ let SystemHandler;
 /* eslint-disable global-require */
 
 describe('systemHandler', () => {
+    const superuserKey = [
+        'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4bhQNwxdLkt6uJn4JfCZSmaHm7EHwYv1ukJDJ/2tiUL5sM6KvLc+',
+        'yQOHKg8L78jO27u0tDhD6BIym2Iik9/+r5ov8fJ7zm/zC9GrWPJsy3UCo+ZeSXxzmDxUiwi12yP2CtBDn1mVwXTP',
+        'lvR4W1M+8ZSlNlvQuVbDSpLgFqr+7mjqXRG6cs+4qkwk+4uAWtaHfPJtPj0HaB3bkNnmn4boJxs3d+shrFaEywXv',
+        'V7P1HyeMZ0phKUayky8NDNoPUzsgDM3sKT/1lXgyShqlJRRmP5TaCq228PY7ETffPD2cuMDw8LAoe2RUa8khKeU8',
+        'blnzvmHlT226d05hjp+aytzX3Q== Host Processor Superuser'
+    ].join('');
+    const testKey = [
+        'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtz',
+        'tbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG',
+        '8KxNp2fO1/U/ioA9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test'
+    ].join('');
+
     let pathSent;
     let dataSent;
     let bigIpMock;
@@ -381,14 +394,18 @@ describe('systemHandler', () => {
         });
     });
 
-    it('should handle root users', () => {
+    it('should handle root users without keys', () => {
+        // Stubs out the remote call to confirm the key is not added to the user
+        sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
+
         const declaration = {
             Common: {
                 User: {
                     root: {
                         userType: 'root',
                         oldPassword: 'foo',
-                        newPassword: 'bar'
+                        newPassword: 'bar',
+                        keys: []
                     }
                 }
             }
@@ -413,6 +430,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(userSent, 'root');
                     assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
                     assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
+                    assert.strictEqual(declaration.Common.User.root.keys.join('\n'), superuserKey);
                     resolve();
                 })
                 .catch((err) => {
@@ -421,7 +439,83 @@ describe('systemHandler', () => {
         });
     });
 
-    it('should handle non-root users', () => {
+    it('should handle root users with keys', () => {
+        sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
+
+        const declaration = {
+            Common: {
+                User: {
+                    root: {
+                        userType: 'root',
+                        oldPassword: 'foo',
+                        newPassword: 'bar',
+                        keys: [testKey]
+                    }
+                }
+            }
+        };
+
+        let userSent;
+        let newPasswordSent;
+        let oldPasswordSent;
+        bigIpMock.onboard = {
+            password(user, newPassword, oldPassword) {
+                userSent = user;
+                newPasswordSent = newPassword;
+                oldPasswordSent = oldPassword;
+                return Promise.resolve();
+            }
+        };
+
+        const expectedKeys = `${superuserKey}\n${testKey}`;
+
+        return new Promise((resolve, reject) => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(userSent, 'root');
+                    assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
+                    assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
+                    assert.strictEqual(declaration.Common.User.root.keys.join('\n'), expectedKeys);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should handle non-root users with & without keys', () => {
+        const bashCmds = [];
+        sinon.stub(doUtilMock, 'executeBashCommandRemote').callsFake((bigIp, bashCmd) => {
+            bashCmds.push(bashCmd);
+            return Promise.resolve(superuserKey);
+        });
+
+        const sshPaths = [
+            '/home/user1/.ssh',
+            '/home/user2/.ssh'
+        ];
+
+        const expBash = [
+            [
+                ` mkdir -p ${sshPaths[0]}; `,
+                `echo '${testKey}' > `,
+                `${sshPaths[0]}/authorized_keys; `,
+                `chown -R "user1":webusers ${sshPaths[0]}; `,
+                `chmod -R 700 ${sshPaths[0]}; `,
+                `chmod 600 ${sshPaths[0]}/authorized_keys`
+            ].join(''),
+            [
+                ` mkdir -p ${sshPaths[1]}; `,
+                'echo \'\' > ',
+                `${sshPaths[1]}/authorized_keys; `,
+                `chown -R "user2":webusers ${sshPaths[1]}; `,
+                `chmod -R 700 ${sshPaths[1]}; `,
+                `chmod 600 ${sshPaths[1]}/authorized_keys`
+            ].join('')
+        ];
+
         const declaration = {
             Common: {
                 User: {
@@ -433,7 +527,8 @@ describe('systemHandler', () => {
                                 role: 'guest'
                             }
                         },
-                        shell: 'bash'
+                        shell: 'bash',
+                        keys: [testKey]
                     },
                     user2: {
                         userType: 'regular',
@@ -446,7 +541,8 @@ describe('systemHandler', () => {
                                 role: 'admin'
                             }
                         },
-                        shell: 'tmsh'
+                        shell: 'tmsh',
+                        keys: []
                     }
                 }
             }
@@ -481,6 +577,8 @@ describe('systemHandler', () => {
                         ]
                     );
                     assert.deepEqual(bodiesSent[1].shell, 'tmsh');
+                    assert.strictEqual(bashCmds[0], expBash[0]);
+                    assert.strictEqual(bashCmds[1], expBash[1]);
                     resolve();
                 })
                 .catch((err) => {
