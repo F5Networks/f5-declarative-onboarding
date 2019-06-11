@@ -15,7 +15,7 @@ This guide contains information on downloading, installing, and using F5 Declara
 
 .. _video:
 
-You can also see our AS3 overview video:
+You can also see our Declarative Onboarding overview video:
 
 |vid|
 
