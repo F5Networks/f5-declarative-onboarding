@@ -33,6 +33,7 @@ Use the following links, the navigation on the left, and/or the Next and Previou
    examples
    revision-history
 
+
 .. |declare| raw:: html
 
    <a href="https://f5.com/about-us/blog/articles/in-container-land-declarative-configuration-is-king-27226" target="_blank">declarative</a>

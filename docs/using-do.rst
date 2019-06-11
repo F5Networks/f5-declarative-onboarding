@@ -20,6 +20,7 @@ supplied via POST and retained by Declarative Onboarding.
    composing-a-declaration
    validate
    clustering
+   clustering-managing-devices
    big-iq-licensing
    do-container
    json-pointers
