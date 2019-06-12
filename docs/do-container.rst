@@ -137,7 +137,7 @@ To enable Basic authentication, which allows you to protect your container runni
        Require valid-user
 
    #. In the **basic-auth** directory, create another directory named **pass**.
-   #. In the **auth** directory, create a file named **.htpasswd-users** your user name and a hashed password. Again, this example uses *admin* for the password, use http://www.htaccesstools.com/htpasswd-generator/ to generate a hash for a stronger password.::
+   #. In the **auth** directory, create a file named **.htpasswd-users** your user name and a hashed password. Again, this example uses *admin* for the password, use a password generator to generate a hash for a stronger password.::
 
 		admin:$apr1$DTbcp1qi$vJ2AXcB.Ma8zznKJLEXKv.  
 
