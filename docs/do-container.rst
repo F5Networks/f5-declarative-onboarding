@@ -120,7 +120,7 @@ To enable Basic authentication, which allows you to protect your container runni
 - You should be at least somewhat familiar with the Docker command line.
 - You should have knowledge of Apache .htpasswd for adding Basic authentication.  See https://httpd.apache.org/docs/2.4/howto/auth.html.
 - While we include commands for Microsoft Windows in this section, getting paths and directories set up in Windows can be tricky, so we recommend using a Linux-based system to add Basic authentication.
-- In our example, we are using a hashed value for the password *admin*.  We strongly recommend you use a different password. Use a htpasswd generator to generate a value for a stronger password.
+- In our example, we are using a hashed value for the password *admin*.  We strongly recommend you use a different password. Use a htpasswd generator (such as http://www.htaccesstools.com/htpasswd-generator/) to generate a value for a stronger password.
 
 | 
 
@@ -137,7 +137,7 @@ To enable Basic authentication, which allows you to protect your container runni
        Require valid-user
 
    #. In the **basic-auth** directory, create another directory named **pass**.
-   #. In the **auth** directory, create a file named **.htpasswd-users** your user name and a hashed password. Again, this example uses *admin* for the password, use a password generator to generate a hash for a stronger password.::
+   #. In the **auth** directory, create a file named **.htpasswd-users** your user name and a hashed password. Again, this example uses *admin* for the password, use http://www.htaccesstools.com/htpasswd-generator/ to generate a hash for a stronger password.::
 
 		admin:$apr1$DTbcp1qi$vJ2AXcB.Ma8zznKJLEXKv.  
 
