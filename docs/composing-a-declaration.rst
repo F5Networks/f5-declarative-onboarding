@@ -159,6 +159,8 @@ The next lines of the declaration set the DNS options on the BIG-IP system.
 
 The name *myDNS* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
+.. IMPORTANT:: If you are configuring DNS in your declaration, Declarative Onboarding disables DHCP for DNS.
+
 
 .. code-block:: javascript
    :linenos:
@@ -198,6 +200,8 @@ NTP class
 The next lines of the declaration set the NTP (network time protocol) options on the BIG-IP. 
 
 The name *myNTP* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+
+.. IMPORTANT:: If you are configuring NTP in your declaration, Declarative Onboarding disables DHCP for NTP.
 
 
 .. code-block:: javascript
