@@ -187,6 +187,31 @@ In this example, we are licensing a new BIG-IP, provisioning AVR, and creating a
 
 :ref:`Back to top<examples>`
 
+.. _keys:
+
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The **keys** property of the User class is available in DO v1.5.0 and later. 
+
+Example 12: Adding public SSH keys to a declaration
+---------------------------------------------------
+In this example, we are adding public SSH keys to the root user and a guestUser. This can provide a higher level of security and easier automation.
+
+**Important notes about using the keys property**
+
+- Only the root user's master key (noted by the ``Host Processor Superuser``), in authorized_keys will be preserved. All other keys configured prior to running this declaration, WILL BE DELETED.
+- If the **keys** field is left empty it will default to an empty array. This means leaving it empty will clear the authorized_keys file, except for the root's master key.  Do not use this property in your declaration if you do not want to clear your authorized_keys file.
+- For non-root users, the path to the authorized_keys is **/home/{username}/.ssh/authorized_keys**.
+- For root, the path is **/root/.ssh/authorized_keys**.
+- DO will set the non-root user's .ssh directory permissions to 700, with the authorized_keys permissions set to 600.
+
+.. literalinclude:: ../examples/publicKeys.json
+   :language: json
+   :emphasize-lines: 13-16, 27-30 
+
+
+:ref:`Back to top<examples>`
+
 .. |br| raw:: html
 
    <br />

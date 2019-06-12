@@ -1,13 +1,14 @@
-Clustering - Adding or removing members of a Device Group
-=========================================================
+Adding or removing members of a Device Group
+============================================
 
 This page describes how to handle the scenario in which one BIG-IP in Device Group goes down (goes offline, is deleted, gets corrupted, etc.), and how to use DO on a BIG-IP in the group that is still available to add a new BIG-IP instance to the group.  It also applies if you want to simply add and/or remove a device from a cluster using Declarative Onboarding.
 
 In order to replace a device in a cluster, you must perform the following:
  
-- Send a declaration with the updated Device Group list to the new device that you want to add.
-- Ensure an active device in the cluster is the *owner* of the device group, and if there is no owner resend a declaration to the active device specifying that it is the owner (as well as the updated Device Group member list).
-- Update any other members of the Device Group with the new member list (and owner if applicable).
+1. Ensure an active device in the cluster is the *owner* of the Device Group, and if there is no owner update the declaration specifying the new active device is the owner.
+2. Update the Device Group in the declaration with the new member list.
+3. Send the updated declaration with the updated Device Group list to the **new device** you want to add.
+4. Send the declaration with the updated owner and Device Group list to the **other devices** in the cluster.
 
 In the example on this page, we have an existing Device Group **failoverGroup** includes two devices: bigip1.example.com and bigip2.example.com. The owner of the Device Group, bigip1.example.com, goes offline, so we add a new device, bigip3.example.com to the device group.
 
@@ -51,7 +52,7 @@ Sending a declaration with the updated clustering information
 
 The first task in adding a new member to a Device Group is to send a declaration to the new device that contains a list of all of the members that should be a part of the group. This applies whether you are adding or removing devices from the group; simply ensure the group members list reflects the members that should be in the group.
 
-In our example, this task includes adding new member to the DeviceGroup class (failoverGroup in this example) and omitting the member that went down (bigip1.example.com), as well as setting the new owner of the group (DeviceTrust class, **owner** property: member 0 which is bigip2.example.com in our example). If you are only adding a new device to the group only, changing the owner of the group may not be necessary.  
+In our example, this task includes adding new member to the DeviceGroup class (failoverGroup in this example) and omitting the member that went down (bigip1.example.com), as well as setting the new owner of the group (DeviceTrust class, **owner** property: member 0 which is bigip2.example.com in our example). If you are only adding a new device to the group, changing the owner of the group may not be necessary.  
 
 We are sending the declaration with this snippet to the new device (bigip3.example.com in our example).  Note that bigip3.example.com is being told that bigip2.example.com is now the owner and we are removing bigip1.example.com from the device group members list. 
 
