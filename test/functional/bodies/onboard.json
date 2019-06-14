@@ -61,6 +61,14 @@
             "gw": "10.148.75.1",
             "network": "10.20.30.0/24",
             "mtu": 1500
+        },
+        "myConfigSync": {
+            "class": "ConfigSync",
+            "configsyncIp": "/Common/mySelfIp/address"
+        },
+        "myFailoverUnicast": {
+          "class": "FailoverUnicast",
+          "address": "/Common/mySelfIp/address"
         }
     }
 }

@@ -152,6 +152,14 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
         it('should match routing', () => {
             assert.ok(testRoute(body.Common.myRoute, currentState));
         });
+
+        it('should match failover unicast address', () => {
+            assert.ok(testFailoverUnicast(body.Common, currentState));
+        });
+
+        it('should match configsync ip address', () => {
+            assert.ok(testConfigSyncIp(body.Common, currentState));
+        });
     });
 
     describe('Test Networking', function testNetworking() {
@@ -627,6 +635,18 @@ function testVlan(target, response) {
 */
 function testRoute(target, response) {
     return compareSimple(target, response.Route.myRoute, ['gw', 'network', 'mtu']);
+}
+
+function testFailoverUnicast(target, response) {
+    const validRef = target.myFailoverUnicast.address === '/Common/mySelfIp/address';
+    const validAddr = target.mySelfIp.address.indexOf(response.FailoverUnicast.address) === 0;
+    return validRef && validAddr;
+}
+
+function testConfigSyncIp(target, response) {
+    const validRef = target.myConfigSync.configsyncIp === '/Common/mySelfIp/address';
+    const validAddr = target.mySelfIp.address.indexOf(response.ConfigSync.configsyncIp) === 0;
+    return validRef && validAddr;
 }
 
 /**
