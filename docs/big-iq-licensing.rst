@@ -23,8 +23,6 @@ Declaration class licensing with BIG-IQ
 In this declaration snippet, we only include the License class, which is specific to using the BIG-IQ to license your BIG-IP system.  For a complete declaration, you could add the License class to the example in :doc:`composing-a-declaration` to configure DNS, NTP, VLANs, Routes and more.  
 For the full BIG-IQ Licensing example declaration, see :ref:`example3` and :ref:`example4`.
 
-.. NOTE:: If using Declarative Onboarding v1.5.0 or later, when DO is running on the BIG-IQ device from which the BIG-IP will be licensed, the BIG-IQ host, username, and password are not required in the License class
-
 In the following snippet, we set *reachable* to **true** (reachable means the BIG-IQ has a route to the BIG-IP), therefore we include a BIG-IP username and password. We are also using a subscription pool behind the scenes on BIG-IQ, so use SKU keywords and unit of measure.  If reachable is false, you only specify the hypervisor. And for a RegKey pool, you do not need the SKU keywords or the unit of measure (see the table and :ref:`example4` for usage). 
 
 .. code-block:: javascript
