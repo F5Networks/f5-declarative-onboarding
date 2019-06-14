@@ -13,7 +13,7 @@ This guide contains information on downloading, installing, and using F5 Declara
 
 .. _video:
 
-You can also see our AS3 overview video:
+You can also see our Declarative Onboarding overview video:
 
 |vid|
 
@@ -32,6 +32,7 @@ Use the following links, the navigation on the left, and/or the Next and Previou
    do-container
    examples
    revision-history
+
 
 .. |declare| raw:: html
 

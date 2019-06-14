@@ -159,6 +159,8 @@ The next lines of the declaration set the DNS options on the BIG-IP system.
 
 The name *myDNS* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
+.. IMPORTANT:: If you are configuring DNS in your declaration, Declarative Onboarding disables DHCP for DNS.
+
 
 .. code-block:: javascript
    :linenos:
@@ -199,6 +201,8 @@ The next lines of the declaration set the NTP (network time protocol) options on
 
 The name *myNTP* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
+.. IMPORTANT:: If you are configuring NTP in your declaration, Declarative Onboarding disables DHCP for NTP.
+
 
 .. code-block:: javascript
    :linenos:
@@ -233,10 +237,6 @@ The name *myNTP* we use in this example is arbitrary; it is not used anywhere in
 
 .. _user-class:
 
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   The options **all-partitions** for partitionAccess and **none** for shell access are available in Declarative Onboarding 1.1.0 and later.
-
 User class
 ``````````
 The next lines of the declaration create (or modify) the users and their associated roles and access control. 
@@ -244,6 +244,10 @@ The next lines of the declaration create (or modify) the users and their associa
 If you are modifying the root password, you must supply the existing root password (**default** on a new BIG-IP). All other user accounts, including admin, do not have this requirement. As mentioned in the :ref:`prereqs`, if you are using BIG-IP v14.0 or later, the root password may be the same as your admin password you reset before installing Declarative Onboarding. 
 
 .. IMPORTANT:: The following examples include passwords that may not be valid for BIG-IP v14.0 and later.  See |pass| for specific requirements.
+
+Note that the **keys** property is not included in the example at the top of this page, so the line numbers for this section will not line up with that example.
+
+
 
 
 .. code-block:: javascript
@@ -255,7 +259,12 @@ If you are modifying the root password, you must supply the existing root passwo
         "class": "User",
         "userType": "root",
         "oldPassword": "default",
-        "newPassword": "myNewPass1word"
+        "newPassword": "myNewPass1word",
+        "keys": [
+            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+/U/ioAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLz9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test2",
+            "ssh-rsa AAAAB3NzaC1yc2EAu2Gr14xRiVLnG8KxNp2fO1/U/ioAz0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG8KxNp2fO19/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test"
+        ]
+
     },
     "admin": {
         "class": "User",
@@ -271,7 +280,11 @@ If you are modifying the root password, you must supply the existing root passwo
             "Common": {
                 "role": "guest"
             }
-        }
+        },
+        "keys": [
+            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCwHJLJY+/U/ioAAAADAQABAAACAQCwHJLJY+z0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+1hx9wlSogXN6Co5zrtqlN8/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLz9/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test2",
+            "ssh-rsa AAAAB3NzaC1yc2EAu2Gr14xRiVLnG8KxNp2fO1/U/ioAz0Rb85in7Ean6JS2J9dzo1nSssm7ZyQvGgc1e7EVtztbVpHThsvw92+/mvlQkRRQ+sp2To8PcSMeEVI+TqBOg6BWbwwNQLzu2Gr14xRiVLnG8KxNp2fO19/eUJq2o4vBfSpsn7GSDIf6C3F9EahRPGCR/z0kw5GZob3Q== test"
+        ]
     },
     "anotherUser": {
         "class": "User",
@@ -307,9 +320,13 @@ If you are modifying the root password, you must supply the existing root passwo
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | shell              | **tmsh**, bash, none   (non-root only)                                                                                                     | No         | The shell you want the user to be able to use. The default is tmsh. In Declarative Onboarding 1.1.0 and later, you can use **none** when creating non-root users.                                                                               |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| keys               | array of strings                                                                                                                           | No         | DO 1.5.0+ only: An array of public keys for the user. If the user is root, this will preserve only the master key and then overwrite the rest in the file: /root/.ssh/authorized_keys.  See :ref:`Keys example <keys>`                          |
++--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
  
 
 \* The required column applies only if you are using this class.
+
+|
 
 
 .. _provision-class:
