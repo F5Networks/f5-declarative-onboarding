@@ -75,8 +75,22 @@
         "path": "/tm/cm/device/~Common~{{deviceName}}",
         "schemaClass": "ConfigSync",
         "properties": [
-            { "id": "configsyncIp" },
-            { "id": "unicastAddress" }
+            { "id": "configsyncIp" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/cm/device/~Common~{{deviceName}}",
+        "schemaClass": "FailoverUnicast",
+        "properties": [
+            {
+                "id": "unicastAddress",
+                "defaultWhenOmitted": "none",
+                "transform": [
+                    { "id": "ip", "newId": "address" },
+                    { "id": "port" }
+                ]
+            }
         ],
         "nameless": true
     },

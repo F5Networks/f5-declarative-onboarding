@@ -386,6 +386,21 @@ function mapProperties(item, index) {
                 && mappedItem[property.id].startsWith('/Common/')) {
                 mappedItem[property.id] = mappedItem[property.id].substring('/Common/'.length);
             }
+
+            if (property.transform) {
+                const orig = Object.assign({}, mappedItem[property.id]);
+                delete mappedItem[property.id];
+                property.transform.forEach((trans) => {
+                    const propertyVal = orig[trans.id] || orig[0][trans.id];
+                    if (trans.newId) {
+                        mappedItem[trans.newId] = propertyVal;
+                    } else {
+                        mappedItem[trans.id] = propertyVal;
+                    }
+                });
+            }
+        } else if (property.defaultWhenOmitted !== undefined) {
+            mappedItem[property.id] = property.defaultWhenOmitted;
         }
     });
     return mappedItem;

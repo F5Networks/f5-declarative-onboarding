@@ -298,6 +298,73 @@ describe('configManager', () => {
             });
     }));
 
+    describe('FailoverUnicast oddities', () => {
+        // iControl omits the property altogether in some cases
+        // Adding this defaultWhenOmitted attr makes the manager recognize that a default value is actually there
+        // and that the prop needs to be set back to this value if it's not specified
+        const configItems = [
+            {
+                path: '/tm/cm/device/~Common~{{deviceName}}',
+                schemaClass: 'FailoverUnicast',
+                properties: [
+                    {
+                        id: 'unicastAddress',
+                        defaultWhenOmitted: 'none',
+                        transform: [
+                            { id: 'ip', newId: 'address' },
+                            { id: 'port' }
+                        ]
+                    }
+                ],
+                nameless: true
+            }
+        ];
+
+        it('should include a default value when missing and defaultWhenOmitted is defined', () => new Promise((resolve, reject) => {
+            listResponses[`/tm/cm/device/~Common~${deviceName}`] = { name: deviceName };
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.FailoverUnicast.unicastAddress,
+                        'none'
+                    );
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
+
+        it('should map correct value with new prop Id when present', () => new Promise((resolve, reject) => {
+            listResponses[`/tm/cm/device/~Common~${deviceName}`] = {
+                name: deviceName,
+                unicastAddress: [
+                    {
+                        ip: '1.1.1.106',
+                        port: 1026
+                    }
+                ]
+            };
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.FailoverUnicast.address,
+                        '1.1.1.106'
+                    );
+                    assert.deepEqual(
+                        state.currentConfig.Common.FailoverUnicast.port,
+                        '1026'
+                    );
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
+    });
+
     describe('SelfIp oddities', () => {
         it('should strip /Common from vlan', () => new Promise((resolve, reject) => {
             const configItems = [
