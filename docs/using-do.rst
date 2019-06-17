@@ -7,7 +7,8 @@ RESTful API client like Postman or a universal client such as cURL.  You can use
 A client may supply a declaration with a POST request, and other request methods (currently only GET) work with the declaration previously
 supplied via POST and retained by Declarative Onboarding.
 
-
+Using Declarative Onboarding Index 
+----------------------------------
 
 .. toctree::
    :maxdepth: 2
