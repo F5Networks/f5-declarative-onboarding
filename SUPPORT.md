@@ -9,7 +9,6 @@ Declarative Onboarding Extension (DO) Software Lifecycle:
 * Feature releases are supported for 3 months
 * "End of Support" = End of Software Development (EOSD) + End of Technical Support (EOTS)
 
-
 Currently supported versions:
 
 | Software Version  | Release Type  | First Customer Ship |End of Support   |
