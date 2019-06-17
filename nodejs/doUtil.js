@@ -144,6 +144,7 @@ module.exports = {
         });
     },
 
+
     /**
      * Determines if a reboot is required.
      *

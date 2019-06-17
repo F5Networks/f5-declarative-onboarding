@@ -1,6 +1,6 @@
 awscli
 f5-sphinx-theme>=1.0.9
-sphinx<2.0
+sphinx==1.8.5
 recommonmark
 sphinxjp.themes.basicstrap
 cloud_sptheme
