@@ -573,9 +573,12 @@ function pollTcw(tcwId, taskId, incomingRestOp) {
         })
         .catch(() => Promise.reject());
 
+    // retry interval:
+    //   - this.retryInterval for testing
+    //   - we want to poll for more than 30 minutes because that is the TCW -> DO timeout so DO should be longer
     return cloudUtil.tryUntil(
         this,
-        { retryIntervalMs: this.retryInterval || 5000, maxRetries: 120 }, // this.retryInterval for testing
+        { retryIntervalMs: this.retryInterval || 5000, maxRetries: 384 },
         retryFunc
     )
         .then((response) => {
