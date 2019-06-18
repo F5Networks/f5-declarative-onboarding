@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 2.1
+        - Updated the documentation for Declarative Onboarding v1.5.0. This release contains the following changes: |br| * Support for creating an Analytics profile (see :ref:`Creating an Analytics profile <avrstream>`). |br| * Added support for using Authorized Keys in declarations (see :ref:`Keys example <keys>`). |br| * Added a new page for :doc:`clustering-managing-devices` |br| * Added a note to the :doc:`prereqs` stating that due to changes in TMOS v13.1.1.5, the Declarative Onboarding Extension is not compatible with that specific TMOS version. |br| * Added the |schemalink| from previous releases to the GitHub repository |br| * Updated :doc:`validate` to clarify the schema URL to use |br| * Updated the documentation theme and indexes. |br| |br| Issues Resolved: |br| * Declarative Onboarding now disables DHCP for DNS/NTP if DO is configuring them (see the note in :ref:`dns-class` and :ref:`ntp-class`) |br| * License keys no longer appear in the log |br| * Radius server secrets no longer appears in the log |br| * LicensePool now respects custom management access port of the BIG-IP that is being licensed |br| * When a 400 is received from restjavad, DO now tries relicensing |br| * Fixed an issue in which initial clustering failure would prevent clustering from working on subsequent attempts due to using the wrong device name.
+        - 06-18-19
+      
       * - 2.0
         - Documentation only update: Added the :ref:`Declarative Onboarding Overview video<video>` to the home page.  
         - 05-24-19
@@ -24,7 +28,7 @@ Document Revision History
         - 05-08-19
       
       * - 1.7
-        - Released Declarative Onboarding v1.3.1. This maintenance release contains only fixes for the following GitHub issues: |br| * `Issue 7: Does not remove SelfIP and VLAN <https://github.com/F5Networks/f5-declarative-onboarding/issues/7>`_ |br| * `Issue 17: BIG-IP requesting reboot after declaration <https://github.com/F5Networks/f5-declarative-onboarding/issues/17>`_ |br| * `Issue 18: wrong GW IP in declaration leads to DO problems <https://github.com/F5Networks/f5-declarative-onboarding/issues/18>`_ |br| * `Issue 21: DO declaration with multiple modules requires manual reboot and re-post <https://github.com/F5Networks/f5-declarative-onboarding/issues/21>`_ |br| * `Issue 32: DOv1.3.0 to create multiple vlans / self-ip need to run twice on v14.1 <https://github.com/F5Networks/f5-declarative-onboarding/issues/32>`_
+        - Released Declarative Onboarding v1.3.1. This maintenance release contains only fixes for the following GitHub issues: |br| * `Issue 7: Does not remove SelfIP and VLAN <https://github.com/F5Networks/f5-declarative-onboarding/issues/7>`_ |br| * `Issue 17: BIG-IP requesting reboot after declaration <https://github.com/F5Networks/f5-declarative-onboarding/issues/17>`_ |br| * `Issue 18: wrong GW IP in declaration leads to DO problems <https://github.com/F5Networks/f5-declarative-onboarding/issues/18>`_ |br| * `Issue 21: DO declaration with multiple modules requires manual reboot and re-post <https://github.com/F5Networks/f5-declarative-onboarding/issues/21>`_ |br| * `Issue 32: DOv1.3.0 to create multiple VLANs / self IP need to run twice on v14.1 <https://github.com/F5Networks/f5-declarative-onboarding/issues/32>`_
         - 05-07-19
       
       * - 1.6
@@ -59,10 +63,13 @@ Document Revision History
 
 
 .. |br| raw:: html
-
-
-   
+ 
    <br />
+
+.. |schemalink| raw:: html
+
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/tree/master/schema" target="_blank">schema files</a>
+
 
 
  

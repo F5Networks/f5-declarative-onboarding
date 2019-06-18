@@ -17,6 +17,7 @@
 'use strict';
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
@@ -80,10 +81,6 @@ class SystemHandler {
                 return handleLicense.call(this);
             })
             .then(() => {
-                logger.info('Checking Provision.');
-                return handleProvision.call(this);
-            })
-            .then(() => {
                 logger.fine('Done processing system declaration.');
                 return Promise.resolve();
             })
@@ -104,40 +101,42 @@ function handleDbVars() {
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        const promises = (ntp.servers || []).map((server) => {
-            return doUtil.checkDnsResolution(server);
-        });
+        const promises = (ntp.servers || []).map(server => doUtil.checkDnsResolution(server));
 
         return Promise.all(promises)
-            .then(() => {
-                return disableDhcpOption.call(this, 'ntp-servers');
-            })
-            .then(() => {
-                this.bigIp.replace(
-                    PATHS.NTP,
-                    {
-                        servers: ntp.servers,
-                        timezone: ntp.timezone
-                    }
-                );
-            });
+            .then(() => disableDhcpOptions.call(this, ['ntp-servers']))
+            .then(() => this.bigIp.replace(
+                PATHS.NTP,
+                {
+                    servers: ntp.servers,
+                    timezone: ntp.timezone
+                }
+            ));
     }
     return Promise.resolve();
 }
 
 function handleDNS() {
     if (this.declaration.Common.DNS) {
-        return disableDhcpOption.call(this, 'domain-name-servers')
-            .then(() => {
-                const dns = this.declaration.Common.DNS;
-                return this.bigIp.replace(
-                    PATHS.DNS,
-                    {
-                        'name-servers': dns.nameServers,
-                        search: dns.search || []
-                    }
-                );
-            });
+        const dns = this.declaration.Common.DNS;
+        const dhcpOptionsToDisable = [];
+
+        if (dns.nameServers) {
+            dhcpOptionsToDisable.push('domain-name-servers');
+        }
+        if (dns.search) {
+            // dhclient calls search 'domain-name'
+            dhcpOptionsToDisable.push('domain-name');
+        }
+
+        return disableDhcpOptions.call(this, dhcpOptionsToDisable)
+            .then(() => this.bigIp.replace(
+                PATHS.DNS,
+                {
+                    'name-servers': dns.nameServers,
+                    search: dns.search || []
+                }
+            ));
     }
     return Promise.resolve();
 }
@@ -156,15 +155,55 @@ function handleUser() {
         userNames.forEach((username) => {
             const user = this.declaration.Common.User[username];
             if (user.userType === 'root' && username === 'root') {
-                promises.push(this.bigIp.onboard.password(
-                    'root',
-                    user.newPassword,
-                    user.oldPassword
-                ));
+                promises.push(
+                    this.bigIp.onboard.password(
+                        'root',
+                        user.newPassword,
+                        user.oldPassword
+                    )
+                        .then(() => {
+                            const sshPath = '/root/.ssh';
+                            const catCmd = `cat ${sshPath}/authorized_keys`;
+                            return doUtil.executeBashCommandRemote(this.bigIp, catCmd)
+                                .then((origAuthKey) => {
+                                    const masterKeys = origAuthKey
+                                        .split('\n')
+                                        .filter(key => key.endsWith(' Host Processor Superuser'));
+                                    if (masterKeys !== '') {
+                                        user.keys.unshift(masterKeys);
+                                    }
+                                    // The initial space is intentional, it is a bash shortcut
+                                    // It prevents the command from being saved in bash_history
+                                    const echoKeys = [
+                                        ` echo '${user.keys.join('\n')}' > `,
+                                        `${sshPath}/authorized_keys`
+                                    ].join('');
+                                    return doUtil.executeBashCommandRemote(this.bigIp, echoKeys);
+                                });
+                        })
+                );
             } else if (user.userType === 'regular') {
-                promises.push(createOrUpdateUser.call(this, username, user));
+                promises.push(
+                    createOrUpdateUser.call(this, username, user)
+                        .then(() => {
+                            const sshPath = `/home/${username}/.ssh`;
+                            // The initial space is intentional, it is a bash shortcut
+                            // It prevents the command from being saved in bash_history
+                            const makeSshDir = ` mkdir -p ${sshPath}`;
+                            const echoKeys = [
+                                `echo '${user.keys.join('\n')}' > `,
+                                `${sshPath}/authorized_keys`
+                            ].join('');
+                            const chownUser = `chown -R "${username}":webusers ${sshPath}`;
+                            const chmodUser = `chmod -R 700 ${sshPath}`;
+                            const chmodKeys = `chmod 600 ${sshPath}/authorized_keys`;
+                            const bashCmd = [
+                                makeSshDir, echoKeys, chownUser, chmodUser, chmodKeys
+                            ].join('; ');
+                            doUtil.executeBashCommandRemote(this.bigIp, bashCmd);
+                        })
+                );
             } else {
-                // eslint-disable-next-line max-len
                 logger.warning(`${username} has userType root. Only the root user can have userType root.`);
             }
         });
@@ -193,9 +232,7 @@ function handleRegKey(license) {
             overwrite: license.overwrite
         }
     )
-        .then(() => {
-            return this.bigIp.active();
-        })
+        .then(() => this.bigIp.active())
         .catch((err) => {
             const errorLicensing = `Error licensing: ${err.message}`;
             logger.severe(errorLicensing);
@@ -209,33 +246,47 @@ function handleLicensePool(license) {
     // that has the right credentials and host IP
     let getBigIp;
     let bigIp;
-    if (license.reachable) {
-        getBigIp = new Promise((resolve, reject) => {
-            this.bigIp.deviceInfo()
-                .then((deviceInfo) => {
-                    return doUtil.getBigIp(
-                        logger,
-                        {
-                            host: deviceInfo.managementAddress,
-                            user: license.bigIpUsername,
-                            password: license.bigIpPassword
-                        }
-                    );
-                })
-                .then((resolvedBigIp) => {
-                    resolve(resolvedBigIp);
-                })
-                .catch((err) => {
-                    logger.severe(`Error getting big ip for reachable API: ${err.message}`);
-                    reject(err);
-                });
-        });
-    } else {
-        getBigIp = Promise.resolve(this.bigIp);
+    let currentPlatform;
+
+    let promise = Promise.resolve();
+    if (license.bigIqHost) {
+        promise = promise.then(() => doUtil.checkDnsResolution(license.bigIqHost));
     }
 
-    return doUtil.checkDnsResolution(license.bigIqHost)
-        .then(() => { return getBigIp; })
+    return promise
+        .then(() => doUtil.getCurrentPlatform())
+        .then((platform) => {
+            currentPlatform = platform;
+
+            // If we're running on BIG-IP, get the real address info (since it might be 'localhost'
+            // which won't work). Otherwise, assume we can already reach the BIG-IP through
+            // it's current address and port (since that is what we've been using to get this far)
+            if (currentPlatform === PRODUCTS.BIGIP && license.reachable) {
+                getBigIp = new Promise((resolve, reject) => {
+                    this.bigIp.deviceInfo()
+                        .then(deviceInfo => doUtil.getBigIp(
+                            logger,
+                            {
+                                host: deviceInfo.managementAddress,
+                                port: this.bigIp.port,
+                                user: license.bigIpUsername,
+                                password: license.bigIpPassword
+                            }
+                        ))
+                        .then((resolvedBigIp) => {
+                            resolve(resolvedBigIp);
+                        })
+                        .catch((err) => {
+                            logger.severe(`Error getting big ip for reachable API: ${err.message}`);
+                            reject(err);
+                        });
+                });
+            } else {
+                getBigIp = Promise.resolve(this.bigIp);
+            }
+
+            return getBigIp;
+        })
         .then((resolvedBigIp) => {
             bigIp = resolvedBigIp;
             let possiblyRevoke;
@@ -271,11 +322,12 @@ function handleLicensePool(license) {
                 }
 
                 possiblyRevoke = bigIp.onboard.revokeLicenseViaBigIq(
-                    options.bigIqHost,
+                    options.bigIqHost || 'localhost',
                     options.bigIqUser,
                     options.bigIqPassword || options.bigIqPasswordUri,
                     options.licensePoolName,
                     {
+                        bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, licenseInfo),
                         passwordIsUri: !!options.bigIqPasswordUri,
                         noUnreachable: !!license.reachable
                     }
@@ -288,13 +340,23 @@ function handleLicensePool(license) {
         })
         .then(() => {
             if (license.licensePool) {
+                let bigIpMgmtAddress;
+
+                // If we're running on BIG-IQ or a container, we know our host info
+                // is correct and reachable, so use it, otherwise, let licensing code figure it out
+                if (currentPlatform !== PRODUCTS.BIGIP) {
+                    bigIpMgmtAddress = bigIp.host;
+                }
+
                 return bigIp.onboard.licenseViaBigIq(
-                    license.bigIqHost,
+                    license.bigIqHost || 'localhost',
                     license.bigIqUsername,
                     license.bigIqPassword || license.bigIqPasswordUri,
                     license.licensePool,
                     license.hypervisor,
                     {
+                        bigIpMgmtAddress,
+                        bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, license),
                         passwordIsUri: !!license.bigIqPasswordUri,
                         skuKeyword1: license.skuKeyword1,
                         skuKeyword2: license.skuKeyword2,
@@ -316,34 +378,7 @@ function handleLicensePool(license) {
             }
             return this.bigIp.active();
         })
-        .catch((err) => {
-            return Promise.reject(err);
-        });
-}
-
-function handleProvision() {
-    if (this.declaration.Common.Provision) {
-        const provision = this.declaration.Common.Provision;
-        return this.bigIp.onboard.provision(provision)
-            .then((results) => {
-                // If we provisioned something make sure we are active for a while.
-                // BIG-IP has a way of reporting active after provisioning, but then
-                // flipping to not active. We love you BIG-IP!
-                if (results.length > 0) {
-                    const activeRequests = [];
-                    for (let i = 0; i < 10; i++) {
-                        activeRequests.push(
-                            {
-                                promise: this.bigIp.active
-                            }
-                        );
-                    }
-                    return cloudUtil.callInSerial(this.bigIp, activeRequests, 100);
-                }
-                return Promise.resolve();
-            });
-    }
-    return Promise.resolve();
+        .catch(err => Promise.reject(err));
 }
 
 function createOrUpdateUser(username, data) {
@@ -396,7 +431,7 @@ function createOrUpdateUser(username, data) {
         });
 }
 
-function disableDhcpOption(optionToDisable) {
+function disableDhcpOptions(optionsToDisable) {
     let requiresDhcpRestart;
 
     return this.bigIp.list(
@@ -408,9 +443,7 @@ function disableDhcpOption(optionToDisable) {
             }
 
             const currentOptions = dhcpOptions.requestOptions;
-            const newOptions = currentOptions.filter((option) => {
-                return option !== optionToDisable;
-            });
+            const newOptions = currentOptions.filter(option => optionsToDisable.indexOf(option) === -1);
 
             if (currentOptions.length === newOptions.length) {
                 return Promise.resolve();
@@ -428,13 +461,50 @@ function disableDhcpOption(optionToDisable) {
             if (!requiresDhcpRestart) {
                 return Promise.resolve();
             }
-            return this.bigIp.create(
-                '/tm/sys/service',
-                {
-                    command: 'restart',
-                    name: 'dhclient'
-                }
-            );
+            return restartDhcp.call(this);
+        });
+}
+
+function getBigIqManagementPort(currentPlatform, license) {
+    let bigIqMgmtPort;
+    // If we're on BIG-IQ and we're going to license from this device
+    // set up for no auth via port 8100
+    if (currentPlatform === PRODUCTS.BIGIQ
+        && (!license.bigIqHost || license.bigIqHost === 'localhost')) {
+        bigIqMgmtPort = 8100;
+    }
+    return bigIqMgmtPort;
+}
+
+function restartDhcp() {
+    return this.bigIp.create(
+        '/tm/sys/service',
+        {
+            command: 'restart',
+            name: 'dhclient'
+        }
+    )
+        .then(() => {
+            function isDhcpRunning() {
+                return this.bigIp.list('/tm/sys/service/dhclient/stats')
+                    .then((dhcpStats) => {
+                        if (dhcpStats.apiRawValues
+                            && dhcpStats.apiRawValues.apiAnonymous
+                            && dhcpStats.apiRawValues.apiAnonymous.indexOf('running') !== -1) {
+                            return Promise.resolve();
+                        }
+
+                        let message;
+                        if (dhcpStats.apiRawValues && dhcpStats.apiRawValues.apiAnonymous) {
+                            message = `dhclient status is ${dhcpStats.apiRawValues.apiAnonymous}`;
+                        } else {
+                            message = 'Unable to read dhclient status';
+                        }
+                        return Promise.reject(new Error(message));
+                    });
+            }
+
+            return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isDhcpRunning);
         });
 }
 

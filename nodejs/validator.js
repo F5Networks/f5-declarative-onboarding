@@ -18,32 +18,30 @@
 
 const AjvValidator = require('./ajvValidator');
 const BigIqSettingsValidator = require('./bigIqSettingsValidator');
+const LicensePoolValidator = require('./licensePoolValidator');
 
 class Validator {
     constructor() {
         this.validators = [
             new AjvValidator(),
-            new BigIqSettingsValidator()
+            new BigIqSettingsValidator(),
+            new LicensePoolValidator()
         ];
     }
 
     validate(data) {
         // We want to run the validators serially so that we can control which errors
         // show up first. Namely, we want JSON validation errors first.
-        const runInSerial = this.validators.reduce((promiseChain, currentValidator) => {
-            return promiseChain.then((results) => {
-                return currentValidator.validate(data).then((currentResult) => {
+        const runInSerial = this.validators.reduce((promiseChain, currentValidator) => promiseChain
+            .then(results => currentValidator.validate(data)
+                .then((currentResult) => {
                     results.push(currentResult);
                     return results;
-                });
-            });
-        }, Promise.resolve([]));
+                })), Promise.resolve([]));
 
         return runInSerial
             .then((results) => {
-                const firstError = results.find((currentResult) => {
-                    return !currentResult.isValid;
-                });
+                const firstError = results.find(currentResult => !currentResult.isValid);
 
                 return firstError || {
                     isValid: true,

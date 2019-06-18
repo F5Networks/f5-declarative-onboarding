@@ -22,13 +22,10 @@ if (!process.env.RPM_PACKAGE) {
 
 const RPM_PACKAGE = process.env.RPM_PACKAGE;
 
-/* eslint-disable no-undef */
 
 return common.readFile(process.env.TEST_HARNESS_FILE)
     .then(JSON.parse)
-    .then((machinesInfo) => {
-        return setupMachines(machinesInfo);
-    })
+    .then(machinesInfo => setupMachines(machinesInfo))
     .then(() => {
         process.exit(0);
     })
@@ -56,9 +53,7 @@ function setupMachines(harnessInfo) {
                 const adminPassword = machine.admin_password;
                 const ipAddress = machine.admin_ip;
                 scpRpm(ipAddress, username, password)
-                    .then(() => {
-                        return installRpm(ipAddress, adminUsername, adminPassword);
-                    })
+                    .then(() => installRpm(ipAddress, adminUsername, adminPassword))
                     .then(JSON.parse)
                     .then((response) => {
                         if (response.status === 'CREATED') {
@@ -122,11 +117,7 @@ function scpRpm(host, username, password) {
                     }
                 }
             })
-                .then(() => {
-                /* eslint-disable no-undef */
-                    return ssh.putFile(RPM_PACKAGE, `${REMOTE_DIR}/${path.basename(RPM_PACKAGE)}`);
-                /* eslint-enable no-undef */
-                })
+                .then(() => ssh.putFile(RPM_PACKAGE, `${REMOTE_DIR}/${path.basename(RPM_PACKAGE)}`))
                 .then(() => {
                     resolve('copied');
                 })

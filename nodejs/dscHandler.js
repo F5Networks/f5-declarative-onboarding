@@ -109,19 +109,17 @@ function handleFailoverUnicast() {
         }
 
         return this.bigIp.deviceInfo()
-            .then((deviceInfo) => {
-                return this.bigIp.modify(
-                    `/tm/cm/device/~Common~${deviceInfo.hostname}`,
-                    {
-                        unicastAddress: [
-                            {
-                                port,
-                                ip: unicastAddress,
-                            }
-                        ]
-                    }
-                );
-            })
+            .then(deviceInfo => this.bigIp.modify(
+                `/tm/cm/device/~Common~${deviceInfo.hostname}`,
+                {
+                    unicastAddress: [
+                        {
+                            port,
+                            ip: unicastAddress
+                        }
+                    ]
+                }
+            ))
             .catch((err) => {
                 logger.severe(`Error setting failover unicast address: ${err.message}`);
                 return Promise.reject(err);
@@ -167,9 +165,7 @@ function handleDeviceTrustAndGroup() {
     }
 
     return handleDeviceTrust.call(this)
-        .then(() => {
-            return handleDeviceGroup.call(this);
-        })
+        .then(() => handleDeviceGroup.call(this))
         .catch((err) => {
             logger.severe(`Error handling device trust and group: ${err.message}`);
             return Promise.reject(err);
@@ -184,22 +180,23 @@ function handleJoinCluster() {
     if (this.declaration.Common.DeviceTrust && this.declaration.Common.DeviceGroup) {
         const deviceTrust = this.declaration.Common.DeviceTrust;
         const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
+        const deviceGroupMembers = this.declaration.Common.DeviceGroup[deviceGroupName].members;
 
         this.bigIp.user = deviceTrust.localUsername;
         this.bigIp.password = deviceTrust.localPassword;
         return doUtil.checkDnsResolution(deviceTrust.remoteHost)
-            .then(() => {
-                return this.bigIp.cluster.joinCluster(
-                    deviceGroupName,
-                    deviceTrust.remoteHost,
-                    deviceTrust.remoteUsername,
-                    deviceTrust.remotePassword,
-                    false,
-                    {
-                        product: PRODUCTS.BIGIP
-                    }
-                );
-            });
+            .then(() => this.bigIp.cluster.joinCluster(
+                deviceGroupName,
+                deviceTrust.remoteHost,
+                deviceTrust.remoteUsername,
+                deviceTrust.remotePassword,
+                false,
+                {
+                    product: PRODUCTS.BIGIP,
+                    syncCompDevices: deviceGroupMembers
+                }
+            ))
+            .then(() => pruneDeviceGroup.call(this, deviceGroupName, deviceGroupMembers));
     }
     return Promise.resolve();
 }
@@ -221,27 +218,21 @@ function handleDeviceTrust() {
                 // If we are not the remote, check to see if we need to request to be added
                 if (!isRemote) {
                     return doUtil.checkDnsResolution(deviceTrust.remoteHost)
-                        .then(() => {
-                            return doUtil.getBigIp(
-                                logger,
-                                {
-                                    host: deviceTrust.remoteHost,
-                                    user: deviceTrust.remoteUsername,
-                                    password: deviceTrust.remotePassword
-                                }
-                            );
-                        })
-                        .then((remoteBigIp) => {
-                            return remoteBigIp.cluster.addToTrust(
-                                deviceInfo.hostname,
-                                deviceInfo.managementAddress,
-                                deviceTrust.localUsername,
-                                deviceTrust.localPassword
-                            );
-                        })
-                        .then(() => {
-                            return this.bigIp.cluster.syncComplete();
-                        })
+                        .then(() => doUtil.getBigIp(
+                            logger,
+                            {
+                                host: deviceTrust.remoteHost,
+                                user: deviceTrust.remoteUsername,
+                                password: deviceTrust.remotePassword
+                            }
+                        ))
+                        .then(remoteBigIp => remoteBigIp.cluster.addToTrust(
+                            deviceInfo.hostname,
+                            deviceInfo.managementAddress,
+                            deviceTrust.localUsername,
+                            deviceTrust.localPassword
+                        ))
+                        .then(() => this.bigIp.cluster.syncComplete())
                         .catch((err) => {
                             logger.severe(`Could not add to remote trust: ${err.message}`);
                             return Promise.reject(err);
@@ -264,8 +255,10 @@ function handleDeviceGroup() {
     if (this.declaration.Common.DeviceGroup) {
         const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
         let deviceGroup;
+        let deviceGroupMembers;
         if (deviceGroupName) {
             deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
+            deviceGroupMembers = this.declaration.Common.DeviceGroup[deviceGroupName].members;
         }
 
         if (deviceGroup) {
@@ -277,7 +270,8 @@ function handleDeviceGroup() {
                         return createDeviceGroup.call(this, deviceGroupName, deviceGroup);
                     }
 
-                    return joinDeviceGroup.call(this, deviceGroupName, hostname);
+                    return joinDeviceGroup.call(this, deviceGroupName, hostname)
+                        .then(() => pruneDeviceGroup.call(this, deviceGroupName, deviceGroupMembers));
                 })
                 .catch((err) => {
                     logger.severe(`Error handling device group: ${err.message}`);
@@ -301,16 +295,8 @@ function handleDeviceGroup() {
 function createDeviceGroup(deviceGroupName, deviceGroup) {
     let needsSync = false;
 
-    // Check deviceGroup.members for valid DNS
-    const promises = (deviceGroup.members || []).map((member) => {
-        return doUtil.checkDnsResolution(member);
-    });
-
     // Get the device group members that are currently trusted
-    return Promise.all(promises)
-        .then(() => {
-            return this.bigIp.cluster.areInTrustGroup(deviceGroup.members || []);
-        })
+    return this.bigIp.cluster.areInTrustGroup(deviceGroup.members || [])
         .then((devices) => {
             // If we're adding something besides ourselves do
             // an initial sync after createion
@@ -331,6 +317,10 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
                 }
             );
         })
+        .then(() => pruneDeviceGroup.call(this, deviceGroupName, deviceGroup.members)
+            .then((pruned) => {
+                needsSync = needsSync || pruned;
+            }))
         .then(() => {
             if (needsSync) {
                 // We are the owner, so sync to the group
@@ -338,9 +328,10 @@ function createDeviceGroup(deviceGroupName, deviceGroup) {
             }
             return Promise.resolve();
         })
-        .then(() => {
-            return this.bigIp.cluster.syncComplete();
-        })
+        .then(() => this.bigIp.cluster.syncComplete(
+            { maxRetries: 3, retryIntervalMs: 10000 },
+            { connectedDevices: deviceGroup.members }
+        ))
         .catch((err) => {
             logger.severe(`Error creating device group: ${err.message}`);
             return Promise.reject(err);
@@ -365,9 +356,7 @@ function joinDeviceGroup(deviceGroupName, hostname) {
     // and the owning device creates the group, we should have it but maybe
     // we are coming up before the owner, so wait.
     return waitForDeviceGroup.call(this, deviceGroupName)
-        .then(() => {
-            return this.bigIp.cluster.addToDeviceGroup(hostname, deviceGroupName);
-        })
+        .then(() => this.bigIp.cluster.addToDeviceGroup(hostname, deviceGroupName))
         .catch((err) => {
             logger.severe(`Error joining device group: ${err.message}`);
             return Promise.reject(err);
@@ -401,9 +390,7 @@ function isRemoteHost(deviceInfo, remoteHost) {
             this.bigIp.list(PATHS.SelfIp)
                 .then((selfIps) => {
                     if (selfIps && Array.isArray(selfIps)) {
-                        const match = selfIps.find((selfIp) => {
-                            return doUtil.stripCidr(selfIp.address) === remoteHost;
-                        });
+                        const match = selfIps.find(selfIp => doUtil.stripCidr(selfIp.address) === remoteHost);
                         resolve(!!match);
                     }
                 })
@@ -413,6 +400,43 @@ function isRemoteHost(deviceInfo, remoteHost) {
                 });
         }
     });
+}
+
+/**
+ * Removes unwanted devices from device group.
+ *
+ * @param {String} deviceGroupName - Name of the device group.
+ * @param {String[]} deviceNames - Devices that should remain in device group.
+ *
+ * @returns {Promise} A promise which is resolved when the operation is complete
+ *                    or rejected if an error occurs. Promise resolves with true
+ *                    if one or more devices were pruned from the device group.
+ */
+function pruneDeviceGroup(deviceGroupName, deviceNames) {
+    if (!Array.isArray(deviceNames)) {
+        return Promise.resolve(false);
+    }
+
+    return this.bigIp.list(`${PATHS.DeviceGroup}/~Common~${deviceGroupName}/devices`)
+        .then((devices) => {
+            if (!Array.isArray(devices)) {
+                return Promise.resolve(false);
+            }
+
+            const devicesToRemove = [];
+            devices.forEach((device) => {
+                if (deviceNames.indexOf(device.name) === -1) {
+                    devicesToRemove.push(device.name);
+                }
+            });
+
+            if (devicesToRemove.length === 0) {
+                return Promise.resolve(false);
+            }
+
+            return this.bigIp.cluster.removeFromDeviceGroup(devicesToRemove, deviceGroupName)
+                .then(() => Promise.resolve(true));
+        });
 }
 
 module.exports = DscHandler;

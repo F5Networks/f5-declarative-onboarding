@@ -23,6 +23,7 @@ const baseSchema = require('../../schema/base.schema.json');
 const systemSchema = require('../../schema/system.schema.json');
 const networkSchema = require('../../schema/network.schema.json');
 const dscSchema = require('../../schema/dsc.schema.json');
+const analyticsSchema = require('../../schema/analytics.schema.json');
 const customFormats = require('../../schema/formats.js');
 
 const ajv = new Ajv(
@@ -42,6 +43,7 @@ const validate = ajv
     .addSchema(systemSchema)
     .addSchema(networkSchema)
     .addSchema(dscSchema)
+    .addSchema(analyticsSchema)
     .compile(baseSchema);
 
 /* eslint-disable quotes, quote-props */
@@ -58,7 +60,7 @@ describe('base.schema.json', () => {
             });
         });
 
-        describe('invlalid', () => {
+        describe('invalid', () => {
             it('should invalidate missing schemaVersion', () => {
                 const data = {
                     "class": "Device"

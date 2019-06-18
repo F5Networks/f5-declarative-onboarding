@@ -18,12 +18,23 @@
 
 const fs = require('fs');
 const assert = require('assert');
+const sinon = require('sinon');
+const doUtil = require('../../nodejs/doUtil');
 const Validator = require('../../nodejs/validator');
 
 const validator = new Validator();
 
 describe('examples', () => {
     const files = fs.readdirSync(`${__dirname}/../../examples`);
+
+    beforeEach(() => {
+        sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
     files.forEach((file) => {
         it(`should validate ${file}`, () => {
             let declaration = JSON.parse(fs.readFileSync(`${__dirname}/../../examples/${file}`));

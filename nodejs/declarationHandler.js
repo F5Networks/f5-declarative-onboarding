@@ -22,7 +22,10 @@ const Logger = require('./logger');
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
 const DscHandler = require('./dscHandler');
+const AnalyticsHandler = require('./analyticsHandler');
 const DeleteHandler = require('./deleteHandler');
+const ProvisionHandler = require('./provisionHandler');
+const DeprovisionHandler = require('./deprovisionHandler');
 
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 
@@ -42,7 +45,8 @@ const CLASSES_OF_TRUTH = [
     'Route',
     'ConfigSync',
     'DeviceGroup',
-    'FailoverUnicast'
+    'FailoverUnicast',
+    'Analytics'
 ];
 
 /**
@@ -105,18 +109,24 @@ class DeclarationHandler {
                 deleteDeclaration = declarationDiffs.toDelete;
                 return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
             })
-            .then(() => {
-                return new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process();
-            })
-            .then(() => {
-                return new NetworkHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process();
-            })
-            .then(() => {
-                return new DscHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process();
-            })
-            .then(() => {
-                return new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter, state).process();
-            })
+            .then(() => new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
+            .then(() => new ProvisionHandler(
+                updateDeclaration,
+                this.bigIp,
+                this.eventEmitter,
+                state
+            ).process())
+            .then(() => new NetworkHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
+            .then(() => new DscHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
+            .then(() => new AnalyticsHandler(updateDeclaration, this.bigIp, this.eventEmitter, state)
+                .process())
+            .then(() => new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter, state).process())
+            .then(() => new DeprovisionHandler(
+                updateDeclaration,
+                this.bigIp,
+                this.eventEmitter,
+                state
+            ).process())
             .then(() => {
                 logger.info('Done processing declaration.');
                 return Promise.resolve();

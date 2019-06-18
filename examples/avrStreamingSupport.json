@@ -1,0 +1,31 @@
+{
+    "schemaVersion": "1.5.0",
+    "class": "Device",
+    "label": "Adding support for AVR streaming",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "avr.example.com",
+        "myLicense": {
+            "class": "License",
+            "licenseType": "regKey",
+            "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
+        },  
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal",
+            "avr": "nominal"
+        },
+        "analytics": {
+            "class": "Analytics",
+            "debugEnabled": true,
+            "interval": 60,
+            "offboxProtocol": "tcp",
+            "offboxTcpAddresses": [
+                "192.0.2.1"
+            ],
+            "offboxTcpPort": 80,
+            "offboxEnabled": true
+        }
+    }
+}

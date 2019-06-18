@@ -95,108 +95,94 @@ describe('sshUtil', () => {
         });
     });
 
-    it('should send the command', () => {
-        return new Promise((resolve, reject) => {
-            const commandToSend = 'foo';
-            sshUtil = new SshUtil();
-            sshUtil.executeCommand(commandToSend)
-                .then(() => {
-                    assert.strictEqual(commandReceived, 'foo');
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    });
+    it('should send the command', () => new Promise((resolve, reject) => {
+        const commandToSend = 'foo';
+        sshUtil = new SshUtil();
+        sshUtil.executeCommand(commandToSend)
+            .then(() => {
+                assert.strictEqual(commandReceived, 'foo');
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
 
-    it('should use ssh key if appropriate', () => {
-        return new Promise((resolve, reject) => {
-            const sshKeyPath = 'path to my ssh key';
-            sshUtil = new SshUtil('user', 'host', { sshKeyPath });
-            sshUtil.executeCommand('foo')
-                .then(() => {
-                    const iIndex = argsReceived.indexOf('-i');
-                    assert.notStrictEqual(iIndex, -1);
-                    assert.strictEqual(argsReceived[iIndex + 1], sshKeyPath);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    });
+    it('should use ssh key if appropriate', () => new Promise((resolve, reject) => {
+        const sshKeyPath = 'path to my ssh key';
+        sshUtil = new SshUtil('user', 'host', { sshKeyPath });
+        sshUtil.executeCommand('foo')
+            .then(() => {
+                const iIndex = argsReceived.indexOf('-i');
+                assert.notStrictEqual(iIndex, -1);
+                assert.strictEqual(argsReceived[iIndex + 1], sshKeyPath);
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
 
-    it('should send ignore host key options if appropriate', () => {
-        return new Promise((resolve, reject) => {
-            sshUtil = new SshUtil('user', 'host', { ignoreHostKeyVerification: true });
-            sshUtil.executeCommand('foo')
-                .then(() => {
-                    assert.notStrictEqual(argsReceived.indexOf('UserKnownHostsFile=/dev/null'), -1);
-                    assert.notStrictEqual(argsReceived.indexOf('StrictHostKeyChecking=no'), -1);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    });
+    it('should send ignore host key options if appropriate', () => new Promise((resolve, reject) => {
+        sshUtil = new SshUtil('user', 'host', { ignoreHostKeyVerification: true });
+        sshUtil.executeCommand('foo')
+            .then(() => {
+                assert.notStrictEqual(argsReceived.indexOf('UserKnownHostsFile=/dev/null'), -1);
+                assert.notStrictEqual(argsReceived.indexOf('StrictHostKeyChecking=no'), -1);
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
 
-    it('should handle stderr errors', () => {
-        return new Promise((resolve, reject) => {
-            stdErrorData = 'this is my error';
-            sshUtil = new SshUtil();
-            sshUtil.executeCommand()
-                .then(() => {
-                    reject(new Error('executeCommand should have rejected'));
-                })
-                .catch((err) => {
-                    assert.notStrictEqual(err.message.indexOf(stdErrorData), -1);
-                    resolve();
-                });
-        });
-    });
+    it('should handle stderr errors', () => new Promise((resolve, reject) => {
+        stdErrorData = 'this is my error';
+        sshUtil = new SshUtil();
+        sshUtil.executeCommand()
+            .then(() => {
+                reject(new Error('executeCommand should have rejected'));
+            })
+            .catch((err) => {
+                assert.notStrictEqual(err.message.indexOf(stdErrorData), -1);
+                resolve();
+            });
+    }));
 
-    it('should send stdout response', () => {
-        return new Promise((resolve, reject) => {
-            stdOutData = 'this is the command response';
-            sshUtil.executeCommand()
-                .then((data) => {
-                    assert.strictEqual(data, stdOutData);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    });
+    it('should send stdout response', () => new Promise((resolve, reject) => {
+        stdOutData = 'this is the command response';
+        sshUtil.executeCommand()
+            .then((data) => {
+                assert.strictEqual(data, stdOutData);
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
 
-    it('should handle child process errors', () => {
-        return new Promise((resolve, reject) => {
-            errorData = 'this is my error';
-            sshUtil = new SshUtil();
-            sshUtil.executeCommand()
-                .then(() => {
-                    reject(new Error('executeCommand should have rejected'));
-                })
-                .catch((err) => {
-                    assert.notStrictEqual(err.message.indexOf(errorData), -1);
-                    resolve();
-                });
-        });
-    });
+    it('should handle child process errors', () => new Promise((resolve, reject) => {
+        errorData = 'this is my error';
+        sshUtil = new SshUtil();
+        sshUtil.executeCommand()
+            .then(() => {
+                reject(new Error('executeCommand should have rejected'));
+            })
+            .catch((err) => {
+                assert.notStrictEqual(err.message.indexOf(errorData), -1);
+                resolve();
+            });
+    }));
 
-    it('should handle non-zero exit codes', () => {
-        return new Promise((resolve, reject) => {
-            exitCode = 123;
-            sshUtil.executeCommand()
-                .then(() => {
-                    reject(new Error('executeCommand should have rejected'));
-                })
-                .catch((err) => {
-                    assert.notStrictEqual(err.message.indexOf(exitCode), -1);
-                    resolve();
-                });
-        });
-    });
+    it('should handle non-zero exit codes', () => new Promise((resolve, reject) => {
+        exitCode = 123;
+        sshUtil.executeCommand()
+            .then(() => {
+                reject(new Error('executeCommand should have rejected'));
+            })
+            .catch((err) => {
+                assert.notStrictEqual(err.message.indexOf(exitCode), -1);
+                resolve();
+            });
+    }));
 });

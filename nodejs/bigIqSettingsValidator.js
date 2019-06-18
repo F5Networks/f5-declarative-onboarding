@@ -19,7 +19,6 @@
 const doUtil = require('./doUtil');
 
 class BigIqSettingsValidator {
-    /* eslint-disable class-methods-use-this, max-len */
     validate(data) {
         if (!data.bigIqSettings) {
             return Promise.resolve({

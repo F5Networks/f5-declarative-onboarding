@@ -1,0 +1,148 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/dsc.schema.json",
+    "title": "F5 Declarative Onboarding DSC declaration",
+    "description": "Clustering properties for onboarding a BIG-IP.",
+    "oneOf": [
+        {
+            "required": ["class", "configsyncIp"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains config sync IP configuration.",
+                    "type": "string",
+                    "const": "ConfigSync"
+                },
+                "configsyncIp": {
+                    "description": "ConfigSync IP",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6" },
+                        { "format": "json-pointer" }
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        {
+            "required": ["class", "address"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains failover unicast address configuration.",
+                    "type": "string",
+                    "const": "FailoverUnicast"
+                },
+                "address": {
+                    "description": "IP address to listen on for failover heartbeats",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6" },
+                        { "format": "json-pointer" }
+                    ]
+                },
+                "port": {
+                    "description": "Port to listen on for failover heartbeats",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "default": 1026
+                }
+            },
+            "additionalProperties": false
+        },
+        {
+            "required": ["class", "type"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains device group configuration.",
+                    "type": "string",
+                    "const": "DeviceGroup"
+                },
+                "type": {
+                    "description": "Type of the device group",
+                    "type": "string",
+                    "enum": ["sync-failover", "sync-only"]
+                },
+                "owner": {
+                    "description": "Owning device. Config will be pushed from this device. If this is present, device group will only be created if the current device is the owner. If not present, device group will be created if it does not exist",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "hostname" },
+                        { "format": "json-pointer" }
+                    ]
+                },
+                "members": {
+                    "description": "Members to add to the device group if they are already in the trust domain",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "format": "hostname"
+                    }
+                },
+                "autoSync": {
+                    "description": "Whether or not the device group should auto sync",
+                    "type": "boolean",
+                    "default": false
+                },
+                "saveOnAutoSync": {
+                    "description": "Whether or not the device group should save on auto sync",
+                    "type": "boolean",
+                    "default": false
+                },
+                "networkFailover": {
+                    "description": "Whether or not the device group supports network failover",
+                    "type": "boolean",
+                    "default": false
+                },
+                "fullLoadOnSync": {
+                    "description": "Whether or not the device group should do a full load on sync",
+                    "type": "boolean",
+                    "default": false
+                },
+                "asmSync": {
+                    "description": "Whether or not the device group should sync ASM properties",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        },
+        {
+            "required": ["class", "localUsername", "localPassword", "remoteHost", "remoteUsername", "remotePassword"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains device trust configuration.",
+                    "type": "string",
+                    "const": "DeviceTrust"
+                },
+                "localUsername": {
+                    "description": "The username for the local device",
+                    "type": "string"
+                },
+                "localPassword": {
+                    "description": "The password for the localUsername",
+                    "type": "string"
+                },
+                "remoteHost": {
+                    "description": "The remote hostname or IP address",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6" },
+                        { "format": "hostname" },
+                        { "format": "json-pointer" }
+                    ]
+                },
+                "remoteUsername": {
+                    "description": "An admin user on the remote host",
+                    "type": "string"
+                },
+                "remotePassword": {
+                    "description": "Password for the remote user in remoteUsername",
+                    "type": "string"
+                }
+            }
+        }
+    ]
+}

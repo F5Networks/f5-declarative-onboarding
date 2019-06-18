@@ -1,0 +1,356 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/system.schema.json",
+    "title": "F5 Declarative Onboarding system declaration",
+    "description": "System properties for onboarding a BIG-IP.",
+    "allOf": [
+        {
+            "if": { "properties": { "class": { "const": "License" } } },
+            "then": {
+                "if": { "properties": { "licenseType": { "const": "regKey" } } },
+                "then": {
+                    "required": ["class", "licenseType", "regKey"],
+                    "properties": {
+                        "class": {
+                            "description": "Indicates that this property contains licensing information.",
+                            "type": "string",
+                            "const": "License"
+                        },
+                        "licenseType": {
+                            "description": "The type of license",
+                            "type": "string",
+                            "const": "regKey"
+                        },
+                        "regKey": {
+                            "description": "Registration key.",
+                            "type": "string",
+                            "pattern": "^([A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7})|([A-Z][0-9]{4}-[0-9]{5}-[0-9]{5}-[0-9]{5}-[0-9]{7})$"
+                        },
+                        "addOnKeys": {
+                            "description": "Add on keys.",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[A-Z]{7}-[A-Z]{7}$",
+                                "uniqueItems": true
+                            }
+                        },
+                        "overwrite": {
+                            "description": "Whether or not to overwrite the license if the device is already licensed.",
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "else": {
+                    "required": ["class", "licenseType", "bigIqHost", "bigIqUsername", "licensePool"],
+                    "oneOf": [
+                        {
+                            "required": ["bigIqPassword"]
+                        },
+                        {
+                            "required": ["bigIqPasswordUri"]
+                        }
+                    ],
+                    "if": {
+                        "properties": { "reachable": { "const": false }}
+                    },
+                    "then": {
+                        "required": ["hypervisor"]
+                    },
+                    "else": {
+                        "required": ["bigIpUsername", "bigIpPassword"]
+                    },
+                    "properties": {
+                        "class": {
+                            "description": "Indicates that this property contains licensing information.",
+                            "type": "string",
+                            "const": "License"
+                        },
+                        "licenseType": {
+                            "description": "The type of license",
+                            "type": "string",
+                            "const": "licensePool"
+                        },
+                        "bigIqHost": {
+                            "description": "The BIG-IQ hostname or IP address.",
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "ipv4" },
+                                { "format": "ipv6" },
+                                { "format": "hostname" }
+                            ]
+                        },
+                        "bigIqUsername": {
+                            "description": "An admin user on the BIG-IQ.",
+                            "type": "string"
+                        },
+                        "bigIqPassword": {
+                            "description": "Password for the user in bigIqUsername.",
+                            "type": "string"
+                        },
+                        "bigIqPasswordUri": {
+                            "description": "URI which will return the password for the user in bigIqUsername.",
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "licensePool": {
+                            "description": "Name of the BIG-IQ license pool from which to obtain a license.",
+                            "type": "string"
+                        },
+                        "skuKeyword1": {
+                            "description": "skuKeyword1 parameter for subscription licensing.",
+                            "type": "string"
+                        },
+                        "skuKeyword2": {
+                            "description": "skuKeyword2 parameter for subscription licensing.",
+                            "type": "string"
+                        },
+                        "unitOfMeasure": {
+                            "description": "unitOfMeasure parameter for subscription licensing.",
+                            "type": "string",
+                            "enum": ["yearly", "monthly", "daily", "hourly"],
+                            "default": "monthly"
+                        },
+                        "reachable": {
+                            "description": "Whether or not BIG-IQ has a route to the BIG-IP device.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "hypervisor": {
+                            "description": "Hypervisor which is running the BIG-IP. Required by BIG-IQ if 'reachable' is false.",
+                            "type": "string",
+                            "enum": ["aws", "azure", "gce", "vmware", "hyperv", "kvm", "xen"]
+                        },
+                        "bigIpUsername": {
+                            "description": "An admin user on the BIG-IP. Used by BIG-IQ to login to BIG-IP if 'reachable' is true.",
+                            "type": "string"
+                        },
+                        "bigIpPassword": {
+                            "description": "Password for the user in bigIpUsername. Used by BIG-IQ to login to BIG-IP if 'reachable' is true.",
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "DbVariables" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains global db variable configuration.",
+                        "type": "string",
+                        "const": "DbVariables"
+                    }
+                },
+                "propertyNames": {
+                    "description": "The name of the db variable."
+                },
+                "additionalProperties": {
+                    "description": "The value to set for the db variable."
+                }
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "Provision" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains module provisioning configuration.",
+                        "type": "string",
+                        "const": "Provision"
+                    }
+                },
+                "propertyNames": {
+                    "description": "The module to provision.",
+                    "enum": [
+                        "class",
+                        "afm",
+                        "am",
+                        "apm",
+                        "asm",
+                        "avr",
+                        "dos",
+                        "fps",
+                        "gtm",
+                        "ilx",
+                        "lc",
+                        "ltm",
+                        "pem",
+                        "swg",
+                        "urldb"
+                    ]
+                },
+                "additionalProperties": {
+                    "description": "The level at which to provision the module.",
+                    "type": "string",
+                    "enum": ["dedicated", "nominal", "minimum", "none"]
+                }
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "DNS" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains DNS configuration.",
+                        "type": "string",
+                        "const": "DNS"
+                    },
+                    "nameServers": {
+                        "description": "IP addresses of name servers to use for DNS.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "ipv4" },
+                                { "format": "ipv6" }
+                            ]
+                        }
+                    },
+                    "search": {
+                        "description": "Search domain to use for DNS.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "hostname"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "NTP" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains NTP configuration.",
+                        "type": "string",
+                        "const": "NTP"
+                    },
+                    "servers": {
+                        "description": "IP addresses of servers to use for NTP.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "ipv4" },
+                                { "format": "ipv6" },
+                                { "format": "hostname" }
+                            ]
+                        }
+                    },
+                    "timezone": {
+                        "description": "The timezone to set.",
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "User" } } },
+            "then": {
+                "if": { "properties": { "userType": { "const": "root" } } },
+                "then": {
+                    "required": ["class", "userType", "newPassword", "oldPassword"],
+                    "properties": {
+                        "class": {
+                            "description": "Indicates that this property contains user configuration.",
+                            "type": "string",
+                            "const": "User"
+                        },
+                        "userType": {
+                            "description": "The type of user.",
+                            "type": "string",
+                            "const": "root"
+                        },
+                        "newPassword": {
+                            "description": "Password to set for the root user.",
+                            "type": "string"
+                        },
+                        "oldPassword": {
+                            "description": "Old password for the root user.",
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "else": {
+                    "required": ["class", "userType"],
+                    "properties": {
+                        "class": {
+                            "description": "Indicates that this property contains user configuration.",
+                            "type": "string",
+                            "const": "User"
+                        },
+                        "userType": {
+                            "description": "The type of user.",
+                            "type": "string",
+                            "const": "regular"
+                        },
+                        "password": {
+                            "description": "Password for the user.",
+                            "type": "string"
+                        },
+                        "partitionAccess": {
+                            "description": "Access control configuration.",
+                            "type": "object",
+                            "properties": {
+                                "Common": {
+                                    "$ref": "#/definitions/partitionAccess"
+                                },
+                                "all-partitions": {
+                                    "$ref": "#/definitions/partitionAccess"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "shell": {
+                            "description": "Shell for the user.",
+                            "type": "string",
+                            "enum": ["bash", "tmsh", "none"],
+                            "default": "tmsh"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        }
+    ],
+    "definitions": {
+        "partitionAccess": {
+            "description": "The partition - either 'Common' or 'all-partitions'.",
+            "type": "object",
+            "required": ["role"],
+            "properties": {
+                "role": {
+                    "description": "Role for the user.",
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "auditor",
+                        "guest",
+                        "manager",
+                        "operator",
+                        "user-manager",
+                        "application-editor",
+                        "certificate-manager",
+                        "irule-manager",
+                        "no-access",
+                        "resource-admin"
+                    ]
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

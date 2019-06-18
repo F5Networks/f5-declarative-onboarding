@@ -128,7 +128,15 @@ class ConfigManager {
             });
         }
 
-        return this.bigIp.deviceInfo()
+        let provisionedModules = [];
+        return Promise.resolve()
+            .then(() => this.bigIp.list('/tm/sys/provision'))
+            .then((provisioning) => {
+                provisionedModules = provisioning
+                    .filter(module => module.level !== 'none')
+                    .map(module => module.name);
+            })
+            .then(() => this.bigIp.deviceInfo())
             .then((deviceInfo) => {
                 this.configId = deviceInfo.machineId;
                 return getTokenMap.call(this, deviceInfo);
@@ -139,26 +147,33 @@ class ConfigManager {
 
                 // get a list of iControl Rest queries asking for the config items and selecting the
                 // properties we want
-                this.configItems.forEach((configItem) => {
-                    const query = { $filter: 'partition eq Common' };
-                    const selectProperties = getPropertiesOfInterest(configItem.properties);
-                    if (selectProperties.length > 0) {
-                        query.$select = selectProperties.join(',');
-                    }
-                    const encodedQuery = querystring.stringify(query);
-                    const options = {};
-                    let path = `${configItem.path}?${encodedQuery}`;
+                this.configItems
+                    .filter((configItem) => {
+                        if (!configItem.requiredModule) {
+                            return true;
+                        }
+                        return provisionedModules.indexOf(configItem.requiredModule) > -1;
+                    })
+                    .forEach((configItem) => {
+                        const query = { $filter: 'partition eq Common' };
+                        const selectProperties = getPropertiesOfInterest(configItem.properties);
+                        if (selectProperties.length > 0) {
+                            query.$select = selectProperties.join(',');
+                        }
+                        const encodedQuery = querystring.stringify(query);
+                        const options = {};
+                        let path = `${configItem.path}?${encodedQuery}`;
 
-                    // do any replacements
-                    path = path.replace(hostNameRegex, tokenMap.hostName);
-                    path = path.replace(deviceNameRegex, tokenMap.deviceName);
+                        // do any replacements
+                        path = path.replace(hostNameRegex, tokenMap.hostName);
+                        path = path.replace(deviceNameRegex, tokenMap.deviceName);
 
-                    if (configItem.silent) {
-                        options.silent = configItem.silent;
-                    }
+                        if (configItem.silent) {
+                            options.silent = configItem.silent;
+                        }
 
-                    promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options));
-                });
+                        promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options));
+                    });
 
                 return Promise.all(promises);
             })
@@ -444,9 +459,7 @@ function getTokenMap(deviceInfo) {
     const hostName = deviceInfo.hostname;
     return this.bigIp.list('/tm/cm/device')
         .then((cmDeviceInfo) => {
-            const devices = cmDeviceInfo.filter((device) => {
-                return device.hostname === hostName;
-            });
+            const devices = cmDeviceInfo.filter(device => device.hostname === hostName);
 
             if (devices.length === 1) {
                 const deviceName = devices[0].name;

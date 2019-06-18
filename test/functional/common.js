@@ -168,9 +168,7 @@ module.exports = {
             const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
                 constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
             module.exports.sendRequest(options)
-                .then((response) => {
-                    return response.body;
-                })
+                .then(response => response.body)
                 .then(JSON.parse)
                 .then((parsedResponse) => {
                     resolve(parsedResponse);
@@ -234,12 +232,10 @@ module.exports = {
                 'Content-Type': 'application/json'
             }
         };
-        if ('token' in auth) {
+        if (auth && 'token' in auth) {
             options.headers['X-F5-Auth-Token'] = auth.token;
-        } else if ('username' in auth && 'password' in auth) {
+        } else if (auth && 'username' in auth && 'password' in auth) {
             options.headers.Authorization = module.exports.buildAuthenticationString(auth);
-        } else {
-            throw new Error('Missing authorization');
         }
         if (data) {
             options.body = JSON.stringify(data);

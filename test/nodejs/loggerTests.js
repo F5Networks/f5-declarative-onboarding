@@ -78,11 +78,77 @@ describe('logger', () => {
         assert.notStrictEqual(loggedMessages.info[0].indexOf('part 1 part 2 part 3'), -1);
     });
 
+    it('should log different types of arguments', () => {
+        function assertMessage(level, expectedMsg, args) {
+            const caller = logger;
+            logger[level].apply(caller, args);
+
+            const fullMsg = `[f5-declarative-onboarding: loggerTests.js] ${expectedMsg}`;
+            assert.notStrictEqual(
+                loggedMessages[level][0].indexOf(fullMsg),
+                -1,
+                `Failed for arg value: ${args}`
+            );
+        }
+
+        const msg = 'string';
+        const msgObject = { yes: 'no', theType: 'object' };
+
+        assertMessage('info', msg, [msg]);
+        assertMessage('severe', 'undefined', [undefined]);
+        assertMessage('fine', 'null', [null]);
+        assertMessage('warning', JSON.stringify(msgObject), [msgObject]);
+        assertMessage('finest', `null ${JSON.stringify(msgObject)}`, [null, msgObject]);
+    });
+
     it('should mask passwords', () => {
         const myPassword = 'foofoo';
         logger.info({ password: myPassword });
         assert.strictEqual(loggedMessages.info[0].indexOf(myPassword), -1);
         assert.notStrictEqual(loggedMessages.info[0].indexOf('password:', -1));
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+    });
+
+    it('should mask a secret', () => {
+        const mySecret = 'f5site02';
+        logger.info({ secret: mySecret });
+        assert.strictEqual(loggedMessages.info[0].indexOf(mySecret), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('secret:', -1));
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+    });
+
+    it('should mask reg key', () => {
+        const myRegKey = 'D3548-07483-24256-24104-0863690';
+        logger.info({ regKey: myRegKey });
+        assert.strictEqual(loggedMessages.info[0].indexOf(myRegKey), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+    });
+
+    it('should mask nested reg key in array', () => {
+        const myRegKey = 'D3548-07483-24256-24104-0863690';
+        logger.info({
+            license: {
+                abc: 123,
+                regKey: [myRegKey],
+                def: [3, 4, 5]
+            }
+        });
+        assert.strictEqual(loggedMessages.info[0].indexOf(myRegKey), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+    });
+
+    it('should mask more deeply nested reg key', () => {
+        const myRegKey = 'D3548-07483-24256-24104-0863690';
+        logger.info({
+            device: {
+                license: {
+                    foo: 'bar',
+                    regKey: myRegKey,
+                    thomas: 'jefferson'
+                }
+            }
+        });
+        assert.strictEqual(loggedMessages.info[0].indexOf(myRegKey), -1);
         assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
     });
 });

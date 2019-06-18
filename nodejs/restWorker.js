@@ -120,9 +120,7 @@ class RestWorker {
 
         // The framework is supposed to pass in our state, but does not.
         load.call(this)
-            .then(() => {
-                return handleStartupState.call(this, success, error);
-            })
+            .then(() => handleStartupState.call(this, success, error))
             .catch((err) => {
                 const message = `error creating state: ${err.message}`;
                 logger.severe(message);
@@ -222,9 +220,7 @@ class RestWorker {
                     });
 
                     save.call(this)
-                        .then(() => {
-                            return doUtil.getCurrentPlatform();
-                        })
+                        .then(() => doUtil.getCurrentPlatform())
                         .then((currentPlatform) => {
                             platform = currentPlatform;
 
@@ -253,15 +249,13 @@ class RestWorker {
                             wrapper.targetUsername = bigIpOptions.user;
                             wrapper.targetPassphrase = bigIpOptions.password;
 
-                            if (!isFromTcw) {
-                                return initialAccountSetup.call(this, wrapper);
-                            }
-
-                            return Promise.resolve();
+                            return initialAccountSetup.call(this, wrapper);
                         })
                         .then((updatedPassword) => {
                             if (updatedPassword) {
                                 wrapper.targetPassphrase = updatedPassword;
+                                bigIpOptions.password = updatedPassword;
+                                delete wrapper.targetSshKey;
                             }
 
                             // Determine if this is an internal task (coming back to us
@@ -269,9 +263,7 @@ class RestWorker {
                             if (platform === PRODUCTS.BIGIQ && !isFromTcw) {
                                 logger.finest('Passing to TCW');
                                 passToTcw.call(this, wrapper, taskId, restOperation)
-                                    .then((tcwId) => {
-                                        return pollTcw.call(this, tcwId, taskId, restOperation);
-                                    })
+                                    .then(tcwId => pollTcw.call(this, tcwId, taskId, restOperation))
                                     .then(() => {
                                         logger.finest('TCW is done');
                                         if (!declaration.async) {
@@ -279,14 +271,12 @@ class RestWorker {
                                             sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                                         }
                                     })
-                                    .then(() => {
-                                        return getAndSaveCurrentConfig.call(
-                                            this,
-                                            this.bigIps[taskId],
-                                            declaration,
-                                            taskId
-                                        );
-                                    })
+                                    .then(() => getAndSaveCurrentConfig.call(
+                                        this,
+                                        this.bigIps[taskId],
+                                        declaration,
+                                        taskId
+                                    ))
                                     .catch((err) => {
                                         logger.info(`TCW task failed: ${err.message}`);
                                         return getAndSaveCurrentConfig.call(
@@ -305,26 +295,17 @@ class RestWorker {
                                     }
                                 });
 
-                                onboard.call(this, declaration, bigIpOptions, taskId)
+                                onboard.call(this, declaration, bigIpOptions, taskId, originalDoId)
                                     .then(() => {
                                         logger.fine('Onboard configuration complete. Saving sys config.');
-
-                                        // We store the bigIp object under the original ID so the polling
-                                        // task knows which state to update. This is only sent by the TCW.
-                                        if (originalDoId) {
-                                            this.bigIps[originalDoId] = this.bigIps[taskId];
-                                        }
-
                                         return this.bigIps[taskId].save();
                                     })
-                                    .then(() => {
-                                        return setPostOnboardStatus.call(
-                                            this,
-                                            this.bigIps[taskId],
-                                            taskId,
-                                            declaration
-                                        );
-                                    })
+                                    .then(() => setPostOnboardStatus.call(
+                                        this,
+                                        this.bigIps[taskId],
+                                        taskId,
+                                        declaration
+                                    ))
                                     .then(() => {
                                         if (!declaration.async) {
                                             logger.fine('Sending response.');
@@ -405,12 +386,18 @@ class RestWorker {
     /* eslint-enable class-methods-use-this */
 }
 
-function onboard(declaration, bigIpOptions, taskId) {
+function onboard(declaration, bigIpOptions, taskId, originalDoId) {
     let declarationHandler;
 
     return doUtil.getBigIp(logger, bigIpOptions)
         .then((bigIp) => {
             this.bigIps[taskId] = bigIp;
+
+            // We store the bigIp object under the original ID so the polling
+            // task knows which state to update. This is only sent by the TCW.
+            if (originalDoId) {
+                this.bigIps[originalDoId] = this.bigIps[taskId];
+            }
 
             logger.fine('Getting and saving current configuration');
             return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId);
@@ -443,12 +430,10 @@ function onboard(declaration, bigIpOptions, taskId) {
                     const rollbackTo = {};
                     Object.assign(rollbackTo, this.state.doState.getTask(taskId).currentConfig);
                     return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId)
-                        .then(() => {
-                            return declarationHandler.process(
-                                rollbackTo,
-                                this.state.doState.getTask(taskId)
-                            );
-                        })
+                        .then(() => declarationHandler.process(
+                            rollbackTo,
+                            this.state.doState.getTask(taskId)
+                        ))
                         .then(() => {
                             this.state.doState.setStatus(taskId, STATUS.STATUS_ERROR);
                             this.state.doState.setMessage(taskId, 'invalid config - rolled back');
@@ -470,33 +455,32 @@ function onboard(declaration, bigIpOptions, taskId) {
                 err.message
             );
         })
-        .then(() => {
-            return Promise.resolve();
-        });
+        .then(() => Promise.resolve());
 }
 
 function setPostOnboardStatus(bigIp, taskId, declaration) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
     let promise = Promise.resolve();
     // Don't overwrite the error state if it's there
     if (this.state.doState.getStatus(taskId) !== STATUS.STATUS_ERROR) {
-        promise = promise.then(() => {
-            return doUtil.rebootRequired(bigIp)
-                .then((rebootRequired) => {
-                    if (!rebootRequired) {
-                        logger.fine('No reboot required');
-                        this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
-                    } else {
-                        logger.fine('Reboot required.');
-                        this.state.doState.updateResult(
-                            taskId,
-                            202,
-                            STATUS.STATUS_REBOOTING,
-                            'reboot required'
-                        );
-                    }
-                    return Promise.resolve();
-                });
-        });
+        promise = promise.then(() => doUtil.rebootRequired(bigIp)
+            .then((rebootRequired) => {
+                if (!rebootRequired) {
+                    logger.fine('No reboot required');
+                    this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
+                } else {
+                    logger.fine('Reboot required.');
+                    this.state.doState.updateResult(
+                        taskId,
+                        202,
+                        STATUS.STATUS_REBOOTING,
+                        'reboot required'
+                    );
+                }
+                return Promise.resolve();
+            }));
     }
 
     return promise
@@ -557,9 +541,7 @@ function passToTcw(wrapper, taskId, incomingRestOp) {
             declaration: wrapper
         });
     return this.restRequestSender.sendPost(restOperation)
-        .then((response) => {
-            return response.getBody().id;
-        });
+        .then(response => response.getBody().id);
 }
 
 /**
@@ -581,19 +563,15 @@ function pollTcw(tcwId, taskId, incomingRestOp) {
         .setIsSetBasicAuthHeader(true)
         .setReferer(incomingRestOp.getUri().href);
 
-    const retryFunc = () => {
-        return this.restRequestSender.sendGet(restOperation)
-            .then((response) => {
-                const body = response.getBody();
-                if (body.status === 'FAILED' || body.status === 'FINISHED') {
-                    return Promise.resolve(body);
-                }
-                return Promise.reject();
-            })
-            .catch(() => {
-                return Promise.reject();
-            });
-    };
+    const retryFunc = () => this.restRequestSender.sendGet(restOperation)
+        .then((response) => {
+            const body = response.getBody();
+            if (body.status === 'FAILED' || body.status === 'FINISHED') {
+                return Promise.resolve(body);
+            }
+            return Promise.reject();
+        })
+        .catch(() => Promise.reject());
 
     return cloudUtil.tryUntil(
         this,
@@ -637,9 +615,7 @@ function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
 
     const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
     return configManager.get(declaration, this.state.doState.getTask(taskId), this.state.doState)
-        .then(() => {
-            return save.call(this);
-        });
+        .then(() => save.call(this));
 }
 
 /**
@@ -777,24 +753,18 @@ function handleStartupState(success, error) {
                             }
                             return Promise.all(deletePromises);
                         })
-                        .then(() => {
-                            return onboard.call(this, declaration, {}, currentTaskId);
-                        })
+                        .then(() => onboard.call(this, declaration, {}, currentTaskId))
                         .then(() => {
                             logger.fine('Onboard configuration complete. Saving sys config.');
                             return this.bigIps[currentTaskId].save();
                         })
-                        .then(() => {
-                            return setPostOnboardStatus.call(
-                                this,
-                                this.bigIps[currentTaskId],
-                                currentTaskId,
-                                declaration
-                            );
-                        })
-                        .then(() => {
-                            return rebootIfRequired.call(this, this.bigIps[currentTaskId], currentTaskId);
-                        })
+                        .then(() => setPostOnboardStatus.call(
+                            this,
+                            this.bigIps[currentTaskId],
+                            currentTaskId,
+                            declaration
+                        ))
+                        .then(() => rebootIfRequired.call(this, this.bigIps[currentTaskId], currentTaskId))
                         .then(() => {
                             logger.fine('Onboard complete.');
                         })
@@ -978,9 +948,7 @@ function getPort(wrapper) {
 
 function getUserFromDeclaration(username, declaration) {
     const commonDeclaration = declaration.Common || {};
-    const users = Object.keys(commonDeclaration).filter((key) => {
-        return commonDeclaration[key].class === 'User';
-    });
+    const users = Object.keys(commonDeclaration).filter(key => commonDeclaration[key].class === 'User');
     let user;
     if (users.indexOf(username) !== -1) {
         user = commonDeclaration[username];
@@ -1013,9 +981,7 @@ function updateStateAfterReboot(taskId, success, error) {
 function waitForRebootComplete(context, taskId, resolve, reject) {
     logger.info('Waiting for BIG-IP to reboot to complete onboarding.');
     context.bigIps[taskId].ready()
-        .then(() => {
-            return updateStateAfterReboot.call(context, taskId);
-        })
+        .then(() => updateStateAfterReboot.call(context, taskId))
         .then(() => {
             resolve();
         })

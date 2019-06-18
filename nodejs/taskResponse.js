@@ -25,11 +25,9 @@ class TaskResponse {
     }
 
     // can't be a static method because the caller does not know the class type
-    /* eslint-disable class-methods-use-this */
     getSelfLink(id) {
         return `${BASE_URL}/${ENDPOINTS.TASK}/${id}`;
     }
-    /* eslint-ensable class-methods-use-this */
 
     exists(id) {
         return !!this.state.getTask(id);

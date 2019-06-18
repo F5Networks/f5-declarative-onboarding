@@ -1,10 +1,20 @@
 # Release Notes
 
 ## Version 1.5.0
++ Resolve [Issue 14](https://github.com/F5Networks/f5-declarative-onboarding/issues/14)
 + Resolve [Issue 26](https://github.com/F5Networks/f5-declarative-onboarding/issues/26)
-+ Updates for running on BIG-IQ. remote.schema.json now has a bigIqSettings object. These values are passed to BIG-IQ as options it needs for managing a BIG-IP.
++ Resolve [Issue 40](https://github.com/F5Networks/f5-declarative-onboarding/issues/40)
++ Resolve [Issue 35](https://github.com/F5Networks/f5-declarative-onboarding/issues/35)
 + Fix bug in which credentials could appear in declaration results when revoking a license.
 + Disable DHCP for DNS/NTP if DO will be configuring them.
++ Allow setting global analytics settings.
++ License keys will no longer appear in the log.
++ RADIUS server secret will no longer appear in the log.
++ LicensePool now respects custom management access port of BIG-IP that is being licensed.
++ When a 400 is received from restjavad, DO will now retry licensing.
++ Add legacy schemas to /schema for validation.
++ Add Authorized Keys capability to user declarations.
++ Fix issue in which initial clustering failure would prevent clustering from working on subsequent attempts due to using the wrong device name (resolved in f5-cloud-libs).
 
 ## Version 1.4.1
 + Fix vulnerability CVE-2019-5021 in DO container

@@ -1,0 +1,217 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/system.schema.json",
+    "title": "F5 Declarative Onboarding system declaration",
+    "description": "System properties for onboarding a BIG-IP.",
+    "oneOf": [
+        {
+            "required": ["class", "licenseType"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains licensing information.",
+                    "type": "string",
+                    "const": "License"
+                },
+                "licenseType": {
+                    "description": "The type of license",
+                    "type": "string",
+                    "enum": ["regKey"]
+                }
+            },
+            "if": { "properties": { "licenseType": { "const": "regKey" } } },
+            "then": {
+                "required": [
+                    "regKey"
+                ],
+                "properties": {
+                    "regKey": {
+                        "description": "Registration key.",
+                        "type": "string",
+                        "pattern": "^[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7}$"
+                    },
+                    "addOnKeys": {
+                        "description": "Add on keys.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^[A-Z]{7}-[A-Z]{7}$",
+                            "uniqueItems": true
+                        }
+                    },
+                    "overwrite": {
+                        "description": "Whether or not to overwrite the license if the device is already licensed.",
+                        "type": "boolean",
+                        "default": false
+                    }
+                }
+            }
+        },
+        {
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains module provisioning configuration.",
+                    "type": "string",
+                    "const": "Provision"
+                }
+            },
+            "propertyNames": {
+                "description": "The module to provision.",
+                "enum": [
+                    "class",
+                    "afm",
+                    "am",
+                    "apm",
+                    "asm",
+                    "avr",
+                    "dos",
+                    "fps",
+                    "gtm",
+                    "ilx",
+                    "lc",
+                    "ltm",
+                    "pem",
+                    "swg",
+                    "urldb"
+                ]
+            },
+            "additionalProperties": {
+                "description": "The level at which to provision the module.",
+                "type": "string",
+                "enum": ["dedicated", "nominal", "minimum", "none"]
+            }
+        },
+        {
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains DNS configuration.",
+                    "type": "string",
+                    "const": "DNS"
+                },
+                "nameServers": {
+                    "description": "IP addresses of name servers to use for DNS.",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    }
+                },
+                "search": {
+                    "description": "Search domain to use for DNS.",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "format": "hostname"
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        {
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains NTP configuration.",
+                    "type": "string",
+                    "const": "NTP"
+                },
+                "servers": {
+                    "description": "IP addresses of servers to use for NTP.",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" },
+                            { "format": "hostname" }
+                        ]
+                    }
+                },
+                "timezone": {
+                    "description": "The timezone to set.",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        {
+            "required": ["class", "userType"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains user configuration.",
+                    "type": "string",
+                    "const": "User"
+                },
+                "userType": {
+                    "description": "The type of user",
+                    "type": "string",
+                    "enum": ["root", "regular"]
+                }
+            },
+            "if": { "properties": { "userType": { "const": "root" } } },
+            "then": {
+                "required": ["newPassword", "oldPassword"],
+                "properties": {
+                    "newPassword": {
+                        "description": "Password to set for the root user.",
+                        "type": "string"
+                    },
+                    "oldPassword": {
+                        "description": "Old password for the root user.",
+                        "type": "string"
+                    }
+                }
+            },
+            "else": {
+                "properties": {
+                    "password": {
+                        "description": "Password for the user.",
+                        "type": "string"
+                    },
+                    "partitionAccess": {
+                        "description": "Access control configuration",
+                        "type": "object",
+                        "patternProperties": {
+                            "^[A-Za-z][0-9A-Za-z_]{0,47}$": {
+                                "description": "The name of the partition.",
+                                "type": "object",
+                                "required": ["role"],
+                                "properties": {
+                                    "role": {
+                                        "role": {
+                                            "description": "Role for the user.",
+                                            "type": "string",
+                                            "enum": [
+                                                "admin",
+                                                "auditor",
+                                                "guest",
+                                                "manager",
+                                                "operator",
+                                                "user-manager",
+                                                "application-editor",
+                                                "certificate-manager",
+                                                "irule-manager",
+                                                "no-access",
+                                                "resource-admin"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "shell": {
+                        "description": "Shell for the user.",
+                        "type": "string",
+                        "enum": ["bash", "tmsh"],
+                        "default": "tmsh"
+                    }
+                }
+            }
+        }
+    ]
+}

@@ -30,52 +30,93 @@ describe('diffHandler', () => {
         DiffHandler = require('../../nodejs/diffHandler');
     });
 
-    it('should report diffs and deletes for classes of truth', () => {
-        return new Promise((resolve, reject) => {
-            const toDeclaration = {
-                Common: {
-                    class1: {
-                        myString: 'foo',
-                        myObj: {
-                            foo: 'bar'
-                        },
-                        myArray: [1, 2, 3]
-                    },
-                    class2: {
+    it('should report diffs and deletes for classes of truth', () => new Promise((resolve, reject) => {
+        const toDeclaration = {
+            Common: {
+                class1: {
+                    myString: 'foo',
+                    myObj: {
                         foo: 'bar'
-                    }
-                }
-            };
-            const fromDeclaration = {
-                Common: {
-                    class1: {
-                        myString: 'bar',
-                        myArray: [4]
                     },
-                    class2: {
-                        hello: 'world'
-                    }
+                    myArray: [1, 2, 3]
+                },
+                class2: {
+                    foo: 'bar'
                 }
-            };
+            }
+        };
+        const fromDeclaration = {
+            Common: {
+                class1: {
+                    myString: 'bar',
+                    myArray: [4]
+                },
+                class2: {
+                    hello: 'world'
+                }
+            }
+        };
 
-            const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
-            diffHandler.process(toDeclaration, fromDeclaration)
-                .then((diff) => {
-                    assert.deepEqual(diff.toUpdate.Common.class1, toDeclaration.Common.class1);
-                    assert.deepEqual(diff.toDelete.Common.class2, { hello: {} });
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    });
+        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
+        diffHandler.process(toDeclaration, fromDeclaration)
+            .then((diff) => {
+                assert.deepEqual(diff.toUpdate.Common.class1, toDeclaration.Common.class1);
+                assert.deepEqual(diff.toDelete.Common.class2, { hello: {} });
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
 
-    it('should leave non-classes of truth alone', () => {
-        return new Promise((resolve, reject) => {
-            const toDeclaration = {
-                Common: {
-                    class3: {
+    it('should leave non-classes of truth alone', () => new Promise((resolve, reject) => {
+        const toDeclaration = {
+            Common: {
+                class3: {
+                    myString: 'foo',
+                    myObj: {
+                        foo: 'bar'
+                    },
+                    myArray: [1, 2, 3]
+                }
+            }
+        };
+        const fromDeclaration = {
+            Common: {
+                class3: {
+                    myOtherString: 'world',
+                    myOtherObj: {
+                        hello: 'world'
+                    },
+                    myOtherArray: [4]
+                }
+            }
+        };
+
+        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
+        diffHandler.process(toDeclaration, fromDeclaration)
+            .then((diff) => {
+                assert.deepEqual(diff.toUpdate.Common.class3, toDeclaration.Common.class3);
+                assert.deepEqual(diff.toDelete.Common.class3, undefined);
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
+
+    it('should only modify the updated object for named classes', () => new Promise((resolve, reject) => {
+        const toDeclaration = {
+            Common: {
+                class4: {
+                    myUpdatedObject: {
+                        myString: 'foo',
+                        myObj: {
+                            foo: 'bar'
+                        },
+                        myArray: [1, 2, 3]
+                    },
+                    myNonUpdatedObject: {
                         myString: 'foo',
                         myObj: {
                             foo: 'bar'
@@ -83,115 +124,66 @@ describe('diffHandler', () => {
                         myArray: [1, 2, 3]
                     }
                 }
-            };
-            const fromDeclaration = {
-                Common: {
-                    class3: {
-                        myOtherString: 'world',
-                        myOtherObj: {
-                            hello: 'world'
+            }
+        };
+        const fromDeclaration = {
+            Common: {
+                class4: {
+                    myUpdatedObject: {
+                        myString: 'bar',
+                        myObj: {
+                            foo: 'bar'
                         },
-                        myOtherArray: [4]
+                        myArray: [4, 5, 6]
+                    },
+                    myNonUpdatedObject: {
+                        myString: 'foo',
+                        myObj: {
+                            foo: 'bar'
+                        },
+                        myArray: [1, 2, 3]
                     }
                 }
-            };
+            }
+        };
 
-            const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
-            diffHandler.process(toDeclaration, fromDeclaration)
-                .then((diff) => {
-                    assert.deepEqual(diff.toUpdate.Common.class3, toDeclaration.Common.class3);
-                    assert.deepEqual(diff.toDelete.Common.class3, undefined);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    });
+        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
+        diffHandler.process(toDeclaration, fromDeclaration)
+            .then((diff) => {
+                assert.deepEqual(
+                    diff.toUpdate.Common.class4.myUpdatedObject,
+                    toDeclaration.Common.class4.myUpdatedObject
+                );
+                assert.strictEqual(diff.toUpdate.Common.class4.myNonUpdatedObject, undefined);
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
 
-    it('should only modify the updated object for named classes', () => {
-        return new Promise((resolve, reject) => {
-            const toDeclaration = {
-                Common: {
-                    class4: {
-                        myUpdatedObject: {
-                            myString: 'foo',
-                            myObj: {
-                                foo: 'bar'
-                            },
-                            myArray: [1, 2, 3]
-                        },
-                        myNonUpdatedObject: {
-                            myString: 'foo',
-                            myObj: {
-                                foo: 'bar'
-                            },
-                            myArray: [1, 2, 3]
-                        }
-                    }
-                }
-            };
-            const fromDeclaration = {
-                Common: {
-                    class4: {
-                        myUpdatedObject: {
-                            myString: 'bar',
-                            myObj: {
-                                foo: 'bar'
-                            },
-                            myArray: [4, 5, 6]
-                        },
-                        myNonUpdatedObject: {
-                            myString: 'foo',
-                            myObj: {
-                                foo: 'bar'
-                            },
-                            myArray: [1, 2, 3]
-                        }
-                    }
-                }
-            };
+    it('should leave hostname alone', () => new Promise((resolve, reject) => {
+        const hostname = 'bigip1.example.com';
 
-            const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
-            diffHandler.process(toDeclaration, fromDeclaration)
-                .then((diff) => {
-                    assert.deepEqual(
-                        diff.toUpdate.Common.class4.myUpdatedObject,
-                        toDeclaration.Common.class4.myUpdatedObject
-                    );
-                    assert.strictEqual(diff.toUpdate.Common.class4.myNonUpdatedObject, undefined);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    });
+        const toDeclaration = {
+            Common: {
+                hostname
+            }
+        };
+        const fromDeclaration = {
+            Common: {
+                hostname
+            }
+        };
 
-    it('should leave hostname alone', () => {
-        return new Promise((resolve, reject) => {
-            const hostname = 'bigip1.example.com';
-
-            const toDeclaration = {
-                Common: {
-                    hostname
-                }
-            };
-            const fromDeclaration = {
-                Common: {
-                    hostname
-                }
-            };
-
-            const diffHandler = new DiffHandler(['hostname'], []);
-            diffHandler.process(toDeclaration, fromDeclaration)
-                .then((diff) => {
-                    assert.deepEqual(diff.toUpdate.Common.hostname, hostname);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
-    });
+        const diffHandler = new DiffHandler(['hostname'], []);
+        diffHandler.process(toDeclaration, fromDeclaration)
+            .then((diff) => {
+                assert.deepEqual(diff.toUpdate.Common.hostname, hostname);
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
 });

@@ -1,0 +1,81 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/base.schema.json",
+    "title": "F5 Declarative Onboarding base declaration",
+    "description": "Top level schema for onboarding a BIG-IP.",
+    "type": "object",
+    "required": ["schemaVersion", "class"],
+    "propertyNames": {
+        "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$"
+    },
+    "properties": {
+        "schemaVersion": {
+            "description": "Version of Declarative Onboarding schema this declaration uses.",
+            "type": "string",
+            "$comment": "IMPORTANT: In enum array, please put current schema version first, oldest-supported version last.  Keep enum array sorted most-recent-first.",
+            "enum": ["1.0.0"]
+        },
+        "class": {
+            "description": "Indicates this JSON document is a Device declaration",
+            "type": "string",
+            "const": "Device"
+        },
+        "async": {
+            "description": "Tells the API to return a 202 HTTP status before processing is complete. User must then poll for status.",
+            "type": "boolean",
+            "default": false
+        },
+        "label": {
+            "description": "Optional friendly name for this declaration",
+            "type": "string"
+        },
+        "Common": {
+            "description": "Special tenant Common holds objects other tenants can share",
+            "type": "object",
+            "required": ["class"],
+            "propertyNames": {
+                "pattern": "^[A-Za-z][0-9A-Za-z_-]{0,47}$"
+            },
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Tenant"
+                },
+                "hostname": {
+                    "description": "Hostname to set for device.",
+                    "type": "string",
+                    "format": "hostname"
+                }
+            },
+            "additionalProperties": {
+                "oneOf": [
+                    { "$ref": "system.schema.json#" },
+                    { "$ref": "network.schema.json#" },
+                    { "$ref": "dsc.schema.json#" }
+                ]
+            }
+        },
+        "result": {
+            "description": "Status of current request. This is set by the system.",
+            "type": "object",
+            "readOnly": true,
+            "required": ["class", "code"],
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Result"
+                },
+                "code": {
+                    "description": "Status code.",
+                    "type": "string",
+                    "enum": ["OK", "ERROR"]
+                },
+                "message": {
+                    "description": "Further detail about the status.",
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "additionalProperties": false
+}
