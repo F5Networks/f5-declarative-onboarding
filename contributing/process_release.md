@@ -10,7 +10,7 @@
 * On a Git tag, RPM is published to Artifactory (f5-declarative-onboarding-rpm)
 
 ## Release Notes
-* Release notes are tracked during development in README.md
+* Release notes are tracked during development in RELEASE_NOTES.md
 
 ## Process for release candidates
 * Update package.json with version (X.Y.Z-#)
