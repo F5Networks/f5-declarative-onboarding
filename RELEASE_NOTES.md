@@ -2,6 +2,7 @@
 
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)
++ Resolve [Issue 43](https://github.com/F5Networks/f5-declarative-onboarding/issues/43)
 
 ## Version 1.5.1
 + When running on BIG-IQ, poll TCW longer to match the TCW timeout

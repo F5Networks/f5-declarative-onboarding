@@ -457,6 +457,13 @@ function disableDhcpOptions(optionsToDisable) {
                 }
             );
         })
+        .then(() => this.bigIp.list('/tm/sys/global-settings'))
+        .then((globalSettings) => {
+            // If DHCP is disabled on the device do NOT attempt to restart it
+            if (globalSettings && globalSettings.mgmtDhcp === 'disabled') {
+                requiresDhcpRestart = false;
+            }
+        })
         .then(() => {
             if (!requiresDhcpRestart) {
                 return Promise.resolve();
@@ -486,7 +493,7 @@ function restartDhcp() {
     )
         .then(() => {
             function isDhcpRunning() {
-                return this.bigIp.list('/tm/sys/service/dhclient/stats')
+                return this.bigIp.list('/tm/sys/service/dhclient/stats', undefined, cloudUtil.NO_RETRY)
                     .then((dhcpStats) => {
                         if (dhcpStats.apiRawValues
                             && dhcpStats.apiRawValues.apiAnonymous
