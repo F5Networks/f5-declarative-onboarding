@@ -12,7 +12,7 @@ If you have an existing BIG-IQ device with a pool of F5 licenses (BIG-IQ License
 To use this feature:
 
 - You must have an existing BIG-IQ device with a pool of BIG-IP VE licenses. 
-- The license pool can only be a Registration Key pool, Purchased Pool, or a ELA/subscription pool. See the |bigiq| documentation for more detailed information on License pool types.
+- The license pool can only be a Registration Key pool, Purchased Pool, or a Utility (subscription/ELA) pool. See the |bigiq| documentation for more detailed information on License pool types.
 
 Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
 
@@ -21,9 +21,9 @@ Declaration class licensing with BIG-IQ
 ---------------------------------------
 
 In this declaration snippet, we only include the License class, which is specific to using the BIG-IQ to license your BIG-IP system.  For a complete declaration, you could add the License class to the example in :doc:`composing-a-declaration` to configure DNS, NTP, VLANs, Routes and more.  
-For the full BIG-IQ Licensing example declaration, see :ref:`example3` and :ref:`example4`.
+For the full BIG-IQ Licensing example declaration, see :ref:`bigiq1` and :ref:`bigiq2`.
 
-In the following snippet, we set *reachable* to **true** (reachable means the BIG-IQ has a route to the BIG-IP), therefore we include a BIG-IP username and password. We are also using a subscription pool behind the scenes on BIG-IQ, so use SKU keywords and unit of measure.  If reachable is false, you only specify the hypervisor. And for a RegKey pool, you do not need the SKU keywords or the unit of measure (see the table and :ref:`example4` for usage). 
+In the following snippet, we set *reachable* to **true** (reachable means the BIG-IQ has a route to the BIG-IP), therefore we include a BIG-IP username and password. We are also using a utility pool behind the scenes on BIG-IQ, so use SKU keywords and unit of measure.  If reachable is false, you only specify the hypervisor. And for a RegKey pool, you do not need the SKU keywords or the unit of measure (see the table and :ref:`bigiq2` for usage). 
 
 .. code-block:: javascript
    :linenos:
@@ -50,7 +50,7 @@ In the following snippet, we set *reachable* to **true** (reachable means the BI
 
 License class
 `````````````
-The License class contains information about your BIG-IQ device.
+The License class contains information about your BIG-IQ device.  For BIG-IQ, the licenseType parameter must be **licensePool**.
               
 |
 
@@ -59,7 +59,7 @@ The License class contains information about your BIG-IQ device.
 +====================+=============================================+============+===================================================================================================================================================================================================================================+
 | class              | License                                     |   Yes      |  Indicates that this property contains licensing information                                                                                                                                                                      |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| licenseType        | licensePool, regKey                         |   Yes      |  You must specify either regKey or licensePool.   **NOTE** The rest of this table is specific to licensePool.  For regKey options, see :doc:`composing-a-declaration`                                                             |
+| licenseType        | licensePool                                 |   Yes      |  For BIG-IQ, you must specify **licensePool**.  (For BIG-IP, you can use *regKey* for licenseType, see :ref:`license-class`).                                                                                                     |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+         
 | bigIqHost          | string  (IPv4/IPv6 address or hostname)     |   Yes      |  The IP address or hostname of the BIG-IQ device with the license pool.                                                                                                                                                           |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+                                       
@@ -71,11 +71,11 @@ The License class contains information about your BIG-IQ device.
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | licensePool        | string                                      |   Yes      |  Name of the BIG-IQ license pool on the target BIG-IQ from which to obtain a license.                                                                                                                                             |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| skuKeyword1        | string                                      |   No       |  The skuKeyword1 parameter for subscription licensing (not necessary if using a registration key pool).  See the |bigiq| and subscription licensing documentation for information on SKU keywords.                                |
+| skuKeyword1        | string                                      |   No       |  The skuKeyword1 parameter for utility licensing (not necessary if using a registration key pool).  See the |bigiq| and utility licensing documentation for information on SKU keywords.                                          |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| skuKeyword2        | string                                      |   No       |  The skuKeyword2 parameter for subscription licensing (not necessary if using a registration key pool). See the |bigiq| and subscription licensing documentation for information on SKU keywords.                                 |
+| skuKeyword2        | string                                      |   No       |  The skuKeyword2 parameter for utility licensing (not necessary if using a registration key pool). See the |bigiq| and utility licensing documentation for information on SKU keywords.                                           |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| unitOfMeasure      | yearly, **monthly**, daily, hourly          |   No       |  The unit of measure used in subscription licensing (not necessary if using a registration key pool). See the |bigiq| and subscription licensing documentation for information on the units of measure.                           |
+| unitOfMeasure      | yearly, **monthly**, daily, hourly          |   No       |  The unit of measure used in utility licensing (not necessary if using a registration key pool). See the |bigiq| and utility licensing documentation for information on the units of measure.                                     |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | reachable          | **true**, false                             |   No       |  Reachable specifies whether or not the BIG-IQ has a route to the BIG-IP device.  If it does have a route (true), you must specify the BIG-IP username and password. If it does not (false) you must specify the hypervisor.      |
 +--------------------+---------------------------------------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -90,7 +90,7 @@ The License class contains information about your BIG-IQ device.
 \** Required by BIG-IQ if reachable = false only
 
 
-Again, for the full BIG-IQ Licensing example declaration, see :ref:`example3` and :ref:`example4`.
+Again, for the full BIG-IQ Licensing example declaration, see :ref:`bigiq1` and :ref:`bigiq2`.
 
 |
 
@@ -229,7 +229,7 @@ This revokes the license from the BIG-IP VE from the **myPool** license pool fro
 
 .. |bigiq| raw:: html
 
-   <a href="https://support.f5.com/kb/en-us/products/big-iq-centralized-mgmt/manuals/product/bigiq-central-mgmt-device-5-3-0/3.html" target="_blank">BIG-IQ</a>
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-iq-centralized-mgmt/manuals/product/big-iq-centralized-management-device-6-1-0/04.html" target="_blank">BIG-IQ</a>
 
 
 .. |br| raw:: html
