@@ -43,9 +43,9 @@ The following is an example declaration that onboards a clustered BIG-IP system.
 Example 3: Licensing with BIG-IQ: Route to BIG-IP
 -------------------------------------------------
 The following is an example of using a BIG-IQ to license your BIG-IP systems, where the BIG-IQ has an existing route to the BIG-IP.  In this example, our BIG-IQ license pool is a subscription pool, so we include skuKeyword1 and 2, and unitOfMeasure.
-In this example, the entire *License* class is unique to using BIG-IQ for licensing, and we've highlighted the lines that are specific to this Route example (reachable=true) and to a subscription pools.  See :doc:`big-iq-licensing` for specific details on this example.
+In this example, the entire *License* class is unique to using BIG-IQ for licensing, and we've highlighted the lines that are specific to this Route example (reachable=true) and to subscription pools.  See :doc:`big-iq-licensing` for specific details on this example.
 
-.. literalinclude:: ../examples/reLicenseViaBigIqReachable.json
+.. literalinclude:: ../examples/licenseViaBigIqReachable.json
    :language: json
    :emphasize-lines: 16-21
 
