@@ -16,6 +16,8 @@ To use this feature:
 
 Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
 
+See :doc:`bigiq-examples` for additional example declarations.
+
 
 Declaration class licensing with BIG-IQ
 ---------------------------------------
@@ -91,6 +93,8 @@ The License class contains information about your BIG-IQ device.  For BIG-IQ, th
 
 
 Again, for the full BIG-IQ Licensing example declaration, see :ref:`bigiq1` and :ref:`bigiq2`.
+
+See :doc:`bigiq-examples` for additional example declarations.
 
 |
 
