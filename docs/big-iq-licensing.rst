@@ -13,6 +13,7 @@ To use this feature:
 
 - You must have an existing BIG-IQ device with a pool of BIG-IP VE licenses. 
 - The license pool can only be a Registration Key pool, Purchased Pool, or a Utility (subscription/ELA) pool. See the |bigiq| documentation for more detailed information on License pool types.
+- In the BIG-IQ UI, you must include a targetUsername and targetPassphrase.  BIG-IQ is able to pass a target token through the API, but the BIG-IQ **must** also have the target username and passphrase in the body so the BIG-IQ can discover and import the BIG-IP device after the onboarding process.
 
 Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
 
