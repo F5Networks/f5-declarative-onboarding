@@ -17,6 +17,8 @@
 'use strict';
 
 const assert = require('assert');
+const sinon = require('sinon');
+const httpUtil = require('../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
 const State = require('../../nodejs/state');
 const RealValidator = require('../../nodejs/validator');
 const STATUS = require('../../nodejs/sharedConstants').STATUS;
@@ -902,6 +904,52 @@ describe('restWorker', () => {
                     reject(err);
                 }
             });
+        });
+
+        describe('POST to webhook', () => {
+            let stubHttpUtil;
+            let webhook;
+            let webhookSaved = null;
+            let opstionsSaved = null;
+
+            before(() => {
+                doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IQ');
+                stubHttpUtil = sinon.stub(httpUtil, 'post').callsFake((webhookReceived, options) => {
+                    webhookSaved = webhookReceived;
+                    opstionsSaved = options.body.declaration.webhook;
+                    return Promise.resolve();
+                });
+            });
+
+            after(() => {
+                restWorker.platform = null;
+                sinon.assert.calledOnce(stubHttpUtil);
+                assert.strictEqual(webhookSaved, webhook);
+                assert.strictEqual(opstionsSaved, webhook);
+            });
+
+            it('should call postWebhook', () => new Promise((resolve, reject) => {
+                webhook = 'http://some.place.test';
+                declaration = {
+                    schemaVersion: '1.0.0',
+                    class: 'Device',
+                    webhook
+                };
+                restOperationMock.getUri = () => ({
+                    query: {
+                        internal: true
+                    }
+                });
+                restOperationMock.complete = () => {
+                    resolve();
+                };
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            }));
         });
 
         describe('running on BIG-IQ', () => {

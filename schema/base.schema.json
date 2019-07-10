@@ -32,6 +32,11 @@
             "type": "boolean",
             "default": false
         },
+        "webhook": {
+            "description": "URL to post results to",
+            "type": "string",
+            "format": "uri"
+        },
         "label": {
             "description": "Optional friendly name for this declaration",
             "type": "string"
