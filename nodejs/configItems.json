@@ -125,5 +125,15 @@
             { "id": "offboxTcpPort" },
             { "id": "useOffbox", "truth": "enabled", "falsehood": "disabled" }
         ]
+    },
+    {
+        "path": "/tm/sys/management-route",
+        "schemaClass": "ManagementRoute",
+        "properties": [
+            { "id": "gw" },
+            { "id": "network" },
+            { "id": "mtu" },
+            { "id": "type" }
+        ]
     }
 ]

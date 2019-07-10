@@ -69,6 +69,10 @@ class SystemHandler {
                 return handleNTP.call(this);
             })
             .then(() => {
+                logger.fine('Checking ManagementRoute.');
+                return handleManagementRoute.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking hostname.');
                 return handleHostname.call(this);
             })
@@ -379,6 +383,35 @@ function handleLicensePool(license) {
             return this.bigIp.active();
         })
         .catch(err => Promise.reject(err));
+}
+
+function handleManagementRoute() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
+        if (managementRoute && managementRoute.name) {
+            const routeBody = {
+                name: managementRoute.name,
+                partition: tenant,
+                gw: managementRoute.gw,
+                network: managementRoute.network,
+                mtu: managementRoute.mtu
+            };
+
+            if (managementRoute.type) {
+                routeBody.type = managementRoute.type;
+            }
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.ManagementRoute, routeBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating management routes: ${err.message}`);
+            throw err;
+        });
 }
 
 function createOrUpdateUser(username, data) {

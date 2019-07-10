@@ -74,6 +74,16 @@ describe('systemHandler', () => {
             list() {
                 return Promise.resolve();
             },
+            createOrModify(path, data) {
+                if (!dataSent) {
+                    dataSent = {};
+                }
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
+                return Promise.resolve();
+            },
             modify() {
                 return Promise.resolve();
             }
@@ -1008,6 +1018,54 @@ describe('systemHandler', () => {
                         reject(err);
                     });
             });
+        });
+    });
+
+    describe('ManagementRoute', () => {
+        it('should handle the ManagementRoutes', () => {
+            const declaration = {
+                Common: {
+                    ManagementRoute: {
+                        managementRoute1: {
+                            name: 'managementRoute1',
+                            gw: '1.1.1.1',
+                            network: 'default-inet6',
+                            mtu: 1234,
+                            type: 'interface'
+                        },
+                        managementRoute2: {
+                            name: 'managementRoute1',
+                            gw: '1.2.3.4',
+                            network: '4.3.2.1',
+                            mtu: 1
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    const managementRouteData = dataSent[PATHS.ManagementRoute];
+                    assert.strictEqual(managementRouteData[0].name, 'managementRoute1');
+                    assert.strictEqual(managementRouteData[0].partition, 'Common');
+                    assert.strictEqual(managementRouteData[0].gw, declaration
+                        .Common.ManagementRoute.managementRoute1.gw);
+                    assert.strictEqual(managementRouteData[0].network, declaration
+                        .Common.ManagementRoute.managementRoute1.network);
+                    assert.strictEqual(managementRouteData[0].mtu, declaration
+                        .Common.ManagementRoute.managementRoute1.mtu);
+                    assert.strictEqual(managementRouteData[0].type, declaration
+                        .Common.ManagementRoute.managementRoute1.type);
+                    assert.strictEqual(managementRouteData[1].name, 'managementRoute1');
+                    assert.strictEqual(managementRouteData[1].partition, 'Common');
+                    assert.strictEqual(managementRouteData[1].gw, declaration
+                        .Common.ManagementRoute.managementRoute2.gw);
+                    assert.strictEqual(managementRouteData[1].network, declaration
+                        .Common.ManagementRoute.managementRoute2.network);
+                    assert.strictEqual(managementRouteData[1].mtu, declaration
+                        .Common.ManagementRoute.managementRoute2.mtu);
+                });
         });
     });
 });
