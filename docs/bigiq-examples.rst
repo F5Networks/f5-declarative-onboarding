@@ -52,7 +52,7 @@ We've highlighted the lines that are specific to this utility and Route example 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The following is another example of using a BIG-IQ to license your BIG-IP systems with a utility pool. However, in this case the BIG-IQ does **not** have an existing route to the BIG-IP. 
 
-Because there is not a route to the BIG-IP, you must also specify the applicable hypervisor, as this is required by BIG-IQ and Declarative Onboarding cannot guess the value for this (see :ref:`license-pool` for hypervisor options).
+For unreachable devices (with no route to BIG-IP), BIG-IP credentials are not required. Instead, you must explicitly indicate the platform on which the device runs (the {{hypervisor}} field) as Declarative Onboarding cannot automatically detect the value at this time. This is required for the BIG-IQ license activation API request (see :ref:`license-pool` for hypervisor options).  
 
 In this example, we've highlighted the lines that are specific to this utility and No Route example (reachable=false).  See :doc:`big-iq-licensing` for specific details on this example.
 
@@ -86,7 +86,7 @@ Because the BIG-IP VE is reachable (has a route to the BIG-IQ), we also specify 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 This example also uses a Purchased pool, but without a route to the BIG-IP.
 
-Because there is no route to the BIG-IP, you must also specify the applicable hypervisor, as this is required by BIG-IQ and Declarative Onboarding cannot guess the value for this (see :ref:`license-pool` for hypervisor options).
+For unreachable devices (with no route to BIG-IP), BIG-IP credentials are not required. Instead, you must explicitly indicate the platform on which the device runs (the {{hypervisor}} field) as Declarative Onboarding cannot automatically detect the value at this time. This is required for the BIG-IQ license activation API request (see :ref:`license-pool` for hypervisor options). 
 
 .. literalinclude:: ../examples/licenseViaBigIqPurchasedPoolUnreachable.json
    :language: json
@@ -146,7 +146,9 @@ The following is an example of using BIG-IQ to revoke a license and then relicen
 
    Revoking a license and relicensing is available in Declarative Onboarding v1.3.0 and later.
 
-The following is an example of using BIG-IQ to revoke a license and then relicense an unreachable BIG-IP VE. In this example, we are both revoking the initial license and relicensing the BIG-IP VE from a different license pool on the BIG-IQ. Additionally, because the BIG-IP device does not have a route to the BIG-IQ (unreachable), you must use **overwrite = true** to let the BIG-IP VE know the system is overwriting the license. You must also specify the applicable hypervisor, as this is required by BIG-IQ and Declarative Onboarding cannot guess the value for this (see :ref:`license-pool` for options).
+The following is an example of using BIG-IQ to revoke a license and then relicense an unreachable BIG-IP VE. In this example, we are both revoking the initial license and relicensing the BIG-IP VE from a different license pool on the BIG-IQ. Additionally, because the BIG-IP device does not have a route to the BIG-IQ (unreachable), you must use **overwrite = true** to let the BIG-IP VE know the system is overwriting the license. 
+
+For unreachable devices (with no route to BIG-IP), BIG-IP credentials are not required. Instead, you must explicitly indicate the platform on which the device runs (the {{hypervisor}} field) as Declarative Onboarding cannot automatically detect the value at this time. This is required for the BIG-IQ license activation API request (see :ref:`license-pool` for hypervisor options). 
 
 We have highlighted the new licensing pool, the revoke line, the hypervisor, and the overwrite line.    See :ref:`Revoking a license using BIG-IQ<revoke-main>` for specific details on this example.
 
