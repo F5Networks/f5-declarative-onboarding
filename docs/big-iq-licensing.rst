@@ -25,7 +25,7 @@ Declaration class licensing with BIG-IQ
 In this declaration snippet, we only include the License class, which is specific to using the BIG-IQ to license your BIG-IP system.  For a complete declaration, you could add the License class to the example in :doc:`composing-a-declaration` to configure DNS, NTP, VLANs, Routes and more.  
 For the full BIG-IQ Licensing example declaration, see :ref:`bigiq1` and :ref:`bigiq2`.
 
-In the following snippet, we set *reachable* to **true** (reachable means the BIG-IQ has a route to the BIG-IP), therefore we include a BIG-IP username and password. We are also using a utility pool behind the scenes on BIG-IQ, so use SKU keywords and unit of measure.  If reachable is false, you only specify the hypervisor. And for a RegKey pool, you do not need the SKU keywords or the unit of measure (see the table and :ref:`bigiq2` for usage). 
+In the following snippet, we set *reachable* to **true** (reachable means the BIG-IQ has a route to the BIG-IP), therefore we include a BIG-IP username and password. We are also using a utility pool behind the scenes on BIG-IQ, so use SKU keywords and unit of measure.  If reachable is false, you only specify the hypervisor (see the :doc:`bigiq-examples` for example declarations). And for a RegKey pool, you do not need the SKU keywords or the unit of measure (see the table and :ref:`bigiq2` for usage). 
 
 .. code-block:: javascript
    :linenos:
