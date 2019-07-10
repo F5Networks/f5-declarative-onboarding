@@ -18,6 +18,7 @@
 
 const fs = require('fs');
 const EventEmitter = require('events');
+const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
@@ -313,9 +314,6 @@ class RestWorker {
                                         }
                                         return rebootIfRequired.call(this, this.bigIps[taskId], taskId);
                                     })
-                                    .then(() => {
-                                        logger.fine('Onboard complete.');
-                                    })
                                     .catch((err) => {
                                         logger.severe(`Error during onboarding: ${err.message}`);
                                         this.state.doState.updateResult(
@@ -325,6 +323,11 @@ class RestWorker {
                                             'failed',
                                             err.message
                                         );
+                                    })
+                                    .then(() => {
+                                        logger.fine('Onboard complete.');
+                                        postWebhook.call(this, restOperation, ENDPOINTS.TASK, taskId,
+                                            declaration.webhook);
                                     });
                             }
                         })
@@ -1016,6 +1019,33 @@ function sendResponse(restOperation, endpoint, itemId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
+    const response = forgeResponse.call(this, restOperation, endpoint, itemId);
+    const body = response.getResponse();
+    restOperation.setBody(body);
+
+    if (Array.isArray(response)) {
+        restOperation.setStatusCode(200);
+    } else if (body && body.result && body.result.code) {
+        restOperation.setStatusCode(body.result.code);
+    } else {
+        restOperation.setStatusCode(200);
+    }
+
+    restOperation.complete();
+}
+
+/**
+ * Creates a response for a restOperation.
+ *
+ * @param {Object} restOperation - The restOperation to send the response for.
+ * @param {String} endpoint - The endpoint that we are responding to (task, config, etc.)
+ * @param {String} [itemId] - The id of the item to send the response for. Default is to send
+ *                            result for all items at the endpoint.
+ */
+function forgeResponse(restOperation, endpoint, itemId) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
     const doState = new State(this.state.doState);
     let responder;
     switch (endpoint) {
@@ -1036,18 +1066,36 @@ function sendResponse(restOperation, endpoint, itemId) {
 
     restOperation.setContentType('application/json');
     const response = new Response(itemId, responder, restOperation.getUri().query);
-    const body = response.getResponse();
-    restOperation.setBody(body);
+    return response;
+}
 
-    if (Array.isArray(response)) {
-        restOperation.setStatusCode(200);
-    } else if (body && body.result && body.result.code) {
-        restOperation.setStatusCode(body.result.code);
-    } else {
-        restOperation.setStatusCode(200);
+/**
+ * Posts a response to a webhook.
+ *
+ * @param {Object} restOperation - The restOperation to send the response for.
+ * @param {String} endpoint - The endpoint that we are responding to (task, config, etc.)
+ * @param {String} [itemId] - The id of the item to send the response for. Default is to send
+ *                            result for all items at the endpoint.
+ * @param {String} webhook - url to post to
+ */
+function postWebhook(restOperation, endpoint, itemId, webhook) {
+    if (webhook === undefined) {
+        return;
     }
-
-    restOperation.complete();
+    if (endpoint === ENDPOINTS.TASK) {
+        const response = forgeResponse.call(this, restOperation, endpoint, itemId);
+        const body = response.getResponse();
+        const options = {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body
+        };
+        httpUtil.post(webhook, options)
+            .catch((err) => {
+                logger.fine(`Webhook failed POST: ${JSON.stringify(err)}`);
+            });
+    }
 }
 
 function sendError(restOperation, code, message) {

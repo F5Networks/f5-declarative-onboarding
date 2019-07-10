@@ -19,17 +19,11 @@
 const assert = require('assert');
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
-let NetworkHandler;
-
-/* eslint-disable global-require */
+const NetworkHandler = require('../../nodejs/networkHandler');
 
 describe('networkHandler', () => {
     let bigIpMock;
     let dataSent;
-
-    before(() => {
-        NetworkHandler = require('../../nodejs/networkHandler');
-    });
 
     beforeEach(() => {
         dataSent = {};
@@ -55,12 +49,6 @@ describe('networkHandler', () => {
                 return Promise.resolve();
             }
         };
-    });
-
-    after(() => {
-        Object.keys(require.cache).forEach((key) => {
-            delete require.cache[key];
-        });
     });
 
     describe('VLAN', () => {

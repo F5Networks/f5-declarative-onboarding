@@ -3,6 +3,7 @@
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)
 + Resolve [Issue 43](https://github.com/F5Networks/f5-declarative-onboarding/issues/43)
++ Resolve [Issue 28](https://github.com/F5Networks/f5-declarative-onboarding/issues/28)
 + Add support for Management Route
 
 ## Version 1.5.1
