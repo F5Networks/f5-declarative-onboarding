@@ -41,7 +41,8 @@ module.exports = {
         RouteDomain: '/tm/net/route-domain',
         AuthRadius: '/tm/auth/radius',
         AuthRadiusServer: '/tm/auth/radius-server',
-        AuthSource: '/tm/auth/source'
+        AuthSource: '/tm/auth/source',
+        AuthLdap: '/tm/auth/ldap'
     },
     STATUS: {
         STATUS_OK: 'OK',

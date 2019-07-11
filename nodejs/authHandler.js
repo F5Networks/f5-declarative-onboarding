@@ -59,6 +59,7 @@ class AuthHandler {
         }
 
         return handleRadius.call(this)
+            .then(() => handleLdap.call(this))
             .then(() => handleSource.call(this));
     }
 }
@@ -98,6 +99,55 @@ function handleRadius() {
             return Promise.reject(err);
         });
 }
+
+function handleLdap() {
+    const ldap = this.declaration.Common.Authentication.ldap;
+
+    if (!ldap) {
+        return Promise.resolve();
+    }
+
+    const ldapObj = {
+        name: AUTH.SUBCLASSES_NAME,
+        partition: 'Common',
+        bindDn: ldap.bindDn || 'none',
+        bindPw: ldap.bindPassword || 'none',
+        bindTimeout: ldap.bindTimeout,
+        checkHostAttr: ldap.checkBindPassword ? 'enabled' : 'disabled',
+        checkRolesGroup: ldap.checkRemoteRole ? 'enabled' : 'disabled',
+        debug: ldap.debugEnabled ? 'enabled' : 'disabled',
+        filter: ldap.filter || 'none',
+        groupDn: ldap.groupDn || 'none',
+        groupMemberAttribute: ldap.groupMemberAttribute || 'none',
+        idleTimeout: ldap.idleTimeout,
+        ignoreAuthInfoUnavail: ldap.ignoreAuthInfoUnavailable ? 'yes' : 'no',
+        ignoreUnknownUser: ldap.ignoreUnknownUser ? 'enabled' : 'disabled',
+        loginAttribute: ldap.loginAttribute || 'none',
+        port: ldap.port,
+        scope: ldap.searchScope,
+        searchBaseDn: ldap.searchBaseDn || 'none',
+        searchTimeout: ldap.searchTimeout,
+        servers: ldap.servers,
+        ssl: ldap.sslEnabled ? 'enabled' : 'disabled',
+        sslCaCertFile: ldap.sslCaCertFile || 'none',
+        sslCheckPeer: ldap.sslCheckPeer ? 'enabled' : 'disabled',
+        sslCiphers: ldap.sslCiphers || 'none',
+        sslClientCert: ldap.sslClientCert || 'none',
+        sslClientKey: ldap.sslClientKey || 'none',
+        userTemplate: ldap.userTemplate || 'none',
+        version: ldap.version,
+        warnings: ldap.warningsEnabled ? 'enabled' : 'disabled'
+    };
+
+    const options = ldapObj.bindPw ? { silent: true } : {};
+
+    return this.bigIp.createOrModify(PATHS.AuthLdap, ldapObj, undefined, undefined, options)
+        .catch((err) => {
+            logger.severe(`Error configuring remote LDAP auth: ${err.message}`);
+            return Promise.reject(err);
+        });
+}
+
 
 function handleSource() {
     const auth = this.declaration.Common.Authentication;
