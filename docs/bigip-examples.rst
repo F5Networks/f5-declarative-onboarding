@@ -89,7 +89,31 @@ In this example, we are adding public SSH keys to the root user and a guestUser.
 
 :ref:`Back to top<bigipexamples>`
 
+.. _rd:
+
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The **routeDomain** class is available in DO v1.6.0 and later. 
+
+6: Adding Route Domains to a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In this example, we show how to use a Route Domain in a declaration.  A route domain is a configuration object that isolates network traffic for a particular application on the network.  For more information on Route Domains, see |rddoc|.
+
+In the following declaration, we include a VLAN to show how to reference a VLAN that is being created.  The SelfIp and the Route both show using the RouteDomain with "%100", which is the **id** of the RouteDomain. 
+
+
+
+.. literalinclude:: ../examples/routeDomains.json
+   :language: json
+   :emphasize-lines: 27-45 
+
+
+:ref:`Back to top<bigipexamples>`
+
 .. |br| raw:: html
 
    <br />
 
+.. |rddoc| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-tmos-routing-administration-14-1-0/09.html" target="_blank">Route Domain documentation</a>
