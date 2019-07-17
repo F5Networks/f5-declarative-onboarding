@@ -135,5 +135,23 @@
             { "id": "mtu" },
             { "id": "type" }
         ]
+    },
+    {
+        "path": "/tm/net/route-domain",
+        "schemaClass": "RouteDomain",
+        "properties": [
+            { "id": "id" },
+            { "id": "bwcPolicy" },
+            { "id": "connectionLimit" },
+            { "id": "flowEvictionPolicy" },
+            { "id": "fwEnforcedPolicy" },
+            { "id": "fwStagedPolicy" },
+            { "id": "ipIntelligencePolicy" },
+            { "id": "securityNatPolicy" },
+            { "id": "servicePolicy" },
+            { "id": "strict", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "routingProtocol" },
+            { "id": "vlans" }
+        ]
     }
 ]

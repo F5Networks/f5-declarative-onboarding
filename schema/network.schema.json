@@ -131,6 +131,81 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": { "properties": { "class": { "const": "RouteDomain" } } },
+            "then": {
+                "required": ["class", "id"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Route Domain configuration.",
+                        "type": "string",
+                        "const": "RouteDomain"
+                    },
+                    "id": {
+                        "description": "Specifies a unique numeric identifier for the route domain.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65534
+                    },
+                    "bandWidthControllerPolicy": {
+                        "description": "Specifies the bandwidth controller policy for the route domain.",
+                        "type": "string"
+                    },
+                    "connectionLimit": {
+                        "description": "The connection limit for the route domain.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4294967295,
+                        "default": 0
+                    },
+                    "flowEvictionPolicy": {
+                        "description": "Specifies a flow eviction policy for the route domain to use.",
+                        "type": "string"
+                    },
+                    "ipIntelligencePolicy": {
+                        "description": "Specifies an IP intelligence policy for the route domain to use.",
+                        "type": "string"
+                    },
+                    "enforcedFirewallPolicy": {
+                        "description": "Specifies an enforced firewall policy on the route domain.",
+                        "type": "string"
+                    },
+                    "stagedFirewallPolicy": {
+                        "description": "Specifies a staged firewall policy on the route domain.",
+                        "type": "string"
+                    },
+                    "securityNatPolicy": {
+                        "description": "Specifies the security NAT policy for the route domain.",
+                        "type": "string"
+                    },
+                    "servicePolicy": {
+                        "description": "Specifies the service policy for the route domain.",
+                        "type": "string"
+                    },
+                    "strict": {
+                        "description": "Determines whether a connection can span route domains.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "routingProtocols": {
+                        "description": "Specifies routing protocols for the system to use in the route domain.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": ["BFD", "BGP", "IS-IS", "OSPFv2", "OSPFv3", "PIM", "RIP", "RIPng"]
+                        }
+                    },
+                    "vlans": {
+                        "description": "Specifies VLANS for the system to use in the route domain.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
         }
     ]
 }

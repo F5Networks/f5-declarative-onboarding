@@ -56,6 +56,10 @@ class NetworkHandler {
         logger.fine('Checking VLANs.');
         return handleVlan.call(this)
             .then(() => {
+                logger.fine('Checking RouteDomains.');
+                return handleRouteDomain.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking SelfIps.');
                 return handleSelfIp.call(this);
             })
@@ -269,6 +273,40 @@ function handleRoute() {
                 reject(err);
             });
     });
+}
+
+function handleRouteDomain() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'RouteDomain', (tenant, routeDomain) => {
+        if (routeDomain && routeDomain.name) {
+            const routeDomainBody = {
+                name: routeDomain.name,
+                partition: tenant,
+                id: routeDomain.id,
+                connectionLimit: routeDomain.connectionLimit,
+                bwcPolicy: routeDomain.bandwidthControllerPolicy,
+                flowEvictionPolicy: routeDomain.flowEvictionPolicy,
+                fwEnforcedPolicy: routeDomain.enforcedFirewallPolicy,
+                fwStagedPolicy: routeDomain.stageFirewallPolicy,
+                ipIntelligencePolicy: routeDomain.ipIntelligencePolicy,
+                securityNatPolicy: routeDomain.securityNatPolicy,
+                servicePolicy: routeDomain.servicePolicy,
+                strict: routeDomain.strict ? 'enabled' : 'disabled',
+                routingProtocol: routeDomain.routingProtocols,
+                vlans: routeDomain.vlans
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.RouteDomain, routeDomainBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating RouteDomains: ${err.message}`);
+            throw err;
+        });
 }
 
 /**

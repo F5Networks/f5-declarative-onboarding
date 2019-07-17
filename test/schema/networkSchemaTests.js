@@ -290,6 +290,114 @@ describe('network.schema.json', () => {
             });
         });
     });
+
+    describe('RouteDomain', () => {
+        describe('valid', () => {
+            it('should validate route domain data', () => {
+                const data = {
+                    "class": "RouteDomain",
+                    "id": 2000,
+                    "bandWidthControllerPolicy": "bwcPolicy",
+                    "connectionLimit": 1234567,
+                    "flowEvictionPolicy": "flowPolicy",
+                    "ipIntelligencePolicy": "ipIntell",
+                    "enforcedFirewallPolicy": "fwPolicy",
+                    "stagedFirewallPolicy": "fwPolicy",
+                    "securityNatPolicy": "natSecure",
+                    "servicePolicy": "servicePolicy",
+                    "strict": false,
+                    "routingProtocols": [
+                        "BFD",
+                        "BGP"
+                    ],
+                    "vlans": [
+                        "vlan1",
+                        "vlan2"
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate out of ragne id', () => {
+                const data = {
+                    "class": "RouteDomain",
+                    "id": 123456
+                };
+                assert.strictEqual(validate(data), false, 'id is out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 65534'), -1);
+            });
+
+            it('should invalidate out of range connectionLimit', () => {
+                const data = {
+                    "class": "RouteDomain",
+                    "id": 100,
+                    "connectionLimit": 99999999999
+                };
+                assert.strictEqual(validate(data), false, 'connectionLimit is out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 4294967295'), -1);
+            });
+
+            it('should invalidate missing id property', () => {
+                const data = {
+                    "class": "RouteDomain"
+                };
+                assert.strictEqual(validate(data), false, 'missing id property');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'id\''), -1);
+            });
+
+            it('should invlaidate bad routing protocol', () => {
+                const data = {
+                    "class": "RouteDomain",
+                    "id": 1,
+                    "routingProtocols": [
+                        "BFD",
+                        "newProtocol"
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'invalid routing protocol');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "class": "RouteDomain",
+                    "id": 123,
+                    "newProperty": [
+                        "newArrayItem"
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'can\'t have additional properties');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate bad bandWidthControllerPolicy', () => {
+                const data = {
+                    "class": "RouteDomain",
+                    "id": 123,
+                    "bandWidthControllerPolicy": [
+                        "uhOhIt'sAnArray"
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'bandwidthControllerPolicy should be a string');
+                assert.notStrictEqual(getErrorString().indexOf('should be string'), -1);
+            });
+
+            it('should invalidate incorrect vlans items types', () => {
+                const data = {
+                    "class": "RouteDomain",
+                    "id": 123,
+                    "vlans": [
+                        "123",
+                        []
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'vlans items should be string type');
+                assert.notStrictEqual(getErrorString().indexOf('should be string'), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {
