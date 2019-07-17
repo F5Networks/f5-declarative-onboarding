@@ -47,7 +47,8 @@ const CLASSES_OF_TRUTH = [
     'DeviceGroup',
     'FailoverUnicast',
     'Analytics',
-    'ManagementRoute'
+    'ManagementRoute',
+    'RouteDomain'
 ];
 
 /**
