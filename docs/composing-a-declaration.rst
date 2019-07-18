@@ -501,6 +501,72 @@ The next lines of the declaration configure routes on the BIG-IP system.   In th
 \* The required column applies only if you are using this class.
 
 
+.. _routedomain-class:
+
+Route Domain class
+``````````````````
+The next lines of the declaration configure route domains on the BIG-IP system.  With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rd>`.
+
+
+.. code-block:: javascript
+   :linenos:
+   :lineno-start: 115
+
+        "myRouteDomain": {
+            "class": "RouteDomain",
+            "id": 100,
+            "bandWidthControllerPolicy": "bwcPol",
+            "connectionLimit": 5432991,
+            "flowEvictionPolicy": "default-eviction-policy",
+            "ipIntelligencePolicy": "ip-intelligence",
+            "enforcedFirewallPolicy": "enforcedPolicy",
+            "stagedFirewallPolicy": "stagedPolicy",
+            "securityNatPolicy": "securityPolicy",
+            "servicePolicy": "servicePolicy",
+            "strict": false,
+            "routingProtocols": [
+                "RIP"
+            ],
+            "vlans": [
+                "newVlan"
+            ]
+        },
+
+
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter                 | Options                                                                                   | Required*? |  Description/Notes                                                                                                                 |
++===========================+===========================================================================================+============+====================================================================================================================================+
+| class                     | RouteDomain                                                                               |   Yes      |  Indicates that this property contains route domain configuration.                                                                 |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| id                        | integer                                                                                   |   Yes      |  Specifies a unique numeric identifier for the route domain.                                                                       |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| bandWidthControllerPolicy | string                                                                                    |   No       |  Specifies the bandwidth controller policy for the route domain                                                                    |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| connectionLimit           | integer (min/default: 0, max 4294967295)                                                  |   No       |  The connection limit for the route domain                                                                                         |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| flowEvictionPolicy        | string                                                                                    |   No       |  Specifies a flow eviction policy for the route domain to use                                                                      |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| ipIntelligencePolicy      | string                                                                                    |   No       |  Specifies an IP intelligence policy for the route domain to use                                                                   |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| enforcedFirewallPolicy    | string                                                                                    |   No       |  Specifies an enforced firewall policy on the route domain                                                                         |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| stagedFirewallPolicy      | string                                                                                    |   No       |  Specifies a staged firewall policy on the route domain                                                                            |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| securityNatPolicy         | string                                                                                    |   No       |  Specifies the security NAT policy for the route domain                                                                            |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| servicePolicy             | string                                                                                    |   No       |  Specifies the service policy for the route domain                                                                                 |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| strict                    | boolean (**true**)                                                                        |   No       |  Determines whether a connection can span route domains                                                                            |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| routingProtocols          | array of strings (BFD, BGP, IS-IS, OSPFv2, OSPFv3, PIM, RIP, RIPng)                       |   No       |  Specifies routing protocols for the system to use in the route domain                                                             |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| vlan                      | array of strings                                                                          |   No       | Specifies VLANS for the system to use in the route domain                                                                          |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+
+
+\* The required column applies only if you are using this class.
+
+
 .. _dbvars-class:
 
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
@@ -517,7 +583,7 @@ The next lines of the declaration enable the ability to set arbitrary database v
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 113
+   :lineno-start: 134
 
                 "dbvars": {
                     "class": "DbVariables",
