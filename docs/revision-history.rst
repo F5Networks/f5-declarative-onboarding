@@ -7,12 +7,12 @@ Document Revision History
       :widths: 15 100 15
       :header-rows: 1
 
-      * - Revision
+      * - Doc Rev
         - Description
         - Date
              
       * - 2.2
-        - Updated the documentation for Declarative Onboarding v1.5.0. This release contains the following changes: |br| * Added support (and an example declaration for) creating route domains in a declaration (see :ref:`rd` and :ref:`routedomain-class`) |br| * Added support for specifying a management route |br| |br| Issues Resolved: |br| * Updated :doc:`big-iq-licensing` and the example declarations to change references to ELA/subscription licensing to *utility* licensing. |br| *  Removed targetSshKey when filling in targetPassphrase. |br| 
+        - Updated the documentation for Declarative Onboarding v1.6.0. This release contains the following changes: |br| * Added support for creating route domains in a declaration (see :ref:`rd` and :ref:`routedomain-class`) |br| * Added support for specifying a management route |br| |br| Issues Resolved: |br| * Updated :doc:`big-iq-licensing` and the example declarations to change references to ELA/subscription licensing to *utility* licensing. |br| *  Removed targetSshKey when filling in targetPassphrase. |br| 
         - 07-28-19
 
       * - 2.1

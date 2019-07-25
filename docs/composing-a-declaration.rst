@@ -203,6 +203,8 @@ The name *myNTP* we use in this example is arbitrary; it is not used anywhere in
 
 .. IMPORTANT:: If you are configuring NTP in your declaration, Declarative Onboarding disables DHCP for NTP.
 
+For instructions on how to get a current list of timezones on the BIG-IP, see https://support.f5.com/csp/article/K9098.  To quickly view a static list that 
+
 
 .. code-block:: javascript
    :linenos:
@@ -500,12 +502,52 @@ The next lines of the declaration configure routes on the BIG-IP system.   In th
 
 \* The required column applies only if you are using this class.
 
+.. _mgmtroute-class:
+
+Management Route class
+``````````````````````
+The next lines of the declaration configure the management route on the BIG-IP system. For specific information on management routes, see |mgmtroutes| in the BIG-IP Routing Administration guide.
+
+
+
+.. code-block:: javascript
+   :linenos:
+   :lineno-start: 115
+
+        "managementRoute: {
+            "class": "ManagementRoute",
+            "gw": "1.2.3.4",
+            "network": "4.3.2.1",
+            "mtu": 1000,
+            "type": "interface"
+        },
+
+
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                                                                                   | Required*? |  Description/Notes                                                                                                                 |
++====================+===========================================================================================+============+====================================================================================================================================+
+| class              | managementRoute                                                                           |   Yes      |  Indicates that this property contains management route configuration.                                                             |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| gw                 | string (IPv4 or IPv6 address)                                                             |   Yes      |  Gateway for the route.                                                                                                            |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| network            | string (IPv4/IPv6 address, optional %RD and/or /masklen), **default**, or default-inet6   |   No       |  IP address/netmask for route.  The default network is **default**.                                                                |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| mtu                | integer                                                                                   |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 0 and a maximum of 9198.                                   |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| type               | string (interface, blackhole)                                                             |   No       | Type of the management route                                                                                                       |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+
+
+\* The required column applies only if you are using this class.
+
 
 .. _routedomain-class:
 
 Route Domain class
 ``````````````````
-The next lines of the declaration configure route domains on the BIG-IP system.  With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rd>`.
+The next lines of the declaration configure route domains on the BIG-IP system.  For specific information on Route Domains, see the |rddocs|.
+
+With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rd>`.
 
 
 .. code-block:: javascript
@@ -632,3 +674,13 @@ The next lines of the declaration enable the ability to set arbitrary database v
 .. |pass| raw:: html
 
    <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-system-secure-password-policy-14-0-0/01.html" target="_blank">BIG-IP Secure Password Policy</a>
+
+.. |mgmtroutes| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-tmos-routing-administration-14-1-0/01.html#GUID-665E1732-EC90-447D-A871-DEC9903F372F" target="_blank">BIG-IP Management Routes</a>
+
+
+
+.. |rddocs| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-tmos-routing-administration-14-1-0/09.html" target="_blank">Route Domain documentation</a>
