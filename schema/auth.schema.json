@@ -48,7 +48,10 @@
                 {
                     "if": {
                         "required": ["enabledSourceType"],
-                        "properties": { "enabledSourceType": { "const": "ldap"} }
+                        "properties": { "enabledSourceType": { "oneOf": [
+                            { "const": "ldap" },
+                            { "const": "activeDirectory" }
+                        ] } }
                     },
                     "then": { "required": ["ldap"] }
                 }
@@ -63,7 +66,7 @@
                 "serviceType": {
                     "description": "Type of service used for the RADIUS server.",
                     "type": "string",
-                    "enum": [ 
+                    "enum": [
                         "administrative",
                         "authenticate-only",
                         "call-check",

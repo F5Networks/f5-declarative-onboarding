@@ -214,10 +214,20 @@ describe('auth.schema.json', () => {
         });
 
         describe('invalid', () => {
-            it('should invalidate data with missing ldap', () => {
+            it('should invalidate data with missing ldap when enabling ldap', () => {
                 const data = {
                     class: 'Authentication',
                     enabledSourceType: 'ldap'
+                };
+
+                assert.strictEqual(validate(data), false, 'ldap should be mandatory for ldap authentication');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": ".ldap"'), -1);
+            });
+
+            it('should invalidate data with missing ldap when enabling activeDirectory', () => {
+                const data = {
+                    class: 'Authentication',
+                    enabledSourceType: 'activeDirectory'
                 };
 
                 assert.strictEqual(validate(data), false, 'ldap should be mandatory for ldap authentication');

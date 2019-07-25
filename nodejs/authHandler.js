@@ -151,11 +151,16 @@ function handleLdap() {
 
 function handleSource() {
     const auth = this.declaration.Common.Authentication;
+    let type = auth.enabledSourceType;
+
+    if (type === 'activeDirectory') {
+        type = 'active-directory';
+    }
 
     return this.bigIp.modify(
         PATHS.AuthSource,
         {
-            type: auth.enabledSourceType,
+            type,
             fallback: auth.fallback
         }
     );

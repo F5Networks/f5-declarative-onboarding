@@ -596,9 +596,15 @@ function patchAuth(schemaMerge, authClass, authItem) {
     let patchedItem;
 
     if (!schemaMerge) {
+        let type = authItem.type;
+
+        if (type === 'active-directory') {
+            type = 'activeDirectory';
+        }
+
         // the props are for the parent Auth class
         patchedClass = Object.assign(patchedClass, authItem);
-        patchedClass.enabledSourceType = authItem.type;
+        patchedClass.enabledSourceType = type;
         delete patchedClass.type;
         return patchedClass;
     }
