@@ -115,7 +115,8 @@
                     { "$ref": "system.schema.json#" },
                     { "$ref": "network.schema.json#" },
                     { "$ref": "dsc.schema.json#" },
-                    { "$ref": "analytics.schema.json#" }
+                    { "$ref": "analytics.schema.json#" },
+                    { "$ref": "auth.schema.json#" }
                 ]
             }
         },

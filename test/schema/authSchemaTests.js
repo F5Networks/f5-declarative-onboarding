@@ -1,0 +1,175 @@
+/**
+ * Copyright 2018 F5 Networks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+const assert = require('assert');
+const Ajv = require('ajv');
+
+const ajv = new Ajv(
+    {
+        allErrors: false,
+        useDefaults: true,
+        coerceTypes: true,
+        extendRefs: 'fail'
+    }
+);
+const authSchema = require('../../schema/auth.schema.json');
+const customFormats = require('../../schema/formats.js');
+
+Object.keys(customFormats).forEach((customFormat) => {
+    ajv.addFormat(customFormat, customFormats[customFormat]);
+});
+
+const validate = ajv.compile(authSchema);
+
+/* eslint-disable quotes, quote-props */
+
+describe('auth.schema.json', () => {
+    describe('Auth class', () => {
+        describe('valid', () => {
+            it('should validate minimum and enabledSourceType defaults to local)', () => {
+                const data = {
+                    "class": "Authentication",
+                    "fallback": true
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.strictEqual(data.enabledSourceType, 'local');
+            });
+        });
+        describe('invalid', () => {
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "class": "Authentication",
+                    "extraProp": "yep",
+                    "fallback": true
+                };
+                assert.strictEqual(validate(data), false, 'addtl properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "extraProp"'), -1);
+            });
+        });
+    });
+
+    describe('Remote - RADIUS', () => {
+        describe('valid', () => {
+            it('should validate remote RADIUS', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "radius",
+                    "radius": {
+                        "servers": {
+                            "primary": {
+                                "server": "1.2.3.4",
+                                "secret": "mumble"
+                            },
+                            "secondary": {
+                                "server": "second.sever",
+                                "secret": "mumble"
+                            }
+                        }
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate data with missing radius', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "radius"
+                };
+                assert.strictEqual(validate(data), false, 'missing radius should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": ".radius"'), -1);
+            });
+
+            it('should invalidate data with missing servers', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "radius",
+                    "radius": {
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing servers should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "servers"'), -1);
+            });
+
+            it('should invalidate data without primary server', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "radius",
+                    "radius": {
+                        "servers": {
+                            "secondary": {
+                                "server": "5.6.7.8",
+                                "secret": "mumble"
+                            }
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing primary server should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "primary"'), -1);
+            });
+
+
+            it('should invalidate data with extra server item', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "radius",
+                    "radius": {
+                        "servers": {
+                            "primary": {
+                                "server": "1200:0000:AB00:1234:0000:2552:7777:1313",
+                                "secret": "mumble"
+                            },
+                            "secondary": {
+                                "server": "second.server",
+                                "secret": "mumble"
+                            },
+                            "tertiary": {
+                                "server": "third.server",
+                                "secret": "mumble"
+                            }
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'servers should only have primary and secondary');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "tertiary"'), -1);
+            });
+
+            it('should invalidate data with missing secret', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "radius",
+                    "radius": {
+                        "servers": {
+                            "primary": {
+                                "server": "1200:0000:AB00:1234:0000:2552:7777:1313",
+                                "port": 1888
+                            }
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'missing secret should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "secret"'), -1);
+            });
+        });
+    });
+});
+
+function getErrorString() {
+    return JSON.stringify(validate.errors, null, 4);
+}

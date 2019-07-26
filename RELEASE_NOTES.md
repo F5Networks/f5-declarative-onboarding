@@ -1,5 +1,9 @@
 # Release Notes
 
+## Version 1.7.0
++ Add support for Authentication class
++ Add support for Authentication - Radius
+
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)
 + Resolve [Issue 43](https://github.com/F5Networks/f5-declarative-onboarding/issues/43)
