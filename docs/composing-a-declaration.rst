@@ -510,7 +510,7 @@ The next lines of the declaration configure the management route on the BIG-IP s
 
 
 
-.. code-block:: javascript
+.. code-block:: bash
    :linenos:
    :lineno-start: 115
 
@@ -547,7 +547,7 @@ Route Domain class
 ``````````````````
 The next lines of the declaration configure route domains on the BIG-IP system.  For specific information on Route Domains, see the |rddocs|.
 
-With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rd>`.
+With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rdomain>`.
 
 
 .. code-block:: javascript
