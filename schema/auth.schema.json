@@ -1,0 +1,115 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/auth.schema.json",
+    "title": "F5 Declarative Onboarding Authentication declaration",
+    "description": "Authentication properties for onboarding a BIG-IP.",
+    "if": { "properties": { "class": { "const": "Authentication" } } },
+    "then": {
+        "oneOf": [
+            { "$ref": "#/definitions/remoteInfo" }
+        ]
+    },
+    "definitions": {
+        "remoteInfo": {
+            "required": ["class", "enabledSourceType"],
+            "type": "object",
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains authentication configuration.",
+                    "type": "string",
+                    "const": "Authentication"
+                },
+                "enabledSourceType": {
+                    "description": "Type of remote authentication source to enable for the system.",
+                    "type": "string",
+                    "enum": ["radius", "local"],
+                    "default": "local"
+                },
+                "fallback": {
+                    "description": "Specifies that the system uses the Local authentication method if the remote authentication method is not available.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "radius": {
+                    "$ref": "#/definitions/radius"
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "required": ["enabledSourceType"],
+                        "properties": { "enabledSourceType": { "const": "radius"} }
+                    },
+                    "then": { "required": ["radius"] }
+                }
+            ],
+            "additionalProperties": false
+        },
+        "radius": {
+            "description": "Remote RADIUS authentication info.",
+            "type": "object",
+            "required": ["servers"],
+            "properties": {
+                "serviceType": {
+                    "description": "Type of service used for the RADIUS server.",
+                    "type": "string",
+                    "enum": [ 
+                        "administrative",
+                        "authenticate-only",
+                        "call-check",
+                        "callback-administrative",
+                        "callback-framed",
+                        "callback-login",
+                        "callback-nas-prompt",
+                        "default",
+                        "framed",
+                        "login",
+                        "nas-prompt",
+                        "outbound"
+                    ],
+                    "default": "default"
+                },
+                "servers": {
+                    "description": "RADIUS servers settings",
+                    "required": ["primary"],
+                    "properties": {
+                        "primary": {
+                            "description": "Server connection settings for the primary RADIUS server",
+                            "allOf": [ {"$ref": "#/definitions/radiusServer"} ]
+                        },
+                        "secondary": {
+                            "description": "Server connection settings for the secondary RADIUS server (optional)",
+                            "allOf": [ {"$ref": "#/definitions/radiusServer"} ]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        "radiusServer": {
+            "description": "RADIUS server connection settings.",
+            "type": "object",
+            "required": [ "server", "secret" ],
+            "properties": {
+                "server": {
+                    "type": "string",
+                    "description": "The RADIUS server IP address or hostname.",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6" },
+                        { "format": "hostname" }
+                    ]
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port to use when connecting to the RADIUS server.",
+                    "default": 1812
+                },
+                "secret": {
+                    "description": "Password to use when connection to the RADIUS server.",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

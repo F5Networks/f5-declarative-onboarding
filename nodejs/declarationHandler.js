@@ -26,6 +26,7 @@ const AnalyticsHandler = require('./analyticsHandler');
 const DeleteHandler = require('./deleteHandler');
 const ProvisionHandler = require('./provisionHandler');
 const DeprovisionHandler = require('./deprovisionHandler');
+const AuthHandler = require('./authHandler');
 
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 
@@ -48,7 +49,8 @@ const CLASSES_OF_TRUTH = [
     'FailoverUnicast',
     'Analytics',
     'ManagementRoute',
-    'RouteDomain'
+    'RouteDomain',
+    'Authentication'
 ];
 
 /**
@@ -112,6 +114,7 @@ class DeclarationHandler {
                 return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
             })
             .then(() => new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
+            .then(() => new AuthHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
             .then(() => new ProvisionHandler(
                 updateDeclaration,
                 this.bigIp,

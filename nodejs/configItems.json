@@ -137,6 +137,40 @@
         ]
     },
     {
+        "path": "/tm/auth/source",
+        "schemaClass": "Authentication",
+        "properties": [
+            { "id": "type" },
+            { "id": "fallback", "truth": "true", "falsehood": "false" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/auth/radius",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["radius"],
+            "skipWhenOmitted": true
+        },
+        "properties": [
+            { "id": "serviceType" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/auth/radius-server",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["radius","servers"],
+            "action": "add",
+            "skipWhenOmitted": true
+        },
+        "properties": [
+            { "id": "server" },
+            { "id": "port" }
+        ]
+    },
+    {
         "path": "/tm/net/route-domain",
         "schemaClass": "RouteDomain",
         "properties": [

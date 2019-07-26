@@ -298,6 +298,47 @@ describe('configManager', () => {
             });
     }));
 
+    it('should handle newId property mapping', () => new Promise((resolve, reject) => {
+        const configItems = [
+            {
+                path: '/tm/sys/management-route',
+                schemaClass: 'ManagementRoute',
+                properties: [
+                    { id: 'gw', newId: 'gateway' },
+                    { id: 'network' },
+                    { id: 'mtu' },
+                    { id: 'type' }
+                ]
+            }
+        ];
+
+        listResponses['/tm/sys/management-route'] = [
+            {
+                name: 'default',
+                gw: '8.8.8.8',
+                network: 'default',
+                mtu: 0
+            }
+        ];
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        configManager.get({}, state, doState)
+            .then(() => {
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.gateway,
+                    listResponses['/tm/sys/management-route'][0].gw
+                );
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.gw,
+                    undefined
+                );
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
+
     describe('FailoverUnicast oddities', () => {
         // iControl omits the property altogether in some cases
         // Adding this defaultWhenOmitted attr makes the manager recognize that a default value is actually there
@@ -445,6 +486,159 @@ describe('configManager', () => {
             configManager.get({}, state, doState)
                 .then(() => {
                     assert.strictEqual(state.currentConfig.Common.SelfIp.selfIp1.allowService, 'none');
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
+    });
+
+    describe('Authentication oddities', () => {
+        it('should merge an auth subclass into a parent auth class', () => new Promise((resolve, reject) => {
+            const configItems = [
+                {
+                    path: '/tm/auth/source',
+                    schemaClass: 'Authentication',
+                    properties: [
+                        { id: 'type' },
+                        { id: 'fallback' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/auth/authsub',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['authSub']
+                    },
+                    properties: [
+                        { id: 'subProp1' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/auth/source'] = { type: 'authsub', fallback: true };
+            listResponses['/tm/auth/authsub'] = { subProp1: 'subPropVal1' };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.Authentication,
+                        {
+                            enabledSourceType: 'authsub',
+                            fallback: true,
+                            authSub: {
+                                subProp1: 'subPropVal1'
+                            }
+                        }
+                    );
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
+
+        it('should merge multiple auth subclasses into a parent auth class', () => new Promise((resolve, reject) => {
+            const configItems = [
+                {
+                    path: '/tm/auth/source',
+                    schemaClass: 'Authentication',
+                    properties: [
+                        { id: 'type' },
+                        { id: 'fallback' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/auth/authsub1',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['authSub1']
+                    },
+                    properties: [
+                        { id: 'subProp1' }
+                    ]
+                },
+                {
+                    path: '/tm/auth/authsub2',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['authSub2']
+                    },
+                    properties: [
+                        { id: 'subProp2' }
+                    ],
+                    nameless: true
+                }
+            ];
+            listResponses['/tm/auth/source'] = { type: 'authsub', fallback: true };
+            listResponses['/tm/auth/authsub1'] = { subProp1: 'subPropVal1' };
+            listResponses['/tm/auth/authsub2'] = { subProp2: true };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.Authentication,
+                        {
+                            enabledSourceType: 'authsub',
+                            fallback: true,
+                            authSub1: {
+                                subProp1: 'subPropVal1'
+                            },
+                            authSub2: {
+                                subProp2: true
+                            }
+                        }
+                    );
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
+
+        it('should omit a subclass prop when skipWhenOmitted is set to true', () => new Promise((resolve, reject) => {
+            const configItems = [
+                {
+                    path: '/tm/auth/source',
+                    schemaClass: 'Authentication',
+                    properties: [
+                        { id: 'type' },
+                        { id: 'fallback' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/auth/authsub',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['authSub'],
+                        skipWhenOmitted: true
+                    },
+                    properties: [
+                        { id: 'requiredField' }
+                    ],
+                    nameless: true
+                }
+            ];
+
+            listResponses['/tm/auth/source'] = { type: 'authsub', fallback: true };
+            listResponses['/tm/auth/authsub'] = { name: 'namelessClass without the required field' };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.Authentication,
+                        {
+                            enabledSourceType: 'authsub',
+                            fallback: true
+                        }
+                    );
                     resolve();
                 })
                 .catch((err) => {

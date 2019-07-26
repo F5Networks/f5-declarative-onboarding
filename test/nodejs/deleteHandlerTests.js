@@ -18,6 +18,9 @@
 
 const assert = require('assert');
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
+const AUTH = require('../../nodejs/sharedConstants').AUTH;
+const RADIUS = require('../../nodejs/sharedConstants').RADIUS;
+
 
 let DeleteHandler;
 
@@ -86,6 +89,67 @@ describe(('deleteHandler'), function testDeleteHandler() {
                     assert.strictEqual(deletedPaths[3], `${PATHS.SelfIp}/~Common~deleteThisSelfIp3`);
                     assert.strictEqual(deletedPaths[4], `${PATHS.VLAN}/~Common~deleteThisVLAN1`);
                     assert.strictEqual(deletedPaths[5], `${PATHS.VLAN}/~Common~deleteThisVLAN2`);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should issue deletes for Authentication subclasses', () => {
+        bigIpMock.delete = path => new Promise((resolve) => {
+            deletedPaths.push(path);
+            setTimeout(() => {
+                resolve();
+            }, path.includes(PATHS.Route) ? 50 : 0);
+        });
+
+        const declaration = {
+            Common: {
+                Authentication: {
+                    radius: {}
+                }
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+            deleteHandler.process()
+                .then(() => {
+                    assert.strictEqual(deletedPaths[0], `/tm/auth/radius/${AUTH.SUBCLASSES_NAME}`);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should issue deletes for Authentication radius servers', () => {
+        bigIpMock.delete = path => new Promise((resolve) => {
+            deletedPaths.push(path);
+            setTimeout(() => {
+                resolve();
+            }, path.includes(PATHS.Route) ? 50 : 0);
+        });
+
+        const declaration = {
+            Common: {
+                Authentication: {
+                    radius: {}
+                }
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+            deleteHandler.process()
+                .then(() => {
+                    assert.strictEqual(deletedPaths.length, 3);
+                    assert.strictEqual(deletedPaths[0], `/tm/auth/radius/${AUTH.SUBCLASSES_NAME}`);
+                    assert.strictEqual(deletedPaths[1], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.PRIMARY_SERVER}`);
+                    assert.strictEqual(deletedPaths[2], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`);
                     resolve();
                 })
                 .catch((err) => {
