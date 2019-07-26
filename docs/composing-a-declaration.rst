@@ -407,9 +407,9 @@ The next lines of the declaration configure VLANs on the BIG-IP system. In this 
 +====================+================================+============+====================================================================================================================================+
 | class              | VLAN                           |   Yes      |  Indicates that this property contains VLAN configuration.                                                                         |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minimum of 1 and a maximum of 4094.                                                                  |
+| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minimum of 1 and a maximum of 4094. If set, the VLAN defaults the **tagged** parameter to **true**.  |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198                                  |
+| mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198.                                 |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | interfaces         | string                         |   Yes      |  Interfaces for the VLAN.                                                                                                          |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
