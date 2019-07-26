@@ -471,19 +471,20 @@ Route class
 ```````````
 The next lines of the declaration configure routes on the BIG-IP system.   In this case, the name you give the Route class is used for the name of the route on the BIG-IP.
 
+In this example, we use the name **default**, which sets the default route on the BIG-IP system.  If you want to create a different route, simply use a unique name (something other than default).
+
 
 .. code-block:: javascript
    :linenos:
    :lineno-start: 107
 
-        "myRoute": {
-                "class": "Route",
-                "gw": "1.2.3.254",
-                "network": "default",
-                "mtu": 0
-            }
-        }
-    },
+        "default": {
+            "class": "Route",
+            "gw": "10.10.0.1",
+            "network": "default",
+            "mtu": 1500
+        },
+  
 
 
 +--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
@@ -512,9 +513,9 @@ The next lines of the declaration configure the management route on the BIG-IP s
 
 .. code-block:: bash
    :linenos:
-   :lineno-start: 115
+   :lineno-start: 113
 
-        "managementRoute: {
+        "managementRoute": {
             "class": "ManagementRoute",
             "gw": "1.2.3.4",
             "network": "4.3.2.1",
@@ -552,7 +553,7 @@ With Route Domains, the **id** is required, and you use the id as an identifier 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 115
+   :lineno-start: 120
 
         "myRouteDomain": {
             "class": "RouteDomain",
@@ -625,7 +626,7 @@ The next lines of the declaration enable the ability to set arbitrary database v
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 134
+   :lineno-start: 139
 
                 "dbvars": {
                     "class": "DbVariables",
