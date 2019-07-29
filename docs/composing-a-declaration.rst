@@ -407,9 +407,9 @@ The next lines of the declaration configure VLANs on the BIG-IP system. In this 
 +====================+================================+============+====================================================================================================================================+
 | class              | VLAN                           |   Yes      |  Indicates that this property contains VLAN configuration.                                                                         |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minimum of 1 and a maximum of 4094.                                                                  |
+| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minimum of 1 and a maximum of 4094. If set, the VLAN defaults the **tagged** parameter to **true**.  |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198                                  |
+| mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198.                                 |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | interfaces         | string                         |   Yes      |  Interfaces for the VLAN.                                                                                                          |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
@@ -471,19 +471,20 @@ Route class
 ```````````
 The next lines of the declaration configure routes on the BIG-IP system.   In this case, the name you give the Route class is used for the name of the route on the BIG-IP.
 
+In this example, we use the name **default**, which sets the default route on the BIG-IP system.  If you want to create a different route, simply use a unique name (something other than default).
+
 
 .. code-block:: javascript
    :linenos:
    :lineno-start: 107
 
-        "myRoute": {
-                "class": "Route",
-                "gw": "1.2.3.254",
-                "network": "default",
-                "mtu": 0
-            }
-        }
-    },
+        "default": {
+            "class": "Route",
+            "gw": "10.10.0.1",
+            "network": "default",
+            "mtu": 1500
+        },
+  
 
 
 +--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
@@ -510,11 +511,11 @@ The next lines of the declaration configure the management route on the BIG-IP s
 
 
 
-.. code-block:: javascript
+.. code-block:: bash
    :linenos:
-   :lineno-start: 115
+   :lineno-start: 113
 
-        "managementRoute: {
+        "managementRoute": {
             "class": "ManagementRoute",
             "gw": "1.2.3.4",
             "network": "4.3.2.1",
@@ -547,12 +548,12 @@ Route Domain class
 ``````````````````
 The next lines of the declaration configure route domains on the BIG-IP system.  For specific information on Route Domains, see the |rddocs|.
 
-With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rd>`.
+With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rdomain>`.
 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 115
+   :lineno-start: 120
 
         "myRouteDomain": {
             "class": "RouteDomain",
@@ -625,7 +626,7 @@ The next lines of the declaration enable the ability to set arbitrary database v
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 134
+   :lineno-start: 139
 
                 "dbvars": {
                     "class": "DbVariables",

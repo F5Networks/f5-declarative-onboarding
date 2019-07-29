@@ -110,6 +110,32 @@
             "network": "default",
             "mtu": 1500
         },
+        "managementRoute": {
+            "class": "ManagementRoute",
+            "gw": "1.2.3.4",
+            "network": "4.3.2.1",
+            "mtu": 1000,
+            "type": "interface"
+        },
+        "myRouteDomain": {
+            "class": "RouteDomain",
+            "id": 100,
+            "bandWidthControllerPolicy": "bwcPol",
+            "connectionLimit": 5432991,
+            "flowEvictionPolicy": "default-eviction-policy",
+            "ipIntelligencePolicy": "ip-intelligence",
+            "enforcedFirewallPolicy": "enforcedPolicy",
+            "stagedFirewallPolicy": "stagedPolicy",
+            "securityNatPolicy": "securityPolicy",
+            "servicePolicy": "servicePolicy",
+            "strict": false,
+            "routingProtocols": [
+                "RIP"
+            ],
+            "vlans": [
+                "external"
+            ]
+        },
         "dbvars": {
         	"class": "DbVariables",
         	"ui.advisory.enabled": true,

@@ -89,7 +89,7 @@ In this example, we are adding public SSH keys to the root user and a guestUser.
 
 :ref:`Back to top<bigipexamples>`
 
-.. _rd:
+.. _rdomain:
 
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
