@@ -200,7 +200,6 @@
             { "id": "bindTimeout" },
             { "id": "checkHostAttr", "newId": "checkBindPassword", "truth": "enabled", "falsehood": "disabled" },
             { "id": "checkRolesGroup", "newId": "checkRemoteRole", "truth": "enabled", "falsehood": "disabled" },
-            { "id": "debug", "newId": "debugEnabled", "truth": "enabled", "falsehood": "disabled" },
             { "id": "filter" },
             { "id": "groupDn" },
             { "id": "groupMemberAttribute" },
@@ -213,15 +212,8 @@
             { "id": "searchBaseDn" },
             { "id": "searchTimeout" },
             { "id": "servers" },
-            { "id": "ssl", "newId": "sslEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id": "sslCaCertFile" },
-            { "id": "sslCheckPeer", "truth": "enabled", "falsehood": "disabled" },
-            { "id": "sslCiphers" },
-            { "id": "sslClientCert" },
-            { "id": "sslClientKey" },
             { "id": "userTemplate" },
-            { "id": "version" },
-            { "id": "warnings", "newId": "warningsEnabled", "truth": "enabled", "falsehood": "disabled" }
+            { "id": "version" }
         ],
         "nameless": true
     }

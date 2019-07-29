@@ -135,12 +135,7 @@
                 },
                 "bindPassword": {
                     "description": "Password for the server account",
-                    "type": "string",
-                    "anyOf": [
-                        { "format": "ipv4" },
-                        { "format": "ipv6" },
-                        { "format": "hostname" }
-                    ]
+                    "type": "string"
                 },
                 "bindTimeout": {
                     "description": "Timeout limit in seconds to bind to remote authentication server",
@@ -156,11 +151,6 @@
                 },
                 "checkRemoteRole": {
                     "description": "Verifies a user's group membership based on the remote-role definition, formatted as *member*of=\"group-dn\"",
-                    "type": "boolean",
-                    "default": false
-                },
-                "debugEnabled": {
-                    "description": "Enables syslog-ng debugging information at LOG DEBUG level. F5 Networks does not recommend using this option for normal configuration",
                     "type": "boolean",
                     "default": false
                 },
@@ -202,7 +192,7 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 65535,
-                    "default": 636
+                    "default": 389
                 },
                 "searchScope": {
                     "description": "Level of remote server's directory to search for user authentication, either base object, one level, or subtree",
@@ -229,32 +219,6 @@
                         "type": "string"
                     }
                 },
-                "sslCaCertFile": {
-                    "description": "Specifies the name of an SSL CA certificate using the full path to the file.",
-                    "type": "string"
-                },
-                "sslCheckPeer": {
-                    "description": "Specifies whether the system checks an SSL peer.",
-                    "type": "boolean",
-                    "default": false
-                },
-                "sslCiphers": {
-                    "description": "Specifies SSL ciphers",
-                    "type": "string"
-                },
-                "sslClientCert": {
-                    "description": "Specifies the name of an SSL client certificate.",
-                    "type": "string"
-                },
-                "sslClientKey": {
-                    "description": "Specifies the name of an SSL client key.",
-                    "type": "string"
-                },
-                "sslEnabled": {
-                    "description": "Enables SSL functionality",
-                    "type": "boolean",
-                    "default": true
-                },
                 "userTemplate": {
                     "description": "Specifies a user template for the LDAP application to use for authentication.",
                     "type": "string"
@@ -265,11 +229,6 @@
                     "minimum": 2,
                     "maximum": 3,
                     "default": 3
-                },
-                "warningsEnabled": {
-                    "description": "Enables or disables warning messages.",
-                    "type": "boolean",
-                    "default": true
                 }
             },
             "additionalProperties": false

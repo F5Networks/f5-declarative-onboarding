@@ -115,11 +115,10 @@ describe('authHandler', () => {
                             bindTimeout: 30,
                             checkHostAttr: false,
                             checkRolesGroup: false,
-                            debugEnabled: false,
                             idleTimeout: 3600,
                             ignoreAuthInfoUnavailable: false,
                             ignoreUnknownUser: false,
-                            port: 636,
+                            port: 389,
                             searchScope: 'sub',
                             searchTimeout: 30,
                             servers: [
@@ -127,10 +126,7 @@ describe('authHandler', () => {
                                 '1.2.3.4',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
-                            sslEnabled: true,
-                            sslCheckPeer: false,
-                            version: 3,
-                            warningsEnabled: true
+                            version: 3
                         }
                     }
                 }
@@ -149,7 +145,6 @@ describe('authHandler', () => {
                             bindTimeout: 30,
                             checkHostAttr: 'disabled',
                             checkRolesGroup: 'disabled',
-                            debug: 'disabled',
                             filter: 'none',
                             groupDn: 'none',
                             groupMemberAttribute: 'none',
@@ -157,7 +152,7 @@ describe('authHandler', () => {
                             ignoreAuthInfoUnavail: 'no',
                             ignoreUnknownUser: 'disabled',
                             loginAttribute: 'none',
-                            port: 636,
+                            port: 389,
                             scope: 'sub',
                             searchBaseDn: 'none',
                             searchTimeout: 30,
@@ -166,15 +161,8 @@ describe('authHandler', () => {
                                 '1.2.3.4',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
-                            ssl: 'enabled',
-                            sslCaCertFile: 'none',
-                            sslCheckPeer: 'disabled',
-                            sslCiphers: 'none',
-                            sslClientCert: 'none',
-                            sslClientKey: 'none',
                             userTemplate: 'none',
-                            version: 3,
-                            warnings: 'enabled'
+                            version: 3
                         }
                     );
                 });
@@ -194,7 +182,6 @@ describe('authHandler', () => {
                             bindTimeout: 40,
                             checkBindPassword: true,
                             checkRemoteRole: true,
-                            debugEnabled: true,
                             filter: 'filter',
                             groupDn: 'groupName',
                             groupMemberAttribute: 'attribute',
@@ -211,15 +198,8 @@ describe('authHandler', () => {
                                 '1.2.3.4',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
-                            sslCaCertFile: 'ca-bundle.crt',
-                            sslCheckPeer: true,
-                            sslCiphers: 'cipher',
-                            sslClientCert: 'default.crt',
-                            sslClientKey: 'default.key',
-                            sslEnabled: false,
                             userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
-                            version: 2,
-                            warningsEnabled: false
+                            version: 2
                         }
                     }
                 }
@@ -238,7 +218,6 @@ describe('authHandler', () => {
                             bindTimeout: 40,
                             checkHostAttr: 'enabled',
                             checkRolesGroup: 'enabled',
-                            debug: 'enabled',
                             filter: 'filter',
                             groupDn: 'groupName',
                             groupMemberAttribute: 'attribute',
@@ -255,15 +234,8 @@ describe('authHandler', () => {
                                 '1.2.3.4',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
-                            ssl: 'disabled',
-                            sslCaCertFile: 'ca-bundle.crt',
-                            sslCheckPeer: 'enabled',
-                            sslCiphers: 'cipher',
-                            sslClientCert: 'default.crt',
-                            sslClientKey: 'default.key',
                             userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
-                            version: 2,
-                            warnings: 'disabled'
+                            version: 2
                         }
                     );
                 });

@@ -115,7 +115,6 @@ function handleLdap() {
         bindTimeout: ldap.bindTimeout,
         checkHostAttr: ldap.checkBindPassword ? 'enabled' : 'disabled',
         checkRolesGroup: ldap.checkRemoteRole ? 'enabled' : 'disabled',
-        debug: ldap.debugEnabled ? 'enabled' : 'disabled',
         filter: ldap.filter || 'none',
         groupDn: ldap.groupDn || 'none',
         groupMemberAttribute: ldap.groupMemberAttribute || 'none',
@@ -128,15 +127,8 @@ function handleLdap() {
         searchBaseDn: ldap.searchBaseDn || 'none',
         searchTimeout: ldap.searchTimeout,
         servers: ldap.servers,
-        ssl: ldap.sslEnabled ? 'enabled' : 'disabled',
-        sslCaCertFile: ldap.sslCaCertFile || 'none',
-        sslCheckPeer: ldap.sslCheckPeer ? 'enabled' : 'disabled',
-        sslCiphers: ldap.sslCiphers || 'none',
-        sslClientCert: ldap.sslClientCert || 'none',
-        sslClientKey: ldap.sslClientKey || 'none',
         userTemplate: ldap.userTemplate || 'none',
-        version: ldap.version,
-        warnings: ldap.warningsEnabled ? 'enabled' : 'disabled'
+        version: ldap.version
     };
 
     const options = ldapObj.bindPw ? { silent: true } : {};
