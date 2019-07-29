@@ -264,7 +264,7 @@ pages:
         paths:
             - public
     only:
-        - branches
+        - develop
 
 publish docs to production:
     image: ${CONTAINTHEDOCS_IMAGE}
