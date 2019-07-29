@@ -2,7 +2,7 @@
     "schemaVersion": "1.0.0",
     "class": "Device",
     "async": true,
-    "label": "License BIG-IP via BIG-IQ when BIG-IP is not reachable from BIG-IQ",
+    "label": "License BIG-IP via BIG-IQ RegKey pool when BIG-IP is reachable from BIG-IQ (unreachable is not supported)",
     "Common": {
         "class": "Tenant",
         "hostname": "bigip.example.com",
@@ -11,13 +11,10 @@
             "licenseType": "licensePool",
             "bigIqHost": "10.0.1.200",
             "bigIqUsername": "admin",
-            "bigIqPassword": "myPassword1",
-            "licensePool": "myPool",
-            "skuKeyword1": "key1",
-            "skuKeyword2": "key2",
-            "unitOfMeasure": "hourly",
-            "reachable": false,
-            "hypervisor": "vmware"
+            "bigIqPassword": "foofoo",
+            "licensePool": "myRegKeyPool",
+            "bigIpUsername": "admin",
+            "bigIpPassword": "barbar"
         },
         "myDns": {
             "class": "DNS",

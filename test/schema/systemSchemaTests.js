@@ -28,6 +28,11 @@ const ajv = new Ajv(
     }
 );
 const systemSchema = require('../../schema/system.schema.json');
+const customFormats = require('../../schema/formats.js');
+
+Object.keys(customFormats).forEach((customFormat) => {
+    ajv.addFormat(customFormat, customFormats[customFormat]);
+});
 
 const validate = ajv.compile(systemSchema);
 
@@ -603,6 +608,89 @@ describe('system.schema.json', () => {
                     'partitionAccess bad partition should not be valid'
                 );
                 assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+        });
+    });
+
+    describe('ManagementRoute', () => {
+        describe('valid', () => {
+            it('should validate management route with network and gw', () => {
+                const data = {
+                    "class": "ManagementRoute",
+                    "gw": "1.2.3.4",
+                    "network": "4.3.2.1",
+                    "mtu": 1000,
+                    "type": "interface"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate with only network while set to default', () => {
+                const data = {
+                    "class": "ManagementRoute",
+                    "network": "default"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate without network', () => {
+                const data = {
+                    "class": "ManagementRoute",
+                    "gw": "10.10.10.10",
+                    "mtu": 10000,
+                    "type": "blackhole"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate when only network and not default or default-inet6', () => {
+                const data = {
+                    "class": "ManagementRoute",
+                    "network": "9.9.9.9"
+                };
+                assert.strictEqual(validate(data), false, 'Missing required property gw');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'.gw\''), -1);
+            });
+
+            it('should invalidate when mtu is out of range', () => {
+                const data = {
+                    "class": "ManagementRoute",
+                    "network": "default-inet6",
+                    "mtu": 65536
+                };
+                assert.strictEqual(validate(data), false, 'mtu is out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+            });
+
+            it('should invalidate when invalid type', () => {
+                const data = {
+                    "class": "ManagementRoute",
+                    "network": "default-inet6",
+                    "type": "New Type"
+                };
+                assert.strictEqual(validate(data), false, 'not a valid type');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate incorrect gw format', () => {
+                const data = {
+                    "class": "ManagementRoute",
+                    "network": "100.100.200.200",
+                    "gw": "theGateway"
+                };
+                assert.strictEqual(validate(data), false, 'must be ipv4 or ipv6');
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"ipv4\\"'), -1);
+            });
+
+            it('should invalidate incorrect format or value for network', () => {
+                const data = {
+                    "class": "ManagementRoute",
+                    "network": "theNetwork"
+                };
+                assert.strictEqual(validate(data), false, 'must be f5ip, \'default\', or \'default-inet6\'');
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
             });
         });
     });

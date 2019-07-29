@@ -23,19 +23,13 @@ const sinon = require('sinon');
 
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
-/* eslint-disable global-require */
+const doUtil = require('../../nodejs/doUtil');
+const DscHandler = require('../../nodejs/dscHandler');
 
 describe('dscHandler', () => {
     const hostname = 'my.bigip.com';
 
-    let doUtilMock;
     let bigIpMock;
-    let DscHandler;
-
-    before(() => {
-        doUtilMock = require('../../nodejs/doUtil');
-        DscHandler = require('../../nodejs/dscHandler');
-    });
 
     beforeEach(() => {
         sinon.stub(dns, 'lookup').callsArg(1);
@@ -44,12 +38,6 @@ describe('dscHandler', () => {
                 return Promise.resolve({ hostname });
             }
         };
-    });
-
-    after(() => {
-        Object.keys(require.cache).forEach((key) => {
-            delete require.cache[key];
-        });
     });
 
     afterEach(() => {
@@ -185,10 +173,10 @@ describe('dscHandler', () => {
 
         beforeEach(() => {
             getBigIpOptions = undefined;
-            doUtilMock.getBigIp = (logger, options) => {
+            sinon.stub(doUtil, 'getBigIp').callsFake((logger, options) => {
                 getBigIpOptions = options;
                 return Promise.resolve(bigIpMock);
-            };
+            });
 
             addToTrustHost = undefined;
             syncCompleteCalled = false;
@@ -565,7 +553,7 @@ describe('dscHandler', () => {
             sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
             const testCase = 'example.cant';
 
-            doUtilMock.getBigIp = () => Promise.resolve(bigIpMock);
+            sinon.stub(doUtil, 'getBigIp').resolves(bigIpMock);
 
             const declaration = {
                 Common: {
@@ -604,7 +592,7 @@ describe('dscHandler', () => {
         });
 
         it('should join device group if we are not the owner and we have DeviceGroup and DeviceTrust', () => {
-            doUtilMock.getBigIp = () => Promise.resolve(bigIpMock);
+            sinon.stub(doUtil, 'getBigIp').resolves(bigIpMock);
 
             const declaration = {
                 Common: {
@@ -652,7 +640,7 @@ describe('dscHandler', () => {
         });
 
         it('should join device group if we are not the owner and we only have DeviceGroup', () => {
-            doUtilMock.getBigIp = () => Promise.resolve(bigIpMock);
+            sinon.stub(doUtil, 'getBigIp').resolves(bigIpMock);
 
             const declaration = {
                 Common: {

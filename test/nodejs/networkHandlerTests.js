@@ -19,17 +19,11 @@
 const assert = require('assert');
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
-let NetworkHandler;
-
-/* eslint-disable global-require */
+const NetworkHandler = require('../../nodejs/networkHandler');
 
 describe('networkHandler', () => {
     let bigIpMock;
     let dataSent;
-
-    before(() => {
-        NetworkHandler = require('../../nodejs/networkHandler');
-    });
 
     beforeEach(() => {
         dataSent = {};
@@ -55,12 +49,6 @@ describe('networkHandler', () => {
                 return Promise.resolve();
             }
         };
-    });
-
-    after(() => {
-        Object.keys(require.cache).forEach((key) => {
-            delete require.cache[key];
-        });
     });
 
     describe('VLAN', () => {
@@ -584,6 +572,75 @@ describe('networkHandler', () => {
                         reject(err);
                     });
             });
+        });
+    });
+
+    describe('RouteDomain', () => {
+        it('should handle fully specified RouteDomains', () => {
+            const declaration = {
+                Common: {
+                    RouteDomain: {
+                        rd1: {
+                            name: 'rd1',
+                            id: 123,
+                            bandwidthControllerPolicy: 'bandPolicy',
+                            connectionLimit: 1000000,
+                            flowEvictionPolicy: 'default-eviction-policy',
+                            ipIntelligencePolicy: 'ipIntelligence',
+                            enforcedFirewallPolicy: 'fwPolicy',
+                            stagedFirewallPolicy: 'fwPolicy',
+                            securityNatPolicy: 'securePolicy',
+                            servicePolicy: 'servicePolicy',
+                            strict: false,
+                            routingProtocols: [
+                                'RIP'
+                            ],
+                            vlans: [
+                                'vlan1',
+                                'vlan2'
+                            ]
+                        },
+                        rd2: {
+                            name: 'rd2',
+                            id: 1234,
+                            strict: true
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const routeDomainData = dataSent[PATHS.RouteDomain];
+                    assert.strictEqual(routeDomainData[0].name, declaration.Common.RouteDomain.rd1.name);
+                    assert.strictEqual(routeDomainData[0].id, declaration.Common.RouteDomain.rd1.id);
+                    assert.strictEqual(routeDomainData[0].partition, 'Common');
+                    assert.strictEqual(routeDomainData[0].bwcPolicy,
+                        declaration.Common.RouteDomain.rd1.bandwidthControllerPolicy);
+                    assert.strictEqual(routeDomainData[0].flowEvictionPolicy,
+                        declaration.Common.RouteDomain.rd1.flowEvictionPolicy);
+                    assert.strictEqual(routeDomainData[0].fwEnforcedPolicy,
+                        declaration.Common.RouteDomain.rd1.enforcedFirewallPolicy);
+                    assert.strictEqual(routeDomainData[0].fwStagedPolicy,
+                        declaration.Common.RouteDomain.rd1.fwStagedPolicy);
+                    assert.strictEqual(routeDomainData[0].ipIntelligencePolicy,
+                        declaration.Common.RouteDomain.rd1.ipIntelligencePolicy);
+                    assert.strictEqual(routeDomainData[0].securityNatPolicy,
+                        declaration.Common.RouteDomain.rd1.securityNatPolicy);
+                    assert.strictEqual(routeDomainData[0].servicePolicy,
+                        declaration.Common.RouteDomain.rd1.servicePolicy);
+                    assert.strictEqual(routeDomainData[0].strict, 'disabled');
+                    assert.strictEqual(routeDomainData[0].routingProtocol,
+                        declaration.Common.RouteDomain.rd1.routingProtocols);
+                    assert.strictEqual(routeDomainData[0].vlans, declaration.Common.RouteDomain.rd1.vlans);
+                    assert.strictEqual(routeDomainData[0].connectionLimit,
+                        declaration.Common.RouteDomain.rd1.connectionLimit);
+                    assert.strictEqual(routeDomainData[1].name, declaration.Common.RouteDomain.rd2.name);
+                    assert.strictEqual(routeDomainData[1].id, declaration.Common.RouteDomain.rd2.id);
+                    assert.strictEqual(routeDomainData[1].partition, 'Common');
+                    assert.strictEqual(routeDomainData[1].strict, 'enabled');
+                });
         });
     });
 });

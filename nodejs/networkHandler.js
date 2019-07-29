@@ -56,6 +56,10 @@ class NetworkHandler {
         logger.fine('Checking VLANs.');
         return handleVlan.call(this)
             .then(() => {
+                logger.fine('Checking RouteDomains.');
+                return handleRouteDomain.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking SelfIps.');
                 return handleSelfIp.call(this);
             })
@@ -77,7 +81,7 @@ class NetworkHandler {
 function handleVlan() {
     return new Promise((resolve, reject) => {
         const promises = [];
-        forEach(this.declaration, 'VLAN', (tenant, vlan) => {
+        doUtil.forEach(this.declaration, 'VLAN', (tenant, vlan) => {
             if (vlan && vlan.name) {
                 const vlanInterfaces = vlan && Array.isArray(vlan.interfaces) ? vlan.interfaces.slice() : [];
                 const interfaces = [];
@@ -133,7 +137,7 @@ function handleSelfIp() {
     return new Promise((resolve, reject) => {
         const nonFloatingBodies = [];
         const floatingBodies = [];
-        forEach(this.declaration, 'SelfIp', (tenant, selfIp) => {
+        doUtil.forEach(this.declaration, 'SelfIp', (tenant, selfIp) => {
             if (selfIp && selfIp.name) {
                 let vlan;
 
@@ -244,7 +248,7 @@ function handleSelfIp() {
 function handleRoute() {
     return new Promise((resolve, reject) => {
         const promises = [];
-        forEach(this.declaration, 'Route', (tenant, route) => {
+        doUtil.forEach(this.declaration, 'Route', (tenant, route) => {
             if (route && route.name) {
                 const routeBody = {
                     name: route.name,
@@ -271,37 +275,38 @@ function handleRoute() {
     });
 }
 
-/**
- * Iterates over the tenants in a parsed declaration
- *
- * At this point, Declarative Onboarding only supports the Common partition, but this
- * is written to handle other partitions if they should enter the schema.
- *
- * @param {Object} declaration - The parsed declaration
- * @param {Strint} classToFetch - The name of the class (DNS, VLAN, etc)
- * @param {function} cb - Function to execute for each object. Will be called with 2 parameters
- *                        tenant and object declaration. Object declaration is the declaration
- *                        for just the object in question, not the whole declaration
- */
-function forEach(declaration, classToFetch, cb) {
-    const tenantNames = Object.keys(declaration);
-    tenantNames.forEach((tenantName) => {
-        const tenant = declaration[tenantName];
-        const classNames = Object.keys(tenant);
-        classNames.forEach((className) => {
-            if (className === classToFetch) {
-                const classObject = tenant[className];
-                if (typeof classObject === 'object') {
-                    const containerNames = Object.keys(classObject);
-                    containerNames.forEach((containerName) => {
-                        cb(tenantName, classObject[containerName]);
-                    });
-                } else {
-                    cb(tenantName, classObject);
-                }
-            }
-        });
+function handleRouteDomain() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'RouteDomain', (tenant, routeDomain) => {
+        if (routeDomain && routeDomain.name) {
+            const routeDomainBody = {
+                name: routeDomain.name,
+                partition: tenant,
+                id: routeDomain.id,
+                connectionLimit: routeDomain.connectionLimit,
+                bwcPolicy: routeDomain.bandwidthControllerPolicy,
+                flowEvictionPolicy: routeDomain.flowEvictionPolicy,
+                fwEnforcedPolicy: routeDomain.enforcedFirewallPolicy,
+                fwStagedPolicy: routeDomain.stageFirewallPolicy,
+                ipIntelligencePolicy: routeDomain.ipIntelligencePolicy,
+                securityNatPolicy: routeDomain.securityNatPolicy,
+                servicePolicy: routeDomain.servicePolicy,
+                strict: routeDomain.strict ? 'enabled' : 'disabled',
+                routingProtocol: routeDomain.routingProtocols,
+                vlans: routeDomain.vlans
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.RouteDomain, routeDomainBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
     });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating RouteDomains: ${err.message}`);
+            throw err;
+        });
 }
 
 /**

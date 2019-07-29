@@ -15,7 +15,7 @@
         "schemaVersion": {
             "description": "Version of Declarative Onboarding schema this declaration uses.",
             "type": "string",
-            "enum": ["1.5.0", "1.4.1", "1.4.0", "1.3.0", "1.2.0", "1.1.0", "1.0.0"]
+            "enum": ["1.6.0", "1.5.1", "1.5.0", "1.4.1", "1.4.0", "1.3.0", "1.2.0", "1.1.0", "1.0.0"]
         },
         "class": {
             "description": "Indicates this JSON document is a Device declaration",
@@ -31,6 +31,11 @@
             "description": "Tells the API to return a 202 HTTP status before processing is complete. User must then poll for status.",
             "type": "boolean",
             "default": false
+        },
+        "webhook": {
+            "description": "URL to post results to",
+            "type": "string",
+            "format": "uri"
         },
         "label": {
             "description": "Optional friendly name for this declaration",

@@ -1,0 +1,47 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "newVlan": {
+            "class": "VLAN",
+            "interfaces": [
+                {
+                    "name": "1.0",
+                    "tagged": true
+                }
+            ]
+        },
+        "Route": {
+            "class": "Route",
+            "gw": "10.145.127.254",
+            "network": "1.2.3.5%100/32"
+        },
+            "newSelfIp": {
+            "class": "SelfIp",
+            "address": "1.2.3.6%100/0",
+            "vlan": "newVlan"
+        },
+        "theRouteDomain": {
+          "class": "RouteDomain",
+          "id": 100,
+          "bandWidthControllerPolicy": "bwcPol",
+          "connectionLimit": 5432991,
+          "flowEvictionPolicy": "default-eviction-policy",
+          "ipIntelligencePolicy": "ip-intelligence",
+          "enforcedFirewallPolicy": "enforcedPolicy",
+          "stagedFirewallPolicy": "stagedPolicy",
+          "securityNatPolicy": "securityPolicy",
+          "servicePolicy": "servicePolicy",
+          "strict": false,
+          "routingProtocols": [
+            "RIP"
+          ],
+          "vlans": [
+            "newVlan"
+          ]
+        }
+    }
+}

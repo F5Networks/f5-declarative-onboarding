@@ -17,6 +17,7 @@ Currently supported versions:
 | DO 1.4.0	        | Feature	    | 08-May-2019	      | 08-Aug-2019     |
 | DO 1.4.1          | Fix*          | 21-May-2019         | 08-Aug-2019     |
 | DO 1.5.0          | Feature       | 18-Jun-2019         | 18-Sep-2019     |
+| DO 1.6.0          | Feature       | 30-Jul-2019         | 30-Oct-2019     |
 
 \* Fix for updated Docker Container packaging only
 

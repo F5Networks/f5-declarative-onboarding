@@ -1,5 +1,15 @@
 # Release Notes
 
+## Version 1.6.0
++ Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)
++ Resolve [Issue 43](https://github.com/F5Networks/f5-declarative-onboarding/issues/43)
++ Resolve [Issue 28](https://github.com/F5Networks/f5-declarative-onboarding/issues/28)
++ Add support for Management Route
++ Add support for Route Domain [Issue 10](https://github.com/F5Networks/f5-declarative-onboarding/issues/10)
+
+## Version 1.5.1
++ When running on BIG-IQ, poll TCW longer to match the TCW timeout
+
 ## Version 1.5.0
 + Resolve [Issue 14](https://github.com/F5Networks/f5-declarative-onboarding/issues/14)
 + Resolve [Issue 26](https://github.com/F5Networks/f5-declarative-onboarding/issues/26)

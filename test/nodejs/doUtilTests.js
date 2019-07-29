@@ -67,12 +67,6 @@ describe('doUtil', () => {
         createConnectionCalled = false;
     });
 
-    after(() => {
-        Object.keys(require.cache).forEach((key) => {
-            delete require.cache[key];
-        });
-    });
-
     describe('getBigIp', () => {
         it('should not set the auth token flag if not appropriate', () => new Promise((resolve, reject) => {
             doUtil.getBigIp(null, {})

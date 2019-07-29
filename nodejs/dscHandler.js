@@ -97,28 +97,36 @@ function handleConfigSync() {
  * Handles setting the network failover unicast address
  */
 function handleFailoverUnicast() {
+    let body;
     if (this.declaration.Common.FailoverUnicast) {
         const port = this.declaration.Common.FailoverUnicast.port;
-        let unicastAddress = this.declaration.Common.FailoverUnicast.address || '';
+        let unicastAddress = this.declaration.Common.FailoverUnicast.address || 'none';
 
-        // address may have been a json pointer to something with a CIDR
-        // so strip that off
-        const slashIndex = unicastAddress.indexOf('/');
-        if (slashIndex !== -1) {
-            unicastAddress = unicastAddress.substring(0, slashIndex);
+        if (unicastAddress === 'none') {
+            body = {
+                unicastAddress
+            };
+        } else {
+            // address may have been a json pointer to something with a CIDR
+            // so strip that off
+            const slashIndex = unicastAddress.indexOf('/');
+            if (slashIndex !== -1) {
+                unicastAddress = unicastAddress.substring(0, slashIndex);
+            }
+            body = {
+                unicastAddress: [
+                    {
+                        port,
+                        ip: unicastAddress
+                    }
+                ]
+            };
         }
 
         return this.bigIp.deviceInfo()
             .then(deviceInfo => this.bigIp.modify(
                 `/tm/cm/device/~Common~${deviceInfo.hostname}`,
-                {
-                    unicastAddress: [
-                        {
-                            port,
-                            ip: unicastAddress
-                        }
-                    ]
-                }
+                body
             ))
             .catch((err) => {
                 logger.severe(`Error setting failover unicast address: ${err.message}`);

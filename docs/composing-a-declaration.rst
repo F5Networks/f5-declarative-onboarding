@@ -73,6 +73,8 @@ The first few lines of your declaration are a part of the base components and de
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | async              | true, **false**                |   No       |  If true, async tells the API to return a 202 HTTP status before processing is complete. You can then poll for status using GET.   |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| webhook            | string (URL)                   |   No       |  DO v1.6.0 and later. You can optionally specify the URL for a webhook, to which DO sends the final response from the declaration. |
++--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | label              | string                         |   No       |  Optional friendly label for this declaration.                                                                                     |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
@@ -89,7 +91,7 @@ While not strictly required, you must include Common and the tenant class to set
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 6
+   :lineno-start: 7
 
 
     "Common": {
@@ -122,7 +124,7 @@ The name *myLicense* we use in this example is arbitrary; it is not used anywher
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 9
+   :lineno-start: 10
 
 
     "myLicense": {
@@ -164,7 +166,7 @@ The name *myDNS* we use in this example is arbitrary; it is not used anywhere in
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 14
+   :lineno-start: 15
 
 
     "myDns": {
@@ -203,10 +205,12 @@ The name *myNTP* we use in this example is arbitrary; it is not used anywhere in
 
 .. IMPORTANT:: If you are configuring NTP in your declaration, Declarative Onboarding disables DHCP for NTP.
 
+For instructions on how to get a current list of timezones on the BIG-IP, see https://support.f5.com/csp/article/K9098.  To quickly view a static list that 
+
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 24
+   :lineno-start: 25
 
 
     "myNtp": {
@@ -252,7 +256,7 @@ Note that the **keys** property is not included in the example at the top of thi
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 33
+   :lineno-start: 34
 
 
     "root": {
@@ -340,7 +344,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 66
+   :lineno-start: 67
 
 
     "myProvisioning": {
@@ -374,7 +378,7 @@ The next lines of the declaration configure VLANs on the BIG-IP system. In this 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 71
+   :lineno-start: 72
 
     "external": {
         "class": "VLAN",
@@ -405,9 +409,9 @@ The next lines of the declaration configure VLANs on the BIG-IP system. In this 
 +====================+================================+============+====================================================================================================================================+
 | class              | VLAN                           |   Yes      |  Indicates that this property contains VLAN configuration.                                                                         |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minimum of 1 and a maximum of 4094.                                                                  |
+| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minimum of 1 and a maximum of 4094. If set, the VLAN defaults the **tagged** parameter to **true**.  |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198                                  |
+| mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198.                                 |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 | interfaces         | string                         |   Yes      |  Interfaces for the VLAN.                                                                                                          |
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
@@ -427,7 +431,7 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 93
+   :lineno-start: 94
 
     "external-self": {
         "class": "SelfIp",
@@ -469,19 +473,20 @@ Route class
 ```````````
 The next lines of the declaration configure routes on the BIG-IP system.   In this case, the name you give the Route class is used for the name of the route on the BIG-IP.
 
+In this example, we use the name **default**, which sets the default route on the BIG-IP system.  If you want to create a different route, simply use a unique name (something other than default).
+
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 107
+   :lineno-start: 108
 
-        "myRoute": {
-                "class": "Route",
-                "gw": "1.2.3.254",
-                "network": "default",
-                "mtu": 0
-            }
-        }
-    },
+        "default": {
+            "class": "Route",
+            "gw": "10.10.0.1",
+            "network": "default",
+            "mtu": 1500
+        },
+  
 
 
 +--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
@@ -496,6 +501,112 @@ The next lines of the declaration configure routes on the BIG-IP system.   In th
 | mtu                | integer                                                                                   |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 0 and a maximum of 9198.                                   |
 +--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
+
+
+\* The required column applies only if you are using this class.
+
+.. _mgmtroute-class:
+
+Management Route class
+``````````````````````
+The next lines of the declaration configure the management route on the BIG-IP system. For specific information on management routes, see |mgmtroutes| in the BIG-IP Routing Administration guide.
+
+
+
+.. code-block:: bash
+   :linenos:
+   :lineno-start: 113
+
+        "managementRoute": {
+            "class": "ManagementRoute",
+            "gw": "1.2.3.4",
+            "network": "4.3.2.1",
+            "mtu": 1000,
+            "type": "interface"
+        },
+
+
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                                                                                   | Required*? |  Description/Notes                                                                                                                 |
++====================+===========================================================================================+============+====================================================================================================================================+
+| class              | managementRoute                                                                           |   Yes      |  Indicates that this property contains management route configuration.                                                             |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| gw                 | string (IPv4 or IPv6 address)                                                             |   Yes      |  Gateway for the route.                                                                                                            |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| network            | string (IPv4/IPv6 address, optional %RD and/or /masklen), **default**, or default-inet6   |   No       |  IP address/netmask for route.  The default network is **default**.                                                                |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| mtu                | integer                                                                                   |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 0 and a maximum of 9198.                                   |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| type               | string (interface, blackhole)                                                             |   No       | Type of the management route                                                                                                       |
++--------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+
+
+\* The required column applies only if you are using this class.
+
+
+.. _routedomain-class:
+
+Route Domain class
+``````````````````
+The next lines of the declaration configure route domains on the BIG-IP system.  For specific information on Route Domains, see the |rddocs|.
+
+With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rdomain>`.
+
+
+.. code-block:: javascript
+   :linenos:
+   :lineno-start: 121
+
+        "myRouteDomain": {
+            "class": "RouteDomain",
+            "id": 100,
+            "bandWidthControllerPolicy": "bwcPol",
+            "connectionLimit": 5432991,
+            "flowEvictionPolicy": "default-eviction-policy",
+            "ipIntelligencePolicy": "ip-intelligence",
+            "enforcedFirewallPolicy": "enforcedPolicy",
+            "stagedFirewallPolicy": "stagedPolicy",
+            "securityNatPolicy": "securityPolicy",
+            "servicePolicy": "servicePolicy",
+            "strict": false,
+            "routingProtocols": [
+                "RIP"
+            ],
+            "vlans": [
+                "newVlan"
+            ]
+        },
+
+
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter                 | Options                                                                                   | Required*? |  Description/Notes                                                                                                                 |
++===========================+===========================================================================================+============+====================================================================================================================================+
+| class                     | RouteDomain                                                                               |   Yes      |  Indicates that this property contains route domain configuration.                                                                 |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| id                        | integer                                                                                   |   Yes      |  Specifies a unique numeric identifier for the route domain.                                                                       |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| bandWidthControllerPolicy | string                                                                                    |   No       |  Specifies the bandwidth controller policy for the route domain                                                                    |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| connectionLimit           | integer (min/default: 0, max 4294967295)                                                  |   No       |  The connection limit for the route domain                                                                                         |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| flowEvictionPolicy        | string                                                                                    |   No       |  Specifies a flow eviction policy for the route domain to use                                                                      |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| ipIntelligencePolicy      | string                                                                                    |   No       |  Specifies an IP intelligence policy for the route domain to use                                                                   |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| enforcedFirewallPolicy    | string                                                                                    |   No       |  Specifies an enforced firewall policy on the route domain                                                                         |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| stagedFirewallPolicy      | string                                                                                    |   No       |  Specifies a staged firewall policy on the route domain                                                                            |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| securityNatPolicy         | string                                                                                    |   No       |  Specifies the security NAT policy for the route domain                                                                            |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| servicePolicy             | string                                                                                    |   No       |  Specifies the service policy for the route domain                                                                                 |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| strict                    | boolean (**true**)                                                                        |   No       |  Determines whether a connection can span route domains                                                                            |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| routingProtocols          | array of strings (BFD, BGP, IS-IS, OSPFv2, OSPFv3, PIM, RIP, RIPng)                       |   No       |  Specifies routing protocols for the system to use in the route domain                                                             |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
+| vlan                      | array of strings                                                                          |   No       | Specifies VLANS for the system to use in the route domain                                                                          |
++---------------------------+-------------------------------------------------------------------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
 
 \* The required column applies only if you are using this class.
@@ -517,7 +628,7 @@ The next lines of the declaration enable the ability to set arbitrary database v
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 113
+   :lineno-start: 140
 
                 "dbvars": {
                     "class": "DbVariables",
@@ -566,3 +677,13 @@ The next lines of the declaration enable the ability to set arbitrary database v
 .. |pass| raw:: html
 
    <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-system-secure-password-policy-14-0-0/01.html" target="_blank">BIG-IP Secure Password Policy</a>
+
+.. |mgmtroutes| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-tmos-routing-administration-14-1-0/01.html#GUID-665E1732-EC90-447D-A871-DEC9903F372F" target="_blank">BIG-IP Management Routes</a>
+
+
+
+.. |rddocs| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-tmos-routing-administration-14-1-0/09.html" target="_blank">Route Domain documentation</a>

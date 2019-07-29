@@ -2,15 +2,19 @@
     "schemaVersion": "1.0.0",
     "class": "Device",
     "async": true,
-    "webhook": "https://example.com/myHook",
-    "label": "my BIG-IP declaration for declarative onboarding",
+    "label": "License BIG-IP via BIG-IQ purchased pool license when BIG-IP is not reachable from BIG-IQ",
     "Common": {
         "class": "Tenant",
         "hostname": "bigip.example.com",
         "myLicense": {
             "class": "License",
-            "licenseType": "regKey",
-            "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
+            "licenseType": "licensePool",
+            "bigIqHost": "10.0.1.200",
+            "bigIqUsername": "admin",
+            "bigIqPassword": "myPassword1",
+            "licensePool": "myPurchasedPool",
+            "reachable": false,
+            "hypervisor": "vmware"
         },
         "myDns": {
             "class": "DNS",
@@ -34,8 +38,8 @@
         "root": {
             "class": "User",
             "userType": "root",
-            "oldPassword": "default",
-            "newPassword": "myNewPass1word"
+            "oldPassword": "foo",
+            "newPassword": "bar"
         },
         "admin": {
             "class": "User",
@@ -43,31 +47,19 @@
             "password": "asdfjkl",
             "shell": "bash"
         },
-        "guestUser": {
+        "anotherUser": {
             "class": "User",
             "userType": "regular",
-            "password": "guestNewPass1",
+            "password": "foobar",
             "partitionAccess": {
                 "Common": {
                     "role": "guest"
                 }
             }
         },
-        "anotherUser": {
-            "class": "User",
-            "userType": "regular",
-            "password": "myPass1word",
-            "shell": "none",
-            "partitionAccess": {
-                "all-partitions": {
-                    "role": "guest"
-                }
-            }
-        },
         "myProvisioning": {
             "class": "Provision",
-            "ltm": "nominal",
-            "gtm": "minimum"
+            "ltm": "nominal"
         },
         "internal": {
             "class": "VLAN",
@@ -110,38 +102,6 @@
             "gw": "10.10.0.1",
             "network": "default",
             "mtu": 1500
-        },
-        "managementRoute": {
-            "class": "ManagementRoute",
-            "gw": "1.2.3.4",
-            "network": "4.3.2.1",
-            "mtu": 1000,
-            "type": "interface"
-        },
-        "myRouteDomain": {
-            "class": "RouteDomain",
-            "id": 100,
-            "bandWidthControllerPolicy": "bwcPol",
-            "connectionLimit": 5432991,
-            "flowEvictionPolicy": "default-eviction-policy",
-            "ipIntelligencePolicy": "ip-intelligence",
-            "enforcedFirewallPolicy": "enforcedPolicy",
-            "stagedFirewallPolicy": "stagedPolicy",
-            "securityNatPolicy": "securityPolicy",
-            "servicePolicy": "servicePolicy",
-            "strict": false,
-            "routingProtocols": [
-                "RIP"
-            ],
-            "vlans": [
-                "external"
-            ]
-        },
-        "dbvars": {
-        	"class": "DbVariables",
-        	"ui.advisory.enabled": true,
-        	"ui.advisory.color": "green",
-        	"ui.advisory.text": "/Common/hostname"
         }
     }
 }

@@ -21,6 +21,7 @@ const dns = require('dns');
 
 const sinon = require('sinon');
 
+const cloudUtil = require('../../node_modules/@f5devcentral/f5-cloud-libs').util;
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
 let SystemHandler;
@@ -71,6 +72,16 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             },
             list() {
+                return Promise.resolve();
+            },
+            createOrModify(path, data) {
+                if (!dataSent) {
+                    dataSent = {};
+                }
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
                 return Promise.resolve();
             },
             modify() {
@@ -125,26 +136,35 @@ describe('systemHandler', () => {
     describe('DNS/NTP', () => {
         let bigIpStub;
 
-        function setUpBigIpStubWithRequestOptions(requestOptions, bigIpVersion) {
+        function setUpBigIpStubWithRequestOptions(requestOptions, bigIpVersion, isDhcpEnabled) {
             if (bigIpStub) {
                 bigIpStub.restore();
             }
 
             bigIpStub = sinon.stub(bigIpMock, 'list').callsFake((path) => {
+                isDhcpEnabled = isDhcpEnabled || 'enabled';
                 if (path === '/tm/sys/management-dhcp/sys-mgmt-dhcp-config') {
                     return Promise.resolve({ requestOptions });
                 }
 
-                const bigIpDhclientStatus = 'dhclient (pid  12049) is running...';
-                // eslint-disable-next-line max-len
-                const bigIp14DhclientStatus = '* dhclient.service - SYSV: dhclient automatically configures the management interface when DHCP is available.\n   Loaded: loaded (/etc/rc.d/init.d/dhclient; bad; vendor preset: disabled)\n   Active: active (running) since Sat 2019-06-01 22:16:34 UTC; 8min ago\n     Docs: man:systemd-sysv-generator(8)\n  Process: 18049 ExecStop=/etc/rc.d/init.d/dhclient stop (code=exited, status=0/SUCCESS)\n  Process: 18099 ExecStart=/etc/rc.d/init.d/dhclient start (code=exited, status=0/SUCCESS)\n   CGroup: /system.slice/dhclient.service\n           `-18131 /sbin/dhclient -nw mgmt -cf /etc/dhclient.conf -lf /var/lib/dhclient/dhclient.leases -pf /var/run/dhclient.pid\n\nJun 01 22:16:34 localhost.localdomain dhclient[18099]: Current management-ip configuration mode for IPV4 is: DHCP.\nJun 01 22:16:34 localhost.localdomain dhclient[18114]: DHCPREQUEST on mgmt to 255.255.255.255 port 67 (xid=0x4646e482)\nJun 01 22:16:34 localhost.localdomain dhclient[18131]: DHCPACK from 10.145.64.1 (xid=0x4646e482)\nJun 01 22:16:34 localhost.localdomain dhclient[18099]: Starting /sbin/dhclient: [  OK  ]\nJun 01 22:16:34 localhost.localdomain systemd[1]: Started SYSV: dhclient automatically configures the management interface when DHCP is available..\nJun 01 22:16:36 localhost.localdomain tmsh[18057]: 01420002:5: AUDIT - pid=18057 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:40 localhost.localdomain tmsh[18189]: 01420002:5: AUDIT - pid=18189 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:40 localhost.localdomain tmsh[18192]: 01420002:5: AUDIT - pid=18192 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:42 localhost.localdomain tmsh[18216]: 01420002:5: AUDIT - pid=18216 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:42 localhost.localdomain dhclient[18131]: bound to 10.145.69.240 -- renewal in 1614 seconds.\n"';
                 if (path === '/tm/sys/service/dhclient/stats') {
+                    const dhcpState = (isDhcpEnabled === 'enabled') ? 'running' : 'stopped';
+                    const bigIpDhclientStatus = `dhclient (pid  12049) is ${dhcpState}...`;
+                    // eslint-disable-next-line max-len
+                    const bigIp14DhclientStatus = `* dhclient.service - SYSV: dhclient automatically configures the management interface when DHCP is available.\n   Loaded: loaded (/etc/rc.d/init.d/dhclient; bad; vendor preset: disabled)\n   Active: active (${dhcpState}) since Sat 2019-06-01 22:16:34 UTC; 8min ago\n     Docs: man:systemd-sysv-generator(8)\n  Process: 18049 ExecStop=/etc/rc.d/init.d/dhclient stop (code=exited, status=0/SUCCESS)\n  Process: 18099 ExecStart=/etc/rc.d/init.d/dhclient start (code=exited, status=0/SUCCESS)\n   CGroup: /system.slice/dhclient.service\n           \`-18131 /sbin/dhclient -nw mgmt -cf /etc/dhclient.conf -lf /var/lib/dhclient/dhclient.leases -pf /var/run/dhclient.pid\n\nJun 01 22:16:34 localhost.localdomain dhclient[18099]: Current management-ip configuration mode for IPV4 is: DHCP.\nJun 01 22:16:34 localhost.localdomain dhclient[18114]: DHCPREQUEST on mgmt to 255.255.255.255 port 67 (xid=0x4646e482)\nJun 01 22:16:34 localhost.localdomain dhclient[18131]: DHCPACK from 10.145.64.1 (xid=0x4646e482)\nJun 01 22:16:34 localhost.localdomain dhclient[18099]: Starting /sbin/dhclient: [  OK  ]\nJun 01 22:16:34 localhost.localdomain systemd[1]: Started SYSV: dhclient automatically configures the management interface when DHCP is available..\nJun 01 22:16:36 localhost.localdomain tmsh[18057]: 01420002:5: AUDIT - pid=18057 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:40 localhost.localdomain tmsh[18189]: 01420002:5: AUDIT - pid=18189 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:40 localhost.localdomain tmsh[18192]: 01420002:5: AUDIT - pid=18192 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:42 localhost.localdomain tmsh[18216]: 01420002:5: AUDIT - pid=18216 user=root folder=/Common module=(tmos)# status=[Command OK] cmd_data=show sys mcp-state field-fmt\nJun 01 22:16:42 localhost.localdomain dhclient[18131]: bound to 10.145.69.240 -- renewal in 1614 seconds.\n"`;
                     return Promise.resolve({
                         apiRawValues: {
                             apiAnonymous:
-                                bigIpVersion === '14.1' ? bigIp14DhclientStatus : bigIpDhclientStatus
+                            bigIpVersion === '14.1' ? bigIp14DhclientStatus : bigIpDhclientStatus
                         }
                     });
+                }
+
+                if (path === '/tm/sys/global-settings') {
+                    const globalSettings = {
+                        mgmtDhcp: isDhcpEnabled
+                    };
+                    return Promise.resolve(globalSettings);
                 }
 
                 return Promise.resolve();
@@ -359,6 +379,38 @@ describe('systemHandler', () => {
                 assert.strictEqual(body.requestOptions.length, 3);
                 assert.strictEqual(body.requestOptions.indexOf('domain-name-servers'), -1);
                 assert.strictEqual(body.requestOptions.indexOf('domain-name'), -1);
+            });
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process();
+        });
+
+        it('should not restart DHCP if DHCP has been disabled on the BIG-IP', () => {
+            const declaration = {
+                Common: {
+                    DNS: {
+                        nameServers: ['1.2.3.4'],
+                        search: ['f5.com']
+                    }
+                }
+            };
+
+            setUpBigIpStubWithRequestOptions(['domain-name-servers', 'domain-name'], '14.1', 'disabled');
+
+            // We do NOT want to retry on a failure
+            sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
+
+            sinon.stub(bigIpMock, 'create').restore();
+            sinon.stub(bigIpMock, 'create').callsFake((path, body) => {
+                // Fail if the dhclient attempts to restart
+                if (path === '/tm/sys/service'
+                    && body.command === 'restart'
+                    && body.name === 'dhclient') {
+                    return Promise.reject(new Error(
+                        'dhclient should not be restarted if DHCP is disabled'
+                    ));
+                }
+                return Promise.resolve();
             });
 
             const systemHandler = new SystemHandler(declaration, bigIpMock);
@@ -966,6 +1018,54 @@ describe('systemHandler', () => {
                         reject(err);
                     });
             });
+        });
+    });
+
+    describe('ManagementRoute', () => {
+        it('should handle the ManagementRoutes', () => {
+            const declaration = {
+                Common: {
+                    ManagementRoute: {
+                        managementRoute1: {
+                            name: 'managementRoute1',
+                            gw: '1.1.1.1',
+                            network: 'default-inet6',
+                            mtu: 1234,
+                            type: 'interface'
+                        },
+                        managementRoute2: {
+                            name: 'managementRoute1',
+                            gw: '1.2.3.4',
+                            network: '4.3.2.1',
+                            mtu: 1
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    const managementRouteData = dataSent[PATHS.ManagementRoute];
+                    assert.strictEqual(managementRouteData[0].name, 'managementRoute1');
+                    assert.strictEqual(managementRouteData[0].partition, 'Common');
+                    assert.strictEqual(managementRouteData[0].gw, declaration
+                        .Common.ManagementRoute.managementRoute1.gw);
+                    assert.strictEqual(managementRouteData[0].network, declaration
+                        .Common.ManagementRoute.managementRoute1.network);
+                    assert.strictEqual(managementRouteData[0].mtu, declaration
+                        .Common.ManagementRoute.managementRoute1.mtu);
+                    assert.strictEqual(managementRouteData[0].type, declaration
+                        .Common.ManagementRoute.managementRoute1.type);
+                    assert.strictEqual(managementRouteData[1].name, 'managementRoute1');
+                    assert.strictEqual(managementRouteData[1].partition, 'Common');
+                    assert.strictEqual(managementRouteData[1].gw, declaration
+                        .Common.ManagementRoute.managementRoute2.gw);
+                    assert.strictEqual(managementRouteData[1].network, declaration
+                        .Common.ManagementRoute.managementRoute2.network);
+                    assert.strictEqual(managementRouteData[1].mtu, declaration
+                        .Common.ManagementRoute.managementRoute2.mtu);
+                });
         });
     });
 });

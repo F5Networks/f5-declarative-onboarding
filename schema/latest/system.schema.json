@@ -237,6 +237,63 @@
                     "additionalProperties": false
                 }
             }
+        },
+        {
+            "if": { "properties": { "class": { "const": "ManagementRoute" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates this property contains management route configuration",
+                        "type": "string",
+                        "const": "ManagementRoute"
+                    },
+                    "gw": {
+                        "description": "Gateway for the management route.",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    },
+                    "network": {
+                        "description": "IP address/netmask for the management route",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "f5ip" },
+                            { "enum": ["default", "default-inet6"]}
+                        ],
+                        "default": "default"
+                    },
+                    "mtu": {
+                        "description": "MTU for the management route.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "type": {
+                        "description": "Type of the management route",
+                        "type": "string",
+                        "enum": [
+                            "interface",
+                            "blackhole"
+                        ]
+                    }
+                },
+                "additionalProperties": false,
+                "if": {
+                    "properties": {
+                        "network": {
+                            "not": {
+                                "enum": ["default", "default-inet6"]
+                            }
+                        }
+                    }
+                },
+                "then": {
+                    "required": ["gw"]
+                }
+            }
         }
     ],
     "definitions": {

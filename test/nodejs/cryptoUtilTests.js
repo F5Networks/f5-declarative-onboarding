@@ -19,24 +19,18 @@
 const assert = require('assert');
 const childProcessMock = require('child_process');
 
+const sinon = require('sinon');
+
 const ENCRYPT_PATH = '/tm/auth/radius-server';
 
-let cloudUtilMock;
-let cryptoUtil;
-let doUtilMock;
 
-/* eslint-disable global-require */
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const cryptoUtil = require('../../nodejs/cryptoUtil');
+const doUtil = require('../../nodejs/doUtil');
 
-describe('doUtil', () => {
-    beforeEach(() => {
-        cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
-        doUtilMock = require('../../nodejs/doUtil');
-        cryptoUtil = require('../../nodejs/cryptoUtil');
-    });
+describe('cryptoUtil', () => {
     afterEach(() => {
-        Object.keys(require.cache).forEach((key) => {
-            delete require.cache[key];
-        });
+        sinon.restore();
     });
 
     describe('decryptValue', () => {
@@ -81,10 +75,10 @@ describe('doUtil', () => {
 
             let secretSent;
 
-            cloudUtilMock.runTmshCommand = () => Promise.resolve(tmshResponse);
-            cryptoUtil.decryptValue = (value) => {
+            sinon.stub(cloudUtil, 'runTmshCommand').resolves(tmshResponse);
+            sinon.stub(cryptoUtil, 'decryptValue').callsFake((value) => {
                 secretSent = value;
-            };
+            });
 
             cryptoUtil.decryptId('foo')
                 .then(() => {
@@ -96,26 +90,24 @@ describe('doUtil', () => {
                 });
         }));
 
-        it('should handle errors', () => new Promise((resolve, reject) => {
+        it('should handle errors', () => {
             const error = 'tmsh error';
-            cloudUtilMock.runTmshCommand = () => Promise.reject(new Error(error));
-
-            cryptoUtil.decryptId('foo')
+            sinon.stub(cloudUtil, 'runTmshCommand').rejects(new Error(error));
+            return cryptoUtil.decryptId('foo')
                 .then(() => {
-                    reject(new Error('should have caught error'));
+                    throw new Error('should have caught error');
                 })
                 .catch((err) => {
                     assert.strictEqual(err.message, error);
-                    resolve();
                 });
-        }));
+        });
     });
 
     describe('deleteEncryptedId', () => {
         it('should delete the associated radius server', () => new Promise((resolve, reject) => {
             const id = 'foo';
             let pathSent;
-            doUtilMock.getBigIp = () => Promise.resolve({
+            sinon.stub(doUtil, 'getBigIp').resolves({
                 delete(path) {
                     pathSent = path;
                     return Promise.resolve();
@@ -134,7 +126,7 @@ describe('doUtil', () => {
 
         it('should handle errors', () => new Promise((resolve, reject) => {
             const error = 'delete error';
-            doUtilMock.getBigIp = () => Promise.resolve({
+            sinon.stub(doUtil, 'getBigIp').resolves({
                 delete() {
                     return Promise.reject(new Error(error));
                 }
@@ -157,7 +149,7 @@ describe('doUtil', () => {
             const id = 'myId';
 
             let bodySent;
-            doUtilMock.getBigIp = () => Promise.resolve({
+            sinon.stub(doUtil, 'getBigIp').resolves({
                 create(path, body) {
                     bodySent = body;
                     return Promise.resolve();
@@ -177,7 +169,7 @@ describe('doUtil', () => {
 
         it('should handle errors', () => new Promise((resolve, reject) => {
             const error = 'create error';
-            doUtilMock.getBigIp = () => Promise.resolve({
+            sinon.stub(doUtil, 'getBigIp').resolves({
                 create() {
                     return Promise.reject(new Error(error));
                 }
