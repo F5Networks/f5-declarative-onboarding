@@ -2,6 +2,7 @@
     "schemaVersion": "1.0.0",
     "class": "Device",
     "async": true,
+    "webhook": "https://example.com/myHook",
     "label": "my BIG-IP declaration for declarative onboarding",
     "Common": {
         "class": "Tenant",

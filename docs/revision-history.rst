@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 2.2
-        - Updated the documentation for Declarative Onboarding v1.6.0. This release contains the following changes: |br| * Added support for creating route domains in a declaration (see :ref:`routedomain-class`) |br| * Added support for specifying a management route (see :ref:`mgmtroute-class`) |br| * Added a note to the **tag** row of the :ref:`vlan-class` table stating if you set the tag in DO, the VLAN defaults the **tagged** parameter to **true**. |br| |br| Issues Resolved: |br| * Updated :doc:`big-iq-licensing` and the example declarations to change references to ELA/subscription licensing to *utility* licensing. |br| *  Removed targetSshKey when filling in targetPassphrase. |br| 
+        - Updated the documentation for Declarative Onboarding v1.6.0. This release contains the following changes: |br| * Added support for creating route domains in a declaration (see :ref:`routedomain-class`) |br| * Added support for specifying a management route (see :ref:`mgmtroute-class`) |br| * Added a note to the **tag** row of the :ref:`vlan-class` table stating if you set the tag in DO, the VLAN defaults the **tagged** parameter to **true**. |br| * Added support for specifying a **webhook** URL for response information (see :ref:`base-comps` for usage). |br| |br| Issues Resolved: |br| * Updated :doc:`big-iq-licensing` and the example declarations to change references to ELA/subscription licensing to *utility* licensing. |br| *  Removed targetSshKey when filling in targetPassphrase. |br| 
         - 07-30-19
 
       * - 2.1
