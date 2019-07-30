@@ -187,5 +187,34 @@
             { "id": "routingProtocol" },
             { "id": "vlans" }
         ]
+    },
+    {
+        "path": "/tm/auth/ldap",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["ldap"]
+        },
+        "properties": [
+            { "id": "bindDn" },
+            { "id": "bindPw", "newId": "bindPassword" },
+            { "id": "bindTimeout" },
+            { "id": "checkHostAttr", "newId": "checkBindPassword", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "checkRolesGroup", "newId": "checkRemoteRole", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "filter" },
+            { "id": "groupDn" },
+            { "id": "groupMemberAttribute" },
+            { "id": "idleTimeout" },
+            { "id": "ignoreAuthInfoUnavail", "newId": "ignoreAuthInfoUnavailable", "truth": "yes", "falsehood": "no" },
+            { "id": "ignoreUnknownUser", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "loginAttribute" },
+            { "id": "port" },
+            { "id": "scope", "newId": "searchScope" },
+            { "id": "searchBaseDn" },
+            { "id": "searchTimeout" },
+            { "id": "servers" },
+            { "id": "userTemplate" },
+            { "id": "version" }
+        ],
+        "nameless": true
     }
 ]

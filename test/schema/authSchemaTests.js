@@ -168,6 +168,90 @@ describe('auth.schema.json', () => {
             });
         });
     });
+
+    describe('Remote - LDAP', () => {
+        describe('valid', () => {
+            it('should validate remote LDAP', () => {
+                const data = {
+                    class: 'Authentication',
+                    enabledSourceType: 'ldap',
+                    ldap: {
+                        bindDn: 'searchingName',
+                        bindPassword: 'test',
+                        bindTimeout: 40,
+                        checkBindPassword: true,
+                        checkRemoteRole: true,
+                        filter: 'filter',
+                        groupDn: 'groupName',
+                        groupMemberAttribute: 'attribute',
+                        idleTimeout: 20,
+                        ignoreAuthInfoUnavailable: true,
+                        ignoreUnknownUser: true,
+                        loginAttribute: 'attributeToLogin',
+                        port: 654,
+                        searchScope: 'base',
+                        searchBaseDn: 'searchName',
+                        searchTimeout: 687,
+                        servers: [
+                            'my.host.com',
+                            '1.2.3.4',
+                            'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                        ],
+                        userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
+                        version: 2
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate data with missing ldap when enabling ldap', () => {
+                const data = {
+                    class: 'Authentication',
+                    enabledSourceType: 'ldap'
+                };
+
+                assert.strictEqual(validate(data), false, 'ldap should be mandatory for ldap authentication');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": ".ldap"'), -1);
+            });
+
+            it('should invalidate data with missing ldap when enabling activeDirectory', () => {
+                const data = {
+                    class: 'Authentication',
+                    enabledSourceType: 'activeDirectory'
+                };
+
+                assert.strictEqual(validate(data), false, 'ldap should be mandatory for ldap authentication');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": ".ldap"'), -1);
+            });
+
+            it('should invalidate data with missing servers', () => {
+                const data = {
+                    class: 'Authentication',
+                    enabledSourceType: 'ldap',
+                    ldap: {
+                    }
+                };
+
+                assert.strictEqual(validate(data), false, 'servers should be mandatory for ldap authentication');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "servers"'), -1);
+            });
+
+            it('should invalidate data with less than one server', () => {
+                const data = {
+                    class: 'Authentication',
+                    enabledSourceType: 'ldap',
+                    ldap: {
+                        servers: []
+                    }
+                };
+
+                assert.strictEqual(validate(data), false, 'at least one server in servers array should be mandatory for ldap authentication');
+                assert.notStrictEqual(getErrorString().indexOf('"limit": 1'), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {

@@ -22,7 +22,7 @@
                 "enabledSourceType": {
                     "description": "Type of remote authentication source to enable for the system.",
                     "type": "string",
-                    "enum": ["radius", "local"],
+                    "enum": ["radius", "local", "ldap", "activeDirectory"],
                     "default": "local"
                 },
                 "fallback": {
@@ -32,6 +32,9 @@
                 },
                 "radius": {
                     "$ref": "#/definitions/radius"
+                },
+                "ldap": {
+                    "$ref": "#/definitions/ldap"
                 }
             },
             "allOf": [
@@ -41,6 +44,16 @@
                         "properties": { "enabledSourceType": { "const": "radius"} }
                     },
                     "then": { "required": ["radius"] }
+                },
+                {
+                    "if": {
+                        "required": ["enabledSourceType"],
+                        "properties": { "enabledSourceType": { "oneOf": [
+                            { "const": "ldap" },
+                            { "const": "activeDirectory" }
+                        ] } }
+                    },
+                    "then": { "required": ["ldap"] }
                 }
             ],
             "additionalProperties": false
@@ -53,7 +66,7 @@
                 "serviceType": {
                     "description": "Type of service used for the RADIUS server.",
                     "type": "string",
-                    "enum": [ 
+                    "enum": [
                         "administrative",
                         "authenticate-only",
                         "call-check",
@@ -110,6 +123,115 @@
                     "type": "string"
                 }
             }
+        },
+        "ldap": {
+            "description": "Remote LDAP authentication info",
+            "type": "object",
+            "required": ["servers"],
+            "properties": {
+                "bindDn": {
+                    "description": "Distinguished name of the server account. If server is a Microsoft Windows Active Directory server, the name must be an email address",
+                    "type": "string"
+                },
+                "bindPassword": {
+                    "description": "Password for the server account",
+                    "type": "string"
+                },
+                "bindTimeout": {
+                    "description": "Timeout limit in seconds to bind to remote authentication server",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295,
+                    "default": 30
+                },
+                "checkBindPassword": {
+                    "description": "Confirms the password for the server account",
+                    "type": "boolean",
+                    "default": false
+                },
+                "checkRemoteRole": {
+                    "description": "Verifies a user's group membership based on the remote-role definition, formatted as *member*of=\"group-dn\"",
+                    "type": "boolean",
+                    "default": false
+                },
+                "filter": {
+                    "description": "Filter used for authorizing client traffic",
+                    "type": "string"
+                },
+                "groupDn": {
+                    "description": "Group distinguished name for authorizing client traffic",
+                    "type": "string"
+                },
+                "groupMemberAttribute": {
+                    "description": "Group member attribute for authorizing client traffic",
+                    "type": "string"
+                },
+                "idleTimeout": {
+                    "description": "Connection timeout limit in seconds",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295,
+                    "default": 3600
+                },
+                "ignoreAuthInfoUnavailable": {
+                    "description": "Ignores authentication information if not available",
+                    "type": "boolean",
+                    "default": false
+                },
+                "ignoreUnknownUser": {
+                    "description": "Ignores a user that is unknown",
+                    "type": "boolean",
+                    "default": false
+                },
+                "loginAttribute": {
+                    "description": "Logon attribute. If server is a Microsoft Windows Active Directory server, the value must be the account name \"samaccountname\"",
+                    "type": "string"
+                },
+                "port": {
+                    "description": "Port number for the LDAP service",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "default": 389
+                },
+                "searchScope": {
+                    "description": "Level of remote server's directory to search for user authentication, either base object, one level, or subtree",
+                    "type": "string",
+                    "enum": ["base", "one", "sub"],
+                    "default": "sub"
+                },
+                "searchBaseDn": {
+                    "description": "Search base distinguished name",
+                    "type": "string"
+                },
+                "searchTimeout": {
+                    "description": "Search timeout limit in seconds",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295,
+                    "default": 30
+                },
+                "servers": {
+                    "description": "IP addresses or hostnames of the remote authentication servers.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userTemplate": {
+                    "description": "Specifies a user template for the LDAP application to use for authentication.",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Specifies the version number of the LDAP application.",
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 3,
+                    "default": 3
+                }
+            },
+            "additionalProperties": false
         }
     }
 }

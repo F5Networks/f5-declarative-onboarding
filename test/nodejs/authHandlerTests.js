@@ -103,4 +103,142 @@ describe('authHandler', () => {
                 });
         });
     });
+
+    describe('ldap', () => {
+        it('should be able to process a ldap with default values', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'local',
+                        fallback: true,
+                        ldap: {
+                            bindTimeout: 30,
+                            checkHostAttr: false,
+                            checkRolesGroup: false,
+                            idleTimeout: 3600,
+                            ignoreAuthInfoUnavailable: false,
+                            ignoreUnknownUser: false,
+                            port: 389,
+                            searchScope: 'sub',
+                            searchTimeout: 30,
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            version: 3
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathsSent[0], PATHS.AuthLdap);
+                    assert.deepStrictEqual(
+                        dataSent[0],
+                        {
+                            name: AUTH.SUBCLASSES_NAME,
+                            partition: 'Common',
+                            bindDn: 'none',
+                            bindPw: 'none',
+                            bindTimeout: 30,
+                            checkHostAttr: 'disabled',
+                            checkRolesGroup: 'disabled',
+                            filter: 'none',
+                            groupDn: 'none',
+                            groupMemberAttribute: 'none',
+                            idleTimeout: 3600,
+                            ignoreAuthInfoUnavail: 'no',
+                            ignoreUnknownUser: 'disabled',
+                            loginAttribute: 'none',
+                            port: 389,
+                            scope: 'sub',
+                            searchBaseDn: 'none',
+                            searchTimeout: 30,
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            userTemplate: 'none',
+                            version: 3
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('ldap', () => {
+        it('should be able to process a ldap with custom values', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'local',
+                        fallback: true,
+                        ldap: {
+                            bindDn: 'searchingName',
+                            bindPassword: 'test',
+                            bindTimeout: 40,
+                            checkBindPassword: true,
+                            checkRemoteRole: true,
+                            filter: 'filter',
+                            groupDn: 'groupName',
+                            groupMemberAttribute: 'attribute',
+                            idleTimeout: 20,
+                            ignoreAuthInfoUnavailable: true,
+                            ignoreUnknownUser: true,
+                            loginAttribute: 'attributeToLogin',
+                            port: 654,
+                            searchScope: 'base',
+                            searchBaseDn: 'searchName',
+                            searchTimeout: 687,
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
+                            version: 2
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathsSent[0], PATHS.AuthLdap);
+                    assert.deepStrictEqual(
+                        dataSent[0],
+                        {
+                            name: AUTH.SUBCLASSES_NAME,
+                            partition: 'Common',
+                            bindDn: 'searchingName',
+                            bindPw: 'test',
+                            bindTimeout: 40,
+                            checkHostAttr: 'enabled',
+                            checkRolesGroup: 'enabled',
+                            filter: 'filter',
+                            groupDn: 'groupName',
+                            groupMemberAttribute: 'attribute',
+                            idleTimeout: 20,
+                            ignoreAuthInfoUnavail: 'yes',
+                            ignoreUnknownUser: 'enabled',
+                            loginAttribute: 'attributeToLogin',
+                            port: 654,
+                            scope: 'base',
+                            searchBaseDn: 'searchName',
+                            searchTimeout: 687,
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
+                            version: 2
+                        }
+                    );
+                });
+        });
+    });
 });

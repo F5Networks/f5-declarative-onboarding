@@ -59,6 +59,7 @@ class AuthHandler {
         }
 
         return handleRadius.call(this)
+            .then(() => handleLdap.call(this))
             .then(() => handleSource.call(this));
     }
 }
@@ -99,13 +100,59 @@ function handleRadius() {
         });
 }
 
+function handleLdap() {
+    const ldap = this.declaration.Common.Authentication.ldap;
+
+    if (!ldap) {
+        return Promise.resolve();
+    }
+
+    const ldapObj = {
+        name: AUTH.SUBCLASSES_NAME,
+        partition: 'Common',
+        bindDn: ldap.bindDn || 'none',
+        bindPw: ldap.bindPassword || 'none',
+        bindTimeout: ldap.bindTimeout,
+        checkHostAttr: ldap.checkBindPassword ? 'enabled' : 'disabled',
+        checkRolesGroup: ldap.checkRemoteRole ? 'enabled' : 'disabled',
+        filter: ldap.filter || 'none',
+        groupDn: ldap.groupDn || 'none',
+        groupMemberAttribute: ldap.groupMemberAttribute || 'none',
+        idleTimeout: ldap.idleTimeout,
+        ignoreAuthInfoUnavail: ldap.ignoreAuthInfoUnavailable ? 'yes' : 'no',
+        ignoreUnknownUser: ldap.ignoreUnknownUser ? 'enabled' : 'disabled',
+        loginAttribute: ldap.loginAttribute || 'none',
+        port: ldap.port,
+        scope: ldap.searchScope,
+        searchBaseDn: ldap.searchBaseDn || 'none',
+        searchTimeout: ldap.searchTimeout,
+        servers: ldap.servers,
+        userTemplate: ldap.userTemplate || 'none',
+        version: ldap.version
+    };
+
+    const options = ldapObj.bindPw ? { silent: true } : {};
+
+    return this.bigIp.createOrModify(PATHS.AuthLdap, ldapObj, undefined, undefined, options)
+        .catch((err) => {
+            logger.severe(`Error configuring remote LDAP auth: ${err.message}`);
+            return Promise.reject(err);
+        });
+}
+
+
 function handleSource() {
     const auth = this.declaration.Common.Authentication;
+    let type = auth.enabledSourceType;
+
+    if (type === 'activeDirectory') {
+        type = 'active-directory';
+    }
 
     return this.bigIp.modify(
         PATHS.AuthSource,
         {
-            type: auth.enabledSourceType,
+            type,
             fallback: auth.fallback
         }
     );
