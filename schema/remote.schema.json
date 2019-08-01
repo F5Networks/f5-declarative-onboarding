@@ -17,7 +17,7 @@
     },
     "else": {
         "if": {
-            "required": ["targetSsshKey"]
+            "required": ["targetSshKey"]
         },
         "then": {
             "dependencies": {
