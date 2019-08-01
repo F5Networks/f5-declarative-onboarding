@@ -203,6 +203,15 @@ class ConfigManager {
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties.call(this, patchedItem, index);
 
+                                    let name = item.name;
+
+                                    if (schemaClass === 'RemoteAuthRole') {
+                                        if (name.includes('/Common/')) {
+                                            name = item.name.split('/Common/')[1];
+                                        }
+                                        patchedItem.name = name; // The patchedItem needs its name updated too
+                                    }
+
                                     // Self IPs are so odd that I don't see a generic way to handle this
                                     if (schemaClass === 'SelfIp') {
                                         patchedItem = patchSelfIp.call(this, patchedItem);
@@ -228,7 +237,7 @@ class ConfigManager {
                                         if (!currentConfig[schemaClass]) {
                                             currentConfig[schemaClass] = {};
                                         }
-                                        currentConfig[schemaClass][item.name] = patchedItem;
+                                        currentConfig[schemaClass][name] = patchedItem;
                                     }
 
                                     getReferencedPaths.call(

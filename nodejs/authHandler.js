@@ -55,14 +55,36 @@ class AuthHandler {
         const auth = (this.declaration.Common || {}).Authentication;
 
         if (!auth) {
-            return Promise.resolve();
+            return handleRemoteAuthRoles.call(this);
         }
 
-        return handleRadius.call(this)
+        return handleRemoteAuthRoles.call(this)
+            .then(() => handleRadius.call(this))
             .then(() => handleLdap.call(this))
             .then(() => handleSource.call(this));
     }
 }
+
+function handleRemoteAuthRoles() {
+    if (!this.declaration.Common || !this.declaration.Common.RemoteAuthRole) {
+        return Promise.resolve();
+    }
+    const promiseChain = Object.keys(this.declaration.Common.RemoteAuthRole).map((name) => {
+        const decl = this.declaration.Common.RemoteAuthRole[name];
+        const rr = {};
+        rr.attribute = decl.attribute;
+        rr.console = decl.console;
+        rr.deny = (decl.remoteAccess) ? 'enabled' : 'disabled';
+        rr.lineOrder = decl.lineOrder;
+        rr.role = decl.role;
+        rr.userPartition = decl.userPartition;
+        rr.name = name;
+        return this.bigIp.createOrModify(PATHS.AuthRemoteRole, rr);
+    });
+
+    return Promise.all(promiseChain);
+}
+
 
 function handleRadius() {
     const radius = this.declaration.Common.Authentication.radius;

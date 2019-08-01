@@ -258,4 +258,20 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 });
         });
     });
+
+    it('should properly set the path for Remote Roles', () => {
+        const declaration = {
+            Common: {
+                RemoteAuthRole: {
+                    test: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths[0], '/tm/auth/remote-role/role-info/test');
+            });
+    });
 });

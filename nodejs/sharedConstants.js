@@ -42,6 +42,7 @@ module.exports = {
         AuthRadius: '/tm/auth/radius',
         AuthRadiusServer: '/tm/auth/radius-server',
         AuthSource: '/tm/auth/source',
+        AuthRemoteRole: '/tm/auth/remote-role/role-info',
         AuthLdap: '/tm/auth/ldap'
     },
     STATUS: {
@@ -65,7 +66,8 @@ module.exports = {
         'FailoverUnicast',
         'DeviceTrust',
         'Analytics',
-        'Authentication'
+        'Authentication',
+        'RemoteAuthRoles'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'
