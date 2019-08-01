@@ -36,5 +36,5 @@ This is being tracked by |github54|.
 
 .. |github54| raw:: html
 
-   <a href="https://github.com/F5Networks/f5-declarative-onboarding/issues/56" target="_blank">GitHub issue #54</a>
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/issues/56" target="_blank">GitHub issue #56</a>
 
