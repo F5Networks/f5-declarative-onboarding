@@ -465,6 +465,10 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
         it('should configure radius', () => {
             assert.ok(testRadiusAuth(body.Common.myAuth.radius, currentState));
         });
+
+        it('should configure ldap', () => {
+            assert.ok(testLdapAuth(body.Common.myAuth.ldap, currentState));
+        });
     });
 
     describe('Test Rollbacking', function testRollbacking() {
@@ -712,6 +716,20 @@ function testRadiusAuth(target, response) {
         ['server', 'port']
     );
     return serviceTypeCheck && serverPrimaryCheck && serverSecondaryCheck;
+}
+
+function testLdapAuth(target, response) {
+    const ldapResp = response.Authentication.ldap;
+    return compareSimple(
+        target,
+        ldapResp,
+        [
+            'bindDn', 'bindTimeout', 'checkBindPassword', 'checkRemoteRole', 'filter', 'groupDn',
+            'groupMemberAttribute', 'idleTimeout', 'ignoreAuthInfoUnavailable',
+            'ignoreUnknownUser', 'loginAttribute', 'port', 'searchScope', 'searchBaseDn',
+            'searchTimeout', 'servers', 'userTemplate', 'version'
+        ]
+    );
 }
 
 /**
