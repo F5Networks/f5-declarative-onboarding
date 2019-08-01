@@ -146,6 +146,19 @@
         "nameless": true
     },
     {
+        "path": "/tm/auth/remote-user",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["remoteUsersDefaults"]
+        },
+        "properties": [
+            { "id": "defaultRole", "newId": "role" },
+            { "id": "defaultPartition", "newId": "partitionAccess" },
+            { "id": "remoteConsoleAccess", "newId": "terminalAccess"}
+        ],
+        "nameless": true
+    },
+    {
         "path": "/tm/auth/radius",
         "schemaClass": "Authentication",
         "schemaMerge": {

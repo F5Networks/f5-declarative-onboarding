@@ -44,7 +44,9 @@ describe('authHandler', () => {
                 dataSent.push(data);
                 return Promise.resolve();
             },
-            modify() {
+            modify(path, data) {
+                pathsSent.push(path);
+                dataSent.push(data);
                 return Promise.resolve();
             }
         };
@@ -167,9 +169,7 @@ describe('authHandler', () => {
                     );
                 });
         });
-    });
 
-    describe('ldap', () => {
         it('should be able to process a ldap with custom values', () => {
             const declaration = {
                 Common: {
@@ -236,6 +236,37 @@ describe('authHandler', () => {
                             ],
                             userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
                             version: 2
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('remoteUsersDefaults', () => {
+        it('should be able to process a declaration with remoteUsersDefaults', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'local',
+                        remoteUsersDefaults: {
+                            role: 'operator',
+                            partitionAccess: 'Common',
+                            terminalAccess: 'tmsh'
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    const remoteUserIndex = pathsSent.findIndex(p => p === PATHS.AuthRemoteUser);
+                    assert.notStrictEqual(remoteUserIndex, -1, 'RemoteAuthUser should be handled');
+                    assert.deepStrictEqual(
+                        dataSent[remoteUserIndex],
+                        {
+                            defaultPartition: 'Common',
+                            defaultRole: 'operator',
+                            remoteConsoleAccess: 'tmsh'
                         }
                     );
                 });

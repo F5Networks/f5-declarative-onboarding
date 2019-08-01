@@ -25,6 +25,49 @@
                     "enum": ["radius", "local", "ldap", "activeDirectory"],
                     "default": "local"
                 },
+                "remoteUsersDefaults": {
+                    "description": "The default values that the BIG-IP system applies to any user account that is not part of a remotely-stored user group.",
+                    "type": "object",
+                    "required": [ "partitionAccess", "terminalAccess", "role" ],
+                    "properties": {
+                        "role": {
+                            "description": "Role for the remote users.",
+                            "type": "string",
+                            "enum": [
+                                "acceleration-policy-editor",
+                                "admin",
+                                "application-editor",
+                                "auditor",
+                                "certificate-manager",
+                                "firewall-manager",
+                                "fraud-protection-manager",
+                                "guest",
+                                "irule-manager",
+                                "manager",
+                                "no-access",
+                                "operator",
+                                "resource-admin",
+                                "user-manager",
+                                "web-application-security-administrator",
+                                "web-application-security-editor"
+                            ],
+                            "default": "no-access"
+                        },
+                        "partitionAccess": {
+                            "description": "Default accessible partitions for remote users.",
+                            "type": "string",
+                            "enum": ["Common", "all"],
+                            "default": "all"
+                        },
+                        "terminalAccess": {
+                            "description": "Default terminal access for remote users.",
+                            "type": "string",
+                            "enum": ["tmsh", "disabled"],
+                            "default": "disabled"
+                        }
+                    },
+                    "additionalProperties": false
+                },
                 "fallback": {
                     "description": "Specifies that the system uses the Local authentication method if the remote authentication method is not available.",
                     "type": "boolean",
