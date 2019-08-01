@@ -50,7 +50,8 @@ const CLASSES_OF_TRUTH = [
     'Analytics',
     'ManagementRoute',
     'RouteDomain',
-    'Authentication'
+    'Authentication',
+    'RemoteAuthRole'
 ];
 
 /**

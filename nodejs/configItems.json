@@ -189,6 +189,18 @@
         ]
     },
     {
+        "path": "/tm/auth/remote-role/role-info",
+        "schemaClass": "RemoteAuthRole",
+        "properties": [
+            { "id": "deny", "newId": "remoteAccess", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "attribute" },
+            { "id": "console" },
+            { "id": "lineOrder" },
+            { "id": "role" },
+            { "id": "userPartition" }
+        ]
+    },
+    {
         "path": "/tm/auth/ldap",
         "schemaClass": "Authentication",
         "schemaMerge": {

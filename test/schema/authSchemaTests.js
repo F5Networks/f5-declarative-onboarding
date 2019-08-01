@@ -169,6 +169,23 @@ describe('auth.schema.json', () => {
         });
     });
 
+    describe('Remote - Roles', () => {
+        describe('valid', () => {
+            it('should validate remote roles', () => {
+                const data = {
+                    "class": "RemoteAuthRole",
+                    "attribute": "attributeValue",
+                    "console": "tmsh",
+                    "remoteAccess": true,
+                    "lineOrder": 1050,
+                    "role": "guest",
+                    "userPartition": "Common"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+    });
+
     describe('Remote - LDAP', () => {
         describe('valid', () => {
             it('should validate remote LDAP', () => {

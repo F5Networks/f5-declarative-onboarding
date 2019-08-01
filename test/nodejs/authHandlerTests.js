@@ -18,6 +18,7 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
+
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 const AUTH = require('../../nodejs/sharedConstants').AUTH;
 const RADIUS = require('../../nodejs/sharedConstants').RADIUS;
@@ -36,7 +37,8 @@ describe('authHandler', () => {
             list() {
                 return Promise.resolve();
             },
-            replace() {
+            replace(path, data) {
+                dataSent = data;
                 return Promise.resolve();
             },
             createOrModify(path, data) {
@@ -131,6 +133,7 @@ describe('authHandler', () => {
                     }
                 }
             };
+
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
@@ -165,6 +168,42 @@ describe('authHandler', () => {
                             version: 3
                         }
                     );
+                });
+        });
+    });
+
+    describe('remote roles', () => {
+        it('should be able to process multiple remote role', () => {
+            const declaration = {
+                Common: {
+                    RemoteAuthRole: {
+                        exampleGroupName: {
+                            attribute: 'attributeValue',
+                            console: 'tmsh',
+                            remoteAccess: true,
+                            lineOrder: 1050,
+                            role: 'guest',
+                            userPartition: 'all'
+                        },
+                        anotherGroupName: {
+                            attribute: 'attributeValue',
+                            console: false,
+                            remoteAccess: false,
+                            lineOrder: 984,
+                            role: 'admin',
+                            userPartition: 'all'
+                        }
+                    }
+                }
+            };
+
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(dataSent[0].name, 'exampleGroupName');
+                    assert.strictEqual(dataSent[0].deny, 'enabled');
+                    assert.strictEqual(dataSent[1].name, 'anotherGroupName');
+                    assert.strictEqual(dataSent[1].deny, 'disabled');
                 });
         });
     });
@@ -204,6 +243,7 @@ describe('authHandler', () => {
                     }
                 }
             };
+
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
