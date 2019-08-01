@@ -462,6 +462,10 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
             assert.ok(testMainAuth(body.Common.myAuth, currentState));
         });
 
+        it('should configure remoteUsersDefaults', () => {
+            assert.ok(testRemoteUsersDefaults(body.Common.myAuth, currentState));
+        });
+
         it('should configure radius', () => {
             assert.ok(testRadiusAuth(body.Common.myAuth.radius, currentState));
         });
@@ -700,6 +704,11 @@ function testConfigSyncIp(target, response) {
 
 function testMainAuth(target, response) {
     return compareSimple(target, response.Authentication, ['enabledSourceType', 'fallback']);
+}
+
+function testRemoteUsersDefaults(target, response) {
+    const remoteResp = response.Authentication.remoteUsersDefaults;
+    return compareSimple(target, remoteResp, ['partitionAccess', 'terminalAccess', 'role']);
 }
 
 function testRadiusAuth(target, response) {
