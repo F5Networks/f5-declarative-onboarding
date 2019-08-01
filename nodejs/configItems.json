@@ -137,6 +137,40 @@
         ]
     },
     {
+        "path": "/tm/auth/source",
+        "schemaClass": "Authentication",
+        "properties": [
+            { "id": "type" },
+            { "id": "fallback", "truth": "true", "falsehood": "false" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/auth/radius",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["radius"],
+            "skipWhenOmitted": true
+        },
+        "properties": [
+            { "id": "serviceType" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/auth/radius-server",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["radius","servers"],
+            "action": "add",
+            "skipWhenOmitted": true
+        },
+        "properties": [
+            { "id": "server" },
+            { "id": "port" }
+        ]
+    },
+    {
         "path": "/tm/net/route-domain",
         "schemaClass": "RouteDomain",
         "properties": [
@@ -153,5 +187,34 @@
             { "id": "routingProtocol" },
             { "id": "vlans" }
         ]
+    },
+    {
+        "path": "/tm/auth/ldap",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["ldap"]
+        },
+        "properties": [
+            { "id": "bindDn" },
+            { "id": "bindPw", "newId": "bindPassword" },
+            { "id": "bindTimeout" },
+            { "id": "checkHostAttr", "newId": "checkBindPassword", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "checkRolesGroup", "newId": "checkRemoteRole", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "filter" },
+            { "id": "groupDn" },
+            { "id": "groupMemberAttribute" },
+            { "id": "idleTimeout" },
+            { "id": "ignoreAuthInfoUnavail", "newId": "ignoreAuthInfoUnavailable", "truth": "yes", "falsehood": "no" },
+            { "id": "ignoreUnknownUser", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "loginAttribute" },
+            { "id": "port" },
+            { "id": "scope", "newId": "searchScope" },
+            { "id": "searchBaseDn" },
+            { "id": "searchTimeout" },
+            { "id": "servers" },
+            { "id": "userTemplate" },
+            { "id": "version" }
+        ],
+        "nameless": true
     }
 ]

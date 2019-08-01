@@ -38,7 +38,11 @@ module.exports = {
         DeviceGroup: '/tm/cm/device-group',
         Analytics: '/tm/analytics/global-settings',
         ManagementRoute: '/tm/sys/management-route',
-        RouteDomain: '/tm/net/route-domain'
+        RouteDomain: '/tm/net/route-domain',
+        AuthRadius: '/tm/auth/radius',
+        AuthRadiusServer: '/tm/auth/radius-server',
+        AuthSource: '/tm/auth/source',
+        AuthLdap: '/tm/auth/ldap'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -60,6 +64,15 @@ module.exports = {
         'ConfigSync',
         'FailoverUnicast',
         'DeviceTrust',
-        'Analytics'
-    ]
+        'Analytics',
+        'Authentication'
+    ],
+    AUTH: {
+        SUBCLASSES_NAME: 'system-auth'
+    },
+    RADIUS: {
+        SERVER_PREFIX: 'system_auth_name',
+        PRIMARY_SERVER: 'system_auth_name1',
+        SECONDARY_SERVER: 'system_auth_name2'
+    }
 };

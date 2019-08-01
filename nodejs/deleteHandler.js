@@ -19,6 +19,8 @@
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
+const RADIUS = require('./sharedConstants').RADIUS;
+const AUTH = require('./sharedConstants').AUTH;
 
 const logger = new Logger(module);
 
@@ -87,6 +89,10 @@ class DeleteHandler {
             }
         });
 
+        const authPromises = getAuthClassPromises.call(this);
+        if (authPromises.length > 0) {
+            promises.push(authPromises);
+        }
         function runInSerial(promiseArr) {
             return promiseArr.reduce((chain, curr) => chain.then(() => Promise.all(curr)), Promise.resolve());
         }
@@ -101,6 +107,40 @@ class DeleteHandler {
                 return Promise.resolve();
             });
     }
+}
+
+function getAuthClassPromises() {
+    // special handling for auth items
+    // mcp names each auth component system-auth, e.g. /tm/auth/radius/system-auth
+    const auth = this.declaration.Common.Authentication;
+    const authPromises = [];
+    if (auth) {
+        const authToDelete = ['radius'];
+        Object.keys(auth).forEach((authItem) => {
+            if (authToDelete.indexOf(authItem) > -1) {
+                authPromises.push(
+                    this.bigIp.delete(
+                        `/tm/auth/${authItem}/${AUTH.SUBCLASSES_NAME}`,
+                        null, null, cloudUtil.NO_RETRY
+                    )
+                );
+                if (authItem === 'radius') {
+                    // quirk with radius-servers needing separate DELETEs
+                    // and they also have name constants
+                    const serverNames = [RADIUS.PRIMARY_SERVER, RADIUS.SECONDARY_SERVER];
+                    serverNames.forEach((server) => {
+                        authPromises.push(
+                            this.bigIp.delete(
+                                `${PATHS.AuthRadiusServer}/~Common~${server}`,
+                                null, null, cloudUtil.NO_RETRY
+                            )
+                        );
+                    });
+                }
+            }
+        });
+    }
+    return authPromises;
 }
 
 module.exports = DeleteHandler;

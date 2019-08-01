@@ -21,6 +21,7 @@ const url = require('url');
 const querystring = require('querystring');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
+const RADIUS = require('./sharedConstants').RADIUS;
 
 const logger = new Logger(module);
 
@@ -60,6 +61,7 @@ class ConfigManager {
      *         properties: [
      *             {
      *                 id: <property_name>,
+     *                 newId: <property_name_to_map_to_in_parsed_declaration>
      *                 "truth": <mcp_truth_value_if_this_is_boolean>,
      *                 "falsehood": <mcp_false_value_if_this_is_boolean>
      *             }
@@ -72,7 +74,12 @@ class ConfigManager {
      *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>,
      *         ignore: [
      *             { <key_to_possibly_ignore>: <regex_for_value_to_ignore> }
-     *         ]
+     *         ],
+     *        schemaMerge: {
+     *           path: <array_containing_property_path>,
+     *           action: <override_if_not_direct_assign_of_value>
+     *           skipWhenOmitted: <do_not_add_to_parent_when_missing>
+     *        }
      *     }
      * ]
      *
@@ -147,33 +154,34 @@ class ConfigManager {
 
                 // get a list of iControl Rest queries asking for the config items and selecting the
                 // properties we want
-                this.configItems
+                this.configItems = this.configItems
                     .filter((configItem) => {
                         if (!configItem.requiredModule) {
                             return true;
                         }
                         return provisionedModules.indexOf(configItem.requiredModule) > -1;
-                    })
-                    .forEach((configItem) => {
-                        const query = { $filter: 'partition eq Common' };
-                        const selectProperties = getPropertiesOfInterest(configItem.properties);
-                        if (selectProperties.length > 0) {
-                            query.$select = selectProperties.join(',');
-                        }
-                        const encodedQuery = querystring.stringify(query);
-                        const options = {};
-                        let path = `${configItem.path}?${encodedQuery}`;
-
-                        // do any replacements
-                        path = path.replace(hostNameRegex, tokenMap.hostName);
-                        path = path.replace(deviceNameRegex, tokenMap.deviceName);
-
-                        if (configItem.silent) {
-                            options.silent = configItem.silent;
-                        }
-
-                        promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options));
                     });
+
+                this.configItems.forEach((configItem) => {
+                    const query = { $filter: 'partition eq Common' };
+                    const selectProperties = getPropertiesOfInterest(configItem.properties);
+                    if (selectProperties.length > 0) {
+                        query.$select = selectProperties.join(',');
+                    }
+                    const encodedQuery = querystring.stringify(query);
+                    const options = {};
+                    let path = `${configItem.path}?${encodedQuery}`;
+
+                    // do any replacements
+                    path = path.replace(hostNameRegex, tokenMap.hostName);
+                    path = path.replace(deviceNameRegex, tokenMap.deviceName);
+
+                    if (configItem.silent) {
+                        options.silent = configItem.silent;
+                    }
+
+                    promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options));
+                });
 
                 return Promise.all(promises);
             })
@@ -192,7 +200,7 @@ class ConfigManager {
                         } else {
                             currentItem.forEach((item) => {
                                 if (!shouldIgnore(item, this.configItems[index].ignore)) {
-                                    patchedItem = removeUnusedKeys.call(this, item);
+                                    patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties.call(this, patchedItem, index);
 
                                     // Self IPs are so odd that I don't see a generic way to handle this
@@ -205,6 +213,15 @@ class ConfigManager {
                                         if (dbVarsOfInterest.indexOf(item.name) === -1) {
                                             patchedItem = null;
                                         }
+                                    }
+
+                                    if (schemaClass === 'Authentication') {
+                                        const schemaMerge = this.configItems[index].schemaMerge;
+                                        patchedItem = patchAuth.call(
+                                            this, schemaMerge, currentConfig[schemaClass], patchedItem
+                                        );
+                                        currentConfig[schemaClass] = patchedItem;
+                                        patchedItem = null;
                                     }
 
                                     if (patchedItem) {
@@ -225,13 +242,18 @@ class ConfigManager {
                             });
                         }
                     } else if (!shouldIgnore(currentItem, this.configItems[index].ignore)) {
-                        currentConfig[schemaClass] = {};
                         patchedItem = removeUnusedKeys.call(
                             this,
                             currentItem,
                             this.configItems[index].nameless
                         );
                         patchedItem = mapProperties.call(this, patchedItem, index);
+                        if (schemaClass === 'Authentication') {
+                            const schemaMerge = this.configItems[index].schemaMerge;
+                            patchedItem = patchAuth.call(
+                                this, schemaMerge, currentConfig[schemaClass], patchedItem
+                            );
+                        }
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
                     }
@@ -402,6 +424,11 @@ function mapProperties(item, index) {
         } else if (property.defaultWhenOmitted !== undefined) {
             mappedItem[property.id] = property.defaultWhenOmitted;
         }
+
+        if (property.newId !== undefined) {
+            mappedItem[property.newId] = mappedItem[property.id];
+            delete mappedItem[property.id];
+        }
     });
     return mappedItem;
 }
@@ -419,6 +446,47 @@ function mapTruth(item, property) {
         return false;
     }
     return item[property.id] === property.truth;
+}
+
+/**
+ * Maps objects that have separate paths in mcp but need to be part of a DO class
+ * as a property that is of type object
+ *
+ * @param {Object} obj - The parent/target obj
+ * @param {Object} value - The value to assign
+ * @param {Object} opts - The schemaMerge options
+ *   opts would be:
+     *     {
+     *         path: <array_containing_property_path>,
+     *         action: <override_if_not_direct_assign_of_value>
+     *         skipWhenOmitted: <do_not_add_to_parent_when_missing>
+     *     }
+ * @returns {Object} A merged object containing the property with value specified
+ */
+function mapSchemaMerge(obj, value, opts) {
+    const isOmitted = typeof value === 'undefined' || Object.keys(value).length === 0;
+    if (opts.skipWhenOmitted && isOmitted) {
+        return obj;
+    }
+
+    const pathProps = opts.path.slice(0);
+    const key = pathProps.pop();
+    const pointer = pathProps.reduce((acc, curr) => {
+        if (typeof acc[curr] === 'undefined') {
+            acc[curr] = {};
+        }
+        return acc[curr];
+    }, obj);
+    // default action would be replace
+    if (opts.action === 'add') {
+        if (typeof pointer[key] === 'undefined') {
+            pointer[key] = {};
+        }
+        pointer[key] = Object.assign(pointer[key], value);
+    } else {
+        pointer[key] = value;
+    }
+    return obj;
 }
 
 // given an item and its index in configItems, construct a path based the properties we want
@@ -521,6 +589,50 @@ function patchSelfIp(selfIp) {
     }
 
     return patched;
+}
+
+function patchAuth(schemaMerge, authClass, authItem) {
+    let patchedClass = {};
+    let patchedItem;
+
+    if (!schemaMerge) {
+        let type = authItem.type;
+
+        if (type === 'active-directory') {
+            type = 'activeDirectory';
+        }
+
+        // the props are for the parent Auth class
+        patchedClass = Object.assign(patchedClass, authItem);
+        patchedClass.enabledSourceType = type;
+        delete patchedClass.type;
+        return patchedClass;
+    }
+    // this is going to be for a subclass (e.g. radius, ldap, etc)
+    const authClassCopy = !authClass ? {} : Object.assign({}, authClass);
+
+    if (authItem.name && authItem.name.includes(RADIUS.SERVER_PREFIX)) {
+        // radius servers have name constants
+        // note also that serverReferences are returned by iControl as obj instead of array
+        if (authItem.name === RADIUS.PRIMARY_SERVER) {
+            patchedItem = {
+                primary: authItem
+            };
+            delete patchedItem.primary.name;
+        }
+
+        if (authItem.name === RADIUS.SECONDARY_SERVER) {
+            patchedItem = {
+                secondary: authItem
+            };
+            delete patchedItem.secondary.name;
+        }
+    } else {
+        patchedItem = Object.assign({}, authItem);
+    }
+
+    patchedClass = mapSchemaMerge.call(this, authClassCopy, patchedItem, schemaMerge);
+    return patchedClass;
 }
 
 function shouldIgnore(item, ignoreList) {

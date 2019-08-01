@@ -7,21 +7,22 @@
         "hostname": "bigip.example.com",
         "newVlan": {
             "class": "VLAN",
+            "tag": 100,
             "interfaces": [
                 {
-                    "name": "1.0",
+                    "name": "1.1",
                     "tagged": true
                 }
             ]
         },
         "Route": {
             "class": "Route",
-            "gw": "10.145.127.254",
-            "network": "1.2.3.5%100/32"
+            "gw": "10.1.0.1",
+            "network": "192.168.0.0%100/16"
         },
             "newSelfIp": {
             "class": "SelfIp",
-            "address": "1.2.3.6%100/0",
+            "address": "10.1.0.20%100/0",
             "vlan": "newVlan"
         },
         "theRouteDomain": {
@@ -37,7 +38,7 @@
           "servicePolicy": "servicePolicy",
           "strict": false,
           "routingProtocols": [
-            "RIP"
+            "BGP"
           ],
           "vlans": [
             "newVlan"
