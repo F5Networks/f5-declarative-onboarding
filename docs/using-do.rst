@@ -25,3 +25,4 @@ Using Declarative Onboarding Index
    big-iq-licensing
    do-container
    json-pointers
+   troubleshooting
