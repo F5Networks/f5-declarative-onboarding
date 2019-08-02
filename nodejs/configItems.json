@@ -137,6 +137,13 @@
         ]
     },
     {
+        "path": "/tm/sys/syslog",
+        "schemaClass": "SyslogRemoteServers",
+        "properties": [
+            { "id": "remoteServers" }
+        ]
+    },
+    {
         "path": "/tm/auth/source",
         "schemaClass": "Authentication",
         "properties": [

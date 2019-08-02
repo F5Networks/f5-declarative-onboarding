@@ -84,7 +84,14 @@ describe('systemHandler', () => {
                 dataSent[path].push(data);
                 return Promise.resolve();
             },
-            modify() {
+            modify(path, data) {
+                if (!dataSent) {
+                    dataSent = {};
+                }
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
                 return Promise.resolve();
             }
         };
@@ -1067,5 +1074,33 @@ describe('systemHandler', () => {
                         .Common.ManagementRoute.managementRoute2.mtu);
                 });
         });
+    });
+
+    it('should handle syslog', () => {
+        const declaration = {
+            Common: {
+                SyslogRemoteServer: {
+                    LocalDCSyslog: {
+                        host: 'local-ip',
+                        localIp: '172.28.68.42',
+                        remotePort: 514,
+                        name: 'LocalDCSyslog'
+                    },
+                    DRDCSyslog: {
+                        host: 'dr-ip',
+                        localIp: '172.28.68.42',
+                        remotePort: 514,
+                        name: 'DRDCSyslog'
+                    }
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepEqual(dataSent[PATHS.Syslog][0].remoteServers[0].name, 'LocalDCSyslog');
+                assert.deepEqual(dataSent[PATHS.Syslog][0].remoteServers[1].name, 'DRDCSyslog');
+            });
     });
 });

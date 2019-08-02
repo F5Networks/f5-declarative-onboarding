@@ -294,6 +294,44 @@
                     "required": ["gw"]
                 }
             }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SyslogRemoteServer" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Syslog Remote Server Information",
+                        "type": "string",
+                        "const": "SyslogRemoteServer"
+                    },
+                    "host": {
+                        "description": "Specifies the IP address of a remote server to which syslog sends messages.",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" },
+                            { "format": "hostname" }
+                        ]
+                    },
+                    "localIp": {
+                        "description": "Specifies the IP address of the interface syslog binds with in order to log messages to a remote host.",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    },
+                    "remotePort": {
+                        "description": "Specifies the port to which the syslog sends messages.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535,
+                        "default": 514
+                    }
+                },
+                "additionalProperties": false
+            }
         }
     ],
     "definitions": {

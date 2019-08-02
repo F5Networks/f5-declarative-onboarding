@@ -694,6 +694,19 @@ describe('system.schema.json', () => {
             });
         });
     });
+
+    describe('SyslogRemoteServers', () => {
+        it('should be able to validate a correct format', () => {
+            const data = {
+                "class": "SyslogRemoteServer",
+                "host": "10.12.15.20",
+                "localIp": "10.1.1.10",
+                "remotePort": 686
+            };
+
+            assert.ok(validate(data), getErrorString(validate));
+        });
+    });
 });
 
 function getErrorString() {
