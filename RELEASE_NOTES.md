@@ -5,6 +5,7 @@
 + Add support for Authentication - Radius
 + Add support for Remote Role Groups
 + Add support for Authentication - LDAP
++ Add support for Syslog RemoteServers
 
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)

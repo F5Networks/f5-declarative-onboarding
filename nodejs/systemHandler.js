@@ -85,6 +85,10 @@ class SystemHandler {
                 return handleLicense.call(this);
             })
             .then(() => {
+                logger.fine('Checking Syslog.');
+                return handleSyslog.call(this);
+            })
+            .then(() => {
                 logger.fine('Done processing system declaration.');
                 return Promise.resolve();
             })
@@ -412,6 +416,27 @@ function handleManagementRoute() {
             logger.severe(`Error creating management routes: ${err.message}`);
             throw err;
         });
+}
+
+function handleSyslog() {
+    if (!this.declaration.Common || !this.declaration.Common.SyslogRemoteServer) {
+        return Promise.resolve();
+    }
+
+    const remoteServers = Object.keys(this.declaration.Common.SyslogRemoteServer).map(
+        logName => this.declaration.Common.SyslogRemoteServer[logName]
+    );
+
+    if (remoteServers.length === 0) {
+        return Promise.resolve();
+    }
+
+    const syslog = {
+        name: 'syslogRemoteServer',
+        remoteServers
+    };
+
+    return this.bigIp.modify(PATHS.Syslog, syslog);
 }
 
 function createOrUpdateUser(username, data) {

@@ -43,7 +43,8 @@ module.exports = {
         AuthRadiusServer: '/tm/auth/radius-server',
         AuthSource: '/tm/auth/source',
         AuthRemoteRole: '/tm/auth/remote-role/role-info',
-        AuthLdap: '/tm/auth/ldap'
+        AuthLdap: '/tm/auth/ldap',
+        Syslog: '/tm/sys/syslog'
     },
     STATUS: {
         STATUS_OK: 'OK',
