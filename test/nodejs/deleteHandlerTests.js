@@ -108,7 +108,8 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const declaration = {
             Common: {
                 Authentication: {
-                    radius: {}
+                    radius: {},
+                    ldap: {}
                 }
             }
         };
@@ -118,6 +119,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
             deleteHandler.process()
                 .then(() => {
                     assert.strictEqual(deletedPaths[0], `/tm/auth/radius/${AUTH.SUBCLASSES_NAME}`);
+                    assert.strictEqual(deletedPaths[3], `/tm/auth/ldap/${AUTH.SUBCLASSES_NAME}`);
                     resolve();
                 })
                 .catch((err) => {
