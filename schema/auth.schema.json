@@ -25,6 +25,7 @@
         "remoteInfo": {
             "required": ["class", "enabledSourceType"],
             "type": "object",
+            "description": "Remote authentication info.",
             "properties": {
                 "class": {
                     "description": "Indicates that this property contains authentication configuration.",
