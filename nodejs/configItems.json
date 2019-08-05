@@ -153,6 +153,19 @@
         "nameless": true
     },
     {
+        "path": "/tm/auth/remote-user",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["remoteUsersDefaults"]
+        },
+        "properties": [
+            { "id": "defaultRole", "newId": "role" },
+            { "id": "defaultPartition", "newId": "partitionAccess" },
+            { "id": "remoteConsoleAccess", "newId": "terminalAccess"}
+        ],
+        "nameless": true
+    },
+    {
         "path": "/tm/auth/radius",
         "schemaClass": "Authentication",
         "schemaMerge": {
@@ -211,20 +224,21 @@
         "path": "/tm/auth/ldap",
         "schemaClass": "Authentication",
         "schemaMerge": {
-            "path": ["ldap"]
+            "path": ["ldap"],
+            "skipWhenOmitted": true
         },
         "properties": [
             { "id": "bindDn" },
             { "id": "bindPw", "newId": "bindPassword" },
             { "id": "bindTimeout" },
-            { "id": "checkHostAttr", "newId": "checkBindPassword", "truth": "enabled", "falsehood": "disabled" },
-            { "id": "checkRolesGroup", "newId": "checkRemoteRole", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "checkHostAttr", "newId": "checkBindPassword", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "checkRolesGroup", "newId": "checkRemoteRole", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "filter" },
             { "id": "groupDn" },
             { "id": "groupMemberAttribute" },
             { "id": "idleTimeout" },
-            { "id": "ignoreAuthInfoUnavail", "newId": "ignoreAuthInfoUnavailable", "truth": "yes", "falsehood": "no" },
-            { "id": "ignoreUnknownUser", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "ignoreAuthInfoUnavail", "newId": "ignoreAuthInfoUnavailable", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
+            { "id": "ignoreUnknownUser", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "loginAttribute" },
             { "id": "port" },
             { "id": "scope", "newId": "searchScope" },

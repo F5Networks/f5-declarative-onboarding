@@ -428,7 +428,7 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
         let currentState;
 
         before(() => {
-            const thisMachine = machines[2];
+            const thisMachine = machines[1];
             const bigipAddress = thisMachine.ip;
             const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
             const bodyFile = `${BODIES}/auth.json`;
@@ -460,6 +460,10 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
 
         it('should configure main auth settings', () => {
             assert.ok(testMainAuth(body.Common.myAuth, currentState));
+        });
+
+        it('should configure remoteUsersDefaults', () => {
+            assert.ok(testRemoteUsersDefaults(body.Common.myAuth.remoteUsersDefaults, currentState));
         });
 
         it('should configure radius', () => {
@@ -700,6 +704,11 @@ function testConfigSyncIp(target, response) {
 
 function testMainAuth(target, response) {
     return compareSimple(target, response.Authentication, ['enabledSourceType', 'fallback']);
+}
+
+function testRemoteUsersDefaults(target, response) {
+    const remoteResp = response.Authentication.remoteUsersDefaults;
+    return compareSimple(target, remoteResp, ['partitionAccess', 'terminalAccess', 'role']);
 }
 
 function testRadiusAuth(target, response) {

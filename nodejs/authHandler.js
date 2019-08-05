@@ -61,7 +61,8 @@ class AuthHandler {
         return handleRemoteAuthRoles.call(this)
             .then(() => handleRadius.call(this))
             .then(() => handleLdap.call(this))
-            .then(() => handleSource.call(this));
+            .then(() => handleSource.call(this))
+            .then(() => handleRemoteUsersDefaults.call(this));
     }
 }
 
@@ -176,6 +177,25 @@ function handleSource() {
         {
             type,
             fallback: auth.fallback
+        }
+    );
+}
+
+function handleRemoteUsersDefaults() {
+    // shows up as "Other External Users" in Users tab
+    const auth = this.declaration.Common.Authentication;
+    const authDefaults = auth.remoteUsersDefaults;
+
+    if (!authDefaults) {
+        return Promise.resolve();
+    }
+
+    return this.bigIp.modify(
+        PATHS.AuthRemoteUser,
+        {
+            defaultPartition: authDefaults.partitionAccess,
+            defaultRole: authDefaults.role,
+            remoteConsoleAccess: authDefaults.terminalAccess
         }
     );
 }

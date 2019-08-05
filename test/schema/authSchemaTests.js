@@ -63,6 +63,56 @@ describe('auth.schema.json', () => {
         });
     });
 
+    describe('Remote - Users Defaults', () => {
+        describe('valid', () => {
+            it('should validate remoteUsersDefaults', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "local",
+                    "remoteUsersDefaults": {
+                        "partitionAccess": "Common",
+                        "terminalAccess": "tmsh",
+                        "role": "auditor"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should populate default prop values for remoteUsersDefaults', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "local",
+                    "remoteUsersDefaults": {
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.strictEqual(data.remoteUsersDefaults.partitionAccess, 'all');
+                assert.strictEqual(data.remoteUsersDefaults.terminalAccess, 'disabled');
+                assert.strictEqual(data.remoteUsersDefaults.role, 'no-access');
+            });
+        });
+        describe('invalid', () => {
+            it('should ivalidate remoteUsersDefaults with partition other than Common or all', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "local",
+                    "remoteUsersDefaults": {
+                        "partitionAccess": "myPartition",
+                        "terminalAccess": "disabled",
+                        "role": "operator"
+                    }
+                };
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(
+                    getErrorString().indexOf(
+                        '"schemaPath": "#/properties/remoteUsersDefaults/properties/partitionAccess/enum",'
+                    ),
+                    -1
+                );
+            });
+        });
+    });
+
     describe('Remote - RADIUS', () => {
         describe('valid', () => {
             it('should validate remote RADIUS', () => {
