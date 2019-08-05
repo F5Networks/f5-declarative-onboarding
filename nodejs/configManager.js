@@ -226,10 +226,9 @@ class ConfigManager {
 
                                     if (schemaClass === 'Authentication') {
                                         const schemaMerge = this.configItems[index].schemaMerge;
-                                        patchedItem = patchAuth.call(
+                                        currentConfig[schemaClass] = patchAuth.call(
                                             this, schemaMerge, currentConfig[schemaClass], patchedItem
                                         );
-                                        currentConfig[schemaClass] = patchedItem;
                                         patchedItem = null;
                                     }
 
@@ -403,9 +402,13 @@ function mapProperties(item, index) {
     }
 
     this.configItems[index].properties.forEach((property) => {
+        let hasVal = false;
         // map truth/falsehood (enabled/disabled, for example) to booleans
         if (property.truth !== undefined) {
-            mappedItem[property.id] = mapTruth(mappedItem, property);
+            // for certain items we don't want to add prop with default falsehood value if prop doesn't exist
+            if (typeof mappedItem[property.id] !== 'undefined' || !property.skipWhenOmitted) {
+                mappedItem[property.id] = mapTruth(mappedItem, property);
+            }
         }
 
         if (mappedItem[property.id]) {
@@ -430,11 +433,13 @@ function mapProperties(item, index) {
                     }
                 });
             }
+            hasVal = true;
         } else if (property.defaultWhenOmitted !== undefined) {
             mappedItem[property.id] = property.defaultWhenOmitted;
+            hasVal = true;
         }
 
-        if (property.newId !== undefined) {
+        if (hasVal && property.newId !== undefined) {
             mappedItem[property.newId] = mappedItem[property.id];
             delete mappedItem[property.id];
         }

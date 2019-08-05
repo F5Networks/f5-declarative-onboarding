@@ -157,11 +157,10 @@ function applyDefaults(declaration, state) {
     const commonDeclaration = declaration.Common;
     CLASSES_OF_TRUTH.forEach((key) => {
         const item = commonDeclaration[key];
-
-        // if the missing or empty, fill in the original
-        if (!item || (typeof item === 'object' && Object.keys(item).length === 0)) {
-            const original = state.originalConfig.Common[key];
-            if (original) {
+        const original = state.originalConfig.Common[key];
+        if (original) {
+            // if the missing or empty, fill in the original
+            if (!item || (typeof item === 'object' && Object.keys(item).length === 0)) {
                 if (typeof original === 'string') {
                     commonDeclaration[key] = original;
                 } else if (Array.isArray(original)) {
@@ -169,6 +168,12 @@ function applyDefaults(declaration, state) {
                 } else {
                     commonDeclaration[key] = {};
                     Object.assign(commonDeclaration[key], original);
+                }
+            // some more auth oddities
+            } else if (key === 'Authentication') {
+                if (!item.remoteUsersDefaults) {
+                    commonDeclaration[key].remoteUsersDefaults = {};
+                    Object.assign(commonDeclaration[key].remoteUsersDefaults, original.remoteUsersDefaults);
                 }
             }
         }
