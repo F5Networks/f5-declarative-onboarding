@@ -647,6 +647,59 @@ describe('configManager', () => {
         }));
     });
 
+    describe('SyslogRemoteServer oddities', () => {
+        it('should merge remoteServers into the parent object', () => {
+            const configItems = [
+                {
+                    path: '/tm/sys/syslog',
+                    schemaClass: 'SyslogRemoteServer',
+                    properties: [
+                        { id: 'remoteServers' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/sys/syslog'] = {
+                remoteServers: [
+                    {
+                        name: '/Common/DRDCSyslog',
+                        host: 'dr-ip',
+                        localIp: '172.28.68.42',
+                        remotePort: 519
+                    },
+                    {
+                        name: '/Common/LocalDCSyslog',
+                        host: 'local-ip',
+                        localIp: '172.28.68.42',
+                        remotePort: 30
+                    }
+                ]
+            };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.SyslogRemoteServer,
+                        {
+                            DRDCSyslog: {
+                                name: 'DRDCSyslog',
+                                host: 'dr-ip',
+                                localIp: '172.28.68.42',
+                                remotePort: 519
+                            },
+                            LocalDCSyslog: {
+                                name: 'LocalDCSyslog',
+                                host: 'local-ip',
+                                localIp: '172.28.68.42',
+                                remotePort: 30
+                            }
+                        }
+                    );
+                });
+        });
+    });
+
     it('should set original config if missing', () => new Promise((resolve, reject) => {
         const configItems = [
             {
