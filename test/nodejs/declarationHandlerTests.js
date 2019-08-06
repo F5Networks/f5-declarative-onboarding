@@ -192,6 +192,40 @@ describe('declarationHandler', () => {
                 });
         });
     });
+
+    it('should apply Route Domain fix', () => {
+        const newDeclaration = {
+            parsed: true,
+            Common: {
+                RouteDomain: {
+                    rd0: {
+                        id: 0
+                    },
+                    rd1: {
+                        id: 1
+                    }
+                }
+            }
+        };
+        const state = {
+            currentConfig: {
+                name: 'current'
+            },
+            originalConfig: {
+                Common: {}
+            }
+        };
+
+        const declarationHandler = new DeclarationHandler(bigIpMock);
+        return declarationHandler.process(newDeclaration, state)
+            .then(() => {
+                const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                assert.strictEqual(routeDomain.rd0, undefined);
+                assert.strictEqual(routeDomain['0'].id, 0);
+                assert.notStrictEqual(routeDomain.rd1, undefined);
+                assert.strictEqual(routeDomain.rd1.id, 1);
+            });
+    });
 });
 
 describe('AVR dependencies', () => {

@@ -1056,7 +1056,7 @@ describe('systemHandler', () => {
                     const managementRouteData = dataSent[PATHS.ManagementRoute];
                     assert.strictEqual(managementRouteData[0].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[0].partition, 'Common');
-                    assert.strictEqual(managementRouteData[0].gw, declaration
+                    assert.strictEqual(managementRouteData[0].gateway, declaration
                         .Common.ManagementRoute.managementRoute1.gw);
                     assert.strictEqual(managementRouteData[0].network, declaration
                         .Common.ManagementRoute.managementRoute1.network);
@@ -1066,7 +1066,7 @@ describe('systemHandler', () => {
                         .Common.ManagementRoute.managementRoute1.type);
                     assert.strictEqual(managementRouteData[1].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[1].partition, 'Common');
-                    assert.strictEqual(managementRouteData[1].gw, declaration
+                    assert.strictEqual(managementRouteData[1].gateway, declaration
                         .Common.ManagementRoute.managementRoute2.gw);
                     assert.strictEqual(managementRouteData[1].network, declaration
                         .Common.ManagementRoute.managementRoute2.network);

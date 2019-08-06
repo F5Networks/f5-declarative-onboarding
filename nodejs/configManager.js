@@ -99,7 +99,6 @@ class ConfigManager {
     get(declaration, state, doState) {
         const currentCurrentConfig = state.currentConfig || {};
         const currentConfig = {};
-        const promises = [];
         const referencePromises = [];
         const referenceInfo = []; // info needed to tie reference result to config item
 
@@ -154,40 +153,40 @@ class ConfigManager {
 
                 // get a list of iControl Rest queries asking for the config items and selecting the
                 // properties we want
-                this.configItems = this.configItems
-                    .filter((configItem) => {
-                        if (!configItem.requiredModule) {
-                            return true;
+                return Promise.all(this.configItems
+                    .map((configItem) => {
+                        if (configItem.requiredModule && provisionedModules.indexOf(configItem.requiredModule) === -1) {
+                            return Promise.resolve(false);
                         }
-                        return provisionedModules.indexOf(configItem.requiredModule) > -1;
-                    });
 
-                this.configItems.forEach((configItem) => {
-                    const query = { $filter: 'partition eq Common' };
-                    const selectProperties = getPropertiesOfInterest(configItem.properties);
-                    if (selectProperties.length > 0) {
-                        query.$select = selectProperties.join(',');
-                    }
-                    const encodedQuery = querystring.stringify(query);
-                    const options = {};
-                    let path = `${configItem.path}?${encodedQuery}`;
+                        const query = { $filter: 'partition eq Common' };
+                        const selectProperties = getPropertiesOfInterest(configItem.properties);
+                        if (selectProperties.length > 0) {
+                            query.$select = selectProperties.join(',');
+                        }
+                        const encodedQuery = querystring.stringify(query);
+                        const options = {};
+                        let path = `${configItem.path}?${encodedQuery}`;
 
-                    // do any replacements
-                    path = path.replace(hostNameRegex, tokenMap.hostName);
-                    path = path.replace(deviceNameRegex, tokenMap.deviceName);
+                        // do any replacements
+                        path = path.replace(hostNameRegex, tokenMap.hostName);
+                        path = path.replace(deviceNameRegex, tokenMap.deviceName);
 
-                    if (configItem.silent) {
-                        options.silent = configItem.silent;
-                    }
+                        if (configItem.silent) {
+                            options.silent = configItem.silent;
+                        }
 
-                    promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options));
-                });
-
-                return Promise.all(promises);
+                        return this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options);
+                    }));
             })
             .then((results) => {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
+                    // looks like configItem was skipped in previous step
+                    if (currentItem === false) {
+                        return;
+                    }
+
                     const schemaClass = this.configItems[index].schemaClass;
                     if (!schemaClass) {
                         // Simple item that is just key:value - not a larger object
@@ -635,7 +634,7 @@ function patchAuth(schemaMerge, authClass, authItem) {
     // this is going to be for a subclass (e.g. radius, ldap, etc)
     const authClassCopy = !authClass ? {} : Object.assign({}, authClass);
 
-    if (authItem.name && authItem.name.includes(RADIUS.SERVER_PREFIX)) {
+    if (authItem.name && authItem.name.indexOf(RADIUS.SERVER_PREFIX) > -1) {
         // radius servers have name constants
         // note also that serverReferences are returned by iControl as obj instead of array
         if (authItem.name === RADIUS.PRIMARY_SERVER) {

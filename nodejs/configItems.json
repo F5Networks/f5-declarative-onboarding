@@ -130,7 +130,7 @@
         "path": "/tm/sys/management-route",
         "schemaClass": "ManagementRoute",
         "properties": [
-            { "id": "gw" },
+            { "id": "gateway", "newId": "gw" },
             { "id": "network" },
             { "id": "mtu" },
             { "id": "type" }

@@ -276,4 +276,22 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.strictEqual(deletedPaths[0], '/tm/auth/remote-role/role-info/test');
             });
     });
+
+    it('should skip route domain 0 on attempt to delete it', () => {
+        const declaration = {
+            Common: {
+                RouteDomain: {
+                    0: {},
+                    rd99: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.indexOf('/tm/net/route-domain/~Common~0'), -1);
+                assert.notStrictEqual(deletedPaths.indexOf('/tm/net/route-domain/~Common~rd99'), -1);
+            });
+    });
 });

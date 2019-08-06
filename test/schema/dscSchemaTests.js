@@ -49,6 +49,14 @@ describe('dsc.schema.json', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
 
+            it('should validate config sync data with "none" configsyncIp', () => {
+                const data = {
+                    "class": "ConfigSync",
+                    "configsyncIp": "none"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
             it('should validate config sync data with json-pointer configsyncIp', () => {
                 const data = {
                     "class": "ConfigSync",
