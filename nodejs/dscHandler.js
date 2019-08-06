@@ -76,7 +76,7 @@ class DscHandler {
  */
 function handleConfigSync() {
     if (this.declaration.Common.ConfigSync) {
-        let configsyncIp = this.declaration.Common.ConfigSync.configsyncIp || '';
+        let configsyncIp = this.declaration.Common.ConfigSync.configsyncIp || 'none';
 
         // address may have been a json pointer to something with a CIDR
         // so strip that off

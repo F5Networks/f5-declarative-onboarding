@@ -1,10 +1,13 @@
 # Release Notes
 
 ## Version 1.7.0
++ Resolve [Issue 53](https://github.com/F5Networks/f5-declarative-onboarding/issues/53)
 + Add support for Authentication class
 + Add support for Authentication - Radius
 + Add support for Remote Role Groups
 + Add support for Authentication - LDAP
++ Allow 'none' as valid value for configsyncIp (ConfigSync class)
++ Fix bug in which DO was unable to get/set ManagementRoute's 'gw' property
 + Add support for Syslog RemoteServers
 + Add schema reference documentation
 

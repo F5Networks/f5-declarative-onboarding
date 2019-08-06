@@ -81,6 +81,8 @@ class DeleteHandler {
                     } else if (deleteableClass === 'RemoteAuthRole') {
                         const path = `${PATHS.AuthRemoteRole}/${itemToDelete}`;
                         classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    } else if (deleteableClass === 'RouteDomain' && itemToDelete === '0') {
+                        // Route Domain 0 can't be deleted
                     } else {
                         const path = `${PATHS[deleteableClass]}/~Common~${itemToDelete}`;
                         classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));

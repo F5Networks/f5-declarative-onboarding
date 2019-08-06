@@ -101,6 +101,50 @@ describe('dscHandler', () => {
                     });
             });
         });
+
+        it('should send "none" to disable config sync', () => {
+            const configSyncIp = 'none';
+            const declaration = {
+                Common: {
+                    ConfigSync: {
+                        configsyncIp: `${configSyncIp}`
+                    }
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        assert.strictEqual(configSyncIpSent, configSyncIp);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should send "none" when configsyncIp not defined', () => {
+            const configSyncIp = 'none';
+            const declaration = {
+                Common: {
+                    ConfigSync: {}
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        assert.strictEqual(configSyncIpSent, configSyncIp);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
     });
 
     describe('failoverUnicast', () => {

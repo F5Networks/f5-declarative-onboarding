@@ -396,7 +396,7 @@ function handleManagementRoute() {
             const routeBody = {
                 name: managementRoute.name,
                 partition: tenant,
-                gw: managementRoute.gw,
+                gateway: managementRoute.gw,
                 network: managementRoute.network,
                 mtu: managementRoute.mtu
             };

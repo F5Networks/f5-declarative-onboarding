@@ -30,20 +30,6 @@ describe('configManager', () => {
     let state;
     let doState;
 
-    before(() => {
-        bigIpMock = {
-            deviceInfo() {
-                return Promise.resolve({ hostname });
-            },
-            list(path) {
-                // The path name here does not have a domain, but does include
-                // a query. listResponses are set up with just the pathname part.
-                const pathname = URL.parse(path, 'https://foo').pathname;
-                return Promise.resolve(listResponses[pathname] || {});
-            }
-        };
-    });
-
     beforeEach(() => {
         listResponses = {
             '/tm/cm/device': [
@@ -58,6 +44,17 @@ describe('configManager', () => {
         doState = {
             getOriginalConfigByConfigId() {},
             setOriginalConfigByConfigId() {}
+        };
+        bigIpMock = {
+            deviceInfo() {
+                return Promise.resolve({ hostname });
+            },
+            list(path) {
+                // The path name here does not have a domain, but does include
+                // a query. listResponses are set up with just the pathname part.
+                const pathname = URL.parse(path, 'https://foo').pathname;
+                return Promise.resolve(listResponses[pathname] || {});
+            }
         };
     });
 
@@ -304,7 +301,7 @@ describe('configManager', () => {
                 path: '/tm/sys/management-route',
                 schemaClass: 'ManagementRoute',
                 properties: [
-                    { id: 'gw', newId: 'gateway' },
+                    { id: 'gateway', newId: 'gw' },
                     { id: 'network' },
                     { id: 'mtu' },
                     { id: 'type' }
@@ -315,7 +312,7 @@ describe('configManager', () => {
         listResponses['/tm/sys/management-route'] = [
             {
                 name: 'default',
-                gw: '8.8.8.8',
+                gateway: '8.8.8.8',
                 network: 'default',
                 mtu: 0
             }
@@ -325,11 +322,11 @@ describe('configManager', () => {
         configManager.get({}, state, doState)
             .then(() => {
                 assert.strictEqual(
-                    state.currentConfig.Common.ManagementRoute.default.gateway,
-                    listResponses['/tm/sys/management-route'][0].gw
+                    state.currentConfig.Common.ManagementRoute.default.gw,
+                    listResponses['/tm/sys/management-route'][0].gateway
                 );
                 assert.strictEqual(
-                    state.currentConfig.Common.ManagementRoute.default.gw,
+                    state.currentConfig.Common.ManagementRoute.default.gateway,
                     undefined
                 );
                 resolve();
@@ -889,22 +886,113 @@ describe('configManager', () => {
             }
         ];
 
-        const bigip = {
-            deviceInfo() {
-                return Promise.resolve({ hostname });
-            },
-            list(path) {
-                const pathname = URL.parse(path, 'https://foo').pathname;
-                assert(
-                    pathname !== '/tm/analytics/global-settings',
-                    'Analytics was checked but not provisioned'
-                );
-                return Promise.resolve(listResponses[pathname] || {});
+        let skipped = true;
+
+        bigIpMock.list = (path) => {
+            const pathname = URL.parse(path, 'https://foo').pathname;
+            if (pathname === '/tm/analytics/global-settings') {
+                skipped = false;
             }
+            return Promise.resolve(listResponses[pathname] || {});
         };
-        const configManager = new ConfigManager(configItems, bigip);
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
         return configManager.get({}, state, doState)
             .then(() => {
+                assert.ok(skipped, 'Analytics was checked but AVR not provisioned');
+            });
+    });
+
+    it('should not skip provisioned modules', () => {
+        const configItems = [
+            {
+                path: '/tm/analytics/global-settings',
+                requiredModule: 'avr',
+                schemaClass: 'Analytics',
+                properties: []
+            }
+        ];
+        listResponses['/tm/sys/provision'] = [
+            { name: 'avr', level: 'nominal' }
+        ];
+
+        let notSkipped = false;
+
+        bigIpMock.list = (path) => {
+            const pathname = URL.parse(path, 'https://foo').pathname;
+            if (pathname === '/tm/analytics/global-settings') {
+                notSkipped = true;
+            }
+            return Promise.resolve(listResponses[pathname] || {});
+        };
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.ok(notSkipped, 'Should check Analytics when provisioned');
+            });
+    });
+
+    it('should keep the right order for response items when configItem was skipped', () => {
+        const configItems = [
+            {
+                path: '/tm/sys/ntp',
+                schemaClass: 'NTP',
+                properties: [
+                    { id: 'servers' },
+                    { id: 'timezone' }
+                ]
+            },
+            {
+                path: '/tm/analytics/global-settings',
+                requiredModule: 'avr',
+                schemaClass: 'Analytics',
+                properties: []
+            },
+            {
+                path: '/tm/sys/dns',
+                schemaClass: 'DNS',
+                properties: [
+                    { id: 'nameServers' },
+                    { id: 'search' }
+                ]
+            }
+        ];
+        listResponses['/tm/sys/ntp'] = {
+            servers: ['server1', 'server2'],
+            timezone: 'utc'
+        };
+        listResponses['/tm/sys/dns'] = {
+            nameServers: ['172.27.1.1'],
+            search: ['localhost']
+        };
+
+        const expectedConfig = {
+            NTP: {
+                servers: [
+                    'server1',
+                    'server2'
+                ],
+                timezone: 'utc'
+            },
+            DNS: {
+                nameServers: [
+                    '172.27.1.1'
+                ],
+                search: [
+                    'localhost'
+                ]
+            }
+        };
+
+        bigIpMock.list = (path) => {
+            const pathname = URL.parse(path, 'https://foo').pathname;
+            return Promise.resolve(listResponses[pathname] || {});
+        };
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.deepStrictEqual(state.currentConfig.Common, expectedConfig, 'Should match expected config');
             });
     });
 });

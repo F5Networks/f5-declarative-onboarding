@@ -103,6 +103,9 @@ class DeclarationHandler {
             Object.assign(parsedNewDeclaration, newDeclaration);
         }
 
+        // apply fix to parsedNewDeclaration only, because
+        // parsedOldDeclaration (created by ConfigManager) has no such issue
+        applyRouteDomainFix(parsedNewDeclaration);
         applyDefaults(parsedNewDeclaration, state);
 
         const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
@@ -178,6 +181,31 @@ function applyDefaults(declaration, state) {
             }
         }
     });
+}
+
+/**
+ * Update name of Route Domain 0 in declarations
+ *
+ * Schema doesn't allow to submit declaration with object name '0' but
+ * but if we want to modify RD '0' via REST API we need to set name '0' for RD with id '0'.
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyRouteDomainFix(declaration) {
+    if (declaration.Common.RouteDomain) {
+        const routeDomains = declaration.Common.RouteDomain;
+        Object.keys(routeDomains).forEach((rdName) => {
+            const rd = routeDomains[rdName];
+            // rd.id can be integer or string but still numeric only
+            if (rd.id.toString() === '0') {
+                // assume that there is only one RD with ID 0
+                // and we know already that rdName can't be a number in declaration
+                routeDomains['0'] = rd;
+                routeDomains['0'].name = '0';
+                delete routeDomains[rdName];
+            }
+        });
+    }
 }
 
 module.exports = DeclarationHandler;
