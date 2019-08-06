@@ -10,6 +10,7 @@
 + Fix bug in which DO was unable to get/set ManagementRoute's 'gw' property
 + Add support for Syslog RemoteServers
 + Add schema reference documentation
++ DeviceGroup.owner is now required
 
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)

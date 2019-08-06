@@ -159,14 +159,6 @@ describe('dsc.schema.json', () => {
 
     describe('DeviceGroup', () => {
         describe('valid', () => {
-            it('should validate minimal device group data', () => {
-                const data = {
-                    "class": "DeviceGroup",
-                    "type": "sync-only"
-                };
-                assert.ok(validate(data), getErrorString(validate));
-            });
-
             it('should validate minimal device group data with json-pointer', () => {
                 const data = {
                     "class": "DeviceGroup",
@@ -205,10 +197,19 @@ describe('dsc.schema.json', () => {
         });
 
         describe('invalid', () => {
+            it('should invalidate without owner property', () => {
+                const data = {
+                    "class": "DeviceGroup",
+                    "type": "sync-only"
+                };
+                assert.strictEqual(validate(data), false, 'owner property is required');
+            });
+
             it('should invalidate bad sync type', () => {
                 const data = {
                     "class": "DeviceGroup",
-                    "type": "foo"
+                    "type": "foo",
+                    "owner": "/foo/bar/0"
                 };
                 assert.strictEqual(validate(data), false, 'bad type should not be valid');
             });
@@ -217,6 +218,7 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "DeviceGroup",
                     "type": "sync-only",
+                    "owner": "/foo/bar/0",
                     "foo": "bar"
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
