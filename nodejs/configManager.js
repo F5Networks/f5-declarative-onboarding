@@ -262,6 +262,16 @@ class ConfigManager {
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
                             );
                         }
+                        if (schemaClass === 'SyslogRemoteServer') {
+                            const servers = patchedItem.remoteServers || [];
+                            servers.forEach((server) => {
+                                if (server.name.includes('/Common/')) {
+                                    server.name = server.name.split('/Common/')[1];
+                                }
+                                patchedItem[server.name] = Object.assign({}, server);
+                            });
+                            delete patchedItem.remoteServers;
+                        }
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
                     }
