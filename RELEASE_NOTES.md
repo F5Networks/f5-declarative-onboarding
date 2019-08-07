@@ -1,6 +1,7 @@
 # Release Notes
 
 ## Version 1.7.0
++ Handle the automatic update of root password when admin password changes on 14.0+
 + Resolve [Issue 53](https://github.com/F5Networks/f5-declarative-onboarding/issues/53)
 + Add support for Authentication class
 + Add support for Authentication - Radius

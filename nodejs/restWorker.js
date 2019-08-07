@@ -803,21 +803,86 @@ function initialAccountSetup(wrapper) {
     /* jshint validthis: true */
 
     let promise = Promise.resolve();
+    let adminPasswordUpdated = false;
     if (needsPasswordReset(wrapper)) {
         promise = initialPasswordSet.call(this, wrapper);
+        adminPasswordUpdated = wrapper.targetUsername === 'admin';
     } else if (needsPasswordSetViaSsh(wrapper)) {
         promise = initialPasswordSetViaSsh.call(this, wrapper);
+        adminPasswordUpdated = wrapper.targetUsername === 'admin';
     }
 
     return promise
         .then((updatedPassword) => {
-            logger.finest('done w/ initial accout setup');
-            return Promise.resolve(updatedPassword);
+            logger.finest('done w/ initial account setup');
+            let p = Promise.resolve();
+            if (adminPasswordUpdated) {
+                p = p.then(rootAccountSetup.call(this, wrapper, updatedPassword));
+            }
+            return p.then(() => Promise.resolve(updatedPassword));
         })
         .catch((err) => {
             logger.warning(`Error during initial account setup: ${err.message}`);
             return Promise.reject(err);
         });
+}
+
+/**
+ * Resets the root old password if needed
+ *
+ * On 14.0 and above the admin user is forced to change the password on first login.  When the admin password is
+ * changed on first login it also changes the root password to the same value.  If the root password is changed the
+ * oldPassword for the root user in the declaration could need to be updated.
+ *
+ * @param {Object} wrapper - Remote declaration wrapper
+ * @param {string} updatedPassword - New password for admin
+ */
+function rootAccountSetup(wrapper, updatedPassword) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
+    const rootUser = getUserFromDeclaration('root', wrapper.declaration);
+    if (!rootUser) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+        getPort(wrapper)
+            .then((port) => {
+                const credentials = cloudUtil.createBufferFrom(
+                    `${wrapper.targetUsername}:${updatedPassword}`,
+                    'ascii'
+                ).toString('base64');
+                const auth = `Basic ${credentials}`;
+                const restOperation = this.restOperationFactory.createRestOperationInstance()
+                    .setUri(
+                        `https://${wrapper.targetHost}:${port}/mgmt/shared/authn/root`
+                    )
+                    .setIsSetBasicAuthHeader(true)
+                    .setBasicAuthorization(auth)
+                    .setContentType('application/json')
+                    .setBody(
+                        {
+                            oldPassword: updatedPassword,
+                            newPassword: updatedPassword
+                        }
+                    );
+                return this.restRequestSender.sendPost(restOperation);
+            })
+            .then(() => {
+                rootUser.oldPassword = updatedPassword;
+                logger.finest('root oldPassword updated.');
+                resolve();
+            })
+            .catch((err) => {
+                if (err.message === 'Old password is incorrect.') {
+                    resolve();
+                    return;
+                }
+                logger.warning(`Error during rootAccountSetup: ${err.message}`);
+                reject(err);
+            });
+    });
 }
 
 /**

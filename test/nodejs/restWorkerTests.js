@@ -1451,6 +1451,132 @@ describe('restWorker', () => {
                     }
                 }));
             });
+
+            describe('root account setup', () => {
+                let patchCalled;
+
+                beforeEach(() => {
+                    patchCalled = false;
+                    SshUtilMock.prototype.executeCommand = () => Promise.resolve();
+                });
+
+                it('should not change root.oldPassword if targetPassphrase and admin password are same', (done) => {
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '1.2.3.4',
+                        targetPort: 443,
+                        targetUsername: 'admin',
+                        targetPassphrase: 'admin',
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'admin'
+                                },
+                                root: {
+                                    class: 'User',
+                                    userType: 'root',
+                                    oldPassword: 'default',
+                                    newPassword: 'barbar'
+                                }
+                            }
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPatch = () => {
+                        // this should not get called, admin password is not changing
+                        patchCalled = true;
+                    };
+
+                    restWorker.restRequestSender.sendPost = (restOperation) => {
+                        // this is not called for root password check
+                        // this is called once for passToTcw and will have body.id
+                        assert.ok(!patchCalled);
+                        assert.notStrictEqual(restOperation.body.id, undefined);
+                        done();
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
+
+                it('should check the root password when admin password changes and targetPassphrase is set', (done) => {
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '1.2.3.4',
+                        targetPort: 443,
+                        targetUsername: 'admin',
+                        targetPassphrase: 'admin',
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'f5site02'
+                                },
+                                root: {
+                                    class: 'User',
+                                    userType: 'root',
+                                    oldPassword: 'default',
+                                    newPassword: 'barbar'
+                                }
+                            }
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPatch = (restOperation) => {
+                        // this is called when initialPassword changes
+                        assert.notStrictEqual(restOperation.body.oldPassword, restOperation.body.password);
+                    };
+
+                    restWorker.restRequestSender.sendPost = (restOperation) => {
+                        // this is called when root password is tested
+                        assert.strictEqual(restOperation.body.oldPassword, 'f5site02');
+                        assert.strictEqual(restOperation.body.newPassword, 'f5site02');
+                        done();
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
+
+                it('should check the root password when admin password changes and targetSshKey is set', (done) => {
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '1.2.3.4',
+                        targetPort: 443,
+                        targetUsername: 'admin',
+                        targetSshKey: {
+                            path: '~/.ssh/id_rsa'
+                        },
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'f5site02'
+                                },
+                                root: {
+                                    class: 'User',
+                                    userType: 'root',
+                                    oldPassword: 'default',
+                                    newPassword: 'barbar'
+                                }
+                            }
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPatch = (restOperation) => {
+                        // this is called when initialPassword changes
+                        assert.notStrictEqual(restOperation.body.oldPassword, restOperation.body.password);
+                    };
+
+                    restWorker.restRequestSender.sendPost = (restOperation) => {
+                        // this is called when root password is tested
+                        assert.strictEqual(restOperation.body.oldPassword, 'f5site02');
+                        assert.strictEqual(restOperation.body.newPassword, 'f5site02');
+                        done();
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
+            });
         });
     });
 });
