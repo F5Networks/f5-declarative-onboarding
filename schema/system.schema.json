@@ -298,7 +298,7 @@
         {
             "if": { "properties": { "class": { "const": "SyslogRemoteServer" } } },
             "then": {
-                "required": ["class"],
+                "required": ["class", "host"],
                 "properties": {
                     "class": {
                         "description": "Indicates that this property contains Syslog Remote Server Information",
