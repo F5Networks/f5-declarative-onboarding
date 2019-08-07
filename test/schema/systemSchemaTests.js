@@ -706,6 +706,15 @@ describe('system.schema.json', () => {
 
             assert.ok(validate(data), getErrorString(validate));
         });
+
+        it('should fail when "host" not specified ', () => {
+            const data = {
+                "class": "SyslogRemoteServer"
+            };
+
+            assert.strictEqual(validate(data), false, 'host should be required');
+            assert.notStrictEqual(getErrorString().indexOf('should have required property \'host\''), -1);
+        });
     });
 });
 

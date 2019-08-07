@@ -420,7 +420,7 @@ function mapProperties(item, index) {
             }
         }
 
-        if (mappedItem[property.id]) {
+        if (typeof mappedItem[property.id] !== 'undefined') {
             // If property is a reference, strip the /Common if it is there
             // Either the user specified it without /Commmon in their declaration
             // or we replaced the user value with just the last part because it looks
