@@ -262,6 +262,10 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
         it('should configure ldap', () => {
             assert.ok(testLdapAuth(body.Common.myAuth.ldap, currentState));
         });
+
+        it('should configure tacacs', () => {
+            assert.ok(testTacacsAuth(body.Common.myAuth.tacacs, currentState));
+        });
     });
 
     describe('Test Licensing', function testLicensing() {
@@ -737,6 +741,18 @@ function testLdapAuth(target, response) {
             'groupMemberAttribute', 'idleTimeout', 'ignoreAuthInfoUnavailable',
             'ignoreUnknownUser', 'loginAttribute', 'port', 'searchScope', 'searchBaseDn',
             'searchTimeout', 'servers', 'userTemplate', 'version'
+        ]
+    );
+}
+
+function testTacacsAuth(target, response) {
+    const tacacsResp = response.Authentication.tacacs;
+    return compareSimple(
+        target,
+        tacacsResp,
+        [
+            'accounting', 'authentication', 'debug', 'encryption', 'protocol', 'secret',
+            'servers', 'service'
         ]
     );
 }

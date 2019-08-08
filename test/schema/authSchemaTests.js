@@ -236,6 +236,100 @@ describe('auth.schema.json', () => {
         });
     });
 
+    describe('Remote - TACACS', () => {
+        describe('valid', () => {
+            it('should validate remote TACACS', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "tacacs",
+                    "tacacs": {
+                        "servers": [
+                            "my.host.com",
+                            "1.2.3.4",
+                            "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+                        ],
+                        "accounting": "send-to-all-servers",
+                        "authentication": "use-all-servers",
+                        "debug": true,
+                        "encryption": true,
+                        "protocol": "ip",
+                        "secret": "test",
+                        "service": "ppp"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should fail if no tacacs is provided', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "tacacs"
+                };
+
+                assert.strictEqual(validate(data), false, 'tacacs property should be mandatory for tacacs authentication');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": ".tacacs"'), -1);
+            });
+
+            it('should fail if empty servers array', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "tacacs",
+                    "tacacs": {
+                        "servers": [],
+                        "secret": "test",
+                        "service": "ppp"
+                    }
+                };
+
+                assert.strictEqual(validate(data), false, 'servers property should be mandatory for tacacs authentication');
+            });
+
+            it('should fail if no servers are provided', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "tacacs",
+                    "tacacs": {
+                        "secret": "test",
+                        "service": "ppp"
+                    }
+                };
+
+                assert.strictEqual(validate(data), false, 'servers property should be mandatory for tacacs authentication');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "servers"'), -1);
+            });
+
+            it('should fail if no secret are provided', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "tacacs",
+                    "tacacs": {
+                        "servers": ["1.1.1.1"],
+                        "service": "ppp"
+                    }
+                };
+
+                assert.strictEqual(validate(data), false, 'secret property should be mandatory for tacacs authentication');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "secret"'), -1);
+            });
+
+            it('should fail if no service are provided', () => {
+                const data = {
+                    "class": "Authentication",
+                    "enabledSourceType": "tacacs",
+                    "tacacs": {
+                        "servers": ["1.1.1.1"],
+                        "secret": "test"
+                    }
+                };
+
+                assert.strictEqual(validate(data), false, 'service property should be mandatory for tacacs authentication');
+                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "service"'), -1);
+            });
+        });
+    });
+
     describe('Remote - LDAP', () => {
         describe('valid', () => {
             it('should validate remote LDAP', () => {

@@ -5,6 +5,7 @@
 + Resolve [Issue 53](https://github.com/F5Networks/f5-declarative-onboarding/issues/53)
 + Add support for Authentication class
 + Add support for Authentication - Radius
++ Add support for Authentication - TACACS
 + Add support for Remote Role Groups
 + Add support for Authentication - LDAP
 + Allow 'none' as valid value for configsyncIp (ConfigSync class)

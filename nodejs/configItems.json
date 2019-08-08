@@ -191,6 +191,25 @@
         ]
     },
     {
+        "path": "/tm/auth/tacacs",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["tacacs"],
+            "skipWhenOmitted": true
+        },
+        "properties": [
+            { "id": "accounting" },
+            { "id": "authentication" },
+            { "id": "debug", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "encryption", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "protocol" },
+            { "id": "secret" },
+            { "id": "servers" },
+            { "id": "service" }
+        ],
+        "nameless": true
+    },
+    {
         "path": "/tm/net/route-domain",
         "schemaClass": "RouteDomain",
         "properties": [
