@@ -108,6 +108,101 @@ describe('authHandler', () => {
         });
     });
 
+    describe('tacacs', () => {
+        it('should be able to process a tacacs with default values', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'local',
+                        fallback: true,
+                        tacacs: {
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            secret: 'test',
+                            service: 'ppp'
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathsSent[0], PATHS.AuthTacacs);
+                    assert.deepStrictEqual(
+                        dataSent[0],
+                        {
+                            name: AUTH.SUBCLASSES_NAME,
+                            partition: 'Common',
+                            accounting: 'send-to-first-server',
+                            authentication: 'use-first-server',
+                            debug: 'disabled',
+                            encryption: 'enabled',
+                            secret: 'test',
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            service: 'ppp'
+                        }
+                    );
+                });
+        });
+
+        it('should be able to process a tacacs with custom values', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'local',
+                        fallback: true,
+                        tacacs: {
+                            accounting: 'send-to-all-servers',
+                            authentication: 'use-all-servers',
+                            debug: true,
+                            encryption: false,
+                            protocol: 'http',
+
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            secret: 'test',
+                            service: 'shell'
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathsSent[0], PATHS.AuthTacacs);
+                    assert.deepStrictEqual(
+                        dataSent[0],
+                        {
+                            name: AUTH.SUBCLASSES_NAME,
+                            partition: 'Common',
+                            accounting: 'send-to-all-servers',
+                            authentication: 'use-all-servers',
+                            debug: 'enabled',
+                            encryption: 'disabled',
+                            protocol: 'http',
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            secret: 'test',
+                            service: 'shell'
+                        }
+                    );
+                });
+        });
+    });
+
     describe('ldap', () => {
         it('should be able to process a ldap with default values', () => {
             const declaration = {

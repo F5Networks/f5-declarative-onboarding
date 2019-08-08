@@ -109,6 +109,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
             Common: {
                 Authentication: {
                     radius: {},
+                    tacacs: {},
                     ldap: {}
                 }
             }
@@ -118,8 +119,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
             const deleteHandler = new DeleteHandler(declaration, bigIpMock);
             deleteHandler.process()
                 .then(() => {
+                    assert.strictEqual(deletedPaths.length, 5);
                     assert.strictEqual(deletedPaths[0], `/tm/auth/radius/${AUTH.SUBCLASSES_NAME}`);
-                    assert.strictEqual(deletedPaths[3], `/tm/auth/ldap/${AUTH.SUBCLASSES_NAME}`);
+                    assert.strictEqual(deletedPaths[1], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.PRIMARY_SERVER}`);
+                    assert.strictEqual(deletedPaths[2], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`);
+                    assert.strictEqual(deletedPaths[3], `/tm/auth/tacacs/${AUTH.SUBCLASSES_NAME}`);
+                    assert.strictEqual(deletedPaths[4], `/tm/auth/ldap/${AUTH.SUBCLASSES_NAME}`);
                     resolve();
                 })
                 .catch((err) => {

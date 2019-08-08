@@ -120,7 +120,7 @@ function getAuthClassPromises() {
     const auth = this.declaration.Common.Authentication;
     const authPromises = [];
     if (auth) {
-        const authToDelete = ['radius', 'ldap'];
+        const authToDelete = ['radius', 'ldap', 'tacacs'];
         Object.keys(auth).forEach((authItem) => {
             if (authToDelete.indexOf(authItem) > -1) {
                 authPromises.push(
