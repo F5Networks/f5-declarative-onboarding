@@ -211,6 +211,59 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
         });
     });
 
+    describe('Test Auth Settings', function testAuth() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        let body;
+        let currentState;
+
+        before(() => {
+            const thisMachine = machines[2];
+            const bigipAddress = thisMachine.ip;
+            const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
+            const bodyFile = `${BODIES}/auth.json`;
+            return new Promise((resolve, reject) => {
+                common.readFile(bodyFile)
+                    .then((fileRead) => {
+                        body = JSON.parse(fileRead);
+                    })
+                    .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
+                    .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
+                        constants.HTTP_SUCCESS))
+                    .then((response) => {
+                        currentState = response.currentConfig.Common;
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, auth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should configure main auth settings', () => {
+            assert.ok(testMainAuth(body.Common.myAuth, currentState));
+        });
+
+        it('should configure remoteUsersDefaults', () => {
+            assert.ok(testRemoteUsersDefaults(body.Common.myAuth.remoteUsersDefaults, currentState));
+        });
+
+        it('should configure radius', () => {
+            assert.ok(testRadiusAuth(body.Common.myAuth.radius, currentState));
+        });
+
+        it('should configure ldap', () => {
+            assert.ok(testLdapAuth(body.Common.myAuth.ldap, currentState));
+        });
+    });
+
     describe('Test Licensing', function testLicensing() {
         this.timeout(1000 * 60 * 30); // 30 minutes
 
@@ -420,59 +473,6 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
                     reject(err);
                 });
         }));
-    });
-
-    describe('Test Auth Settings', function testAuth() {
-        this.timeout(1000 * 60 * 30); // 30 minutes
-        let body;
-        let currentState;
-
-        before(() => {
-            const thisMachine = machines[1];
-            const bigipAddress = thisMachine.ip;
-            const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
-            const bodyFile = `${BODIES}/auth.json`;
-            return new Promise((resolve, reject) => {
-                common.readFile(bodyFile)
-                    .then((fileRead) => {
-                        body = JSON.parse(fileRead);
-                    })
-                    .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
-                    .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
-                        constants.HTTP_SUCCESS))
-                    .then((response) => {
-                        currentState = response.currentConfig.Common;
-                        resolve();
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        return common.dumpDeclaration(bigipAddress, auth);
-                    })
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
-        });
-
-        it('should configure main auth settings', () => {
-            assert.ok(testMainAuth(body.Common.myAuth, currentState));
-        });
-
-        it('should configure remoteUsersDefaults', () => {
-            assert.ok(testRemoteUsersDefaults(body.Common.myAuth.remoteUsersDefaults, currentState));
-        });
-
-        it('should configure radius', () => {
-            assert.ok(testRadiusAuth(body.Common.myAuth.radius, currentState));
-        });
-
-        it('should configure ldap', () => {
-            assert.ok(testLdapAuth(body.Common.myAuth.ldap, currentState));
-        });
     });
 
     describe('Test Rollbacking', function testRollbacking() {
