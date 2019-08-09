@@ -996,12 +996,24 @@ function initialPasswordSetViaSsh(wrapper) {
                 user.password = dereferenced;
             }
 
-            sshUtil.executeCommand(`modify auth user ${wrapper.targetUsername} password ${user.password}`)
+            let command = `modify auth user ${wrapper.targetUsername} password ${user.password}`;
+            sshUtil.executeCommand(command)
                 .then(() => {
                     resolve(user.password);
                 })
                 .catch((err) => {
-                    reject(err);
+                    if (typeof err.message === 'string' && err.message.includes('command not found')) {
+                        command = `tmsh ${command}`;
+                        sshUtil.executeCommand(command)
+                            .then(() => {
+                                resolve(user.password);
+                            })
+                            .catch((er) => {
+                                reject(er);
+                            });
+                    } else {
+                        reject(err);
+                    }
                 });
         } else {
             resolve();
