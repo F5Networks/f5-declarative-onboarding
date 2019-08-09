@@ -13,6 +13,7 @@
 + Add support for Syslog RemoteServers
 + Add schema reference documentation
 + DeviceGroup.owner is now required
++ When targetSshKey is used try bash shell to modify targetUsername password if tmsh shell fails.
 
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)

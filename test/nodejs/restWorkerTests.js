@@ -1273,7 +1273,43 @@ describe('restWorker', () => {
                     }
                 }));
 
-                it('should ssh to BIG-IP if an ssh key is provided', () => new Promise((resolve, reject) => {
+                it('should ssh to BIG-IP if an ssh key is provided and shell is bash', (done) => {
+                    let executeCount = 0;
+                    SshUtilMock.prototype.executeCommand = (command) => {
+                        executeCount += 1;
+                        sshCommand = command;
+                        if (executeCount === 1) { // first attempt tries tmsh
+                            return Promise.reject(new Error('command not found'));
+                        }
+                        return Promise.resolve(); // second attempt tries bash
+                    };
+
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '1.2.3.4',
+                        targetUsername: 'admin',
+                        targetSshKey: {
+                            path: '~/.ssh/id_rsa'
+                        },
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'foofoo'
+                                }
+                            }
+                        }
+                    };
+
+                    restOperationMock.complete = () => {
+                        assert.strictEqual(sshCommand, 'tmsh modify auth user admin password foofoo');
+                        done();
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
+
+                it('should ssh to BIG-IP if an ssh key is provided and shell is tmsh', (done) => {
                     declaration = {
                         class: 'DO',
                         targetHost: '1.2.3.4',
@@ -1293,15 +1329,11 @@ describe('restWorker', () => {
 
                     restOperationMock.complete = () => {
                         assert.strictEqual(sshCommand, 'modify auth user admin password foofoo');
-                        resolve();
+                        done();
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
-                }));
+                    restWorker.onPost(restOperationMock);
+                });
 
                 it('should dereference user password if it is a pointer', () => new Promise((resolve, reject) => {
                     declaration = {
