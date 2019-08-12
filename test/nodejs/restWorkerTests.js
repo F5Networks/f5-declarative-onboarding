@@ -640,6 +640,8 @@ describe('restWorker', () => {
 
     describe('onPost', () => {
         const validatorMock = {};
+        let updateResultSpy;
+
         let restWorker;
         let bigIpOptionsCalled;
         let saveCalled;
@@ -675,8 +677,10 @@ describe('restWorker', () => {
 
             restWorker = new RestWorker();
             restWorker.validator = validatorMock;
+            const doState = new State();
+            updateResultSpy = sinon.spy(doState, 'updateResult');
             restWorker.state = {
-                doState: new State()
+                doState
             };
             restWorker.platform = 'BIG-IP';
         });
@@ -845,7 +849,7 @@ describe('restWorker', () => {
             }
         }));
 
-        it('should set status to rolling back if an error occurs', () => {
+        it('should set status to rolled back if an error occurs', () => {
             const rollbackReason = 'this it the rollback reason';
             let processCallCount = 0;
             return new Promise((resolve, reject) => {
@@ -864,6 +868,46 @@ describe('restWorker', () => {
                     assert.strictEqual(responseBody.result.status, STATUS.STATUS_ERROR);
                     assert.notStrictEqual(responseBody.result.message.indexOf('rolled back'), -1);
                     assert.strictEqual(responseBody.result.errors[0], rollbackReason);
+                    resolve();
+                };
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should set task status to [running -> rolling back -> error] if an error occurs', () => {
+            const rollbackReason = 'verify rollback in progress';
+            let processCallCount = 0;
+
+            return new Promise((resolve, reject) => {
+                DeclarationHandlerMock.prototype.process = () => {
+                    // For this test, we want to reject the first call to simulate
+                    // an error but resolve the second call to simulate successful
+                    // rollback
+                    processCallCount += 1;
+                    if (processCallCount === 1) {
+                        return Promise.reject(new Error(rollbackReason));
+                    }
+                    return Promise.resolve();
+                };
+
+                restOperationMock.complete = () => {
+                    const runningArgs = updateResultSpy.getCall(0).args;
+                    assert.deepStrictEqual(runningArgs[1], 202);
+                    assert.deepStrictEqual(runningArgs[2], STATUS.STATUS_RUNNING);
+
+                    const rollingBackArgs = updateResultSpy.getCall(1).args;
+                    assert.deepStrictEqual(rollingBackArgs[1], 202);
+                    assert.deepStrictEqual(rollingBackArgs[2], STATUS.STATUS_ROLLING_BACK);
+
+                    const rolledBackArgs = updateResultSpy.getCall(2).args;
+                    assert.deepStrictEqual(rolledBackArgs[1], 500);
+                    assert.deepStrictEqual(rolledBackArgs[2], STATUS.STATUS_ERROR);
+
                     resolve();
                 };
 

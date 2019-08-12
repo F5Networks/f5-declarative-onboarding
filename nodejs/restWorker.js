@@ -421,10 +421,9 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
             logger.info('Rolling back configuration');
-            const deconCode = err.code === 400 ? 422 : (err.code || 500);
             this.state.doState.updateResult(
                 taskId,
-                deconCode,
+                202,
                 STATUS.STATUS_ROLLING_BACK,
                 'invalid config - rolling back',
                 err.message
@@ -439,8 +438,14 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
                             this.state.doState.getTask(taskId)
                         ))
                         .then(() => {
-                            this.state.doState.setStatus(taskId, STATUS.STATUS_ERROR);
-                            this.state.doState.setMessage(taskId, 'invalid config - rolled back');
+                            const deconCode = err.code === 400 ? 422 : (err.code || 500);
+                            this.state.doState.updateResult(
+                                taskId,
+                                deconCode,
+                                STATUS.STATUS_ERROR,
+                                'invalid config - rolled back',
+                                err.message
+                            );
                             return save.call(this);
                         })
                         .catch((rollbackError) => {
