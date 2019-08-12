@@ -18,7 +18,6 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
-const httpUtil = require('../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
 const State = require('../../nodejs/state');
 const RealValidator = require('../../nodejs/validator');
 const STATUS = require('../../nodejs/sharedConstants').STATUS;
@@ -38,6 +37,7 @@ describe('restWorker', () => {
     let responseBody;
     let statusCode;
     let SshUtilMock;
+    let httpUtilMock;
 
     before(() => {
         doUtilMock = require('../../nodejs/doUtil');
@@ -46,6 +46,7 @@ describe('restWorker', () => {
         DeclarationHandlerMock = require('../../nodejs/declarationHandler');
         SshUtilMock = require('../../nodejs/sshUtil');
         RestWorker = require('../../nodejs/restWorker');
+        httpUtilMock = require('../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
     });
 
     beforeEach(() => {
@@ -914,7 +915,7 @@ describe('restWorker', () => {
 
             before(() => {
                 doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IQ');
-                stubHttpUtil = sinon.stub(httpUtil, 'post').callsFake((webhookReceived, options) => {
+                stubHttpUtil = sinon.stub(httpUtilMock, 'post').callsFake((webhookReceived, options) => {
                     webhookSaved = webhookReceived;
                     opstionsSaved = options.body.declaration.webhook;
                     return Promise.resolve();
@@ -1257,6 +1258,7 @@ describe('restWorker', () => {
                         }
                     };
 
+                    restOperationMock.complete = () => {};
                     restWorker.restRequestSender.sendPatch = (restOperation) => {
                         assert.strictEqual(
                             restOperation.getBody().password,

@@ -583,13 +583,13 @@ describe('networkHandler', () => {
                         rd1: {
                             name: 'rd1',
                             id: 123,
-                            bandwidthControllerPolicy: 'bandPolicy',
+                            bandwidthControllerPolicy: 'bandwidthControllerPolicy',
                             connectionLimit: 1000000,
-                            flowEvictionPolicy: 'default-eviction-policy',
-                            ipIntelligencePolicy: 'ipIntelligence',
-                            enforcedFirewallPolicy: 'fwPolicy',
-                            stagedFirewallPolicy: 'fwPolicy',
-                            securityNatPolicy: 'securePolicy',
+                            flowEvictionPolicy: 'flowEvictionPolicy',
+                            ipIntelligencePolicy: 'ipIntelligencePolicy',
+                            enforcedFirewallPolicy: 'enforcedFirewallPolicy',
+                            stagedFirewallPolicy: 'stagedFirewallPolicy',
+                            securityNatPolicy: 'securityNatPolicy',
                             servicePolicy: 'servicePolicy',
                             strict: false,
                             routingProtocols: [
@@ -613,31 +613,22 @@ describe('networkHandler', () => {
             return networkHandler.process()
                 .then(() => {
                     const routeDomainData = dataSent[PATHS.RouteDomain];
-                    assert.strictEqual(routeDomainData[0].name, declaration.Common.RouteDomain.rd1.name);
-                    assert.strictEqual(routeDomainData[0].id, declaration.Common.RouteDomain.rd1.id);
+                    assert.strictEqual(routeDomainData[0].name, 'rd1');
+                    assert.strictEqual(routeDomainData[0].id, 123);
                     assert.strictEqual(routeDomainData[0].partition, 'Common');
-                    assert.strictEqual(routeDomainData[0].bwcPolicy,
-                        declaration.Common.RouteDomain.rd1.bandwidthControllerPolicy);
-                    assert.strictEqual(routeDomainData[0].flowEvictionPolicy,
-                        declaration.Common.RouteDomain.rd1.flowEvictionPolicy);
-                    assert.strictEqual(routeDomainData[0].fwEnforcedPolicy,
-                        declaration.Common.RouteDomain.rd1.enforcedFirewallPolicy);
-                    assert.strictEqual(routeDomainData[0].fwStagedPolicy,
-                        declaration.Common.RouteDomain.rd1.fwStagedPolicy);
-                    assert.strictEqual(routeDomainData[0].ipIntelligencePolicy,
-                        declaration.Common.RouteDomain.rd1.ipIntelligencePolicy);
-                    assert.strictEqual(routeDomainData[0].securityNatPolicy,
-                        declaration.Common.RouteDomain.rd1.securityNatPolicy);
-                    assert.strictEqual(routeDomainData[0].servicePolicy,
-                        declaration.Common.RouteDomain.rd1.servicePolicy);
+                    assert.strictEqual(routeDomainData[0].bwcPolicy, 'bandwidthControllerPolicy');
+                    assert.strictEqual(routeDomainData[0].flowEvictionPolicy, 'flowEvictionPolicy');
+                    assert.strictEqual(routeDomainData[0].fwEnforcedPolicy, 'enforcedFirewallPolicy');
+                    assert.strictEqual(routeDomainData[0].fwStagedPolicy, 'stagedFirewallPolicy');
+                    assert.strictEqual(routeDomainData[0].ipIntelligencePolicy, 'ipIntelligencePolicy');
+                    assert.strictEqual(routeDomainData[0].securityNatPolicy, 'securityNatPolicy');
+                    assert.strictEqual(routeDomainData[0].servicePolicy, 'servicePolicy');
                     assert.strictEqual(routeDomainData[0].strict, 'disabled');
-                    assert.strictEqual(routeDomainData[0].routingProtocol,
-                        declaration.Common.RouteDomain.rd1.routingProtocols);
-                    assert.strictEqual(routeDomainData[0].vlans, declaration.Common.RouteDomain.rd1.vlans);
-                    assert.strictEqual(routeDomainData[0].connectionLimit,
-                        declaration.Common.RouteDomain.rd1.connectionLimit);
-                    assert.strictEqual(routeDomainData[1].name, declaration.Common.RouteDomain.rd2.name);
-                    assert.strictEqual(routeDomainData[1].id, declaration.Common.RouteDomain.rd2.id);
+                    assert.deepStrictEqual(routeDomainData[0].routingProtocol, ['RIP']);
+                    assert.deepStrictEqual(routeDomainData[0].vlans, ['vlan1', 'vlan2']);
+                    assert.strictEqual(routeDomainData[0].connectionLimit, 1000000);
+                    assert.strictEqual(routeDomainData[1].name, 'rd2');
+                    assert.strictEqual(routeDomainData[1].id, 1234);
                     assert.strictEqual(routeDomainData[1].partition, 'Common');
                     assert.strictEqual(routeDomainData[1].strict, 'enabled');
                 });

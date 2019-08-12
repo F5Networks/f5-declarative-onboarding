@@ -287,7 +287,7 @@ function handleRouteDomain() {
                 bwcPolicy: routeDomain.bandwidthControllerPolicy,
                 flowEvictionPolicy: routeDomain.flowEvictionPolicy,
                 fwEnforcedPolicy: routeDomain.enforcedFirewallPolicy,
-                fwStagedPolicy: routeDomain.stageFirewallPolicy,
+                fwStagedPolicy: routeDomain.stagedFirewallPolicy,
                 ipIntelligencePolicy: routeDomain.ipIntelligencePolicy,
                 securityNatPolicy: routeDomain.securityNatPolicy,
                 servicePolicy: routeDomain.servicePolicy,
