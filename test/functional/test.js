@@ -751,7 +751,7 @@ function testTacacsAuth(target, response) {
         target,
         tacacsResp,
         [
-            'accounting', 'authentication', 'debug', 'encryption', 'protocol', 'secret',
+            'accounting', 'authentication', 'debug', 'encryption', 'protocol',
             'servers', 'service'
         ]
     );
