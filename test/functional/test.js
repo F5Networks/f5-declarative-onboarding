@@ -541,6 +541,85 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
             assert.ok(testRoute(body.Route.myRoute, currentState));
         });
     });
+
+    describe('Test Inspect Endpoint', function testAuth() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        const inspectEndpoint = `${constants.DO_API}/inspect`;
+
+        let thisMachine;
+        let authData;
+
+        before(() => {
+            console.log(JSON.stringify(machines));
+            thisMachine = machines[1];
+            authData = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
+        });
+
+        /**
+         * REST API returns every time different encrypted string for the same secret value.
+         * Better to remove secrets from declaration.
+         * Ideally it would be better to decrypt every secret which starts with $M.
+         */
+        const removeSecrets = (declaration) => {
+            const currentAuth = declaration.declaration.Common.currentAuthentication;
+            if (typeof currentAuth !== 'undefined') {
+                if (typeof currentAuth.ldap !== 'undefined') {
+                    currentAuth.ldap.bindPassword = '';
+                }
+                if (typeof currentAuth.radius !== 'undefined'
+                        && typeof currentAuth.radius.servers !== 'undefined') {
+                    const radiusServers = currentAuth.radius.servers;
+                    Object.keys(radiusServers).forEach((rsName) => {
+                        radiusServers[rsName].secret = '';
+                    });
+                }
+            }
+        };
+
+        it('should get declaration with current device\'s configuration', () => common.testRequest(
+            null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
+            authData, constants.HTTP_SUCCESS, 'GET'
+        )
+            .then(JSON.parse)
+            .then((body) => {
+                assert.notStrictEqual(body[0].declaration, undefined, 'Should have "declaration" property');
+            }));
+
+        it('should post declaration with current device\'s configuration', () => {
+            let originDeclaration;
+
+            return common.testRequest(
+                null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
+                authData, constants.HTTP_SUCCESS, 'GET'
+            )
+                .then(JSON.parse)
+                .then((body) => {
+                    originDeclaration = body[0].declaration;
+                    assert.notStrictEqual(originDeclaration, undefined, 'Should have "declaration" property');
+                    // apply declaration
+                    return common.testRequest(
+                        originDeclaration, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
+                        authData, constants.HTTP_SUCCESS, 'POST'
+                    );
+                })
+                // fetch declaration again
+                .then(() => common.testRequest(
+                    null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
+                    authData, constants.HTTP_SUCCESS, 'GET'
+                ))
+                .then(JSON.parse)
+                .then((body) => {
+                    // declaration should be the same
+                    const declaration = body[0].declaration;
+                    removeSecrets(declaration);
+                    removeSecrets(originDeclaration);
+                    assert.deepStrictEqual(declaration, originDeclaration, 'Should match original declaration');
+                });
+        });
+    });
 });
 
 /**

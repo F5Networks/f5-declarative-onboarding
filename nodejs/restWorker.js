@@ -29,6 +29,7 @@ const Logger = require('./logger');
 const Response = require('./response');
 const ConfigResponse = require('./configResponse');
 const InfoResponse = require('./infoResponse');
+const InspectResponse = require('./inspectResponse');
 const TaskResponse = require('./taskResponse');
 const State = require('./state');
 const SshUtil = require('./sshUtil');
@@ -1097,18 +1098,23 @@ function sendResponse(restOperation, endpoint, itemId) {
     /* jshint validthis: true */
 
     const response = forgeResponse.call(this, restOperation, endpoint, itemId);
-    const body = response.getResponse();
-    restOperation.setBody(body);
+    response.getResponse()
+        .then((body) => {
+            restOperation.setBody(body);
+            if (Array.isArray(response)) {
+                restOperation.setStatusCode(200);
+            } else if (body && body.result && body.result.code) {
+                restOperation.setStatusCode(body.result.code);
+            } else {
+                restOperation.setStatusCode(200);
+            }
 
-    if (Array.isArray(response)) {
-        restOperation.setStatusCode(200);
-    } else if (body && body.result && body.result.code) {
-        restOperation.setStatusCode(body.result.code);
-    } else {
-        restOperation.setStatusCode(200);
-    }
-
-    restOperation.complete();
+            restOperation.complete();
+        })
+        .catch((err) => {
+            logger.error(`sendResponse failed: ${JSON.stringify(err)}`);
+            sendError(restOperation, 500, err.message);
+        });
 }
 
 /**
@@ -1131,6 +1137,9 @@ function forgeResponse(restOperation, endpoint, itemId) {
         break;
     case ENDPOINTS.INFO:
         responder = new InfoResponse();
+        break;
+    case ENDPOINTS.INSPECT:
+        responder = new InspectResponse(restOperation.getUri().query);
         break;
     case ENDPOINTS.TASK: {
         responder = new TaskResponse(doState);
@@ -1161,16 +1170,21 @@ function postWebhook(restOperation, endpoint, itemId, webhook) {
     }
     if (endpoint === ENDPOINTS.TASK) {
         const response = forgeResponse.call(this, restOperation, endpoint, itemId);
-        const body = response.getResponse();
-        const options = {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body
-        };
-        httpUtil.post(webhook, options)
+        response.getResponse()
+            .then((body) => {
+                const options = {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body
+                };
+                return httpUtil.post(webhook, options)
+                    .catch((err) => {
+                        logger.fine(`Webhook failed POST: ${JSON.stringify(err)}`);
+                    });
+            })
             .catch((err) => {
-                logger.fine(`Webhook failed POST: ${JSON.stringify(err)}`);
+                logger.error(`postWebhook failed: ${JSON.stringify(err)}`);
             });
     }
 }

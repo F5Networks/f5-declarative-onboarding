@@ -3,7 +3,10 @@
         "path": "/tm/sys/global-settings",
         "properties": [
             { "id": "hostname" }
-        ]
+        ],
+        "declaration": {
+            "name": "hostname"
+        }
     },
     {
         "path": "/tm/sys/db",
@@ -12,7 +15,8 @@
             { "id": "value" }
         ],
         "singleValue": true,
-        "silent": true
+        "silent": true,
+        "declaration": false
     },
     {
         "path": "/tm/sys/provision",
@@ -20,7 +24,16 @@
         "properties": [
             { "id": "level" }
         ],
-        "singleValue": true
+        "singleValue": true,
+        "declaration": {
+            "properties": [
+                { 
+                    "$comment": "SSLO is not supported yet",
+                    "id": "sslo",
+                    "remove": true
+                }
+            ]
+        }
     },
     {
         "path": "/tm/sys/ntp",
@@ -92,7 +105,13 @@
                 ]
             }
         ],
-        "nameless": true
+        "nameless": true,
+        "declaration": {
+            "$comment": "Should remove entire object if unicastAddress is 'none' (not configured)",
+            "customFunctions": [
+                { "id": "removeIfUnicastAddrNone" }
+            ]
+        }
     },
     {
         "path": "/tm/cm/device-group",
@@ -111,20 +130,28 @@
             { "name": "^datasync-.+-dg$" },
             { "name": "^device_trust_group$" },
             { "name": "^gtm$" }
-        ]
+        ],
+        "declaration": false
     },
     {
         "path": "/tm/analytics/global-settings",
         "schemaClass": "Analytics",
         "requiredModule": "avr",
         "properties": [
-            { "id": "avrdDebugMode", "truth": "enabled", "falsehood": "disabled" },
-            { "id": "avrdInterval" },
+            { "id": "avrdDebugMode", "newId": "debugEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "avrdInterval", "newId": "interval" },
             { "id": "offboxProtocol" },
             { "id": "offboxTcpAddresses" },
             { "id": "offboxTcpPort" },
-            { "id": "useOffbox", "truth": "enabled", "falsehood": "disabled" }
-        ]
+            { "id": "useOffbox", "newId": "offboxEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "sourceId" },
+            { "id": "tenantId" }
+        ],
+        "declaration": {
+            "properties": [
+                { "id": "offboxProtocol", "removeIfValue": "none" }
+            ]
+        }
     },
     {
         "path": "/tm/sys/management-route",
@@ -141,7 +168,12 @@
         "schemaClass": "SyslogRemoteServer",
         "properties": [
             { "id": "remoteServers" }
-        ]
+        ],
+        "declaration": {
+            "properties": [
+                { "id": "localIp", "removeIfValue": "none" }
+            ]
+        }
     },
     {
         "path": "/tm/auth/source",
@@ -150,7 +182,13 @@
             { "id": "type" },
             { "id": "fallback", "truth": "true", "falsehood": "false" }
         ],
-        "nameless": true
+        "nameless": true,
+        "declaration": {
+            "$comment": "Kind like parent object because all auth config will be under 'Authentication' key",
+            "customFunctions": [
+                { "id": "removeIncompleteAuthMethods" }
+            ]
+        }
     },
     {
         "path": "/tm/auth/remote-user",
@@ -187,7 +225,8 @@
         },
         "properties": [
             { "id": "server" },
-            { "id": "port" }
+            { "id": "port" },
+            { "id": "secret" }
         ]
     },
     {
@@ -214,18 +253,23 @@
         "schemaClass": "RouteDomain",
         "properties": [
             { "id": "id" },
-            { "id": "bwcPolicy" },
+            { "id": "bwcPolicy", "newId": "bandWidthControllerPolicy" },
             { "id": "connectionLimit" },
             { "id": "flowEvictionPolicy" },
-            { "id": "fwEnforcedPolicy" },
-            { "id": "fwStagedPolicy" },
+            { "id": "fwEnforcedPolicy", "newId": "enforcedFirewallPolicy" },
+            { "id": "fwStagedPolicy", "newId": "stagedFirewallPolicy" },
             { "id": "ipIntelligencePolicy" },
             { "id": "securityNatPolicy" },
             { "id": "servicePolicy" },
             { "id": "strict", "truth": "enabled", "falsehood": "disabled" },
-            { "id": "routingProtocol" },
+            { "id": "routingProtocol", "newId": "routingProtocols" },
             { "id": "vlans" }
-        ]
+        ],
+        "declaration": {
+            "customFunctions": [
+                { "id": "renameDefaultRouteDomain" }
+            ]
+        } 
     },
     {
         "path": "/tm/auth/remote-role/role-info",
@@ -237,7 +281,12 @@
             { "id": "lineOrder" },
             { "id": "role" },
             { "id": "userPartition" }
-        ]
+        ],
+        "declaration": {
+            "properties": [
+                { "id": "userPartition", "replaceIfValue": "All", "newValue": "all" }
+            ]
+        }
     },
     {
         "path": "/tm/auth/ldap",
