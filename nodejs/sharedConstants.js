@@ -48,6 +48,11 @@ module.exports = {
         AuthRemoteUser: '/tm/auth/remote-user',
         AuthRemoteRole: '/tm/auth/remote-role/role-info',
         AuthLdap: '/tm/auth/ldap',
+        SnmpAgent: '/tm/sys/snmp',
+        SnmpTrapEvents: '/tm/sys/snmp',
+        SnmpUser: '/tm/sys/snmp',
+        SnmpCommunity: '/tm/sys/snmp',
+        SnmpTrapDestination: '/tm/sys/snmp',
         Syslog: '/tm/sys/syslog'
     },
     STATUS: {
@@ -72,7 +77,9 @@ module.exports = {
         'DeviceTrust',
         'Analytics',
         'Authentication',
-        'RemoteAuthRoles'
+        'RemoteAuthRoles',
+        'SnmpAgent',
+        'SnmpTrapEvents'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

@@ -8,10 +8,11 @@
 + Add support for Authentication - TACACS
 + Add support for Remote Role Groups
 + Add support for Authentication - LDAP
-+ Allow 'none' as valid value for configsyncIp (ConfigSync class)
-+ Fix bug in which DO was unable to get/set ManagementRoute's 'gw' property
++ Add support for SNMP Agent and Traps
 + Add support for Syslog RemoteServers
 + Add schema reference documentation
++ Allow 'none' as valid value for configsyncIp (ConfigSync class)
++ Fix bug in which DO was unable to get/set ManagementRoute's 'gw' property
 + DeviceGroup.owner is now required
 + Fix bug in which DO sets task status to ERROR right away while it is still rolling back
 + When targetSshKey is used try bash shell to modify targetUsername password if tmsh shell fails.

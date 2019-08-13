@@ -586,6 +586,51 @@ describe('inspectHandler', () => {
                     }
                 ]
             },
+            '/tm/sys/snmp': {
+                sysContact: 'me@me.com',
+                sysLocation: 'F5 Tower',
+                allowedAddresses: [
+                    '1.2.3.4/32'
+                ],
+                bigipTraps: 'enabled',
+                authTrap: 'disabled',
+                agentTrap: 'enabled'
+            },
+            '/tm/sys/snmp/users': [
+                {
+                    name: '/Common/mySnmpUser',
+                    username: 'my!SnmpUser',
+                    authPassword: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
+                    authProtocol: 'sha',
+                    privacyPassword: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
+                    privacyProtocol: 'aes'
+                }
+            ],
+            '/tm/sys/snmp/communities': [
+                {
+                    name: '/Common/mySnmpCommunity',
+                    ipv6: 'enabled',
+                    communityName: 'my!community',
+                    access: 'ro',
+                    source: 'my community source',
+                    oidSubset: '.2'
+                }
+            ],
+            '/tm/sys/snmp/traps': [
+                {
+                    name: '/Common/myTrapDestination',
+                    version: '3',
+                    host: '1.2.3.4',
+                    port: 8080,
+                    authPassword: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
+                    authProtocol: 'sha',
+                    privacyPassword: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
+                    privacyProtocol: 'aes',
+                    network: 'other',
+                    securityName: 'someSnmpUser',
+                    engineId: '0x80001f8880c6b6067fdacfb558'
+                }
+            ],
             '/tm/auth/remote-user': {
                 defaultPartition: 'Common',
                 defaultRole: 'no-access',
@@ -809,6 +854,57 @@ describe('inspectHandler', () => {
                             stagedFirewallPolicy: 'fwStagedPolicy',
                             strict: true,
                             vlans: ['/Common/http-tunnel', '/Common/socks-tunnel', '/Common/internal']
+                        },
+                        mySnmpUser: {
+                            class: 'SnmpUser',
+                            name: 'my!SnmpUser',
+                            authentication: {
+                                password: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
+                                protocol: 'sha'
+                            },
+                            privacy: {
+                                password: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
+                                protocol: 'aes'
+                            }
+                        },
+                        currentSnmpAgent: {
+                            class: 'SnmpAgent',
+                            contact: 'me@me.com',
+                            location: 'F5 Tower',
+                            allowList: [
+                                '1.2.3.4/32'
+                            ]
+                        },
+                        currentSnmpTrapEvents: {
+                            class: 'SnmpTrapEvents',
+                            agentStartStop: true,
+                            authentication: false,
+                            device: true
+                        },
+                        myTrapDestination: {
+                            class: 'SnmpTrapDestination',
+                            version: '3',
+                            destination: '1.2.3.4',
+                            port: 8080,
+                            network: 'other',
+                            securityName: 'someSnmpUser',
+                            authentication: {
+                                password: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
+                                protocol: 'sha'
+                            },
+                            privacy: {
+                                password: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
+                                protocol: 'aes'
+                            },
+                            engineId: '0x80001f8880c6b6067fdacfb558'
+                        },
+                        mySnmpCommunity: {
+                            class: 'SnmpCommunity',
+                            name: 'my!community',
+                            ipv6: true,
+                            oid: '.2',
+                            source: 'my community source',
+                            access: 'ro'
                         },
                         remotesyslog1: {
                             class: 'SyslogRemoteServer',
@@ -1072,6 +1168,15 @@ describe('inspectHandler', () => {
                                 class: 'Authentication',
                                 fallback: false,
                                 remoteUsersDefaults: {}
+                            },
+                            currentSnmpAgent: {
+                                class: 'SnmpAgent'
+                            },
+                            currentSnmpTrapEvents: {
+                                class: 'SnmpTrapEvents',
+                                agentStartStop: false,
+                                authentication: false,
+                                device: false
                             }
                         }
                     }

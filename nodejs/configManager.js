@@ -62,8 +62,8 @@ class ConfigManager {
      *             {
      *                 id: <property_name>,
      *                 newId: <property_name_to_map_to_in_parsed_declaration>
-     *                 "truth": <mcp_truth_value_if_this_is_boolean>,
-     *                 "falsehood": <mcp_false_value_if_this_is_boolean>
+     *                 truth: <mcp_truth_value_if_this_is_boolean>,
+     *                 falsehood: <mcp_false_value_if_this_is_boolean>
      *             }
      *         ]
      *         references: {
@@ -204,10 +204,11 @@ class ConfigManager {
 
                                     let name = item.name;
 
+                                    if (name.startsWith('/Common/')) {
+                                        name = name.split('/Common/')[1];
+                                    }
+
                                     if (schemaClass === 'RemoteAuthRole') {
-                                        if (name.includes('/Common/')) {
-                                            name = item.name.split('/Common/')[1];
-                                        }
                                         patchedItem.name = name; // The patchedItem needs its name updated too
                                     }
 
@@ -449,11 +450,46 @@ function mapProperties(item, index) {
         }
 
         if (hasVal && property.newId !== undefined) {
-            mappedItem[property.newId] = mappedItem[property.id];
-            delete mappedItem[property.id];
+            mapNewId(mappedItem, property.id, property.newId);
         }
     });
     return mappedItem;
+}
+
+/**
+ * Maps a new id in a config item to the id from iControl REST
+ *
+ * @param {Object} mappedItem - The item we are maaping the id for
+ * @param {String} id - The id in the iControl REST object
+ * @param {String} newId - The new name for the id
+ */
+function mapNewId(mappedItem, id, newId) {
+    if (newId.indexOf('.') > 0) {
+        // If the newId contains a '.', then map it into an object. In other words,
+        // if id is 'myId' and newId is 'outer.inner', and and mappedItem.myId = foo
+        // create this in the mappedItem:
+        //     mappedItem: {
+        //          outer: {
+        //              inner: 'foo'
+        //          }
+        //     }
+        const parts = newId.split('.');
+
+        parts.reduce((acc, cur, idx) => {
+            if (idx !== parts.length - 1) {
+                if (!acc[cur]) {
+                    acc[cur] = {};
+                }
+                return acc[cur];
+            }
+
+            acc[parts[idx]] = mappedItem[id];
+            return acc;
+        }, mappedItem);
+    } else {
+        mappedItem[newId] = mappedItem[id];
+    }
+    delete mappedItem[id];
 }
 
 /**

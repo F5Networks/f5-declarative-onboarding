@@ -85,6 +85,10 @@ class SystemHandler {
                 return handleLicense.call(this);
             })
             .then(() => {
+                logger.fine('Checking SNMP.');
+                return handleSnmp.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking Syslog.');
                 return handleSyslog.call(this);
             })
@@ -416,6 +420,113 @@ function handleManagementRoute() {
             logger.severe(`Error creating management routes: ${err.message}`);
             throw err;
         });
+}
+
+function handleSnmp() {
+    let promise = Promise.resolve();
+
+    const agent = this.declaration.Common.SnmpAgent;
+    const users = this.declaration.Common.SnmpUser;
+    const communities = this.declaration.Common.SnmpCommunity;
+    const trapEvents = this.declaration.Common.SnmpTrapEvents;
+    const trapDestinations = this.declaration.Common.SnmpTrapDestination;
+
+    if (agent) {
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpAgent,
+            {
+                sysContact: agent.contact || '',
+                sysLocation: agent.location || '',
+                allowedAddresses: agent.allowList || []
+            }
+        ));
+    }
+
+    if (trapEvents) {
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpTrapEvents,
+            {
+                agentTrap: trapEvents.agentStartStop ? 'enabled' : 'disabled',
+                authTrap: trapEvents.authentication ? 'enabled' : 'disabled',
+                bigipTraps: trapEvents.device ? 'enabled' : 'disabled'
+            }
+        ));
+    }
+
+    if (users) {
+        const transformedUsers = JSON.parse(JSON.stringify(users));
+        Object.keys(transformedUsers).forEach((username) => {
+            const user = transformedUsers[username];
+            user.username = user.name;
+            user.oidSubset = user.oid;
+            delete user.oid;
+
+            user.authProtocol = 'none';
+            if (user.authentication) {
+                user.authPassword = user.authentication.password;
+                user.authProtocol = user.authentication.protocol;
+                delete user.authentication;
+            }
+
+            user.privacyProtocol = 'none';
+            if (user.privacy) {
+                user.privacyPassword = user.privacy.password;
+                user.privacyProtocol = user.privacy.protocol;
+                delete user.privacy;
+            }
+        });
+
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpUser,
+            { users: transformedUsers }
+        ));
+    }
+
+    if (communities) {
+        const transformedComms = JSON.parse(JSON.stringify(communities));
+        Object.keys(transformedComms).forEach((communityName) => {
+            const community = transformedComms[communityName];
+            community.communityName = community.name;
+            community.oidSubset = community.oid;
+            community.ipv6 = community.ipv6 ? 'enabled' : 'disabled';
+            delete community.oid;
+        });
+
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpCommunity,
+            { communities: transformedComms }
+        ));
+    }
+
+    if (trapDestinations) {
+        const transformedDestinations = JSON.parse(JSON.stringify(trapDestinations));
+        Object.keys(transformedDestinations).forEach((destinationName) => {
+            const destination = transformedDestinations[destinationName];
+            destination.host = destination.destination;
+            delete destination.destination;
+
+            if (destination.authentication) {
+                destination.authPassword = destination.authentication.password;
+                destination.authProtocol = destination.authentication.protocol;
+                destination.securityLevel = 'auth-no-privacy';
+                delete destination.authentication;
+            }
+
+            if (destination.privacy) {
+                destination.privacyPassword = destination.privacy.password;
+                destination.privacyProtocol = destination.privacy.protocol;
+                destination.securityLevel = 'auth-privacy';
+                delete destination.privacy;
+            }
+        });
+
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpCommunity,
+            { traps: transformedDestinations }
+        ));
+    }
+
+    return promise;
 }
 
 function handleSyslog() {

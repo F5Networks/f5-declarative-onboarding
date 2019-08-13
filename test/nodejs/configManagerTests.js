@@ -112,6 +112,32 @@ describe('configManager', () => {
             });
     }));
 
+    it('should strip /Common/ from names', () => new Promise((resolve, reject) => {
+        const configItems = [
+            {
+                path: '/tm/sys/namedProperty',
+                schemaClass: 'RemoveCommon',
+                properties: [
+                    { id: 'name' }
+                ]
+            }
+        ];
+
+        listResponses['/tm/sys/namedProperty'] = {
+            name: '/Common/someName'
+        };
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        configManager.get({}, state, doState)
+            .then(() => {
+                assert.deepEqual(state.currentConfig.Common.RemoveCommon.name, 'someName');
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
+
     it('should handle arrays', () => new Promise((resolve, reject) => {
         const configItems = [
             {
@@ -302,6 +328,8 @@ describe('configManager', () => {
                 schemaClass: 'ManagementRoute',
                 properties: [
                     { id: 'gateway', newId: 'gw' },
+                    { id: 'myProp1', newId: 'myObject.prop1' },
+                    { id: 'myProp2', newId: 'myObject.prop2.prop' },
                     { id: 'network' },
                     { id: 'mtu' },
                     { id: 'type' }
@@ -314,7 +342,9 @@ describe('configManager', () => {
                 name: 'default',
                 gateway: '8.8.8.8',
                 network: 'default',
-                mtu: 0
+                mtu: 0,
+                myProp1: 'my property 1',
+                myProp2: 'my property 2'
             }
         ];
 
@@ -328,6 +358,14 @@ describe('configManager', () => {
                 assert.strictEqual(
                     state.currentConfig.Common.ManagementRoute.default.gateway,
                     undefined
+                );
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.myObject.prop1,
+                    listResponses['/tm/sys/management-route'][0].myProp1
+                );
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.myObject.prop2.prop,
+                    listResponses['/tm/sys/management-route'][0].myProp2
                 );
                 resolve();
             })

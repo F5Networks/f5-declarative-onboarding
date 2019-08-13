@@ -51,7 +51,12 @@ const CLASSES_OF_TRUTH = [
     'ManagementRoute',
     'RouteDomain',
     'Authentication',
-    'RemoteAuthRole'
+    'RemoteAuthRole',
+    'SnmpAgent',
+    'SnmpTrapEvents',
+    'SnmpUser',
+    'SnmpCommunity',
+    'SnmpTrapDestination'
 ];
 
 /**
