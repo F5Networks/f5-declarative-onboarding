@@ -211,7 +211,11 @@ class DeclarationParser {
                         } else {
                             property = assignDefaults(propertyClass, property);
                             parsed[tenantName][propertyClass][propertyName] = {};
-                            property.name = propertyName;
+                            // Some classes (SnmpCommunity, for example) allow the user to assign the 'name' property
+                            // so do not override it. This allows for special characters in names.
+                            if (!property.name) {
+                                property.name = propertyName;
+                            }
                             Object.assign(parsed[tenantName][propertyClass][propertyName], property);
                         }
                     }

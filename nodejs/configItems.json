@@ -317,5 +317,66 @@
             { "id": "version" }
         ],
         "nameless": true
+    },
+    {
+        "path": "/tm/sys/snmp",
+        "schemaClass": "SnmpTrapEvents",
+        "properties": [
+            { "id": "bigipTraps", "newId": "device", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "authTrap", "newId": "authentication", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "agentTrap", "newId": "agentStartStop", "truth": "enabled", "falsehood": "disabled" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/sys/snmp/traps",
+        "schemaClass": "SnmpTrapDestination",
+        "properties": [
+            { "id": "community" },
+            { "id": "host", "newId": "destination" },
+            { "id": "network" },
+            { "id": "port" },
+            { "id": "version" },
+            { "id": "authPassword", "newId": "authentication.password" },
+            { "id": "authProtocol", "newId": "authentication.protocol" },
+            { "id": "privacyPassword", "newId": "privacy.password" },
+            { "id": "privacyProtocol", "newId": "privacy.protocol" },
+            { "id": "engineId" },
+            { "id": "securityName" }
+        ]
+    },
+    {
+        "path": "/tm/sys/snmp",
+        "schemaClass": "SnmpAgent",
+        "properties": [
+            { "id": "sysContact", "newId": "contact" },
+            { "id": "sysLocation", "newId": "location" },
+            { "id": "allowedAddresses", "newId": "allowList" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/sys/snmp/users",
+        "schemaClass": "SnmpUser",
+        "properties": [
+            { "id": "username", "newId": "name" },
+            { "id": "access" },
+            { "id": "authPassword", "newId": "authentication.password" },
+            { "id": "authProtocol", "newId": "authentication.protocol", "defaultWhenOmitted": "none" },
+            { "id": "privacyPassword", "newId": "privacy.password" },
+            { "id": "privacyProtocol", "newId": "privacy.protocol", "defaultWhenOmitted": "none"  },
+            { "id": "oidSubset", "newId": "oid" }
+        ]
+    },
+    {
+        "path": "/tm/sys/snmp/communities",
+        "schemaClass": "SnmpCommunity",
+        "properties": [
+            { "id": "communityName", "newId": "name" },
+            { "id": "access" },
+            { "id": "ipv6", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "source" },
+            { "id": "oidSubset", "newId": "oid" }
+        ]
     }
 ]

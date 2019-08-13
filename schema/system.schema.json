@@ -142,6 +142,269 @@
             }
         },
         {
+            "if": { "properties": { "class": { "const": "SnmpAgent" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains basic SNMP agent configuration.",
+                        "type": "string",
+                        "const": "SnmpAgent"
+                    },
+                    "contact": {
+                        "description": "The name of the person who administers the SNMP service for this system.",
+                        "type": "string"
+                    },
+                    "location": {
+                        "description": "The description of this system's physical location.",
+                        "type": "string"
+                    },
+                    "allowList": {
+                        "description": "Allowed client IP addresses.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "f5ip"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SnmpCommunity" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP v1 or v2c community configuration.",
+                        "type": "string",
+                        "const": "SnmpCommunity"
+                    },
+                    "ipv6": {
+                        "description": "Specifies whether the record applies to IPv6 addresses.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "source": {
+                        "description": "Specifies the source address for access to the MIB.",
+                        "type": "string"
+                    },
+                    "oid": {
+                        "description": "Specifies the current object identifier (OID) for the record.",
+                        "type": "string"
+                    },
+                    "access": {
+                        "description": "Whether the user's access level to the MIB is readOnly.",
+                        "type": "string",
+                        "enum": [ "ro", "rw" ],
+                        "default": "ro"
+                    },
+                    "name": {
+                        "description": "Overrides using the object name as the community name. Use this if you want special characters in the community name.",
+                        "type": "string"
+                    }
+                },
+                "if": {
+                    "required": ["oid"]
+                },
+                "then": {
+                    "required": ["source"]
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SnmpUser" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP v3 user configuration.",
+                        "type": "string",
+                        "const": "SnmpUser"
+                    },
+                    "authentication": {
+                        "description": "Specifies the user's authentication method and password.",
+                        "type": "object",
+                        "required": [ "protocol", "password" ],
+                        "properties": {
+                            "protocol": {
+                                "description": "Authentication protocol.",
+                                "type": "string",
+                                "enum": ["sha", "md5"],
+                                "default": "sha"
+                            },
+                            "password": {
+                                "description": "Specifies the password for the user.",
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "privacy": {
+                        "description": "Specifies the privacy protcol to use to deliver authentication information for this user.",
+                        "type": "object",
+                        "required": [ "protocol", "password" ],
+                        "properties": {
+                            "protocol": {
+                                "description": "Specifies the encryption protocol.",
+                                "type": "string",
+                                "enum": ["aes", "des"],
+                                "default": "aes"
+                            },
+                            "password": {
+                                "description": "Specifies the password for the user.",
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "oid": {
+                        "description": "Specifies the current object identifier (OID) for the record.",
+                        "type": "string",
+                        "default": ".1"
+                    },
+                    "access": {
+                        "description": "Whether the user's access level to the MIB is readOnly.",
+                        "type": "string",
+                        "enum": ["ro", "rw"],
+                        "default": "ro"
+                    },
+                    "name": {
+                        "description": "Overrides using the object name as the username. Use this if you want special characters in the username.",
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false,
+                "if": {
+                    "required": [ "privacy" ]
+                },
+                "then": {
+                    "required": [ "authentication" ]
+                }
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SnmpTrapEvents" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP trap configuration.",
+                        "type": "string",
+                        "const": "SnmpTrapEvents"
+                    },
+                    "agentStartStop": {
+                        "description": "Indicates whether to send a trap when the SNMP agent starts/stops.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "authentication": {
+                        "description": "Indicates whether to send authentication warning traps.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "device": {
+                        "description": "Indicates whether to send device warning traps.",
+                        "type": "boolean",
+                        "default": true
+                    }
+                }
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SnmpTrapDestination" } } },
+            "then": {
+                "required": ["class", "version", "destination", "port", "network"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP trap configuration.",
+                        "type": "string",
+                        "const": "SnmpTrapDestination"
+                    },
+                    "version": {
+                        "description": "Specifies to which Simple Network Management Protocol (SNMP) version the trap destination applies.",
+                        "type": "string",
+                        "enum": ["1", "2c", "3"]
+                    },
+                    "destination": {
+                        "description": "Specifies the address for the trap destination.",
+                        "type": "string",
+                        "oneOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    },
+                    "port": {
+                        "description": "Specifies the port for the trap destination.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "network": {
+                        "description": "Specifies the trap network. The system sends the SNMP trap out the specified network. 'management' specifies that the system sends the trap out of the management IP address. 'other' specifies that the system sends the trap out of the interface based on the routing tables.",
+                        "type": "string",
+                        "enum": ["management", "other"]
+                    }
+                },
+                "if": { "properties": { "version": { "const" : "3" } } },
+                "then": {
+                    "required": ["securityName", "authentication"],
+                    "properties": {
+                        "securityName": {
+                            "description": "Specifies the user name the system uses to handle SNMP v3 traps.",
+                            "type": "string"
+                        },
+                        "authentication": {
+                            "description": "Specifies the user's authentication method and password.",
+                            "type": "object",
+                            "required": [ "protocol", "password" ],
+                            "properties": {
+                                "protocol": {
+                                    "description": "Authentication protocol.",
+                                    "type": "string",
+                                    "enum": ["sha", "md5"]
+                                },
+                                "password": {
+                                    "description": "Specifies the password for the user.",
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "privacy": {
+                            "description": "Specifies the privacy protcol to use to deliver authentication information for this user.",
+                            "type": "object",
+                            "properties": {
+                                "protocol": {
+                                    "description": "Specifies the encryption protocol.",
+                                    "type": "string",
+                                    "enum": ["aes", "des"]
+                                },
+                                "password": {
+                                    "description": "Specifies the password for the user.",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "engineId": {
+                            "description": "Specifies the unique identifier (snmpEngineID) of the remote SNMP protocol engine.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "else": {
+                    "required": ["community"],
+                    "properties": {
+                        "community": {
+                            "description": "Specifies the community name for the trap destination.",
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "if": { "properties": { "class": { "const": "User" } } },
             "then": {
                 "if": { "properties": { "userType": { "const": "root" } } },

@@ -397,8 +397,13 @@ function processItem(configItem, declItem, configKey, configObject) {
         // copy original data
         configObject = JSON.parse(JSON.stringify(configObject));
         configObject.class = configItem.schemaClass;
-        // declaration objects has no 'name' property
-        delete configObject.name;
+
+        // most declaration objects has no 'name' property, but some may have
+        // an override
+        const hasNameOverride = configItem.properties.find(property => property.newId === 'name');
+        if (hasNameOverride === undefined) {
+            delete configObject.name;
+        }
 
         // process properties if needed
         if (declItem.properties) {

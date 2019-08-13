@@ -480,6 +480,188 @@ describe('system.schema.json', () => {
         });
     });
 
+    describe('Snmp', () => {
+        describe('valid', () => {
+            it('should validate SnmpAgent data', () => {
+                const data = {
+                    "class": "SnmpAgent",
+                    "contact": "Op Center <ops@example.com>",
+                    "location": "Seattle, WA",
+                    "allowList": [
+                        "10.30.100.0/23",
+                        "10.40.100.0/23",
+                        "10.8.100.0/32",
+                        "10.30.10.100",
+                        "10.30.10.200"
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal SnmpAgent', () => {
+                const data = {
+                    "class": "SnmpAgent"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate SnmpUser data', () => {
+                const data = {
+                    "class": "SnmpUser",
+                    "authentication": {
+                        "protocol": "sha",
+                        "password": "pass1W0rd!"
+                    },
+                    "privacy": {
+                        "protocol": "aes",
+                        "password": "P@ssW0rd"
+                    },
+                    "oid": ".1",
+                    "access": "rw"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal SnmpUser', () => {
+                const data = {
+                    "class": "SnmpUser"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.strictEqual(data.oid, '.1', 'wrong oid applied');
+                assert.strictEqual(data.access, 'ro', 'wrong access level applied');
+            });
+
+            it('should validate minimal SnmpUser auth data', () => {
+                const data = {
+                    "class": "SnmpUser",
+                    "authentication": {
+                        "password": "foo"
+                    },
+                    "privacy": {
+                        "password": "foo"
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.strictEqual(data.authentication.protocol, 'sha', 'wrong authentication protocol applied');
+                assert.strictEqual(data.privacy.protocol, 'aes', 'wrong privacy protocol applied');
+            });
+
+            it('should validate SnmpCommunity data', () => {
+                const data = {
+                    "class": "SnmpCommunity",
+                    "name": "special!community",
+                    "ipv6": false,
+                    "source": "all",
+                    "oid": ".1",
+                    "access": "ro"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.strictEqual(data.ipv6, false, 'wrong ipv6 default applied');
+                assert.strictEqual(data.access, 'ro', 'wrong access default applied');
+            });
+
+            it('should validate minimal SnmpCommunity', () => {
+                const data = {
+                    "class": "SnmpCommunity",
+                    "name": "special!community",
+                    "ipv6": false,
+                    "source": "all",
+                    "oid": ".1",
+                    "access": "ro"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate SnmpTrapEvents data', () => {
+                const data = {
+                    "class": "SnmpTrapEvents",
+                    "agentStartStop": true,
+                    "authentication": true,
+                    "device": true
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal SnmpTrapEvents', () => {
+                const data = {
+                    "class": "SnmpTrapEvents"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.strictEqual(data.agentStartStop, true, 'wrong agentStartStop default applied');
+                assert.strictEqual(data.authentication, false, 'wrong authentication default applied');
+                assert.strictEqual(data.device, true, 'wrong device default applied');
+            });
+
+            it('should validate SnmpTrapDestination data', () => {
+                const data = {
+                    "class": "SnmpTrapDestination",
+                    "version": "3",
+                    "destination": "10.0.10.1",
+                    "port": 80,
+                    "network": "other",
+                    "securityName": "someSnmpUser",
+                    "authentication": {
+                        "protocol": "sha",
+                        "password": "P@ssW0rd"
+                    },
+                    "privacy": {
+                        "protocol": "aes",
+                        "password": "P@ssW0rd"
+                    },
+                    "engineId": "0x80001f8880c6b6067fdacfb558"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+
+            it('should validate minimal SnmpTrapDestination', () => {
+                const data = {
+                    "class": "SnmpTrapDestination",
+                    "version": "1",
+                    "destination": "1.2.3.4",
+                    "port": 80,
+                    "network": "other",
+                    "community": "myCommunity"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate SnmpCommunity with oid but no source', () => {
+                const data = {
+                    "class": "SnmpCommunity",
+                    "name": "special!community",
+                    "ipv6": false,
+                    "oid": ".1",
+                    "access": "ro"
+                };
+                assert.strictEqual(validate(data), false, 'SnmpCommunity with oid but no source should not be valid');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('"missingProperty": ".source"'),
+                    -1
+                );
+            });
+
+            it('should invalidate SnmpUser with privacy but no authentication', () => {
+                const data = {
+                    "class": "SnmpUser",
+                    "privacy": {
+                        "protocol": "aes",
+                        "password": "P@ssW0rd"
+                    },
+                    "oid": ".1",
+                    "access": "rw"
+                };
+                assert.strictEqual(validate(data), false, 'SnmpCommunity with oid but no source should not be valid');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('"missingProperty": ".authentication"'),
+                    -1
+                );
+            });
+        });
+    });
+
     describe('Provision', () => {
         describe('valid', () => {
             it('should validate provisioning data', () => {

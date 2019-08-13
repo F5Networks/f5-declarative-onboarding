@@ -149,6 +149,26 @@ describe('declarationParser', () => {
         );
     });
 
+    it('should not overwrite name property if provided', () => {
+        const declaration = {
+            "schemaVersion": "1.0.0",
+            "class": "Device",
+            "Common": {
+                "class": "Tenant",
+                "commonVlan": {
+                    "class": "VLAN",
+                    "name": "my provided name"
+                }
+            }
+        };
+
+        const declarationParser = new DeclarationParser(declaration);
+        const parsed = declarationParser.parse();
+        const parsedDeclaration = parsed.parsedDeclaration;
+
+        assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, declaration.Common.commonVlan.name);
+    });
+
     it('should dereference pointers', () => {
         const declaration = {
             "Credentials": [
