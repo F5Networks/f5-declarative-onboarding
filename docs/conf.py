@@ -42,8 +42,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.extlinks',
     'sphinx.ext.autosummary',
     'recommonmark',
-    'sphinx_copybutton',
-    'sphinxprettysearchresults'
+    'sphinx_copybutton'
 ]
 
 primary_domain = 'js'
@@ -76,7 +75,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'F5 Declarative Onboarding'
-copyright = u'2018, F5 Networks'
+copyright = u'2019, F5 Networks'
 author = u'F5 Networks'
 
 # The version info for the project you're documenting, acts as replacement for
