@@ -378,5 +378,15 @@
             { "id": "source" },
             { "id": "oidSubset", "newId": "oid" }
         ]
+    },
+    {
+        "path": "/tm/net/dag-globals",
+        "schemaClass": "DagGlobals",
+        "properties": [
+            { "id": "dagIpv6PrefixLen", "newId": "ipv6PrefixLength" },
+            { "id": "icmpHash" },
+            { "id": "roundRobinMode" }
+        ],
+        "nameless": true
     }
 ]

@@ -16,6 +16,7 @@
 + DeviceGroup.owner is now required
 + Fix bug in which DO sets task status to ERROR right away while it is still rolling back
 + When targetSshKey is used try bash shell to modify targetUsername password if tmsh shell fails.
++ Add support for DAG Globals
 
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)

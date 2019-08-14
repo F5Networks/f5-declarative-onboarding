@@ -47,6 +47,16 @@ describe('networkHandler', () => {
             },
             delete() {
                 return Promise.resolve();
+            },
+            modify(path, data) {
+                if (!dataSent) {
+                    dataSent = {};
+                }
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
+                return Promise.resolve();
             }
         };
     });
@@ -631,6 +641,30 @@ describe('networkHandler', () => {
                     assert.strictEqual(routeDomainData[1].id, 1234);
                     assert.strictEqual(routeDomainData[1].partition, 'Common');
                     assert.strictEqual(routeDomainData[1].strict, 'enabled');
+                });
+        });
+    });
+
+    describe('DagGlobals', () => {
+        it('should handle fully specified DagGlobals', () => {
+            const declaration = {
+                Common: {
+                    DagGlobals: {
+                        ipv6PrefixLength: 120,
+                        icmpHash: 'ipicmp',
+                        roundRobinMode: 'local'
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const dagGlobalsData = dataSent[PATHS.DagGlobals];
+                    assert.strictEqual(dagGlobalsData[0].dagIpv6PrefixLen,
+                        declaration.Common.DagGlobals.ipv6PrefixLength);
+                    assert.strictEqual(dagGlobalsData[0].icmpHash, declaration.Common.DagGlobals.icmpHash);
+                    assert.strictEqual(dagGlobalsData[0].roundRobinMode, declaration.Common.DagGlobals.roundRobinMode);
                 });
         });
     });
