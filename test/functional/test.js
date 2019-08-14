@@ -658,7 +658,7 @@ function getF5Token(deviceIp, auth) {
  * @auth {Object} : authorization body for BIG-IQ (username/password)
 */
 function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
-    return new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
+    return getF5Token(bigIqAddress, bigIqAuth)
         .then((token) => {
             const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
                     + `${constants.ICONTROL_API}/cm/device/licensing/assignments`,
@@ -667,30 +667,28 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
         })
         .then((response) => {
             if (response.response.statusCode !== constants.HTTP_SUCCESS) {
-                reject(new Error('could not license'));
+                return Promise.reject(new Error('could not license'));
             }
             return response.body;
         })
-        .then(JSON.parse)
+        .then(response => JSON.parse(response))
         .then(response => response.items)
         .then((assignments) => {
-            assignments.forEach((assignment) => {
-                if (assignment.deviceAddress === bigIpAddress) {
-                    const licensingStatus = assignment.status;
+            const assignment = assignments.find(current => current.deviceAddress === bigIpAddress);
+            if (assignment) {
+                const licensingStatus = assignment.status;
+                if (licensingStatus === 'LICENSED') {
                     const auditLink = assignment.auditRecordReference.link;
                     // audit links come with the ip address as localhost, we need to
                     // replace it with the address of the BIG-IQ, in order to use it later
                     // to check licensing of a particular device
                     const auditLinkRemote = auditLink.replace(/localhost/gi, bigIqAddress);
-                    if (assignment.status === 'LICENSED') resolve(auditLinkRemote);
-                    else reject(new Error(`device license status : ${licensingStatus}`));
+                    return auditLinkRemote;
                 }
-            });
-            reject(new Error('no license match for device address'));
-        })
-        .catch((error) => {
-            reject(error);
-        }));
+                return Promise.reject(new Error(`device license status : ${licensingStatus}`));
+            }
+            return Promise.reject(new Error('no license match for device address'));
+        });
 }
 
 /**
