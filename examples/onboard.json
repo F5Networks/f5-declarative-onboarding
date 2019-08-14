@@ -78,7 +78,8 @@
                     "name": "1.2",
                     "tagged": true
                 }
-            ]
+            ],
+            "cmpHash": "dst-ip"
         },
         "internal-self": {
             "class": "SelfIp",
@@ -96,7 +97,8 @@
                     "name": "1.1",
                     "tagged": true
                 }
-            ]
+            ],
+            "cmpHash": "src-ip"
         },
         "external-self": {
             "class": "SelfIp",

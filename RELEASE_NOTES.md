@@ -17,6 +17,7 @@
 + Fix bug in which DO sets task status to ERROR right away while it is still rolling back
 + When targetSshKey is used try bash shell to modify targetUsername password if tmsh shell fails.
 + Add support for DAG Globals
++ Add support for cmp-hash for VLAN [Issue 1](https://github.com/F5Networks/f5-declarative-onboarding/issues/1)
 
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)
