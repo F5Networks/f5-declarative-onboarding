@@ -391,6 +391,9 @@ describe('inspectHandler', () => {
 
     describe('declaration verification', () => {
         let listResponses;
+        let failWhenNoPropertyinResponse;
+
+        const pathsToIgnore = configItems.filter(item => item.declaration === false).map(item => item.path);
         const deviceName = 'device1';
         const hostname = 'myhost.bigip.com';
         const bigIpMock = {
@@ -404,20 +407,26 @@ describe('inspectHandler', () => {
                 const response = listResponses[parsedURL.pathname];
                 let $select = parsedURL.query ? parsedURL.query.$select : undefined;
 
+                if (pathsToIgnore.indexOf(parsedURL.pathname) === -1) {
+                    assert.notStrictEqual(response, undefined, `Should have response data for '${parsedURL.pathname}' in listResponses`);
+                }
                 if (typeof response === 'undefined' || typeof $select === 'undefined') {
                     return Promise.resolve(response || {});
                 }
-
+                // ideally 'select' should contain all configItem.properties
                 $select = $select.split(',');
                 const selectData = (data) => {
+                    // copy to avoid modifications
+                    data = JSON.parse(JSON.stringify(data));
                     const ret = {};
                     if (typeof data.name !== 'undefined') {
                         ret.name = data.name;
                     }
                     $select.forEach((key) => {
-                        if (typeof data[key] !== 'undefined') {
-                            ret[key] = data[key];
+                        if (key !== 'name' && failWhenNoPropertyinResponse) {
+                            assert.notStrictEqual(data[key], undefined, `Should have '${key}' in response data for '${parsedURL.pathname}' in listResponses`);
                         }
+                        ret[key] = data[key];
                     });
                     return ret;
                 };
@@ -475,11 +484,11 @@ describe('inspectHandler', () => {
             ],
             '/tm/net/vlan/~Common~externalVlan/interfaces': [
                 { name: '1.1', tagged: true },
-                { name: '1.2', untagged: true }
+                { name: '1.2', tagged: false }
             ],
             '/tm/net/vlan/~Common~internalVlan/interfaces': [
                 { name: '2.1', tagged: true },
-                { name: '2.2', untagged: true }
+                { name: '2.2', tagged: false }
             ],
             '/tm/net/self': [
                 {
@@ -531,12 +540,14 @@ describe('inspectHandler', () => {
                     name: 'mgmt-route-forward',
                     gateway: '10.0.0.2',
                     network: '255.255.255.254/32',
+                    type: 'blackhole',
                     mtu: 0
                 },
                 {
                     name: 'default-mgmt-route',
                     gateway: '192.168.1.1',
                     network: 'default',
+                    type: 'interface',
                     mtu: 0
                 }
             ],
@@ -602,6 +613,8 @@ describe('inspectHandler', () => {
                 {
                     name: '/Common/mySnmpUser',
                     username: 'my!SnmpUser',
+                    access: 'ro',
+                    oidSubset: 'oidSubset',
                     authPassword: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
                     authProtocol: 'sha',
                     privacyPassword: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
@@ -629,6 +642,7 @@ describe('inspectHandler', () => {
                     privacyPassword: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
                     privacyProtocol: 'aes',
                     network: 'other',
+                    community: 'communityName',
                     securityName: 'someSnmpUser',
                     engineId: '0x80001f8880c6b6067fdacfb558'
                 }
@@ -832,13 +846,15 @@ describe('inspectHandler', () => {
                             class: 'ManagementRoute',
                             gw: '192.168.1.1',
                             mtu: 0,
-                            network: 'default'
+                            network: 'default',
+                            type: 'interface'
                         },
                         'mgmt-route-forward': {
                             class: 'ManagementRoute',
                             gw: '10.0.0.2',
                             mtu: 0,
-                            network: '255.255.255.254/32'
+                            network: '255.255.255.254/32',
+                            type: 'blackhole'
                         },
                         rd0: {
                             bandWidthControllerPolicy: 'bwcPolicy',
@@ -873,6 +889,8 @@ describe('inspectHandler', () => {
                         mySnmpUser: {
                             class: 'SnmpUser',
                             name: 'my!SnmpUser',
+                            access: 'ro',
+                            oid: 'oidSubset',
                             authentication: {
                                 password: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
                                 protocol: 'sha'
@@ -900,6 +918,7 @@ describe('inspectHandler', () => {
                             class: 'SnmpTrapDestination',
                             version: '3',
                             destination: '1.2.3.4',
+                            community: 'communityName',
                             port: 8080,
                             network: 'other',
                             securityName: 'someSnmpUser',
@@ -1015,6 +1034,7 @@ describe('inspectHandler', () => {
         beforeEach(() => {
             // skip data asserts
             expectedDeclaration = undefined;
+            failWhenNoPropertyinResponse = false;
             inspectHandler = new InspectHandler();
             listResponses = defaultResponses();
         });
@@ -1078,11 +1098,14 @@ describe('inspectHandler', () => {
             assert.deepStrictEqual(missing, [], `Should have coverage for following classes/properties - ${missing.join(', ')}`);
         });
 
-        it('should verify declaration from response', () => inspectHandler.process()
-            .then((data) => {
-                expectedDeclaration = referenceDeclaration;
-                basicInspectHandlerAsserts(data, 200, 'OK', '', []);
-            }));
+        it('should verify declaration from response', () => {
+            failWhenNoPropertyinResponse = true;
+            return inspectHandler.process()
+                .then((data) => {
+                    expectedDeclaration = referenceDeclaration;
+                    basicInspectHandlerAsserts(data, 200, 'OK', '', []);
+                });
+        });
 
         it('should fail when several objects share the same name', () => {
             const sharedName = 'sharedName';
@@ -1131,7 +1154,6 @@ describe('inspectHandler', () => {
         it('should return valid declaration when API returns almost empty config', () => {
             // API response almost similar to what freshly deployed BIG-IP returns
             // in addition test also checks customFunctions
-
             // erase all endpoints
             Object.keys(listResponses).forEach((key) => {
                 listResponses[key] = Array.isArray(listResponses[key]) ? [] : {};
