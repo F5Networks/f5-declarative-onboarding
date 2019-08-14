@@ -57,7 +57,8 @@
         "properties": [
             { "id": "mtu" },
             { "id": "tag" },
-            { "id": "interfacesReference" }
+            { "id": "interfacesReference" },
+            { "id": "cmpHash" }
         ],
         "references": {
             "interfacesReference": [

@@ -18,7 +18,8 @@
                         "description": "MTU for the VLAN.",
                         "type": "integer",
                         "minimum": 576,
-                        "maximum": 9198
+                        "maximum": 9198,
+                        "default": 1500
                     },
                     "tag": {
                         "description": "Tag for the VLAN.",
@@ -44,6 +45,12 @@
                             },
                             "additionalProperties": false
                         }
+                    },
+                    "cmpHash": {
+                        "description": "Specifies how the traffic on the VLAN will be disaggregated.",
+                        "type": "string",
+                        "enum": ["default", "dst-ip", "src-ip"],
+                        "default": "default"
                     }
                 },
                 "additionalProperties": false

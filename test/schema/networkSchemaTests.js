@@ -41,6 +41,14 @@ const validate = ajv.compile(networkSchema);
 describe('network.schema.json', () => {
     describe('VLAN', () => {
         describe('valid', () => {
+            it('should validate minimal data', () => {
+                const data = {
+                    "class": "VLAN",
+                    "interfaces": []
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
             it('should validate vlan data', () => {
                 const data = {
                     "class": "VLAN",
@@ -51,7 +59,8 @@ describe('network.schema.json', () => {
                         }
                     ],
                     "mtu": 1500,
-                    "tag": 1234
+                    "tag": 1234,
+                    "cmpHash": "dst-ip"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });

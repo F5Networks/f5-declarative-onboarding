@@ -109,7 +109,8 @@ function handleVlan() {
                 const vlanBody = {
                     interfaces,
                     name: vlan.name,
-                    partition: tenant
+                    partition: tenant,
+                    cmpHash: vlan.cmpHash
                 };
 
                 if (vlan.mtu) {

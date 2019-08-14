@@ -79,7 +79,8 @@ describe('networkHandler', () => {
                                     name: '1.2',
                                     tagged: false
                                 }
-                            ]
+                            ],
+                            cmpHash: 'dst-ip'
                         },
                         vlan2: {
                             name: 'vlan2',
@@ -90,7 +91,8 @@ describe('networkHandler', () => {
                                     name: '1.0',
                                     tagged: true
                                 }
-                            ]
+                            ],
+                            cmpHash: 'src-ip'
                         }
                     }
                 }
@@ -110,10 +112,12 @@ describe('networkHandler', () => {
                         assert.strictEqual(vlanData[0].interfaces[1].name, '1.2');
                         assert.strictEqual(vlanData[0].interfaces[1].tagged, false);
                         assert.strictEqual(vlanData[0].partition, 'Common');
+                        assert.strictEqual(vlanData[0].cmpHash, declaration.Common.VLAN.vlan1.cmpHash);
                         assert.strictEqual(vlanData[1].name, declaration.Common.VLAN.vlan2.name);
                         assert.strictEqual(vlanData[1].tag, declaration.Common.VLAN.vlan2.tag);
                         assert.strictEqual(vlanData[1].mtu, declaration.Common.VLAN.vlan2.mtu);
                         assert.strictEqual(vlanData[1].partition, 'Common');
+                        assert.strictEqual(vlanData[1].cmpHash, declaration.Common.VLAN.vlan2.cmpHash);
                         resolve();
                     })
                     .catch((err) => {
