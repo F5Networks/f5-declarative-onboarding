@@ -460,7 +460,8 @@ describe('inspectHandler', () => {
                     tag: 4094,
                     interfacesReference: {
                         link: 'https://localhost/mgmt/tm/net/vlan/~Common~internalVlan/interfaces'
-                    }
+                    },
+                    cmpHash: 'default'
                 },
                 {
                     name: 'externalVlan',
@@ -468,7 +469,8 @@ describe('inspectHandler', () => {
                     tag: 4094,
                     interfacesReference: {
                         link: 'https://localhost/mgmt/tm/net/vlan/~Common~externalVlan/interfaces'
-                    }
+                    },
+                    cmpHash: 'src-ip'
                 }
             ],
             '/tm/net/vlan/~Common~externalVlan/interfaces': [
@@ -767,7 +769,8 @@ describe('inspectHandler', () => {
                                 { name: '2.1', tagged: true },
                                 { name: '2.2', tagged: false }
                             ],
-                            class: 'VLAN'
+                            class: 'VLAN',
+                            cmpHash: 'default'
                         },
                         externalVlan: {
                             mtu: 1500,
@@ -776,7 +779,8 @@ describe('inspectHandler', () => {
                                 { name: '1.1', tagged: true },
                                 { name: '1.2', tagged: false }
                             ],
-                            class: 'VLAN'
+                            class: 'VLAN',
+                            cmpHash: 'src-ip'
                         },
                         internalSelfIp: {
                             address: '10.0.0.2/24',
