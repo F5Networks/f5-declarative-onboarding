@@ -93,6 +93,10 @@ class SystemHandler {
                 return handleSyslog.call(this);
             })
             .then(() => {
+                logger.fine('Checking Traffic Control');
+                return handleTrafficControl.call(this);
+            })
+            .then(() => {
                 logger.fine('Done processing system declaration.');
                 return Promise.resolve();
             })
@@ -548,6 +552,40 @@ function handleSyslog() {
     };
 
     return this.bigIp.modify(PATHS.Syslog, syslog);
+}
+
+function handleTrafficControl() {
+    if (!this.declaration.Common || !this.declaration.Common.TrafficControl) {
+        return Promise.resolve();
+    }
+
+    const trafficCtrl = this.declaration.Common.TrafficControl;
+
+    const trafficControlObj = {
+        acceptIpOptions: trafficCtrl.acceptIpOptions ? 'enabled' : 'disabled',
+        acceptIpSourceRoute: trafficCtrl.acceptIpSourceRoute ? 'enabled' : 'disabled',
+        allowIpSourceRoute: trafficCtrl.allowIpSourceRoute ? 'enabled' : 'disabled',
+        continueMatching: trafficCtrl.continueMatching ? 'enabled' : 'disabled',
+        maxIcmpRate: trafficCtrl.maxIcmpRate,
+        portFindLinear: trafficCtrl.maxPortFindLinear,
+        portFindRandom: trafficCtrl.maxPortFindRandom,
+        maxRejectRate: trafficCtrl.maxRejectRate,
+        maxRejectRateTimeout: trafficCtrl.maxRejectRateTimeout,
+        minPathMtu: trafficCtrl.minPathMtu,
+        pathMtuDiscovery: trafficCtrl.pathMtuDiscovery ? 'enabled' : 'disabled',
+        portFindThresholdWarning: trafficCtrl.portFindThresholdWarning ? 'enabled' : 'disabled',
+        portFindThresholdTrigger: trafficCtrl.portFindThresholdTrigger,
+        portFindThresholdTimeout: trafficCtrl.portFindThresholdTimeout,
+        rejectUnmatched: trafficCtrl.rejectUnmatched ? 'enabled' : 'disabled'
+    };
+
+    return this.bigIp.modify(PATHS.TrafficControl, trafficControlObj)
+        .catch((err) => {
+            const errorTrafficControl = `Error modifying traffic control settings: ${err.message}`;
+            logger.severe(errorTrafficControl);
+            err.message = errorTrafficControl;
+            return Promise.reject(err);
+        });
 }
 
 function createOrUpdateUser(username, data) {

@@ -729,6 +729,23 @@ describe('inspectHandler', () => {
                 dagIpv6PrefixLen: 100,
                 icmpHash: 'ipicmp',
                 roundRobinMode: 'local'
+            },
+            '/tm/ltm/global-settings/traffic-control': {
+                acceptIpOptions: 'disabled',
+                acceptIpSourceRoute: 'disabled',
+                allowIpSourceRoute: 'disabled',
+                continueMatching: 'disabled',
+                maxIcmpRate: 100,
+                maxRejectRate: 250,
+                maxRejectRateTimeout: 30,
+                minPathMtu: 296,
+                pathMtuDiscovery: 'enabled',
+                portFindLinear: 16,
+                portFindRandom: 16,
+                portFindThresholdWarning: 'enabled',
+                portFindThresholdTrigger: 8,
+                portFindThresholdTimeout: 30,
+                rejectUnmatched: 'enabled'
             }
         });
 
@@ -1020,6 +1037,24 @@ describe('inspectHandler', () => {
                                 ],
                                 service: 'system'
                             }
+                        },
+                        currentTrafficControl: {
+                            class: 'TrafficControl',
+                            acceptIpOptions: false,
+                            acceptIpSourceRoute: false,
+                            allowIpSourceRoute: false,
+                            continueMatching: false,
+                            maxIcmpRate: 100,
+                            maxPortFindLinear: 16,
+                            maxPortFindRandom: 16,
+                            maxRejectRate: 250,
+                            maxRejectRateTimeout: 30,
+                            minPathMtu: 296,
+                            pathMtuDiscovery: true,
+                            portFindThresholdWarning: true,
+                            portFindThresholdTrigger: 8,
+                            portFindThresholdTimeout: 30,
+                            rejectUnmatched: true
                         }
                     }
                 }
@@ -1217,6 +1252,16 @@ describe('inspectHandler', () => {
                                 agentStartStop: false,
                                 authentication: false,
                                 device: false
+                            },
+                            currentTrafficControl: {
+                                class: 'TrafficControl',
+                                acceptIpOptions: false,
+                                acceptIpSourceRoute: false,
+                                allowIpSourceRoute: false,
+                                continueMatching: false,
+                                pathMtuDiscovery: false,
+                                portFindThresholdWarning: false,
+                                rejectUnmatched: false
                             }
                         }
                     }

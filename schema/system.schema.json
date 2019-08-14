@@ -595,6 +595,126 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": { "properties": { "class": { "const": "TrafficControl" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates this property contains traffic control configuration",
+                        "type": "string",
+                        "const": "TrafficControl"
+                    },
+                    "acceptIpOptions": {
+                        "description": "Specifies whether the system accepts IPv4 packets with IP Options.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "acceptIpSourceRoute": {
+                        "description": "Specifies whether the system accepts IPv4 packets with IP source route options that are destined for TMM. To enable this option, you must also enable the acceptIpOptions option.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "allowIpSourceRoute": {
+                        "description": "Specifies whether the system allows IPv4 packets with IP source route options enabled to be routed through TMM. To enable this option, you must also enable the acceptIpOptions option.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "continueMatching": {
+                        "description": "Specifies whether the system matches against a less-specific virtual server when the more-specific one is disabled or rejects / drops the packets depending on the value of rejectUnmatched.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "maxIcmpRate": {
+                        "description": "Specifies the maximum rate per second at which the system issues ICMP errors.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2147483647,
+                        "default": 100
+                    },
+                    "maxPortFindLinear": {
+                        "description": "Specifies the maximum of ports to linearly search for outbound connections",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 61439,
+                        "default": 16
+                    },
+                    "maxPortFindRandom": {
+                        "description": "Specifies the maximum of ports to randomly search for outbound connections",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1024,
+                        "default": 16
+                    },
+                    "maxRejectRate": {
+                        "description": "Specifies the maximum rate per second at which the system issues reject packets (TCP RST or ICMP port unreach).",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 1000,
+                        "default": 250
+                    },
+                    "maxRejectRateTimeout": {
+                        "description": "Specifies the time in seconds which the system ignores ICMP port unreach and TCP RST ratelimits on becoming active after a failover.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 300,
+                        "default": 30
+                    },
+                    "minPathMtu": {
+                        "description": "Specifies the minimum packet size that can traverse the path without suffering fragmentation",
+                        "minimum": 68,
+                        "maximum": 1500,
+                        "default": 296
+                    },
+                    "pathMtuDiscovery": {
+                        "description": "Specifies that the system discovers the MTU that it can send over a path without fragmenting TCP packets",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "portFindThresholdWarning": {
+                        "description": "Specifies if the ephemeral port-exhaustion threshold warning is to be monitored.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "portFindThresholdTrigger": {
+                        "description": "Specifies the threshold warning's trigger which is the value of random port attempts when attempting to find an unused outbound port for a connection.",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12,
+                        "default": 8
+                    },
+                    "portFindThresholdTimeout": {
+                        "description": "Specifies the threshold warning's timeout which is the time in seconds since the last trigger value was hit and will drop the tuple if not hit.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 300,
+                        "default": 30
+                    },
+                    "rejectUnmatched": {
+                        "description": "Specifies, when enabled, that the system returns a TCP RST or ICMP port unreach packet if no virtual servers on the system match the destination address of the incoming packet. When disabled, the system silently drops the unmatched packet.",
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false,
+                "dependencies": {
+                    "acceptIpSourceRoute": {
+                        "if": { "properties": { "acceptIpSourceRoute": { "const": true } } },
+                        "then": {
+                            "required": ["acceptIpOptions"],
+                            "properties": { "acceptIpOptions": { "const": true } }
+                        }
+                    },
+                    "allowIpSourceRoute": {
+                        "if": { "properties": { "allowIpSourceRoute": { "const": true } } },
+                        "then": {
+                            "required": ["acceptIpOptions"],
+                            "properties": { "acceptIpOptions": { "const": true } }
+                        }
+                    }
+                }
+            }
         }
     ],
     "definitions": {

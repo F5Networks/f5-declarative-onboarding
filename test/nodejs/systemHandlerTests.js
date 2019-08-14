@@ -1386,4 +1386,55 @@ describe('systemHandler', () => {
                 assert.deepEqual(dataSent[PATHS.Syslog][0].remoteServers[1].name, 'DRDCSyslog');
             });
     });
+
+    describe('TrafficControl', () => {
+        it('should handle traffic control', () => {
+            const declaration = {
+                Common: {
+                    TrafficControl: {
+                        acceptIpOptions: true,
+                        acceptIpSourceRoute: true,
+                        allowIpSourceRoute: true,
+                        continueMatching: true,
+                        maxIcmpRate: 867,
+                        maxPortFindLinear: 867,
+                        maxPortFindRandom: 867,
+                        maxRejectRate: 867,
+                        maxRejectRateTimeout: 200,
+                        minPathMtu: 867,
+                        pathMtuDiscovery: false,
+                        portFindThresholdWarning: false,
+                        portFindThresholdTrigger: 10,
+                        portFindThresholdTimeout: 200,
+                        rejectUnmatched: false
+                    }
+                }
+            };
+
+            const expected = {
+                acceptIpOptions: 'enabled',
+                acceptIpSourceRoute: 'enabled',
+                allowIpSourceRoute: 'enabled',
+                continueMatching: 'enabled',
+                maxIcmpRate: 867,
+                maxRejectRate: 867,
+                maxRejectRateTimeout: 200,
+                minPathMtu: 867,
+                pathMtuDiscovery: 'disabled',
+                portFindLinear: 867,
+                portFindRandom: 867,
+                portFindThresholdWarning: 'disabled',
+                portFindThresholdTrigger: 10,
+                portFindThresholdTimeout: 200,
+                rejectUnmatched: 'disabled'
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    const trafficControlData = dataSent[PATHS.TrafficControl][0];
+                    assert.deepStrictEqual(trafficControlData, expected);
+                });
+        });
+    });
 });

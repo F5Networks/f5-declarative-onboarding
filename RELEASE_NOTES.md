@@ -18,6 +18,7 @@
 + When targetSshKey is used try bash shell to modify targetUsername password if tmsh shell fails.
 + Add support for DAG Globals
 + Add support for cmp-hash for VLAN [Issue 1](https://github.com/F5Networks/f5-declarative-onboarding/issues/1)
++ Add support for Traffic Control
 
 ## Version 1.6.1
 + Upgrade f5-cloud-libs to improve licensing from BIG-IQ reg key pools

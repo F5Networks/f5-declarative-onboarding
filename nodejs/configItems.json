@@ -389,5 +389,26 @@
             { "id": "roundRobinMode" }
         ],
         "nameless": true
+    },
+    {
+        "path": "/tm/ltm/global-settings/traffic-control",
+        "schemaClass": "TrafficControl",
+        "properties": [
+            { "id": "acceptIpOptions", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "acceptIpSourceRoute", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "allowIpSourceRoute", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "continueMatching", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "maxIcmpRate" },
+            { "id": "maxRejectRate" },
+            { "id": "maxRejectRateTimeout" },
+            { "id": "minPathMtu" },
+            { "id": "pathMtuDiscovery", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "portFindLinear", "newId": "maxPortFindLinear" },
+            { "id": "portFindRandom", "newId": "maxPortFindRandom" },
+            { "id": "portFindThresholdWarning", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "portFindThresholdTrigger" },
+            { "id": "portFindThresholdTimeout" },
+            { "id": "rejectUnmatched", "truth": "enabled", "falsehood": "disabled" }
+        ]
     }
 ]

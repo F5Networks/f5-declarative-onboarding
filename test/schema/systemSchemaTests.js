@@ -898,6 +898,133 @@ describe('system.schema.json', () => {
             assert.notStrictEqual(getErrorString().indexOf('should have required property \'host\''), -1);
         });
     });
+
+    describe('TrafficControl', () => {
+        describe('valid', () => {
+            it('should validate default traffic control', () => {
+                const data = {
+                    "class": "TrafficControl"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate traffic control', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "acceptIpOptions": true,
+                    "acceptIpSourceRoute": true,
+                    "allowIpSourceRoute": true,
+                    "continueMatching": true,
+                    "maxIcmpRate": 867,
+                    "maxPortFindLinear": 867,
+                    "maxPortFindRandom": 867,
+                    "maxRejectRate": 867,
+                    "maxRejectRateTimeout": 200,
+                    "minPathMtu": 867,
+                    "pathMtuDiscovery": false,
+                    "portFindThresholdWarning": false,
+                    "portFindThresholdTrigger": 10,
+                    "portFindThresholdTimeout": 200,
+                    "rejectUnmatched": false
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate when acceptIpSourceRoute is true and acceptIpOptions is false', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "acceptIpOptions": false,
+                    "acceptIpSourceRoute": true
+                };
+                assert.strictEqual(validate(data), false, 'acceptIpSourceRoute should require acceptIpOptions to be enabled');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to constant'), -1);
+            });
+
+            it('should invalidate when allowIpSourceRoute is true and acceptIpOptions is false', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "acceptIpOptions": false,
+                    "allowIpSourceRoute": true
+                };
+                assert.strictEqual(validate(data), false, 'allowIpSourceRoute should require acceptIpOptions to be enabled');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to constant'), -1);
+            });
+
+            it('should invalidate when maxIcmpRate is out of range', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "maxIcmpRate": 2147483648
+                };
+                assert.strictEqual(validate(data), false, 'maxIcmpRate should be out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 2147483647'), -1);
+            });
+
+            it('should invalidate when maxPortFindLinear is out of range', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "maxPortFindLinear": 61440
+                };
+                assert.strictEqual(validate(data), false, 'maxPortFindLinear should be out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 61439'), -1);
+            });
+
+            it('should invalidate when maxPortFindRandom is out of range', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "maxPortFindRandom": 1025
+                };
+                assert.strictEqual(validate(data), false, 'maxPortFindRandom should be out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 1024'), -1);
+            });
+
+            it('should invalidate when maxRejectRate is out of range', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "maxRejectRate": 1001
+                };
+                assert.strictEqual(validate(data), false, 'maxRejectRate should be out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 1000'), -1);
+            });
+
+            it('should invalidate when maxRejectRateTimeout is out of range', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "maxRejectRateTimeout": 301
+                };
+                assert.strictEqual(validate(data), false, 'maxRejectRateTimeout should be out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 300'), -1);
+            });
+
+            it('should invalidate when minPathMtu is out of range', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "minPathMtu": 1501
+                };
+                assert.strictEqual(validate(data), false, 'minPathMtu should be out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 1500'), -1);
+            });
+
+            it('should invalidate when portFindThresholdTrigger is out of range', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "portFindThresholdTrigger": 13
+                };
+                assert.strictEqual(validate(data), false, 'portFindThresholdTrigger should be out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 12'), -1);
+            });
+
+            it('should invalidate when portFindThresholdTimeout is out of range', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "portFindThresholdTimeout": 301
+                };
+                assert.strictEqual(validate(data), false, 'portFindThresholdTimeout should be out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 300'), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {
