@@ -398,6 +398,56 @@ describe('network.schema.json', () => {
             });
         });
     });
+
+    describe('DagGlobals', () => {
+        describe('valid', () => {
+            it('should validate minimal schema', () => {
+                const data = {
+                    "class": "DagGlobals"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate DagGlobals data', () => {
+                const data = {
+                    "class": "DagGlobals",
+                    "ipv6PrefixLength": 120,
+                    "icmpHash": "ipicmp",
+                    "roundRobinMode": "local"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate out of range ipv6PrefixLength', () => {
+                const data = {
+                    "class": "DagGlobals",
+                    "ipv6PrefixLength": 129
+                };
+                assert.strictEqual(validate(data), false, 'ipv6PrefixLength should be between 0 and 128');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 128'), -1);
+            });
+
+            it('should invalidate invalid icmpHash', () => {
+                const data = {
+                    "class": "DagGlobals",
+                    "icmpHash": "icmp2.0"
+                };
+                assert.strictEqual(validate(data), false, 'icmpHash should only match values in enum');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate invalid roundRobinMode', () => {
+                const data = {
+                    "class": "DagGlobals",
+                    "roundRobinMode": "newRRMode"
+                };
+                assert.strictEqual(validate(data), false, 'roundRobinMode should only match values in enum');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {

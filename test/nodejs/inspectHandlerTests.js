@@ -708,7 +708,12 @@ describe('inspectHandler', () => {
                     ],
                     service: 'system'
                 }
-            ]
+            ],
+            '/tm/net/dag-globals': {
+                dagIpv6PrefixLen: 100,
+                icmpHash: 'ipicmp',
+                roundRobinMode: 'local'
+            }
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -743,6 +748,12 @@ describe('inspectHandler', () => {
                             servers: ['server1', 'server2'],
                             timezone: 'utc',
                             class: 'NTP'
+                        },
+                        currentDagGlobals: {
+                            class: 'DagGlobals',
+                            ipv6PrefixLength: 100,
+                            icmpHash: 'ipicmp',
+                            roundRobinMode: 'local'
                         },
                         currentDNS: {
                             nameServers: ['172.27.1.1'],
@@ -1151,6 +1162,9 @@ describe('inspectHandler', () => {
                             },
                             currentNTP: {
                                 class: 'NTP'
+                            },
+                            currentDagGlobals: {
+                                class: 'DagGlobals'
                             },
                             currentDNS: {
                                 class: 'DNS'

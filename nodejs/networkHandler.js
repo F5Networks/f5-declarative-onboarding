@@ -68,6 +68,10 @@ class NetworkHandler {
                 return handleRoute.call(this);
             })
             .then(() => {
+                logger.fine('Checking DagGlobals');
+                return handleDagGlobals.call(this);
+            })
+            .then(() => {
                 logger.info('Done processing network declartion.');
                 return Promise.resolve();
             })
@@ -307,6 +311,18 @@ function handleRouteDomain() {
             logger.severe(`Error creating RouteDomains: ${err.message}`);
             throw err;
         });
+}
+
+function handleDagGlobals() {
+    if (this.declaration.Common && this.declaration.Common.DagGlobals) {
+        const body = {
+            dagIpv6PrefixLen: this.declaration.Common.DagGlobals.ipv6PrefixLength,
+            icmpHash: this.declaration.Common.DagGlobals.icmpHash,
+            roundRobinMode: this.declaration.Common.DagGlobals.roundRobinMode
+        };
+        this.bigIp.modify(PATHS.DagGlobals, body);
+    }
+    return Promise.resolve();
 }
 
 /**

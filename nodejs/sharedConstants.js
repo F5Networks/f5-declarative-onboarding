@@ -53,7 +53,8 @@ module.exports = {
         SnmpUser: '/tm/sys/snmp',
         SnmpCommunity: '/tm/sys/snmp',
         SnmpTrapDestination: '/tm/sys/snmp',
-        Syslog: '/tm/sys/syslog'
+        Syslog: '/tm/sys/syslog',
+        DagGlobals: '/tm/net/dag-globals'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -79,7 +80,8 @@ module.exports = {
         'Authentication',
         'RemoteAuthRoles',
         'SnmpAgent',
-        'SnmpTrapEvents'
+        'SnmpTrapEvents',
+        'DagGlobals'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

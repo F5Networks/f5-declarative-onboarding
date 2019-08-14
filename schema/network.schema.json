@@ -206,6 +206,39 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": { "properties": { "class": { "const": "DagGlobals" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains DAG Globals configuration.",
+                        "type": "string",
+                        "const": "DagGlobals"
+                    },
+                    "icmpHash": {
+                        "description": "Specifies ICMP hash for ICMP echo request and ICMP echo reply in SW DAG.",
+                        "type": "string",
+                        "enum": ["icmp", "ipicmp"],
+                        "default": "icmp"
+                    },
+                    "ipv6PrefixLength": {
+                        "description": "Specifies whether SPDAG or IPv6 prefix DAG should be used to disaggregate IPv6 traffic when vlan cmp hash is set to src-ip or dst-ip.",
+                        "type": "integer",
+                        "default": 128,
+                        "minimum": 0,
+                        "maximum": 128
+                    },
+                    "roundRobinMode": {
+                        "description": "Specifies whether the round robin disaggregator (DAG) on a blade can disaggregate packets to all the TMMs in the system or only to the TMMs local to the blade.",
+                        "type": "string",
+                        "enum": ["global", "local"],
+                        "default": "global"
+                    }
+                },
+                "additionalProperties": false
+            }
         }
     ]
 }
