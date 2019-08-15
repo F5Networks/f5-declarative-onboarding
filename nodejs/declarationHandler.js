@@ -57,7 +57,8 @@ const CLASSES_OF_TRUTH = [
     'SnmpUser',
     'SnmpCommunity',
     'SnmpTrapDestination',
-    'DagGlobals'
+    'DagGlobals',
+    'TrafficControl'
 ];
 
 /**

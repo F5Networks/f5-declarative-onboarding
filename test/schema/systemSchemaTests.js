@@ -898,6 +898,61 @@ describe('system.schema.json', () => {
             assert.notStrictEqual(getErrorString().indexOf('should have required property \'host\''), -1);
         });
     });
+
+    describe('TrafficControl', () => {
+        describe('valid', () => {
+            it('should validate default traffic control', () => {
+                const data = {
+                    "class": "TrafficControl"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate traffic control', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "acceptIpOptions": true,
+                    "acceptIpSourceRoute": true,
+                    "allowIpSourceRoute": true,
+                    "continueMatching": true,
+                    "maxIcmpRate": 867,
+                    "maxPortFindLinear": 867,
+                    "maxPortFindRandom": 867,
+                    "maxRejectRate": 867,
+                    "maxRejectRateTimeout": 200,
+                    "minPathMtu": 867,
+                    "pathMtuDiscovery": false,
+                    "portFindThresholdWarning": false,
+                    "portFindThresholdTrigger": 10,
+                    "portFindThresholdTimeout": 200,
+                    "rejectUnmatched": false
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate when acceptIpSourceRoute is true and acceptIpOptions is false', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "acceptIpOptions": false,
+                    "acceptIpSourceRoute": true
+                };
+                assert.strictEqual(validate(data), false, 'acceptIpSourceRoute should require acceptIpOptions to be enabled');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to constant'), -1);
+            });
+
+            it('should invalidate when allowIpSourceRoute is true and acceptIpOptions is false', () => {
+                const data = {
+                    "class": "TrafficControl",
+                    "acceptIpOptions": false,
+                    "allowIpSourceRoute": true
+                };
+                assert.strictEqual(validate(data), false, 'allowIpSourceRoute should require acceptIpOptions to be enabled');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to constant'), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {
