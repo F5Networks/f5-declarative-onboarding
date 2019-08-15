@@ -338,12 +338,7 @@ All core modules are included inside `../nodejs/`
 ---
 ### Testing methodology
 
-- Unit tests are written using the [mocha](https://mochajs.org/) framework and run using ```npm run test```.
-- Code coverage is done with the [Istanbul nyc](https://github.com/istanbuljs/nyc) framework and generated using ```npm run coverage```.
-    - We aim for >90% coverage overall.
-    - All new code should have at least 90% coverage.
-- Functional testing is done on GitLab by launching BIG-IPs into VIO. These tests are run on a daily schedule by calling ```npm run functional```.
-    - We need more functional testing!
+- See [test/README](../test/README.md)
 
 ---
 ### Release methodology
