@@ -19,6 +19,9 @@
 + Add support for DAG Globals
 + Add support for cmp-hash for VLAN [Issue 1](https://github.com/F5Networks/f5-declarative-onboarding/issues/1)
 
+## Version 1.6.1
++ Upgrade f5-cloud-libs to improve licensing from BIG-IQ reg key pools
+
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)
 + Resolve [Issue 43](https://github.com/F5Networks/f5-declarative-onboarding/issues/43)
