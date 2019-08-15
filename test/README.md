@@ -42,7 +42,7 @@ If `npx` is available on your system, you can run the locally installed version 
     * TEST_HARNESS_FILE: This is the PATH to the file created in step 2.
   * Note: This will only install the RPM if there's a name change from what is installed.
 4. Now you are able to run the tests you want.
-  * `TEST_HARNESS_FILE=test_harness.json BIG_IQ_HOST=10.145.68.175 BIG_IQ_USERNAME=admin BIG_IQ_PASSWORD=admin ARTIFACTORY_BASE_URL=https://artifactory.f5net.com/artifactory npx mocha test/functional/test.js`
+  * `TEST_HARNESS_FILE=test_harness.json BIG_IQ_HOST=10.145.68.175 BIG_IQ_USERNAME=admin BIG_IQ_PASSWORD=admin ARTIFACTORY_BASE_URL=https://<our_artifactory_url>/artifactory npx mocha test/functional/test.js`
     * TEST_HARNESS_FILE: This is the PATH to the file created in step 2.
     * BIG_IQ_HOST: IP address to the BIG-IQ setup in step 1.
     * BIG_IQ_USERNAME: The username for the BIG-IQ setup in step 1.
