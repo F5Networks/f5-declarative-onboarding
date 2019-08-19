@@ -3,6 +3,8 @@
 ## Version 1.7.0
 + Handle the automatic update of root password when admin password changes on 14.0+
 + Resolve [Issue 53](https://github.com/F5Networks/f5-declarative-onboarding/issues/53)
++ Resolve [Issue 60](https://github.com/F5Networks/f5-declarative-onboarding/issues/60)
++ Add /inspect endpoint to determine existing configuraiton of device
 + Add support for Authentication class
 + Add support for Authentication - Radius
 + Add support for Authentication - TACACS
@@ -12,7 +14,6 @@
 + Add support for Syslog RemoteServers
 + Add schema reference documentation
 + Allow 'none' as valid value for configsyncIp (ConfigSync class)
-+ Fix bug in which DO was unable to get/set ManagementRoute's 'gw' property
 + DeviceGroup.owner is now required
 + Fix bug in which DO sets task status to ERROR right away while it is still rolling back
 + When targetSshKey is used try bash shell to modify targetUsername password if tmsh shell fails.
