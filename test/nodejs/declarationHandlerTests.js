@@ -126,8 +126,18 @@ describe('declarationHandler', () => {
         const newDeclaration = {
             name: 'new',
             parsed: true,
-            Common: {}
+            Common: {
+                VLAN: {},
+                Authentication: {
+                    authKey: true
+                },
+                ConfigSync: {
+                    configsyncIp: 'configsyncIp1'
+                }
+            }
         };
+        // originalConfig is mix of different keys and values
+        // just to test different cases and avoid CLASSES_OF_TRUTH modifications
         const state = {
             currentConfig: {
                 name: 'current'
@@ -138,7 +148,20 @@ describe('declarationHandler', () => {
                     DNS: {
                         foo: 'bar'
                     },
-                    NTP: ['one', 'two']
+                    NTP: ['one', 'two'],
+                    VLAN: ['vlan1', 'vlan2'],
+                    SelfIp: false,
+                    RouteDomain: 0,
+                    ManagementRoute: true,
+                    Authentication: {
+                        authKey: true,
+                        remoteUsersDefaults: {
+                            user: 'user'
+                        }
+                    },
+                    ConfigSync: {
+                        configsyncIp: 'something'
+                    }
                 }
             }
         };
@@ -146,14 +169,9 @@ describe('declarationHandler', () => {
         const declarationHandler = new DeclarationHandler(bigIpMock);
         declarationHandler.process(newDeclaration, state)
             .then(() => {
-                assert.strictEqual(
-                    declarationWithDefaults.Common.hostname, state.originalConfig.Common.hostname
-                );
-                assert.deepEqual(
-                    declarationWithDefaults.Common.DNS, state.originalConfig.Common.DNS
-                );
-                assert.deepEqual(
-                    declarationWithDefaults.Common.NTP, state.originalConfig.Common.NTP
+                state.originalConfig.Common.ConfigSync = { configsyncIp: 'configsyncIp1' };
+                assert.deepStrictEqual(
+                    declarationWithDefaults.Common, state.originalConfig.Common
                 );
                 resolve();
             })
@@ -193,7 +211,7 @@ describe('declarationHandler', () => {
         });
     });
 
-    it('should apply Route Domain fix', () => {
+    it('should apply Route Domain Name fix', () => {
         const newDeclaration = {
             parsed: true,
             Common: {
@@ -224,6 +242,113 @@ describe('declarationHandler', () => {
                 assert.strictEqual(routeDomain['0'].id, 0);
                 assert.notStrictEqual(routeDomain.rd1, undefined);
                 assert.strictEqual(routeDomain.rd1.id, 1);
+            });
+    });
+
+    it('should apply Route Domain VLANs fix', () => {
+        /**
+         * ideas of the test are:
+         * - remove non-existing VLANs from Route Domains
+         * - add VLANs to Route Domain 0 if they don't belong to any other Route Domain
+         * - check that VLANs from another partition or subfolder are untouched
+         * - should keep default VLANs
+         */
+        const newDeclaration = {
+            parsed: true,
+            Common: {}
+        };
+        const state = {
+            currentConfig: {
+                name: 'current'
+            },
+            originalConfig: {
+                Common: {
+                    RouteDomain: {
+                        0: {
+                            vlans: ['/Common/internal', '/Common/external', '/Common/folder/vlan', '/Common/http-tunnel']
+                        },
+                        rd1: {
+                            vlans: ['/Common/vlan1', '/Partition/vlan', '/Partition/folder/vlan', 'vlan3', '/Common/socks-tunnel']
+                        }
+                    },
+                    VLAN: {
+                        vlan1: {},
+                        vlan2: {},
+                        vlan3: {},
+                        vlan4: {},
+                        internal: {}
+                    }
+                }
+            }
+        };
+
+        const declarationHandler = new DeclarationHandler(bigIpMock);
+        return declarationHandler.process(newDeclaration, state)
+            .then(() => {
+                const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                assert.deepStrictEqual(routeDomain['0'].vlans.sort(), ['/Common/internal', '/Common/folder/vlan', '/Common/http-tunnel', 'vlan2', 'vlan4'].sort());
+                assert.deepStrictEqual(routeDomain.rd1.vlans.sort(), ['/Common/vlan1', '/Common/socks-tunnel', '/Partition/vlan', '/Partition/folder/vlan', 'vlan3'].sort());
+            });
+    });
+
+    it('should not apply Route Domain VLANs fix when no VLANs in original config', () => {
+        const newDeclaration = {
+            parsed: true,
+            Common: {}
+        };
+        const state = {
+            currentConfig: {
+                name: 'current'
+            },
+            originalConfig: {
+                Common: {
+                    RouteDomain: {
+                        0: {
+                            vlans: ['vlan']
+                        }
+                    }
+                }
+            }
+        };
+
+        const declarationHandler = new DeclarationHandler(bigIpMock);
+        return declarationHandler.process(newDeclaration, state)
+            .then(() => {
+                const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                assert.deepStrictEqual(routeDomain['0'].vlans, ['vlan']);
+            });
+    });
+
+    it('should not apply Route Domain VLANs fix when no Route Domain 0 in original config', () => {
+        const newDeclaration = {
+            parsed: true,
+            Common: {}
+        };
+        const state = {
+            currentConfig: {
+                name: 'current'
+            },
+            originalConfig: {
+                Common: {
+                    RouteDomain: {
+                        rd1: {
+                            vlans: []
+                        }
+                    },
+                    VLAN: {
+                        vlan1: {},
+                        vlan2: {}
+                    }
+                }
+            }
+        };
+
+        const declarationHandler = new DeclarationHandler(bigIpMock);
+        return declarationHandler.process(newDeclaration, state)
+            .then(() => {
+                const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                assert.strictEqual(routeDomain['0'], undefined);
+                assert.deepStrictEqual(routeDomain.rd1.vlans, []);
             });
     });
 });

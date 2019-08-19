@@ -112,8 +112,9 @@ class DeclarationHandler {
 
         // apply fix to parsedNewDeclaration only, because
         // parsedOldDeclaration (created by ConfigManager) has no such issue
-        applyRouteDomainFix(parsedNewDeclaration);
+        applyRouteDomainNameFix(parsedNewDeclaration);
         applyDefaults(parsedNewDeclaration, state);
+        applyRouteDomainVlansFix(parsedNewDeclaration);
 
         const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
         let updateDeclaration;
@@ -165,26 +166,22 @@ class DeclarationHandler {
  */
 function applyDefaults(declaration, state) {
     const commonDeclaration = declaration.Common;
+    // deep copy original item to avoid modifications of originalConfig.Common in handlers
+    const commonOriginal = JSON.parse(JSON.stringify(state.originalConfig.Common || {}));
+
     CLASSES_OF_TRUTH.forEach((key) => {
+        if (!(key in commonOriginal)) {
+            return;
+        }
+        const original = commonOriginal[key];
         const item = commonDeclaration[key];
-        const original = state.originalConfig.Common[key];
-        if (original) {
-            // if the missing or empty, fill in the original
-            if (!item || (typeof item === 'object' && Object.keys(item).length === 0)) {
-                if (typeof original === 'string') {
-                    commonDeclaration[key] = original;
-                } else if (Array.isArray(original)) {
-                    commonDeclaration[key] = original.slice();
-                } else {
-                    commonDeclaration[key] = {};
-                    Object.assign(commonDeclaration[key], original);
-                }
+        // if the missing or empty, fill in the original
+        if (!(key in commonDeclaration) || (typeof item === 'object' && Object.keys(item).length === 0)) {
+            commonDeclaration[key] = original;
+        } else if (key === 'Authentication') {
             // some more auth oddities
-            } else if (key === 'Authentication') {
-                if (!item.remoteUsersDefaults) {
-                    commonDeclaration[key].remoteUsersDefaults = {};
-                    Object.assign(commonDeclaration[key].remoteUsersDefaults, original.remoteUsersDefaults);
-                }
+            if (typeof item.remoteUsersDefaults === 'undefined') {
+                item.remoteUsersDefaults = original.remoteUsersDefaults;
             }
         }
     });
@@ -198,7 +195,7 @@ function applyDefaults(declaration, state) {
  *
  * @param {Object} declaration - declaration to fix
  */
-function applyRouteDomainFix(declaration) {
+function applyRouteDomainNameFix(declaration) {
     if (declaration.Common.RouteDomain) {
         const routeDomains = declaration.Common.RouteDomain;
         Object.keys(routeDomains).forEach((rdName) => {
@@ -212,6 +209,67 @@ function applyRouteDomainFix(declaration) {
                 delete routeDomains[rdName];
             }
         });
+    }
+}
+
+/**
+ * Add all VLANs that don't belong to any Route Domain to Route Domain 0.
+ * Remove all VLANs (only VLANs that belongs to /Common/ partition)
+ * from Route Domains that are not listed in Declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyRouteDomainVlansFix(declaration) {
+    const vlans = Object.keys(declaration.Common.VLAN || {});
+    const routeDomains = declaration.Common.RouteDomain || {};
+    if (vlans.length === 0 || !('0' in routeDomains)) {
+        return;
+    }
+
+    const parseTmosName = function (tmosName) {
+        const result = {
+            name: tmosName,
+            folder: '',
+            partition: 'Common'
+        };
+        if (tmosName.startsWith('/')) {
+            const tmosNameParts = tmosName.split('/');
+            // ignore empty string at idx === 0
+            result.partition = tmosNameParts[1];
+            result.name = tmosNameParts[3] || tmosNameParts[2];
+            result.folder = tmosNameParts[3] ? tmosNameParts[2] : '';
+        }
+        return result;
+    };
+    const defaultVlans = ['http-tunnel', 'socks-tunnel'];
+
+    Object.keys(routeDomains).forEach((rdName) => {
+        const rdVlans = routeDomains[rdName].vlans || [];
+        routeDomains[rdName].vlans = rdVlans.filter((rdVlan) => {
+            const parsedName = parseTmosName(rdVlan);
+            let shouldKeep = true;
+            // ignore every object that is not under /Common/
+            if (parsedName.partition === 'Common' && !parsedName.folder) {
+                const idx = vlans.indexOf(parsedName.name);
+                if (idx !== -1) {
+                    // if VLAN belongs to RD already then remove it from list
+                    vlans.splice(idx, 1);
+                } else if (defaultVlans.indexOf(parsedName.name) === -1) {
+                    // if VLAN not in declaration or defaultVlans then it probably don't exist
+                    // and should be removed from RD VLANs list
+                    shouldKeep = false;
+                }
+            }
+            return shouldKeep;
+        });
+    });
+    // add all VLANs (if left) to Route Domain 0
+    // for now we assume that default RD for Common partition is 0
+    if (vlans.length > 0) {
+        const rd0 = routeDomains['0'];
+        rd0.vlans = rd0.vlans || [];
+        /* eslint-disable-next-line prefer-spread */
+        rd0.vlans.push.apply(rd0.vlans, vlans);
     }
 }
 
