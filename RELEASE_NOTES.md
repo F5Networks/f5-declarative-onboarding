@@ -21,6 +21,7 @@
 + Add support for cmp-hash for VLAN [Issue 1](https://github.com/F5Networks/f5-declarative-onboarding/issues/1)
 + Add support for Traffic Control
 + Fix bug in which DO was unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Rotue Domain with ID 0 unless otherwise specified.
++ Improve masking of nested secrets
 
 ## Version 1.6.1
 + Upgrade f5-cloud-libs to improve licensing from BIG-IQ reg key pools
