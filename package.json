@@ -43,7 +43,7 @@
     "test": "mocha --recursive test/nodejs test/schema",
     "functional": "mocha test/functional/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
-    "coverage": "nyc --reporter html --reporter text npm test",
+    "coverage": "nyc --reporter html --reporter text --reporter json npm test",
     "lint": "eslint nodejs test"
   },
   "eslintConfig": {

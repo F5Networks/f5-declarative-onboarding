@@ -550,7 +550,6 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
         let authData;
 
         before(() => {
-            console.log(JSON.stringify(machines));
             thisMachine = machines[1];
             authData = {
                 username: thisMachine.adminUsername,
