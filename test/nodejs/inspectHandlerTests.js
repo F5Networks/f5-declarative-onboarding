@@ -1159,7 +1159,7 @@ describe('inspectHandler', () => {
             });
             return inspectHandler.process()
                 .then((data) => {
-                    basicInspectHandlerAsserts(data, 408, 'ERROR', 'Conflict', errMsg => /contains INVALID items/.test(errMsg));
+                    basicInspectHandlerAsserts(data, 409, 'ERROR', 'Conflict', errMsg => /contains INVALID items/.test(errMsg));
 
                     assert.notStrictEqual(data.declaration, undefined, 'Should have "declaration" key');
                     const commonTenant = data.declaration.declaration.Common;

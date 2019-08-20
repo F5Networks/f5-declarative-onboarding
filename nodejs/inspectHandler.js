@@ -514,7 +514,7 @@ function makeDeclarationFromConfig(config) {
     });
 
     if (hasDuplicates) {
-        this.code = 408;
+        this.code = 409;
         this.message = 'Conflict';
         this.errors.push('Declaration contains INVALID items (suffixed with INVALID_X)');
     }
