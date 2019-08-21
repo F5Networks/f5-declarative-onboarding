@@ -51,7 +51,8 @@
       "html",
       "text",
       "json-summary"
-    ],
+    ]
+  },
   "eslintConfig": {
     "extends": "@f5devcentral/eslint-config-f5-atg"
   }
