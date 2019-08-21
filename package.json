@@ -43,9 +43,15 @@
     "test": "mocha --recursive test/nodejs test/schema",
     "functional": "mocha test/functional/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
-    "coverage": "nyc --reporter html --reporter text --reporter json npm test",
+    "coverage": "nyc npm test",
     "lint": "eslint nodejs test"
   },
+  "nyc": {
+    "reporter": [
+      "html",
+      "text",
+      "json-summary"
+    ],
   "eslintConfig": {
     "extends": "@f5devcentral/eslint-config-f5-atg"
   }
