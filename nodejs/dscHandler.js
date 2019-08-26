@@ -53,7 +53,7 @@ class DscHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Proessing DSC declaration.');
+        logger.fine('Processing DSC declaration.');
         logger.fine('Checking ConfigSync.');
         return handleConfigSync.call(this)
             .then(() => {
