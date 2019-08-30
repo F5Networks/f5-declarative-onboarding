@@ -462,6 +462,19 @@ describe('inspectHandler', () => {
                 nameServers: ['172.27.1.1'],
                 search: ['localhost']
             },
+            '/tm/net/trunk': [
+                {
+                    name: 'testTrunk',
+                    distributionHash: 'dst-mac',
+                    interfaces: [],
+                    lacp: 'disabled',
+                    lacpMode: 'active',
+                    lacpTimeout: 'long',
+                    linkSelectPolicy: 'auto',
+                    qinqEthertype: '0x8100',
+                    stp: 'enabled'
+                }
+            ],
             '/tm/net/vlan': [
                 {
                     name: 'internalVlan',
@@ -792,6 +805,17 @@ describe('inspectHandler', () => {
                             nameServers: ['172.27.1.1'],
                             search: ['localhost'],
                             class: 'DNS'
+                        },
+                        testTrunk: {
+                            distributionHash: 'dst-mac',
+                            interfaces: [],
+                            lacpMode: 'active',
+                            lacpTimeout: 'long',
+                            linkSelectPolicy: 'auto',
+                            lacpEnabled: false,
+                            qinqEthertype: '0x8100',
+                            spanningTreeEnabled: true,
+                            class: 'Trunk'
                         },
                         internalVlan: {
                             mtu: 1500,

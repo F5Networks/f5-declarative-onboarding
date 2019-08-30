@@ -22,6 +22,7 @@
 + Add support for Traffic Control
 + Fix bug in which DO was unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Rotue Domain with ID 0 unless otherwise specified.
 + Improve masking of nested secrets
++ Add support for Trunk class
 + Improve Route Domains handling
 
 ## Version 1.6.1

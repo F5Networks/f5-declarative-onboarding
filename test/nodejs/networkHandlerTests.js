@@ -61,6 +61,54 @@ describe('networkHandler', () => {
         };
     });
 
+    describe('Trunk', () => {
+        it('should handle fully specified Trunk', () => {
+            const declaration = {
+                Common: {
+                    Trunk: {
+                        myTrunk: {
+                            name: 'trunk1',
+                            distributionHash: 'dst-mac',
+                            interfaces: [
+                                '1.1',
+                                '1.2'
+                            ],
+                            lacpEnabled: true,
+                            lacpMode: 'active',
+                            lacpTimeout: 'long',
+                            linkSelectPolicy: 'auto',
+                            qinqEthertype: '0xAF09',
+                            spanningTreeEnabled: true
+                        }
+                    }
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const networkHandler = new NetworkHandler(declaration, bigIpMock);
+                networkHandler.process()
+                    .then(() => {
+                        const trunkData = dataSent[PATHS.Trunk];
+                        assert.strictEqual(trunkData.length, 1);
+                        assert.strictEqual(trunkData[0].name, 'trunk1');
+                        assert.strictEqual(trunkData[0].distributionHash, 'dst-mac');
+                        assert.strictEqual(trunkData[0].interfaces[0], '1.1');
+                        assert.strictEqual(trunkData[0].interfaces[1], '1.2');
+                        assert.strictEqual(trunkData[0].lacp, 'enabled');
+                        assert.strictEqual(trunkData[0].lacpMode, 'active');
+                        assert.strictEqual(trunkData[0].lacpTimeout, 'long');
+                        assert.strictEqual(trunkData[0].linkSelectPolicy, 'auto');
+                        assert.strictEqual(trunkData[0].qinqEthertype, '0xAF09');
+                        assert.strictEqual(trunkData[0].stp, 'enabled');
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+    });
+
     describe('VLAN', () => {
         it('should handle fully specified VLANs', () => {
             const declaration = {

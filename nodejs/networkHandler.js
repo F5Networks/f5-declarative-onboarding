@@ -53,8 +53,12 @@ class NetworkHandler {
      */
     process() {
         logger.fine('Proessing network declaration.');
-        logger.fine('Checking VLANs.');
-        return handleVlan.call(this)
+        logger.fine('Checking Trunks.');
+        return handleTrunk.call(this)
+            .then(() => {
+                logger.fine('Checking VLANs.');
+                return handleVlan.call(this);
+            })
             .then(() => {
                 logger.fine('Checking RouteDomains.');
                 return handleRouteDomain.call(this);
@@ -280,6 +284,34 @@ function handleRoute() {
     });
 }
 
+function handleTrunk() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'Trunk', (tenant, trunk) => {
+        if (trunk && trunk.name) {
+            const trunkBody = {
+                name: trunk.name,
+                distributionHash: trunk.distributionHash,
+                interfaces: trunk.interfaces,
+                lacp: trunk.lacpEnabled ? 'enabled' : 'disabled',
+                lacpMode: trunk.lacpMode,
+                lacpTimeout: trunk.lacpTimeout,
+                linkSelectPolicy: trunk.linkSelectPolicy,
+                qinqEthertype: trunk.qinqEthertype,
+                stp: trunk.spanningTreeEnabled ? 'enabled' : 'disabled'
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.Trunk, trunkBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Trunks: ${err.message}`);
+            throw err;
+        });
+}
 function handleRouteDomain() {
     const promises = [];
     doUtil.forEach(this.declaration, 'RouteDomain', (tenant, routeDomain) => {
