@@ -42,6 +42,7 @@ const CLASSES_OF_TRUTH = [
     'NTP',
     'Provision',
     'VLAN',
+    'Trunk',
     'SelfIp',
     'Route',
     'ConfigSync',

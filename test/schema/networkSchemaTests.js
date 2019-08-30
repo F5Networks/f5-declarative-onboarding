@@ -36,31 +36,91 @@ Object.keys(customFormats).forEach((customFormat) => {
 
 const validate = ajv.compile(networkSchema);
 
-/* eslint-disable quotes, quote-props */
-
 describe('network.schema.json', () => {
+    describe('Trunk', () => {
+        describe('valid', () => {
+            it('should validate minimal data', () => {
+                const data = {
+                    class: 'Trunk'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate trunk data', () => {
+                const data = {
+                    class: 'Trunk',
+                    distributionHash: 'dst-mac',
+                    interfaces: [
+                        'myInterfaceDarryl',
+                        'myOtherInterfaceDarryl'
+                    ],
+                    lacpEnabled: true,
+                    lacpMode: 'passive',
+                    lacpTimeout: 'long',
+                    linkSelectPolicy: 'maximum-bandwidth',
+                    qinqEthertype: '0xF5f5',
+                    spanningTreeEnabled: false
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional prpoerties', () => {
+                const data = {
+                    class: 'Trunk',
+                    rogueProperty: true
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
+            });
+
+            it('should invalidate improperly formatted qinqEthertype', () => {
+                let data = {
+                    class: 'Trunk',
+                    qinqEthertype: ' 0x8100'
+                };
+                assert.strictEqual(validate(data), false, 'qinqEthertype should not have leading space');
+                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+
+                data = {
+                    class: 'Trunk',
+                    qinqEthertype: '0x8100 '
+                };
+                assert.strictEqual(validate(data), false, 'qinqEthertype should not have trailing space');
+                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+
+                data = {
+                    class: 'Trunk',
+                    qinqEthertype: '0xIBAD'
+                };
+                assert.strictEqual(validate(data), false, 'qinqEthertype should not be invalid hex');
+                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+            });
+        });
+    });
     describe('VLAN', () => {
         describe('valid', () => {
             it('should validate minimal data', () => {
                 const data = {
-                    "class": "VLAN",
-                    "interfaces": []
+                    class: 'VLAN',
+                    interfaces: []
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
             it('should validate vlan data', () => {
                 const data = {
-                    "class": "VLAN",
-                    "interfaces": [
+                    class: 'VLAN',
+                    interfaces: [
                         {
-                            "name": "myInterface",
-                            "tagged": false
+                            name: 'myInterface',
+                            tagged: false
                         }
                     ],
-                    "mtu": 1500,
-                    "tag": 1234,
-                    "cmpHash": "dst-ip"
+                    mtu: 1500,
+                    tag: 1234,
+                    cmpHash: 'dst-ip'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -69,9 +129,9 @@ describe('network.schema.json', () => {
         describe('invalid', () => {
             it('should invalidate data missing interfaces', () => {
                 const data = {
-                    "class": "VLAN",
-                    "mtu": 1500,
-                    "tag": 1234
+                    class: 'VLAN',
+                    mtu: 1500,
+                    tag: 1234
                 };
                 assert.strictEqual(validate(data), false, 'missing interfaces should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "interfaces"'), -1);
@@ -79,14 +139,14 @@ describe('network.schema.json', () => {
 
             it('should invalidate interfaces missing name', () => {
                 const data = {
-                    "class": "VLAN",
-                    "interfaces": [
+                    class: 'VLAN',
+                    interfaces: [
                         {
-                            "tagged": false
+                            tagged: false
                         }
                     ],
-                    "mtu": 1500,
-                    "tag": 1234
+                    mtu: 1500,
+                    tag: 1234
                 };
                 assert.strictEqual(validate(data), false, 'missing interface name should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "name"'), -1);
@@ -94,16 +154,16 @@ describe('network.schema.json', () => {
 
             it('should invalidate interfaces with additional prpoerties', () => {
                 const data = {
-                    "class": "VLAN",
-                    "interfaces": [
+                    class: 'VLAN',
+                    interfaces: [
                         {
-                            "name": "myInterface",
-                            "tagged": false,
-                            "foo": "bar"
+                            name: 'myInterface',
+                            tagged: false,
+                            foo: 'bar'
                         }
                     ],
-                    "mtu": 1500,
-                    "tag": 1234
+                    mtu: 1500,
+                    tag: 1234
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "foo"'), -1);
@@ -115,33 +175,33 @@ describe('network.schema.json', () => {
         describe('valid', () => {
             it('should validate network data with IPv4 address', () => {
                 const data = {
-                    "class": "SelfIp",
-                    "address": "1.2.3.4/32",
-                    "vlan": "myVlan",
-                    "allowService": "all",
-                    "trafficGroup": "traffic-group-1"
+                    class: 'SelfIp',
+                    address: '1.2.3.4/32',
+                    vlan: 'myVlan',
+                    allowService: 'all',
+                    trafficGroup: 'traffic-group-1'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
             it('should validate network data with IPv6 address', () => {
                 const data = {
-                    "class": "SelfIp",
-                    "address": "FE80:0000:0000:0000:0202:B3FF:FE1E:8329/128",
-                    "vlan": "myVlan",
-                    "allowService": "all",
-                    "trafficGroup": "traffic-group-1"
+                    class: 'SelfIp',
+                    address: 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329/128',
+                    vlan: 'myVlan',
+                    allowService: 'all',
+                    trafficGroup: 'traffic-group-1'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
             it('should validate network data with allow service:port', () => {
                 const data = {
-                    "class": "SelfIp",
-                    "address": "1.2.3.4/32",
-                    "vlan": "myVlan",
-                    "allowService": ["foo:1234"],
-                    "trafficGroup": "traffic-group-1"
+                    class: 'SelfIp',
+                    address: '1.2.3.4/32',
+                    vlan: 'myVlan',
+                    allowService: ['foo:1234'],
+                    trafficGroup: 'traffic-group-1'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -150,8 +210,8 @@ describe('network.schema.json', () => {
         describe('invalid', () => {
             it('should invalidate self ips with no address', () => {
                 const data = {
-                    "class": "SelfIp",
-                    "vlan": "myVlan"
+                    class: 'SelfIp',
+                    vlan: 'myVlan'
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip address should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "address"'), -1);
@@ -159,8 +219,8 @@ describe('network.schema.json', () => {
 
             it('should invalidate self ips with no vlan', () => {
                 const data = {
-                    "class": "SelfIp",
-                    "address": "1.2.3.4"
+                    class: 'SelfIp',
+                    address: '1.2.3.4'
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "vlan"'), -1);
@@ -168,9 +228,9 @@ describe('network.schema.json', () => {
 
             it('should invalidate bad selfIp addresses', () => {
                 const data = {
-                    "class": "SelfIp",
-                    "address": "foo",
-                    "vlan": "myVlan"
+                    class: 'SelfIp',
+                    address: 'foo',
+                    vlan: 'myVlan'
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
@@ -178,9 +238,9 @@ describe('network.schema.json', () => {
 
             it('should invalidate IPv4 selfIp with out of range CIDR', () => {
                 const data = {
-                    "class": "SelfIp",
-                    "address": "1.2.3.4/33",
-                    "vlan": "myVlan"
+                    class: 'SelfIp',
+                    address: '1.2.3.4/33',
+                    vlan: 'myVlan'
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
@@ -188,9 +248,9 @@ describe('network.schema.json', () => {
 
             it('should invalidate IPv6 selfIp with out of range CIDR', () => {
                 const data = {
-                    "class": "SelfIp",
-                    "address": "FE80:0000:0000:0000:0202:B3FF:FE1E:8329/129",
-                    "vlan": "myVlan"
+                    class: 'SelfIp',
+                    address: 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329/129',
+                    vlan: 'myVlan'
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
@@ -198,10 +258,10 @@ describe('network.schema.json', () => {
 
             it('should invalidate bad traffic group', () => {
                 const data = {
-                    "class": "SelfIp",
-                    "address": "1.2.3.4",
-                    "vlan": "myVlan",
-                    "trafficGroup": "traffic-group-foo"
+                    class: 'SelfIp',
+                    address: '1.2.3.4',
+                    vlan: 'myVlan',
+                    trafficGroup: 'traffic-group-foo'
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('allowedValues'), -1);
@@ -210,10 +270,10 @@ describe('network.schema.json', () => {
             describe('allowService', () => {
                 it('should invalidate single words that are not all, default, or none', () => {
                     const data = {
-                        "class": "SelfIp",
-                        "address": "1.2.3.4",
-                        "vlan": "myVlan",
-                        "allowService": "foo"
+                        class: 'SelfIp',
+                        address: '1.2.3.4',
+                        vlan: 'myVlan',
+                        allowService: 'foo'
                     };
                     assert.strictEqual(validate(data), false, 'allow service foo should not be valid');
                     assert.notStrictEqual(getErrorString().indexOf('allowedValues'), -1);
@@ -221,10 +281,10 @@ describe('network.schema.json', () => {
 
                 it('should invalidate service:port that is not in an array', () => {
                     const data = {
-                        "class": "SelfIp",
-                        "address": "1.2.3.4",
-                        "vlan": "myVlan",
-                        "allowService": "tcp:1234"
+                        class: 'SelfIp',
+                        address: '1.2.3.4',
+                        vlan: 'myVlan',
+                        allowService: 'tcp:1234'
                     };
                     assert.strictEqual(
                         validate(data),
@@ -236,10 +296,10 @@ describe('network.schema.json', () => {
 
                 it('should invalidate invalid port values', () => {
                     const data = {
-                        "class": "SelfIp",
-                        "address": "1.2.3.4",
-                        "vlan": "myVlan",
-                        "allowService": ["foo:bar"]
+                        class: 'SelfIp',
+                        address: '1.2.3.4',
+                        vlan: 'myVlan',
+                        allowService: ['foo:bar']
                     };
                     assert.strictEqual(validate(data), false, 'allow service bar should not be valid port');
                     assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
@@ -252,10 +312,10 @@ describe('network.schema.json', () => {
         describe('valid', () => {
             it('should validate route data', () => {
                 const data = {
-                    "class": "Route",
-                    "gw": "1.2.3.4",
-                    "network": "default",
-                    "mtu": 1234
+                    class: 'Route',
+                    gw: '1.2.3.4',
+                    network: 'default',
+                    mtu: 1234
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -264,16 +324,16 @@ describe('network.schema.json', () => {
         describe('invalid', () => {
             it('should invalidate additional properties', () => {
                 const data = {
-                    "class": "Route",
-                    "gw": "1.2.3.4",
-                    "foo": "bar"
+                    class: 'Route',
+                    gw: '1.2.3.4',
+                    foo: 'bar'
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
             });
 
             it('should invalidate missing gateway', () => {
                 const data = {
-                    "class": "Route"
+                    class: 'Route'
                 };
                 assert.strictEqual(validate(data), false, 'missing gateway should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "gw"'), -1);
@@ -281,8 +341,8 @@ describe('network.schema.json', () => {
 
             it('should invalidate route data with bad gateway IP address', () => {
                 const data = {
-                    "class": "Route",
-                    "gw": "foo"
+                    class: 'Route',
+                    gw: 'foo'
                 };
                 assert.strictEqual(validate(data), false, 'bad gateway IP address should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"ipv4\\"'), -1);
@@ -290,9 +350,9 @@ describe('network.schema.json', () => {
 
             it('should invalidate route data with bad network', () => {
                 const data = {
-                    "class": "Route",
-                    "gw": "1.2.3.4",
-                    "network": "foo"
+                    class: 'Route',
+                    gw: '1.2.3.4',
+                    network: 'foo'
                 };
                 assert.strictEqual(validate(data), false, 'bad gateway IP address should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('allowedValues'), -1);
@@ -304,24 +364,24 @@ describe('network.schema.json', () => {
         describe('valid', () => {
             it('should validate route domain data', () => {
                 const data = {
-                    "class": "RouteDomain",
-                    "id": 2000,
-                    "bandWidthControllerPolicy": "bwcPolicy",
-                    "connectionLimit": 1234567,
-                    "flowEvictionPolicy": "flowPolicy",
-                    "ipIntelligencePolicy": "ipIntell",
-                    "enforcedFirewallPolicy": "fwPolicy",
-                    "stagedFirewallPolicy": "fwPolicy",
-                    "securityNatPolicy": "natSecure",
-                    "servicePolicy": "servicePolicy",
-                    "strict": false,
-                    "routingProtocols": [
-                        "BFD",
-                        "BGP"
+                    class: 'RouteDomain',
+                    id: 2000,
+                    bandWidthControllerPolicy: 'bwcPolicy',
+                    connectionLimit: 1234567,
+                    flowEvictionPolicy: 'flowPolicy',
+                    ipIntelligencePolicy: 'ipIntell',
+                    enforcedFirewallPolicy: 'fwPolicy',
+                    stagedFirewallPolicy: 'fwPolicy',
+                    securityNatPolicy: 'natSecure',
+                    servicePolicy: 'servicePolicy',
+                    strict: false,
+                    routingProtocols: [
+                        'BFD',
+                        'BGP'
                     ],
-                    "vlans": [
-                        "vlan1",
-                        "vlan2"
+                    vlans: [
+                        'vlan1',
+                        'vlan2'
                     ]
                 };
                 assert.ok(validate(data), getErrorString(validate));
@@ -331,8 +391,8 @@ describe('network.schema.json', () => {
         describe('invalid', () => {
             it('should invalidate out of ragne id', () => {
                 const data = {
-                    "class": "RouteDomain",
-                    "id": 123456
+                    class: 'RouteDomain',
+                    id: 123456
                 };
                 assert.strictEqual(validate(data), false, 'id is out of range');
                 assert.notStrictEqual(getErrorString().indexOf('should be <= 65534'), -1);
@@ -340,9 +400,9 @@ describe('network.schema.json', () => {
 
             it('should invalidate out of range connectionLimit', () => {
                 const data = {
-                    "class": "RouteDomain",
-                    "id": 100,
-                    "connectionLimit": 99999999999
+                    class: 'RouteDomain',
+                    id: 100,
+                    connectionLimit: 99999999999
                 };
                 assert.strictEqual(validate(data), false, 'connectionLimit is out of range');
                 assert.notStrictEqual(getErrorString().indexOf('should be <= 4294967295'), -1);
@@ -350,7 +410,7 @@ describe('network.schema.json', () => {
 
             it('should invalidate missing id property', () => {
                 const data = {
-                    "class": "RouteDomain"
+                    class: 'RouteDomain'
                 };
                 assert.strictEqual(validate(data), false, 'missing id property');
                 assert.notStrictEqual(getErrorString().indexOf('should have required property \'id\''), -1);
@@ -358,11 +418,11 @@ describe('network.schema.json', () => {
 
             it('should invlaidate bad routing protocol', () => {
                 const data = {
-                    "class": "RouteDomain",
-                    "id": 1,
-                    "routingProtocols": [
-                        "BFD",
-                        "newProtocol"
+                    class: 'RouteDomain',
+                    id: 1,
+                    routingProtocols: [
+                        'BFD',
+                        'newProtocol'
                     ]
                 };
                 assert.strictEqual(validate(data), false, 'invalid routing protocol');
@@ -371,10 +431,10 @@ describe('network.schema.json', () => {
 
             it('should invalidate additional properties', () => {
                 const data = {
-                    "class": "RouteDomain",
-                    "id": 123,
-                    "newProperty": [
-                        "newArrayItem"
+                    class: 'RouteDomain',
+                    id: 123,
+                    newProperty: [
+                        'newArrayItem'
                     ]
                 };
                 assert.strictEqual(validate(data), false, 'can\'t have additional properties');
@@ -383,9 +443,9 @@ describe('network.schema.json', () => {
 
             it('should invalidate bad bandWidthControllerPolicy', () => {
                 const data = {
-                    "class": "RouteDomain",
-                    "id": 123,
-                    "bandWidthControllerPolicy": [
+                    class: 'RouteDomain',
+                    id: 123,
+                    bandWidthControllerPolicy: [
                         "uhOhIt'sAnArray"
                     ]
                 };
@@ -395,10 +455,10 @@ describe('network.schema.json', () => {
 
             it('should invalidate incorrect vlans items types', () => {
                 const data = {
-                    "class": "RouteDomain",
-                    "id": 123,
-                    "vlans": [
-                        "123",
+                    class: 'RouteDomain',
+                    id: 123,
+                    vlans: [
+                        '123',
                         []
                     ]
                 };
@@ -412,17 +472,17 @@ describe('network.schema.json', () => {
         describe('valid', () => {
             it('should validate minimal schema', () => {
                 const data = {
-                    "class": "DagGlobals"
+                    class: 'DagGlobals'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
             it('should validate DagGlobals data', () => {
                 const data = {
-                    "class": "DagGlobals",
-                    "ipv6PrefixLength": 120,
-                    "icmpHash": "ipicmp",
-                    "roundRobinMode": "local"
+                    class: 'DagGlobals',
+                    ipv6PrefixLength: 120,
+                    icmpHash: 'ipicmp',
+                    roundRobinMode: 'local'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -431,8 +491,8 @@ describe('network.schema.json', () => {
         describe('invalid', () => {
             it('should invalidate out of range ipv6PrefixLength', () => {
                 const data = {
-                    "class": "DagGlobals",
-                    "ipv6PrefixLength": 129
+                    class: 'DagGlobals',
+                    ipv6PrefixLength: 129
                 };
                 assert.strictEqual(validate(data), false, 'ipv6PrefixLength should be between 0 and 128');
                 assert.notStrictEqual(getErrorString().indexOf('should be <= 128'), -1);
@@ -440,8 +500,8 @@ describe('network.schema.json', () => {
 
             it('should invalidate invalid icmpHash', () => {
                 const data = {
-                    "class": "DagGlobals",
-                    "icmpHash": "icmp2.0"
+                    class: 'DagGlobals',
+                    icmpHash: 'icmp2.0'
                 };
                 assert.strictEqual(validate(data), false, 'icmpHash should only match values in enum');
                 assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
@@ -449,8 +509,8 @@ describe('network.schema.json', () => {
 
             it('should invalidate invalid roundRobinMode', () => {
                 const data = {
-                    "class": "DagGlobals",
-                    "roundRobinMode": "newRRMode"
+                    class: 'DagGlobals',
+                    roundRobinMode: 'newRRMode'
                 };
                 assert.strictEqual(validate(data), false, 'roundRobinMode should only match values in enum');
                 assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);

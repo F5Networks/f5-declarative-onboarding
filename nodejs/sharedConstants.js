@@ -37,6 +37,7 @@ module.exports = {
         Route: '/tm/net/route',
         SelfIp: '/tm/net/self',
         VLAN: '/tm/net/vlan',
+        Trunk: '/tm/net/trunk',
         DeviceGroup: '/tm/cm/device-group',
         Analytics: '/tm/analytics/global-settings',
         ManagementRoute: '/tm/sys/management-route',

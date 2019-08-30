@@ -52,6 +52,20 @@
         ]
     },
     {
+        "path": "/tm/net/trunk",
+        "schemaClass": "Trunk",
+        "properties": [
+            { "id": "distributionHash" },
+            { "id": "interfaces" },
+            { "id": "lacp", "newId": "lacpEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "lacpMode" },
+            { "id": "lacpTimeout" },
+            { "id": "linkSelectPolicy" },
+            { "id": "qinqEthertype" },
+            { "id": "stp", "newId": "spanningTreeEnabled", "truth": "enabled", "falsehood": "disabled" }
+        ]
+    },
+    {
         "path": "/tm/net/vlan",
         "schemaClass": "VLAN",
         "properties": [
