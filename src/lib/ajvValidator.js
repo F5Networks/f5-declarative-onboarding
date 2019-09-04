@@ -18,15 +18,15 @@
 
 const Ajv = require('ajv');
 
-const remoteSchema = require('../../schema/latest/remote.schema.json');
-const baseSchema = require('../../schema/latest/base.schema.json');
-const systemSchema = require('../../schema/latest/system.schema.json');
-const networkSchema = require('../../schema/latest/network.schema.json');
-const dscSchema = require('../../schema/latest/dsc.schema.json');
-const analyticsSchema = require('../../schema/latest/analytics.schema.json');
-const authSchema = require('../../schema/latest/auth.schema.json');
+const remoteSchema = require('../schema/latest/remote.schema.json');
+const baseSchema = require('../schema/latest/base.schema.json');
+const systemSchema = require('../schema/latest/system.schema.json');
+const networkSchema = require('../schema/latest/network.schema.json');
+const dscSchema = require('../schema/latest/dsc.schema.json');
+const analyticsSchema = require('../schema/latest/analytics.schema.json');
+const authSchema = require('../schema/latest/auth.schema.json');
 
-const customFormats = require('../../schema/latest/formats.js');
+const customFormats = require('../schema/latest/formats.js');
 
 class AjvValidator {
     constructor() {

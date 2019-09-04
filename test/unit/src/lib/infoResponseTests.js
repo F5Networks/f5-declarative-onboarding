@@ -21,7 +21,7 @@ const assert = require('assert');
 const InfoResponse = require('../../../../src/lib/infoResponse');
 
 const PACKAGE_VERSION = require('../../../../package.json').version;
-const SCHEMA_VERSIONS = require('../../../../schema/latest/base.schema.json').properties.schemaVersion.enum;
+const SCHEMA_VERSIONS = require('../../../../src/schema/latest/base.schema.json').properties.schemaVersion.enum;
 
 describe('infoResponse', () => {
     let infoResponse;

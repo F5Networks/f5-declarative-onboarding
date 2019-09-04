@@ -24,7 +24,7 @@ const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const Logger = require('./logger');
-const ipF5 = require('../../schema/latest/formats').f5ip;
+const ipF5 = require('../schema/latest/formats').f5ip;
 
 const logger = new Logger(module);
 
