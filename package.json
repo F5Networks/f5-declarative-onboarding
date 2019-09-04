@@ -44,7 +44,7 @@
     "integration": "mocha test/integration/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "coverage": "nyc npm test",
-    "lint": "eslint nodejs test"
+    "lint": "eslint src test"
   },
   "nyc": {
     "reporter": [
