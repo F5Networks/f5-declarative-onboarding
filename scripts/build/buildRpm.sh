@@ -9,6 +9,6 @@ RPM_NAME=f5-declarative-onboarding-${VERSION}-${RELEASE}.noarch.rpm
 npm ci --production
 rpmbuild -bb --define "main $(pwd)" --define '_topdir %{main}/build' --define "_version ${VERSION}" --define "_release ${RELEASE}" scripts/build/f5-declarative-onboarding.spec
 pushd build/RPMS/noarch
-openssl dgst -sha256 ${RPM_NAME} > ${RPM_NAME}.sha256
+sha256sum ${RPM_NAME} > ${RPM_NAME}.sha256
 cp * ../../../dist/
 popd
