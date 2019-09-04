@@ -175,7 +175,7 @@ create postman collection:
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
-            - dist/*.collection.json
+            - dist/
         expire_in: 1 week
 
 publish to artifactory:
