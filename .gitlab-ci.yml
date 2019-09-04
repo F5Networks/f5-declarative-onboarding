@@ -175,29 +175,30 @@ create postman collection:
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
-            - dist/do.examples.collection.json
+            - dist/*.collection.json
         expire_in: 1 week
 
 publish to artifactory:
     stage: publish
     only:
-        - tags
+        - AUTOTOOL-667-Normalize-file-repo-structures
     tags:
         - cm-official-docker-executor
     script:
-        # If the tag contains a '-', then get RPM from the build artifact, otherwise, get it from dist
-        # since no '-' in the tag means it's s release and should have been committed to dist.
-        - if [[ $CI_COMMIT_TAG == *"-"* ]]; then
-        -     RPM_FILE=$(ls build/RPMS/noarch/*.rpm)
-        - else
-        -     RPM_FILE=$(ls dist/*.rpm)
-        - fi
+        - RPM_FILE=$(ls dist/*.rpm)
         - RPM_NAME=$(basename $RPM_FILE)
+        - POSTMAN_FILE=$(ls dist/*.collection.json)
+        - POSTMAN_NAME=$(basename $POSTMAN_FILE)
         - >-
             UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_FILE}
             ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${RPM_NAME})
         - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during upload; exit 1; fi
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload; exit 1; fi
+        - >-
+            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${POSTMAN_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${POSTMAN_NAME})
+        - echo $UPLOAD_RESULT
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload; exit 1; fi
 
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}

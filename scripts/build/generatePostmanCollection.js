@@ -17,9 +17,10 @@
 'use strict';
 
 const fs = require('fs');
+const packageVersion = require('../../package.json').version;
 
 const examplesDir = 'examples';
-const outputFile = 'dist/do.examples.collection.json';
+const outputFile = `dist/do.examples-${packageVersion}.collection.json`;
 
 const makeDirP = path => {
     try {
