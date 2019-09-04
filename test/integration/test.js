@@ -27,7 +27,7 @@ const assert = require('assert');
 const constants = require('./constants.js');
 const common = require('./common.js');
 
-const configItems = require('../../nodejs/configItems.json');
+const configItems = require('../../src/lib/configItems.json');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -35,9 +35,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 /* eslint-disable prefer-arrow-callback */
 
 
-describe('Declarative Onboarding Functional Test Suite', function performFunctionalTest() {
+describe('Declarative Onboarding Integration Test Suite', function performIntegrationTest() {
     // location of DO test JSON bodies
-    const BODIES = 'test/functional/bodies';
+    const BODIES = 'test/integration/bodies';
     const machines = [];
     before(function setup() {
         return common.readFile(process.env.TEST_HARNESS_FILE)

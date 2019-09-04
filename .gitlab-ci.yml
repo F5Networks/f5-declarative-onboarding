@@ -5,7 +5,7 @@ stages:
     - test
     - build
     - deploy
-    - functional test
+    - integration test
     - teardown
     - post build
     - publish
@@ -82,16 +82,16 @@ deploy bigip:
         - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
         - yum install -y nodejs
         - npm install
-        - node test/functional/setup.js
+        - node test/integration/setup.js
     artifacts:
         name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
         paths:
             - ${CI_PROJECT_DIR}/harness_facts_flat.json
         expire_in: 40min
 
-functional test:
+integration test:
     image: centos
-    stage: functional test
+    stage: integration test
     tags:
        - cm-official-docker-executor
     only:
@@ -102,7 +102,7 @@ functional test:
        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
        - yum install -y nodejs
        - npm install
-       - npm run functional
+       - npm run integration
 
 teardown bigip:
     image: ${CICD_CONTAINER_DEPLOY}

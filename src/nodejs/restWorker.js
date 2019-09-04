@@ -21,23 +21,23 @@ const EventEmitter = require('events');
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
-const doUtil = require('./doUtil');
-const cryptoUtil = require('./cryptoUtil');
-const ConfigManager = require('./configManager');
-const DeclarationHandler = require('./declarationHandler');
-const Logger = require('./logger');
-const Response = require('./response');
-const ConfigResponse = require('./configResponse');
-const InfoResponse = require('./infoResponse');
-const InspectResponse = require('./inspectResponse');
-const TaskResponse = require('./taskResponse');
-const State = require('./state');
-const SshUtil = require('./sshUtil');
-const Validator = require('./validator');
+const doUtil = require('../lib/doUtil');
+const cryptoUtil = require('../lib/cryptoUtil');
+const ConfigManager = require('../lib/configManager');
+const DeclarationHandler = require('../lib/declarationHandler');
+const Logger = require('../lib/logger');
+const Response = require('../lib/response');
+const ConfigResponse = require('../lib/configResponse');
+const InfoResponse = require('../lib/infoResponse');
+const InspectResponse = require('../lib/inspectResponse');
+const TaskResponse = require('../lib/taskResponse');
+const State = require('../lib/state');
+const SshUtil = require('../lib/sshUtil');
+const Validator = require('../lib/validator');
 
-const STATUS = require('./sharedConstants').STATUS;
-const EVENTS = require('./sharedConstants').EVENTS;
-const ENDPOINTS = require('./sharedConstants').ENDPOINTS;
+const STATUS = require('../lib/sharedConstants').STATUS;
+const EVENTS = require('../lib/sharedConstants').EVENTS;
+const ENDPOINTS = require('../lib/sharedConstants').ENDPOINTS;
 
 const logger = new Logger(module);
 
@@ -377,7 +377,7 @@ class RestWorker {
         let exampleResponse;
 
         try {
-            const example = `${__dirname}/../examples/onboard.json`;
+            const example = `${__dirname}/../../../examples/onboard.json`;
             exampleResponse = JSON.parse(fs.readFileSync(example).toString());
         } catch (err) {
             logger.warning(`Error reading example file: ${err}`);
@@ -625,7 +625,7 @@ function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
-    const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
+    const configManager = new ConfigManager(`${__dirname}/../lib/configItems.json`, bigIp);
     return configManager.get(declaration, this.state.doState.getTask(taskId), this.state.doState)
         .then(() => save.call(this));
 }
