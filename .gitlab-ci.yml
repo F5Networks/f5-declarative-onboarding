@@ -131,7 +131,7 @@ build rpm:
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
-            - build/RPMS/noarch/
+            - dist/
         expire_in: 1 week
 
 build asg:
@@ -160,7 +160,7 @@ build asg:
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
-            - dist/*.tar.gz
+            - dist/
         expire_in: 1 week
 
 create postman collection:
