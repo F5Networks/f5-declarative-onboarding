@@ -10,7 +10,7 @@
 
 const fs = require('fs');
 
-const schemaPath = `${__dirname}/../dist/do.schema.json`;
+const schemaPath = `${__dirname}/../../dist/do.schema.json`;
 
 const errors = [];
 const warnings = [];

@@ -10,9 +10,9 @@
 
 const fs = require('fs');
 
-const base = require('../schema/base.schema.json');
+const base = require('../../schema/latest/base.schema.json');
 
-const SCHEMA_DIR = `${__dirname}/../schema`;
+const SCHEMA_DIR = `${__dirname}/../../schema`;
 const outputFile = '../dist/do.schema.json';
 
 const safeTraverse = (p, o) => p.reduce((xs, x) => (xs && xs[x] ? xs[x] : null), o);

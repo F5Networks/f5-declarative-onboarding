@@ -1,0 +1,429 @@
+[
+    {
+        "path": "/tm/sys/global-settings",
+        "properties": [
+            { "id": "hostname" }
+        ],
+        "declaration": {
+            "name": "hostname"
+        }
+    },
+    {
+        "path": "/tm/sys/db",
+        "schemaClass": "DbVariables",
+        "properties": [
+            { "id": "value" }
+        ],
+        "singleValue": true,
+        "silent": true,
+        "declaration": false
+    },
+    {
+        "path": "/tm/sys/provision",
+        "schemaClass": "Provision",
+        "properties": [
+            { "id": "level" }
+        ],
+        "singleValue": true,
+        "declaration": {
+            "properties": [
+                { 
+                    "$comment": "SSLO is not supported yet",
+                    "id": "sslo",
+                    "remove": true
+                }
+            ]
+        }
+    },
+    {
+        "path": "/tm/sys/ntp",
+        "schemaClass": "NTP",
+        "properties": [
+            { "id": "servers" },
+            { "id": "timezone" }
+        ]
+    },
+    {
+        "path": "/tm/sys/dns",
+        "schemaClass": "DNS",
+        "properties": [
+            { "id": "nameServers" },
+            { "id": "search" }
+        ]
+    },
+    {
+        "path": "/tm/net/trunk",
+        "schemaClass": "Trunk",
+        "properties": [
+            { "id": "distributionHash" },
+            { "id": "interfaces" },
+            { "id": "lacp", "newId": "lacpEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "lacpMode" },
+            { "id": "lacpTimeout" },
+            { "id": "linkSelectPolicy" },
+            { "id": "qinqEthertype" },
+            { "id": "stp", "newId": "spanningTreeEnabled", "truth": "enabled", "falsehood": "disabled" }
+        ]
+    },
+    {
+        "path": "/tm/net/vlan",
+        "schemaClass": "VLAN",
+        "properties": [
+            { "id": "mtu" },
+            { "id": "tag" },
+            { "id": "interfacesReference" },
+            { "id": "cmpHash" }
+        ],
+        "references": {
+            "interfacesReference": [
+                { "id": "tagged", "truth": true, "falsehood": false }
+            ]
+        }
+    },
+    {
+        "path": "/tm/net/self",
+        "schemaClass": "SelfIp",
+        "properties": [
+            { "id": "address" },
+            { "id": "vlan", "isRef": true },
+            { "id": "trafficGroup" },
+            { "id": "allowService" }
+        ]
+    },
+    {
+        "path": "/tm/net/route",
+        "schemaClass": "Route",
+        "properties": [
+            { "id": "gw" },
+            { "id": "network" },
+            { "id": "mtu" }
+        ]
+    },
+    {
+        "path": "/tm/cm/device/~Common~{{deviceName}}",
+        "schemaClass": "ConfigSync",
+        "properties": [
+            { "id": "configsyncIp" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/cm/device/~Common~{{deviceName}}",
+        "schemaClass": "FailoverUnicast",
+        "properties": [
+            {
+                "id": "unicastAddress",
+                "defaultWhenOmitted": "none",
+                "transform": [
+                    { "id": "ip", "newId": "address" },
+                    { "id": "port" }
+                ]
+            }
+        ],
+        "nameless": true,
+        "declaration": {
+            "$comment": "Should remove entire object if unicastAddress is 'none' (not configured)",
+            "customFunctions": [
+                { "id": "removeIfUnicastAddrNone" }
+            ]
+        }
+    },
+    {
+        "path": "/tm/cm/device-group",
+        "schemaClass": "DeviceGroup",
+        "properties": [
+            { "id": "class" },
+            { "id": "type" },
+            { "id": "members" },
+            { "id": "autoSync" },
+            { "id": "saveOnAutoSync" },
+            { "id": "networkFailover" },
+            { "id": "fullLoadOnSync" },
+            { "id": "asmSync" }
+        ],
+        "ignore": [
+            { "name": "^datasync-.+-dg$" },
+            { "name": "^device_trust_group$" },
+            { "name": "^gtm$" }
+        ],
+        "declaration": false
+    },
+    {
+        "path": "/tm/analytics/global-settings",
+        "schemaClass": "Analytics",
+        "requiredModule": "avr",
+        "properties": [
+            { "id": "avrdDebugMode", "newId": "debugEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "avrdInterval", "newId": "interval" },
+            { "id": "offboxProtocol" },
+            { "id": "offboxTcpAddresses" },
+            { "id": "offboxTcpPort" },
+            { "id": "useOffbox", "newId": "offboxEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "sourceId" },
+            { "id": "tenantId" }
+        ],
+        "declaration": {
+            "properties": [
+                { "id": "offboxProtocol", "removeIfValue": "none" }
+            ]
+        }
+    },
+    {
+        "path": "/tm/sys/management-route",
+        "schemaClass": "ManagementRoute",
+        "properties": [
+            { "id": "gateway", "newId": "gw" },
+            { "id": "network" },
+            { "id": "mtu" },
+            { "id": "type" }
+        ]
+    },
+    {
+        "path": "/tm/sys/syslog",
+        "schemaClass": "SyslogRemoteServer",
+        "properties": [
+            { "id": "remoteServers" }
+        ],
+        "declaration": {
+            "properties": [
+                { "id": "localIp", "removeIfValue": "none" }
+            ]
+        }
+    },
+    {
+        "path": "/tm/auth/source",
+        "schemaClass": "Authentication",
+        "properties": [
+            { "id": "type" },
+            { "id": "fallback", "truth": "true", "falsehood": "false" }
+        ],
+        "nameless": true,
+        "declaration": {
+            "$comment": "Kind like parent object because all auth config will be under 'Authentication' key",
+            "customFunctions": [
+                { "id": "removeIncompleteAuthMethods" }
+            ]
+        }
+    },
+    {
+        "path": "/tm/auth/remote-user",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["remoteUsersDefaults"]
+        },
+        "properties": [
+            { "id": "defaultRole", "newId": "role" },
+            { "id": "defaultPartition", "newId": "partitionAccess" },
+            { "id": "remoteConsoleAccess", "newId": "terminalAccess"}
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/auth/radius",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["radius"],
+            "skipWhenOmitted": true
+        },
+        "properties": [
+            { "id": "serviceType" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/auth/radius-server",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["radius","servers"],
+            "action": "add",
+            "skipWhenOmitted": true
+        },
+        "properties": [
+            { "id": "server" },
+            { "id": "port" },
+            { "id": "secret" }
+        ]
+    },
+    {
+        "path": "/tm/auth/tacacs",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["tacacs"],
+            "skipWhenOmitted": true
+        },
+        "properties": [
+            { "id": "accounting" },
+            { "id": "authentication" },
+            { "id": "debug", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "encryption", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "protocol" },
+            { "id": "secret" },
+            { "id": "servers" },
+            { "id": "service" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/net/route-domain",
+        "schemaClass": "RouteDomain",
+        "properties": [
+            { "id": "id" },
+            { "id": "bwcPolicy", "newId": "bandWidthControllerPolicy" },
+            { "id": "connectionLimit" },
+            { "id": "flowEvictionPolicy" },
+            { "id": "fwEnforcedPolicy", "newId": "enforcedFirewallPolicy" },
+            { "id": "fwStagedPolicy", "newId": "stagedFirewallPolicy" },
+            { "id": "ipIntelligencePolicy" },
+            { "id": "securityNatPolicy" },
+            { "id": "servicePolicy" },
+            { "id": "strict", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "routingProtocol", "newId": "routingProtocols" },
+            { "id": "vlans" }
+        ],
+        "declaration": {
+            "customFunctions": [
+                { "id": "renameDefaultRouteDomain" }
+            ]
+        } 
+    },
+    {
+        "path": "/tm/auth/remote-role/role-info",
+        "schemaClass": "RemoteAuthRole",
+        "properties": [
+            { "id": "deny", "newId": "remoteAccess", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "attribute" },
+            { "id": "console" },
+            { "id": "lineOrder" },
+            { "id": "role" },
+            { "id": "userPartition" }
+        ],
+        "declaration": {
+            "properties": [
+                { "id": "userPartition", "replaceIfValue": "All", "newValue": "all" }
+            ]
+        }
+    },
+    {
+        "path": "/tm/auth/ldap",
+        "schemaClass": "Authentication",
+        "schemaMerge": {
+            "path": ["ldap"],
+            "skipWhenOmitted": true
+        },
+        "properties": [
+            { "id": "bindDn" },
+            { "id": "bindPw", "newId": "bindPassword" },
+            { "id": "bindTimeout" },
+            { "id": "checkHostAttr", "newId": "checkBindPassword", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "checkRolesGroup", "newId": "checkRemoteRole", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "filter" },
+            { "id": "groupDn" },
+            { "id": "groupMemberAttribute" },
+            { "id": "idleTimeout" },
+            { "id": "ignoreAuthInfoUnavail", "newId": "ignoreAuthInfoUnavailable", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
+            { "id": "ignoreUnknownUser", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "loginAttribute" },
+            { "id": "port" },
+            { "id": "scope", "newId": "searchScope" },
+            { "id": "searchBaseDn" },
+            { "id": "searchTimeout" },
+            { "id": "servers" },
+            { "id": "userTemplate" },
+            { "id": "version" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/sys/snmp",
+        "schemaClass": "SnmpTrapEvents",
+        "properties": [
+            { "id": "bigipTraps", "newId": "device", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "authTrap", "newId": "authentication", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "agentTrap", "newId": "agentStartStop", "truth": "enabled", "falsehood": "disabled" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/sys/snmp/traps",
+        "schemaClass": "SnmpTrapDestination",
+        "properties": [
+            { "id": "community" },
+            { "id": "host", "newId": "destination" },
+            { "id": "network" },
+            { "id": "port" },
+            { "id": "version" },
+            { "id": "authPassword", "newId": "authentication.password" },
+            { "id": "authProtocol", "newId": "authentication.protocol" },
+            { "id": "privacyPassword", "newId": "privacy.password" },
+            { "id": "privacyProtocol", "newId": "privacy.protocol" },
+            { "id": "engineId" },
+            { "id": "securityName" }
+        ]
+    },
+    {
+        "path": "/tm/sys/snmp",
+        "schemaClass": "SnmpAgent",
+        "properties": [
+            { "id": "sysContact", "newId": "contact" },
+            { "id": "sysLocation", "newId": "location" },
+            { "id": "allowedAddresses", "newId": "allowList" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/sys/snmp/users",
+        "schemaClass": "SnmpUser",
+        "properties": [
+            { "id": "username", "newId": "name" },
+            { "id": "access" },
+            { "id": "authPassword", "newId": "authentication.password" },
+            { "id": "authProtocol", "newId": "authentication.protocol", "defaultWhenOmitted": "none" },
+            { "id": "privacyPassword", "newId": "privacy.password" },
+            { "id": "privacyProtocol", "newId": "privacy.protocol", "defaultWhenOmitted": "none"  },
+            { "id": "oidSubset", "newId": "oid" }
+        ]
+    },
+    {
+        "path": "/tm/sys/snmp/communities",
+        "schemaClass": "SnmpCommunity",
+        "properties": [
+            { "id": "communityName", "newId": "name" },
+            { "id": "access" },
+            { "id": "ipv6", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "source" },
+            { "id": "oidSubset", "newId": "oid" }
+        ]
+    },
+    {
+        "path": "/tm/net/dag-globals",
+        "schemaClass": "DagGlobals",
+        "properties": [
+            { "id": "dagIpv6PrefixLen", "newId": "ipv6PrefixLength" },
+            { "id": "icmpHash" },
+            { "id": "roundRobinMode" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/ltm/global-settings/traffic-control",
+        "schemaClass": "TrafficControl",
+        "properties": [
+            { "id": "acceptIpOptions", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "acceptIpSourceRoute", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "allowIpSourceRoute", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "continueMatching", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "maxIcmpRate" },
+            { "id": "maxRejectRate" },
+            { "id": "maxRejectRateTimeout" },
+            { "id": "minPathMtu" },
+            { "id": "pathMtuDiscovery", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "portFindLinear", "newId": "maxPortFindLinear" },
+            { "id": "portFindRandom", "newId": "maxPortFindRandom" },
+            { "id": "portFindThresholdWarning", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "portFindThresholdTrigger" },
+            { "id": "portFindThresholdTimeout" },
+            { "id": "rejectUnmatched", "truth": "enabled", "falsehood": "disabled" }
+        ],
+        "nameless": true
+    }
+]

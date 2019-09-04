@@ -19,21 +19,20 @@ Declarative onboarding for BIG-IP
 
 %prep
 rm -rf %{_builddir}/*
-cp %{main}/manifest.json %{_builddir}
+mkdir -p %{_builddir}/schema
 cp %{main}/package.json %{_builddir}
-cp -r %{main}/nodejs %{_builddir}
-cp -r %{main}/node_modules %{_builddir}/nodejs
-cp -r %{main}/schema %{_builddir}
-cp -r %{main}/examples %{_builddir}
+cp -r %{main}/src %{_builddir}
+cp -r %{main}/node_modules %{_builddir}/src/nodejs
+cp -r %{main}/schema/latest %{_builddir}/schema/
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
-cp %{_builddir}/manifest.json $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp %{_builddir}/package.json $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
-cp -r %{_builddir}/nodejs $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
+cp -r %{_builddir}/src/lib $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
+cp -r %{_builddir}/src/nodejs $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/schema $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
-cp -r %{_builddir}/examples $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
+mv $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}/nodejs/manifest.json $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
