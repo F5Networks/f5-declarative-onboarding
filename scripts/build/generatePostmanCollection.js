@@ -21,6 +21,17 @@ const fs = require('fs');
 const examplesDir = 'examples';
 const outputFile = 'dist/do.examples.collection.json';
 
+const makeDirP = path => {
+    try {
+        fs.mkdirSync(path);
+    }
+    catch (err) {
+        if (err.code !== 'EEXIST') {
+            throw err;
+        }
+    }
+};
+
 const readdir = path => fs.readdirSync(path)
     .map(example => ({
         json: JSON.parse(fs.readFileSync(`${path}/${example}`)),
@@ -51,6 +62,8 @@ const buildCollection = () => {
         },
         item: []
     };
+
+    makeDirP(`${__dirname}/../../dist`);
 
     examples.forEach((example) => {
         collection.item.push({
