@@ -21,7 +21,7 @@ const dns = require('dns');
 
 const sinon = require('sinon');
 
-const cloudUtil = require('../../node_modules/@f5devcentral/f5-cloud-libs').util;
+const cloudUtil = require('../../../../node_modules/@f5devcentral/f5-cloud-libs').util;
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
 
 let SystemHandler;

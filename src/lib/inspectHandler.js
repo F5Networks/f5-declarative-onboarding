@@ -30,7 +30,7 @@ const State = require('./state');
 const LOCALHOST_ADDRS = ['localhost', '127.0.0.1'];
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 const PROCESS_MAX_TIMEOUT = require('./sharedConstants').ENDPOINT_MAX_TIMEOUT;
-const SCHEMA_VERSION = require('../schema/base.schema.json').properties.schemaVersion.enum[0];
+const SCHEMA_VERSION = require('../../schema/latest/base.schema.json').properties.schemaVersion.enum[0];
 const STATUS = require('./sharedConstants').STATUS;
 
 const logger = new Logger(module);

@@ -21,7 +21,7 @@ const ENDPOINTS = require('./sharedConstants').ENDPOINTS;
 const STATUS = require('./sharedConstants').STATUS;
 
 const packageJson = require('../../package.json');
-const schema = require('../../schema/base.schema.json');
+const schema = require('../../schema/latest/base.schema.json');
 
 class InfoResponse {
     // Many of these methods do not need 'this' as they return constants

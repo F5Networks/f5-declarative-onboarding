@@ -18,6 +18,7 @@
                         "description": "ConfigSync IP",
                         "type": "string",
                         "anyOf": [
+                            { "const": "none" },
                             { "format": "ipv4" },
                             { "format": "ipv6" },
                             { "format": "json-pointer" }
@@ -60,7 +61,7 @@
         {
             "if": { "properties": { "class": { "const": "DeviceGroup" } } },
             "then": {
-                "required": ["class", "type"],
+                "required": ["class", "type", "owner"],
                 "properties": {
                     "class": {
                         "description": "Indicates that this property contains device group configuration.",

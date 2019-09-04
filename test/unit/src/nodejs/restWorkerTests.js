@@ -18,10 +18,10 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
-const State = require('../../nodejs/state');
-const RealValidator = require('../../nodejs/validator');
-const STATUS = require('../../nodejs/sharedConstants').STATUS;
-const EVENTS = require('../../nodejs/sharedConstants').EVENTS;
+const State = require('../../../../src/lib/state');
+const RealValidator = require('../../../../src/lib/validator');
+const STATUS = require('../../../../src/lib/sharedConstants').STATUS;
+const EVENTS = require('../../../../src/lib/sharedConstants').EVENTS;
 
 /* eslint-disable global-require */
 
@@ -40,13 +40,13 @@ describe('restWorker', () => {
     let httpUtilMock;
 
     before(() => {
-        doUtilMock = require('../../nodejs/doUtil');
-        cryptoUtilMock = require('../../nodejs/cryptoUtil');
-        ConfigManagerMock = require('../../nodejs/configManager');
-        DeclarationHandlerMock = require('../../nodejs/declarationHandler');
-        SshUtilMock = require('../../nodejs/sshUtil');
-        RestWorker = require('../../nodejs/restWorker');
-        httpUtilMock = require('../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
+        doUtilMock = require('../../../../src/lib/doUtil');
+        cryptoUtilMock = require('../../../../src/lib/cryptoUtil');
+        ConfigManagerMock = require('../../../../src/lib/configManager');
+        DeclarationHandlerMock = require('../../../../src/lib/declarationHandler');
+        SshUtilMock = require('../../../../src/lib/sshUtil');
+        RestWorker = require('../../../../src/nodejs/restWorker');
+        httpUtilMock = require('../../../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
     });
 
     beforeEach(() => {

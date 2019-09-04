@@ -19,8 +19,8 @@
 const fs = require('fs');
 const assert = require('assert');
 const sinon = require('sinon');
-const doUtil = require('../../nodejs/doUtil');
-const Validator = require('../../nodejs/validator');
+const doUtil = require('../../src/lib/doUtil');
+const Validator = require('../../src/lib/validator');
 
 const validator = new Validator();
 

@@ -21,7 +21,7 @@ const sinon = require('sinon');
 const URL = require('url');
 
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
-const SCHEMA_VERSION = require('../../schema/base.schema.json').properties.schemaVersion.enum[0];
+const SCHEMA_VERSION = require('../../../../schema/latest/base.schema.json').properties.schemaVersion.enum[0];
 
 const configItems = require('../../../../src/lib/configItems.json');
 const ConfigManagerMock = require('../../../../src/lib/configManager');
