@@ -40,7 +40,7 @@
   },
   "scripts": {
     "build": "./build/buildRpm.sh",
-    "test": "mocha --recursive test/nodejs test/schema",
+    "test": "mocha --recursive test/unit test/schema",
     "functional": "mocha test/functional/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "coverage": "nyc npm test",

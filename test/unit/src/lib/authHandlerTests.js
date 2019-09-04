@@ -19,11 +19,11 @@
 const assert = require('assert');
 const sinon = require('sinon');
 
-const PATHS = require('../../../nodejs/sharedConstants').PATHS;
-const AUTH = require('../../../nodejs/sharedConstants').AUTH;
-const RADIUS = require('../../../nodejs/sharedConstants').RADIUS;
+const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
+const AUTH = require('../../../../src/lib/sharedConstants').AUTH;
+const RADIUS = require('../../../../src/lib/sharedConstants').RADIUS;
 
-const AuthHandler = require('../../../nodejs/authHandler');
+const AuthHandler = require('../../../../src/lib/authHandler');
 
 describe('authHandler', () => {
     let bigIpMock;
