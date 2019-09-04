@@ -181,7 +181,7 @@ create postman collection:
 publish to artifactory:
     stage: publish
     only:
-        - AUTOTOOL-667-Normalize-file-repo-structures
+        - tags
     tags:
         - cm-official-docker-executor
     script:
