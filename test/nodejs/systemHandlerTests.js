@@ -97,6 +97,7 @@ describe('systemHandler', () => {
         };
         doUtilStub = sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));
         sinon.stub(dns, 'lookup').callsArg(1);
+        sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
     });
 
     after(() => {
@@ -403,9 +404,6 @@ describe('systemHandler', () => {
             };
 
             setUpBigIpStubWithRequestOptions(['domain-name-servers', 'domain-name'], '14.1', 'disabled');
-
-            // We do NOT want to retry on a failure
-            sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
 
             sinon.stub(bigIpMock, 'create').restore();
             sinon.stub(bigIpMock, 'create').callsFake((path, body) => {
