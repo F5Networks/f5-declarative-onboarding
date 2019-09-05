@@ -27,8 +27,8 @@ const ajv = new Ajv(
         extendRefs: 'fail'
     }
 );
-const networkSchema = require('../../schema/network.schema.json');
-const customFormats = require('../../schema/formats.js');
+const networkSchema = require('../../src/schema/latest/network.schema.json');
+const customFormats = require('../../src/schema/latest/formats.js');
 
 Object.keys(customFormats).forEach((customFormat) => {
     ajv.addFormat(customFormat, customFormats[customFormat]);

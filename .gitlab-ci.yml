@@ -5,7 +5,7 @@ stages:
     - test
     - build
     - deploy
-    - functional test
+    - integration test
     - teardown
     - post build
     - publish
@@ -77,21 +77,21 @@ deploy bigip:
         -     exit 1
         - fi
         - cd ${CI_PROJECT_DIR}
-        - export RPM_PACKAGE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
+        - export RPM_PACKAGE=$(ls dist/*.rpm)
         - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
         - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
         - yum install -y nodejs
         - npm install
-        - node test/functional/setup.js
+        - node test/integration/setup.js
     artifacts:
         name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
         paths:
             - ${CI_PROJECT_DIR}/harness_facts_flat.json
         expire_in: 40min
 
-functional test:
+integration test:
     image: centos
-    stage: functional test
+    stage: integration test
     tags:
        - cm-official-docker-executor
     only:
@@ -102,7 +102,7 @@ functional test:
        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
        - yum install -y nodejs
        - npm install
-       - npm run functional
+       - npm run integration
 
 teardown bigip:
     image: ${CICD_CONTAINER_DEPLOY}
@@ -127,11 +127,11 @@ build rpm:
         - cm-official-docker-executor
     script:
         - apk add rpm bash
-        - build/buildRpm.sh
+        - scripts/build/buildRpm.sh
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
-            - build/rpmbuild/RPMS/noarch/
+            - dist/
         expire_in: 1 week
 
 build asg:
@@ -147,7 +147,7 @@ build asg:
     script:
         - IMAGE_NAME=f5-do-container
         - ORGANIZATION_NAME=f5devcentral
-        - TARGET=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
+        - TARGET=$(ls dist/*.rpm)
         # TAG is VERSION-RELEASE. Use awk to remove everything else
         - IMAGE_TAG=$(echo $(basename $TARGET) | awk -F- -v PROJECT_NAME=${CI_PROJECT_NAME}- '{sub(PROJECT_NAME, ""); sub(".noarch.rpm", ""); print}')
         - if [[ ${CI_COMMIT_REF_NAME} == 'master' ]]; then
@@ -155,12 +155,12 @@ build asg:
         - elif [[ ${CI_COMMIT_REF_NAME} != 'develop' ]]; then
         -     IMAGE_TAG=$CI_COMMIT_REF_NAME
         - fi
-        - docker build -f build/Dockerfile.asg -t ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
+        - docker build -f scripts/build/Dockerfile.asg -t ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
         - docker save ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${ORGANIZATION_NAME}-${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
-            - dist/*.tar.gz
+            - dist/
         expire_in: 1 week
 
 create postman collection:
@@ -171,11 +171,11 @@ create postman collection:
     tags:
         - cm-official-docker-executor
     script:
-        - node build/generatePostmanCollection.js
+        - node scripts/build/generatePostmanCollection.js
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
-            - dist/do.examples.collection.json
+            - dist/
         expire_in: 1 week
 
 publish to artifactory:
@@ -185,19 +185,20 @@ publish to artifactory:
     tags:
         - cm-official-docker-executor
     script:
-        # If the tag contains a '-', then get RPM from the build artifact, otherwise, get it from dist
-        # since no '-' in the tag means it's s release and should have been committed to dist.
-        - if [[ $CI_COMMIT_TAG == *"-"* ]]; then
-        -     RPM_FILE=$(ls build/rpmbuild/RPMS/noarch/*.rpm)
-        - else
-        -     RPM_FILE=$(ls dist/*.rpm)
-        - fi
+        - RPM_FILE=$(ls dist/*.rpm)
         - RPM_NAME=$(basename $RPM_FILE)
+        - POSTMAN_FILE=$(ls dist/*.collection.json)
+        - POSTMAN_NAME=$(basename $POSTMAN_FILE)
         - >-
             UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_FILE}
             ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${RPM_NAME})
         - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during upload; exit 1; fi
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload; exit 1; fi
+        - >-
+            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${POSTMAN_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${POSTMAN_NAME})
+        - echo $UPLOAD_RESULT
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload; exit 1; fi
 
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
@@ -206,9 +207,9 @@ create docs:
         - tags
         - schedules
     script:
-        - node build/schema-build.js
-        - node build/schema-check.js
-        - node build/schema-to-rst.js
+        - node scripts/build/schema-build.js
+        - node scripts/build/schema-check.js
+        - node scripts/build/schema-to-rst.js
         - make html
         - echo "Checking grammar and style"
         # Runs the grammar check on everything except the /docs/drafts directory

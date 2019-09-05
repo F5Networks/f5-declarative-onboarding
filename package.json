@@ -1,6 +1,6 @@
 {
   "name": "f5-declarative-onboarding",
-  "version": "1.7.0-2",
+  "version": "1.8.0-1",
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
   "repository": {
@@ -39,12 +39,12 @@
     "sinon": "^7.3.2"
   },
   "scripts": {
-    "build": "./build/buildRpm.sh",
-    "test": "mocha --recursive test/nodejs test/schema",
-    "functional": "mocha test/functional/test.js",
+    "build": "scripts/build/buildRpm.sh",
+    "test": "mocha --recursive test/unit test/schema",
+    "integration": "mocha test/integration/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "coverage": "nyc npm test",
-    "lint": "eslint nodejs test"
+    "lint": "eslint src test"
   },
   "nyc": {
     "reporter": [

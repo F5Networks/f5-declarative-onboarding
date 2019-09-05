@@ -19,14 +19,14 @@
 const assert = require('assert');
 const Ajv = require('ajv');
 
-const baseSchema = require('../../schema/base.schema.json');
-const systemSchema = require('../../schema/system.schema.json');
-const networkSchema = require('../../schema/network.schema.json');
-const dscSchema = require('../../schema/dsc.schema.json');
-const analyticsSchema = require('../../schema/analytics.schema.json');
-const authSchema = require('../../schema/auth.schema.json');
-const requestSchema = require('../../schema/remote.schema.json');
-const customFormats = require('../../schema/formats.js');
+const baseSchema = require('../../src/schema/latest/base.schema.json');
+const systemSchema = require('../../src/schema/latest/system.schema.json');
+const networkSchema = require('../../src/schema/latest/network.schema.json');
+const dscSchema = require('../../src/schema/latest/dsc.schema.json');
+const analyticsSchema = require('../../src/schema/latest/analytics.schema.json');
+const authSchema = require('../../src/schema/latest/auth.schema.json');
+const requestSchema = require('../../src/schema/latest/remote.schema.json');
+const customFormats = require('../../src/schema/latest/formats.js');
 
 const ajv = new Ajv(
     {

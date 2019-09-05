@@ -17,7 +17,7 @@
 'use strict';
 
 const assert = require('assert');
-const formats = require('../../schema/formats.js');
+const formats = require('../../src/schema/latest/formats.js');
 
 describe('formats', () => {
     describe('f5ip', () => {
