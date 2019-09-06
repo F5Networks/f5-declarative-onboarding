@@ -17,6 +17,8 @@
 'use strict';
 
 const assert = require('assert');
+const sinon = require('sinon');
+const fs = require('fs');
 
 const InfoResponse = require('../../../../src/lib/infoResponse');
 
@@ -28,6 +30,14 @@ describe('infoResponse', () => {
 
     beforeEach(() => {
         infoResponse = new InfoResponse();
+    });
+
+    before(() => {
+        sinon.stub(fs, 'readFileSync').returns(PACKAGE_VERSION);
+    });
+
+    after(() => {
+        sinon.restore();
     });
 
     it('should return the proper selfLink', () => {
