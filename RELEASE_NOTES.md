@@ -4,6 +4,7 @@
 + Handle the automatic update of root password when admin password changes on 14.0+
 + Resolve [Issue 53](https://github.com/F5Networks/f5-declarative-onboarding/issues/53)
 + Resolve [Issue 60](https://github.com/F5Networks/f5-declarative-onboarding/issues/60)
++ Resolve [Issue 67](https://github.com/F5Networks/f5-declarative-onboarding/issues/67)
 + Add /inspect endpoint to determine existing configuraiton of device
 + Add support for Authentication class
 + Add support for Authentication - Radius

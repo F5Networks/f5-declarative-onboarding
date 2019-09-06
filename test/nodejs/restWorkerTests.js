@@ -22,6 +22,7 @@ const State = require('../../nodejs/state');
 const RealValidator = require('../../nodejs/validator');
 const STATUS = require('../../nodejs/sharedConstants').STATUS;
 const EVENTS = require('../../nodejs/sharedConstants').EVENTS;
+const doUtilMock = require('../../nodejs/doUtil');
 
 /* eslint-disable global-require */
 
@@ -29,7 +30,6 @@ describe('restWorker', () => {
     let DeclarationHandlerMock;
     let ConfigManagerMock;
     let RestWorker;
-    let doUtilMock;
     let cryptoUtilMock;
     let bigIpMock;
     let declaration;
@@ -40,7 +40,6 @@ describe('restWorker', () => {
     let httpUtilMock;
 
     before(() => {
-        doUtilMock = require('../../nodejs/doUtil');
         cryptoUtilMock = require('../../nodejs/cryptoUtil');
         ConfigManagerMock = require('../../nodejs/configManager');
         DeclarationHandlerMock = require('../../nodejs/declarationHandler');
@@ -66,6 +65,11 @@ describe('restWorker', () => {
                 };
             }
         };
+        sinon.stub(doUtilMock, 'rebootRequired').resolves(false);
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     after(() => {
@@ -136,7 +140,7 @@ describe('restWorker', () => {
 
     describe('onStartCompleted', () => {
         beforeEach(() => {
-            doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IP');
+            sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
         });
 
         it('should call error if given an error message', () => new Promise((resolve, reject) => {
@@ -270,9 +274,12 @@ describe('restWorker', () => {
                         return Promise.resolve();
                     }
                 };
-                doUtilMock.getBigIp = () => Promise.resolve(bigIpMock);
-                doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IP');
-                doUtilMock.rebootRequired = () => Promise.resolve(true);
+                sinon.stub(doUtilMock, 'getBigIp').resolves(bigIpMock);
+                doUtilMock.getCurrentPlatform.restore();
+                sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
+                doUtilMock.rebootRequired.restore();
+                sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
+
                 cryptoUtilMock.decryptId = (id) => {
                     let password;
                     if (id === 'doBigIp') {
@@ -661,11 +668,11 @@ describe('restWorker', () => {
                 reboot() {}
             };
 
-            doUtilMock.getBigIp = (logger, bigIpOptions) => {
+            sinon.stub(doUtilMock, 'getBigIp').callsFake((logger, bigIpOptions) => {
                 bigIpOptionsCalled = bigIpOptions;
                 return Promise.resolve(bigIpMock);
-            };
-            doUtilMock.rebootRequired = () => Promise.resolve(false);
+            });
+            sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
 
             validatorMock.validate = () => Promise.resolve({
                 isValid: true
@@ -835,12 +842,12 @@ describe('restWorker', () => {
         }));
 
         it('should set status to rebooting if reboot is required', () => new Promise((resolve, reject) => {
+            doUtilMock.rebootRequired.restore();
+            sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
             restOperationMock.complete = () => {
                 assert.strictEqual(responseBody.result.status, STATUS.STATUS_REBOOTING);
                 resolve();
             };
-
-            doUtilMock.rebootRequired = () => Promise.resolve(true);
 
             try {
                 restWorker.onPost(restOperationMock);
@@ -957,8 +964,12 @@ describe('restWorker', () => {
             let webhookSaved = null;
             let opstionsSaved = null;
 
+            beforeEach(() => {
+                doUtilMock.getCurrentPlatform.restore();
+                sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IQ');
+            });
+
             before(() => {
-                doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IQ');
                 stubHttpUtil = sinon.stub(httpUtilMock, 'post').callsFake((webhookReceived, options) => {
                     webhookSaved = webhookReceived;
                     opstionsSaved = options.body.declaration.webhook;
@@ -1006,7 +1017,8 @@ describe('restWorker', () => {
                 realSetTimeout = setTimeout;
                 bodySet = null;
 
-                doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IQ');
+                doUtilMock.getCurrentPlatform.restore();
+                sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IQ');
 
                 restWorker.restOperationFactory = {
                     createRestOperationInstance() {
@@ -1249,7 +1261,6 @@ describe('restWorker', () => {
                         return Promise.resolve();
                     };
 
-                    doUtilMock.rebootRequired = () => Promise.resolve(true);
 
                     restOperationMock.getUri = () => ({
                         query: { internal: true }
@@ -1265,6 +1276,9 @@ describe('restWorker', () => {
                             resolve();
                         }
                     };
+
+                    doUtilMock.rebootRequired.restore();
+                    sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
 
                     try {
                         restWorker.onPost(restOperationMock);
