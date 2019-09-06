@@ -38,7 +38,7 @@ describe('infoResponse', () => {
 
     after(() => {
         sinon.restore();
-    })
+    });
 
     it('should return the proper selfLink', () => {
         assert.strictEqual(
