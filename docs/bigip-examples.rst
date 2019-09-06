@@ -121,13 +121,34 @@ In the following declaration, we include a VLAN to show how to reference a VLAN 
 
    The **DagGlobals** class is available in DO v1.7.0 and later. 
 
-In this example, we show how to use the DagGlobals class to set or modify the DAG global IPv6 prefix length.  DAG Globals contain the global disaggregation settings; see the |dagdocs| documentation for more information. 
+In this example, we show how to use the DagGlobals class to set or modify the DAG global IPv6 prefix length.  DAG Globals contain the global disaggregation settings; see the |dagdoc| documentation for more information. 
 
 In the following declaration snippet, we show only the DagGlobals class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
 
 
 .. literalinclude:: ../examples/dagGlobals.json
+   :language: json
+
+
+
+:ref:`Back to top<bigipexamples>`
+
+.. _snmp:
+
+8: Configuring SNMP in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure SNMP in a declaration is available in DO v1.7.0 and later. 
+
+In this example, we show how to configure SNMP in a Declarative Onboarding declaration.  You can use DO to configure SNMP agents, users, communities, trap events, and trap destinations.  See the |snmpdoc| in the BIG-IP documentation for specific information. 
+
+In the following declaration snippet, we show only the classes related to SNMP.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+
+
+.. literalinclude:: ../examples/snmp.json
    :language: json
 
 
@@ -145,4 +166,10 @@ In the following declaration snippet, we show only the DagGlobals class.  You ca
 .. |dagdoc| raw:: html
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-service-provider-generic-message-administration-13-1-0/5.html" target="_blank">Disaggregation DAG modes</a>
+
+.. |snmpdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigip-14-0-0/external-monitoring-of-big-ip-systems-implementations-14-0-0/monitoring-big-ip-system-traffic-with-snmp.html" target="_blank">Monitoring BIG-IP System Traffic with SNMP</a>
+
+
 
