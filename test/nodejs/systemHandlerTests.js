@@ -21,7 +21,6 @@ const dns = require('dns');
 
 const sinon = require('sinon');
 
-const cloudUtil = require('../../node_modules/@f5devcentral/f5-cloud-libs').util;
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
 let SystemHandler;
@@ -48,8 +47,10 @@ describe('systemHandler', () => {
     let doUtilMock;
     let doUtilStub;
     let activeCalled;
+    let cloudUtil;
 
     before(() => {
+        cloudUtil = require('../../node_modules/@f5devcentral/f5-cloud-libs').util;
         doUtilMock = require('../../nodejs/doUtil');
         SystemHandler = require('../../nodejs/systemHandler');
     });
@@ -97,6 +98,7 @@ describe('systemHandler', () => {
         };
         doUtilStub = sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));
         sinon.stub(dns, 'lookup').callsArg(1);
+        sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
     });
 
     after(() => {
@@ -403,9 +405,6 @@ describe('systemHandler', () => {
             };
 
             setUpBigIpStubWithRequestOptions(['domain-name-servers', 'domain-name'], '14.1', 'disabled');
-
-            // We do NOT want to retry on a failure
-            sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
 
             sinon.stub(bigIpMock, 'create').restore();
             sinon.stub(bigIpMock, 'create').callsFake((path, body) => {
