@@ -57,12 +57,12 @@
         "properties": [
             { "id": "distributionHash" },
             { "id": "interfaces" },
-            { "id": "lacp", "newId": "lacpEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "lacp", "newId": "lacpEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "lacpMode" },
             { "id": "lacpTimeout" },
             { "id": "linkSelectPolicy" },
             { "id": "qinqEthertype" },
-            { "id": "stp", "newId": "spanningTreeEnabled", "truth": "enabled", "falsehood": "disabled" }
+            { "id": "stp", "newId": "spanningTreeEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
         ]
     },
     {
