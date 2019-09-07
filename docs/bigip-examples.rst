@@ -159,9 +159,9 @@ In the following declaration snippet we show only the classes related to SNMP.  
 
    The ability to configure RADIUS, LDAP, and TACACS authentication in a declaration is available in DO v1.7.0 and later. 
 
-In this example, we show how to configure RADIUS, LDAP, and TACACS authentication in a Declarative Onboarding declaration using the **Authentication** class. The authentication class can contain multiple authentication method subclasses but only one can be enabled at a time using the **enableSourceType** property (which matches the BIG-IP UI behavior).
+In this example, we show how to configure RADIUS, LDAP, and TACACS authentication in a Declarative Onboarding declaration using the **Authentication** class. The authentication class can (but does not have to) contain multiple authentication method subclasses but only one can be enabled at a time using the **enableSourceType** property (which matches the BIG-IP UI behavior).
 
-This example declaration contains all three authentication methods with the enableSourceType property set to **radius**.    
+This example declaration contains all three authentication methods with the **enableSourceType** property set to **radius**.    
 
 In the following declaration snippet we show only the classes related to authentication.  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
@@ -169,6 +169,24 @@ In the following declaration snippet we show only the classes related to authent
    :language: json
 
 :ref:`Back to top<bigipexamples>`
+
+.. _trafcontrol:
+
+8: Configuring Traffic Control properties
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring all LTM global traffic control properties is available in DO v1.7.0 and later. 
+
+In this example, we show how you can configure BIG-IP LTM global traffic control settings (ltm global-settings traffic-control) using a Declarative Onboarding declaration. For descriptions and usage details on these properties, see |tcref| in the Schema Reference.  
+
+In the following declaration snippet we show only the classes related to Traffic Control.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/trafficControl.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
 
 .. |br| raw:: html
 
@@ -185,6 +203,10 @@ In the following declaration snippet we show only the classes related to authent
 .. |snmpdoc| raw:: html
 
    <a href="https://techdocs.f5.com/en-us/bigip-14-0-0/external-monitoring-of-big-ip-systems-implementations-14-0-0/monitoring-big-ip-system-traffic-with-snmp.html" target="_blank">Monitoring BIG-IP System Traffic with SNMP</a>
+
+.. |tcref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trafficcontrol" target="_blank">TrafficControl Class</a>
 
 
 
