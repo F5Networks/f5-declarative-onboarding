@@ -31,7 +31,7 @@ Use the following links, the navigation on the left, and/or the Next and Previou
    using-do
    examples
    revision-history
-   
+   schema-reference
 
 
 .. |declare| raw:: html

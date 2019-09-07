@@ -144,14 +144,29 @@ In the following declaration snippet, we show only the DagGlobals class.  You ca
 
 In this example, we show how to configure SNMP in a Declarative Onboarding declaration.  You can use DO to configure SNMP agents, users, communities, trap events, and trap destinations.  See the |snmpdoc| in the BIG-IP documentation for specific information. 
 
-In the following declaration snippet, we show only the classes related to SNMP.  You can use this class as a part of a larger Declarative Onboarding declaration. 
-
-
+In the following declaration snippet we show only the classes related to SNMP.  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
 .. literalinclude:: ../examples/snmp.json
    :language: json
 
+:ref:`Back to top<bigipexamples>`
 
+.. _authmethods:
+
+8: Configuring BIG-IP authentication methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure RADIUS, LDAP, and TACACS authentication in a declaration is available in DO v1.7.0 and later. 
+
+In this example, we show how to configure RADIUS, LDAP, and TACACS authentication in a Declarative Onboarding declaration using the **Authentication** class. The authentication class can contain multiple authentication method subclasses but only one can be enabled at a time using the **enableSourceType** property (which matches the BIG-IP UI behavior).
+
+This example declaration contains all three authentication methods with the enableSourceType property set to **radius**.    
+
+In the following declaration snippet we show only the classes related to authentication.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/authMethods.json
+   :language: json
 
 :ref:`Back to top<bigipexamples>`
 
