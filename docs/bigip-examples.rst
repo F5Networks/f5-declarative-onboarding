@@ -206,7 +206,24 @@ In the following declaration snippet we show only the classes related to Traffic
 
 :ref:`Back to top<bigipexamples>`
 
+.. _syslogdest:
 
+12: Configuring a System Log (syslog) Destination in declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure a syslog destination is available in DO v1.7.0 and later. 
+
+In this example, we show how to configure a syslog destination using the **SyslogRemoteServer** class.  For information on syslog destinations, see |sldocs| and the |slkb| Knowledge Base article.  Also see |slref| in the Schema reference for usage options.
+
+**Important**: The remote syslog server must be accessible from your BIG-IP system on the default route domain (Domain 0) or management network, and conversely, your BIG-IP system is accessible from the remote syslog server.
+
+In the following declaration snippet we show only the SyslogRemoteServer class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/syslogDestination.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
 .. |br| raw:: html
 
    <br />
@@ -240,6 +257,16 @@ In the following declaration snippet we show only the classes related to Traffic
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-systems-user-account-administration-14-0-0/05.html#GUID-E70CB2E7-A003-486A-9A3E-2C401B4DAC78" target="_blank">Line Order</a>
 
+.. |sldocs| raw:: html
 
+   <a href="https://techdocs.f5.com/en-us/bigip-14-0-0/external-monitoring-of-big-ip-systems-implementations-14-0-0/about-logging.html" target="_blank">External Monitoring</a>
+
+.. |slkb| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K13080" target="_blank">Configuring remote logging</a>
+
+.. |slref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#syslogremoteserver" target="_blank">SyslogRemoteServer Class</a>
 
 

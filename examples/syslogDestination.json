@@ -1,0 +1,20 @@
+{
+    "schemaVersion": "1.7.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+      "class": "Tenant",
+      "LocalDCSyslog": {
+        "class": "SyslogRemoteServer",
+        "host": "local-ip",
+        "localIp": "172.28.68.42",
+        "remotePort": 514
+      },
+      "DRDCSyslog": {
+        "class": "SyslogRemoteServer",
+        "host": "dr-ip",
+        "localIp": "172.28.68.42",
+        "remotePort": 514
+      }
+    }
+  }
