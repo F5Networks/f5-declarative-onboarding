@@ -153,7 +153,7 @@ In the following declaration snippet we show only the classes related to SNMP.  
 
 .. _authmethods:
 
-8: Configuring BIG-IP authentication methods
+9: Configuring BIG-IP authentication methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
@@ -170,10 +170,29 @@ In the following declaration snippet we show only the classes related to authent
 
 :ref:`Back to top<bigipexamples>`
 
+.. _remoterole:
+
+10: Configuring Remote Roles for LDAP authentication
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure remote roles for LDAP authentication is available in DO v1.7.0 and later. 
+
+In this example, we show how to configure a remote role for LDAP authentication using the **RemoteRole** class. See |loref| in the Schema reference for a description of each of the parameters for this class.
+
+**Important**: The BIG-IP only allows one role per user for each partition/tenant.  Because some remote servers allow multiple user roles, the BIG-IP uses the **lineOrder** parameter to choose one of the conflicting roles for the user at login time. In these cases, the system chooses the role with the lowest line-order number.  See |lineorder| in the BIG-IP documentation for more information and examples.
+
+In the following declaration snippet we show only the classes related to remote roles.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/remoteRoles.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
 .. _trafcontrol:
 
-8: Configuring Traffic Control properties
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+11: Configuring Traffic Control properties
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for configuring all LTM global traffic control properties is available in DO v1.7.0 and later. 
@@ -207,6 +226,20 @@ In the following declaration snippet we show only the classes related to Traffic
 .. |tcref| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trafficcontrol" target="_blank">TrafficControl Class</a>
+
+.. |loref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#remoteauthrole" target="_blank">RemoteAuthRole Class</a>
+
+
+.. |rolesdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-systems-user-account-administration-14-0-0/05.html" target="_blank">Remote User Account Management</a>
+
+.. |lineorder| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-systems-user-account-administration-14-0-0/05.html#GUID-E70CB2E7-A003-486A-9A3E-2C401B4DAC78" target="_blank">Line Order</a>
+
 
 
 
