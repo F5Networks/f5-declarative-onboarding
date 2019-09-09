@@ -161,11 +161,13 @@ Example response from sending GET to /shared/declarative-onboarding/config:
 
 |
 
+.. _inspect-endpoint:
+
 Using GET with the /inspect endpoint
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The /inspect endpoint for GET is available in DO v1.7.0 and later. 
+   The **/inspect** endpoint for GET is available in DO v1.7.0 and later. 
 
 In DO version 1.7.0 and later, you can use a GET request to the /inspect endpoint to retrieve the current BIG-IP configuration. This information can be used for modifying the DO declaration before the first POST.  The response returns the classes that DO is aware of and their current state, in the format of a DO declaration.
 
