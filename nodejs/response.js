@@ -29,59 +29,67 @@
  */
 class Response {
     constructor(itemId, responder, options) {
-        if (itemId) {
-            this.response = getResponse(itemId, responder, options);
-        } else {
-            const ids = responder.getIds() || [];
-            this.response = ids.map(id => getResponse(id, responder, options));
-        }
+        this.itemId = itemId;
+        this.responder = responder;
+        this.options = options;
     }
 
     getResponse() {
-        return this.response;
+        let response;
+        if (this.itemId) {
+            response = getResponse(this.itemId, this.responder, this.options);
+        } else {
+            const ids = this.responder.getIds() || [];
+            response = Promise.all(ids.map(id => getResponse(id, this.responder, this.options)));
+        }
+        return response;
     }
 }
 
 function getResponse(id, responder, options) {
     if (!responder.exists(id)) {
-        return {
+        return Promise.resolve({
             id,
             result: {
                 code: 404,
                 message: 'item does not exist',
                 errors: ['item does not exist']
             }
-        };
+        });
     }
 
-    const response = {
-        id,
-        selfLink: responder.getSelfLink(id)
-    };
+    return Promise.resolve(responder.getData(id, options))
+        .then((data) => {
+            const response = {
+                id,
+                selfLink: responder.getSelfLink(id)
+            };
+            const code = responder.getCode(id);
+            const status = responder.getStatus(id);
+            const message = responder.getMessage(id);
+            const errors = responder.getErrors(id);
 
-    // For error statuses, restnoded requires message at the top level
-    // Other items at the top level for backwards compatibility
-    if (responder.getCode(id) >= 300) {
-        response.code = responder.getCode(id);
-        response.status = responder.getStatus(id);
-        response.message = responder.getMessage(id);
-        response.errors = responder.getErrors(id);
-    }
-
-    response.result = {
-        class: 'Result',
-        code: responder.getCode(id),
-        status: responder.getStatus(id),
-        message: responder.getMessage(id),
-        errors: responder.getErrors(id)
-    };
-
-    const data = responder.getData(id, options);
-    Object.keys(data).forEach((key) => {
-        response[key] = data[key];
-    });
-
-    return response;
+            // For error statuses, restnoded requires message at the top level
+            // Other items at the top level for backwards compatibility
+            if (code >= 300) {
+                Object.assign(response, {
+                    code, status, message, errors
+                });
+            }
+            response.result = {
+                class: 'Result', code, status, message, errors
+            };
+            Object.assign(response, data);
+            return Promise.resolve(response);
+        })
+        .catch(err => Promise.resolve({
+            id,
+            result: {
+                code: 500,
+                message: 'internal error',
+                errors: [err.message]
+            }
+        }));
 }
 
 module.exports = Response;

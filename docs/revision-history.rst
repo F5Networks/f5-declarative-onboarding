@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 2.3
+        - This documentation only update contains the following changes: |br| * Added a troubleshooting page with an entry about reposting a declaration with new VLANs, Self IPs, and/or Route Domain (see :ref:`trouble`) |br| * Updated the Route Domain example per GitHub issue |54| (see :ref:`routedomain-class`).
+        - 08-01-19
+      
       * - 2.2
         - Updated the documentation for Declarative Onboarding v1.6.0. This release contains the following changes: |br| * Added support for creating route domains in a declaration (see :ref:`routedomain-class`) |br| * Added support for specifying a management route (see :ref:`mgmtroute-class`) |br| * Added a note to the **tag** row of the :ref:`vlan-class` table stating if you set the tag in DO, the VLAN defaults the **tagged** parameter to **true**. |br| * Added support for specifying a **webhook** URL for response information (see :ref:`base-comps` for usage). |br| |br| Issues Resolved: |br| * Updated :doc:`big-iq-licensing` and the example declarations to change references to ELA/subscription licensing to *utility* licensing. |br| *  Removed targetSshKey when filling in targetPassphrase. |br| 
         - 07-30-19
@@ -73,6 +77,10 @@ Document Revision History
 .. |schemalink| raw:: html
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/tree/master/schema" target="_blank">schema files</a>
+
+.. |54| raw:: html
+
+   <a href="<a href="https://github.com/F5Networks/f5-declarative-onboarding/issues/54" target="_blank">#54</a>
 
 
 

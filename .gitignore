@@ -6,3 +6,5 @@ build/rpmbuild/
 docs/_build/
 coverage/
 npm-debug.log
+docs/schema-reference.rst
+dist/do.schema.json

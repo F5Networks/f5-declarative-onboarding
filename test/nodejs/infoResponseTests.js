@@ -20,9 +20,12 @@ const assert = require('assert');
 
 const InfoResponse = require('../../nodejs/infoResponse');
 
-let infoResponse;
+const PACKAGE_VERSION = require('../../package.json').version;
+const SCHEMA_VERSIONS = require('../../schema/base.schema.json').properties.schemaVersion.enum;
 
 describe('infoResponse', () => {
+    let infoResponse;
+
     beforeEach(() => {
         infoResponse = new InfoResponse();
     });
@@ -54,11 +57,21 @@ describe('infoResponse', () => {
         assert.deepEqual(infoResponse.getErrors(1234), []);
     });
 
-    it('should return the proper data', () => {
-        const info = infoResponse.getData();
-        assert.strictEqual(typeof info.version, 'string');
-        assert.strictEqual(typeof info.release, 'string');
-        assert.strictEqual(typeof info.schemaCurrent, 'string');
-        assert.strictEqual(typeof info.schemaMinimum, 'string');
+    ['', 'one more time'].forEach((titleItem) => {
+        it(`should return the proper data ${titleItem}`, () => {
+            const packageVersion = PACKAGE_VERSION.split('-');
+            const schemaVersionMax = SCHEMA_VERSIONS[0];
+            const schemaVersionMin = SCHEMA_VERSIONS[SCHEMA_VERSIONS.length - 1];
+
+            const info = infoResponse.getData();
+            assert.strictEqual(typeof info.version, 'string');
+            assert.strictEqual(typeof info.release, 'string');
+            assert.strictEqual(typeof info.schemaCurrent, 'string');
+            assert.strictEqual(typeof info.schemaMinimum, 'string');
+            assert.strictEqual(info.version, packageVersion[0], 'Version number should match version number from package.json');
+            assert.strictEqual(info.release, packageVersion[1], 'Release number should match release number from package.json');
+            assert.strictEqual(info.schemaCurrent, schemaVersionMax, 'Currrent schema version should match version from base.schema.json');
+            assert.strictEqual(info.schemaMinimum, schemaVersionMin, 'Minimal schema version should match version from base.schema.json');
+        });
     });
 });

@@ -24,6 +24,7 @@ const systemSchema = require('../../schema/system.schema.json');
 const networkSchema = require('../../schema/network.schema.json');
 const dscSchema = require('../../schema/dsc.schema.json');
 const analyticsSchema = require('../../schema/analytics.schema.json');
+const authSchema = require('../../schema/auth.schema.json');
 const customFormats = require('../../schema/formats.js');
 
 const ajv = new Ajv(
@@ -44,6 +45,7 @@ const validate = ajv
     .addSchema(networkSchema)
     .addSchema(dscSchema)
     .addSchema(analyticsSchema)
+    .addSchema(authSchema)
     .compile(baseSchema);
 
 /* eslint-disable quotes, quote-props */

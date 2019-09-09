@@ -49,12 +49,13 @@ The following is another example using a declaration for use in a container, but
 
 .. _avrstream:
 
+
+4: Creating an Analytics profile to enable AVR data streaming
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for the Analytics profile is available in Declarative Onboarding v1.5.0 and later.
 
-4: Creating an Analytics profile to enable AVR data streaming
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In this example, we are licensing a new BIG-IP, provisioning AVR, and creating an Analytics profile (you must have AVR provisioned to create an Analytics profile).  This allows you to stream AVR data for consumption by F5 Telemetry Steaming or similar applications.
 
 .. literalinclude:: ../examples/avrStreamingSupport.json
@@ -66,12 +67,13 @@ In this example, we are licensing a new BIG-IP, provisioning AVR, and creating a
 
 .. _keys:
 
+
+5: Adding public SSH keys to a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    The **keys** property of the User class is available in DO v1.5.0 and later. 
 
-5: Adding public SSH keys to a declaration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In this example, we are adding public SSH keys to the root user and a guestUser. This can provide a higher level of security and easier automation.
 
 **Important notes about using the keys property**
@@ -91,12 +93,12 @@ In this example, we are adding public SSH keys to the root user and a guestUser.
 
 .. _rdomain:
 
+6: Adding Route Domains to a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    The **routeDomain** class is available in DO v1.6.0 and later. 
 
-6: Adding Route Domains to a declaration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In this example, we show how to use a Route Domain in a declaration.  A route domain is a configuration object that isolates network traffic for a particular application on the network.  For more information on Route Domains, see |rddoc|.
 
 In the following declaration, we include a VLAN to show how to reference a VLAN that is being created.  The SelfIp and the Route both show using the RouteDomain with **%100**, which is the **id** of the RouteDomain. 
@@ -105,7 +107,29 @@ In the following declaration, we include a VLAN to show how to reference a VLAN 
 
 .. literalinclude:: ../examples/routeDomains.json
    :language: json
-   :emphasize-lines: 20, 24, 27-45 
+   :emphasize-lines: 21, 25, 28-46 
+
+
+:ref:`Back to top<bigipexamples>`
+
+
+.. _dag:
+
+7: Setting the DAG IPv6 prefix length
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The **DagGlobals** class is available in DO v1.7.0 and later. 
+
+In this example, we show how to use the DagGlobals class to set or modify the DAG global IPv6 prefix length.  DAG Globals contain the global disaggregation settings; see the |dagdocs| documentation for more information. 
+
+In the following declaration snippet, we show only the DagGlobals class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+
+
+.. literalinclude:: ../examples/dagGlobals.json
+   :language: json
+
 
 
 :ref:`Back to top<bigipexamples>`
@@ -117,3 +141,8 @@ In the following declaration, we include a VLAN to show how to reference a VLAN 
 .. |rddoc| raw:: html
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-tmos-routing-administration-14-1-0/09.html" target="_blank">Route Domain documentation</a>
+
+.. |dagdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-service-provider-generic-message-administration-13-1-0/5.html" target="_blank">Disaggregation DAG modes</a>
+

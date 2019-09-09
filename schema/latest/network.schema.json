@@ -5,6 +5,68 @@
     "description": "Network properties for onboarding a BIG-IP.",
     "allOf": [
         {
+            "if": { "properties": { "class": { "const": "Trunk" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Trunk configuration.",
+                        "type": "string",
+                        "const": "Trunk"
+                    },
+                    "distributionHash": {
+                        "description": "Specifies the basis for the hash that the system uses as the frame distribution algorithm.  Choices are 'dst-mac' (use the destination MAC addresses), 'src-dist-mac' (use the source, destination, and MAC addresses), or 'src-dst-ipport' (use the source and destination IP addresses and ports).",
+                        "type": "string",
+                        "enum": ["dst-mac", "src-dst-ipport", "src-dst-mac"],
+                        "default": "dst-mac"
+                    },
+                    "interfaces": {
+                        "description": "Interfaces for the Trunk.  The number of interfaces used is recommended to be a power of 2 (for example 2, 4, or 8).  Interfaces must be untagged.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    },
+                    "lacpEnabled": {
+                        "description": "Specifies, when true, that the system supports the link aggregation control protocol (LACP), which monitors the trunk by exchanging control packets over the member links to determine the health of the links.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "lacpMode": {
+                        "description": "Specifies the operation mode for LACP if the lacp option is enabled for the trunk.  The values are 'active' (specifies the system periodically transmits LACP packets, regardless of the control value of the peer system) and 'passive' (specifies the system periodically transmits LACP packets, unless the control value of the peer system is active).",
+                        "type": "string",
+                        "enum": ["active", "passive"],
+                        "default": "active"
+                    },
+                    "lacpTimeout": {
+                        "description": "Specifies the rate at which the system sends the LACP control packets.",
+                        "type": "string",
+                        "enum": ["long", "short"],
+                        "default": "long"
+                    },
+                    "linkSelectPolicy": {
+                        "description": "Sets the LACP policy that the trunk uses to determine which member link (interface) can handle new traffic.",
+                        "type": "string",
+                        "enum": ["auto", "maximum-bandwidth"],
+                        "default": "auto"
+                    },
+                    "qinqEthertype": {
+                        "description": "Specifies the ether-type value used for the packets handled on this trunk when it is a member in a QinQ vlan.",
+                        "type": "string",
+                        "pattern": "^0x[a-fA-F0-9]{4}$",
+                        "default": "0x8100"
+                    },
+                    "spanningTreeEnabled": {
+                        "description": "Enables the spanning tree protocols (STP).",
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
             "if": { "properties": { "class": { "const": "VLAN" } } },
             "then": {
                 "required": ["class", "interfaces"],
@@ -18,7 +80,8 @@
                         "description": "MTU for the VLAN.",
                         "type": "integer",
                         "minimum": 576,
-                        "maximum": 9198
+                        "maximum": 9198,
+                        "default": 1500
                     },
                     "tag": {
                         "description": "Tag for the VLAN.",
@@ -44,6 +107,12 @@
                             },
                             "additionalProperties": false
                         }
+                    },
+                    "cmpHash": {
+                        "description": "Specifies how the traffic on the VLAN will be disaggregated.",
+                        "type": "string",
+                        "enum": ["default", "dst-ip", "src-ip"],
+                        "default": "default"
                     }
                 },
                 "additionalProperties": false
@@ -202,6 +271,39 @@
                         "items": {
                             "type": "string"
                         }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "DagGlobals" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains DAG Globals configuration.",
+                        "type": "string",
+                        "const": "DagGlobals"
+                    },
+                    "icmpHash": {
+                        "description": "Specifies ICMP hash for ICMP echo request and ICMP echo reply in SW DAG.",
+                        "type": "string",
+                        "enum": ["icmp", "ipicmp"],
+                        "default": "icmp"
+                    },
+                    "ipv6PrefixLength": {
+                        "description": "Specifies whether SPDAG or IPv6 prefix DAG should be used to disaggregate IPv6 traffic when vlan cmp hash is set to src-ip or dst-ip.",
+                        "type": "integer",
+                        "default": 128,
+                        "minimum": 0,
+                        "maximum": 128
+                    },
+                    "roundRobinMode": {
+                        "description": "Specifies whether the round robin disaggregator (DAG) on a blade can disaggregate packets to all the TMMs in the system or only to the TMMs local to the blade.",
+                        "type": "string",
+                        "enum": ["global", "local"],
+                        "default": "global"
                     }
                 },
                 "additionalProperties": false

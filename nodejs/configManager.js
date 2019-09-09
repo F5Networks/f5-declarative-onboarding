@@ -21,6 +21,7 @@ const url = require('url');
 const querystring = require('querystring');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
+const RADIUS = require('./sharedConstants').RADIUS;
 
 const logger = new Logger(module);
 
@@ -60,8 +61,9 @@ class ConfigManager {
      *         properties: [
      *             {
      *                 id: <property_name>,
-     *                 "truth": <mcp_truth_value_if_this_is_boolean>,
-     *                 "falsehood": <mcp_false_value_if_this_is_boolean>
+     *                 newId: <property_name_to_map_to_in_parsed_declaration>
+     *                 truth: <mcp_truth_value_if_this_is_boolean>,
+     *                 falsehood: <mcp_false_value_if_this_is_boolean>
      *             }
      *         ]
      *         references: {
@@ -72,7 +74,12 @@ class ConfigManager {
      *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>,
      *         ignore: [
      *             { <key_to_possibly_ignore>: <regex_for_value_to_ignore> }
-     *         ]
+     *         ],
+     *        schemaMerge: {
+     *           path: <array_containing_property_path>,
+     *           action: <override_if_not_direct_assign_of_value>
+     *           skipWhenOmitted: <do_not_add_to_parent_when_missing>
+     *        }
      *     }
      * ]
      *
@@ -92,7 +99,6 @@ class ConfigManager {
     get(declaration, state, doState) {
         const currentCurrentConfig = state.currentConfig || {};
         const currentConfig = {};
-        const promises = [];
         const referencePromises = [];
         const referenceInfo = []; // info needed to tie reference result to config item
 
@@ -147,14 +153,12 @@ class ConfigManager {
 
                 // get a list of iControl Rest queries asking for the config items and selecting the
                 // properties we want
-                this.configItems
-                    .filter((configItem) => {
-                        if (!configItem.requiredModule) {
-                            return true;
+                return Promise.all(this.configItems
+                    .map((configItem) => {
+                        if (configItem.requiredModule && provisionedModules.indexOf(configItem.requiredModule) === -1) {
+                            return Promise.resolve(false);
                         }
-                        return provisionedModules.indexOf(configItem.requiredModule) > -1;
-                    })
-                    .forEach((configItem) => {
+
                         const query = { $filter: 'partition eq Common' };
                         const selectProperties = getPropertiesOfInterest(configItem.properties);
                         if (selectProperties.length > 0) {
@@ -172,14 +176,17 @@ class ConfigManager {
                             options.silent = configItem.silent;
                         }
 
-                        promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options));
-                    });
-
-                return Promise.all(promises);
+                        return this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options);
+                    }));
             })
             .then((results) => {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
+                    // looks like configItem was skipped in previous step
+                    if (currentItem === false) {
+                        return;
+                    }
+
                     const schemaClass = this.configItems[index].schemaClass;
                     if (!schemaClass) {
                         // Simple item that is just key:value - not a larger object
@@ -192,8 +199,18 @@ class ConfigManager {
                         } else {
                             currentItem.forEach((item) => {
                                 if (!shouldIgnore(item, this.configItems[index].ignore)) {
-                                    patchedItem = removeUnusedKeys.call(this, item);
+                                    patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties.call(this, patchedItem, index);
+
+                                    let name = item.name;
+
+                                    if (name.startsWith('/Common/')) {
+                                        name = name.split('/Common/')[1];
+                                    }
+
+                                    if (schemaClass === 'RemoteAuthRole') {
+                                        patchedItem.name = name; // The patchedItem needs its name updated too
+                                    }
 
                                     // Self IPs are so odd that I don't see a generic way to handle this
                                     if (schemaClass === 'SelfIp') {
@@ -207,11 +224,19 @@ class ConfigManager {
                                         }
                                     }
 
+                                    if (schemaClass === 'Authentication') {
+                                        const schemaMerge = this.configItems[index].schemaMerge;
+                                        currentConfig[schemaClass] = patchAuth.call(
+                                            this, schemaMerge, currentConfig[schemaClass], patchedItem
+                                        );
+                                        patchedItem = null;
+                                    }
+
                                     if (patchedItem) {
                                         if (!currentConfig[schemaClass]) {
                                             currentConfig[schemaClass] = {};
                                         }
-                                        currentConfig[schemaClass][item.name] = patchedItem;
+                                        currentConfig[schemaClass][name] = patchedItem;
                                     }
 
                                     getReferencedPaths.call(
@@ -225,13 +250,28 @@ class ConfigManager {
                             });
                         }
                     } else if (!shouldIgnore(currentItem, this.configItems[index].ignore)) {
-                        currentConfig[schemaClass] = {};
                         patchedItem = removeUnusedKeys.call(
                             this,
                             currentItem,
                             this.configItems[index].nameless
                         );
                         patchedItem = mapProperties.call(this, patchedItem, index);
+                        if (schemaClass === 'Authentication') {
+                            const schemaMerge = this.configItems[index].schemaMerge;
+                            patchedItem = patchAuth.call(
+                                this, schemaMerge, currentConfig[schemaClass], patchedItem
+                            );
+                        }
+                        if (schemaClass === 'SyslogRemoteServer') {
+                            const servers = patchedItem.remoteServers || [];
+                            servers.forEach((server) => {
+                                if (server.name.includes('/Common/')) {
+                                    server.name = server.name.split('/Common/')[1];
+                                }
+                                patchedItem[server.name] = Object.assign({}, server);
+                            });
+                            delete patchedItem.remoteServers;
+                        }
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
                     }
@@ -372,12 +412,16 @@ function mapProperties(item, index) {
     }
 
     this.configItems[index].properties.forEach((property) => {
+        let hasVal = false;
         // map truth/falsehood (enabled/disabled, for example) to booleans
         if (property.truth !== undefined) {
-            mappedItem[property.id] = mapTruth(mappedItem, property);
+            // for certain items we don't want to add prop with default falsehood value if prop doesn't exist
+            if (typeof mappedItem[property.id] !== 'undefined' || !property.skipWhenOmitted) {
+                mappedItem[property.id] = mapTruth(mappedItem, property);
+            }
         }
 
-        if (mappedItem[property.id]) {
+        if (typeof mappedItem[property.id] !== 'undefined') {
             // If property is a reference, strip the /Common if it is there
             // Either the user specified it without /Commmon in their declaration
             // or we replaced the user value with just the last part because it looks
@@ -399,11 +443,53 @@ function mapProperties(item, index) {
                     }
                 });
             }
+            hasVal = true;
         } else if (property.defaultWhenOmitted !== undefined) {
             mappedItem[property.id] = property.defaultWhenOmitted;
+            hasVal = true;
+        }
+
+        if (hasVal && property.newId !== undefined) {
+            mapNewId(mappedItem, property.id, property.newId);
         }
     });
     return mappedItem;
+}
+
+/**
+ * Maps a new id in a config item to the id from iControl REST
+ *
+ * @param {Object} mappedItem - The item we are maaping the id for
+ * @param {String} id - The id in the iControl REST object
+ * @param {String} newId - The new name for the id
+ */
+function mapNewId(mappedItem, id, newId) {
+    if (newId.indexOf('.') > 0) {
+        // If the newId contains a '.', then map it into an object. In other words,
+        // if id is 'myId' and newId is 'outer.inner', and and mappedItem.myId = foo
+        // create this in the mappedItem:
+        //     mappedItem: {
+        //          outer: {
+        //              inner: 'foo'
+        //          }
+        //     }
+        const parts = newId.split('.');
+
+        parts.reduce((acc, cur, idx) => {
+            if (idx !== parts.length - 1) {
+                if (!acc[cur]) {
+                    acc[cur] = {};
+                }
+                return acc[cur];
+            }
+
+            acc[parts[idx]] = mappedItem[id];
+            return acc;
+        }, mappedItem);
+    } else {
+        mappedItem[newId] = mappedItem[id];
+    }
+    delete mappedItem[id];
 }
 
 /**
@@ -419,6 +505,47 @@ function mapTruth(item, property) {
         return false;
     }
     return item[property.id] === property.truth;
+}
+
+/**
+ * Maps objects that have separate paths in mcp but need to be part of a DO class
+ * as a property that is of type object
+ *
+ * @param {Object} obj - The parent/target obj
+ * @param {Object} value - The value to assign
+ * @param {Object} opts - The schemaMerge options
+ *   opts would be:
+     *     {
+     *         path: <array_containing_property_path>,
+     *         action: <override_if_not_direct_assign_of_value>
+     *         skipWhenOmitted: <do_not_add_to_parent_when_missing>
+     *     }
+ * @returns {Object} A merged object containing the property with value specified
+ */
+function mapSchemaMerge(obj, value, opts) {
+    const isOmitted = typeof value === 'undefined' || Object.keys(value).length === 0;
+    if (opts.skipWhenOmitted && isOmitted) {
+        return obj;
+    }
+
+    const pathProps = opts.path.slice(0);
+    const key = pathProps.pop();
+    const pointer = pathProps.reduce((acc, curr) => {
+        if (typeof acc[curr] === 'undefined') {
+            acc[curr] = {};
+        }
+        return acc[curr];
+    }, obj);
+    // default action would be replace
+    if (opts.action === 'add') {
+        if (typeof pointer[key] === 'undefined') {
+            pointer[key] = {};
+        }
+        pointer[key] = Object.assign(pointer[key], value);
+    } else {
+        pointer[key] = value;
+    }
+    return obj;
 }
 
 // given an item and its index in configItems, construct a path based the properties we want
@@ -521,6 +648,50 @@ function patchSelfIp(selfIp) {
     }
 
     return patched;
+}
+
+function patchAuth(schemaMerge, authClass, authItem) {
+    let patchedClass = {};
+    let patchedItem;
+
+    if (!schemaMerge) {
+        let type = authItem.type;
+
+        if (type === 'active-directory') {
+            type = 'activeDirectory';
+        }
+
+        // the props are for the parent Auth class
+        patchedClass = Object.assign(patchedClass, authItem);
+        patchedClass.enabledSourceType = type;
+        delete patchedClass.type;
+        return patchedClass;
+    }
+    // this is going to be for a subclass (e.g. radius, ldap, etc)
+    const authClassCopy = !authClass ? {} : Object.assign({}, authClass);
+
+    if (authItem.name && authItem.name.indexOf(RADIUS.SERVER_PREFIX) > -1) {
+        // radius servers have name constants
+        // note also that serverReferences are returned by iControl as obj instead of array
+        if (authItem.name === RADIUS.PRIMARY_SERVER) {
+            patchedItem = {
+                primary: authItem
+            };
+            delete patchedItem.primary.name;
+        }
+
+        if (authItem.name === RADIUS.SECONDARY_SERVER) {
+            patchedItem = {
+                secondary: authItem
+            };
+            delete patchedItem.secondary.name;
+        }
+    } else {
+        patchedItem = Object.assign({}, authItem);
+    }
+
+    patchedClass = mapSchemaMerge.call(this, authClassCopy, patchedItem, schemaMerge);
+    return patchedClass;
 }
 
 function shouldIgnore(item, ignoreList) {

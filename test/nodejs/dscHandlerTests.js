@@ -21,6 +21,8 @@ const dns = require('dns');
 
 const sinon = require('sinon');
 
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
 const doUtil = require('../../nodejs/doUtil');
@@ -86,6 +88,50 @@ describe('dscHandler', () => {
                     ConfigSync: {
                         configsyncIp: `${configSyncIp}/24`
                     }
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        assert.strictEqual(configSyncIpSent, configSyncIp);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should send "none" to disable config sync', () => {
+            const configSyncIp = 'none';
+            const declaration = {
+                Common: {
+                    ConfigSync: {
+                        configsyncIp: `${configSyncIp}`
+                    }
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const dscHandler = new DscHandler(declaration, bigIpMock);
+                dscHandler.process()
+                    .then(() => {
+                        assert.strictEqual(configSyncIpSent, configSyncIp);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should send "none" when configsyncIp not defined', () => {
+            const configSyncIp = 'none';
+            const declaration = {
+                Common: {
+                    ConfigSync: {}
                 }
             };
 
@@ -173,6 +219,7 @@ describe('dscHandler', () => {
 
         beforeEach(() => {
             getBigIpOptions = undefined;
+            sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
             sinon.stub(doUtil, 'getBigIp').callsFake((logger, options) => {
                 getBigIpOptions = options;
                 return Promise.resolve(bigIpMock);
@@ -418,6 +465,7 @@ describe('dscHandler', () => {
                 }
                 return Promise.reject(new Error('Unexpected path'));
             };
+            sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
         });
 
         it('should handle device groups with no members', () => {

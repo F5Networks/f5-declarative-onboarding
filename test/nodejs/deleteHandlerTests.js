@@ -18,6 +18,9 @@
 
 const assert = require('assert');
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
+const AUTH = require('../../nodejs/sharedConstants').AUTH;
+const RADIUS = require('../../nodejs/sharedConstants').RADIUS;
+
 
 let DeleteHandler;
 
@@ -86,6 +89,74 @@ describe(('deleteHandler'), function testDeleteHandler() {
                     assert.strictEqual(deletedPaths[3], `${PATHS.SelfIp}/~Common~deleteThisSelfIp3`);
                     assert.strictEqual(deletedPaths[4], `${PATHS.VLAN}/~Common~deleteThisVLAN1`);
                     assert.strictEqual(deletedPaths[5], `${PATHS.VLAN}/~Common~deleteThisVLAN2`);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should issue deletes for Authentication subclasses', () => {
+        bigIpMock.delete = path => new Promise((resolve) => {
+            deletedPaths.push(path);
+            setTimeout(() => {
+                resolve();
+            }, path.includes(PATHS.Route) ? 50 : 0);
+        });
+
+        const declaration = {
+            Common: {
+                Authentication: {
+                    radius: {},
+                    tacacs: {},
+                    ldap: {}
+                }
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+            deleteHandler.process()
+                .then(() => {
+                    assert.strictEqual(deletedPaths.length, 5);
+                    assert.strictEqual(deletedPaths[0], `/tm/auth/radius/${AUTH.SUBCLASSES_NAME}`);
+                    assert.strictEqual(deletedPaths[1], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.PRIMARY_SERVER}`);
+                    assert.strictEqual(deletedPaths[2], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`);
+                    assert.strictEqual(deletedPaths[3], `/tm/auth/tacacs/${AUTH.SUBCLASSES_NAME}`);
+                    assert.strictEqual(deletedPaths[4], `/tm/auth/ldap/${AUTH.SUBCLASSES_NAME}`);
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    });
+
+    it('should issue deletes for Authentication radius servers', () => {
+        bigIpMock.delete = path => new Promise((resolve) => {
+            deletedPaths.push(path);
+            setTimeout(() => {
+                resolve();
+            }, path.includes(PATHS.Route) ? 50 : 0);
+        });
+
+        const declaration = {
+            Common: {
+                Authentication: {
+                    radius: {}
+                }
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+            deleteHandler.process()
+                .then(() => {
+                    assert.strictEqual(deletedPaths.length, 3);
+                    assert.strictEqual(deletedPaths[0], `/tm/auth/radius/${AUTH.SUBCLASSES_NAME}`);
+                    assert.strictEqual(deletedPaths[1], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.PRIMARY_SERVER}`);
+                    assert.strictEqual(deletedPaths[2], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`);
                     resolve();
                 })
                 .catch((err) => {
@@ -193,5 +264,39 @@ describe(('deleteHandler'), function testDeleteHandler() {
                     resolve();
                 });
         });
+    });
+
+    it('should properly set the path for Remote Roles', () => {
+        const declaration = {
+            Common: {
+                RemoteAuthRole: {
+                    test: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths[0], '/tm/auth/remote-role/role-info/test');
+            });
+    });
+
+    it('should skip route domain 0 on attempt to delete it', () => {
+        const declaration = {
+            Common: {
+                RouteDomain: {
+                    0: {},
+                    rd99: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.indexOf('/tm/net/route-domain/~Common~0'), -1);
+                assert.notStrictEqual(deletedPaths.indexOf('/tm/net/route-domain/~Common~rd99'), -1);
+            });
     });
 });

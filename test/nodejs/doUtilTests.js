@@ -23,6 +23,7 @@ const netMock = require('net');
 const sinon = require('sinon');
 const BigIpMock = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtilMock = require('@f5devcentral/f5-cloud-libs').httpUtil;
+const cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
 
 const doUtil = require('../../nodejs/doUtil');
 
@@ -398,6 +399,7 @@ describe('doUtil', () => {
     describe('checkDnsResolution', () => {
         beforeEach(() => {
             sinon.stub(dns, 'lookup').callsArg(1);
+            sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value(cloudUtilMock.NO_RETRY);
         });
         afterEach(() => {
             sinon.restore();
@@ -425,7 +427,10 @@ describe('doUtil', () => {
                         }
                     });
             });
-            return Promise.all(promises);
+            return Promise.all(promises)
+                .catch((err) => {
+                    assert.ok(false, err.message);
+                });
         });
 
         it('should resolve true if a valid ip, empty string, or valid hostname is given', () => {
@@ -445,7 +450,10 @@ describe('doUtil', () => {
                     }
                     assert.fail(`testCase: ${testCase} does NOT exist, and it should`);
                 }));
-            return Promise.all(promises);
+            return Promise.all(promises)
+                .catch((err) => {
+                    assert.ok(false, err.message);
+                });
         });
 
         it('should provide a better error message on uncaught exceptions', () => {
@@ -455,7 +463,25 @@ describe('doUtil', () => {
 
             return doUtil.checkDnsResolution('test')
                 .catch((error) => {
-                    assert.notEqual(error.message, errorMessage);
+                    assert.notStrictEqual(error.message.indexOf('Unable to resolve'), -1);
+                });
+        });
+
+        it('should retry if an error occurs', () => {
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsFake(() => {
+                // Set dns lookup to work the next time it is called
+                dns.lookup.restore();
+                sinon.stub(dns, 'lookup').callsArg(1);
+                const errorMessage = 'Hello world!';
+                throw new Error(errorMessage);
+            });
+
+            sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value({ maxRetries: 1, retryIntervalMs: 10 });
+
+            return doUtil.checkDnsResolution('test')
+                .catch((error) => {
+                    assert.ok(false, error.message);
                 });
         });
     });

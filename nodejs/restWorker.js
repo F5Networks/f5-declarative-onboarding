@@ -29,6 +29,7 @@ const Logger = require('./logger');
 const Response = require('./response');
 const ConfigResponse = require('./configResponse');
 const InfoResponse = require('./infoResponse');
+const InspectResponse = require('./inspectResponse');
 const TaskResponse = require('./taskResponse');
 const State = require('./state');
 const SshUtil = require('./sshUtil');
@@ -420,10 +421,9 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
             logger.info('Rolling back configuration');
-            const deconCode = err.code === 400 ? 422 : (err.code || 500);
             this.state.doState.updateResult(
                 taskId,
-                deconCode,
+                202,
                 STATUS.STATUS_ROLLING_BACK,
                 'invalid config - rolling back',
                 err.message
@@ -438,8 +438,14 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
                             this.state.doState.getTask(taskId)
                         ))
                         .then(() => {
-                            this.state.doState.setStatus(taskId, STATUS.STATUS_ERROR);
-                            this.state.doState.setMessage(taskId, 'invalid config - rolled back');
+                            const deconCode = err.code === 400 ? 422 : (err.code || 500);
+                            this.state.doState.updateResult(
+                                taskId,
+                                deconCode,
+                                STATUS.STATUS_ERROR,
+                                'invalid config - rolled back',
+                                err.message
+                            );
                             return save.call(this);
                         })
                         .catch((rollbackError) => {
@@ -803,21 +809,86 @@ function initialAccountSetup(wrapper) {
     /* jshint validthis: true */
 
     let promise = Promise.resolve();
+    let adminPasswordUpdated = false;
     if (needsPasswordReset(wrapper)) {
         promise = initialPasswordSet.call(this, wrapper);
+        adminPasswordUpdated = wrapper.targetUsername === 'admin';
     } else if (needsPasswordSetViaSsh(wrapper)) {
         promise = initialPasswordSetViaSsh.call(this, wrapper);
+        adminPasswordUpdated = wrapper.targetUsername === 'admin';
     }
 
     return promise
         .then((updatedPassword) => {
-            logger.finest('done w/ initial accout setup');
-            return Promise.resolve(updatedPassword);
+            logger.finest('done w/ initial account setup');
+            let p = Promise.resolve();
+            if (adminPasswordUpdated) {
+                p = p.then(rootAccountSetup.call(this, wrapper, updatedPassword));
+            }
+            return p.then(() => Promise.resolve(updatedPassword));
         })
         .catch((err) => {
             logger.warning(`Error during initial account setup: ${err.message}`);
             return Promise.reject(err);
         });
+}
+
+/**
+ * Resets the root old password if needed
+ *
+ * On 14.0 and above the admin user is forced to change the password on first login.  When the admin password is
+ * changed on first login it also changes the root password to the same value.  If the root password is changed the
+ * oldPassword for the root user in the declaration could need to be updated.
+ *
+ * @param {Object} wrapper - Remote declaration wrapper
+ * @param {string} updatedPassword - New password for admin
+ */
+function rootAccountSetup(wrapper, updatedPassword) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
+    const rootUser = getUserFromDeclaration('root', wrapper.declaration);
+    if (!rootUser) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+        getPort(wrapper)
+            .then((port) => {
+                const credentials = cloudUtil.createBufferFrom(
+                    `${wrapper.targetUsername}:${updatedPassword}`,
+                    'ascii'
+                ).toString('base64');
+                const auth = `Basic ${credentials}`;
+                const restOperation = this.restOperationFactory.createRestOperationInstance()
+                    .setUri(
+                        `https://${wrapper.targetHost}:${port}/mgmt/shared/authn/root`
+                    )
+                    .setIsSetBasicAuthHeader(true)
+                    .setBasicAuthorization(auth)
+                    .setContentType('application/json')
+                    .setBody(
+                        {
+                            oldPassword: updatedPassword,
+                            newPassword: updatedPassword
+                        }
+                    );
+                return this.restRequestSender.sendPost(restOperation);
+            })
+            .then(() => {
+                rootUser.oldPassword = updatedPassword;
+                logger.finest('root oldPassword updated.');
+                resolve();
+            })
+            .catch((err) => {
+                if (err.message === 'Old password is incorrect.') {
+                    resolve();
+                    return;
+                }
+                logger.warning(`Error during rootAccountSetup: ${err.message}`);
+                reject(err);
+            });
+    });
 }
 
 /**
@@ -931,12 +1002,24 @@ function initialPasswordSetViaSsh(wrapper) {
                 user.password = dereferenced;
             }
 
-            sshUtil.executeCommand(`modify auth user ${wrapper.targetUsername} password ${user.password}`)
+            let command = `modify auth user ${wrapper.targetUsername} password ${user.password}`;
+            sshUtil.executeCommand(command)
                 .then(() => {
                     resolve(user.password);
                 })
                 .catch((err) => {
-                    reject(err);
+                    if (typeof err.message === 'string' && err.message.includes('command not found')) {
+                        command = `tmsh ${command}`;
+                        sshUtil.executeCommand(command)
+                            .then(() => {
+                                resolve(user.password);
+                            })
+                            .catch((er) => {
+                                reject(er);
+                            });
+                    } else {
+                        reject(err);
+                    }
                 });
         } else {
             resolve();
@@ -1020,18 +1103,23 @@ function sendResponse(restOperation, endpoint, itemId) {
     /* jshint validthis: true */
 
     const response = forgeResponse.call(this, restOperation, endpoint, itemId);
-    const body = response.getResponse();
-    restOperation.setBody(body);
+    response.getResponse()
+        .then((body) => {
+            restOperation.setBody(body);
+            if (Array.isArray(response)) {
+                restOperation.setStatusCode(200);
+            } else if (body && body.result && body.result.code) {
+                restOperation.setStatusCode(body.result.code);
+            } else {
+                restOperation.setStatusCode(200);
+            }
 
-    if (Array.isArray(response)) {
-        restOperation.setStatusCode(200);
-    } else if (body && body.result && body.result.code) {
-        restOperation.setStatusCode(body.result.code);
-    } else {
-        restOperation.setStatusCode(200);
-    }
-
-    restOperation.complete();
+            restOperation.complete();
+        })
+        .catch((err) => {
+            logger.error(`sendResponse failed: ${JSON.stringify(err)}`);
+            sendError(restOperation, 500, err.message);
+        });
 }
 
 /**
@@ -1054,6 +1142,9 @@ function forgeResponse(restOperation, endpoint, itemId) {
         break;
     case ENDPOINTS.INFO:
         responder = new InfoResponse();
+        break;
+    case ENDPOINTS.INSPECT:
+        responder = new InspectResponse(restOperation.getUri().query);
         break;
     case ENDPOINTS.TASK: {
         responder = new TaskResponse(doState);
@@ -1084,16 +1175,21 @@ function postWebhook(restOperation, endpoint, itemId, webhook) {
     }
     if (endpoint === ENDPOINTS.TASK) {
         const response = forgeResponse.call(this, restOperation, endpoint, itemId);
-        const body = response.getResponse();
-        const options = {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body
-        };
-        httpUtil.post(webhook, options)
+        response.getResponse()
+            .then((body) => {
+                const options = {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body
+                };
+                return httpUtil.post(webhook, options)
+                    .catch((err) => {
+                        logger.fine(`Webhook failed POST: ${JSON.stringify(err)}`);
+                    });
+            })
             .catch((err) => {
-                logger.fine(`Webhook failed POST: ${JSON.stringify(err)}`);
+                logger.error(`postWebhook failed: ${JSON.stringify(err)}`);
             });
     }
 }

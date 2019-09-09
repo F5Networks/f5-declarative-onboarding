@@ -47,8 +47,66 @@ describe('networkHandler', () => {
             },
             delete() {
                 return Promise.resolve();
+            },
+            modify(path, data) {
+                if (!dataSent) {
+                    dataSent = {};
+                }
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
+                return Promise.resolve();
             }
         };
+    });
+
+    describe('Trunk', () => {
+        it('should handle fully specified Trunk', () => {
+            const declaration = {
+                Common: {
+                    Trunk: {
+                        myTrunk: {
+                            name: 'trunk1',
+                            distributionHash: 'dst-mac',
+                            interfaces: [
+                                '1.1',
+                                '1.2'
+                            ],
+                            lacpEnabled: true,
+                            lacpMode: 'active',
+                            lacpTimeout: 'long',
+                            linkSelectPolicy: 'auto',
+                            qinqEthertype: '0xAF09',
+                            spanningTreeEnabled: true
+                        }
+                    }
+                }
+            };
+
+            return new Promise((resolve, reject) => {
+                const networkHandler = new NetworkHandler(declaration, bigIpMock);
+                networkHandler.process()
+                    .then(() => {
+                        const trunkData = dataSent[PATHS.Trunk];
+                        assert.strictEqual(trunkData.length, 1);
+                        assert.strictEqual(trunkData[0].name, 'trunk1');
+                        assert.strictEqual(trunkData[0].distributionHash, 'dst-mac');
+                        assert.strictEqual(trunkData[0].interfaces[0], '1.1');
+                        assert.strictEqual(trunkData[0].interfaces[1], '1.2');
+                        assert.strictEqual(trunkData[0].lacp, 'enabled');
+                        assert.strictEqual(trunkData[0].lacpMode, 'active');
+                        assert.strictEqual(trunkData[0].lacpTimeout, 'long');
+                        assert.strictEqual(trunkData[0].linkSelectPolicy, 'auto');
+                        assert.strictEqual(trunkData[0].qinqEthertype, '0xAF09');
+                        assert.strictEqual(trunkData[0].stp, 'enabled');
+                        resolve();
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
     });
 
     describe('VLAN', () => {
@@ -69,7 +127,8 @@ describe('networkHandler', () => {
                                     name: '1.2',
                                     tagged: false
                                 }
-                            ]
+                            ],
+                            cmpHash: 'dst-ip'
                         },
                         vlan2: {
                             name: 'vlan2',
@@ -80,7 +139,8 @@ describe('networkHandler', () => {
                                     name: '1.0',
                                     tagged: true
                                 }
-                            ]
+                            ],
+                            cmpHash: 'src-ip'
                         }
                     }
                 }
@@ -100,10 +160,12 @@ describe('networkHandler', () => {
                         assert.strictEqual(vlanData[0].interfaces[1].name, '1.2');
                         assert.strictEqual(vlanData[0].interfaces[1].tagged, false);
                         assert.strictEqual(vlanData[0].partition, 'Common');
+                        assert.strictEqual(vlanData[0].cmpHash, declaration.Common.VLAN.vlan1.cmpHash);
                         assert.strictEqual(vlanData[1].name, declaration.Common.VLAN.vlan2.name);
                         assert.strictEqual(vlanData[1].tag, declaration.Common.VLAN.vlan2.tag);
                         assert.strictEqual(vlanData[1].mtu, declaration.Common.VLAN.vlan2.mtu);
                         assert.strictEqual(vlanData[1].partition, 'Common');
+                        assert.strictEqual(vlanData[1].cmpHash, declaration.Common.VLAN.vlan2.cmpHash);
                         resolve();
                     })
                     .catch((err) => {
@@ -583,13 +645,13 @@ describe('networkHandler', () => {
                         rd1: {
                             name: 'rd1',
                             id: 123,
-                            bandwidthControllerPolicy: 'bandPolicy',
+                            bandwidthControllerPolicy: 'bandwidthControllerPolicy',
                             connectionLimit: 1000000,
-                            flowEvictionPolicy: 'default-eviction-policy',
-                            ipIntelligencePolicy: 'ipIntelligence',
-                            enforcedFirewallPolicy: 'fwPolicy',
-                            stagedFirewallPolicy: 'fwPolicy',
-                            securityNatPolicy: 'securePolicy',
+                            flowEvictionPolicy: 'flowEvictionPolicy',
+                            ipIntelligencePolicy: 'ipIntelligencePolicy',
+                            enforcedFirewallPolicy: 'enforcedFirewallPolicy',
+                            stagedFirewallPolicy: 'stagedFirewallPolicy',
+                            securityNatPolicy: 'securityNatPolicy',
                             servicePolicy: 'servicePolicy',
                             strict: false,
                             routingProtocols: [
@@ -613,33 +675,48 @@ describe('networkHandler', () => {
             return networkHandler.process()
                 .then(() => {
                     const routeDomainData = dataSent[PATHS.RouteDomain];
-                    assert.strictEqual(routeDomainData[0].name, declaration.Common.RouteDomain.rd1.name);
-                    assert.strictEqual(routeDomainData[0].id, declaration.Common.RouteDomain.rd1.id);
+                    assert.strictEqual(routeDomainData[0].name, 'rd1');
+                    assert.strictEqual(routeDomainData[0].id, 123);
                     assert.strictEqual(routeDomainData[0].partition, 'Common');
-                    assert.strictEqual(routeDomainData[0].bwcPolicy,
-                        declaration.Common.RouteDomain.rd1.bandwidthControllerPolicy);
-                    assert.strictEqual(routeDomainData[0].flowEvictionPolicy,
-                        declaration.Common.RouteDomain.rd1.flowEvictionPolicy);
-                    assert.strictEqual(routeDomainData[0].fwEnforcedPolicy,
-                        declaration.Common.RouteDomain.rd1.enforcedFirewallPolicy);
-                    assert.strictEqual(routeDomainData[0].fwStagedPolicy,
-                        declaration.Common.RouteDomain.rd1.fwStagedPolicy);
-                    assert.strictEqual(routeDomainData[0].ipIntelligencePolicy,
-                        declaration.Common.RouteDomain.rd1.ipIntelligencePolicy);
-                    assert.strictEqual(routeDomainData[0].securityNatPolicy,
-                        declaration.Common.RouteDomain.rd1.securityNatPolicy);
-                    assert.strictEqual(routeDomainData[0].servicePolicy,
-                        declaration.Common.RouteDomain.rd1.servicePolicy);
+                    assert.strictEqual(routeDomainData[0].bwcPolicy, 'bandwidthControllerPolicy');
+                    assert.strictEqual(routeDomainData[0].flowEvictionPolicy, 'flowEvictionPolicy');
+                    assert.strictEqual(routeDomainData[0].fwEnforcedPolicy, 'enforcedFirewallPolicy');
+                    assert.strictEqual(routeDomainData[0].fwStagedPolicy, 'stagedFirewallPolicy');
+                    assert.strictEqual(routeDomainData[0].ipIntelligencePolicy, 'ipIntelligencePolicy');
+                    assert.strictEqual(routeDomainData[0].securityNatPolicy, 'securityNatPolicy');
+                    assert.strictEqual(routeDomainData[0].servicePolicy, 'servicePolicy');
                     assert.strictEqual(routeDomainData[0].strict, 'disabled');
-                    assert.strictEqual(routeDomainData[0].routingProtocol,
-                        declaration.Common.RouteDomain.rd1.routingProtocols);
-                    assert.strictEqual(routeDomainData[0].vlans, declaration.Common.RouteDomain.rd1.vlans);
-                    assert.strictEqual(routeDomainData[0].connectionLimit,
-                        declaration.Common.RouteDomain.rd1.connectionLimit);
-                    assert.strictEqual(routeDomainData[1].name, declaration.Common.RouteDomain.rd2.name);
-                    assert.strictEqual(routeDomainData[1].id, declaration.Common.RouteDomain.rd2.id);
+                    assert.deepStrictEqual(routeDomainData[0].routingProtocol, ['RIP']);
+                    assert.deepStrictEqual(routeDomainData[0].vlans, ['vlan1', 'vlan2']);
+                    assert.strictEqual(routeDomainData[0].connectionLimit, 1000000);
+                    assert.strictEqual(routeDomainData[1].name, 'rd2');
+                    assert.strictEqual(routeDomainData[1].id, 1234);
                     assert.strictEqual(routeDomainData[1].partition, 'Common');
                     assert.strictEqual(routeDomainData[1].strict, 'enabled');
+                });
+        });
+    });
+
+    describe('DagGlobals', () => {
+        it('should handle fully specified DagGlobals', () => {
+            const declaration = {
+                Common: {
+                    DagGlobals: {
+                        ipv6PrefixLength: 120,
+                        icmpHash: 'ipicmp',
+                        roundRobinMode: 'local'
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const dagGlobalsData = dataSent[PATHS.DagGlobals];
+                    assert.strictEqual(dagGlobalsData[0].dagIpv6PrefixLen,
+                        declaration.Common.DagGlobals.ipv6PrefixLength);
+                    assert.strictEqual(dagGlobalsData[0].icmpHash, declaration.Common.DagGlobals.icmpHash);
+                    assert.strictEqual(dagGlobalsData[0].roundRobinMode, declaration.Common.DagGlobals.roundRobinMode);
                 });
         });
     });

@@ -78,7 +78,8 @@
                     "name": "1.2",
                     "tagged": true
                 }
-            ]
+            ],
+            "cmpHash": "dst-ip"
         },
         "internal-self": {
             "class": "SelfIp",
@@ -96,7 +97,8 @@
                     "name": "1.1",
                     "tagged": true
                 }
-            ]
+            ],
+            "cmpHash": "src-ip"
         },
         "external-self": {
             "class": "SelfIp",
@@ -114,9 +116,8 @@
         "managementRoute": {
             "class": "ManagementRoute",
             "gw": "1.2.3.4",
-            "network": "4.3.2.1",
-            "mtu": 1000,
-            "type": "interface"
+            "network": "default",
+            "mtu": 1500
         },
         "myRouteDomain": {
             "class": "RouteDomain",

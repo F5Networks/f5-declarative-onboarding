@@ -24,6 +24,7 @@ const systemSchema = require('../schema/system.schema.json');
 const networkSchema = require('../schema/network.schema.json');
 const dscSchema = require('../schema/dsc.schema.json');
 const analyticsSchema = require('../schema/analytics.schema.json');
+const authSchema = require('../schema/auth.schema.json');
 
 const customFormats = require('../schema/formats.js');
 
@@ -47,6 +48,7 @@ class AjvValidator {
             .addSchema(networkSchema)
             .addSchema(dscSchema)
             .addSchema(analyticsSchema)
+            .addSchema(authSchema)
             .addSchema(baseSchema)
             .compile(remoteSchema);
     }

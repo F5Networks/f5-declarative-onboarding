@@ -30,20 +30,6 @@ describe('configManager', () => {
     let state;
     let doState;
 
-    before(() => {
-        bigIpMock = {
-            deviceInfo() {
-                return Promise.resolve({ hostname });
-            },
-            list(path) {
-                // The path name here does not have a domain, but does include
-                // a query. listResponses are set up with just the pathname part.
-                const pathname = URL.parse(path, 'https://foo').pathname;
-                return Promise.resolve(listResponses[pathname] || {});
-            }
-        };
-    });
-
     beforeEach(() => {
         listResponses = {
             '/tm/cm/device': [
@@ -58,6 +44,17 @@ describe('configManager', () => {
         doState = {
             getOriginalConfigByConfigId() {},
             setOriginalConfigByConfigId() {}
+        };
+        bigIpMock = {
+            deviceInfo() {
+                return Promise.resolve({ hostname });
+            },
+            list(path) {
+                // The path name here does not have a domain, but does include
+                // a query. listResponses are set up with just the pathname part.
+                const pathname = URL.parse(path, 'https://foo').pathname;
+                return Promise.resolve(listResponses[pathname] || {});
+            }
         };
     });
 
@@ -108,6 +105,32 @@ describe('configManager', () => {
         configManager.get({}, state, doState)
             .then(() => {
                 assert.deepEqual(state.currentConfig.Common.NTP, listResponses['/tm/sys/ntp']);
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
+
+    it('should strip /Common/ from names', () => new Promise((resolve, reject) => {
+        const configItems = [
+            {
+                path: '/tm/sys/namedProperty',
+                schemaClass: 'RemoveCommon',
+                properties: [
+                    { id: 'name' }
+                ]
+            }
+        ];
+
+        listResponses['/tm/sys/namedProperty'] = {
+            name: '/Common/someName'
+        };
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        configManager.get({}, state, doState)
+            .then(() => {
+                assert.deepEqual(state.currentConfig.Common.RemoveCommon.name, 'someName');
                 resolve();
             })
             .catch((err) => {
@@ -298,6 +321,59 @@ describe('configManager', () => {
             });
     }));
 
+    it('should handle newId property mapping', () => new Promise((resolve, reject) => {
+        const configItems = [
+            {
+                path: '/tm/sys/management-route',
+                schemaClass: 'ManagementRoute',
+                properties: [
+                    { id: 'gateway', newId: 'gw' },
+                    { id: 'myProp1', newId: 'myObject.prop1' },
+                    { id: 'myProp2', newId: 'myObject.prop2.prop' },
+                    { id: 'network' },
+                    { id: 'mtu' },
+                    { id: 'type' }
+                ]
+            }
+        ];
+
+        listResponses['/tm/sys/management-route'] = [
+            {
+                name: 'default',
+                gateway: '8.8.8.8',
+                network: 'default',
+                mtu: 0,
+                myProp1: 'my property 1',
+                myProp2: 'my property 2'
+            }
+        ];
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        configManager.get({}, state, doState)
+            .then(() => {
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.gw,
+                    listResponses['/tm/sys/management-route'][0].gateway
+                );
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.gateway,
+                    undefined
+                );
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.myObject.prop1,
+                    listResponses['/tm/sys/management-route'][0].myProp1
+                );
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.myObject.prop2.prop,
+                    listResponses['/tm/sys/management-route'][0].myProp2
+                );
+                resolve();
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    }));
+
     describe('FailoverUnicast oddities', () => {
         // iControl omits the property altogether in some cases
         // Adding this defaultWhenOmitted attr makes the manager recognize that a default value is actually there
@@ -451,6 +527,212 @@ describe('configManager', () => {
                     reject(err);
                 });
         }));
+    });
+
+    describe('Authentication oddities', () => {
+        it('should merge an auth subclass into a parent auth class', () => new Promise((resolve, reject) => {
+            const configItems = [
+                {
+                    path: '/tm/auth/source',
+                    schemaClass: 'Authentication',
+                    properties: [
+                        { id: 'type' },
+                        { id: 'fallback' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/auth/authsub',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['authSub']
+                    },
+                    properties: [
+                        { id: 'subProp1' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/auth/source'] = { type: 'authsub', fallback: true };
+            listResponses['/tm/auth/authsub'] = { subProp1: 'subPropVal1' };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.Authentication,
+                        {
+                            enabledSourceType: 'authsub',
+                            fallback: true,
+                            authSub: {
+                                subProp1: 'subPropVal1'
+                            }
+                        }
+                    );
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
+
+        it('should merge multiple auth subclasses into a parent auth class', () => new Promise((resolve, reject) => {
+            const configItems = [
+                {
+                    path: '/tm/auth/source',
+                    schemaClass: 'Authentication',
+                    properties: [
+                        { id: 'type' },
+                        { id: 'fallback' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/auth/authsub1',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['authSub1']
+                    },
+                    properties: [
+                        { id: 'subProp1' }
+                    ]
+                },
+                {
+                    path: '/tm/auth/authsub2',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['authSub2']
+                    },
+                    properties: [
+                        { id: 'subProp2' }
+                    ],
+                    nameless: true
+                }
+            ];
+            listResponses['/tm/auth/source'] = { type: 'authsub', fallback: true };
+            listResponses['/tm/auth/authsub1'] = { subProp1: 'subPropVal1' };
+            listResponses['/tm/auth/authsub2'] = { subProp2: true };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.Authentication,
+                        {
+                            enabledSourceType: 'authsub',
+                            fallback: true,
+                            authSub1: {
+                                subProp1: 'subPropVal1'
+                            },
+                            authSub2: {
+                                subProp2: true
+                            }
+                        }
+                    );
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
+
+        it('should omit a subclass prop when skipWhenOmitted is set to true', () => new Promise((resolve, reject) => {
+            const configItems = [
+                {
+                    path: '/tm/auth/source',
+                    schemaClass: 'Authentication',
+                    properties: [
+                        { id: 'type' },
+                        { id: 'fallback' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/auth/authsub',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['authSub'],
+                        skipWhenOmitted: true
+                    },
+                    properties: [
+                        { id: 'requiredField' }
+                    ],
+                    nameless: true
+                }
+            ];
+
+            listResponses['/tm/auth/source'] = { type: 'authsub', fallback: true };
+            listResponses['/tm/auth/authsub'] = { name: 'namelessClass without the required field' };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.Authentication,
+                        {
+                            enabledSourceType: 'authsub',
+                            fallback: true
+                        }
+                    );
+                    resolve();
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }));
+    });
+
+    describe('SyslogRemoteServer oddities', () => {
+        it('should merge remoteServers into the parent object', () => {
+            const configItems = [
+                {
+                    path: '/tm/sys/syslog',
+                    schemaClass: 'SyslogRemoteServer',
+                    properties: [
+                        { id: 'remoteServers' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/sys/syslog'] = {
+                remoteServers: [
+                    {
+                        name: '/Common/DRDCSyslog',
+                        host: 'dr-ip',
+                        localIp: '172.28.68.42',
+                        remotePort: 519
+                    },
+                    {
+                        name: '/Common/LocalDCSyslog',
+                        host: 'local-ip',
+                        localIp: '172.28.68.42',
+                        remotePort: 30
+                    }
+                ]
+            };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.SyslogRemoteServer,
+                        {
+                            DRDCSyslog: {
+                                name: 'DRDCSyslog',
+                                host: 'dr-ip',
+                                localIp: '172.28.68.42',
+                                remotePort: 519
+                            },
+                            LocalDCSyslog: {
+                                name: 'LocalDCSyslog',
+                                host: 'local-ip',
+                                localIp: '172.28.68.42',
+                                remotePort: 30
+                            }
+                        }
+                    );
+                });
+        });
     });
 
     it('should set original config if missing', () => new Promise((resolve, reject) => {
@@ -642,22 +924,113 @@ describe('configManager', () => {
             }
         ];
 
-        const bigip = {
-            deviceInfo() {
-                return Promise.resolve({ hostname });
-            },
-            list(path) {
-                const pathname = URL.parse(path, 'https://foo').pathname;
-                assert(
-                    pathname !== '/tm/analytics/global-settings',
-                    'Analytics was checked but not provisioned'
-                );
-                return Promise.resolve(listResponses[pathname] || {});
+        let skipped = true;
+
+        bigIpMock.list = (path) => {
+            const pathname = URL.parse(path, 'https://foo').pathname;
+            if (pathname === '/tm/analytics/global-settings') {
+                skipped = false;
             }
+            return Promise.resolve(listResponses[pathname] || {});
         };
-        const configManager = new ConfigManager(configItems, bigip);
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
         return configManager.get({}, state, doState)
             .then(() => {
+                assert.ok(skipped, 'Analytics was checked but AVR not provisioned');
+            });
+    });
+
+    it('should not skip provisioned modules', () => {
+        const configItems = [
+            {
+                path: '/tm/analytics/global-settings',
+                requiredModule: 'avr',
+                schemaClass: 'Analytics',
+                properties: []
+            }
+        ];
+        listResponses['/tm/sys/provision'] = [
+            { name: 'avr', level: 'nominal' }
+        ];
+
+        let notSkipped = false;
+
+        bigIpMock.list = (path) => {
+            const pathname = URL.parse(path, 'https://foo').pathname;
+            if (pathname === '/tm/analytics/global-settings') {
+                notSkipped = true;
+            }
+            return Promise.resolve(listResponses[pathname] || {});
+        };
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.ok(notSkipped, 'Should check Analytics when provisioned');
+            });
+    });
+
+    it('should keep the right order for response items when configItem was skipped', () => {
+        const configItems = [
+            {
+                path: '/tm/sys/ntp',
+                schemaClass: 'NTP',
+                properties: [
+                    { id: 'servers' },
+                    { id: 'timezone' }
+                ]
+            },
+            {
+                path: '/tm/analytics/global-settings',
+                requiredModule: 'avr',
+                schemaClass: 'Analytics',
+                properties: []
+            },
+            {
+                path: '/tm/sys/dns',
+                schemaClass: 'DNS',
+                properties: [
+                    { id: 'nameServers' },
+                    { id: 'search' }
+                ]
+            }
+        ];
+        listResponses['/tm/sys/ntp'] = {
+            servers: ['server1', 'server2'],
+            timezone: 'utc'
+        };
+        listResponses['/tm/sys/dns'] = {
+            nameServers: ['172.27.1.1'],
+            search: ['localhost']
+        };
+
+        const expectedConfig = {
+            NTP: {
+                servers: [
+                    'server1',
+                    'server2'
+                ],
+                timezone: 'utc'
+            },
+            DNS: {
+                nameServers: [
+                    '172.27.1.1'
+                ],
+                search: [
+                    'localhost'
+                ]
+            }
+        };
+
+        bigIpMock.list = (path) => {
+            const pathname = URL.parse(path, 'https://foo').pathname;
+            return Promise.resolve(listResponses[pathname] || {});
+        };
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.deepStrictEqual(state.currentConfig.Common, expectedConfig, 'Should match expected config');
             });
     });
 });

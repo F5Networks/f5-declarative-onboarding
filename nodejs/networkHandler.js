@@ -53,8 +53,12 @@ class NetworkHandler {
      */
     process() {
         logger.fine('Proessing network declaration.');
-        logger.fine('Checking VLANs.');
-        return handleVlan.call(this)
+        logger.fine('Checking Trunks.');
+        return handleTrunk.call(this)
+            .then(() => {
+                logger.fine('Checking VLANs.');
+                return handleVlan.call(this);
+            })
             .then(() => {
                 logger.fine('Checking RouteDomains.');
                 return handleRouteDomain.call(this);
@@ -66,6 +70,10 @@ class NetworkHandler {
             .then(() => {
                 logger.fine('Checking Routes.');
                 return handleRoute.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking DagGlobals');
+                return handleDagGlobals.call(this);
             })
             .then(() => {
                 logger.info('Done processing network declartion.');
@@ -105,7 +113,8 @@ function handleVlan() {
                 const vlanBody = {
                     interfaces,
                     name: vlan.name,
-                    partition: tenant
+                    partition: tenant,
+                    cmpHash: vlan.cmpHash
                 };
 
                 if (vlan.mtu) {
@@ -275,6 +284,34 @@ function handleRoute() {
     });
 }
 
+function handleTrunk() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'Trunk', (tenant, trunk) => {
+        if (trunk && trunk.name) {
+            const trunkBody = {
+                name: trunk.name,
+                distributionHash: trunk.distributionHash,
+                interfaces: trunk.interfaces,
+                lacp: trunk.lacpEnabled ? 'enabled' : 'disabled',
+                lacpMode: trunk.lacpMode,
+                lacpTimeout: trunk.lacpTimeout,
+                linkSelectPolicy: trunk.linkSelectPolicy,
+                qinqEthertype: trunk.qinqEthertype,
+                stp: trunk.spanningTreeEnabled ? 'enabled' : 'disabled'
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.Trunk, trunkBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Trunks: ${err.message}`);
+            throw err;
+        });
+}
 function handleRouteDomain() {
     const promises = [];
     doUtil.forEach(this.declaration, 'RouteDomain', (tenant, routeDomain) => {
@@ -287,7 +324,7 @@ function handleRouteDomain() {
                 bwcPolicy: routeDomain.bandwidthControllerPolicy,
                 flowEvictionPolicy: routeDomain.flowEvictionPolicy,
                 fwEnforcedPolicy: routeDomain.enforcedFirewallPolicy,
-                fwStagedPolicy: routeDomain.stageFirewallPolicy,
+                fwStagedPolicy: routeDomain.stagedFirewallPolicy,
                 ipIntelligencePolicy: routeDomain.ipIntelligencePolicy,
                 securityNatPolicy: routeDomain.securityNatPolicy,
                 servicePolicy: routeDomain.servicePolicy,
@@ -307,6 +344,18 @@ function handleRouteDomain() {
             logger.severe(`Error creating RouteDomains: ${err.message}`);
             throw err;
         });
+}
+
+function handleDagGlobals() {
+    if (this.declaration.Common && this.declaration.Common.DagGlobals) {
+        const body = {
+            dagIpv6PrefixLen: this.declaration.Common.DagGlobals.ipv6PrefixLength,
+            icmpHash: this.declaration.Common.DagGlobals.icmpHash,
+            roundRobinMode: this.declaration.Common.DagGlobals.roundRobinMode
+        };
+        this.bigIp.modify(PATHS.DagGlobals, body);
+    }
+    return Promise.resolve();
 }
 
 /**
