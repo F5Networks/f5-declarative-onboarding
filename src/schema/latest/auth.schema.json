@@ -152,7 +152,7 @@
                     "default": false
                 },
                 "lineOrder": {
-                    "description": "Specifies the number of the first populated line in the file, /config/bigip/auth/remoterole. The LDAP, Active Directory, RADIUS, and TACACS+ servers read this file line by line. The order of the information is important; therefore, F5 Networks recommends that you set the first line at 1000. This allows you, in the future, to insert lines before the first line. This option is required.",
+                    "description": "The BIG-IP only allows one role per user for each partition/tenant.  Because some remote servers allow multiple user roles, the BIG-IP uses the lineOrder parameter to choose one of the conflicting roles for the user at login time. In these cases, the system chooses the role with the lowest line-order number.  See line order in the BIG-IP documentation for more information and examples.",
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 4294967295
