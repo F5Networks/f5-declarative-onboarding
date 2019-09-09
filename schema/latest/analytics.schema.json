@@ -24,14 +24,23 @@
                 "maximum": 300,
                 "default": 300
             },
+            "sourceId": {
+                "description": "Unique value to signify the source of data",
+                "type": "string"
+            },
+            "tenantId": {
+                "description": "Unique id for the tenant using the analytics backend system",
+                "type": "string"
+            },
             "offboxProtocol": {
                 "description": "Protocol for communication with offbox analytics application",
                 "type": "string",
-                "enum": ["ecm-tm", "https", "tcp"]
+                "enum": ["https", "tcp"]
             },
             "offboxTcpAddresses": {
-                "description": "Server IP addresses used only if the 'tcp' protocol is chosen",
+                "description": "Server IP addresses used only if the 'tcp/https' protocol is chosen",
                 "type": "array",
+                "uniqueItems": true,
                 "items": {
                     "type": "string",
                     "anyOf": [
@@ -68,12 +77,57 @@
             {
                 "if": {
                     "properties": {
-                        "offboxProtocol": { "enum": ["tcp"] }
+                        "offboxTcpPort": {
+                            "minimum": 1
+                        }
+                    },
+                    "required": ["offboxTcpPort"]
+                },
+                "then": {
+                    "required": ["offboxTcpAddresses", "offboxProtocol"]
+                }
+            },
+            {
+                "if": {
+                    "properties": {
+                        "offboxTcpAddresses": {
+                            "minItems": 1
+                        }
+                    },
+                    "required": ["offboxTcpAddresses"]
+                },
+                "then": {
+                    "required": ["offboxTcpPort", "offboxProtocol"]
+                }
+            },
+            {
+                "if": {
+                    "properties": {
+                        "offboxProtocol": { "enum": ["tcp", "https"] }
                     },
                     "required": ["offboxProtocol"]
                 },
                 "then": {
+                    "properties": {
+                        "offboxTcpPort": {
+                            "minimum": 1
+                        },
+                        "offboxTcpAddresses": {
+                            "minItems": 1
+                        }
+                    },
                     "required": ["offboxTcpAddresses", "offboxTcpPort"]
+                }
+            },
+            {
+                "if": {
+                    "properties": {
+                        "offboxProtocol": { "enum": ["https"] }
+                    },
+                    "required": ["offboxProtocol"]
+                },
+                "then": {
+                    "required": ["sourceId"]
                 }
             }
         ],

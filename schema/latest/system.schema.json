@@ -142,6 +142,269 @@
             }
         },
         {
+            "if": { "properties": { "class": { "const": "SnmpAgent" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains basic SNMP agent configuration.",
+                        "type": "string",
+                        "const": "SnmpAgent"
+                    },
+                    "contact": {
+                        "description": "The name of the person who administers the SNMP service for this system.",
+                        "type": "string"
+                    },
+                    "location": {
+                        "description": "The description of this system's physical location.",
+                        "type": "string"
+                    },
+                    "allowList": {
+                        "description": "Allowed client IP addresses.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "f5ip"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SnmpCommunity" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP v1 or v2c community configuration.",
+                        "type": "string",
+                        "const": "SnmpCommunity"
+                    },
+                    "ipv6": {
+                        "description": "Specifies whether the record applies to IPv6 addresses.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "source": {
+                        "description": "Specifies the source address for access to the MIB.",
+                        "type": "string"
+                    },
+                    "oid": {
+                        "description": "Specifies the current object identifier (OID) for the record.",
+                        "type": "string"
+                    },
+                    "access": {
+                        "description": "Whether the user's access level to the MIB is readOnly.",
+                        "type": "string",
+                        "enum": [ "ro", "rw" ],
+                        "default": "ro"
+                    },
+                    "name": {
+                        "description": "Overrides using the object name as the community name. Use this if you want special characters in the community name.",
+                        "type": "string"
+                    }
+                },
+                "if": {
+                    "required": ["oid"]
+                },
+                "then": {
+                    "required": ["source"]
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SnmpUser" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP v3 user configuration.",
+                        "type": "string",
+                        "const": "SnmpUser"
+                    },
+                    "authentication": {
+                        "description": "Specifies the user's authentication method and password.",
+                        "type": "object",
+                        "required": [ "protocol", "password" ],
+                        "properties": {
+                            "protocol": {
+                                "description": "Authentication protocol.",
+                                "type": "string",
+                                "enum": ["sha", "md5"],
+                                "default": "sha"
+                            },
+                            "password": {
+                                "description": "Specifies the password for the user.",
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "privacy": {
+                        "description": "Specifies the privacy protcol to use to deliver authentication information for this user.",
+                        "type": "object",
+                        "required": [ "protocol", "password" ],
+                        "properties": {
+                            "protocol": {
+                                "description": "Specifies the encryption protocol.",
+                                "type": "string",
+                                "enum": ["aes", "des"],
+                                "default": "aes"
+                            },
+                            "password": {
+                                "description": "Specifies the password for the user.",
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "oid": {
+                        "description": "Specifies the current object identifier (OID) for the record.",
+                        "type": "string",
+                        "default": ".1"
+                    },
+                    "access": {
+                        "description": "Whether the user's access level to the MIB is readOnly.",
+                        "type": "string",
+                        "enum": ["ro", "rw"],
+                        "default": "ro"
+                    },
+                    "name": {
+                        "description": "Overrides using the object name as the username. Use this if you want special characters in the username.",
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false,
+                "if": {
+                    "required": [ "privacy" ]
+                },
+                "then": {
+                    "required": [ "authentication" ]
+                }
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SnmpTrapEvents" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP trap configuration.",
+                        "type": "string",
+                        "const": "SnmpTrapEvents"
+                    },
+                    "agentStartStop": {
+                        "description": "Indicates whether to send a trap when the SNMP agent starts/stops.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "authentication": {
+                        "description": "Indicates whether to send authentication warning traps.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "device": {
+                        "description": "Indicates whether to send device warning traps.",
+                        "type": "boolean",
+                        "default": true
+                    }
+                }
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SnmpTrapDestination" } } },
+            "then": {
+                "required": ["class", "version", "destination", "port", "network"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP trap configuration.",
+                        "type": "string",
+                        "const": "SnmpTrapDestination"
+                    },
+                    "version": {
+                        "description": "Specifies to which Simple Network Management Protocol (SNMP) version the trap destination applies.",
+                        "type": "string",
+                        "enum": ["1", "2c", "3"]
+                    },
+                    "destination": {
+                        "description": "Specifies the address for the trap destination.",
+                        "type": "string",
+                        "oneOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    },
+                    "port": {
+                        "description": "Specifies the port for the trap destination.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "network": {
+                        "description": "Specifies the trap network. The system sends the SNMP trap out the specified network. 'management' specifies that the system sends the trap out of the management IP address. 'other' specifies that the system sends the trap out of the interface based on the routing tables.",
+                        "type": "string",
+                        "enum": ["management", "other"]
+                    }
+                },
+                "if": { "properties": { "version": { "const" : "3" } } },
+                "then": {
+                    "required": ["securityName", "authentication"],
+                    "properties": {
+                        "securityName": {
+                            "description": "Specifies the user name the system uses to handle SNMP v3 traps.",
+                            "type": "string"
+                        },
+                        "authentication": {
+                            "description": "Specifies the user's authentication method and password.",
+                            "type": "object",
+                            "required": [ "protocol", "password" ],
+                            "properties": {
+                                "protocol": {
+                                    "description": "Authentication protocol.",
+                                    "type": "string",
+                                    "enum": ["sha", "md5"]
+                                },
+                                "password": {
+                                    "description": "Specifies the password for the user.",
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "privacy": {
+                            "description": "Specifies the privacy protcol to use to deliver authentication information for this user.",
+                            "type": "object",
+                            "properties": {
+                                "protocol": {
+                                    "description": "Specifies the encryption protocol.",
+                                    "type": "string",
+                                    "enum": ["aes", "des"]
+                                },
+                                "password": {
+                                    "description": "Specifies the password for the user.",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "engineId": {
+                            "description": "Specifies the unique identifier (snmpEngineID) of the remote SNMP protocol engine.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "else": {
+                    "required": ["community"],
+                    "properties": {
+                        "community": {
+                            "description": "Specifies the community name for the trap destination.",
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "if": { "properties": { "class": { "const": "User" } } },
             "then": {
                 "if": { "properties": { "userType": { "const": "root" } } },
@@ -292,6 +555,164 @@
                 },
                 "then": {
                     "required": ["gw"]
+                }
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "SyslogRemoteServer" } } },
+            "then": {
+                "required": ["class", "host"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Syslog Remote Server Information",
+                        "type": "string",
+                        "const": "SyslogRemoteServer"
+                    },
+                    "host": {
+                        "description": "Specifies the IP address of a remote server to which syslog sends messages.",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" },
+                            { "format": "hostname" }
+                        ]
+                    },
+                    "localIp": {
+                        "description": "Specifies the IP address of the interface syslog binds with in order to log messages to a remote host.",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    },
+                    "remotePort": {
+                        "description": "Specifies the port to which the syslog sends messages.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535,
+                        "default": 514
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": { "properties": { "class": { "const": "TrafficControl" } } },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates this property contains traffic control configuration",
+                        "type": "string",
+                        "const": "TrafficControl"
+                    },
+                    "acceptIpOptions": {
+                        "description": "Specifies whether the system accepts IPv4 packets with IP Options.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "acceptIpSourceRoute": {
+                        "description": "Specifies whether the system accepts IPv4 packets with IP source route options that are destined for TMM. To enable this option, you must also enable the acceptIpOptions option.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "allowIpSourceRoute": {
+                        "description": "Specifies whether the system allows IPv4 packets with IP source route options enabled to be routed through TMM. To enable this option, you must also enable the acceptIpOptions option.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "continueMatching": {
+                        "description": "Specifies whether the system matches against a less-specific virtual server when the more-specific one is disabled or rejects / drops the packets depending on the value of rejectUnmatched.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "maxIcmpRate": {
+                        "description": "Specifies the maximum rate per second at which the system issues ICMP errors.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2147483647,
+                        "default": 100
+                    },
+                    "maxPortFindLinear": {
+                        "description": "Specifies the maximum of ports to linearly search for outbound connections",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 61439,
+                        "default": 16
+                    },
+                    "maxPortFindRandom": {
+                        "description": "Specifies the maximum of ports to randomly search for outbound connections",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1024,
+                        "default": 16
+                    },
+                    "maxRejectRate": {
+                        "description": "Specifies the maximum rate per second at which the system issues reject packets (TCP RST or ICMP port unreach).",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 1000,
+                        "default": 250
+                    },
+                    "maxRejectRateTimeout": {
+                        "description": "Specifies the time in seconds which the system ignores ICMP port unreach and TCP RST ratelimits on becoming active after a failover.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 300,
+                        "default": 30
+                    },
+                    "minPathMtu": {
+                        "description": "Specifies the minimum packet size that can traverse the path without suffering fragmentation",
+                        "minimum": 68,
+                        "maximum": 1500,
+                        "default": 296
+                    },
+                    "pathMtuDiscovery": {
+                        "description": "Specifies that the system discovers the MTU that it can send over a path without fragmenting TCP packets",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "portFindThresholdWarning": {
+                        "description": "Specifies if the ephemeral port-exhaustion threshold warning is to be monitored.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "portFindThresholdTrigger": {
+                        "description": "Specifies the threshold warning's trigger which is the value of random port attempts when attempting to find an unused outbound port for a connection.",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12,
+                        "default": 8
+                    },
+                    "portFindThresholdTimeout": {
+                        "description": "Specifies the threshold warning's timeout which is the time in seconds since the last trigger value was hit and will drop the tuple if not hit.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 300,
+                        "default": 30
+                    },
+                    "rejectUnmatched": {
+                        "description": "Specifies, when enabled, that the system returns a TCP RST or ICMP port unreach packet if no virtual servers on the system match the destination address of the incoming packet. When disabled, the system silently drops the unmatched packet.",
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false,
+                "dependencies": {
+                    "acceptIpSourceRoute": {
+                        "if": { "properties": { "acceptIpSourceRoute": { "const": true } } },
+                        "then": {
+                            "required": ["acceptIpOptions"],
+                            "properties": { "acceptIpOptions": { "const": true } }
+                        }
+                    },
+                    "allowIpSourceRoute": {
+                        "if": { "properties": { "allowIpSourceRoute": { "const": true } } },
+                        "then": {
+                            "required": ["acceptIpOptions"],
+                            "properties": { "acceptIpOptions": { "const": true } }
+                        }
+                    }
                 }
             }
         }

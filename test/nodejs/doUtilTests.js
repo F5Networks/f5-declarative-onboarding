@@ -463,7 +463,25 @@ describe('doUtil', () => {
 
             return doUtil.checkDnsResolution('test')
                 .catch((error) => {
-                    assert.notEqual(error.message, errorMessage);
+                    assert.notStrictEqual(error.message.indexOf('Unable to resolve'), -1);
+                });
+        });
+
+        it('should retry if an error occurs', () => {
+            dns.lookup.restore();
+            sinon.stub(dns, 'lookup').callsFake(() => {
+                // Set dns lookup to work the next time it is called
+                dns.lookup.restore();
+                sinon.stub(dns, 'lookup').callsArg(1);
+                const errorMessage = 'Hello world!';
+                throw new Error(errorMessage);
+            });
+
+            sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value({ maxRetries: 1, retryIntervalMs: 10 });
+
+            return doUtil.checkDnsResolution('test')
+                .catch((error) => {
+                    assert.ok(false, error.message);
                 });
         });
     });

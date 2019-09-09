@@ -275,6 +275,11 @@ describe('restWorker', () => {
                     }
                 };
                 sinon.stub(doUtilMock, 'getBigIp').resolves(bigIpMock);
+                doUtilMock.getCurrentPlatform.restore();
+                sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
+                doUtilMock.rebootRequired.restore();
+                sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
+
                 cryptoUtilMock.decryptId = (id) => {
                     let password;
                     if (id === 'doBigIp') {
@@ -663,7 +668,6 @@ describe('restWorker', () => {
                 reboot() {}
             };
 
-            doUtilMock.getBigIp.restore();
             sinon.stub(doUtilMock, 'getBigIp').callsFake((logger, bigIpOptions) => {
                 bigIpOptionsCalled = bigIpOptions;
                 return Promise.resolve(bigIpMock);
@@ -961,6 +965,7 @@ describe('restWorker', () => {
             let opstionsSaved = null;
 
             beforeEach(() => {
+                doUtilMock.getCurrentPlatform.restore();
                 sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IQ');
             });
 
@@ -1012,6 +1017,7 @@ describe('restWorker', () => {
                 realSetTimeout = setTimeout;
                 bodySet = null;
 
+                doUtilMock.getCurrentPlatform.restore();
                 sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IQ');
 
                 restWorker.restOperationFactory = {
@@ -1270,6 +1276,9 @@ describe('restWorker', () => {
                             resolve();
                         }
                     };
+
+                    doUtilMock.rebootRequired.restore();
+                    sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
 
                     try {
                         restWorker.onPost(restOperationMock);

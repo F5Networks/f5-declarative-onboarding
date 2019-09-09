@@ -21,7 +21,6 @@ const dns = require('dns');
 
 const sinon = require('sinon');
 
-const cloudUtil = require('../../node_modules/@f5devcentral/f5-cloud-libs').util;
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 
 let SystemHandler;
@@ -48,8 +47,10 @@ describe('systemHandler', () => {
     let doUtilMock;
     let doUtilStub;
     let activeCalled;
+    let cloudUtil;
 
     before(() => {
+        cloudUtil = require('../../node_modules/@f5devcentral/f5-cloud-libs').util;
         doUtilMock = require('../../nodejs/doUtil');
         SystemHandler = require('../../nodejs/systemHandler');
     });
