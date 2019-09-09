@@ -232,7 +232,7 @@ In the following declaration snippet we show only the SyslogRemoteServer class. 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The VLAN property **cmp-hash** is available in in DO v1.7.0 and later. 
+   The VLAN property **cmp-hash** is available in DO v1.7.0 and later. 
 
 Starting in 1.7.0, you have the option of using the **cmp-hash** property on a VLAN.  The CMP Hash setting allows all connections from a client system to use the same set of TMMs, improving system performance. For more information, see |cmpdocs| in the BIG-IP documentation.  You can also see |cmpref| in the Schema Reference for usage options.
 
@@ -296,6 +296,8 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/tmos-routing-administration-13-0-0/4.html#GUID-8D469425-EFAC-48D6-80F3-1EF6C2EE6196" target="_blank">Additional VLAN Configuration Options</a>
 
+.. |cmpref| raw:: html
 
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#vlan" target="_blank">VLAN Class</a>
 
 
