@@ -1,7 +1,7 @@
 {
     "schemaVersion": "1.7.0",
     "class": "Device",
-    "label": "Configuring SNMP",
+    "label": "Configuring traffic control",
     "async": true,
     "Common": {
         "class": "Tenant",

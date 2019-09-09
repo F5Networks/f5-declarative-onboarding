@@ -226,6 +226,27 @@ In the following declaration snippet we show only the SyslogRemoteServer class. 
 :ref:`Back to top<bigipexamples>`
 
 
+.. _cmphash:
+
+13: Using the CMP Hash property in a VLAN 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The VLAN property **cmp-hash** is available in in DO v1.7.0 and later. 
+
+Starting in 1.7.0, you have the option of using the **cmp-hash** property on a VLAN.  The CMP Hash setting allows all connections from a client system to use the same set of TMMs, improving system performance. For more information, see |cmpdocs| in the BIG-IP documentation.  You can also see |cmpref| in the Schema Reference for usage options.
+
+In the following declaration snippet we show only the VLAN class with cmp-hash using Source Address as the traffic disaggregation method.  You can use this class as a part of a larger Declarative Onboarding declaration.
+
+.. literalinclude:: ../examples/vlanCmpHash.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+
+
+
+
 .. |br| raw:: html
 
    <br />
@@ -270,5 +291,11 @@ In the following declaration snippet we show only the SyslogRemoteServer class. 
 .. |slref| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#syslogremoteserver" target="_blank">SyslogRemoteServer Class</a>
+
+.. |cmpdocs| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/tmos-routing-administration-13-0-0/4.html#GUID-8D469425-EFAC-48D6-80F3-1EF6C2EE6196" target="_blank">Additional VLAN Configuration Options</a>
+
+
 
 
