@@ -170,10 +170,28 @@ In the following declaration snippet we show only the classes related to authent
 
 :ref:`Back to top<bigipexamples>`
 
+.. _remoterole:
+
+10: Configuring Remote Roles for authentication
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure remote roles for authentication is available in DO v1.7.0 and later. 
+
+In this example, we show how to configure a remote role for authentication using the **RemoteAuthRole** class. See |loref| in the Schema reference for a description of each of the parameters for this class.
+
+**Important**: The BIG-IP only allows one role per user for each partition/tenant.  Because some remote servers allow multiple user roles, the BIG-IP uses the **lineOrder** parameter to choose one of the conflicting roles for the user at login time. In these cases, the system chooses the role with the lowest line-order number.  See |lineorder| in the BIG-IP documentation for more information and examples.
+
+In the following declaration snippet we show only the classes related to remote auth roles.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/remoteRoles.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
 
 .. _trafcontrol:
 
-10: Configuring Traffic Control properties
+11: Configuring Traffic Control properties
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
@@ -190,7 +208,7 @@ In the following declaration snippet we show only the classes related to Traffic
 
 .. _syslogdest:
 
-11: Configuring a System Log (syslog) Destination in declaration
+12: Configuring a System Log (syslog) Destination in declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
@@ -210,7 +228,7 @@ In the following declaration snippet we show only the SyslogRemoteServer class. 
 
 .. _cmphash:
 
-12: Using the CMP Hash property in a VLAN 
+13: Using the CMP Hash property in a VLAN 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 

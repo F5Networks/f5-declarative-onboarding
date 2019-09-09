@@ -5,7 +5,7 @@
     "Common": {
         "class": "Tenant",
         "TEAM1": {
-            "class": "RemoteRole",
+            "class": "RemoteAuthRole",
             "attribute": "memberOF=CN=Team-1,add-ldap-path",
             "console": "tmsh",
             "lineOrder": 925,
@@ -14,7 +14,7 @@
             "userPartition": "all"
         },
         "TEAM2": {
-            "class": "RemoteRole",
+            "class": "RemoteAuthRole",
             "attribute": "memberOF=CN=Team-2,add-ldap-path",
             "console": "tmsh",
             "lineOrder": 940,
