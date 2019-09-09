@@ -48,6 +48,20 @@ function combineSchemas() {
             base.definitions = Object.assign(base.definitions, tmp);
         } else if (content.allOf) {
             content.allOf.forEach((subContent) => {
+                // Authentication class specific override
+                if (definition.includes('auth')) {
+                    const ref = subContent.then.oneOf[0].$ref.split('#/definitions/').join('');
+                    const defs = content.definitions;
+                    const def = defs[ref];
+                    Object.keys(def.properties).forEach((defKey) => {
+                        if (safeTraverse(['properties', defKey, '$ref'], def)) {
+                            const addntlRef = def.properties[defKey].$ref.split('#/definitions/').join('');
+                            const addntlDef = defs[addntlRef];
+                            def.properties[defKey] = addntlDef;
+                        }
+                    });
+                    subContent.then = def;
+                }
                 const tmp = {};
                 const subClass = safeTraverse(['if', 'properties', 'class', 'const'], subContent);
                 tmp[subClass] = subContent.then;
