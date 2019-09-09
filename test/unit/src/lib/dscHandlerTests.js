@@ -21,6 +21,8 @@ const dns = require('dns');
 
 const sinon = require('sinon');
 
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
 
 const doUtil = require('../../../../src/lib/doUtil');
@@ -217,6 +219,7 @@ describe('dscHandler', () => {
 
         beforeEach(() => {
             getBigIpOptions = undefined;
+            sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
             sinon.stub(doUtil, 'getBigIp').callsFake((logger, options) => {
                 getBigIpOptions = options;
                 return Promise.resolve(bigIpMock);
@@ -462,6 +465,7 @@ describe('dscHandler', () => {
                 }
                 return Promise.reject(new Error('Unexpected path'));
             };
+            sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
         });
 
         it('should handle device groups with no members', () => {
