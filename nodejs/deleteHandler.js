@@ -25,7 +25,7 @@ const AUTH = require('./sharedConstants').AUTH;
 const logger = new Logger(module);
 
 // This is an ordered list - objects will be deleted in this order
-const DELETABLE_CLASSES = ['DeviceGroup', 'Route', 'SelfIp', 'VLAN', 'RouteDomain'];
+const DELETABLE_CLASSES = ['DeviceGroup', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole'];
 
 const READ_ONLY_DEVICE_GROUPS = ['device_trust_group', 'gtm', 'datasync-global-dg'];
 
@@ -78,8 +78,14 @@ class DeleteHandler {
                         if (READ_ONLY_DEVICE_GROUPS.indexOf(itemToDelete) === -1) {
                             classPromises.push(this.bigIp.cluster.deleteDeviceGroup(itemToDelete));
                         }
+                    } else if (deleteableClass === 'RemoteAuthRole') {
+                        const path = `${PATHS.AuthRemoteRole}/${itemToDelete}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    } else if (deleteableClass === 'RouteDomain' && itemToDelete === '0') {
+                        // Route Domain 0 can't be deleted
                     } else {
-                        const path = `${PATHS[deleteableClass]}/~Common~${itemToDelete}`;
+                        const commonPrefix = deleteableClass === 'Trunk' ? '' : '~Common~';
+                        const path = `${PATHS[deleteableClass]}/${commonPrefix}${itemToDelete}`;
                         classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
                     }
                 });
@@ -115,7 +121,7 @@ function getAuthClassPromises() {
     const auth = this.declaration.Common.Authentication;
     const authPromises = [];
     if (auth) {
-        const authToDelete = ['radius'];
+        const authToDelete = ['radius', 'ldap', 'tacacs'];
         Object.keys(auth).forEach((authItem) => {
             if (authToDelete.indexOf(authItem) > -1) {
                 authPromises.push(

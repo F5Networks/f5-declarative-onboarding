@@ -18,6 +18,7 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
+
 const PATHS = require('../../nodejs/sharedConstants').PATHS;
 const AUTH = require('../../nodejs/sharedConstants').AUTH;
 const RADIUS = require('../../nodejs/sharedConstants').RADIUS;
@@ -36,7 +37,8 @@ describe('authHandler', () => {
             list() {
                 return Promise.resolve();
             },
-            replace() {
+            replace(path, data) {
+                dataSent = data;
                 return Promise.resolve();
             },
             createOrModify(path, data) {
@@ -44,7 +46,9 @@ describe('authHandler', () => {
                 dataSent.push(data);
                 return Promise.resolve();
             },
-            modify() {
+            modify(path, data) {
+                pathsSent.push(path);
+                dataSent.push(data);
                 return Promise.resolve();
             }
         };
@@ -104,6 +108,101 @@ describe('authHandler', () => {
         });
     });
 
+    describe('tacacs', () => {
+        it('should be able to process a tacacs with default values', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'local',
+                        fallback: true,
+                        tacacs: {
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            secret: 'test',
+                            service: 'ppp'
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathsSent[0], PATHS.AuthTacacs);
+                    assert.deepStrictEqual(
+                        dataSent[0],
+                        {
+                            name: AUTH.SUBCLASSES_NAME,
+                            partition: 'Common',
+                            accounting: 'send-to-first-server',
+                            authentication: 'use-first-server',
+                            debug: 'disabled',
+                            encryption: 'enabled',
+                            secret: 'test',
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            service: 'ppp'
+                        }
+                    );
+                });
+        });
+
+        it('should be able to process a tacacs with custom values', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'local',
+                        fallback: true,
+                        tacacs: {
+                            accounting: 'send-to-all-servers',
+                            authentication: 'use-all-servers',
+                            debug: true,
+                            encryption: false,
+                            protocol: 'http',
+
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            secret: 'test',
+                            service: 'shell'
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathsSent[0], PATHS.AuthTacacs);
+                    assert.deepStrictEqual(
+                        dataSent[0],
+                        {
+                            name: AUTH.SUBCLASSES_NAME,
+                            partition: 'Common',
+                            accounting: 'send-to-all-servers',
+                            authentication: 'use-all-servers',
+                            debug: 'enabled',
+                            encryption: 'disabled',
+                            protocol: 'http',
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            secret: 'test',
+                            service: 'shell'
+                        }
+                    );
+                });
+        });
+    });
+
     describe('ldap', () => {
         it('should be able to process a ldap with default values', () => {
             const declaration = {
@@ -131,6 +230,7 @@ describe('authHandler', () => {
                     }
                 }
             };
+
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
@@ -167,9 +267,7 @@ describe('authHandler', () => {
                     );
                 });
         });
-    });
 
-    describe('ldap', () => {
         it('should be able to process a ldap with custom values', () => {
             const declaration = {
                 Common: {
@@ -204,6 +302,7 @@ describe('authHandler', () => {
                     }
                 }
             };
+
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
@@ -236,6 +335,73 @@ describe('authHandler', () => {
                             ],
                             userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
                             version: 2
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('remote roles', () => {
+        it('should be able to process multiple remote role', () => {
+            const declaration = {
+                Common: {
+                    RemoteAuthRole: {
+                        exampleGroupName: {
+                            attribute: 'attributeValue',
+                            console: 'tmsh',
+                            remoteAccess: true,
+                            lineOrder: 1050,
+                            role: 'guest',
+                            userPartition: 'all'
+                        },
+                        anotherGroupName: {
+                            attribute: 'attributeValue',
+                            console: false,
+                            remoteAccess: false,
+                            lineOrder: 984,
+                            role: 'admin',
+                            userPartition: 'all'
+                        }
+                    }
+                }
+            };
+
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(dataSent[0].name, 'exampleGroupName');
+                    assert.strictEqual(dataSent[0].deny, 'enabled');
+                    assert.strictEqual(dataSent[1].name, 'anotherGroupName');
+                    assert.strictEqual(dataSent[1].deny, 'disabled');
+                });
+        });
+    });
+
+    describe('remoteUsersDefaults', () => {
+        it('should be able to process a declaration with remoteUsersDefaults', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'local',
+                        remoteUsersDefaults: {
+                            role: 'operator',
+                            partitionAccess: 'Common',
+                            terminalAccess: 'tmsh'
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    const remoteUserIndex = pathsSent.findIndex(p => p === PATHS.AuthRemoteUser);
+                    assert.notStrictEqual(remoteUserIndex, -1, 'RemoteAuthUser should be handled');
+                    assert.deepStrictEqual(
+                        dataSent[remoteUserIndex],
+                        {
+                            defaultPartition: 'Common',
+                            defaultRole: 'operator',
+                            remoteConsoleAccess: 'tmsh'
                         }
                     );
                 });

@@ -318,28 +318,32 @@ module.exports = {
      * @returns {boolean} found - Returns if the hostname was found
      */
     checkDnsResolution(address) {
-        return new Promise((resolve, reject) => {
-            if (ipF5(address)) {
-                resolve(true);
-                return;
-            }
-            try {
-                dns.lookup(address, (error) => {
-                    if (error) {
-                        error.message = `Unable to resolve host ${address}: ${error.message}`;
-                        error.code = 424;
-                        reject(error);
-                        return;
-                    }
+        function checkDns(addrToCheck) {
+            return new Promise((resolve, reject) => {
+                if (ipF5(addrToCheck)) {
                     resolve(true);
-                });
-            } catch (error) {
-                // if DNS.resolve errors it throws an exception instead of rejecting
-                error.message = `Unable to resolve host ${address}: ${error.message}`;
-                error.code = 424;
-                reject(error);
-            }
-        });
+                    return;
+                }
+                try {
+                    dns.lookup(addrToCheck, (error) => {
+                        if (error) {
+                            error.message = `Unable to resolve host ${addrToCheck}: ${error.message}`;
+                            error.code = 424;
+                            reject(error);
+                            return;
+                        }
+                        resolve(true);
+                    });
+                } catch (error) {
+                    // if DNS.resolve errors it throws an exception instead of rejecting
+                    error.message = `Unable to resolve host ${addrToCheck}: ${error.message}`;
+                    error.code = 424;
+                    reject(error);
+                }
+            });
+        }
+
+        return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, checkDns, [address]);
     },
 
     /**
@@ -349,7 +353,7 @@ module.exports = {
      * is written to handle other partitions if they should enter the schema.
      *
      * @param {Object} declaration - The parsed declaration
-     * @param {Strint} classToFetch - The name of the class (DNS, VLAN, etc)
+     * @param {String} classToFetch - The name of the class (DNS, VLAN, etc)
      * @param {function} cb - Function to execute for each object. Will be called with 2 parameters
      *                        tenant and object declaration. Object declaration is the declaration
      *                        for just the object in question, not the whole declaration

@@ -85,6 +85,18 @@ class SystemHandler {
                 return handleLicense.call(this);
             })
             .then(() => {
+                logger.fine('Checking SNMP.');
+                return handleSnmp.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking Syslog.');
+                return handleSyslog.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking Traffic Control');
+                return handleTrafficControl.call(this);
+            })
+            .then(() => {
                 logger.fine('Done processing system declaration.');
                 return Promise.resolve();
             })
@@ -392,7 +404,7 @@ function handleManagementRoute() {
             const routeBody = {
                 name: managementRoute.name,
                 partition: tenant,
-                gw: managementRoute.gw,
+                gateway: managementRoute.gw,
                 network: managementRoute.network,
                 mtu: managementRoute.mtu
             };
@@ -411,6 +423,168 @@ function handleManagementRoute() {
         .catch((err) => {
             logger.severe(`Error creating management routes: ${err.message}`);
             throw err;
+        });
+}
+
+function handleSnmp() {
+    let promise = Promise.resolve();
+
+    const agent = this.declaration.Common.SnmpAgent;
+    const users = this.declaration.Common.SnmpUser;
+    const communities = this.declaration.Common.SnmpCommunity;
+    const trapEvents = this.declaration.Common.SnmpTrapEvents;
+    const trapDestinations = this.declaration.Common.SnmpTrapDestination;
+
+    if (agent) {
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpAgent,
+            {
+                sysContact: agent.contact || '',
+                sysLocation: agent.location || '',
+                allowedAddresses: agent.allowList || []
+            }
+        ));
+    }
+
+    if (trapEvents) {
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpTrapEvents,
+            {
+                agentTrap: trapEvents.agentStartStop ? 'enabled' : 'disabled',
+                authTrap: trapEvents.authentication ? 'enabled' : 'disabled',
+                bigipTraps: trapEvents.device ? 'enabled' : 'disabled'
+            }
+        ));
+    }
+
+    if (users) {
+        const transformedUsers = JSON.parse(JSON.stringify(users));
+        Object.keys(transformedUsers).forEach((username) => {
+            const user = transformedUsers[username];
+            user.username = user.name;
+            user.oidSubset = user.oid;
+            delete user.oid;
+
+            user.authProtocol = 'none';
+            if (user.authentication) {
+                user.authPassword = user.authentication.password;
+                user.authProtocol = user.authentication.protocol;
+                delete user.authentication;
+            }
+
+            user.privacyProtocol = 'none';
+            if (user.privacy) {
+                user.privacyPassword = user.privacy.password;
+                user.privacyProtocol = user.privacy.protocol;
+                delete user.privacy;
+            }
+        });
+
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpUser,
+            { users: transformedUsers }
+        ));
+    }
+
+    if (communities) {
+        const transformedComms = JSON.parse(JSON.stringify(communities));
+        Object.keys(transformedComms).forEach((communityName) => {
+            const community = transformedComms[communityName];
+            community.communityName = community.name;
+            community.oidSubset = community.oid;
+            community.ipv6 = community.ipv6 ? 'enabled' : 'disabled';
+            delete community.oid;
+        });
+
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpCommunity,
+            { communities: transformedComms }
+        ));
+    }
+
+    if (trapDestinations) {
+        const transformedDestinations = JSON.parse(JSON.stringify(trapDestinations));
+        Object.keys(transformedDestinations).forEach((destinationName) => {
+            const destination = transformedDestinations[destinationName];
+            destination.host = destination.destination;
+            delete destination.destination;
+
+            if (destination.authentication) {
+                destination.authPassword = destination.authentication.password;
+                destination.authProtocol = destination.authentication.protocol;
+                destination.securityLevel = 'auth-no-privacy';
+                delete destination.authentication;
+            }
+
+            if (destination.privacy) {
+                destination.privacyPassword = destination.privacy.password;
+                destination.privacyProtocol = destination.privacy.protocol;
+                destination.securityLevel = 'auth-privacy';
+                delete destination.privacy;
+            }
+        });
+
+        promise = promise.then(() => this.bigIp.modify(
+            PATHS.SnmpCommunity,
+            { traps: transformedDestinations }
+        ));
+    }
+
+    return promise;
+}
+
+function handleSyslog() {
+    if (!this.declaration.Common || !this.declaration.Common.SyslogRemoteServer) {
+        return Promise.resolve();
+    }
+
+    const remoteServers = Object.keys(this.declaration.Common.SyslogRemoteServer).map(
+        logName => this.declaration.Common.SyslogRemoteServer[logName]
+    );
+
+    if (remoteServers.length === 0) {
+        return Promise.resolve();
+    }
+
+    const syslog = {
+        name: 'syslogRemoteServer',
+        remoteServers
+    };
+
+    return this.bigIp.modify(PATHS.Syslog, syslog);
+}
+
+function handleTrafficControl() {
+    if (!this.declaration.Common || !this.declaration.Common.TrafficControl) {
+        return Promise.resolve();
+    }
+
+    const trafficCtrl = this.declaration.Common.TrafficControl;
+
+    const trafficControlObj = {
+        acceptIpOptions: trafficCtrl.acceptIpOptions ? 'enabled' : 'disabled',
+        acceptIpSourceRoute: trafficCtrl.acceptIpSourceRoute ? 'enabled' : 'disabled',
+        allowIpSourceRoute: trafficCtrl.allowIpSourceRoute ? 'enabled' : 'disabled',
+        continueMatching: trafficCtrl.continueMatching ? 'enabled' : 'disabled',
+        maxIcmpRate: trafficCtrl.maxIcmpRate,
+        portFindLinear: trafficCtrl.maxPortFindLinear,
+        portFindRandom: trafficCtrl.maxPortFindRandom,
+        maxRejectRate: trafficCtrl.maxRejectRate,
+        maxRejectRateTimeout: trafficCtrl.maxRejectRateTimeout,
+        minPathMtu: trafficCtrl.minPathMtu,
+        pathMtuDiscovery: trafficCtrl.pathMtuDiscovery ? 'enabled' : 'disabled',
+        portFindThresholdWarning: trafficCtrl.portFindThresholdWarning ? 'enabled' : 'disabled',
+        portFindThresholdTrigger: trafficCtrl.portFindThresholdTrigger,
+        portFindThresholdTimeout: trafficCtrl.portFindThresholdTimeout,
+        rejectUnmatched: trafficCtrl.rejectUnmatched ? 'enabled' : 'disabled'
+    };
+
+    return this.bigIp.modify(PATHS.TrafficControl, trafficControlObj)
+        .catch((err) => {
+            const errorTrafficControl = `Error modifying traffic control settings: ${err.message}`;
+            logger.severe(errorTrafficControl);
+            err.message = errorTrafficControl;
+            return Promise.reject(err);
         });
 }
 

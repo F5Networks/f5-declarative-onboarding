@@ -108,28 +108,34 @@ const responder = new Responder(state);
 
 describe('response', () => {
     it('should set success response in result', () => {
-        const response = new Response(1234, responder).getResponse();
-        assert.strictEqual(response.id, 1234);
-        assert.strictEqual(response.result.code, state.tasks[1234].result.code);
-        assert.strictEqual(response.result.status, state.tasks[1234].result.status);
-        assert.strictEqual(response.result.message, state.tasks[1234].result.message);
-        assert.deepEqual(response.result.errors, state.tasks[1234].result.errors);
-        assert.strictEqual(response.currentConfig, undefined);
-        assert.strictEqual(response.originalConfig, undefined);
+        new Response(1234, responder).getResponse()
+            .then((response) => {
+                assert.strictEqual(response.id, 1234);
+                assert.strictEqual(response.result.code, state.tasks[1234].result.code);
+                assert.strictEqual(response.result.status, state.tasks[1234].result.status);
+                assert.strictEqual(response.result.message, state.tasks[1234].result.message);
+                assert.deepEqual(response.result.errors, state.tasks[1234].result.errors);
+                assert.strictEqual(response.currentConfig, undefined);
+                assert.strictEqual(response.originalConfig, undefined);
+            });
     });
 
     it('should include full response if options say so', () => {
-        const response = new Response(1234, responder, { show: 'full' }).getResponse();
-        assert.deepEqual(response.currentConfig, state.tasks[1234].currentConfig);
-        assert.deepEqual(response.originalConfig, state.tasks[1234].originalConfig);
-        assert.deepEqual(response.lastUpdate, state.tasks[1234].lastUpdate);
+        new Response(1234, responder, { show: 'full' }).getResponse()
+            .then((response) => {
+                assert.deepEqual(response.currentConfig, state.tasks[1234].currentConfig);
+                assert.deepEqual(response.originalConfig, state.tasks[1234].originalConfig);
+                assert.deepEqual(response.lastUpdate, state.tasks[1234].lastUpdate);
+            });
     });
 
     it('should return an array of tasks if no task id is set', () => {
-        const response = new Response(null, responder).getResponse();
-        assert.ok(Array.isArray(response));
-        assert.strictEqual(response.length, 2);
-        assert.strictEqual(response[0].id, '1234');
-        assert.strictEqual(response[1].id, '5678');
+        new Response(null, responder).getResponse()
+            .then((response) => {
+                assert.ok(Array.isArray(response));
+                assert.strictEqual(response.length, 2);
+                assert.strictEqual(response[0].id, '1234');
+                assert.strictEqual(response[1].id, '5678');
+            });
     });
 });

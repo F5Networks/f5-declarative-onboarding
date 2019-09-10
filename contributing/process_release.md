@@ -13,7 +13,7 @@
 * Release notes are tracked during development in RELEASE_NOTES.md
 
 ## Process for release candidates
-* Update package.json with version (X.Y.Z-#)
+* Update package.json and package-lock.json with version (X.Y.Z-#)
 * Update the schema/latest directory with the latest
 * mkdir schema/<version> and copy latest/* to it
 * Get build artifacts (rpm, and postman) from latest build and copy to dist directory

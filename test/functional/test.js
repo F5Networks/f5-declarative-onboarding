@@ -211,6 +211,63 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
         });
     });
 
+    describe('Test Auth Settings', function testAuth() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        let body;
+        let currentState;
+
+        before(() => {
+            const thisMachine = machines[2];
+            const bigipAddress = thisMachine.ip;
+            const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
+            const bodyFile = `${BODIES}/auth.json`;
+            return new Promise((resolve, reject) => {
+                common.readFile(bodyFile)
+                    .then((fileRead) => {
+                        body = JSON.parse(fileRead);
+                    })
+                    .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
+                    .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
+                        constants.HTTP_SUCCESS))
+                    .then((response) => {
+                        currentState = response.currentConfig.Common;
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, auth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
+
+        it('should configure main auth settings', () => {
+            assert.ok(testMainAuth(body.Common.myAuth, currentState));
+        });
+
+        it('should configure remoteUsersDefaults', () => {
+            assert.ok(testRemoteUsersDefaults(body.Common.myAuth.remoteUsersDefaults, currentState));
+        });
+
+        it('should configure radius', () => {
+            assert.ok(testRadiusAuth(body.Common.myAuth.radius, currentState));
+        });
+
+        it('should configure ldap', () => {
+            assert.ok(testLdapAuth(body.Common.myAuth.ldap, currentState));
+        });
+
+        it('should configure tacacs', () => {
+            assert.ok(testTacacsAuth(body.Common.myAuth.tacacs, currentState));
+        });
+    });
+
     describe('Test Licensing', function testLicensing() {
         this.timeout(1000 * 60 * 30); // 30 minutes
 
@@ -422,55 +479,6 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
         }));
     });
 
-    describe('Test Auth Settings', function testAuth() {
-        this.timeout(1000 * 60 * 30); // 30 minutes
-        let body;
-        let currentState;
-
-        before(() => {
-            const thisMachine = machines[2];
-            const bigipAddress = thisMachine.ip;
-            const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
-            const bodyFile = `${BODIES}/auth.json`;
-            return new Promise((resolve, reject) => {
-                common.readFile(bodyFile)
-                    .then((fileRead) => {
-                        body = JSON.parse(fileRead);
-                    })
-                    .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
-                    .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
-                        constants.HTTP_SUCCESS))
-                    .then((response) => {
-                        currentState = response.currentConfig.Common;
-                        resolve();
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        return common.dumpDeclaration(bigipAddress, auth);
-                    })
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
-        });
-
-        it('should configure main auth settings', () => {
-            assert.ok(testMainAuth(body.Common.myAuth, currentState));
-        });
-
-        it('should configure radius', () => {
-            assert.ok(testRadiusAuth(body.Common.myAuth.radius, currentState));
-        });
-
-        it('should configure ldap', () => {
-            assert.ok(testLdapAuth(body.Common.myAuth.ldap, currentState));
-        });
-    });
-
     describe('Test Rollbacking', function testRollbacking() {
         this.timeout(1000 * 60 * 30); // 30 minutes
         let body;
@@ -533,6 +541,84 @@ describe('Declarative Onboarding Functional Test Suite', function performFunctio
             assert.ok(testRoute(body.Route.myRoute, currentState));
         });
     });
+
+    describe('Test Inspect Endpoint', function testAuth() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        const inspectEndpoint = `${constants.DO_API}/inspect`;
+
+        let thisMachine;
+        let authData;
+
+        before(() => {
+            thisMachine = machines[1];
+            authData = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
+        });
+
+        /**
+         * REST API returns every time different encrypted string for the same secret value.
+         * Better to remove secrets from declaration.
+         * Ideally it would be better to decrypt every secret which starts with $M.
+         */
+        const removeSecrets = (declaration) => {
+            const currentAuth = declaration.declaration.Common.currentAuthentication;
+            if (typeof currentAuth !== 'undefined') {
+                if (typeof currentAuth.ldap !== 'undefined') {
+                    currentAuth.ldap.bindPassword = '';
+                }
+                if (typeof currentAuth.radius !== 'undefined'
+                        && typeof currentAuth.radius.servers !== 'undefined') {
+                    const radiusServers = currentAuth.radius.servers;
+                    Object.keys(radiusServers).forEach((rsName) => {
+                        radiusServers[rsName].secret = '';
+                    });
+                }
+            }
+        };
+
+        it('should get declaration with current device\'s configuration', () => common.testRequest(
+            null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
+            authData, constants.HTTP_SUCCESS, 'GET'
+        )
+            .then(JSON.parse)
+            .then((body) => {
+                assert.notStrictEqual(body[0].declaration, undefined, 'Should have "declaration" property');
+            }));
+
+        it('should post declaration with current device\'s configuration', () => {
+            let originDeclaration;
+
+            return common.testRequest(
+                null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
+                authData, constants.HTTP_SUCCESS, 'GET'
+            )
+                .then(JSON.parse)
+                .then((body) => {
+                    originDeclaration = body[0].declaration;
+                    assert.notStrictEqual(originDeclaration, undefined, 'Should have "declaration" property');
+                    // apply declaration
+                    return common.testRequest(
+                        originDeclaration, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
+                        authData, constants.HTTP_SUCCESS, 'POST'
+                    );
+                })
+                // fetch declaration again
+                .then(() => common.testRequest(
+                    null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
+                    authData, constants.HTTP_SUCCESS, 'GET'
+                ))
+                .then(JSON.parse)
+                .then((body) => {
+                    // declaration should be the same
+                    const declaration = body[0].declaration;
+                    removeSecrets(declaration);
+                    removeSecrets(originDeclaration);
+                    assert.deepStrictEqual(declaration, originDeclaration, 'Should match original declaration');
+                });
+        });
+    });
 });
 
 /**
@@ -571,7 +657,7 @@ function getF5Token(deviceIp, auth) {
  * @auth {Object} : authorization body for BIG-IQ (username/password)
 */
 function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
-    return new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
+    return getF5Token(bigIqAddress, bigIqAuth)
         .then((token) => {
             const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
                     + `${constants.ICONTROL_API}/cm/device/licensing/assignments`,
@@ -580,30 +666,28 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
         })
         .then((response) => {
             if (response.response.statusCode !== constants.HTTP_SUCCESS) {
-                reject(new Error('could not license'));
+                return Promise.reject(new Error('could not license'));
             }
             return response.body;
         })
-        .then(JSON.parse)
+        .then(response => JSON.parse(response))
         .then(response => response.items)
         .then((assignments) => {
-            assignments.forEach((assignment) => {
-                if (assignment.deviceAddress === bigIpAddress) {
-                    const licensingStatus = assignment.status;
+            const assignment = assignments.find(current => current.deviceAddress === bigIpAddress);
+            if (assignment) {
+                const licensingStatus = assignment.status;
+                if (licensingStatus === 'LICENSED') {
                     const auditLink = assignment.auditRecordReference.link;
                     // audit links come with the ip address as localhost, we need to
                     // replace it with the address of the BIG-IQ, in order to use it later
                     // to check licensing of a particular device
                     const auditLinkRemote = auditLink.replace(/localhost/gi, bigIqAddress);
-                    if (assignment.status === 'LICENSED') resolve(auditLinkRemote);
-                    else reject(new Error(`device license status : ${licensingStatus}`));
+                    return auditLinkRemote;
                 }
-            });
-            reject(new Error('no license match for device address'));
-        })
-        .catch((error) => {
-            reject(error);
-        }));
+                return Promise.reject(new Error(`device license status : ${licensingStatus}`));
+            }
+            return Promise.reject(new Error('no license match for device address'));
+        });
 }
 
 /**
@@ -702,6 +786,11 @@ function testMainAuth(target, response) {
     return compareSimple(target, response.Authentication, ['enabledSourceType', 'fallback']);
 }
 
+function testRemoteUsersDefaults(target, response) {
+    const remoteResp = response.Authentication.remoteUsersDefaults;
+    return compareSimple(target, remoteResp, ['partitionAccess', 'terminalAccess', 'role']);
+}
+
 function testRadiusAuth(target, response) {
     const radiusResp = response.Authentication.radius;
     const serviceTypeCheck = compareSimple(target, radiusResp, ['serviceType']);
@@ -728,6 +817,18 @@ function testLdapAuth(target, response) {
             'groupMemberAttribute', 'idleTimeout', 'ignoreAuthInfoUnavailable',
             'ignoreUnknownUser', 'loginAttribute', 'port', 'searchScope', 'searchBaseDn',
             'searchTimeout', 'servers', 'userTemplate', 'version'
+        ]
+    );
+}
+
+function testTacacsAuth(target, response) {
+    const tacacsResp = response.Authentication.tacacs;
+    return compareSimple(
+        target,
+        tacacsResp,
+        [
+            'accounting', 'authentication', 'debug', 'encryption', 'protocol',
+            'servers', 'service'
         ]
     );
 }

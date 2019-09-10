@@ -1,9 +1,33 @@
 # Release Notes
 
 ## Version 1.7.0
++ Handle the automatic update of root password when admin password changes on 14.0+
++ Resolve [Issue 53](https://github.com/F5Networks/f5-declarative-onboarding/issues/53)
++ Resolve [Issue 60](https://github.com/F5Networks/f5-declarative-onboarding/issues/60)
++ Resolve [Issue 67](https://github.com/F5Networks/f5-declarative-onboarding/issues/67)
++ Add /inspect endpoint to determine existing configuraiton of device
 + Add support for Authentication class
 + Add support for Authentication - Radius
++ Add support for Authentication - TACACS
++ Add support for Remote Role Groups
 + Add support for Authentication - LDAP
++ Add support for SNMP Agent and Traps
++ Add support for Syslog RemoteServers
++ Add schema reference documentation
++ Allow 'none' as valid value for configsyncIp (ConfigSync class)
++ DeviceGroup.owner is now required
++ Fix bug in which DO sets task status to ERROR right away while it is still rolling back
++ When targetSshKey is used try bash shell to modify targetUsername password if tmsh shell fails.
++ Add support for DAG Globals
++ Add support for cmp-hash for VLAN [Issue 1](https://github.com/F5Networks/f5-declarative-onboarding/issues/1)
++ Add support for Traffic Control
++ Fix bug in which DO was unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Rotue Domain with ID 0 unless otherwise specified.
++ Improve masking of nested secrets
++ Add support for Trunk class
++ Improve Route Domains handling
+
+## Version 1.6.1
++ Upgrade f5-cloud-libs to improve licensing from BIG-IQ reg key pools
 
 ## Version 1.6.0
 + Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)

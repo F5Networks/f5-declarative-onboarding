@@ -75,12 +75,18 @@ describe('analyticsHandler', () => {
 
     it('should translate offboxTcpAddresses', () => {
         const assertTranslate = makeAssertTranslate('offboxTcpAddresses', 'offbox-tcp-addresses');
-        return assertTranslate(['192.0.2.0'], ['192.0.2.0']);
+        return Promise.resolve()
+            .then(() => assertTranslate(['192.0.2.0'], ['192.0.2.0']))
+            .then(() => assertTranslate(undefined, []))
+            .then(() => assertTranslate([], []));
     });
 
     it('should translate offboxTcpPort', () => {
         const assertTranslate = makeAssertTranslate('offboxTcpPort', 'offbox-tcp-port');
-        return assertTranslate(80, 80);
+        return Promise.resolve()
+            .then(() => assertTranslate(80, 80))
+            .then(() => assertTranslate(0, 0))
+            .then(() => assertTranslate(undefined, 0));
     });
 
     it('should translate offboxEnabled', () => {
@@ -88,5 +94,19 @@ describe('analyticsHandler', () => {
         return Promise.resolve()
             .then(() => assertTranslate(true, 'enabled'))
             .then(() => assertTranslate(false, 'disabled'));
+    });
+
+    it('should translate sourceId', () => {
+        const assertTranslate = makeAssertTranslate('sourceId', 'source-id');
+        return Promise.resolve()
+            .then(() => assertTranslate(undefined, 'none'))
+            .then(() => assertTranslate('sourceId', 'sourceId'));
+    });
+
+    it('should translate tenantId', () => {
+        const assertTranslate = makeAssertTranslate('tenantId', 'tenant-id');
+        return Promise.resolve()
+            .then(() => assertTranslate(undefined, 'default'))
+            .then(() => assertTranslate('tenantId', 'tenantId'));
     });
 });

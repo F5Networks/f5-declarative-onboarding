@@ -18,11 +18,11 @@
 
 const assert = require('assert');
 const sinon = require('sinon');
-const httpUtil = require('../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
 const State = require('../../nodejs/state');
 const RealValidator = require('../../nodejs/validator');
 const STATUS = require('../../nodejs/sharedConstants').STATUS;
 const EVENTS = require('../../nodejs/sharedConstants').EVENTS;
+const doUtilMock = require('../../nodejs/doUtil');
 
 /* eslint-disable global-require */
 
@@ -30,7 +30,6 @@ describe('restWorker', () => {
     let DeclarationHandlerMock;
     let ConfigManagerMock;
     let RestWorker;
-    let doUtilMock;
     let cryptoUtilMock;
     let bigIpMock;
     let declaration;
@@ -38,14 +37,15 @@ describe('restWorker', () => {
     let responseBody;
     let statusCode;
     let SshUtilMock;
+    let httpUtilMock;
 
     before(() => {
-        doUtilMock = require('../../nodejs/doUtil');
         cryptoUtilMock = require('../../nodejs/cryptoUtil');
         ConfigManagerMock = require('../../nodejs/configManager');
         DeclarationHandlerMock = require('../../nodejs/declarationHandler');
         SshUtilMock = require('../../nodejs/sshUtil');
         RestWorker = require('../../nodejs/restWorker');
+        httpUtilMock = require('../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
     });
 
     beforeEach(() => {
@@ -65,6 +65,11 @@ describe('restWorker', () => {
                 };
             }
         };
+        sinon.stub(doUtilMock, 'rebootRequired').resolves(false);
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     after(() => {
@@ -135,7 +140,7 @@ describe('restWorker', () => {
 
     describe('onStartCompleted', () => {
         beforeEach(() => {
-            doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IP');
+            sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
         });
 
         it('should call error if given an error message', () => new Promise((resolve, reject) => {
@@ -269,9 +274,12 @@ describe('restWorker', () => {
                         return Promise.resolve();
                     }
                 };
-                doUtilMock.getBigIp = () => Promise.resolve(bigIpMock);
-                doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IP');
-                doUtilMock.rebootRequired = () => Promise.resolve(true);
+                sinon.stub(doUtilMock, 'getBigIp').resolves(bigIpMock);
+                doUtilMock.getCurrentPlatform.restore();
+                sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
+                doUtilMock.rebootRequired.restore();
+                sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
+
                 cryptoUtilMock.decryptId = (id) => {
                     let password;
                     if (id === 'doBigIp') {
@@ -639,6 +647,8 @@ describe('restWorker', () => {
 
     describe('onPost', () => {
         const validatorMock = {};
+        let updateResultSpy;
+
         let restWorker;
         let bigIpOptionsCalled;
         let saveCalled;
@@ -658,11 +668,11 @@ describe('restWorker', () => {
                 reboot() {}
             };
 
-            doUtilMock.getBigIp = (logger, bigIpOptions) => {
+            sinon.stub(doUtilMock, 'getBigIp').callsFake((logger, bigIpOptions) => {
                 bigIpOptionsCalled = bigIpOptions;
                 return Promise.resolve(bigIpMock);
-            };
-            doUtilMock.rebootRequired = () => Promise.resolve(false);
+            });
+            sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
 
             validatorMock.validate = () => Promise.resolve({
                 isValid: true
@@ -674,8 +684,10 @@ describe('restWorker', () => {
 
             restWorker = new RestWorker();
             restWorker.validator = validatorMock;
+            const doState = new State();
+            updateResultSpy = sinon.spy(doState, 'updateResult');
             restWorker.state = {
-                doState: new State()
+                doState
             };
             restWorker.platform = 'BIG-IP';
         });
@@ -830,12 +842,12 @@ describe('restWorker', () => {
         }));
 
         it('should set status to rebooting if reboot is required', () => new Promise((resolve, reject) => {
+            doUtilMock.rebootRequired.restore();
+            sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
             restOperationMock.complete = () => {
                 assert.strictEqual(responseBody.result.status, STATUS.STATUS_REBOOTING);
                 resolve();
             };
-
-            doUtilMock.rebootRequired = () => Promise.resolve(true);
 
             try {
                 restWorker.onPost(restOperationMock);
@@ -844,7 +856,7 @@ describe('restWorker', () => {
             }
         }));
 
-        it('should set status to rolling back if an error occurs', () => {
+        it('should set status to rolled back if an error occurs', () => {
             const rollbackReason = 'this it the rollback reason';
             let processCallCount = 0;
             return new Promise((resolve, reject) => {
@@ -863,6 +875,46 @@ describe('restWorker', () => {
                     assert.strictEqual(responseBody.result.status, STATUS.STATUS_ERROR);
                     assert.notStrictEqual(responseBody.result.message.indexOf('rolled back'), -1);
                     assert.strictEqual(responseBody.result.errors[0], rollbackReason);
+                    resolve();
+                };
+
+                try {
+                    restWorker.onPost(restOperationMock);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+
+        it('should set task status to [running -> rolling back -> error] if an error occurs', () => {
+            const rollbackReason = 'verify rollback in progress';
+            let processCallCount = 0;
+
+            return new Promise((resolve, reject) => {
+                DeclarationHandlerMock.prototype.process = () => {
+                    // For this test, we want to reject the first call to simulate
+                    // an error but resolve the second call to simulate successful
+                    // rollback
+                    processCallCount += 1;
+                    if (processCallCount === 1) {
+                        return Promise.reject(new Error(rollbackReason));
+                    }
+                    return Promise.resolve();
+                };
+
+                restOperationMock.complete = () => {
+                    const runningArgs = updateResultSpy.getCall(0).args;
+                    assert.deepStrictEqual(runningArgs[1], 202);
+                    assert.deepStrictEqual(runningArgs[2], STATUS.STATUS_RUNNING);
+
+                    const rollingBackArgs = updateResultSpy.getCall(1).args;
+                    assert.deepStrictEqual(rollingBackArgs[1], 202);
+                    assert.deepStrictEqual(rollingBackArgs[2], STATUS.STATUS_ROLLING_BACK);
+
+                    const rolledBackArgs = updateResultSpy.getCall(2).args;
+                    assert.deepStrictEqual(rolledBackArgs[1], 500);
+                    assert.deepStrictEqual(rolledBackArgs[2], STATUS.STATUS_ERROR);
+
                     resolve();
                 };
 
@@ -912,9 +964,13 @@ describe('restWorker', () => {
             let webhookSaved = null;
             let opstionsSaved = null;
 
+            beforeEach(() => {
+                doUtilMock.getCurrentPlatform.restore();
+                sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IQ');
+            });
+
             before(() => {
-                doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IQ');
-                stubHttpUtil = sinon.stub(httpUtil, 'post').callsFake((webhookReceived, options) => {
+                stubHttpUtil = sinon.stub(httpUtilMock, 'post').callsFake((webhookReceived, options) => {
                     webhookSaved = webhookReceived;
                     opstionsSaved = options.body.declaration.webhook;
                     return Promise.resolve();
@@ -961,7 +1017,8 @@ describe('restWorker', () => {
                 realSetTimeout = setTimeout;
                 bodySet = null;
 
-                doUtilMock.getCurrentPlatform = () => Promise.resolve('BIG-IQ');
+                doUtilMock.getCurrentPlatform.restore();
+                sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IQ');
 
                 restWorker.restOperationFactory = {
                     createRestOperationInstance() {
@@ -1204,7 +1261,6 @@ describe('restWorker', () => {
                         return Promise.resolve();
                     };
 
-                    doUtilMock.rebootRequired = () => Promise.resolve(true);
 
                     restOperationMock.getUri = () => ({
                         query: { internal: true }
@@ -1220,6 +1276,9 @@ describe('restWorker', () => {
                             resolve();
                         }
                     };
+
+                    doUtilMock.rebootRequired.restore();
+                    sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
 
                     try {
                         restWorker.onPost(restOperationMock);
@@ -1257,6 +1316,7 @@ describe('restWorker', () => {
                         }
                     };
 
+                    restOperationMock.complete = () => {};
                     restWorker.restRequestSender.sendPatch = (restOperation) => {
                         assert.strictEqual(
                             restOperation.getBody().password,
@@ -1273,7 +1333,43 @@ describe('restWorker', () => {
                     }
                 }));
 
-                it('should ssh to BIG-IP if an ssh key is provided', () => new Promise((resolve, reject) => {
+                it('should ssh to BIG-IP if an ssh key is provided and shell is bash', (done) => {
+                    let executeCount = 0;
+                    SshUtilMock.prototype.executeCommand = (command) => {
+                        executeCount += 1;
+                        sshCommand = command;
+                        if (executeCount === 1) { // first attempt tries tmsh
+                            return Promise.reject(new Error('command not found'));
+                        }
+                        return Promise.resolve(); // second attempt tries bash
+                    };
+
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '1.2.3.4',
+                        targetUsername: 'admin',
+                        targetSshKey: {
+                            path: '~/.ssh/id_rsa'
+                        },
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'foofoo'
+                                }
+                            }
+                        }
+                    };
+
+                    restOperationMock.complete = () => {
+                        assert.strictEqual(sshCommand, 'tmsh modify auth user admin password foofoo');
+                        done();
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
+
+                it('should ssh to BIG-IP if an ssh key is provided and shell is tmsh', (done) => {
                     declaration = {
                         class: 'DO',
                         targetHost: '1.2.3.4',
@@ -1293,15 +1389,11 @@ describe('restWorker', () => {
 
                     restOperationMock.complete = () => {
                         assert.strictEqual(sshCommand, 'modify auth user admin password foofoo');
-                        resolve();
+                        done();
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
-                }));
+                    restWorker.onPost(restOperationMock);
+                });
 
                 it('should dereference user password if it is a pointer', () => new Promise((resolve, reject) => {
                     declaration = {
@@ -1450,6 +1542,132 @@ describe('restWorker', () => {
                         reject(err);
                     }
                 }));
+            });
+
+            describe('root account setup', () => {
+                let patchCalled;
+
+                beforeEach(() => {
+                    patchCalled = false;
+                    SshUtilMock.prototype.executeCommand = () => Promise.resolve();
+                });
+
+                it('should not change root.oldPassword if targetPassphrase and admin password are same', (done) => {
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '1.2.3.4',
+                        targetPort: 443,
+                        targetUsername: 'admin',
+                        targetPassphrase: 'admin',
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'admin'
+                                },
+                                root: {
+                                    class: 'User',
+                                    userType: 'root',
+                                    oldPassword: 'default',
+                                    newPassword: 'barbar'
+                                }
+                            }
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPatch = () => {
+                        // this should not get called, admin password is not changing
+                        patchCalled = true;
+                    };
+
+                    restWorker.restRequestSender.sendPost = (restOperation) => {
+                        // this is not called for root password check
+                        // this is called once for passToTcw and will have body.id
+                        assert.ok(!patchCalled);
+                        assert.notStrictEqual(restOperation.body.id, undefined);
+                        done();
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
+
+                it('should check the root password when admin password changes and targetPassphrase is set', (done) => {
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '1.2.3.4',
+                        targetPort: 443,
+                        targetUsername: 'admin',
+                        targetPassphrase: 'admin',
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'f5site02'
+                                },
+                                root: {
+                                    class: 'User',
+                                    userType: 'root',
+                                    oldPassword: 'default',
+                                    newPassword: 'barbar'
+                                }
+                            }
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPatch = (restOperation) => {
+                        // this is called when initialPassword changes
+                        assert.notStrictEqual(restOperation.body.oldPassword, restOperation.body.password);
+                    };
+
+                    restWorker.restRequestSender.sendPost = (restOperation) => {
+                        // this is called when root password is tested
+                        assert.strictEqual(restOperation.body.oldPassword, 'f5site02');
+                        assert.strictEqual(restOperation.body.newPassword, 'f5site02');
+                        done();
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
+
+                it('should check the root password when admin password changes and targetSshKey is set', (done) => {
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '1.2.3.4',
+                        targetPort: 443,
+                        targetUsername: 'admin',
+                        targetSshKey: {
+                            path: '~/.ssh/id_rsa'
+                        },
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'f5site02'
+                                },
+                                root: {
+                                    class: 'User',
+                                    userType: 'root',
+                                    oldPassword: 'default',
+                                    newPassword: 'barbar'
+                                }
+                            }
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPatch = (restOperation) => {
+                        // this is called when initialPassword changes
+                        assert.notStrictEqual(restOperation.body.oldPassword, restOperation.body.password);
+                    };
+
+                    restWorker.restRequestSender.sendPost = (restOperation) => {
+                        // this is called when root password is tested
+                        assert.strictEqual(restOperation.body.oldPassword, 'f5site02');
+                        assert.strictEqual(restOperation.body.newPassword, 'f5site02');
+                        done();
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
             });
         });
     });

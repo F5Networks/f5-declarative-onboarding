@@ -156,7 +156,9 @@ function mask(message) {
     if (typeof message === 'object') {
         masked = JSON.parse(JSON.stringify(message));
         Object.keys(masked).forEach((key) => {
-            if (MASK_REGEX.test(key)) {
+            if (typeof masked[key] === 'object') {
+                masked[key] = mask(masked[key]);
+            } else if (MASK_REGEX.test(key)) {
                 masked[key] = replacement;
             }
         });

@@ -105,23 +105,55 @@ describe('logger', () => {
         const myPassword = 'foofoo';
         logger.info({ password: myPassword });
         assert.strictEqual(loggedMessages.info[0].indexOf(myPassword), -1);
-        assert.notStrictEqual(loggedMessages.info[0].indexOf('password:', -1));
-        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('password'), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********'), -1);
+    });
+
+    it('should deeply mask passwords', () => {
+        const myPassword = 'foofoo';
+        logger.info({ something: { password: myPassword } });
+        assert.strictEqual(loggedMessages.info[0].indexOf(myPassword), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('password'), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********'), -1);
+    });
+
+    it('should mask passwords within object arrays', () => {
+        const myPassword = 'foofoo';
+        logger.info([{ password: myPassword }]);
+        assert.strictEqual(loggedMessages.info[0].indexOf(myPassword), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('password'), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********'), -1);
     });
 
     it('should mask a secret', () => {
-        const mySecret = 'f5site02';
+        const mySecret = 'foofoo';
         logger.info({ secret: mySecret });
         assert.strictEqual(loggedMessages.info[0].indexOf(mySecret), -1);
-        assert.notStrictEqual(loggedMessages.info[0].indexOf('secret:', -1));
-        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('secret'), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********'), -1);
+    });
+
+    it('should deeply mask a secret', () => {
+        const mySecret = 'foofoo';
+        logger.info({ something: { secret: mySecret } });
+        assert.strictEqual(loggedMessages.info[0].indexOf(mySecret), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('secret'), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********'), -1);
+    });
+
+    it('should mask secrets within object arrays', () => {
+        const mySecret = 'foofoo';
+        logger.info([{ secret: mySecret }]);
+        assert.strictEqual(loggedMessages.info[0].indexOf(mySecret), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('secret'), -1);
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********'), -1);
     });
 
     it('should mask reg key', () => {
         const myRegKey = 'D3548-07483-24256-24104-0863690';
         logger.info({ regKey: myRegKey });
         assert.strictEqual(loggedMessages.info[0].indexOf(myRegKey), -1);
-        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********'), -1);
     });
 
     it('should mask nested reg key in array', () => {
@@ -134,7 +166,7 @@ describe('logger', () => {
             }
         });
         assert.strictEqual(loggedMessages.info[0].indexOf(myRegKey), -1);
-        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********'), -1);
     });
 
     it('should mask more deeply nested reg key', () => {
@@ -149,6 +181,6 @@ describe('logger', () => {
             }
         });
         assert.strictEqual(loggedMessages.info[0].indexOf(myRegKey), -1);
-        assert.notStrictEqual(loggedMessages.info[0].indexOf('********', -1));
+        assert.notStrictEqual(loggedMessages.info[0].indexOf('********'), -1);
     });
 });

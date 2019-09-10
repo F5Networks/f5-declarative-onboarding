@@ -53,7 +53,7 @@ class DscHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Proessing DSC declaration.');
+        logger.fine('Processing DSC declaration.');
         logger.fine('Checking ConfigSync.');
         return handleConfigSync.call(this)
             .then(() => {
@@ -76,7 +76,7 @@ class DscHandler {
  */
 function handleConfigSync() {
     if (this.declaration.Common.ConfigSync) {
-        let configsyncIp = this.declaration.Common.ConfigSync.configsyncIp || '';
+        let configsyncIp = this.declaration.Common.ConfigSync.configsyncIp || 'none';
 
         // address may have been a json pointer to something with a CIDR
         // so strip that off

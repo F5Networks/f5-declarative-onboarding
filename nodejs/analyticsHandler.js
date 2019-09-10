@@ -70,9 +70,11 @@ function handleAnalytics() {
                 'avrd-debug-mode': (analytics.debugEnabled ? 'enabled' : 'disabled'),
                 'avrd-interval': analytics.interval,
                 'offbox-protocol': analytics.offboxProtocol || 'none',
-                'offbox-tcp-addresses': analytics.offboxTcpAddresses,
-                'offbox-tcp-port': analytics.offboxTcpPort,
-                'use-offbox': (analytics.offboxEnabled ? 'enabled' : 'disabled')
+                'offbox-tcp-addresses': analytics.offboxTcpAddresses || [],
+                'offbox-tcp-port': analytics.offboxTcpPort || 0,
+                'use-offbox': (analytics.offboxEnabled ? 'enabled' : 'disabled'),
+                'source-id': analytics.sourceId || 'none',
+                'tenant-id': analytics.tenantId || 'default'
             }
         );
     }

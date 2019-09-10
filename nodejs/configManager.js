@@ -62,8 +62,8 @@ class ConfigManager {
      *             {
      *                 id: <property_name>,
      *                 newId: <property_name_to_map_to_in_parsed_declaration>
-     *                 "truth": <mcp_truth_value_if_this_is_boolean>,
-     *                 "falsehood": <mcp_false_value_if_this_is_boolean>
+     *                 truth: <mcp_truth_value_if_this_is_boolean>,
+     *                 falsehood: <mcp_false_value_if_this_is_boolean>
      *             }
      *         ]
      *         references: {
@@ -99,7 +99,6 @@ class ConfigManager {
     get(declaration, state, doState) {
         const currentCurrentConfig = state.currentConfig || {};
         const currentConfig = {};
-        const promises = [];
         const referencePromises = [];
         const referenceInfo = []; // info needed to tie reference result to config item
 
@@ -154,40 +153,40 @@ class ConfigManager {
 
                 // get a list of iControl Rest queries asking for the config items and selecting the
                 // properties we want
-                this.configItems = this.configItems
-                    .filter((configItem) => {
-                        if (!configItem.requiredModule) {
-                            return true;
+                return Promise.all(this.configItems
+                    .map((configItem) => {
+                        if (configItem.requiredModule && provisionedModules.indexOf(configItem.requiredModule) === -1) {
+                            return Promise.resolve(false);
                         }
-                        return provisionedModules.indexOf(configItem.requiredModule) > -1;
-                    });
 
-                this.configItems.forEach((configItem) => {
-                    const query = { $filter: 'partition eq Common' };
-                    const selectProperties = getPropertiesOfInterest(configItem.properties);
-                    if (selectProperties.length > 0) {
-                        query.$select = selectProperties.join(',');
-                    }
-                    const encodedQuery = querystring.stringify(query);
-                    const options = {};
-                    let path = `${configItem.path}?${encodedQuery}`;
+                        const query = { $filter: 'partition eq Common' };
+                        const selectProperties = getPropertiesOfInterest(configItem.properties);
+                        if (selectProperties.length > 0) {
+                            query.$select = selectProperties.join(',');
+                        }
+                        const encodedQuery = querystring.stringify(query);
+                        const options = {};
+                        let path = `${configItem.path}?${encodedQuery}`;
 
-                    // do any replacements
-                    path = path.replace(hostNameRegex, tokenMap.hostName);
-                    path = path.replace(deviceNameRegex, tokenMap.deviceName);
+                        // do any replacements
+                        path = path.replace(hostNameRegex, tokenMap.hostName);
+                        path = path.replace(deviceNameRegex, tokenMap.deviceName);
 
-                    if (configItem.silent) {
-                        options.silent = configItem.silent;
-                    }
+                        if (configItem.silent) {
+                            options.silent = configItem.silent;
+                        }
 
-                    promises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options));
-                });
-
-                return Promise.all(promises);
+                        return this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options);
+                    }));
             })
             .then((results) => {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
+                    // looks like configItem was skipped in previous step
+                    if (currentItem === false) {
+                        return;
+                    }
+
                     const schemaClass = this.configItems[index].schemaClass;
                     if (!schemaClass) {
                         // Simple item that is just key:value - not a larger object
@@ -203,6 +202,16 @@ class ConfigManager {
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties.call(this, patchedItem, index);
 
+                                    let name = item.name;
+
+                                    if (name.startsWith('/Common/')) {
+                                        name = name.split('/Common/')[1];
+                                    }
+
+                                    if (schemaClass === 'RemoteAuthRole') {
+                                        patchedItem.name = name; // The patchedItem needs its name updated too
+                                    }
+
                                     // Self IPs are so odd that I don't see a generic way to handle this
                                     if (schemaClass === 'SelfIp') {
                                         patchedItem = patchSelfIp.call(this, patchedItem);
@@ -217,10 +226,9 @@ class ConfigManager {
 
                                     if (schemaClass === 'Authentication') {
                                         const schemaMerge = this.configItems[index].schemaMerge;
-                                        patchedItem = patchAuth.call(
+                                        currentConfig[schemaClass] = patchAuth.call(
                                             this, schemaMerge, currentConfig[schemaClass], patchedItem
                                         );
-                                        currentConfig[schemaClass] = patchedItem;
                                         patchedItem = null;
                                     }
 
@@ -228,7 +236,7 @@ class ConfigManager {
                                         if (!currentConfig[schemaClass]) {
                                             currentConfig[schemaClass] = {};
                                         }
-                                        currentConfig[schemaClass][item.name] = patchedItem;
+                                        currentConfig[schemaClass][name] = patchedItem;
                                     }
 
                                     getReferencedPaths.call(
@@ -253,6 +261,16 @@ class ConfigManager {
                             patchedItem = patchAuth.call(
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
                             );
+                        }
+                        if (schemaClass === 'SyslogRemoteServer') {
+                            const servers = patchedItem.remoteServers || [];
+                            servers.forEach((server) => {
+                                if (server.name.includes('/Common/')) {
+                                    server.name = server.name.split('/Common/')[1];
+                                }
+                                patchedItem[server.name] = Object.assign({}, server);
+                            });
+                            delete patchedItem.remoteServers;
                         }
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
@@ -394,12 +412,16 @@ function mapProperties(item, index) {
     }
 
     this.configItems[index].properties.forEach((property) => {
+        let hasVal = false;
         // map truth/falsehood (enabled/disabled, for example) to booleans
         if (property.truth !== undefined) {
-            mappedItem[property.id] = mapTruth(mappedItem, property);
+            // for certain items we don't want to add prop with default falsehood value if prop doesn't exist
+            if (typeof mappedItem[property.id] !== 'undefined' || !property.skipWhenOmitted) {
+                mappedItem[property.id] = mapTruth(mappedItem, property);
+            }
         }
 
-        if (mappedItem[property.id]) {
+        if (typeof mappedItem[property.id] !== 'undefined') {
             // If property is a reference, strip the /Common if it is there
             // Either the user specified it without /Commmon in their declaration
             // or we replaced the user value with just the last part because it looks
@@ -421,16 +443,53 @@ function mapProperties(item, index) {
                     }
                 });
             }
+            hasVal = true;
         } else if (property.defaultWhenOmitted !== undefined) {
             mappedItem[property.id] = property.defaultWhenOmitted;
+            hasVal = true;
         }
 
-        if (property.newId !== undefined) {
-            mappedItem[property.newId] = mappedItem[property.id];
-            delete mappedItem[property.id];
+        if (hasVal && property.newId !== undefined) {
+            mapNewId(mappedItem, property.id, property.newId);
         }
     });
     return mappedItem;
+}
+
+/**
+ * Maps a new id in a config item to the id from iControl REST
+ *
+ * @param {Object} mappedItem - The item we are maaping the id for
+ * @param {String} id - The id in the iControl REST object
+ * @param {String} newId - The new name for the id
+ */
+function mapNewId(mappedItem, id, newId) {
+    if (newId.indexOf('.') > 0) {
+        // If the newId contains a '.', then map it into an object. In other words,
+        // if id is 'myId' and newId is 'outer.inner', and and mappedItem.myId = foo
+        // create this in the mappedItem:
+        //     mappedItem: {
+        //          outer: {
+        //              inner: 'foo'
+        //          }
+        //     }
+        const parts = newId.split('.');
+
+        parts.reduce((acc, cur, idx) => {
+            if (idx !== parts.length - 1) {
+                if (!acc[cur]) {
+                    acc[cur] = {};
+                }
+                return acc[cur];
+            }
+
+            acc[parts[idx]] = mappedItem[id];
+            return acc;
+        }, mappedItem);
+    } else {
+        mappedItem[newId] = mappedItem[id];
+    }
+    delete mappedItem[id];
 }
 
 /**
@@ -611,7 +670,7 @@ function patchAuth(schemaMerge, authClass, authItem) {
     // this is going to be for a subclass (e.g. radius, ldap, etc)
     const authClassCopy = !authClass ? {} : Object.assign({}, authClass);
 
-    if (authItem.name && authItem.name.includes(RADIUS.SERVER_PREFIX)) {
+    if (authItem.name && authItem.name.indexOf(RADIUS.SERVER_PREFIX) > -1) {
         // radius servers have name constants
         // note also that serverReferences are returned by iControl as obj instead of array
         if (authItem.name === RADIUS.PRIMARY_SERVER) {

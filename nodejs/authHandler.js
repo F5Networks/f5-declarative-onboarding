@@ -55,14 +55,38 @@ class AuthHandler {
         const auth = (this.declaration.Common || {}).Authentication;
 
         if (!auth) {
-            return Promise.resolve();
+            return handleRemoteAuthRoles.call(this);
         }
 
-        return handleRadius.call(this)
+        return handleRemoteAuthRoles.call(this)
+            .then(() => handleRadius.call(this))
+            .then(() => handleTacacs.call(this))
             .then(() => handleLdap.call(this))
-            .then(() => handleSource.call(this));
+            .then(() => handleSource.call(this))
+            .then(() => handleRemoteUsersDefaults.call(this));
     }
 }
+
+function handleRemoteAuthRoles() {
+    if (!this.declaration.Common || !this.declaration.Common.RemoteAuthRole) {
+        return Promise.resolve();
+    }
+    const promiseChain = Object.keys(this.declaration.Common.RemoteAuthRole).map((name) => {
+        const decl = this.declaration.Common.RemoteAuthRole[name];
+        const rr = {};
+        rr.attribute = decl.attribute;
+        rr.console = decl.console;
+        rr.deny = (decl.remoteAccess) ? 'enabled' : 'disabled';
+        rr.lineOrder = decl.lineOrder;
+        rr.role = decl.role;
+        rr.userPartition = decl.userPartition;
+        rr.name = name;
+        return this.bigIp.createOrModify(PATHS.AuthRemoteRole, rr);
+    });
+
+    return Promise.all(promiseChain);
+}
+
 
 function handleRadius() {
     const radius = this.declaration.Common.Authentication.radius;
@@ -97,6 +121,32 @@ function handleRadius() {
         .catch((err) => {
             logger.severe(`Error configuring remote RADIUS auth: ${err.message}`);
             return Promise.reject(err);
+        });
+}
+
+function handleTacacs() {
+    const tacacs = this.declaration.Common.Authentication.tacacs;
+
+    if (!tacacs) {
+        return Promise.resolve();
+    }
+
+    const tacacsObj = {
+        name: AUTH.SUBCLASSES_NAME,
+        partition: 'Common',
+        accounting: tacacs.accounting || 'send-to-first-server',
+        authentication: tacacs.authentication || 'use-first-server',
+        debug: tacacs.debug ? 'enabled' : 'disabled',
+        encryption: tacacs.encryption === false ? 'disabled' : 'enabled',
+        secret: tacacs.secret,
+        servers: tacacs.servers,
+        service: tacacs.service
+    };
+    if (tacacs.protocol) tacacsObj.protocol = tacacs.protocol;
+
+    return this.bigIp.createOrModify(PATHS.AuthTacacs, tacacsObj)
+        .catch((err) => {
+            logger.severe(`Error configuring remote TACACS auth: ${err.message}`);
         });
 }
 
@@ -140,7 +190,6 @@ function handleLdap() {
         });
 }
 
-
 function handleSource() {
     const auth = this.declaration.Common.Authentication;
     let type = auth.enabledSourceType;
@@ -154,6 +203,25 @@ function handleSource() {
         {
             type,
             fallback: auth.fallback
+        }
+    );
+}
+
+function handleRemoteUsersDefaults() {
+    // shows up as "Other External Users" in Users tab
+    const auth = this.declaration.Common.Authentication;
+    const authDefaults = auth.remoteUsersDefaults;
+
+    if (!authDefaults) {
+        return Promise.resolve();
+    }
+
+    return this.bigIp.modify(
+        PATHS.AuthRemoteUser,
+        {
+            defaultPartition: authDefaults.partitionAccess,
+            defaultRole: authDefaults.role,
+            remoteConsoleAccess: authDefaults.terminalAccess
         }
     );
 }

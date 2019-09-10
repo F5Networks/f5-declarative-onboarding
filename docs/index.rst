@@ -1,17 +1,17 @@
 F5 Declarative Onboarding Documentation
 =======================================
 
-Welcome to the F5 Declarative Onboarding documentation. 
+Welcome to the F5 Declarative Onboarding documentation.
 
 F5 Declarative onboarding uses a |declare| model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.  If you want to use a declarative model to configure applications and services on a BIG-IP device that already has these initial settings, see the |as3| documentation.
 
-A declarative model means you provide a JSON declaration rather than a set of imperative commands. The declaration represents the configuration which Declarative Onboarding is responsible for creating on a BIG-IP system.  You send a declaration file using a single Rest API call. 
+A declarative model means you provide a JSON declaration rather than a set of imperative commands. The declaration represents the configuration which Declarative Onboarding is responsible for creating on a BIG-IP system.  You send a declaration file using a single Rest API call.
 
 You can use Microsoft Visual Studio Code to validate your declarations, see :doc:`validate` for information.
 
 This guide contains information on downloading, installing, and using F5 Declarative Onboarding.
 
-.. NOTE:: To see what's new in Declarative Onboarding, see the the :ref:`revision-history`. 
+.. NOTE:: To see what's new in Declarative Onboarding, see the the :ref:`revision-history`.
 
 .. _video:
 
@@ -19,7 +19,7 @@ You can also see our Declarative Onboarding overview video:
 
 |vid|
 
-To provide feedback on this documentation, you can file a GitHub Issue or email us at solutionsfeedback@f5.com. 
+To provide feedback on this documentation, you can file a GitHub Issue or email us at solutionsfeedback@f5.com.
 
 Use the following links, the navigation on the left, and/or the Next and Previous buttons to explore the documentation.
 
@@ -33,6 +33,7 @@ Use the following links, the navigation on the left, and/or the Next and Previou
    using-do
    examples
    revision-history
+   schema-reference
 
 
 .. |declare| raw:: html

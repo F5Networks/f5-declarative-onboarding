@@ -61,7 +61,7 @@ class InfoResponse {
             version: codeVersion[0],
             release: codeVersion[1],
             schemaCurrent: schemaVersions[0],
-            schemaMinimum: schemaVersions.reverse()[0]
+            schemaMinimum: schemaVersions[schemaVersions.length - 1]
         };
     }
 }
