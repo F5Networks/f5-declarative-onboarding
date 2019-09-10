@@ -244,7 +244,24 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 :ref:`Back to top<bigipexamples>`
 
 
+.. _trunk:
 
+13: Configuring a trunk in a declaration 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure a trunk is available in DO v1.7.0 and later. 
+
+Starting in 1.7.0, you have ability to create and configure a trunk. A trunk is a logical grouping of interfaces on the BIG-IP system.  When you create a trunk, this logical group of interfaces functions as a single interface.  This interface can be used in the configuration of a VLAN for example.
+
+For more information and details on usage options, see |trunkref| in the Schema Reference. You can also see |trunkdoc| in the BIG-IP documentation.  
+
+In the following declaration snippet we show only the Trunk class, you can use this class as a part of a larger Declarative Onboarding declaration.
+
+.. literalinclude:: ../examples/trunk.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
 
 
 .. |br| raw:: html
@@ -299,5 +316,14 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 .. |cmpref| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#vlan" target="_blank">VLAN Class</a>
+
+.. |trunkdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/tmos-routing-administration-12-1-1/3.html" target="_blank">Trunk documentation</a>
+
+.. |trunkref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trunk" target="_blank">Trunk class</a>
+
 
 
