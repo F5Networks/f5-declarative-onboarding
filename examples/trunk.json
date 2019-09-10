@@ -5,7 +5,7 @@
     "label": "Configuring a trunk",
     "Common": {
         "class": "Tenant",  
-        "commonVLAN": {
+        "sampleTrunk": {
             "class": "Trunk",
             "distributionHash": "src-dst-mac",
             "interfaces": [
