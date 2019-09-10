@@ -70,6 +70,8 @@ Configsync class
 ````````````````
 The first class specific to clustering is the configsync class. This class contains the properties responsible for propagating BIG-IP configuration changes, including device trust information, to all devices in a device group. For more information on configsync on the BIG-IP, see |cs|.  Because this example assumes we are using this class together with the  standalone declaration, we can use a JSON pointer to the self IP address we defined. 
 
+.. NOTE::  As of DO 1.7.0, **none** is a valid value for configsyncIP.
+
 .. code-block:: javascript
    :linenos:
 
@@ -89,7 +91,7 @@ The first class specific to clustering is the configsync class. This class conta
 +====================+=============================================+=============+=============================================================================================================================================================+
 | class              | ConfigSync                                  |   Yes       |  Indicates that this property contains config sync IP configuration                                                                                         |
 +--------------------+---------------------------------------------+-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| configuresyncIp    | string (IPv4/IPv6 address or JSON pointer)  |   Yes       |  This is the IP address on the local device that other devices in the device group will use to synchronize their configuration objects to the local device. |
+| configsyncIp       | string (IPv4/IPv6 address or JSON pointer)  |   Yes       |  This is the IP address on the local device that other devices in the device group will use to synchronize their configuration objects to the local device. |
 +--------------------+---------------------------------------------+-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
@@ -138,6 +140,8 @@ For more information on Device Groups on the BIG-IP, see |group|.  In this examp
 
 **Important**: You cannot use *autoSync* and *fullLoadOnSync* together. 
 
+.. NOTE::  As of Declarative Onboarding v1.7.0, the owner parameter is required.
+
 .. code-block:: javascript
    :linenos:
   
@@ -165,7 +169,7 @@ For more information on Device Groups on the BIG-IP, see |group|.  In this examp
 +--------------------+---------------------------------------------+-------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | members            | array of strings                            |   No        |  Members to add to the device group if they are already in the trust domain.                                                                                                                                                                      |
 +--------------------+---------------------------------------------+-------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| owner              | string (hostname or JSON pointer)           |   No        |  Specifies the owning device. The configuration will be pushed from this device. A device group will only be created if the current device is the owner and the device group does not exist.                                                      |
+| owner              | string (hostname or JSON pointer)           |   Yes       |  Specifies the owning device. The configuration will be pushed from this device. A device group will only be created if the current device is the owner and the device group does not exist.                                                      |
 +--------------------+---------------------------------------------+-------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | autoSync           | true, **false**                             |   No        |  Specifies whether the Device Group should synchronize automatically.   **Important**: You cannot use *autoSync* and *fullLoadOnSync* together.                                                                                                   |
 +--------------------+---------------------------------------------+-------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+

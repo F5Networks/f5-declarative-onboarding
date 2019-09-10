@@ -121,7 +121,7 @@ In the following declaration, we include a VLAN to show how to reference a VLAN 
 
    The **DagGlobals** class is available in DO v1.7.0 and later. 
 
-In this example, we show how to use the DagGlobals class to set or modify the DAG global IPv6 prefix length.  DAG Globals contain the global disaggregation settings; see the |dagdocs| documentation for more information. 
+In this example, we show how to use the DagGlobals class to set or modify the DAG global IPv6 prefix length.  DAG Globals contain the global disaggregation settings; see the |dagdoc| documentation for more information. 
 
 In the following declaration snippet, we show only the DagGlobals class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
@@ -134,6 +134,136 @@ In the following declaration snippet, we show only the DagGlobals class.  You ca
 
 :ref:`Back to top<bigipexamples>`
 
+.. _snmp:
+
+8: Configuring SNMP in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure SNMP in a declaration is available in DO v1.7.0 and later. 
+
+In this example, we show how to configure SNMP in a Declarative Onboarding declaration.  You can use DO to configure SNMP agents, users, communities, trap events, and trap destinations.  See the |snmpdoc| in the BIG-IP documentation for specific information. 
+
+In the following declaration snippet we show only the classes related to SNMP.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/snmp.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+.. _authmethods:
+
+9: Configuring BIG-IP authentication methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure RADIUS, LDAP, and TACACS authentication in a declaration is available in DO v1.7.0 and later. 
+
+In this example, we show how to configure RADIUS, LDAP, and TACACS authentication in a Declarative Onboarding declaration using the **Authentication** class. The authentication class can (but does not have to) contain multiple authentication method subclasses but only one can be enabled at a time using the **enableSourceType** property (which matches the BIG-IP UI behavior).
+
+This example declaration contains all three authentication methods with the **enableSourceType** property set to **radius**.    
+
+In the following declaration snippet we show only the classes related to authentication.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/authMethods.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+.. _remoterole:
+
+10: Configuring Remote Roles for authentication
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure remote roles for authentication is available in DO v1.7.0 and later. 
+
+In this example, we show how to configure a remote role for authentication using the **RemoteAuthRole** class. See |loref| in the Schema reference for a description of each of the parameters for this class.
+
+**Important**: The BIG-IP only allows one role per user for each partition/tenant.  Because some remote servers allow multiple user roles, the BIG-IP uses the **lineOrder** parameter to choose one of the conflicting roles for the user at login time. In these cases, the system chooses the role with the lowest line-order number.  See |lineorder| in the BIG-IP documentation for more information and examples.
+
+In the following declaration snippet we show only the classes related to remote auth roles.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/remoteRoles.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+.. _trafcontrol:
+
+11: Configuring Traffic Control properties
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring all LTM global traffic control properties is available in DO v1.7.0 and later. 
+
+In this example, we show how you can configure BIG-IP LTM global traffic control settings (ltm global-settings traffic-control) using a Declarative Onboarding declaration. For descriptions and usage details on these properties, see |tcref| in the Schema Reference.  
+
+In the following declaration snippet we show only the classes related to Traffic Control.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/trafficControl.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+.. _syslogdest:
+
+12: Configuring a System Log (syslog) Destination in declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure a syslog destination is available in DO v1.7.0 and later. 
+
+In this example, we show how to configure a syslog destination using the **SyslogRemoteServer** class.  For information on syslog destinations, see |sldocs| and the |slkb| Knowledge Base article.  Also see |slref| in the Schema reference for usage options.
+
+**Important**: The remote syslog server must be accessible from your BIG-IP system on the default route domain (Domain 0) or management network, and conversely, your BIG-IP system is accessible from the remote syslog server.
+
+In the following declaration snippet we show only the SyslogRemoteServer class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../examples/syslogDestination.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+
+.. _cmphash:
+
+13: Using the CMP Hash property in a VLAN 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The VLAN property **cmp-hash** is available in DO v1.7.0 and later. 
+
+Starting in 1.7.0, you have the option of using the **cmp-hash** property on a VLAN.  The CMP Hash setting allows all connections from a client system to use the same set of TMMs, improving system performance. For more information, see |cmpdocs| in the BIG-IP documentation.  You can also see |cmpref| in the Schema Reference for usage options.
+
+In the following declaration snippet we show only the VLAN class with cmp-hash using Source Address as the traffic disaggregation method.  You can use this class as a part of a larger Declarative Onboarding declaration.
+
+.. literalinclude:: ../examples/vlanCmpHash.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+
+.. _trunk:
+
+13: Configuring a trunk in a declaration 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The ability to configure a trunk is available in DO v1.7.0 and later. 
+
+Starting in 1.7.0, you have ability to create and configure a trunk. A trunk is a logical grouping of interfaces on the BIG-IP system.  When you create a trunk, this logical group of interfaces functions as a single interface.  This interface can be used in the configuration of a VLAN for example.
+
+For more information and details on usage options, see |trunkref| in the Schema Reference. You can also see |trunkdoc| in the BIG-IP documentation.  
+
+In the following declaration snippet we show only the Trunk class, you can use this class as a part of a larger Declarative Onboarding declaration.
+
+.. literalinclude:: ../examples/trunk.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+
 .. |br| raw:: html
 
    <br />
@@ -145,4 +275,55 @@ In the following declaration snippet, we show only the DagGlobals class.  You ca
 .. |dagdoc| raw:: html
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-service-provider-generic-message-administration-13-1-0/5.html" target="_blank">Disaggregation DAG modes</a>
+
+.. |snmpdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigip-14-0-0/external-monitoring-of-big-ip-systems-implementations-14-0-0/monitoring-big-ip-system-traffic-with-snmp.html" target="_blank">Monitoring BIG-IP System Traffic with SNMP</a>
+
+.. |tcref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trafficcontrol" target="_blank">TrafficControl Class</a>
+
+.. |loref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#remoteauthrole" target="_blank">RemoteAuthRole Class</a>
+
+
+.. |rolesdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-systems-user-account-administration-14-0-0/05.html" target="_blank">Remote User Account Management</a>
+
+.. |lineorder| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-systems-user-account-administration-14-0-0/05.html#GUID-E70CB2E7-A003-486A-9A3E-2C401B4DAC78" target="_blank">Line Order</a>
+
+.. |sldocs| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigip-14-0-0/external-monitoring-of-big-ip-systems-implementations-14-0-0/about-logging.html" target="_blank">External Monitoring</a>
+
+.. |slkb| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K13080" target="_blank">Configuring remote logging</a>
+
+.. |slref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#syslogremoteserver" target="_blank">SyslogRemoteServer Class</a>
+
+.. |cmpdocs| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/tmos-routing-administration-13-0-0/4.html#GUID-8D469425-EFAC-48D6-80F3-1EF6C2EE6196" target="_blank">Additional VLAN Configuration Options</a>
+
+.. |cmpref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#vlan" target="_blank">VLAN Class</a>
+
+.. |trunkdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/tmos-routing-administration-12-1-1/3.html" target="_blank">Trunk documentation</a>
+
+.. |trunkref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trunk" target="_blank">Trunk class</a>
+
+
 

@@ -159,6 +159,191 @@ Example response from sending GET to /shared/declarative-onboarding/config:
         }
     }
 
+|
+
+.. _inspect-endpoint:
+
+Using GET with the /inspect endpoint
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   The **/inspect** endpoint for GET is available in DO v1.7.0 and later. 
+
+In DO version 1.7.0 and later, you can use a GET request to the /inspect endpoint to retrieve the current BIG-IP configuration. This information can be used for modifying the DO declaration before the first POST.  The response returns the classes that DO is aware of and their current state, in the format of a DO declaration.
+
+The full endpoint is **https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect**
+
+You can use the following optional URL query parameters with a GET request to the /inspect endpoint:
+
++-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Query Parameter         | Options    | Description/Notes                                                                                                                                                                                       |
++=========================+============+=========================================================================================================================================================================================================+
+| targetHost              | IP or string     | targetHost allows you to specify the IP address or domain name of the host from which you want to retrieve the current configuration. If you do not use this parameter, localhost is used.        |
++-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| targetPort              | integer    | The port for the targetHost (min=0, max=65535).  The default value is either 443 or 8443; if no targetPort value is provided, DO tries to establish a connection to the host using one of these ports). |
++-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| targetUsername          | string     |  The username for the targetHost.  The default is **admin**                                                                                                                                             |
++-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| targetPassword          | string     |  The password for the targetHost.  The default is **admin**                                                                                                                                             |
++-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+**Examples**
+
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect`` |br| DO will try to fetch configuration from localhost (allowed only when running on BIG-IP).
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect?targetHost=X.X.X.X``  |br| DO will try to fetch configuration from host X.X.X.X, port 443 or 8443, username === admin and password === admin 
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect?targetHost=X.X.X.X&targetPort=443&targetUsername=ZZZ&targetPassword=AAA``  |br| DO will try to fetch configuration from host X.X.X.X, port 443, username === ZZZ and password === AAA 
+
+
+Example response from a GET request to the /inspect endpoint:
+
+.. code-block:: json
+   
+   [
+        {
+            "id": 0,
+            "selfLink": "https://localhost/mgmt/shared/declarative-onboarding/inspect",
+            "result": {
+                "class": "Result",
+                "code": 200,
+                "status": "OK",
+                "message": "",
+                "errors": []
+            },
+            "declaration": {
+                "class": "DO",
+                "declaration": {
+                    "class": "Device",
+                    "schemaVersion": "1.7.0",
+                    "Common": {
+                        "class": "Tenant",
+                        "hostname": "localhost.localhostdomain",
+                        "currentProvision": {
+                            "afm": "none",
+                            "am": "none",
+                            "apm": "none",
+                            "asm": "none",
+                            "avr": "none",
+                            "dos": "none",
+                            "fps": "none",
+                            "gtm": "none",
+                            "ilx": "none",
+                            "lc": "none",
+                            "ltm": "nominal",
+                            "pem": "none",
+                            "swg": "none",
+                            "urldb": "none",
+                            "class": "Provision"
+                        },
+                        "currentNTP": {
+                            "timezone": "America/Los_Angeles",
+                            "class": "NTP"
+                        },
+                        "currentDNS": {
+                            "nameServers": [
+                                "192.0.2.14"
+                            ],
+                            "search": [
+                                "localhost"
+                            ],
+                            "class": "DNS"
+                        }
+                    }
+                }
+            }
+        }
+    ]
+
+
+| 
+
+**Possible error codes when using the /inspect endpoint**
+
+.. list-table::
+      :widths: 15 25 90
+      :header-rows: 1
+
+      * - Code
+        - Message
+        - explanation
+
+      * - 408
+        - Request Timeout
+        - DO unable to return declaration after 60sec.
+
+      * - 412
+        - Precondition failed
+        - DO unable to verify declaration produced by Inspect Handler (/inspect).
+
+      * - 400
+        - Bad Request
+        - Query or query parameters are invalid.
+
+      * - 403
+        - Forbidden
+        - DO should be executed on BIG-IP or the user should specify target* parameter(s).
+
+      * - 409
+        - Conflict
+        - DO cannot provide valid declaration because some of the objects share the same name (for instance VLAN and SelfIp can share **internal** name). Response stills contain declaration which contains INVALID items (suffixed with INVALID_X). See the following example.
+
+
+Example of the response for error 409
+
+.. code-block:: json
+   
+   [
+        {
+            "id": 0,
+            "selfLink": "https://localhost/mgmt/shared/declarative-onboarding/inspect",
+            "code": 408,
+            "status": "ERROR",
+            "message": "Conflict",
+            "errors": [
+                "Declaration contains INVALID items (suffixed with INVALID_X)"
+            ],
+            "result": {
+                "class": "Result",
+                "code": 408,
+                "status": "ERROR",
+                "message": "Conflict",
+                "errors": [
+                    "Declaration contains INVALID items (suffixed with INVALID_X)"
+                ]
+            },
+            "declaration": {
+                "class": "DO",
+                "declaration": {
+                    "class": "Device",
+                    "schemaVersion": "1.7.0",
+                    "Common": {
+                        "class": "Tenant",
+                        "hostname": "at-13-1-4.localhost",
+                        "internal_INVALID_1": {
+                            "mtu": 1500,
+                            "tag": 4092,
+                            "cmpHash": "default",
+                            "interfaces": [
+                                {
+                                    "name": "1.3",
+                                    "tagged": false
+                                }
+                            ],
+                            "class": "VLAN"
+                        },
+                        "internal_INVALID_2": {
+                            "trafficGroup": "traffic-group-local-only",
+                            "vlan": "internal",
+                            "address": "10.0.50.3/24",
+                            "allowService": "none",
+                            "class": "SelfIp"
+                    }
+                    }
+                }
+            }
+        }
+    ]
+
+
 
 .. |br| raw:: html
    

@@ -1,0 +1,23 @@
+{
+    "schemaVersion": "1.7.0",
+    "class": "Device",
+    "async": false,
+    "label": "Configuring a trunk",
+    "Common": {
+        "class": "Tenant",  
+        "sampleTrunk": {
+            "class": "Trunk",
+            "distributionHash": "src-dst-mac",
+            "interfaces": [
+                    "1.1",
+                    "1.2"
+            ],
+            "lacpEnabled": false,
+            "lacpMode": "passive",
+            "lacpTimeout": "short",
+            "linkSelectPolicy": "maximum-bandwidth",
+            "qingEthertype": "0x8100",
+            "stpEnabled": false
+        }
+    }
+}
