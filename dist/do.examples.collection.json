@@ -53,6 +53,37 @@
             "response": []
         },
         {
+            "name": "dagGlobals",
+            "request": {
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"schemaVersion\": \"1.0.0\",\n    \"class\": \"Device\",\n    \"async\": false,\n    \"Common\": {\n        \"class\": \"Tenant\",\n        \"dagGlobals\": {\n            \"class\": \"DagGlobals\",\n            \"icmpHash\": \"ipicmp\",\n            \"ipv6PrefixLength\": 101,\n            \"roundRobinMode\": \"local\"\n        }\n    }\n}"
+                },
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "name": "Content-Type",
+                        "type": "text",
+                        "value": "application/json"
+                    }
+                ],
+                "method": "POST",
+                "url": {
+                    "host": [
+                        "{{host}}"
+                    ],
+                    "path": [
+                        "mgmt",
+                        "shared",
+                        "declarative-onboarding"
+                    ],
+                    "protocol": "https",
+                    "raw": "https://{{host}}/mgmt/shared/declarative-onboarding"
+                }
+            },
+            "response": []
+        },
+        {
             "name": "licenseViaBigIqPurchasedPoolReachable",
             "request": {
                 "body": {
