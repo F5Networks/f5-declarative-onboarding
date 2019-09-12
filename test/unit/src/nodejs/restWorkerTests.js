@@ -275,7 +275,6 @@ describe('restWorker', () => {
                         return Promise.resolve();
                     }
                 };
-
                 sinon.stub(doUtilMock, 'getBigIp').resolves(bigIpMock);
                 doUtilMock.getCurrentPlatform.restore();
                 sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
