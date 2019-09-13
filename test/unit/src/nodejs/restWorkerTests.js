@@ -1545,6 +1545,13 @@ describe('restWorker', () => {
             });
 
             describe('root account setup', () => {
+                // When on 14+ the bigip will change the root password to the new admin password when the admin password
+                // changes for the first time.  If the user doesn't account for this the declaration root oldPassword
+                // will fail.
+                //
+                // DO helps the user by checking the root password if the admin password changes and updating
+                // the declaration that is moving through the code if needed.
+
                 let patchCalled;
 
                 beforeEach(() => {
@@ -1553,6 +1560,10 @@ describe('restWorker', () => {
                 });
 
                 it('should not change root.oldPassword if targetPassphrase and admin password are same', (done) => {
+                    // In this scenario targetUsername is 'admin' and targetPassphrase matches the admin password.
+                    // DO will not change the admin password.  DO does not need to bother checking the root password.
+                    // See the comments for the 'describe' for more info.
+
                     declaration = {
                         class: 'DO',
                         targetHost: '1.2.3.4',
@@ -1575,14 +1586,16 @@ describe('restWorker', () => {
                         }
                     };
 
+                    // This is normally called by initialPasswordSet.  This is not called because the admin password
+                    // will not change.  Let's make sure it doesn't get called.
                     restWorker.restRequestSender.sendPatch = () => {
-                        // this should not get called, admin password is not changing
                         patchCalled = true;
                     };
 
                     restWorker.restRequestSender.sendPost = (restOperation) => {
-                        // this is not called for root password check
-                        // this is called once for passToTcw and will have body.id
+                        // This is not called for the root password check.
+                        // This is called later in the code for passToTcw and will have body.id which the password check
+                        // POST doesn't.
                         assert.ok(!patchCalled);
                         assert.notStrictEqual(restOperation.body.id, undefined);
                         done();
@@ -1591,7 +1604,12 @@ describe('restWorker', () => {
                     restWorker.onPost(restOperationMock);
                 });
 
-                it('should check the root password when admin password changes and targetPassphrase is set', (done) => {
+                it('should check the root password when admin password changes when targetPassphrase is set', (done) => {
+                    // In this scenario targetUsername is 'admin' but targetPassphrase doesn't match the admin password.
+                    // DO will change the admin password.  DO will check to see if changing the admin password caused
+                    // the bigip to change the root 'oldPassword' to match.
+                    // See the comments for the 'describe' for more info.
+
                     declaration = {
                         class: 'DO',
                         targetHost: '1.2.3.4',
@@ -1602,7 +1620,7 @@ describe('restWorker', () => {
                             Common: {
                                 admin: {
                                     class: 'User',
-                                    password: 'f5site02'
+                                    password: 'foofoo'
                                 },
                                 root: {
                                     class: 'User',
@@ -1615,21 +1633,31 @@ describe('restWorker', () => {
                     };
 
                     restWorker.restRequestSender.sendPatch = (restOperation) => {
-                        // this is called when initialPassword changes
-                        assert.notStrictEqual(restOperation.body.oldPassword, restOperation.body.password);
+                        // This is called by initialPasswordSet because the admin password is changing.
+                        assert.strictEqual(restOperation.body.oldPassword, 'admin');
+                        assert.strictEqual(restOperation.body.password, 'foofoo');
                     };
 
                     restWorker.restRequestSender.sendPost = (restOperation) => {
-                        // this is called when root password is tested
-                        assert.strictEqual(restOperation.body.oldPassword, 'f5site02');
-                        assert.strictEqual(restOperation.body.newPassword, 'f5site02');
+                        // This is a POST from rootAccountSetup.  This is called to test if the root password is now
+                        // the admin's new password.  This POST tries to change the root password from the admin's new
+                        // passowrd to the admin's new password. (yes both values are the same).  This is a trick to
+                        // test the root password.  It will respond with an error if the oldPassword is wrong that is
+                        // caught.
+                        assert.strictEqual(restOperation.body.oldPassword, 'foofoo');
+                        assert.strictEqual(restOperation.body.newPassword, 'foofoo');
                         done();
                     };
 
                     restWorker.onPost(restOperationMock);
                 });
 
-                it('should check the root password when admin password changes and targetSshKey is set', (done) => {
+                it('should check the root password when admin password changes when targetSshKey is set', (done) => {
+                    // In this scenario there is a targetSshKey instead of a targetPassphrase.  DO will change the
+                    // admin password to the value in Common.  DO will check to see if changing the admin password
+                    // caused the bigip to change the root 'oldPassword' to match.
+                    // See the comments for the 'describe' for more info.
+
                     declaration = {
                         class: 'DO',
                         targetHost: '1.2.3.4',
@@ -1642,7 +1670,7 @@ describe('restWorker', () => {
                             Common: {
                                 admin: {
                                     class: 'User',
-                                    password: 'f5site02'
+                                    password: 'foofoo'
                                 },
                                 root: {
                                     class: 'User',
@@ -1654,15 +1682,22 @@ describe('restWorker', () => {
                         }
                     };
 
-                    restWorker.restRequestSender.sendPatch = (restOperation) => {
-                        // this is called when initialPassword changes
-                        assert.notStrictEqual(restOperation.body.oldPassword, restOperation.body.password);
+                    restWorker.restRequestSender.sendPatch = () => {
+                        // This is not called.  This is not called by initialPasswordSet because the password is set by
+                        // initialPassworSetViaSsh instead which doesn't use it.  Let's make sure it doesn't get
+                        // called.
+                        patchCalled = true;
                     };
 
                     restWorker.restRequestSender.sendPost = (restOperation) => {
-                        // this is called when root password is tested
-                        assert.strictEqual(restOperation.body.oldPassword, 'f5site02');
-                        assert.strictEqual(restOperation.body.newPassword, 'f5site02');
+                        // This is a POST from rootAccountSetup.  This is called to test if the root password is now
+                        // the admin's new password.  This POST tries to change the root password from the admin's new
+                        // passowrd to the admin's new password. (yes both values are the same).  This is a trick to
+                        // test the root password.  It will respond with an error if the oldPassword is wrong that is
+                        // caught.
+                        assert.ok(!patchCalled);
+                        assert.strictEqual(restOperation.body.oldPassword, 'foofoo');
+                        assert.strictEqual(restOperation.body.newPassword, 'foofoo');
                         done();
                     };
 
