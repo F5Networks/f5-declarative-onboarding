@@ -16,7 +16,11 @@
 
 'use strict';
 
-const assert = require('assert');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chai.use(chaiAsPromised);
+const assert = chai.assert;
 
 const sinon = require('sinon');
 
@@ -71,7 +75,7 @@ describe('declarationHandler', () => {
         sinon.restore();
     });
 
-    it('should parse declarations if not parsed', () => new Promise((resolve, reject) => {
+    it('should parse declarations if not parsed', () => {
         const newDeclaration = {
             name: 'new'
         };
@@ -85,17 +89,13 @@ describe('declarationHandler', () => {
         };
 
         const declarationHandler = new DeclarationHandler(bigIpMock);
-        declarationHandler.process(newDeclaration, state)
+        return declarationHandler.process(newDeclaration, state)
             .then(() => {
                 assert.strictEqual(parsedDeclarations.length, 2);
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
-    it('should not parse declarations if parsed', () => new Promise((resolve, reject) => {
+    it('should not parse declarations if parsed', () => {
         const newDeclaration = {
             name: 'new',
             parsed: true,
@@ -115,14 +115,10 @@ describe('declarationHandler', () => {
             .then(() => {
                 assert.strictEqual(parsedDeclarations.length, 1);
                 assert.strictEqual(parsedDeclarations[0].name, 'current');
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
-    it('should apply defaults for missing items', () => new Promise((resolve, reject) => {
+    it('should apply defaults for missing items', () => {
         const newDeclaration = {
             name: 'new',
             parsed: true,
@@ -167,48 +163,54 @@ describe('declarationHandler', () => {
         };
 
         const declarationHandler = new DeclarationHandler(bigIpMock);
-        declarationHandler.process(newDeclaration, state)
+        return declarationHandler.process(newDeclaration, state)
             .then(() => {
-                state.originalConfig.Common.ConfigSync = { configsyncIp: 'configsyncIp1' };
-                assert.deepStrictEqual(
-                    declarationWithDefaults.Common, state.originalConfig.Common
-                );
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
+                assert.deepStrictEqual(declarationWithDefaults.Common,
+                    {
+                        hostname: 'my.bigip.com',
+                        DNS: {
+                            foo: 'bar'
+                        },
+                        NTP: ['one', 'two'],
+                        VLAN: ['vlan1', 'vlan2'],
+                        SelfIp: false,
+                        RouteDomain: 0,
+                        ManagementRoute: true,
+                        Authentication: {
+                            authKey: true,
+                            remoteUsersDefaults: {
+                                user: 'user'
+                            }
+                        },
+                        ConfigSync: {
+                            configsyncIp: 'configsyncIp1'
+                        }
+                    });
             });
-    }));
+    });
 
     it('should report processing errors', () => {
         const errorMessage = 'this is a processing error';
         SystemHandler.prototype.process = () => Promise.reject(new Error(errorMessage));
 
-        return new Promise((resolve, reject) => {
-            const newDeclaration = {
-                name: 'new',
-                parsed: true,
+        const newDeclaration = {
+            name: 'new',
+            parsed: true,
+            Common: {}
+        };
+        const state = {
+            currentConfig: {
+                name: 'current'
+            },
+            originalConfig: {
                 Common: {}
-            };
-            const state = {
-                currentConfig: {
-                    name: 'current'
-                },
-                originalConfig: {
-                    Common: {}
-                }
-            };
+            }
+        };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            declarationHandler.process(newDeclaration, state)
-                .then(() => {
-                    reject(new Error('processing error should have been caught'));
-                })
-                .catch((err) => {
-                    assert.strictEqual(err.message, errorMessage);
-                    resolve();
-                });
-        });
+        const declarationHandler = new DeclarationHandler(bigIpMock);
+        return assert.isRejected(declarationHandler.process(newDeclaration, state),
+            'this is a processing error',
+            'processing error should have been caught');
     });
 
     it('should apply fix for Default Route Domain - no Route Domains in declaration', () => {

@@ -85,7 +85,7 @@ describe('inspectResponse', () => {
         expectedCode = 200;
         return inspectResponse.getData()
             .then(() => {
-                assert.strictEqual(inspectResponse.getCode(), expectedCode);
+                assert.strictEqual(inspectResponse.getCode(), 200);
             });
     });
 
@@ -121,7 +121,7 @@ describe('inspectResponse', () => {
         expectedMessage = 'expectedMessage';
         return inspectResponse.getData()
             .then(() => {
-                assert.strictEqual(inspectResponse.getMessage(), expectedMessage);
+                assert.strictEqual(inspectResponse.getMessage(), 'expectedMessage');
             });
     });
 
@@ -135,7 +135,7 @@ describe('inspectResponse', () => {
         expectedErrMessage = 'expectedErrMessage';
         return inspectResponse.getData()
             .then(() => {
-                assert.deepStrictEqual(inspectResponse.getErrors(), [expectedErrMessage]);
+                assert.deepStrictEqual(inspectResponse.getErrors(), ['expectedErrMessage']);
             });
     });
 
@@ -143,7 +143,7 @@ describe('inspectResponse', () => {
         expectedResponse = { data: 'data' };
         return inspectResponse.getData()
             .then((response) => {
-                assert.deepStrictEqual(response, expectedResponse);
+                assert.deepStrictEqual(response, { data: 'data' });
             });
     });
 });

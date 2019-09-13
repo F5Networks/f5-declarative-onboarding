@@ -85,40 +85,44 @@ describe('taskResponse', () => {
     it('should return all task ids', () => {
         const taskIds = Object.keys(state.tasks);
         const retrievedIds = taskResponse.getIds();
-        assert.strictEqual(retrievedIds.length, taskIds.length);
+        assert.strictEqual(retrievedIds.length, 2);
         taskIds.forEach((taskId) => {
             assert.notStrictEqual(retrievedIds.indexOf(taskId), -1);
         });
     });
 
     it('should return the proper code for a task', () => {
-        assert.strictEqual(taskResponse.getCode(1234), state.tasks[1234].result.code);
+        assert.strictEqual(taskResponse.getCode(1234), 200);
     });
 
     it('should return the proper status for a task', () => {
-        assert.strictEqual(taskResponse.getStatus(1234), state.tasks[1234].result.status);
+        assert.strictEqual(taskResponse.getStatus(1234), 'my status 1234');
     });
 
     it('should return the proper message for a task', () => {
-        assert.strictEqual(taskResponse.getMessage(1234), state.tasks[1234].result.message);
+        assert.strictEqual(taskResponse.getMessage(1234), 'my message 1234');
     });
 
     it('should return the proper errors for a task', () => {
-        assert.strictEqual(taskResponse.getErrors(1234), state.tasks[1234].result.errors);
+        assert.deepEqual(taskResponse.getErrors(1234), ['error 1', 'error 2']);
     });
 
     it('should return the proper data for a task', () => {
-        assert.deepEqual(taskResponse.getData(1234), { declaration: state.tasks[1234].declaration });
+        assert.deepEqual(taskResponse.getData(1234), {
+            declaration: {
+                hello: 'declaration for 1234'
+            }
+        });
     });
 
     it('should return the proper data for a task with show = full', () => {
         assert.deepEqual(
             taskResponse.getData(1234, { show: 'full' }),
             {
-                originalConfig: state.tasks[1234].originalConfig,
-                currentConfig: state.tasks[1234].currentConfig,
-                declaration: state.tasks[1234].declaration,
-                lastUpdate: state.tasks[1234].lastUpdate
+                originalConfig: { hello: 'original config for 1234' },
+                currentConfig: { foo: 'config for 1234' },
+                declaration: { hello: 'declaration for 1234' },
+                lastUpdate: 'last update 1234'
             }
         );
     });

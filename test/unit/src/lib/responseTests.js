@@ -111,10 +111,10 @@ describe('response', () => {
         new Response(1234, responder).getResponse()
             .then((response) => {
                 assert.strictEqual(response.id, 1234);
-                assert.strictEqual(response.result.code, state.tasks[1234].result.code);
-                assert.strictEqual(response.result.status, state.tasks[1234].result.status);
-                assert.strictEqual(response.result.message, state.tasks[1234].result.message);
-                assert.deepEqual(response.result.errors, state.tasks[1234].result.errors);
+                assert.strictEqual(response.result.code, 200);
+                assert.strictEqual(response.result.status, 'my status 1234');
+                assert.strictEqual(response.result.message, 'my message 1234');
+                assert.deepEqual(response.result.errors, ['error 1', 'error 2']);
                 assert.strictEqual(response.currentConfig, undefined);
                 assert.strictEqual(response.originalConfig, undefined);
             });
@@ -123,9 +123,9 @@ describe('response', () => {
     it('should include full response if options say so', () => {
         new Response(1234, responder, { show: 'full' }).getResponse()
             .then((response) => {
-                assert.deepEqual(response.currentConfig, state.tasks[1234].currentConfig);
-                assert.deepEqual(response.originalConfig, state.tasks[1234].originalConfig);
-                assert.deepEqual(response.lastUpdate, state.tasks[1234].lastUpdate);
+                assert.deepEqual(response.currentConfig, { foo: 'config for 1234' });
+                assert.deepEqual(response.originalConfig, { hello: 'original config for 1234' });
+                assert.deepEqual(response.lastUpdate, 'last update 1234');
             });
     });
 

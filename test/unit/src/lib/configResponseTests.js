@@ -93,7 +93,7 @@ describe('configResponse', () => {
     it('should return all config ids', () => {
         const configIds = Object.keys(state.originalConfig);
         const retrievedIds = configResponse.getIds();
-        assert.strictEqual(retrievedIds.length, configIds.length);
+        assert.strictEqual(retrievedIds.length, 2);
         configIds.forEach((taskId) => {
             assert.notStrictEqual(retrievedIds.indexOf(taskId), -1);
         });
@@ -116,7 +116,29 @@ describe('configResponse', () => {
     });
 
     it('should return the proper data', () => {
-        assert.deepEqual(configResponse.getData(1234), state.originalConfig[1234]);
-        assert.deepEqual(configResponse.getData(5678), state.originalConfig[5678]);
+        assert.deepEqual(configResponse.getData(1234),
+            {
+                Common:
+                {
+                    hostname: 'bigip1.example.com',
+                    Provision: { afm: 'none', ltm: 'nominal', urldb: 'none' },
+                    NTP: { timezone: 'UTC' },
+                    DNS: { nameServers: ['8.8.8.8'] },
+                    VLAN: { foo: '1234 vlan' }
+                },
+                lastUpdate: 'last update 1234'
+            });
+        assert.deepEqual(configResponse.getData(5678),
+            {
+                Common:
+                {
+                    hostname: 'bigip2.example.com',
+                    Provision: { afm: 'nominal', ltm: 'none', urldb: 'none' },
+                    NTP: { timezone: 'America/Los_Angeles' },
+                    DNS: { nameServers: ['127.0.1.1'] },
+                    VLAN: { foo: '5678 vlan' }
+                },
+                lastUpdate: 'last update 5678'
+            });
     });
 });

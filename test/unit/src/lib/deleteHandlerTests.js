@@ -16,10 +16,13 @@
 
 'use strict';
 
-const assert = require('assert');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chai.use(chaiAsPromised);
+const assert = chai.assert;
+
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
-const AUTH = require('../../../../src/lib/sharedConstants').AUTH;
-const RADIUS = require('../../../../src/lib/sharedConstants').RADIUS;
 
 
 let DeleteHandler;
@@ -78,23 +81,17 @@ describe(('deleteHandler'), function testDeleteHandler() {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-            deleteHandler.process()
-                .then(() => {
-                    assert.strictEqual(deletedPaths.length, 6);
-                    assert.strictEqual(deletedPaths[0], `${PATHS.Route}/~Common~deleteThisRoute`);
-                    assert.strictEqual(deletedPaths[1], `${PATHS.SelfIp}/~Common~deleteThisSelfIp1`);
-                    assert.strictEqual(deletedPaths[2], `${PATHS.SelfIp}/~Common~deleteThisSelfIp2`);
-                    assert.strictEqual(deletedPaths[3], `${PATHS.SelfIp}/~Common~deleteThisSelfIp3`);
-                    assert.strictEqual(deletedPaths[4], `${PATHS.VLAN}/~Common~deleteThisVLAN1`);
-                    assert.strictEqual(deletedPaths[5], `${PATHS.VLAN}/~Common~deleteThisVLAN2`);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 6);
+                assert.strictEqual(deletedPaths[0], '/tm/net/route/~Common~deleteThisRoute');
+                assert.strictEqual(deletedPaths[1], '/tm/net/self/~Common~deleteThisSelfIp1');
+                assert.strictEqual(deletedPaths[2], '/tm/net/self/~Common~deleteThisSelfIp2');
+                assert.strictEqual(deletedPaths[3], '/tm/net/self/~Common~deleteThisSelfIp3');
+                assert.strictEqual(deletedPaths[4], '/tm/net/vlan/~Common~deleteThisVLAN1');
+                assert.strictEqual(deletedPaths[5], '/tm/net/vlan/~Common~deleteThisVLAN2');
+            });
     });
 
     it('should issue deletes for Authentication subclasses', () => {
@@ -115,22 +112,16 @@ describe(('deleteHandler'), function testDeleteHandler() {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-            deleteHandler.process()
-                .then(() => {
-                    assert.strictEqual(deletedPaths.length, 5);
-                    assert.strictEqual(deletedPaths[0], `/tm/auth/radius/${AUTH.SUBCLASSES_NAME}`);
-                    assert.strictEqual(deletedPaths[1], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.PRIMARY_SERVER}`);
-                    assert.strictEqual(deletedPaths[2], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`);
-                    assert.strictEqual(deletedPaths[3], `/tm/auth/tacacs/${AUTH.SUBCLASSES_NAME}`);
-                    assert.strictEqual(deletedPaths[4], `/tm/auth/ldap/${AUTH.SUBCLASSES_NAME}`);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 5);
+                assert.strictEqual(deletedPaths[0], '/tm/auth/radius/system-auth');
+                assert.strictEqual(deletedPaths[1], '/tm/auth/radius-server/~Common~system_auth_name1');
+                assert.strictEqual(deletedPaths[2], '/tm/auth/radius-server/~Common~system_auth_name2');
+                assert.strictEqual(deletedPaths[3], '/tm/auth/tacacs/system-auth');
+                assert.strictEqual(deletedPaths[4], '/tm/auth/ldap/system-auth');
+            });
     });
 
     it('should issue deletes for Authentication radius servers', () => {
@@ -149,20 +140,14 @@ describe(('deleteHandler'), function testDeleteHandler() {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-            deleteHandler.process()
-                .then(() => {
-                    assert.strictEqual(deletedPaths.length, 3);
-                    assert.strictEqual(deletedPaths[0], `/tm/auth/radius/${AUTH.SUBCLASSES_NAME}`);
-                    assert.strictEqual(deletedPaths[1], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.PRIMARY_SERVER}`);
-                    assert.strictEqual(deletedPaths[2], `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 3);
+                assert.strictEqual(deletedPaths[0], '/tm/auth/radius/system-auth');
+                assert.strictEqual(deletedPaths[1], '/tm/auth/radius-server/~Common~system_auth_name1');
+                assert.strictEqual(deletedPaths[2], '/tm/auth/radius-server/~Common~system_auth_name2');
+            });
     });
 
     it('should not issue deletes for non-deletable classes', () => {
@@ -177,17 +162,11 @@ describe(('deleteHandler'), function testDeleteHandler() {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-            deleteHandler.process()
-                .then(() => {
-                    assert.strictEqual(deletedPaths.length, 0);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 0);
+            });
     });
 
     it('should issue deletes for normal device groups', () => {
@@ -200,19 +179,13 @@ describe(('deleteHandler'), function testDeleteHandler() {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-            deleteHandler.process()
-                .then(() => {
-                    assert.strictEqual(deletedDeviceGroups.length, 2);
-                    assert.strictEqual(deletedDeviceGroups[0], 'deleteThisGroup');
-                    assert.strictEqual(deletedDeviceGroups[1], 'deleteThisGroupToo');
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedDeviceGroups.length, 2);
+                assert.strictEqual(deletedDeviceGroups[0], 'deleteThisGroup');
+                assert.strictEqual(deletedDeviceGroups[1], 'deleteThisGroupToo');
+            });
     });
 
     it('should not issue deletes for read-only device groups', () => {
@@ -227,43 +200,29 @@ describe(('deleteHandler'), function testDeleteHandler() {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-            deleteHandler.process()
-                .then(() => {
-                    assert.strictEqual(deletedDeviceGroups.length, 1);
-                    assert.strictEqual(deletedDeviceGroups[0], 'deleteThisGroup');
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedDeviceGroups.length, 1);
+                assert.strictEqual(deletedDeviceGroups[0], 'deleteThisGroup');
+            });
     });
 
     it('should report processing errors', () => {
         const errorMessage = 'this is a processing error';
         bigIpMock.delete = () => Promise.reject(new Error(errorMessage));
 
-        return new Promise((resolve, reject) => {
-            const declaration = {
-                Common: {
-                    VLAN: {
-                        deleteThisVLAN: {}
-                    }
+        const declaration = {
+            Common: {
+                VLAN: {
+                    deleteThisVLAN: {}
                 }
-            };
+            }
+        };
 
-            const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-            deleteHandler.process()
-                .then(() => {
-                    reject(new Error('processing error should have been caught'));
-                })
-                .catch((err) => {
-                    assert.strictEqual(err.message, errorMessage);
-                    resolve();
-                });
-        });
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return assert.isRejected(deleteHandler.process(), 'this is a processing error',
+            'processing error should have been caught');
     });
 
     it('should properly set the path for Remote Roles', () => {

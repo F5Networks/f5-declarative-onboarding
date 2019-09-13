@@ -84,28 +84,22 @@ describe('networkHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                networkHandler.process()
-                    .then(() => {
-                        const trunkData = dataSent[PATHS.Trunk];
-                        assert.strictEqual(trunkData.length, 1);
-                        assert.strictEqual(trunkData[0].name, 'trunk1');
-                        assert.strictEqual(trunkData[0].distributionHash, 'dst-mac');
-                        assert.strictEqual(trunkData[0].interfaces[0], '1.1');
-                        assert.strictEqual(trunkData[0].interfaces[1], '1.2');
-                        assert.strictEqual(trunkData[0].lacp, 'enabled');
-                        assert.strictEqual(trunkData[0].lacpMode, 'active');
-                        assert.strictEqual(trunkData[0].lacpTimeout, 'long');
-                        assert.strictEqual(trunkData[0].linkSelectPolicy, 'auto');
-                        assert.strictEqual(trunkData[0].qinqEthertype, '0xAF09');
-                        assert.strictEqual(trunkData[0].stp, 'enabled');
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const trunkData = dataSent[PATHS.Trunk];
+                    assert.strictEqual(trunkData.length, 1);
+                    assert.strictEqual(trunkData[0].name, 'trunk1');
+                    assert.strictEqual(trunkData[0].distributionHash, 'dst-mac');
+                    assert.strictEqual(trunkData[0].interfaces[0], '1.1');
+                    assert.strictEqual(trunkData[0].interfaces[1], '1.2');
+                    assert.strictEqual(trunkData[0].lacp, 'enabled');
+                    assert.strictEqual(trunkData[0].lacpMode, 'active');
+                    assert.strictEqual(trunkData[0].lacpTimeout, 'long');
+                    assert.strictEqual(trunkData[0].linkSelectPolicy, 'auto');
+                    assert.strictEqual(trunkData[0].qinqEthertype, '0xAF09');
+                    assert.strictEqual(trunkData[0].stp, 'enabled');
+                });
         });
     });
 
@@ -146,32 +140,26 @@ describe('networkHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                networkHandler.process()
-                    .then(() => {
-                        const vlanData = dataSent[PATHS.VLAN];
-                        assert.strictEqual(vlanData.length, 2);
-                        assert.strictEqual(vlanData[0].name, declaration.Common.VLAN.vlan1.name);
-                        assert.strictEqual(vlanData[0].tag, declaration.Common.VLAN.vlan1.tag);
-                        assert.strictEqual(vlanData[0].mtu, declaration.Common.VLAN.vlan1.mtu);
-                        assert.strictEqual(vlanData[0].interfaces[0].name, '1.1');
-                        assert.strictEqual(vlanData[0].interfaces[0].tagged, true);
-                        assert.strictEqual(vlanData[0].interfaces[1].name, '1.2');
-                        assert.strictEqual(vlanData[0].interfaces[1].tagged, false);
-                        assert.strictEqual(vlanData[0].partition, 'Common');
-                        assert.strictEqual(vlanData[0].cmpHash, declaration.Common.VLAN.vlan1.cmpHash);
-                        assert.strictEqual(vlanData[1].name, declaration.Common.VLAN.vlan2.name);
-                        assert.strictEqual(vlanData[1].tag, declaration.Common.VLAN.vlan2.tag);
-                        assert.strictEqual(vlanData[1].mtu, declaration.Common.VLAN.vlan2.mtu);
-                        assert.strictEqual(vlanData[1].partition, 'Common');
-                        assert.strictEqual(vlanData[1].cmpHash, declaration.Common.VLAN.vlan2.cmpHash);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const vlanData = dataSent[PATHS.VLAN];
+                    assert.strictEqual(vlanData.length, 2);
+                    assert.strictEqual(vlanData[0].name, 'vlan1');
+                    assert.strictEqual(vlanData[0].tag, 4094);
+                    assert.strictEqual(vlanData[0].mtu, 1500);
+                    assert.strictEqual(vlanData[0].interfaces[0].name, '1.1');
+                    assert.strictEqual(vlanData[0].interfaces[0].tagged, true);
+                    assert.strictEqual(vlanData[0].interfaces[1].name, '1.2');
+                    assert.strictEqual(vlanData[0].interfaces[1].tagged, false);
+                    assert.strictEqual(vlanData[0].partition, 'Common');
+                    assert.strictEqual(vlanData[0].cmpHash, 'dst-ip');
+                    assert.strictEqual(vlanData[1].name, 'vlan2');
+                    assert.strictEqual(vlanData[1].tag, 4093);
+                    assert.strictEqual(vlanData[1].mtu, 1400);
+                    assert.strictEqual(vlanData[1].partition, 'Common');
+                    assert.strictEqual(vlanData[1].cmpHash, 'src-ip');
+                });
         });
 
         it('should set tagged true if VLAN is tagged', () => {
@@ -191,18 +179,12 @@ describe('networkHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                networkHandler.process()
-                    .then(() => {
-                        const vlanData = dataSent[PATHS.VLAN][0];
-                        assert.strictEqual(vlanData.interfaces[0].tagged, true);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const vlanData = dataSent[PATHS.VLAN][0];
+                    assert.strictEqual(vlanData.interfaces[0].tagged, true);
+                });
         });
 
         it('should set tagged false if VLAN is not tagged', () => {
@@ -221,18 +203,12 @@ describe('networkHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                networkHandler.process()
-                    .then(() => {
-                        const vlanData = dataSent[PATHS.VLAN][0];
-                        assert.strictEqual(vlanData.interfaces[0].tagged, false);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const vlanData = dataSent[PATHS.VLAN][0];
+                    assert.strictEqual(vlanData.interfaces[0].tagged, false);
+                });
         });
     });
 
@@ -259,37 +235,31 @@ describe('networkHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                networkHandler.process()
-                    .then(() => {
-                        const selfIpdata = dataSent[PATHS.SelfIp];
-                        assert.strictEqual(selfIpdata[0].name, declaration.Common.SelfIp.selfIp1.name);
-                        assert.strictEqual(selfIpdata[0].vlan, declaration.Common.SelfIp.selfIp1.vlan);
-                        assert.strictEqual(selfIpdata[0].address, declaration.Common.SelfIp.selfIp1.address);
-                        assert.strictEqual(
-                            selfIpdata[0].trafficGroup, declaration.Common.SelfIp.selfIp1.trafficGroup
-                        );
-                        assert.strictEqual(
-                            selfIpdata[0].allowService, declaration.Common.SelfIp.selfIp1.allowService
-                        );
-                        assert.strictEqual(selfIpdata[0].partition, 'Common');
-                        assert.strictEqual(selfIpdata[1].name, declaration.Common.SelfIp.selfIp2.name);
-                        assert.strictEqual(selfIpdata[1].vlan, declaration.Common.SelfIp.selfIp2.vlan);
-                        assert.strictEqual(selfIpdata[1].address, declaration.Common.SelfIp.selfIp2.address);
-                        assert.strictEqual(
-                            selfIpdata[1].trafficGroup, declaration.Common.SelfIp.selfIp2.trafficGroup
-                        );
-                        assert.strictEqual(
-                            selfIpdata[1].allowService, declaration.Common.SelfIp.selfIp2.allowService
-                        );
-                        assert.strictEqual(selfIpdata[1].partition, 'Common');
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const selfIpData = dataSent[PATHS.SelfIp];
+                    assert.strictEqual(selfIpData[0].name, 'selfIp1');
+                    assert.strictEqual(selfIpData[0].vlan, '/Common/vlan1');
+                    assert.strictEqual(selfIpData[0].address, '1.2.3.4');
+                    assert.strictEqual(
+                        selfIpData[0].trafficGroup, '/Common/traffic-group-local-only'
+                    );
+                    assert.deepStrictEqual(
+                        selfIpData[0].allowService, ['tcp:1234', 'tcp:5678']
+                    );
+                    assert.strictEqual(selfIpData[0].partition, 'Common');
+                    assert.strictEqual(selfIpData[1].name, 'selfIp2');
+                    assert.strictEqual(selfIpData[1].vlan, '/Common/vlan2');
+                    assert.strictEqual(selfIpData[1].address, '5.6.7.8');
+                    assert.strictEqual(
+                        selfIpData[1].trafficGroup, '/Common/traffic-group-local-only'
+                    );
+                    assert.strictEqual(
+                        selfIpData[1].allowService, 'default'
+                    );
+                    assert.strictEqual(selfIpData[1].partition, 'Common');
+                });
         });
 
         it('should prepend tenant if missing', () => {
@@ -304,20 +274,14 @@ describe('networkHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                networkHandler.process()
-                    .then(() => {
-                        const selfIpdata = dataSent[PATHS.SelfIp][0];
-                        assert.strictEqual(
-                            selfIpdata.vlan, `/Common/${declaration.Common.SelfIp.selfIp1.vlan}`
-                        );
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const selfIpData = dataSent[PATHS.SelfIp][0];
+                    assert.strictEqual(
+                        selfIpData.vlan, '/Common/vlan1'
+                    );
+                });
         });
 
         it('should send non-floating SelfIps before floating SelfIps', () => {
@@ -338,19 +302,13 @@ describe('networkHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                networkHandler.process()
-                    .then(() => {
-                        const selfIpdata = dataSent[PATHS.SelfIp];
-                        assert.strictEqual(selfIpdata[0].name, declaration.Common.SelfIp.selfIp2.name);
-                        assert.strictEqual(selfIpdata[1].name, declaration.Common.SelfIp.selfIp1.name);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const selfIpData = dataSent[PATHS.SelfIp];
+                    assert.strictEqual(selfIpData[0].name, 'selfIp2');
+                    assert.strictEqual(selfIpData[1].name, 'selfIp1');
+                });
         });
 
         describe('modify self ip', () => {
@@ -401,21 +359,15 @@ describe('networkHandler', () => {
                     return Promise.resolve();
                 };
 
-                return new Promise((resolve, reject) => {
-                    const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                    networkHandler.process()
-                        .then(() => {
-                            assert.strictEqual(deletedPaths.length, 1);
-                            assert.strictEqual(
-                                deletedPaths[0],
-                                `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp1.name}`
-                            );
-                            resolve();
-                        })
-                        .catch((err) => {
-                            reject(err);
-                        });
-                });
+                const networkHandler = new NetworkHandler(declaration, bigIpMock);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deletedPaths.length, 1);
+                        assert.strictEqual(
+                            deletedPaths[0],
+                            '/tm/net/self/~Common~selfIp1'
+                        );
+                    });
             });
 
             it('should delete and re-add floating self ips in the same subnet', () => {
@@ -466,29 +418,22 @@ describe('networkHandler', () => {
                     return Promise.resolve();
                 };
 
-                return new Promise((resolve, reject) => {
-                    const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                    networkHandler.process()
-                        .then(() => {
-                            assert.strictEqual(deletedPaths.length, 2);
-                            assert.strictEqual(
-                                deletedPaths[0],
-                                `${PATHS.SelfIp}/~Common~${selfIpToDelete.name}`
-                            );
-                            assert.strictEqual(
-                                deletedPaths[1],
-                                `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp1.name}`
-                            );
-                            assert.deepEqual(
-                                dataSent[PATHS.SelfIp][1],
-                                selfIpToDelete
-                            );
-                            resolve();
-                        })
-                        .catch((err) => {
-                            reject(err);
-                        });
-                });
+                const networkHandler = new NetworkHandler(declaration, bigIpMock);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deletedPaths.length, 2);
+                        assert.strictEqual(deletedPaths[0], '/tm/net/self/~Common~floater');
+                        assert.strictEqual(deletedPaths[1], '/tm/net/self/~Common~selfIp1');
+                        assert.deepEqual(dataSent[PATHS.SelfIp][1],
+                            {
+                                name: 'floater',
+                                partition: 'Common',
+                                vlan: '/Common/vlan1',
+                                address: '10.10.0.200/24',
+                                trafficGroup: 'traffic-group-1',
+                                allowService: ['default']
+                            });
+                    });
             });
 
             it('should delete and re-add routes in the same subnet', () => {
@@ -561,33 +506,22 @@ describe('networkHandler', () => {
                     return Promise.resolve();
                 };
 
-                return new Promise((resolve, reject) => {
-                    const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                    networkHandler.process()
-                        .then(() => {
-                            assert.strictEqual(deletedPaths.length, 3);
-                            assert.strictEqual(
-                                deletedPaths[0],
-                                `${PATHS.Route}/~Common~default`
-                            );
-                            assert.strictEqual(
-                                deletedPaths[1],
-                                `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp1.name}`
-                            );
-                            assert.strictEqual(
-                                deletedPaths[2],
-                                `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp3.name}`
-                            );
-                            assert.deepEqual(
-                                dataSent[PATHS.Route][0],
-                                routeToDelete
-                            );
-                            resolve();
-                        })
-                        .catch((err) => {
-                            reject(err);
-                        });
-                });
+                const networkHandler = new NetworkHandler(declaration, bigIpMock);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deletedPaths.length, 3);
+                        assert.strictEqual(deletedPaths[0], '/tm/net/route/~Common~default');
+                        assert.strictEqual(deletedPaths[1], '/tm/net/self/~Common~selfIp1');
+                        assert.strictEqual(deletedPaths[2], '/tm/net/self/~Common~selfIp3');
+                        assert.deepEqual(dataSent[PATHS.Route][0],
+                            {
+                                name: 'default',
+                                partition: 'Common',
+                                gw: '10.10.0.1',
+                                network: 'default',
+                                mtu: 1500
+                            });
+                    });
             });
         });
     });
@@ -613,27 +547,21 @@ describe('networkHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const networkHandler = new NetworkHandler(declaration, bigIpMock);
-                networkHandler.process()
-                    .then(() => {
-                        const routeData = dataSent[PATHS.Route];
-                        assert.strictEqual(routeData[0].name, declaration.Common.Route.route1.name);
-                        assert.strictEqual(routeData[0].gw, declaration.Common.Route.route1.gw);
-                        assert.strictEqual(routeData[0].network, declaration.Common.Route.route1.network);
-                        assert.strictEqual(routeData[0].mtu, declaration.Common.Route.route1.mtu);
-                        assert.strictEqual(routeData[0].partition, 'Common');
-                        assert.strictEqual(routeData[1].name, declaration.Common.Route.route2.name);
-                        assert.strictEqual(routeData[1].gw, declaration.Common.Route.route2.gw);
-                        assert.strictEqual(routeData[1].network, declaration.Common.Route.route2.network);
-                        assert.strictEqual(routeData[1].mtu, declaration.Common.Route.route2.mtu);
-                        assert.strictEqual(routeData[1].partition, 'Common');
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const routeData = dataSent[PATHS.Route];
+                    assert.strictEqual(routeData[0].name, 'route1');
+                    assert.strictEqual(routeData[0].gw, '0.0.0.0');
+                    assert.strictEqual(routeData[0].network, 'default');
+                    assert.strictEqual(routeData[0].mtu, 1500);
+                    assert.strictEqual(routeData[0].partition, 'Common');
+                    assert.strictEqual(routeData[1].name, 'route2');
+                    assert.strictEqual(routeData[1].gw, '1.1.1.1');
+                    assert.strictEqual(routeData[1].network, '2.2.2.2');
+                    assert.strictEqual(routeData[1].mtu, 1400);
+                    assert.strictEqual(routeData[1].partition, 'Common');
+                });
         });
     });
 
@@ -713,10 +641,9 @@ describe('networkHandler', () => {
             return networkHandler.process()
                 .then(() => {
                     const dagGlobalsData = dataSent[PATHS.DagGlobals];
-                    assert.strictEqual(dagGlobalsData[0].dagIpv6PrefixLen,
-                        declaration.Common.DagGlobals.ipv6PrefixLength);
-                    assert.strictEqual(dagGlobalsData[0].icmpHash, declaration.Common.DagGlobals.icmpHash);
-                    assert.strictEqual(dagGlobalsData[0].roundRobinMode, declaration.Common.DagGlobals.roundRobinMode);
+                    assert.strictEqual(dagGlobalsData[0].dagIpv6PrefixLen, 120);
+                    assert.strictEqual(dagGlobalsData[0].icmpHash, 'ipicmp');
+                    assert.strictEqual(dagGlobalsData[0].roundRobinMode, 'local');
                 });
         });
     });

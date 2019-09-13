@@ -126,26 +126,26 @@ describe('declarationParser', () => {
         assert.notStrictEqual(tenants.indexOf('Tenant1'), -1);
 
         // system
-        assert.strictEqual(parsedDeclaration.Common.hostname, declaration.Common.hostname);
+        assert.strictEqual(parsedDeclaration.Common.hostname, 'bigip.example.com');
         assert.strictEqual(
             parsedDeclaration.Common.License.regKey,
-            declaration.Common.myLicense.regKey
+            'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ'
         );
         assert.strictEqual(
             parsedDeclaration.Common.NTP.servers[0],
-            declaration.Common.myNtp.servers[0]
+            '0.pool.ntp.org'
         );
 
         // network
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, 'commonVlan');
-        assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.tag, declaration.Common.commonVlan.tag);
+        assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.tag, 1111);
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.name, 'app1Vlan');
-        assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.tag, declaration.Tenant1.app1Vlan.tag);
-        assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app2Vlan.tag, declaration.Tenant1.app2Vlan.tag);
+        assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.tag, 1234);
+        assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app2Vlan.tag, 3456);
 
         assert.strictEqual(
             parsedDeclaration.Tenant1.SelfIp.app1SelfIp.vlan,
-            declaration.Tenant1.app1SelfIp.vlan
+            'app1Vlan'
         );
     });
 
@@ -166,7 +166,7 @@ describe('declarationParser', () => {
         const parsed = declarationParser.parse();
         const parsedDeclaration = parsed.parsedDeclaration;
 
-        assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, declaration.Common.commonVlan.name);
+        assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, 'my provided name');
     });
 
     it('should dereference pointers', () => {
@@ -208,24 +208,12 @@ describe('declarationParser', () => {
         const declarationParser = new DeclarationParser(declaration);
         const parsedDeclaration = declarationParser.parse().parsedDeclaration;
         assert.strictEqual(parsedDeclaration.Common.SelfIp.mySelfIp.vlan, '/Common/myVlan');
-        assert.strictEqual(
-            parsedDeclaration.Common.ConfigSync.configsyncIp,
-            declaration.Common.mySelfIp.address
-        );
-        assert.strictEqual(
-            parsedDeclaration.Common.License.bigIpUsername,
-            declaration.Credentials[0].username
-        );
-        assert.strictEqual(
-            parsedDeclaration.Common.License.bigIqUsername,
-            declaration.Credentials[1].username
-        );
+        assert.strictEqual(parsedDeclaration.Common.ConfigSync.configsyncIp, '1.2.3.4');
+        assert.strictEqual(parsedDeclaration.Common.License.bigIpUsername, 'myUser');
+        assert.strictEqual(parsedDeclaration.Common.License.bigIqUsername, 'myOtherUser');
 
         // If we get a pointer that does not de-reference, we should just get back the
         // original pointer
-        assert.strictEqual(
-            parsedDeclaration.Common.License.notAPointer,
-            declaration.Common.myLicense.notAPointer
-        );
+        assert.strictEqual(parsedDeclaration.Common.License.notAPointer, '/foo/bar');
     });
 });

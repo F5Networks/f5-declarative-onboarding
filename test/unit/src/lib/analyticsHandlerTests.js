@@ -16,14 +16,18 @@
 
 'use strict';
 
-const assert = require('assert');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chai.use(chaiAsPromised);
+const assert = chai.assert;
 
 const AnalyticsHandler = require('../../../../src/lib/analyticsHandler');
 
 describe('analyticsHandler', () => {
     it('should handle declaration with no Common', () => {
         const handler = new AnalyticsHandler({});
-        return handler.process();
+        return assert.isFulfilled(handler.process());
     });
 
     it('should handle declaration with no Common.Analytics', () => {
@@ -31,7 +35,7 @@ describe('analyticsHandler', () => {
             Common: {}
         };
         const handler = new AnalyticsHandler(declaration);
-        return handler.process();
+        return assert.isFulfilled(handler.process());
     });
 
     function makeAssertTranslate(key, expectKey) {
@@ -50,7 +54,7 @@ describe('analyticsHandler', () => {
             };
 
             const handler = new AnalyticsHandler(declaration, bigip);
-            return handler.process();
+            return assert.isFulfilled(handler.process());
         };
     }
 

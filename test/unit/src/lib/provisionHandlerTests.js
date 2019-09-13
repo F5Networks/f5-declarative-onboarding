@@ -70,8 +70,8 @@ describe('provisionHandler', () => {
         const handler = new ProvisionHandler(declaration, bigIpMock, null, state);
         return handler.process()
             .then(() => {
-                assert.strictEqual(provisioningSent.module1, declaration.Common.Provision.module1);
-                assert.strictEqual(provisioningSent.module2, declaration.Common.Provision.module2);
+                assert.strictEqual(provisioningSent.module1, 'level 1');
+                assert.strictEqual(provisioningSent.module2, 'level 2');
                 assert.ok(numActiveRequests > 0);
             });
     });

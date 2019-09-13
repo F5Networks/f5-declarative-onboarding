@@ -16,7 +16,11 @@
 
 'use strict';
 
-const assert = require('assert');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chai.use(chaiAsPromised);
+const assert = chai.assert;
 const sinon = require('sinon');
 const URL = require('url');
 
@@ -66,15 +70,13 @@ describe('inspectHandler', () => {
         });
 
         it('should return the custom code 400', () => {
-            const expectedCode = 400;
-            inspectHandler.code = expectedCode;
-            assert.strictEqual(inspectHandler.getCode(), expectedCode);
+            inspectHandler.code = 400;
+            assert.strictEqual(inspectHandler.getCode(), 400);
         });
 
-        it('should return the acode of 500', () => {
-            const expectedCode = 500;
+        it('should return the code of 500', () => {
             inspectHandler.errors = ['error'];
-            assert.strictEqual(inspectHandler.getCode(), expectedCode);
+            assert.strictEqual(inspectHandler.getCode(), 500);
         });
 
         it('should return a status of OK', () => {
@@ -96,9 +98,8 @@ describe('inspectHandler', () => {
         });
 
         it('should return custom message', () => {
-            const expectedMessage = 'expectedMessage';
-            inspectHandler.message = expectedMessage;
-            assert.strictEqual(inspectHandler.getMessage(), expectedMessage);
+            inspectHandler.message = 'expectedMessage';
+            assert.strictEqual(inspectHandler.getMessage(), 'expectedMessage');
         });
 
         it('should return empty errors', () => {
@@ -193,9 +194,8 @@ describe('inspectHandler', () => {
             });
 
             it('should convert targetHost value to lower case', () => {
-                const host = 'targetHost';
-                inspectHandler.queryParams = { targetHost: host };
-                targetHost = host.toLowerCase();
+                inspectHandler.queryParams = { targetHost: 'targetHost' };
+                targetHost = 'targethost';
                 return inspectHandler.process()
                     .then(data => basicAssertsForSuccessResponse(data));
             });
@@ -273,46 +273,43 @@ describe('inspectHandler', () => {
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
                             errMsg => errMsg.indexOf('Invalid value for parameter') !== -1
-                                        && errMsg.indexOf(invalidParam) !== -1);
+                                        && errMsg.indexOf('targetHost') !== -1);
                     });
             });
 
             it('should fail when targetPort is not a valid number', () => {
-                const invalidParam = 'targetPort';
                 inspectHandler.queryParams = {
-                    [invalidParam]: 'notNumber'
+                    targetPort: 'notNumber'
                 };
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
                             errMsg => errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf(invalidParam) !== -1);
+                                        && errMsg.indexOf('targetPort') !== -1);
                     });
             });
 
             it('should fail when targetPort is out of allowed range', () => {
-                const invalidParam = 'targetPort';
                 inspectHandler.queryParams = {
-                    [invalidParam]: '-10'
+                    targetPort: '-10'
                 };
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
                             errMsg => errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf(invalidParam) !== -1);
+                                        && errMsg.indexOf('targetPort') !== -1);
                     });
             });
 
             it('should fail when targetPort is out of allowed range one more time', () => {
-                const invalidParam = 'targetPort';
                 inspectHandler.queryParams = {
-                    [invalidParam]: '999999'
+                    targetPort: '999999'
                 };
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
                             errMsg => errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf(invalidParam) !== -1);
+                                        && errMsg.indexOf('targetPort') !== -1);
                     });
             });
 
