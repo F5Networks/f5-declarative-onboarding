@@ -67,7 +67,8 @@ describe('validator', () => {
 
         return validator.validate(data)
             .then(() => {
-                assert.strictEqual(data.declaration.Common.mySelfIp.trafficGroup, 'traffic-group-local-only');
+                assert.strictEqual(data.declaration.Common.mySelfIp.trafficGroup,
+                    'traffic-group-local-only');
             });
     });
 });

@@ -16,9 +16,13 @@
 
 'use strict';
 
-const assert = require('assert');
-const dns = require('dns');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 
+chai.use(chaiAsPromised);
+const assert = chai.assert;
+
+const dns = require('dns');
 const sinon = require('sinon');
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
@@ -59,93 +63,65 @@ describe('dscHandler', () => {
         });
 
         it('should send config sync IP', () => {
-            const configSyncIp = '1.2.3.4';
             const declaration = {
                 Common: {
                     ConfigSync: {
-                        configsyncIp: `${configSyncIp}`
+                        configsyncIp: '1.2.3.4'
                     }
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(configSyncIpSent, configSyncIp);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(configSyncIpSent, '1.2.3.4');
+                });
         });
 
         it('should strip CIDR', () => {
-            const configSyncIp = '1.2.3.4';
             const declaration = {
                 Common: {
                     ConfigSync: {
-                        configsyncIp: `${configSyncIp}/24`
+                        configsyncIp: '1.2.3.4/24'
                     }
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(configSyncIpSent, configSyncIp);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(configSyncIpSent, '1.2.3.4');
+                });
         });
 
         it('should send "none" to disable config sync', () => {
-            const configSyncIp = 'none';
             const declaration = {
                 Common: {
                     ConfigSync: {
-                        configsyncIp: `${configSyncIp}`
+                        configsyncIp: 'none'
                     }
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(configSyncIpSent, configSyncIp);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(configSyncIpSent, 'none');
+                });
         });
 
         it('should send "none" when configsyncIp not defined', () => {
-            const configSyncIp = 'none';
             const declaration = {
                 Common: {
                     ConfigSync: {}
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(configSyncIpSent, configSyncIp);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(configSyncIpSent, 'none');
+                });
         });
     });
 
@@ -173,19 +149,13 @@ describe('dscHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(pathSent, `/tm/cm/device/~Common~${hostname}`);
-                        assert.strictEqual(bodySent.unicastAddress[0].ip, address);
-                        assert.strictEqual(bodySent.unicastAddress[0].port, port);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
+                    assert.strictEqual(bodySent.unicastAddress[0].ip, '1.2.3.4');
+                    assert.strictEqual(bodySent.unicastAddress[0].port, 1234);
+                });
         });
 
         it('should strip CIDR from address', () => {
@@ -198,17 +168,11 @@ describe('dscHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(bodySent.unicastAddress[0].ip, address);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(bodySent.unicastAddress[0].ip, '1.2.3.4');
+                });
         });
     });
 
@@ -259,27 +223,15 @@ describe('dscHandler', () => {
                 return Promise.reject(new Error('Unexpected path'));
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(getBigIpOptions.host, declaration.Common.DeviceTrust.remoteHost);
-                        assert.strictEqual(
-                            getBigIpOptions.user,
-                            declaration.Common.DeviceTrust.remoteUsername
-                        );
-                        assert.strictEqual(
-                            getBigIpOptions.password,
-                            declaration.Common.DeviceTrust.remotePassword
-                        );
-                        assert.strictEqual(addToTrustHost, hostname);
-                        assert.strictEqual(syncCompleteCalled, true);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(getBigIpOptions.host, 'someOtherHost');
+                    assert.strictEqual(getBigIpOptions.user, 'admin');
+                    assert.strictEqual(getBigIpOptions.password, 'pass2word');
+                    assert.strictEqual(addToTrustHost, 'my.bigip.com');
+                    assert.strictEqual(syncCompleteCalled, true);
+                });
         });
 
         it('should not request remote big ip to add to trust if we are the remote based on hostname', () => {
@@ -295,19 +247,13 @@ describe('dscHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(getBigIpOptions, undefined);
-                        assert.strictEqual(addToTrustHost, undefined);
-                        assert.strictEqual(syncCompleteCalled, false);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(getBigIpOptions, undefined);
+                    assert.strictEqual(addToTrustHost, undefined);
+                    assert.strictEqual(syncCompleteCalled, false);
+                });
         });
 
         it('should not request remote big ip to add to trust if we are the remote based on self ip', () => {
@@ -336,19 +282,13 @@ describe('dscHandler', () => {
                 return Promise.reject(new Error('Unexpected path'));
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(getBigIpOptions, undefined);
-                        assert.strictEqual(addToTrustHost, undefined);
-                        assert.strictEqual(syncCompleteCalled, false);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(getBigIpOptions, undefined);
+                    assert.strictEqual(addToTrustHost, undefined);
+                    assert.strictEqual(syncCompleteCalled, false);
+                });
         });
 
         it('should reject with an invalid remoteHost and we are not the remote', () => {
@@ -374,18 +314,8 @@ describe('dscHandler', () => {
                 return Promise.reject(new Error('Unexpected path'));
             };
 
-            let didFail = false;
             const dscHandler = new DscHandler(declaration, bigIpMock);
-            return dscHandler.process()
-                .catch(() => {
-                    didFail = true;
-                })
-                .then(() => {
-                    if (!didFail) {
-                        const message = `testCase: ${testCase} does exist, and it should NOT`;
-                        assert.fail(message);
-                    }
-                });
+            return assert.isRejected(dscHandler.process(), 'Unable to resolve host example.cant');
         });
     });
 
@@ -500,28 +430,22 @@ describe('dscHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
-                        assert.deepEqual(devicesSent, devices);
-                        assert.strictEqual(removeFromDeviceGroupCalled, true,
-                            'Should call removeFromDeviceGroup');
-                        assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
-                            'Should remove old device');
-                        assert.strictEqual(removeDeviceGroup, 'failoverGroup',
-                            'Should remove old device from device group');
-                        assert.strictEqual(syncCalled, true);
-                        assert.strictEqual(syncCompleteCalled, true);
-                        assert.deepStrictEqual(syncCompleteConnectedDevices,
-                            ['bigip1.example.com', 'bigip2.example.com']);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
+                    assert.deepEqual(devicesSent, ['device1']);
+                    assert.strictEqual(removeFromDeviceGroupCalled, true,
+                        'Should call removeFromDeviceGroup');
+                    assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
+                        'Should remove old device');
+                    assert.strictEqual(removeDeviceGroup, 'failoverGroup',
+                        'Should remove old device from device group');
+                    assert.strictEqual(syncCalled, true);
+                    assert.strictEqual(syncCompleteCalled, true);
+                    assert.deepStrictEqual(syncCompleteConnectedDevices,
+                        ['bigip1.example.com', 'bigip2.example.com']);
+                });
         });
 
         it('should create the device group if we are the owner with device trust section', () => {
@@ -540,28 +464,22 @@ describe('dscHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
-                        assert.deepEqual(devicesSent, devices);
-                        assert.strictEqual(removeFromDeviceGroupCalled, true,
-                            'Should call removeFromDeviceGroup');
-                        assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
-                            'Should remove old device');
-                        assert.strictEqual(removeDeviceGroup, 'failoverGroup',
-                            'Should remove old device from device group');
-                        assert.strictEqual(syncCalled, true);
-                        assert.strictEqual(syncCompleteCalled, true);
-                        assert.deepStrictEqual(syncCompleteConnectedDevices,
-                            ['bigip1.example.com', 'bigip2.example.com']);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
+                    assert.deepEqual(devicesSent, ['device1']);
+                    assert.strictEqual(removeFromDeviceGroupCalled, true,
+                        'Should call removeFromDeviceGroup');
+                    assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
+                        'Should remove old device');
+                    assert.strictEqual(removeDeviceGroup, 'failoverGroup',
+                        'Should remove old device from device group');
+                    assert.strictEqual(syncCalled, true);
+                    assert.strictEqual(syncCompleteCalled, true);
+                    assert.deepStrictEqual(syncCompleteConnectedDevices,
+                        ['bigip1.example.com', 'bigip2.example.com']);
+                });
         });
 
         it('should not call sync if no devices are in the device trust or need to be pruned', () => {
@@ -581,19 +499,13 @@ describe('dscHandler', () => {
 
             deviceList = [];
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(removeFromDeviceGroupCalled, false,
-                            'Should not call removeFromDeviceGroup');
-                        assert.strictEqual(syncCalled, false);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(removeFromDeviceGroupCalled, false,
+                        'Should not call removeFromDeviceGroup');
+                    assert.strictEqual(syncCalled, false);
+                });
         });
 
         it('should reject if the remoteHost has an invalid hostname', () => {
@@ -625,18 +537,8 @@ describe('dscHandler', () => {
                 return Promise.reject(new Error('Unexpected path'));
             };
 
-            let didFail = false;
             const dscHandler = new DscHandler(declaration, bigIpMock);
-            return dscHandler.process()
-                .catch(() => {
-                    didFail = true;
-                })
-                .then(() => {
-                    if (!didFail) {
-                        const message = `testCase: ${testCase} does exist, and it should NOT`;
-                        assert.fail(message);
-                    }
-                });
+            return assert.isRejected(dscHandler.process(), 'Unable to resolve host example.cant');
         });
 
         it('should join device group if we are not the owner and we have DeviceGroup and DeviceTrust', () => {
@@ -667,24 +569,18 @@ describe('dscHandler', () => {
                 return Promise.reject(new Error('Unexpected path'));
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
-                        assert.strictEqual(joinClusterCalled, true);
-                        assert.strictEqual(removeFromDeviceGroupCalled, true,
-                            'Should call removeFromDeviceGroup');
-                        assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
-                            'Should remove old device');
-                        assert.strictEqual(removeDeviceGroup, 'failoverGroup',
-                            'Should remove old device from device group');
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
+                    assert.strictEqual(joinClusterCalled, true);
+                    assert.strictEqual(removeFromDeviceGroupCalled, true,
+                        'Should call removeFromDeviceGroup');
+                    assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
+                        'Should remove old device');
+                    assert.strictEqual(removeDeviceGroup, 'failoverGroup',
+                        'Should remove old device from device group');
+                });
         });
 
         it('should join device group if we are not the owner and we only have DeviceGroup', () => {
@@ -702,24 +598,18 @@ describe('dscHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
-                        assert.strictEqual(joinClusterCalled, false);
-                        assert.strictEqual(removeFromDeviceGroupCalled, true,
-                            'Should call removeFromDeviceGroup');
-                        assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
-                            'Should remove old device');
-                        assert.strictEqual(removeDeviceGroup, 'failoverGroup',
-                            'Should remove old device from device group');
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
+                    assert.strictEqual(joinClusterCalled, false);
+                    assert.strictEqual(removeFromDeviceGroupCalled, true,
+                        'Should call removeFromDeviceGroup');
+                    assert.deepStrictEqual(removeDeviceNames, ['remove.example.com'],
+                        'Should remove old device');
+                    assert.strictEqual(removeDeviceGroup, 'failoverGroup',
+                        'Should remove old device from device group');
+                });
         });
 
         it('should handle device group not existing on remote', () => {
@@ -748,17 +638,8 @@ describe('dscHandler', () => {
             const errorMessage = 'group does not exist';
             bigIpMock.cluster.joinCluster = () => Promise.reject(new Error(errorMessage));
 
-            return new Promise((resolve, reject) => {
-                const dscHandler = new DscHandler(declaration, bigIpMock);
-                dscHandler.process()
-                    .then(() => {
-                        reject(new Error('should have thrown because of no device group on remote'));
-                    })
-                    .catch((err) => {
-                        assert.strictEqual(err.message, errorMessage);
-                        resolve();
-                    });
-            });
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return assert.isRejected(dscHandler.process(), 'group does not exist');
         });
     });
 });

@@ -16,9 +16,13 @@
 
 'use strict';
 
-const assert = require('assert');
-const childProcessMock = require('child_process');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 
+chai.use(chaiAsPromised);
+const assert = chai.assert;
+
+const childProcessMock = require('child_process');
 const sinon = require('sinon');
 
 const ENCRYPT_PATH = '/tm/auth/radius-server';
@@ -34,39 +38,29 @@ describe('cryptoUtil', () => {
     });
 
     describe('decryptValue', () => {
-        it('should decrypt values', () => new Promise((resolve, reject) => {
+        it('should decrypt values', () => {
             const decrypted = 'decrypted value';
             childProcessMock.exec = (command, callback) => {
                 callback(null, decrypted);
             };
-            cryptoUtil.decryptValue('foo')
+            return cryptoUtil.decryptValue('foo')
                 .then((result) => {
-                    assert.strictEqual(result, decrypted);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
+                    assert.strictEqual(result, 'decrypted value');
                 });
-        }));
+        });
 
-        it('should handle errors', () => new Promise((resolve, reject) => {
+        it('should handle errors', () => {
             const error = 'decrypted error';
             childProcessMock.exec = (command, callback) => {
                 callback(new Error(error));
             };
-            cryptoUtil.decryptValue('foo')
-                .then(() => {
-                    reject(new Error('should have caught error'));
-                })
-                .catch((err) => {
-                    assert.strictEqual(err.message, error);
-                    resolve();
-                });
-        }));
+            return assert.isRejected(cryptoUtil.decryptValue('foo'), 'decrypted error',
+                'Should have caught error');
+        });
     });
 
     describe('decryptId', () => {
-        it('should decrypt ids', () => new Promise((resolve, reject) => {
+        it('should decrypt ids', () => {
             const secret = 'mySecret';
             const tmshResponse = `foo {
                     server foo
@@ -80,31 +74,22 @@ describe('cryptoUtil', () => {
                 secretSent = value;
             });
 
-            cryptoUtil.decryptId('foo')
+            return cryptoUtil.decryptId('foo')
                 .then(() => {
-                    assert.strictEqual(secretSent, secret);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
+                    assert.strictEqual(secretSent, 'mySecret');
                 });
-        }));
+        });
 
         it('should handle errors', () => {
             const error = 'tmsh error';
             sinon.stub(cloudUtil, 'runTmshCommand').rejects(new Error(error));
-            return cryptoUtil.decryptId('foo')
-                .then(() => {
-                    throw new Error('should have caught error');
-                })
-                .catch((err) => {
-                    assert.strictEqual(err.message, error);
-                });
+            return assert.isRejected(cryptoUtil.decryptId('foo'), 'tmsh error',
+                'should have caught error');
         });
     });
 
     describe('deleteEncryptedId', () => {
-        it('should delete the associated radius server', () => new Promise((resolve, reject) => {
+        it('should delete the associated radius server', () => {
             const id = 'foo';
             let pathSent;
             sinon.stub(doUtil, 'getBigIp').resolves({
@@ -114,17 +99,13 @@ describe('cryptoUtil', () => {
                 }
             });
 
-            cryptoUtil.deleteEncryptedId(id)
+            return cryptoUtil.deleteEncryptedId(id)
                 .then(() => {
                     assert.strictEqual(pathSent, `${ENCRYPT_PATH}/${id}`);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
 
-        it('should handle errors', () => new Promise((resolve, reject) => {
+        it('should handle errors', () => {
             const error = 'delete error';
             sinon.stub(doUtil, 'getBigIp').resolves({
                 delete() {
@@ -132,19 +113,13 @@ describe('cryptoUtil', () => {
                 }
             });
 
-            cryptoUtil.deleteEncryptedId('foo')
-                .then(() => {
-                    reject(new Error('should have caught error'));
-                })
-                .catch((err) => {
-                    assert.strictEqual(err.message, error);
-                    resolve();
-                });
-        }));
+            return assert.isRejected(cryptoUtil.deleteEncryptedId('foo'), 'delete error',
+                'should have caught error');
+        });
     });
 
     describe('encryptValue', () => {
-        it('should encrypt values', () => new Promise((resolve, reject) => {
+        it('should encrypt values', () => {
             const value = 'myValue';
             const id = 'myId';
 
@@ -156,18 +131,14 @@ describe('cryptoUtil', () => {
                 }
             });
 
-            cryptoUtil.encryptValue(value, id)
+            return cryptoUtil.encryptValue(value, id)
                 .then(() => {
-                    assert.strictEqual(bodySent.secret, value);
-                    assert.strictEqual(bodySent.name, id);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
+                    assert.strictEqual(bodySent.secret, 'myValue');
+                    assert.strictEqual(bodySent.name, 'myId');
                 });
-        }));
+        });
 
-        it('should handle errors', () => new Promise((resolve, reject) => {
+        it('should handle errors', () => {
             const error = 'create error';
             sinon.stub(doUtil, 'getBigIp').resolves({
                 create() {
@@ -175,14 +146,8 @@ describe('cryptoUtil', () => {
                 }
             });
 
-            cryptoUtil.encryptValue()
-                .then(() => {
-                    reject(new Error('should have caught error'));
-                })
-                .catch((err) => {
-                    assert.strictEqual(err.message, error);
-                    resolve();
-                });
-        }));
+            return assert.isRejected(cryptoUtil.encryptValue(), 'create error',
+                'should have caught error');
+        });
     });
 });

@@ -20,7 +20,6 @@ const assert = require('assert');
 const sinon = require('sinon');
 
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
-const AUTH = require('../../../../src/lib/sharedConstants').AUTH;
 const RADIUS = require('../../../../src/lib/sharedConstants').RADIUS;
 
 const AuthHandler = require('../../../../src/lib/authHandler');
@@ -89,19 +88,33 @@ describe('authHandler', () => {
                     const primary = Object.assign({}, declaration.Common.Authentication.radius.servers.primary);
                     primary.name = RADIUS.PRIMARY_SERVER;
                     primary.partition = 'Common';
-                    assert.strictEqual(pathsSent[0], PATHS.AuthRadiusServer);
-                    assert.deepEqual(dataSent[0], primary);
+                    assert.strictEqual(pathsSent[0], '/tm/auth/radius-server');
+                    assert.deepEqual(dataSent[0],
+                        {
+                            server: '1.2.3.4',
+                            port: 1811,
+                            secret: 'something',
+                            name: 'system_auth_name1',
+                            partition: 'Common'
+                        });
 
                     const secondary = Object.assign({}, declaration.Common.Authentication.radius.servers.secondary);
                     secondary.name = RADIUS.SECONDARY_SERVER;
                     secondary.partition = 'Common';
-                    assert.strictEqual(pathsSent[1], PATHS.AuthRadiusServer);
-                    assert.deepEqual(dataSent[1], secondary);
+                    assert.strictEqual(pathsSent[1], '/tm/auth/radius-server');
+                    assert.deepEqual(dataSent[1],
+                        {
+                            server: 'my.second.server',
+                            port: 1822,
+                            secret: 'somethingElse',
+                            name: 'system_auth_name2',
+                            partition: 'Common'
+                        });
 
-                    assert.strictEqual(pathsSent[2], PATHS.AuthRadius);
+                    assert.strictEqual(pathsSent[2], '/tm/auth/radius');
                     assert.deepEqual(dataSent[2], {
-                        name: AUTH.SUBCLASSES_NAME,
-                        serviceType: declaration.Common.Authentication.radius.serviceType,
+                        name: 'system-auth',
+                        serviceType: 'callback-login',
                         partition: 'Common'
                     });
                 });
@@ -130,11 +143,11 @@ describe('authHandler', () => {
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
-                    assert.strictEqual(pathsSent[0], PATHS.AuthTacacs);
+                    assert.strictEqual(pathsSent[0], '/tm/auth/tacacs');
                     assert.deepStrictEqual(
                         dataSent[0],
                         {
-                            name: AUTH.SUBCLASSES_NAME,
+                            name: 'system-auth',
                             partition: 'Common',
                             accounting: 'send-to-first-server',
                             authentication: 'use-first-server',
@@ -179,11 +192,11 @@ describe('authHandler', () => {
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
-                    assert.strictEqual(pathsSent[0], PATHS.AuthTacacs);
+                    assert.strictEqual(pathsSent[0], '/tm/auth/tacacs');
                     assert.deepStrictEqual(
                         dataSent[0],
                         {
-                            name: AUTH.SUBCLASSES_NAME,
+                            name: 'system-auth',
                             partition: 'Common',
                             accounting: 'send-to-all-servers',
                             authentication: 'use-all-servers',
@@ -234,11 +247,11 @@ describe('authHandler', () => {
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
-                    assert.strictEqual(pathsSent[0], PATHS.AuthLdap);
+                    assert.strictEqual(pathsSent[0], '/tm/auth/ldap');
                     assert.deepStrictEqual(
                         dataSent[0],
                         {
-                            name: AUTH.SUBCLASSES_NAME,
+                            name: 'system-auth',
                             partition: 'Common',
                             bindDn: 'none',
                             bindPw: 'none',
@@ -306,11 +319,11 @@ describe('authHandler', () => {
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
-                    assert.strictEqual(pathsSent[0], PATHS.AuthLdap);
+                    assert.strictEqual(pathsSent[0], '/tm/auth/ldap');
                     assert.deepStrictEqual(
                         dataSent[0],
                         {
-                            name: AUTH.SUBCLASSES_NAME,
+                            name: 'system-auth',
                             partition: 'Common',
                             bindDn: 'searchingName',
                             bindPw: 'test',

@@ -16,11 +16,16 @@
 
 'use strict';
 
-const assert = require('assert');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chai.use(chaiAsPromised);
+const assert = chai.assert;
+
 const dns = require('dns');
 const netMock = require('net');
-
 const sinon = require('sinon');
+
 const BigIpMock = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtilMock = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
@@ -69,76 +74,43 @@ describe('doUtil', () => {
     });
 
     describe('getBigIp', () => {
-        it('should not set the auth token flag if not appropriate', () => new Promise((resolve, reject) => {
-            doUtil.getBigIp(null, {})
-                .then(() => {
-                    assert.strictEqual(bigIpInitOptions.passwordIsToken, false);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        }));
+        it('should not set the auth token flag if not appropriate', () => doUtil.getBigIp(null, {})
+            .then(() => {
+                assert.strictEqual(bigIpInitOptions.passwordIsToken, false);
+            }));
 
-        it('should set the auth token flag if appropriate', () => new Promise((resolve, reject) => {
-            doUtil.getBigIp(null, { authToken: 'foo' })
-                .then(() => {
-                    assert.strictEqual(bigIpInitOptions.passwordIsToken, true);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        }));
+        it('should set the auth token flag if appropriate', () => doUtil.getBigIp(null, { authToken: 'foo' })
+            .then(() => {
+                assert.strictEqual(bigIpInitOptions.passwordIsToken, true);
+            }));
 
-        it('should get a BIG-IP with the first port it tries to discover', () => new Promise((resolve, reject) => {
-            doUtil.getBigIp()
-                .then(() => {
-                    assert.strictEqual(bigIpInitOptions.port, 8443);
-                    assert.strictEqual(createConnectionCalled, true);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        }));
+        it('should get a BIG-IP with the first port it tries to discover', () => doUtil.getBigIp()
+            .then(() => {
+                assert.strictEqual(bigIpInitOptions.port, 8443);
+                assert.strictEqual(createConnectionCalled, true);
+            }));
 
-        it('should get a BIG-IP with the second port it tries to discover', () => new Promise((resolve, reject) => {
+        it('should get a BIG-IP with the second port it tries to discover', () => {
             socket.numConnectsToFail = 1;
-            doUtil.getBigIp()
+            return doUtil.getBigIp()
                 .then(() => {
                     assert.strictEqual(bigIpInitOptions.port, 443);
                     assert.strictEqual(createConnectionCalled, true);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
 
-        it('should handle failures on all discovery ports', () => new Promise((resolve, reject) => {
+        it('should handle failures on all discovery ports', () => {
             socket.numConnectsToFail = 2;
-            doUtil.getBigIp()
-                .then(() => {
-                    reject(new Error('should have failed to discover a port'));
-                })
-                .catch((err) => {
-                    assert.strictEqual(err.message, 'Could not determine device port');
-                    resolve();
-                });
-        }));
+            return assert.isRejected(doUtil.getBigIp(),
+                'Could not determine device port',
+                'should have failed to discover a port');
+        });
 
-        it('should get a BIG-IP with the provided port', () => new Promise((resolve, reject) => {
-            doUtil.getBigIp(null, { port })
-                .then(() => {
-                    assert.strictEqual(bigIpInitOptions.port, port);
-                    assert.strictEqual(createConnectionCalled, false);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        }));
+        it('should get a BIG-IP with the provided port', () => doUtil.getBigIp(null, { port })
+            .then(() => {
+                assert.strictEqual(bigIpInitOptions.port, port);
+                assert.strictEqual(createConnectionCalled, false);
+            }));
 
         it('should raise initialization errors', () => {
             const initErr = new Error('my init error');
@@ -147,21 +119,14 @@ describe('doUtil', () => {
                 return Promise.reject(initErr);
             };
 
-            return new Promise((resolve, reject) => {
-                doUtil.getBigIp(null, { port: 443 })
-                    .then(() => {
-                        reject(new Error('should have raised initialization error'));
-                    })
-                    .catch((err) => {
-                        assert.strictEqual(err.message, initErr.message);
-                        resolve();
-                    });
-            });
+            return assert.isRejected(doUtil.getBigIp(null, { port: 443 }),
+                'my init error',
+                'should have raised initialization error');
         });
     });
 
     describe('getCurrentPlatform', () => {
-        it('should work on BIG-IP/BIG-IQ', () => new Promise((resolve, reject) => {
+        it('should work on BIG-IP/BIG-IQ', () => {
             const platform = 'my product';
             httpUtilMock.get = () => Promise.resolve(
                 {
@@ -178,42 +143,29 @@ describe('doUtil', () => {
                 }
             );
 
-            doUtil.getCurrentPlatform()
+            return doUtil.getCurrentPlatform()
                 .then((resolvedPlatform) => {
-                    assert.strictEqual(resolvedPlatform, platform);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
+                    assert.strictEqual(resolvedPlatform, 'my product');
                 });
-        }));
+        });
 
-        it('should work in a container', () => new Promise((resolve, reject) => {
+        it('should work in a container', () => {
             httpUtilMock.get = () => Promise.resolve({});
 
-            doUtil.getCurrentPlatform()
+            return doUtil.getCurrentPlatform()
                 .then((resolvedPlatform) => {
                     assert.strictEqual(resolvedPlatform, 'CONTAINER');
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
 
-        it('should handle errors', () => new Promise((resolve, reject) => {
+        it('should handle errors', () => {
             const error = 'http error';
             httpUtilMock.get = () => Promise.reject(new Error(error));
 
-            doUtil.getCurrentPlatform()
-                .then(() => {
-                    reject(new Error('should have rejected'));
-                })
-                .catch((err) => {
-                    assert.strictEqual(err.message, error);
-                    resolve();
-                });
-        }));
+            return assert.isRejected(doUtil.getCurrentPlatform(),
+                'http error',
+                'should have rejected');
+        });
     });
 
     describe('rebootRequired', () => {
@@ -240,48 +192,36 @@ describe('doUtil', () => {
                 doUtil.getCurrentPlatform = () => Promise.resolve('BIG-IP');
             });
 
-            it('should return true if the prompt is REBOOT REQUIRED', () => new Promise((resolve, reject) => {
+            it('should return true if the prompt is REBOOT REQUIRED', () => {
                 doUtil.executeBashCommandLocal = () => Promise.resolve('REBOOT REQUIRED');
 
-                doUtil.rebootRequired(bigIpMock)
+                return doUtil.rebootRequired(bigIpMock)
                     .then((rebootRequired) => {
                         assert.strictEqual(rebootRequired, true);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
                     });
-            }));
+            });
 
-            it('should return false if the prompt is not REBOOT REQUIRED', () => new Promise((resolve, reject) => {
+            it('should return false if the prompt is not REBOOT REQUIRED', () => {
                 doUtil.executeBashCommandLocal = () => Promise.resolve('Active');
 
-                doUtil.rebootRequired(bigIpMock)
+                return doUtil.rebootRequired(bigIpMock)
                     .then((rebootRequired) => {
                         assert.strictEqual(rebootRequired, false);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
                     });
-            }));
+            });
 
-            it('should return true if the prompt is not REBOOT REQUIRED but the db var is true', () => new Promise((resolve, reject) => {
+            it('should return true if the prompt is not REBOOT REQUIRED but the db var is true', () => {
                 doUtil.executeBashCommandLocal = () => Promise.resolve('Active');
 
                 bigIpMock.list = () => Promise.resolve({
                     value: 'reboot'
                 });
 
-                doUtil.rebootRequired(bigIpMock)
+                return doUtil.rebootRequired(bigIpMock)
                     .then((rebootRequired) => {
                         assert.strictEqual(rebootRequired, true);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
                     });
-            }));
+            });
         });
 
         describe('not running on BIG-IP', () => {
@@ -289,31 +229,23 @@ describe('doUtil', () => {
                 doUtil.getCurrentPlatform = () => Promise.resolve('BIG-IQ');
             });
 
-            it('should return true if the prompt is REBOOT REQUIRED', () => new Promise((resolve, reject) => {
+            it('should return true if the prompt is REBOOT REQUIRED', () => {
                 doUtil.executeBashCommandRemote = () => Promise.resolve('REBOOT REQUIRED');
 
-                doUtil.rebootRequired(bigIpMock)
+                return doUtil.rebootRequired(bigIpMock)
                     .then((rebootRequired) => {
                         assert.strictEqual(rebootRequired, true);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
                     });
-            }));
+            });
 
-            it('should return false if the prompt is REBOOT REQUIRED', () => new Promise((resolve, reject) => {
+            it('should return false if the prompt is REBOOT REQUIRED', () => {
                 doUtil.executeBashCommandRemote = () => Promise.resolve('Active');
 
-                doUtil.rebootRequired(bigIpMock)
+                return doUtil.rebootRequired(bigIpMock)
                     .then((rebootRequired) => {
                         assert.strictEqual(rebootRequired, false);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
                     });
-            }));
+            });
         });
     });
 
@@ -341,12 +273,11 @@ describe('doUtil', () => {
             };
             const matches = doUtil.getClassObjects(declaration, classToMatch);
             assert.strictEqual(Object.keys(matches).length, 2);
-            assert.deepEqual(matches.match1, declaration.Common.match1);
-            assert.deepEqual(matches.match2, declaration.Common.match2);
+            assert.deepEqual(matches.match1, { class: classToMatch, foo: { bar: 'x' } });
+            assert.deepEqual(matches.match2, { class: classToMatch, okie: 'dokie' });
         });
 
         it('should return null if no matching classes are found', () => {
-            const classToMatch = 'matchMe';
             const declaration = {
                 Common: {
                     noMatch: {
@@ -355,7 +286,7 @@ describe('doUtil', () => {
                     }
                 }
             };
-            const matches = doUtil.getClassObjects(declaration, classToMatch);
+            const matches = doUtil.getClassObjects(declaration, 'matchMe');
             assert.strictEqual(matches, null);
         });
     });
@@ -375,7 +306,7 @@ describe('doUtil', () => {
             };
 
             const dereferenced = doUtil.dereference(declaration, container);
-            assert.strictEqual(dereferenced.stringValue, declaration.foo.bar.item);
+            assert.strictEqual(dereferenced.stringValue, '123');
         });
 
         it('should not dereference json-pointer to objects in an object', () => {
@@ -392,7 +323,7 @@ describe('doUtil', () => {
             };
 
             const dereferenced = doUtil.dereference(declaration, container);
-            assert.strictEqual(dereferenced.objectValue, container.objectValue);
+            assert.strictEqual(dereferenced.objectValue, '/blue/green');
         });
     });
 
@@ -409,62 +340,26 @@ describe('doUtil', () => {
             dns.lookup.restore();
             sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
 
-            const testCases = [
-                undefined,
-                '260.84.18.2',
-                'example.cant'
-            ];
-
-            const promises = testCases.map((testCase) => {
-                let didFail = false;
-                return doUtil.checkDnsResolution(testCase)
-                    .catch(() => {
-                        didFail = true;
-                    })
-                    .then(() => {
-                        if (!didFail) {
-                            assert.fail(`testCase: ${testCase} does exist, and it should NOT`);
-                        }
-                    });
-            });
-            return Promise.all(promises)
-                .catch((err) => {
-                    assert.ok(false, err.message);
-                });
+            return assert.isRejected(
+                doUtil.checkDnsResolution(undefined), 'Cannot read property \'toLowerCase\' of undefined'
+            )
+                .then(() => assert.isRejected(
+                    doUtil.checkDnsResolution('260.84.18.2'), 'Unable to resolve host 260.84.18.2'
+                ))
+                .then(() => assert.isRejected(
+                    doUtil.checkDnsResolution('example.cant'), 'Unable to resolve host example.cant'
+                ));
         });
 
-        it('should resolve true if a valid ip, empty string, or valid hostname is given', () => {
-            const testCases = [
-                '',
-                '::',
-                '10.10.10.10',
-                'www.google.com'
-            ];
-
-            const promises = testCases.map(testCase => doUtil.checkDnsResolution(testCase)
-                .catch(e => e)
-                .then((res) => {
-                    if (res === true) {
-                        assert.ok(res);
-                        return;
-                    }
-                    assert.fail(`testCase: ${testCase} does NOT exist, and it should`);
-                }));
-            return Promise.all(promises)
-                .catch((err) => {
-                    assert.ok(false, err.message);
-                });
-        });
+        it('should resolve true if dns.lookup returns the address', () => assert.isFulfilled(
+            doUtil.checkDnsResolution('www.google.com', true)
+        ));
 
         it('should provide a better error message on uncaught exceptions', () => {
             dns.lookup.restore();
-            const errorMessage = 'Hello world!';
-            sinon.stub(dns, 'lookup').throws(new Error(errorMessage));
+            sinon.stub(dns, 'lookup').throws(new Error('Hello world!'));
 
-            return doUtil.checkDnsResolution('test')
-                .catch((error) => {
-                    assert.notStrictEqual(error.message.indexOf('Unable to resolve'), -1);
-                });
+            return assert.isRejected(doUtil.checkDnsResolution('test'), 'Unable to resolve host test: Hello world!');
         });
 
         it('should retry if an error occurs', () => {
@@ -479,10 +374,8 @@ describe('doUtil', () => {
 
             sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value({ maxRetries: 1, retryIntervalMs: 10 });
 
-            return doUtil.checkDnsResolution('test')
-                .catch((error) => {
-                    assert.ok(false, error.message);
-                });
+            return assert.becomes(doUtil.checkDnsResolution('test'), true,
+                'This test should have errored only once and then succeeded returning true');
         });
     });
 });

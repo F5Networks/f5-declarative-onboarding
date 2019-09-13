@@ -16,9 +16,13 @@
 
 'use strict';
 
-const assert = require('assert');
-const dns = require('dns');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 
+chai.use(chaiAsPromised);
+const assert = chai.assert;
+
+const dns = require('dns');
 const sinon = require('sinon');
 
 const doUtilMock = require('../../../../src/lib/doUtil');
@@ -124,17 +128,15 @@ describe('systemHandler', () => {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.deepEqual(dbVarsSent, declaration.Common.DbVariables);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepEqual(dbVarsSent,
+                    {
+                        foo: 'bar',
+                        hello: 123
+                    });
+            });
     });
 
     describe('DNS/NTP', () => {
@@ -192,19 +194,13 @@ describe('systemHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const systemHandler = new SystemHandler(declaration, bigIpMock);
-                systemHandler.process()
-                    .then(() => {
-                        assert.strictEqual(pathSent, PATHS.NTP);
-                        assert.deepEqual(dataSent.servers, declaration.Common.NTP.servers);
-                        assert.deepEqual(dataSent.timezone, declaration.Common.NTP.timezone);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, '/tm/sys/ntp');
+                    assert.deepEqual(dataSent.servers, ['0.pool.ntp.org', '1.pool.ntp.org']);
+                    assert.strictEqual(dataSent.timezone, 'UTC');
+                });
         });
 
         it('should handle NTP with no servers declared', () => {
@@ -259,19 +255,11 @@ describe('systemHandler', () => {
                 }
             };
 
-            let didFail = false;
             const systemHandler = new SystemHandler(declaration, bigIpMock);
-            return systemHandler.process()
-                .catch(() => {
-                    didFail = true;
-                })
-                .then(() => {
-                    if (!didFail) {
-                        // eslint-disable-next-line max-len
-                        const message = `All of these ${JSON.stringify(testServers)} exist, and one should NOT`;
-                        assert.fail(message);
-                    }
-                });
+            return assert.isRejected(systemHandler.process(),
+                'Unable to resolve host www.google.com: '
+                + 'Unable to resolve host example.cant: bad hostname',
+                `All of these ${JSON.stringify(testServers)} exist, and one should NOT`);
         });
 
         it('should reject if DNS configured after NTP is configured', () => {
@@ -326,19 +314,13 @@ describe('systemHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const systemHandler = new SystemHandler(declaration, bigIpMock);
-                systemHandler.process()
-                    .then(() => {
-                        assert.strictEqual(pathSent, PATHS.DNS);
-                        assert.deepEqual(dataSent.nameServers, declaration.Common.DNS.servers);
-                        assert.deepEqual(dataSent.search, declaration.Common.DNS.search);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, PATHS.DNS);
+                    assert.deepEqual(dataSent['name-servers'], ['8.8.8.8', '2001:4860:4860::8844']);
+                    assert.deepEqual(dataSent.search, ['one.com', 'two.com']);
+                });
         });
 
         it('should turn off DHCP of DNS if we configure DNS', () => {
@@ -434,17 +416,11 @@ describe('systemHandler', () => {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(hostnameSent, declaration.Common.hostname);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(hostnameSent, 'myhost.example.com');
+            });
     });
 
     it('should handle root users without keys', () => {
@@ -476,20 +452,14 @@ describe('systemHandler', () => {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(userSent, 'root');
-                    assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
-                    assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
-                    assert.strictEqual(declaration.Common.User.root.keys.join('\n'), superuserKey);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(userSent, 'root');
+                assert.strictEqual(newPasswordSent, 'bar');
+                assert.strictEqual(oldPasswordSent, 'foo');
+                assert.strictEqual(declaration.Common.User.root.keys.join('\n'), superuserKey);
+            });
     });
 
     it('should handle root users with keys', () => {
@@ -522,20 +492,14 @@ describe('systemHandler', () => {
 
         const expectedKeys = `${superuserKey}\n${testKey}`;
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(userSent, 'root');
-                    assert.strictEqual(newPasswordSent, declaration.Common.User.root.newPassword);
-                    assert.strictEqual(oldPasswordSent, declaration.Common.User.root.oldPassword);
-                    assert.strictEqual(declaration.Common.User.root.keys.join('\n'), expectedKeys);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(userSent, 'root');
+                assert.strictEqual(newPasswordSent, 'bar');
+                assert.strictEqual(oldPasswordSent, 'foo');
+                assert.strictEqual(declaration.Common.User.root.keys.join('\n'), expectedKeys);
+            });
     });
 
     it('should handle non-root users with & without keys', () => {
@@ -548,25 +512,6 @@ describe('systemHandler', () => {
         const sshPaths = [
             '/home/user1/.ssh',
             '/home/user2/.ssh'
-        ];
-
-        const expBash = [
-            [
-                ` mkdir -p ${sshPaths[0]}; `,
-                `echo '${testKey}' > `,
-                `${sshPaths[0]}/authorized_keys; `,
-                `chown -R "user1":webusers ${sshPaths[0]}; `,
-                `chmod -R 700 ${sshPaths[0]}; `,
-                `chmod 600 ${sshPaths[0]}/authorized_keys`
-            ].join(''),
-            [
-                ` mkdir -p ${sshPaths[1]}; `,
-                'echo \'\' > ',
-                `${sshPaths[1]}/authorized_keys; `,
-                `chown -R "user2":webusers ${sshPaths[1]}; `,
-                `chmod -R 700 ${sshPaths[1]}; `,
-                `chmod 600 ${sshPaths[1]}/authorized_keys`
-            ].join('')
         ];
 
         const declaration = {
@@ -609,35 +554,45 @@ describe('systemHandler', () => {
             return Promise.resolve();
         };
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(pathSent, '/tm/auth/user');
-                    assert.strictEqual(bodiesSent.length, 2);
-                    assert.deepEqual(
-                        bodiesSent[0]['partition-access'],
-                        [
-                            { name: 'Common', role: 'guest' }
-                        ]
-                    );
-                    assert.deepEqual(bodiesSent[0].shell, 'bash');
-                    assert.deepEqual(
-                        bodiesSent[1]['partition-access'],
-                        [
-                            { name: 'all-partitions', role: 'guest' },
-                            { name: 'Common', role: 'admin' }
-                        ]
-                    );
-                    assert.deepEqual(bodiesSent[1].shell, 'tmsh');
-                    assert.strictEqual(bashCmds[0], expBash[0]);
-                    assert.strictEqual(bashCmds[1], expBash[1]);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(pathSent, '/tm/auth/user');
+                assert.strictEqual(bodiesSent.length, 2);
+                assert.deepEqual(
+                    bodiesSent[0]['partition-access'],
+                    [
+                        { name: 'Common', role: 'guest' }
+                    ]
+                );
+                assert.deepEqual(bodiesSent[0].shell, 'bash');
+                assert.deepEqual(
+                    bodiesSent[1]['partition-access'],
+                    [
+                        { name: 'all-partitions', role: 'guest' },
+                        { name: 'Common', role: 'admin' }
+                    ]
+                );
+                assert.deepEqual(bodiesSent[1].shell, 'tmsh');
+                assert.strictEqual(bashCmds[0],
+                    [
+                        ` mkdir -p ${sshPaths[0]}; `,
+                        `echo '${testKey}' > `,
+                        `${sshPaths[0]}/authorized_keys; `,
+                        `chown -R "user1":webusers ${sshPaths[0]}; `,
+                        `chmod -R 700 ${sshPaths[0]}; `,
+                        `chmod 600 ${sshPaths[0]}/authorized_keys`
+                    ].join(''));
+                assert.strictEqual(bashCmds[1],
+                    [
+                        ` mkdir -p ${sshPaths[1]}; `,
+                        'echo \'\' > ',
+                        `${sshPaths[1]}/authorized_keys; `,
+                        `chown -R "user2":webusers ${sshPaths[1]}; `,
+                        `chmod -R 700 ${sshPaths[1]}; `,
+                        `chmod 600 ${sshPaths[1]}/authorized_keys`
+                    ].join(''));
+            });
     });
 
     it('should handle reg key licenses', () => {
@@ -660,19 +615,13 @@ describe('systemHandler', () => {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(licenseArgs.registrationKey, declaration.Common.License.regKey);
-                    assert.deepEqual(licenseArgs.addOnKeys, declaration.Common.License.addOnKeys);
-                    assert.strictEqual(licenseArgs.overwrite, declaration.Common.License.overwrite);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(licenseArgs.registrationKey, 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ');
+                assert.deepEqual(licenseArgs.addOnKeys, ['ABCDEFG-HIJKLMN', 'OPQRSTU-VWXYZAB']);
+                assert.strictEqual(licenseArgs.overwrite, true);
+            });
     });
 
     it('should provide descriptive licensing error if licensing fails', () => {
@@ -693,17 +642,9 @@ describe('systemHandler', () => {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    reject(new Error('should have rejected'));
-                })
-                .catch((err) => {
-                    assert.strictEqual(err.message.startsWith('Error licensing'), true);
-                    resolve();
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return assert.isRejected(systemHandler.process(),
+            'Error licensing: failed to license device', 'should have rejected');
     });
 
     it('should handle license pool licenses with unreachable BIG-IP', () => {
@@ -745,29 +686,23 @@ describe('systemHandler', () => {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(bigIqHostSent, declaration.Common.License.bigIqHost);
-                    assert.strictEqual(bigIqUsernameSent, declaration.Common.License.bigIqUsername);
-                    assert.strictEqual(bigIqPasswordSent, declaration.Common.License.bigIqPassword);
-                    assert.strictEqual(licensePoolSent, declaration.Common.License.licensePool);
-                    assert.strictEqual(hypervisorSent, declaration.Common.License.hypervisor);
-                    assert.strictEqual(optionsSent.bigIpMgmtAddress, undefined);
-                    assert.strictEqual(optionsSent.skuKeyword1, declaration.Common.License.skuKeyword1);
-                    assert.strictEqual(optionsSent.skuKeyword2, declaration.Common.License.skuKeyword2);
-                    assert.strictEqual(optionsSent.unitOfMeasure, declaration.Common.License.unitOfMeasure);
-                    assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
-                    assert.strictEqual(optionsSent.overwrite, declaration.Common.License.overwrite);
-                    assert.strictEqual(optionsSent.autoApiType, true);
-                    assert.strictEqual(activeCalled, true);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(bigIqHostSent, '10.145.112.44');
+                assert.strictEqual(bigIqUsernameSent, 'admin');
+                assert.strictEqual(bigIqPasswordSent, 'foofoo');
+                assert.strictEqual(licensePoolSent, 'clpv2');
+                assert.strictEqual(hypervisorSent, 'vmware');
+                assert.strictEqual(optionsSent.bigIpMgmtAddress, undefined);
+                assert.strictEqual(optionsSent.skuKeyword1, 'my skukeyword1');
+                assert.strictEqual(optionsSent.skuKeyword2, 'my skukeyword2');
+                assert.strictEqual(optionsSent.unitOfMeasure, 'daily');
+                assert.strictEqual(optionsSent.noUnreachable, false);
+                assert.strictEqual(optionsSent.overwrite, true);
+                assert.strictEqual(optionsSent.autoApiType, true);
+                assert.strictEqual(activeCalled, true);
+            });
     });
 
     it('should handle license pool licenses with reachable BIG-IP', () => {
@@ -815,23 +750,17 @@ describe('systemHandler', () => {
             return Promise.resolve(bigIpMock);
         });
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(optionsSent.bigIpMgmtAddress, undefined);
-                    assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
-                    assert.strictEqual(bigIpUsernameSent, declaration.Common.License.bigIpUsername);
-                    assert.strictEqual(bigIpPasswordSent, declaration.Common.License.bigIpPassword);
-                    assert.strictEqual(bigIpHostSent, managementAddress);
-                    assert.strictEqual(bigIpPortSent, managementPort);
-                    assert.strictEqual(activeCalled, true);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(optionsSent.bigIpMgmtAddress, undefined);
+                assert.strictEqual(optionsSent.noUnreachable, true);
+                assert.strictEqual(bigIpUsernameSent, 'mybigipuser');
+                assert.strictEqual(bigIpPasswordSent, 'barbar');
+                assert.strictEqual(bigIpHostSent, '1.2.3.4');
+                assert.strictEqual(bigIpPortSent, 5678);
+                assert.strictEqual(activeCalled, true);
+            });
     });
 
     it('should handle license pool when running on BIG-IQ', () => {
@@ -859,19 +788,13 @@ describe('systemHandler', () => {
             }
         };
 
-        return new Promise((resolve, reject) => {
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
-            systemHandler.process()
-                .then(() => {
-                    assert.strictEqual(bigIqHostSent, 'localhost');
-                    assert.strictEqual(optionsSent.bigIpMgmtAddress, host);
-                    assert.strictEqual(optionsSent.bigIqMgmtPort, 8100);
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(bigIqHostSent, 'localhost');
+                assert.strictEqual(optionsSent.bigIpMgmtAddress, '11.12.13.14');
+                assert.strictEqual(optionsSent.bigIqMgmtPort, 8100);
+            });
     });
 
     it('should reject if the bigIqHost is given a bad hostname', () => {
@@ -895,18 +818,10 @@ describe('systemHandler', () => {
 
         sinon.stub(doUtilMock, 'getBigIp').resolves(bigIpMock);
 
-        let didFail = false;
         const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .catch(() => {
-                didFail = true;
-            })
-            .then(() => {
-                if (!didFail) {
-                    const message = `testCase: ${testCase} does exist, and it should NOT`;
-                    assert.fail(message);
-                }
-            });
+        return assert.isRejected(systemHandler.process(),
+            'Unable to resolve host example.cant: bad hostname',
+            'example.cant is reported to exist and it should not');
     });
 
     describe('revoke', () => {
@@ -939,22 +854,16 @@ describe('systemHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const systemHandler = new SystemHandler(declaration, bigIpMock);
-                systemHandler.process()
-                    .then(() => {
-                        assert.strictEqual(bigIqHostSent, declaration.Common.License.bigIqHost);
-                        assert.strictEqual(bigIqUsernameSent, declaration.Common.License.bigIqUsername);
-                        assert.strictEqual(bigIqPasswordSent, declaration.Common.License.bigIqPassword);
-                        assert.strictEqual(licensePoolSent, declaration.Common.License.revokeFrom);
-                        assert.strictEqual(optionsSent.noUnreachable, declaration.Common.License.reachable);
-                        assert.strictEqual(activeCalled, false);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIqHostSent, '10.145.112.44');
+                    assert.strictEqual(bigIqUsernameSent, 'admin');
+                    assert.strictEqual(bigIqPasswordSent, 'foofoo');
+                    assert.strictEqual(licensePoolSent, 'clpv2');
+                    assert.strictEqual(optionsSent.noUnreachable, false);
+                    assert.strictEqual(activeCalled, false);
+                });
         });
 
         it('should handle revoke from license pool from a different BIG-IQ', () => {
@@ -992,34 +901,16 @@ describe('systemHandler', () => {
                 }
             };
 
-            return new Promise((resolve, reject) => {
-                const systemHandler = new SystemHandler(declaration, bigIpMock);
-                systemHandler.process()
-                    .then(() => {
-                        assert.strictEqual(bigIqHostSent, declaration.Common.License.revokeFrom.bigIqHost);
-                        assert.strictEqual(
-                            bigIqUsernameSent,
-                            declaration.Common.License.revokeFrom.bigIqUsername
-                        );
-                        assert.strictEqual(
-                            bigIqPasswordSent,
-                            declaration.Common.License.revokeFrom.bigIqPassword
-                        );
-                        assert.strictEqual(
-                            licensePoolSent,
-                            declaration.Common.License.revokeFrom.licensePool
-                        );
-                        assert.strictEqual(
-                            optionsSent.noUnreachable,
-                            declaration.Common.License.revokeFrom.reachable
-                        );
-                        assert.strictEqual(activeCalled, false);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIqHostSent, '10.145.112.45');
+                    assert.strictEqual(bigIqUsernameSent, 'otherAdmin');
+                    assert.strictEqual(bigIqPasswordSent, 'barbar');
+                    assert.strictEqual(licensePoolSent, 'clpv2');
+                    assert.strictEqual(optionsSent.noUnreachable, false);
+                    assert.strictEqual(activeCalled, false);
+                });
         });
     });
 
@@ -1051,22 +942,15 @@ describe('systemHandler', () => {
                     const managementRouteData = dataSent[PATHS.ManagementRoute];
                     assert.strictEqual(managementRouteData[0].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[0].partition, 'Common');
-                    assert.strictEqual(managementRouteData[0].gateway, declaration
-                        .Common.ManagementRoute.managementRoute1.gw);
-                    assert.strictEqual(managementRouteData[0].network, declaration
-                        .Common.ManagementRoute.managementRoute1.network);
-                    assert.strictEqual(managementRouteData[0].mtu, declaration
-                        .Common.ManagementRoute.managementRoute1.mtu);
-                    assert.strictEqual(managementRouteData[0].type, declaration
-                        .Common.ManagementRoute.managementRoute1.type);
+                    assert.strictEqual(managementRouteData[0].gateway, '1.1.1.1');
+                    assert.strictEqual(managementRouteData[0].network, 'default-inet6');
+                    assert.strictEqual(managementRouteData[0].mtu, 1234);
+                    assert.strictEqual(managementRouteData[0].type, 'interface');
                     assert.strictEqual(managementRouteData[1].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[1].partition, 'Common');
-                    assert.strictEqual(managementRouteData[1].gateway, declaration
-                        .Common.ManagementRoute.managementRoute2.gw);
-                    assert.strictEqual(managementRouteData[1].network, declaration
-                        .Common.ManagementRoute.managementRoute2.network);
-                    assert.strictEqual(managementRouteData[1].mtu, declaration
-                        .Common.ManagementRoute.managementRoute2.mtu);
+                    assert.strictEqual(managementRouteData[1].gateway, '1.2.3.4');
+                    assert.strictEqual(managementRouteData[1].network, '4.3.2.1');
+                    assert.strictEqual(managementRouteData[1].mtu, 1);
                 });
         });
     });
@@ -1091,9 +975,17 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysContact, declaration.Common.SnmpAgent.contact);
-                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysLocation, declaration.Common.SnmpAgent.location);
-                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].allowedAddresses, declaration.Common.SnmpAgent.allowList);
+                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysContact,
+                    'Op Center <ops@example.com>');
+                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysLocation, 'Seattle, WA');
+                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].allowedAddresses,
+                    [
+                        '10.30.100.0/23',
+                        '10.40.100.0/23',
+                        '10.8.100.0/32',
+                        '10.30.10.100',
+                        '10.30.10.200'
+                    ]);
             });
     });
 
@@ -1139,27 +1031,22 @@ describe('systemHandler', () => {
             .then(() => {
                 assert.strictEqual(
                     dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.username,
-                    declaration.Common.SnmpUser.myFirstSnmpUser.name
+                    'my!name!withspecials'
                 );
                 assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.authPassword,
-                    declaration.Common.SnmpUser.myFirstSnmpUser.authentication.password
+                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.authPassword, 'pass1W0rd!'
                 );
                 assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.authProtocol,
-                    declaration.Common.SnmpUser.myFirstSnmpUser.authentication.protocol
+                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.authProtocol, 'sha'
                 );
                 assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.privacyPassword,
-                    declaration.Common.SnmpUser.myFirstSnmpUser.privacy.password
+                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.privacyPassword, 'P@ssW0rd'
                 );
                 assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.privacyProtocol,
-                    declaration.Common.SnmpUser.myFirstSnmpUser.privacy.protocol
+                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.privacyProtocol, 'aes'
                 );
                 assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.oidSubset,
-                    declaration.Common.SnmpUser.myFirstSnmpUser.oid
+                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.oidSubset, '.1'
                 );
             });
     });
@@ -1178,7 +1065,7 @@ describe('systemHandler', () => {
             .then(() => {
                 assert.strictEqual(
                     dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.username,
-                    declaration.Common.SnmpUser.myFirstSnmpUser.name
+                    undefined
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.authPassword,
@@ -1219,11 +1106,11 @@ describe('systemHandler', () => {
             .then(() => {
                 assert.strictEqual(
                     dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.communityName,
-                    declaration.Common.SnmpCommunity.myFirstSnmpCommunity.name
+                    'special!community'
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.oidSubset,
-                    declaration.Common.SnmpCommunity.myFirstSnmpCommunity.oid
+                    '.1'
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.ipv6,
@@ -1251,8 +1138,7 @@ describe('systemHandler', () => {
                     'myFirstSnmpCommunity'
                 );
                 assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.ipv6,
-                    'disabled'
+                    dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.ipv6, 'disabled'
                 );
             });
     });
@@ -1305,19 +1191,19 @@ describe('systemHandler', () => {
             .then(() => {
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.authPassword,
-                    declaration.Common.SnmpTrapDestination.myDestination.authentication.password
+                    'P@ssW0rd'
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.authProtocol,
-                    declaration.Common.SnmpTrapDestination.myDestination.authentication.protocol
+                    'sha'
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.privacyPassword,
-                    declaration.Common.SnmpTrapDestination.myDestination.privacy.password
+                    'P@ssW0rd'
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.privacyProtocol,
-                    declaration.Common.SnmpTrapDestination.myDestination.privacy.protocol
+                    'aes'
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.securityLevel,
@@ -1325,7 +1211,7 @@ describe('systemHandler', () => {
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.engineId,
-                    declaration.Common.SnmpTrapDestination.myDestination.engineId
+                    '0x80001f8880c6b6067fdacfb558'
                 );
             });
     });
@@ -1406,29 +1292,28 @@ describe('systemHandler', () => {
                 }
             };
 
-            const expected = {
-                acceptIpOptions: 'enabled',
-                acceptIpSourceRoute: 'enabled',
-                allowIpSourceRoute: 'enabled',
-                continueMatching: 'enabled',
-                maxIcmpRate: 867,
-                maxRejectRate: 867,
-                maxRejectRateTimeout: 200,
-                minPathMtu: 867,
-                pathMtuDiscovery: 'disabled',
-                portFindLinear: 867,
-                portFindRandom: 867,
-                portFindThresholdWarning: 'disabled',
-                portFindThresholdTrigger: 10,
-                portFindThresholdTimeout: 200,
-                rejectUnmatched: 'disabled'
-            };
-
             const systemHandler = new SystemHandler(declaration, bigIpMock);
             return systemHandler.process()
                 .then(() => {
                     const trafficControlData = dataSent[PATHS.TrafficControl][0];
-                    assert.deepStrictEqual(trafficControlData, expected);
+                    assert.deepStrictEqual(trafficControlData,
+                        {
+                            acceptIpOptions: 'enabled',
+                            acceptIpSourceRoute: 'enabled',
+                            allowIpSourceRoute: 'enabled',
+                            continueMatching: 'enabled',
+                            maxIcmpRate: 867,
+                            maxRejectRate: 867,
+                            maxRejectRateTimeout: 200,
+                            minPathMtu: 867,
+                            pathMtuDiscovery: 'disabled',
+                            portFindLinear: 867,
+                            portFindRandom: 867,
+                            portFindThresholdWarning: 'disabled',
+                            portFindThresholdTrigger: 10,
+                            portFindThresholdTimeout: 200,
+                            rejectUnmatched: 'disabled'
+                        });
                 });
         });
     });

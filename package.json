@@ -27,6 +27,8 @@
   },
   "devDependencies": {
     "@f5devcentral/eslint-config-f5-atg": "latest",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "colors": "^1.3.3",
     "coveralls": "^3.0.2",
     "eslint": "^5.4.0",

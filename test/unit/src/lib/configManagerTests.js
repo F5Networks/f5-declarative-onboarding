@@ -58,7 +58,7 @@ describe('configManager', () => {
         };
     });
 
-    it('should handle simple string values', () => new Promise((resolve, reject) => {
+    it('should handle simple string values', () => {
         const configItems = [
             {
                 path: '/tm/sys/global-settings',
@@ -71,20 +71,16 @@ describe('configManager', () => {
         listResponses['/tm/sys/global-settings'] = { hostname };
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
                 assert.strictEqual(
                     state.currentConfig.Common.hostname,
-                    listResponses['/tm/sys/global-settings'].hostname
+                    'myhost.bigip.com'
                 );
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
-    it('should handle objects', () => new Promise((resolve, reject) => {
+    it('should handle objects', () => {
         const configItems = [
             {
                 path: '/tm/sys/ntp',
@@ -102,17 +98,17 @@ describe('configManager', () => {
         };
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
-                assert.deepEqual(state.currentConfig.Common.NTP, listResponses['/tm/sys/ntp']);
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
+                assert.deepEqual(state.currentConfig.Common.NTP,
+                    {
+                        servers: ['server1', 'server2'],
+                        timezone: 'utc'
+                    });
             });
-    }));
+    });
 
-    it('should strip /Common/ from names', () => new Promise((resolve, reject) => {
+    it('should strip /Common/ from names', () => {
         const configItems = [
             {
                 path: '/tm/sys/namedProperty',
@@ -128,17 +124,13 @@ describe('configManager', () => {
         };
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
                 assert.deepEqual(state.currentConfig.Common.RemoveCommon.name, 'someName');
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
-    it('should handle arrays', () => new Promise((resolve, reject) => {
+    it('should handle arrays', () => {
         const configItems = [
             {
                 path: '/tm/net/route',
@@ -167,24 +159,30 @@ describe('configManager', () => {
         ];
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
                 assert.deepEqual(
                     state.currentConfig.Common.Route.default,
-                    listResponses['/tm/net/route'][0]
+                    {
+                        name: 'default',
+                        gw: '1.2.3.4',
+                        network: 'default',
+                        mtu: 0
+                    }
                 );
                 assert.deepEqual(
                     state.currentConfig.Common.Route.route1,
-                    listResponses['/tm/net/route'][1]
+                    {
+                        name: 'route1',
+                        gw: '5.6.7.8',
+                        network: '5.5.5.5',
+                        mtu: 1500
+                    }
                 );
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
-    it('should handle arrays when none are already defined on BIG-IP < 14.x', () => new Promise((resolve, reject) => {
+    it('should handle arrays when none are already defined on BIG-IP < 14.x', () => {
         const configItems = [
             {
                 path: '/tm/net/route',
@@ -200,17 +198,13 @@ describe('configManager', () => {
         listResponses['/tm/net/route'] = {};
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
                 assert.deepEqual(state.currentConfig.Common.Route, {});
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
-    it('should handle arrays when none are already defined on BIG-IP > 14.x', () => new Promise((resolve, reject) => {
+    it('should handle arrays when none are already defined on BIG-IP > 14.x', () => {
         const configItems = [
             {
                 path: '/tm/net/route',
@@ -226,17 +220,13 @@ describe('configManager', () => {
         listResponses['/tm/net/route'] = [];
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
                 assert.deepEqual(state.currentConfig.Common.Route, {});
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
-    it('should handle config items where we to map property name to value', () => new Promise((resolve, reject) => {
+    it('should handle config items where we to map property name to value', () => {
         const configItems = [
             {
                 path: '/tm/sys/provision',
@@ -260,20 +250,16 @@ describe('configManager', () => {
         ];
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
                 assert.deepEqual(
                     state.currentConfig.Common.Provision,
                     { afm: 'none', ltm: 'nominal' }
                 );
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
-    it('should handle references', () => new Promise((resolve, reject) => {
+    it('should handle references', () => {
         const configItems = [
             {
                 path: '/tm/net/vlan',
@@ -308,20 +294,13 @@ describe('configManager', () => {
         ];
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
-                assert.strictEqual(
-                    state.currentConfig.Common.VLAN.external.interfaces.name,
-                    listResponses['/tm/net/vlan/~Common~external/interfaces'].name
-                );
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
+                assert.strictEqual(state.currentConfig.Common.VLAN.external.interfaces[0].name, '1.1');
             });
-    }));
+    });
 
-    it('should handle newId property mapping', () => new Promise((resolve, reject) => {
+    it('should handle newId property mapping', () => {
         const configItems = [
             {
                 path: '/tm/sys/management-route',
@@ -349,11 +328,11 @@ describe('configManager', () => {
         ];
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
                 assert.strictEqual(
                     state.currentConfig.Common.ManagementRoute.default.gw,
-                    listResponses['/tm/sys/management-route'][0].gateway
+                    '8.8.8.8'
                 );
                 assert.strictEqual(
                     state.currentConfig.Common.ManagementRoute.default.gateway,
@@ -361,18 +340,14 @@ describe('configManager', () => {
                 );
                 assert.strictEqual(
                     state.currentConfig.Common.ManagementRoute.default.myObject.prop1,
-                    listResponses['/tm/sys/management-route'][0].myProp1
+                    'my property 1'
                 );
                 assert.strictEqual(
                     state.currentConfig.Common.ManagementRoute.default.myObject.prop2.prop,
-                    listResponses['/tm/sys/management-route'][0].myProp2
+                    'my property 2'
                 );
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
     describe('FailoverUnicast oddities', () => {
         // iControl omits the property altogether in some cases
@@ -396,23 +371,19 @@ describe('configManager', () => {
             }
         ];
 
-        it('should include a default value when missing and defaultWhenOmitted is defined', () => new Promise((resolve, reject) => {
+        it('should include a default value when missing and defaultWhenOmitted is defined', () => {
             listResponses[`/tm/cm/device/~Common~${deviceName}`] = { name: deviceName };
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.FailoverUnicast.unicastAddress,
                         'none'
                     );
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
 
-        it('should map correct value with new prop Id when present', () => new Promise((resolve, reject) => {
+        it('should map correct value with new prop Id when present', () => {
             listResponses[`/tm/cm/device/~Common~${deviceName}`] = {
                 name: deviceName,
                 unicastAddress: [
@@ -423,7 +394,7 @@ describe('configManager', () => {
                 ]
             };
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.FailoverUnicast.address,
@@ -433,16 +404,12 @@ describe('configManager', () => {
                         state.currentConfig.Common.FailoverUnicast.port,
                         '1026'
                     );
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
     });
 
     describe('SelfIp oddities', () => {
-        it('should strip /Common from vlan', () => new Promise((resolve, reject) => {
+        it('should strip /Common from vlan', () => {
             const configItems = [
                 {
                     path: '/tm/net/self',
@@ -461,17 +428,13 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.strictEqual(state.currentConfig.Common.SelfIp.selfIp1.vlan, 'external');
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
 
-        it('should handle allowService with ["default"]', () => new Promise((resolve, reject) => {
+        it('should handle allowService with ["default"]', () => {
             const configItems = [
                 {
                     path: '/tm/net/self',
@@ -490,17 +453,13 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.strictEqual(state.currentConfig.Common.SelfIp.selfIp1.allowService, 'default');
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
 
-        it('should handle allowService none', () => new Promise((resolve, reject) => {
+        it('should handle allowService none', () => {
             const configItems = [
                 {
                     path: '/tm/net/self',
@@ -518,19 +477,15 @@ describe('configManager', () => {
             ];
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.strictEqual(state.currentConfig.Common.SelfIp.selfIp1.allowService, 'none');
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
     });
 
     describe('Authentication oddities', () => {
-        it('should merge an auth subclass into a parent auth class', () => new Promise((resolve, reject) => {
+        it('should merge an auth subclass into a parent auth class', () => {
             const configItems = [
                 {
                     path: '/tm/auth/source',
@@ -569,14 +524,10 @@ describe('configManager', () => {
                             }
                         }
                     );
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
 
-        it('should merge multiple auth subclasses into a parent auth class', () => new Promise((resolve, reject) => {
+        it('should merge multiple auth subclasses into a parent auth class', () => {
             const configItems = [
                 {
                     path: '/tm/auth/source',
@@ -614,7 +565,7 @@ describe('configManager', () => {
             listResponses['/tm/auth/authsub2'] = { subProp2: true };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.Authentication,
@@ -629,14 +580,10 @@ describe('configManager', () => {
                             }
                         }
                     );
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
 
-        it('should omit a subclass prop when skipWhenOmitted is set to true', () => new Promise((resolve, reject) => {
+        it('should omit a subclass prop when skipWhenOmitted is set to true', () => {
             const configItems = [
                 {
                     path: '/tm/auth/source',
@@ -665,7 +612,7 @@ describe('configManager', () => {
             listResponses['/tm/auth/authsub'] = { name: 'namelessClass without the required field' };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.Authentication,
@@ -674,12 +621,8 @@ describe('configManager', () => {
                             fallback: true
                         }
                     );
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(err);
                 });
-        }));
+        });
     });
 
     describe('SyslogRemoteServer oddities', () => {
@@ -712,7 +655,7 @@ describe('configManager', () => {
             };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.SyslogRemoteServer,
@@ -735,7 +678,7 @@ describe('configManager', () => {
         });
     });
 
-    it('should set original config if missing', () => new Promise((resolve, reject) => {
+    it('should set original config if missing', () => {
         const configItems = [
             {
                 path: '/tm/sys/global-settings',
@@ -760,17 +703,25 @@ describe('configManager', () => {
         ];
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
-                assert.deepEqual(state.originalConfig, state.currentConfig);
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
+                assert.deepEqual(state.originalConfig,
+                    {
+                        parsed: true,
+                        Common: {
+                            hostname: 'myhost.bigip.com',
+                            SelfIp: {
+                                selfIp1: {
+                                    name: 'selfIp1',
+                                    allowService: 'none'
+                                }
+                            }
+                        }
+                    });
             });
-    }));
+    });
 
-    it('should not overwrite original config if present', () => new Promise((resolve, reject) => {
+    it('should not overwrite original config if present', () => {
         const configItems = [
             {
                 path: '/tm/sys/global-settings',
@@ -805,16 +756,12 @@ describe('configManager', () => {
         };
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
                 assert.deepEqual(state.originalConfig, { foo: 'bar' });
-                assert.deepEqual(updatedOriginalConfig, state.originalConfig);
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
+                assert.deepEqual(updatedOriginalConfig, { foo: 'bar' });
             });
-    }));
+    });
 
     describe('DbVariables', () => {
         it('should get DB variables if in declaration', () => {
@@ -844,32 +791,27 @@ describe('configManager', () => {
                 }
             ];
 
-            return new Promise((resolve, reject) => {
-                const declaration = {
-                    Common: {
-                        dbVars: {
-                            class: 'DbVariables',
-                            dbVar1: 'foo',
-                            dbVar2: 'bar'
-                        }
+            const declaration = {
+                Common: {
+                    dbVars: {
+                        class: 'DbVariables',
+                        dbVar1: 'foo',
+                        dbVar2: 'bar'
                     }
-                };
-                const configManager = new ConfigManager(configItems, bigIpMock);
-                configManager.get(declaration, state, doState)
-                    .then(() => {
-                        assert.strictEqual(state.currentConfig.Common.DbVariables.dbVar1, 'oldfoo');
-                        assert.strictEqual(state.currentConfig.Common.DbVariables.dbVar2, 'oldbar');
-                        assert.strictEqual(state.currentConfig.Common.DbVariables.dbVar3, undefined);
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+                }
+            };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get(declaration, state, doState)
+                .then(() => {
+                    assert.strictEqual(state.currentConfig.Common.DbVariables.dbVar1, 'oldfoo');
+                    assert.strictEqual(state.currentConfig.Common.DbVariables.dbVar2, 'oldbar');
+                    assert.strictEqual(state.currentConfig.Common.DbVariables.dbVar3, undefined);
+                });
         });
     });
 
-    it('should ignore ignored properties', () => new Promise((resolve, reject) => {
+    it('should ignore ignored properties', () => {
         const configItems = [
             {
                 path: '/tm/cm/device-group',
@@ -900,19 +842,15 @@ describe('configManager', () => {
         ];
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        configManager.get({}, state, doState)
+        return configManager.get({}, state, doState)
             .then(() => {
                 assert.strictEqual(Object.keys(state.currentConfig.Common.DeviceGroup).length, 1);
                 assert.deepEqual(
                     state.currentConfig.Common.DeviceGroup.myDeviceGroup,
-                    listResponses['/tm/cm/device-group'][0]
+                    { name: 'myDeviceGroup', members: [] }
                 );
-                resolve();
-            })
-            .catch((err) => {
-                reject(err);
             });
-    }));
+    });
 
     it('should skip unprovisioned modules', () => {
         const configItems = [
