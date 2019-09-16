@@ -155,7 +155,7 @@ module.exports = {
             });
         };
         return module.exports.tryOften(func, trials, timeInterval,
-            [constants.HTTP_ACCEPTED, constants.HTTP_UNAVAILABLE], true);
+            [constants.HTTP_ACCEPTED, constants.HTTP_UNAVAILABLE, constants.HTTP_NOTFOUND], true);
     },
 
     /**
