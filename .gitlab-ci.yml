@@ -4,9 +4,15 @@ stages:
     - lint
     - test
     - build
-    - deploy
-    - integration test
-    - teardown
+    - deploy 13.1
+    - integration test 13.1
+    - teardown 13.1
+    - deploy 14.0
+    - integration test 14.0
+    - teardown 14.0
+    - deploy 14.1
+    - integration test 14.1
+    - teardown 14.1
     - post build
     - publish
 
@@ -51,9 +57,9 @@ test_node8:
 # CICD_AUTH_OS_USERNAME - VIO user
 # CICD_AUTH_OS_PASSWORD - VIO password
 # CICD_AUTH_OS_PROJECT  - VIO project
-deploy bigip:
+deploy bigip 13.1:
     image: ${CICD_CONTAINER_DEPLOY}
-    stage: deploy
+    stage: deploy 13.1
     tags:
         - cm-official-docker-executor
     variables:
@@ -89,9 +95,9 @@ deploy bigip:
             - ${CI_PROJECT_DIR}/harness_facts_flat.json
         expire_in: 40min
 
-integration test:
+integration test 13.1:
     image: centos
-    stage: integration test
+    stage: integration test 13.1
     tags:
        - cm-official-docker-executor
     only:
@@ -104,9 +110,9 @@ integration test:
        - npm install
        - npm run integration
 
-teardown bigip:
+teardown bigip 13.1:
     image: ${CICD_CONTAINER_DEPLOY}
-    stage: teardown
+    stage: teardown 13.1
     tags:
         - cm-official-docker-executor
     variables:
@@ -115,10 +121,152 @@ teardown bigip:
         NUMBER_OF_BIGIP: 3
     script:
       - cd /root/cicd-bigip-deploy && make configure && make teardown
+      # - rm -rf ${CI_PROJECT_DIR}/harness_facts_flat.json
     when: always
     only:
         - schedules
         - tags
+
+# deploy bigip 14.0:
+#     image: ${CICD_CONTAINER_DEPLOY}
+#     stage: deploy 14.0
+#     tags:
+#         - cm-official-docker-executor
+#     variables:
+#         PROJECT_NAME: ${CI_PROJECT_NAME}
+#         PROJECT_DIR: /root/deploy-projects/${CI_PROJECT_NAME}
+#         BIGIP_VERSION: 14.0.0.2
+#         BIGIP_BUILD: 0.0.2
+#         NUMBER_OF_BIGIP: 3
+#         DO_LICENSING: 'false'
+#         DO_PROVISIONING: 'false'
+#     only:
+#         - schedules
+#         - tags
+#     script:
+#         - cd /root/cicd-bigip-deploy && make configure &&
+#             make printvars && cat ${PROJECT_DIR}/project-vars &&
+#             make setup && ls -als ${PROJECT_DIR} &&
+#             cp ${PROJECT_DIR}/harness_facts_flat.json ${CI_PROJECT_DIR}/harness_facts_flat.json
+#         - if [[ $? != 0 ]]; then
+#         -     echo setup failed
+#         -     exit 1
+#         - fi
+#         - cd ${CI_PROJECT_DIR}
+#         - export RPM_PACKAGE=$(ls dist/*.rpm)
+#         - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
+#         - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+#         - yum install -y nodejs
+#         - npm install
+#         - node test/integration/setup.js
+#     artifacts:
+#         name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
+#         paths:
+#             - ${CI_PROJECT_DIR}/harness_facts_flat.json
+#         expire_in: 40min
+
+# integration test 14.0:
+#     image: centos
+#     stage: integration test 14.0
+#     tags:
+#        - cm-official-docker-executor
+#     only:
+#         - schedules
+#         - tags
+#     script:
+#        - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
+#        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+#        - yum install -y nodejs
+#        - npm install
+#        - npm run integration
+
+# teardown bigip 14.0:
+#     image: ${CICD_CONTAINER_DEPLOY}
+#     stage: teardown 14.0
+#     tags:
+#         - cm-official-docker-executor
+#     variables:
+#         PROJECT_NAME: ${CI_PROJECT_NAME}
+#         PROJECT_DIR: /root/deploy-projects/${CI_PROJECT_NAME}
+#         NUMBER_OF_BIGIP: 3
+#     script:
+#       - cd /root/cicd-bigip-deploy && make configure && make teardown
+#       - rm -rf ${CI_PROJECT_DIR}/harness_facts_flat.json
+#     when: always
+#     only:
+#         - schedules
+#         - tags
+
+# deploy bigip 14.1:
+#     image: ${CICD_CONTAINER_DEPLOY}
+#     stage: deploy 14.1
+#     tags:
+#         - cm-official-docker-executor
+#     variables:
+#         PROJECT_NAME: ${CI_PROJECT_NAME}
+#         PROJECT_DIR: /root/deploy-projects/${CI_PROJECT_NAME}
+#         BIGIP_VERSION: 14.1.0.6
+#         BIGIP_BUILD: 0.0.9
+#         NUMBER_OF_BIGIP: 3
+#         DO_LICENSING: 'false'
+#         DO_PROVISIONING: 'false'
+#     only:
+#         - schedules
+#         - tags
+#     script:
+#         - cd /root/cicd-bigip-deploy && make configure &&
+#             make printvars && cat ${PROJECT_DIR}/project-vars &&
+#             make setup && ls -als ${PROJECT_DIR} &&
+#             cp ${PROJECT_DIR}/harness_facts_flat.json ${CI_PROJECT_DIR}/harness_facts_flat.json
+#         - if [[ $? != 0 ]]; then
+#         -     echo setup failed
+#         -     exit 1
+#         - fi
+#         - cd ${CI_PROJECT_DIR}
+#         - export RPM_PACKAGE=$(ls dist/*.rpm)
+#         - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
+#         - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+#         - yum install -y nodejs
+#         - npm install
+#         - node test/integration/setup.js
+#     artifacts:
+#         name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
+#         paths:
+#             - ${CI_PROJECT_DIR}/harness_facts_flat.json
+#         expire_in: 40min
+
+# integration test 14.1:
+#     image: centos
+#     stage: integration test 14.1
+#     tags:
+#        - cm-official-docker-executor
+#     only:
+#         - schedules
+#         - tags
+#     script:
+#        - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
+#        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+#        - yum install -y nodejs
+#        - npm install
+#        - npm run integration
+
+# teardown bigip 14.1:
+#     image: ${CICD_CONTAINER_DEPLOY}
+#     stage: teardown 14.1
+#     tags:
+#         - cm-official-docker-executor
+#     variables:
+#         PROJECT_NAME: ${CI_PROJECT_NAME}
+#         PROJECT_DIR: /root/deploy-projects/${CI_PROJECT_NAME}
+#         NUMBER_OF_BIGIP: 3
+#     script:
+#       - cd /root/cicd-bigip-deploy && make configure && make teardown
+#       - rm -rf ${CI_PROJECT_DIR}/harness_facts_flat.json
+#     when: always
+#     only:
+#         - schedules
+#         - tags
+
 
 build rpm:
     image: node:8-alpine

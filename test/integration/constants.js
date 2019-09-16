@@ -6,6 +6,7 @@
 
 module.exports = Object.freeze({
     HTTP_ACCEPTED: 202,
+    HTTP_NOTFOUND: 404,
     HTTP_SUCCESS: 200,
     HTTP_UNAVAILABLE: 503,
     HTTP_UNPROCESSABLE: 422,
