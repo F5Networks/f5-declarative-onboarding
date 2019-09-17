@@ -208,6 +208,10 @@ class ConfigManager {
                                         name = name.split('/Common/')[1];
                                     }
 
+                                    if (schemaClass === 'SnmpTrapDestination') {
+                                        patchedItem.name = name;
+                                    }
+
                                     if (schemaClass === 'RemoteAuthRole') {
                                         patchedItem.name = name; // The patchedItem needs its name updated too
                                     }
