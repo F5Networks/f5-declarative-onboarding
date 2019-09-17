@@ -620,7 +620,7 @@ describe('system.schema.json', () => {
                     "version": "1",
                     "destination": "1.2.3.4",
                     "port": 80,
-                    "network": "other",
+                    "network": "management",
                     "community": "myCommunity"
                 };
                 assert.ok(validate(data), getErrorString(validate));

@@ -522,6 +522,8 @@ function handleSnmp() {
                 destination.securityLevel = 'auth-privacy';
                 delete destination.privacy;
             }
+
+            destination.network = (destination.network === 'management') ? 'mgmt' : 'other';
         });
 
         promise = promise.then(() => this.bigIp.modify(
