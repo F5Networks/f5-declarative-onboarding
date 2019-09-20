@@ -56,7 +56,8 @@ module.exports = {
         SnmpTrapDestination: '/tm/sys/snmp',
         Syslog: '/tm/sys/syslog',
         DagGlobals: '/tm/net/dag-globals',
-        TrafficControl: '/tm/ltm/global-settings/traffic-control'
+        TrafficControl: '/tm/ltm/global-settings/traffic-control',
+        SSH: '/tm/sys/sshd'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -84,7 +85,8 @@ module.exports = {
         'SnmpAgent',
         'SnmpTrapEvents',
         'DagGlobals',
-        'TrafficControl'
+        'TrafficControl',
+        'SSH'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

@@ -425,5 +425,15 @@
             { "id": "rejectUnmatched", "truth": "enabled", "falsehood": "disabled" }
         ],
         "nameless": true
+    },
+    {
+        "path": "/tm/sys/sshd",
+        "schemaClass": "SSH",
+        "properties": [
+            { "id": "bannerText", "newId": "banner" },
+            { "id": "include" },
+            { "id": "inactivityTimeout" }
+        ],
+        "nameless": true
     }
 ]

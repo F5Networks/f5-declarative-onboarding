@@ -953,6 +953,79 @@ describe('system.schema.json', () => {
             });
         });
     });
+
+    describe('SSH', () => {
+        describe('valid', () => {
+            it('should validate declaration with minimal properties', () => {
+                const data = {
+                    "class": "SSH"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate declaration with all properties', () => {
+                const data = {
+                    "class": "SSH",
+                    "banner": "Hello there",
+                    "ciphers": [
+                        "aes128-ctr",
+                        "aes192-ctr"
+                    ],
+                    "inactivityTimeout": 10000,
+                    "loginGraceTime": 30,
+                    "MACS": [
+                        "hmac-sha1"
+                    ],
+                    "maxAuthTries": 100,
+                    "maxStartups": "4",
+                    "protocol": 2
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate out of range inactivityTimeout', () => {
+                const data = {
+                    "class": "SSH",
+                    "inactivityTimeout": 9999999999999
+                };
+                assert.strictEqual(validate(data), false, 'inactivityTimeout should be within the range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 2147483647'), -1);
+            });
+
+            it('should invalidate invalid cipher', () => {
+                const data = {
+                    "class": "SSH",
+                    "ciphers": [
+                        "I'm invalid"
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'ciphers should only contain one of the allowed values');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate invalid MAC', () => {
+                const data = {
+                    "class": "SSH",
+                    "MACS": [
+                        "Also invalid"
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'MACS should only contain one of the allowed values');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "class": "SSH",
+                    "newProp": "value"
+                };
+                assert.strictEqual(validate(data), false, 'there should not be additional properties');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {

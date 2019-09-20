@@ -756,6 +756,12 @@ describe('inspectHandler', () => {
                 portFindThresholdTrigger: 8,
                 portFindThresholdTimeout: 30,
                 rejectUnmatched: 'enabled'
+            },
+            '/tm/sys/sshd': {
+                banner: 'enabled',
+                bannerText: 'This is the banner text',
+                inactivityTimeout: 10000,
+                include: 'Ciphers aes128-ctr,aes256-ctr\nLoginGraceTime 10\nMACs hmac-sha1\nMaxAuthTries 5\nMaxStartups 3\nProtocol 1\n'
             }
         });
 
@@ -1076,6 +1082,22 @@ describe('inspectHandler', () => {
                             portFindThresholdTrigger: 8,
                             portFindThresholdTimeout: 30,
                             rejectUnmatched: true
+                        },
+                        currentSSH: {
+                            class: 'SSH',
+                            banner: 'This is the banner text',
+                            inactivityTimeout: 10000,
+                            ciphers: [
+                                'aes128-ctr',
+                                'aes256-ctr'
+                            ],
+                            MACS: [
+                                'hmac-sha1'
+                            ],
+                            loginGraceTime: 10,
+                            maxAuthTries: 5,
+                            maxStartups: '3',
+                            protocol: 1
                         }
                     }
                 }
@@ -1283,6 +1305,9 @@ describe('inspectHandler', () => {
                                 pathMtuDiscovery: false,
                                 portFindThresholdWarning: false,
                                 rejectUnmatched: false
+                            },
+                            currentSSH: {
+                                class: 'SSH'
                             }
                         }
                     }
