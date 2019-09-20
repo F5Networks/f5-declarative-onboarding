@@ -1337,4 +1337,47 @@ describe('systemHandler', () => {
                 });
         });
     });
+
+    describe('SSH', () => {
+        it('should handle ssh', () => {
+            const declaration = {
+                Common: {
+                    SSH: {
+                        banner: 'Text for banner',
+                        inactivityTimeout: 12345,
+                        ciphers: [
+                            'aes128-ctr',
+                            'aes192-ctr',
+                            'aes256-ctr',
+                            'aes128-cbc',
+                            'aes192-cbc',
+                            'aes256-cbc'
+                        ],
+                        MACS: [
+                            'hmac-sha1',
+                            'hmac-ripemd160',
+                            'hmac-md5'
+                        ],
+                        loginGraceTime: 100,
+                        maxAuthTries: 10,
+                        maxStartups: '3',
+                        protocol: 2
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    const sshData = dataSent[PATHS.SSH][0];
+                    assert.deepStrictEqual(sshData,
+                        {
+                            banner: 'enabled',
+                            bannerText: 'Text for banner',
+                            inactivityTimeout: 12345,
+                            include: 'Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,aes192-cbc,aes256-cbc\nLoginGraceTime 100\nMACs hmac-sha1,hmac-ripemd160,hmac-md5\nMaxAuthTries 10\nMaxStartups 3\nProtocol 2\n'
+                        });
+                });
+        });
+    });
 });

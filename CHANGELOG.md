@@ -2,6 +2,7 @@
 
 ## Version 1.8.0
 + Fix bug in which DO was unable to use management network for SnmpTrapDestination
++ Add support for SSH class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
 
 ## Version 1.7.0
 + Handle the automatic update of root password when admin password changes on 14.0+

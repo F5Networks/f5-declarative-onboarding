@@ -276,6 +276,16 @@ class ConfigManager {
                             });
                             delete patchedItem.remoteServers;
                         }
+
+                        if (schemaClass === 'SSH') {
+                            if (patchedItem.include) {
+                                patchSSH.call(
+                                    this,
+                                    patchedItem
+                                );
+                                delete patchedItem.include;
+                            }
+                        }
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
                     }
@@ -696,6 +706,32 @@ function patchAuth(schemaMerge, authClass, authItem) {
 
     patchedClass = mapSchemaMerge.call(this, authClassCopy, patchedItem, schemaMerge);
     return patchedClass;
+}
+
+function patchSSH(patchedItem) {
+    const includes = patchedItem.include.split('\n');
+    includes.forEach((i) => {
+        const currentInclude = i.split(' ');
+
+        if (currentInclude[0] === 'Ciphers') {
+            patchedItem.ciphers = currentInclude[1].split(',');
+        }
+        if (currentInclude[0] === 'MACs') {
+            patchedItem.MACS = currentInclude[1].split(',');
+        }
+        if (currentInclude[0] === 'LoginGraceTime') {
+            patchedItem.loginGraceTime = parseInt(currentInclude[1], 10);
+        }
+        if (currentInclude[0] === 'MaxAuthTries') {
+            patchedItem.maxAuthTries = parseInt(currentInclude[1], 10);
+        }
+        if (currentInclude[0] === 'MaxStartups') {
+            patchedItem.maxStartups = currentInclude[1];
+        }
+        if (currentInclude[0] === 'Protocol') {
+            patchedItem.protocol = parseInt(currentInclude[1], 10);
+        }
+    });
 }
 
 function shouldIgnore(item, ignoreList) {

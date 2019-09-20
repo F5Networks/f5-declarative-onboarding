@@ -97,6 +97,10 @@ class SystemHandler {
                 return handleTrafficControl.call(this);
             })
             .then(() => {
+                logger.fine('Checking SSH');
+                return handleSSH.call(this);
+            })
+            .then(() => {
                 logger.fine('Done processing system declaration.');
                 return Promise.resolve();
             })
@@ -586,6 +590,49 @@ function handleTrafficControl() {
             const errorTrafficControl = `Error modifying traffic control settings: ${err.message}`;
             logger.severe(errorTrafficControl);
             err.message = errorTrafficControl;
+            return Promise.reject(err);
+        });
+}
+
+function handleSSH() {
+    if (!this.declaration.Common || !this.declaration.Common.SSH) {
+        return Promise.resolve();
+    }
+
+    const ssh = this.declaration.Common.SSH;
+    let includeString = '';
+
+    if (ssh.ciphers) {
+        includeString = includeString.concat(`Ciphers ${ssh.ciphers.join(',')}\n`);
+    }
+    if (ssh.loginGraceTime) {
+        includeString = includeString.concat(`LoginGraceTime ${ssh.loginGraceTime}\n`);
+    }
+    if (ssh.MACS) {
+        includeString = includeString.concat(`MACs ${ssh.MACS.join(',')}\n`);
+    }
+    if (ssh.maxAuthTries) {
+        includeString = includeString.concat(`MaxAuthTries ${ssh.maxAuthTries}\n`);
+    }
+    if (ssh.maxStartups) {
+        includeString = includeString.concat(`MaxStartups ${ssh.maxStartups}\n`);
+    }
+    if (ssh.protocol) {
+        includeString = includeString.concat(`Protocol ${ssh.protocol}\n`);
+    }
+
+    const sshObj = {
+        banner: ssh.banner ? 'enabled' : 'disabled',
+        bannerText: ssh.banner,
+        include: includeString,
+        inactivityTimeout: ssh.inactivityTimeout
+    };
+
+    return this.bigIp.modify(PATHS.SSH, sshObj)
+        .catch((err) => {
+            const errorSSH = `Error modifying SSH settings: ${err.message}`;
+            logger.severe(errorSSH);
+            err.message = errorSSH;
             return Promise.reject(err);
         });
 }

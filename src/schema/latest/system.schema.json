@@ -715,6 +715,102 @@
                     }
                 }
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SSH" } }
+            },
+            "then": {
+                "properties": {
+                    "class": {
+                        "description": "Indicates this contains SSH configuration.",
+                        "type": "string",
+                        "const": "SSH"
+                    },
+                    "banner": {
+                        "description": "Enables or disabled the display of the banner text field when a user logs in.",
+                        "type": "string"
+                    },
+                    "ciphers": {
+                        "description": "Specifies the ciphers to be included.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "3des-cbc",
+                                "aes128-ctr",
+                                "aes192-ctr",
+                                "aes256-ctr",
+                                "aes128-cbc",
+                                "aes192-cbc",
+                                "aes256-cbc",
+                                "aes128-gcm@openssh.com",
+                                "aes256-gcm@openssh.com",
+                                "arcfour",
+                                "arcfour128",
+                                "arcfour256",
+                                "blowfish-cbc",
+                                "cast128-cbc",
+                                "chacha20-poly1305@openssh.com"
+                            ]
+                        }
+                    },
+                    "inactivityTimeout": {
+                        "description": "Specifies the number of seconds before inactivity causes an SSH session to log out.",
+                        "type": "integer",
+                        "default": 0,
+                        "minimum": 0,
+                        "maximum": 2147483647
+                    },
+                    "loginGraceTime": {
+                        "description": "Specifies the login grace period that will be included. This is in the number of seconds.",
+                        "type": "integer"
+                    },
+                    "MACS": {
+                        "description": "Specifies the MACs that will be included.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "hmac-sha1",
+                                "hmac-ripemd160",
+                                "hmac-md5",
+                                "hmac-md5-96",
+                                "hmac-sha1-96",
+                                "hmac-sha2-256",
+                                "hmac-sha2-512",
+                                "hmac-md5-etm@openssh.com",
+                                "hmac-md5-96-etm@openssh.com",
+                                "hmac-ripemd160-etm@openssh.com",
+                                "hmac-sha1-etm@openssh.com",
+                                "hmac-sha1-96-etm@openssh.com",
+                                "hmac-sha2-256-etm@openssh.com",
+                                "hmac-sha2-512-etm@openssh.com",
+                                "umac-64@openssh.com",
+                                "umac-128@openssh.com",
+                                "umac-64-etm@openssh.com",
+                                "umac-128-etm@openssh.com"
+                            ]
+                        }
+                    },
+                    "maxAuthTries": {
+                        "description": "Specifies the max auth tries to be included.",
+                        "type": "integer"
+                    },
+                    "maxStartups": {
+                        "description": "Specifies the max startups to include.",
+                        "type": "string"
+                    },
+                    "protocol": {
+                        "description": "Specifies the protocol to be included.",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2
+                    }
+                },
+                "additionalProperties": false
+            }
         }
     ],
     "definitions": {
