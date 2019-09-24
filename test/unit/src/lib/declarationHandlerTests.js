@@ -140,7 +140,9 @@ describe('declarationHandler', () => {
             },
             originalConfig: {
                 Common: {
-                    hostname: 'my.bigip.com',
+                    System: {
+                        hostname: 'my.bigip.com'
+                    },
                     DNS: {
                         foo: 'bar'
                     },
@@ -167,7 +169,9 @@ describe('declarationHandler', () => {
             .then(() => {
                 assert.deepStrictEqual(declarationWithDefaults.Common,
                     {
-                        hostname: 'my.bigip.com',
+                        System: {
+                            hostname: 'my.bigip.com'
+                        },
                         DNS: {
                             foo: 'bar'
                         },

@@ -73,8 +73,8 @@ class SystemHandler {
                 return handleManagementRoute.call(this);
             })
             .then(() => {
-                logger.fine('Checking hostname.');
-                return handleHostname.call(this);
+                logger.fine('Checking System.');
+                return handleSystem.call(this);
             })
             .then(() => {
                 logger.fine('Checking Users.');
@@ -161,11 +161,30 @@ function handleDNS() {
     return Promise.resolve();
 }
 
-function handleHostname() {
-    if (this.declaration.Common.hostname) {
-        return this.bigIp.onboard.hostname(this.declaration.Common.hostname);
+function handleSystem() {
+    const promises = [];
+    const common = this.declaration.Common;
+    if (!common) {
+        return Promise.resolve();
     }
-    return Promise.resolve();
+
+    // Handle both 'hostname' and 'System.hostname'
+    const system = common.System;
+    let hostname;
+    if (system && system.hostname) {
+        hostname = system.hostname;
+        delete system.hostname;
+    } else if (common.hostname) {
+        hostname = common.hostname;
+    }
+    if (hostname) {
+        promises.push(this.bigIp.onboard.hostname(hostname));
+    }
+    if (system && Object.keys(system).length) {
+        promises.push(this.bigIp.modify(PATHS.System, system));
+    }
+
+    return Promise.all(promises);
 }
 
 function handleUser() {

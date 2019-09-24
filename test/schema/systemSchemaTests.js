@@ -39,6 +39,17 @@ const validate = ajv.compile(systemSchema);
 /* eslint-disable quotes, quote-props */
 
 describe('system.schema.json', () => {
+    describe('hostname', () => {
+        describe('valid', () => {
+            it('should accept a class-less hostname', () => {
+                const data = {
+                    "hostname": 'my.bigip.com'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+    });
+
     describe('DNS', () => {
         describe('valid', () => {
             it('should validate dns data', () => {
@@ -896,6 +907,47 @@ describe('system.schema.json', () => {
 
             assert.strictEqual(validate(data), false, 'host should be required');
             assert.notStrictEqual(getErrorString().indexOf('should have required property \'host\''), -1);
+        });
+    });
+
+    describe('System', () => {
+        describe('valid', () => {
+            it('should validate default values', () => {
+                const data = {
+                    "class": "System"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate system settings', () => {
+                const data = {
+                    "class": "System",
+                    "hostname": "bigip.example.com",
+                    "consoleInactivityTimeout": 50
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate when console timeout is out of range', () => {
+                const data = {
+                    "class": "System",
+                    "consoleInactivityTimeout": 2147483648
+                };
+
+                assert.strictEqual(validate(data), false, 'consoleInactivityTimeout is out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 2147483647'), -1);
+            });
+
+            it('should invalidate when invalid type', () => {
+                const data = {
+                    "class": "System",
+                    "consoleInactivityTimeout": "five"
+                };
+                assert.strictEqual(validate(data), false, 'not a valid type');
+                assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
+            });
         });
     });
 

@@ -5,7 +5,10 @@
     "description": "Network properties for onboarding a BIG-IP.",
     "allOf": [
         {
-            "if": { "properties": { "class": { "const": "Trunk" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Trunk" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -67,7 +70,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "VLAN" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "VLAN" } }
+            },
             "then": {
                 "required": ["class", "interfaces"],
                 "properties": {
@@ -119,7 +125,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "SelfIp" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SelfIp" } }
+            },
             "then": {
                 "required": ["class", "address", "vlan"],
                 "properties": {
@@ -165,7 +174,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "Route" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Route" } }
+            },
             "then": {
                 "required": ["class", "gw"],
                 "properties": {
@@ -202,7 +214,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "RouteDomain" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RouteDomain" } }
+            },
             "then": {
                 "required": ["class", "id"],
                 "properties": {
@@ -277,7 +292,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "DagGlobals" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DagGlobals" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
