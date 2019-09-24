@@ -184,6 +184,7 @@
             "allOf": [
                 {
                     "if": {
+                        "required": ["failImportOnConflict"],
                         "properties": { "failImportOnConflict": { "const": false }}
                     },
                     "then": {

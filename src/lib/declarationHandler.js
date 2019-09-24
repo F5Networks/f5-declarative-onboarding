@@ -59,6 +59,7 @@ const CLASSES_OF_TRUTH = [
     'SnmpCommunity',
     'SnmpTrapDestination',
     'DagGlobals',
+    'System',
     'TrafficControl',
     'SSH'
 ];

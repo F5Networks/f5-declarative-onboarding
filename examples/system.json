@@ -1,0 +1,14 @@
+{
+    "schemaVersion": "1.7.0",
+    "class": "Device",
+    "label": "Configuring System",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "mySystem": {
+            "class": "System",
+            "hostname": "my.bigip.com",
+            "consoleInactivityTimeout": 0
+        }
+    }
+}

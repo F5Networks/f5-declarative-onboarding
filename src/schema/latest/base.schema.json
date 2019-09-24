@@ -103,11 +103,6 @@
                 "class": {
                     "type": "string",
                     "const": "Tenant"
-                },
-                "hostname": {
-                    "description": "Hostname to set for device.",
-                    "type": "string",
-                    "format": "hostname"
                 }
             },
             "additionalProperties": {

@@ -423,6 +423,29 @@ describe('systemHandler', () => {
             });
     });
 
+    it('should handle hostname via System class', () => {
+        const declaration = {
+            Common: {
+                System: {
+                    hostname: 'myhost.example.com'
+                }
+            }
+        };
+        let hostnameSent;
+        bigIpMock.onboard = {
+            hostname(hostname) {
+                hostnameSent = hostname;
+                return Promise.resolve();
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(hostnameSent, 'myhost.example.com');
+            });
+    });
+
     it('should handle root users without keys', () => {
         // Stubs out the remote call to confirm the key is not added to the user
         sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);

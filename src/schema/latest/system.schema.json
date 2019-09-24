@@ -3,15 +3,28 @@
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/system.schema.json",
     "title": "F5 Declarative Onboarding system declaration",
     "description": "System properties for onboarding a BIG-IP.",
+    "properties": {
+        "hostname": {
+            "description": "Hostname to set for device. Note: hostname is mutually exclusive with System.hostname.",
+            "type": "string",
+            "format": "hostname"
+        }
+    },
     "allOf": [
         {
-            "if": { "properties": { "class": { "const": "License" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "License" } }
+            },
             "then": {
                 "oneOf": [
                     { "$ref": "#/definitions/regKeyInfo" },
                     { "$ref": "#/definitions/licensePoolInfo" }
                 ],
-                "if": {"properties": { "licenseType": { "const": "licensePool" } } },
+                "if": {
+                    "required": ["licenseType"],
+                    "properties": { "licenseType": { "const": "licensePool" } }
+                },
                 "then": {
                     "properties": {
                         "unitOfMeasure": {
@@ -22,7 +35,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "DbVariables" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DbVariables" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -41,7 +57,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "Provision" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Provision" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -79,7 +98,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "DNS" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DNS" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -112,7 +134,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "NTP" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "NTP" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -142,7 +167,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "SnmpAgent" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpAgent" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -172,7 +200,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "SnmpCommunity" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpCommunity" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -215,7 +246,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "SnmpUser" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpUser" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -285,7 +319,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "SnmpTrapEvents" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpTrapEvents" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -313,7 +350,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "SnmpTrapDestination" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpTrapDestination" } }
+            },
             "then": {
                 "required": ["class", "version", "destination", "port", "network"],
                 "properties": {
@@ -347,7 +387,9 @@
                         "enum": ["management", "other"]
                     }
                 },
-                "if": { "properties": { "version": { "const" : "3" } } },
+                "if": {
+                    "required": ["version"],
+                    "properties": { "version": { "const" : "3" } } },
                 "then": {
                     "required": ["securityName", "authentication"],
                     "properties": {
@@ -405,9 +447,14 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "User" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "User" } }
+            },
             "then": {
-                "if": { "properties": { "userType": { "const": "root" } } },
+                "if": {
+                    "properties": { "userType": { "const": "root" } }
+                },
                 "then": {
                     "required": ["class", "userType", "newPassword", "oldPassword"],
                     "properties": {
@@ -502,7 +549,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "ManagementRoute" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "ManagementRoute" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -559,7 +609,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "SyslogRemoteServer" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SyslogRemoteServer" } }
+            },
             "then": {
                 "required": ["class", "host"],
                 "properties": {
@@ -597,7 +650,39 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "TrafficControl" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "System" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates this property contains global system settings",
+                        "type": "string",
+                        "const": "System"
+                    },
+                    "hostname": {
+                        "description": "Hostname to set for device. Note: System.hostname is mutually exclusive with hostname.",
+                        "type": "string",
+                        "format": "hostname"
+                    },
+                    "consoleInactivityTimeout": {
+                        "description": "Configure automatic logout for idle serial console sessions (command line sessions). The default value is 0 (zero), which means that no timeout is set. The valid range is 0 - 2147483647.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2147483647,
+                        "default": 0
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "TrafficControl" } }
+            },
             "then": {
                 "required": ["class"],
                 "properties": {
@@ -700,14 +785,20 @@
                 "additionalProperties": false,
                 "dependencies": {
                     "acceptIpSourceRoute": {
-                        "if": { "properties": { "acceptIpSourceRoute": { "const": true } } },
+                        "if": {
+                            "required": ["acceptIpSourceRoute"],
+                            "properties": { "acceptIpSourceRoute": { "const": true } }
+                        },
                         "then": {
                             "required": ["acceptIpOptions"],
                             "properties": { "acceptIpOptions": { "const": true } }
                         }
                     },
                     "allowIpSourceRoute": {
-                        "if": { "properties": { "allowIpSourceRoute": { "const": true } } },
+                        "if": {
+                            "required": ["allowIpSourceRoute"],
+                            "properties": { "allowIpSourceRoute": { "const": true } }
+                        },
                         "then": {
                             "required": ["acceptIpOptions"],
                             "properties": { "acceptIpOptions": { "const": true } }
@@ -878,6 +969,7 @@
         "licensePoolInfo": {
             "required": ["class", "licenseType"],
             "if": {
+                "required": ["reachable"],
                 "properties": { "reachable": { "const": false }}
             },
             "then": {

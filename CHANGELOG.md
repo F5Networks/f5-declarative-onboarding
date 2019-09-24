@@ -2,6 +2,8 @@
 
 ## Version 1.8.0
 + Fix bug in which DO was unable to use management network for SnmpTrapDestination
++ Add support for consoleInactivityTimeout in System class
++ Add support for hostname in System class
 + Add support for SSH class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
 
 ## Version 1.7.0

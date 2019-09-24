@@ -5,7 +5,11 @@
     "description": "Authentication properties for onboarding a BIG-IP.",
     "allOf": [
         {
-            "if": { "properties": { "class": { "const": "RemoteAuthRole" } } },
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "RemoteAuthRole" } }
+            },
             "then": {
                 "oneOf": [
                     { "$ref": "#/definitions/remoteAuthRole" }
@@ -13,7 +17,11 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "Authentication" } } },
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "Authentication" } }
+            },
             "then": {
                 "oneOf": [
                     { "$ref": "#/definitions/remoteInfo" }
@@ -113,6 +121,7 @@
                 },
                 {
                     "if": {
+                        "required": ["enabledSourceType"],
                         "properties": { "enabledSourceType": { "oneOf": [
                             { "const": "ldap" },
                             { "const": "activeDirectory" }

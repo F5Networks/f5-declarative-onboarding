@@ -3,7 +3,10 @@
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/analytics.schema.json",
     "title": "F5 Declarative Onboarding Global Analytics declaration",
     "description": "Global analytics properties for onboarding a BIG-IP.",
-    "if": { "properties": { "class": { "const": "Analytics" } } },
+    "if": {
+        "required": ["class"],
+        "properties": { "class": { "const": "Analytics" } }
+    },
     "then": {
         "required": ["class"],
         "properties": {

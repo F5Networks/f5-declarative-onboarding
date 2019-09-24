@@ -18,6 +18,7 @@
 
 const AjvValidator = require('./ajvValidator');
 const BigIqSettingsValidator = require('./bigIqSettingsValidator');
+const BusinessLogicValidator = require('./businessLogicValidator');
 const LicensePoolValidator = require('./licensePoolValidator');
 const UserValidator = require('./userValidator');
 
@@ -25,6 +26,7 @@ class Validator {
     constructor() {
         this.validators = [
             new AjvValidator(),
+            new BusinessLogicValidator(),
             new BigIqSettingsValidator(),
             new LicensePoolValidator(),
             new UserValidator()

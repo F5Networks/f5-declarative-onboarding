@@ -1,12 +1,12 @@
 [
     {
         "path": "/tm/sys/global-settings",
+        "schemaClass": "System",
         "properties": [
-            { "id": "hostname" }
+            { "id": "hostname" },
+            { "id": "consoleInactivityTimeout" }
         ],
-        "declaration": {
-            "name": "hostname"
-        }
+        "nameless": true
     },
     {
         "path": "/tm/sys/db",
@@ -27,7 +27,7 @@
         "singleValue": true,
         "declaration": {
             "properties": [
-                { 
+                {
                     "$comment": "SSLO is not supported yet",
                     "id": "sslo",
                     "remove": true
@@ -284,7 +284,7 @@
             "customFunctions": [
                 { "id": "renameDefaultRouteDomain" }
             ]
-        } 
+        }
     },
     {
         "path": "/tm/auth/remote-role/role-info",

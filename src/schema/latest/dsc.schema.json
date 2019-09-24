@@ -5,7 +5,10 @@
     "description": "Clustering properties for onboarding a BIG-IP.",
     "allOf": [
         {
-            "if": { "properties": { "class": { "const": "ConfigSync" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "ConfigSync" } }
+            },
             "then": {
                 "required": ["class", "configsyncIp"],
                 "properties": {
@@ -29,7 +32,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "FailoverUnicast" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "FailoverUnicast" } }
+            },
             "then": {
                 "required": ["class", "address"],
                 "properties": {
@@ -59,7 +65,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "DeviceGroup" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DeviceGroup" } }
+            },
             "then": {
                 "required": ["class", "type", "owner"],
                 "properties": {
@@ -115,9 +124,14 @@
                         "default": false
                     }
                 },
-                "if": { "properties": { "type": { "const": "sync-failover" } } },
+                "if": {
+                    "required": ["class"],
+                    "properties": { "type": { "const": "sync-failover" } }
+                },
                 "then": {
-                    "if": { "properties": { "autoSync": { "const": true } } },
+                    "if": {
+                        "required": ["autoSync"],
+                        "properties": { "autoSync": { "const": true } } },
                     "then": {
                         "properties": {
                             "fullLoadOnSync": {
@@ -130,7 +144,10 @@
             }
         },
         {
-            "if": { "properties": { "class": { "const": "DeviceTrust" } } },
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DeviceTrust" } }
+            },
             "then": {
                 "required": ["class", "localUsername", "localPassword", "remoteHost", "remoteUsername", "remotePassword"],
                 "properties": {

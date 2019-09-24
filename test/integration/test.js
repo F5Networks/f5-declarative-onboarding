@@ -723,7 +723,7 @@ function testSelfIp(target, response) {
  * Returns Promise true/false
 */
 function testHostname(target, response) {
-    return compareSimple(target, response, ['hostname']);
+    return compareSimple(target, response.System, ['hostname']);
 }
 
 /**

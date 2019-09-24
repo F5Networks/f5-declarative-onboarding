@@ -55,6 +55,7 @@ module.exports = {
         SnmpCommunity: '/tm/sys/snmp',
         SnmpTrapDestination: '/tm/sys/snmp',
         Syslog: '/tm/sys/syslog',
+        System: '/tm/sys/global-settings',
         DagGlobals: '/tm/net/dag-globals',
         TrafficControl: '/tm/ltm/global-settings/traffic-control',
         SSH: '/tm/sys/sshd'
@@ -85,6 +86,7 @@ module.exports = {
         'SnmpAgent',
         'SnmpTrapEvents',
         'DagGlobals',
+        'System',
         'TrafficControl',
         'SSH'
     ],

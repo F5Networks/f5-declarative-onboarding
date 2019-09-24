@@ -433,7 +433,10 @@ describe('inspectHandler', () => {
 
         // NOTE: should be updated everytime when configItems.json changed
         const defaultResponses = () => ({
-            '/tm/sys/global-settings': { hostname },
+            '/tm/sys/global-settings': {
+                hostname,
+                consoleInactivityTimeout: 0
+            },
             '/tm/sys/provision': [
                 { name: 'afm', level: 'nominal' },
                 { name: 'am', level: 'minimum' },
@@ -775,7 +778,6 @@ describe('inspectHandler', () => {
                     schemaVersion: SCHEMA_VERSION,
                     Common: {
                         class: 'Tenant',
-                        hostname: 'myhost.bigip.com',
                         currentProvision: {
                             afm: 'nominal',
                             am: 'minimum',
@@ -1065,6 +1067,11 @@ describe('inspectHandler', () => {
                                 service: 'system'
                             }
                         },
+                        currentSystem: {
+                            class: 'System',
+                            hostname: 'myhost.bigip.com',
+                            consoleInactivityTimeout: 0
+                        },
                         currentTrafficControl: {
                             class: 'TrafficControl',
                             acceptIpOptions: false,
@@ -1259,7 +1266,6 @@ describe('inspectHandler', () => {
                         schemaVersion: SCHEMA_VERSION,
                         Common: {
                             class: 'Tenant',
-                            hostname: 'myhost.bigip.com',
                             currentProvision: {
                                 avr: 'nominal',
                                 class: 'Provision'
@@ -1305,6 +1311,10 @@ describe('inspectHandler', () => {
                                 pathMtuDiscovery: false,
                                 portFindThresholdWarning: false,
                                 rejectUnmatched: false
+                            },
+                            currentSystem: {
+                                class: 'System',
+                                hostname: 'myhost.bigip.com'
                             },
                             currentSSH: {
                                 class: 'SSH'
