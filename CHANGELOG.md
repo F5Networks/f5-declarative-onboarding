@@ -1,116 +1,206 @@
-# Release Notes
+# Changelog
+Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
-## Version 1.8.0
-+ Fix bug in which DO was unable to use management network for SnmpTrapDestination
-+ Add support for consoleInactivityTimeout in System class
-+ Add support for hostname in System class
-+ Add support for SSH class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
+## [1.8.0]
 
-## Version 1.7.0
-+ Handle the automatic update of root password when admin password changes on 14.0+
-+ Resolve [Issue 53](https://github.com/F5Networks/f5-declarative-onboarding/issues/53)
-+ Resolve [Issue 60](https://github.com/F5Networks/f5-declarative-onboarding/issues/60)
-+ Resolve [Issue 67](https://github.com/F5Networks/f5-declarative-onboarding/issues/67)
-+ Add /inspect endpoint to determine existing configuraiton of device
-+ Add support for Authentication class
-+ Add support for Authentication - Radius
-+ Add support for Authentication - TACACS
-+ Add support for Remote Role Groups
-+ Add support for Authentication - LDAP
-+ Add support for SNMP Agent and Traps
-+ Add support for Syslog RemoteServers
-+ Add schema reference documentation
-+ Allow 'none' as valid value for configsyncIp (ConfigSync class)
-+ DeviceGroup.owner is now required
-+ Fix bug in which DO sets task status to ERROR right away while it is still rolling back
-+ When targetSshKey is used try bash shell to modify targetUsername password if tmsh shell fails.
-+ Add support for DAG Globals
-+ Add support for cmp-hash for VLAN [Issue 1](https://github.com/F5Networks/f5-declarative-onboarding/issues/1)
-+ Add support for Traffic Control
-+ Fix bug in which DO was unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Rotue Domain with ID 0 unless otherwise specified.
-+ Improve masking of nested secrets
-+ Add support for Trunk class
-+ Improve Route Domains handling
+### Added
+- Add support for SSH class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
+- Add support for consoleInactivityTimeout in System class
+- Add support for hostname in System class
 
-## Version 1.6.1
-+ Upgrade f5-cloud-libs to improve licensing from BIG-IQ reg key pools
+### Fixed
+- Fix bug in which DO was unable to use management network for SnmpTrapDestination
 
-## Version 1.6.0
-+ Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)
-+ Resolve [Issue 43](https://github.com/F5Networks/f5-declarative-onboarding/issues/43)
-+ Resolve [Issue 28](https://github.com/F5Networks/f5-declarative-onboarding/issues/28)
-+ Add support for Management Route
-+ Add support for Route Domain [Issue 10](https://github.com/F5Networks/f5-declarative-onboarding/issues/10)
+### Changed
+### Removed
 
-## Version 1.5.1
-+ When running on BIG-IQ, poll TCW longer to match the TCW timeout
+## [1.7.0]
 
-## Version 1.5.0
-+ Resolve [Issue 14](https://github.com/F5Networks/f5-declarative-onboarding/issues/14)
-+ Resolve [Issue 26](https://github.com/F5Networks/f5-declarative-onboarding/issues/26)
-+ Resolve [Issue 40](https://github.com/F5Networks/f5-declarative-onboarding/issues/40)
-+ Resolve [Issue 35](https://github.com/F5Networks/f5-declarative-onboarding/issues/35)
-+ Fix bug in which credentials could appear in declaration results when revoking a license.
-+ Disable DHCP for DNS/NTP if DO will be configuring them.
-+ Allow setting global analytics settings.
-+ License keys will no longer appear in the log.
-+ RADIUS server secret will no longer appear in the log.
-+ LicensePool now respects custom management access port of BIG-IP that is being licensed.
-+ When a 400 is received from restjavad, DO will now retry licensing.
-+ Add legacy schemas to /schema for validation.
-+ Add Authorized Keys capability to user declarations.
-+ Fix issue in which initial clustering failure would prevent clustering from working on subsequent attempts due to using the wrong device name (resolved in f5-cloud-libs).
+### Added
+- Add /inspect endpoint to determine existing configuraiton of device
+- Add support for Authentication class
+- Add support for Authentication - Radius
+- Add support for Authentication - TACACS
+- Add support for Remote Role Groups
+- Add support for Authentication - LDAP
+- Add support for SNMP Agent and Traps
+- Add support for Syslog RemoteServers
+- Add schema reference documentation
+- Add support for DAG Globals
+- Add support for cmp-hash for VLAN [Issue 1](https://github.com/F5Networks/f5-declarative-onboarding/issues/1)
+- Add support for Traffic Control
+- Add support for Trunk class
+
+
+### Fixed
+- Resolve [Issue 53](https://github.com/F5Networks/f5-declarative-onboarding/issues/53)
+- Resolve [Issue 60](https://github.com/F5Networks/f5-declarative-onboarding/issues/60)
+- Resolve [Issue 67](https://github.com/F5Networks/f5-declarative-onboarding/issues/67)
+- Fix bug in which DO sets task status to ERROR right away while it is still rolling back
+- Fix bug in which DO was unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Rotue Domain with ID 0 unless otherwise specified.
+
+### Changed
+- Allow 'none' as valid value for configsyncIp (ConfigSync class)
+- Handle the automatic update of root password when admin password changes on 14.0 and later
+- DeviceGroup.owner is now required
+- When targetSshKey is used try bash shell to modify targetUsername password if tmsh shell fails.
+- Improve masking of nested secrets
+- Improve Route Domains handling
+
+### Removed
+
+
+## [1.6.1]
+### Added
+### Fixed
+### Changed
+- Upgrade f5-cloud-libs to improve licensing from BIG-IQ reg key pools
+
+### Removed
+
+## [1.6.0]
+### Added
+- Add support for Management Route
+- Add support for Route Domains [Issue 10](https://github.com/F5Networks/f5-declarative-onboarding/issues/10)
+
+### Fixed
+- Resolve [Issue 36](https://github.com/F5Networks/f5-declarative-onboarding/issues/36)
+- Resolve [Issue 43](https://github.com/F5Networks/f5-declarative-onboarding/issues/43)
+- Resolve [Issue 28](https://github.com/F5Networks/f5-declarative-onboarding/issues/28)
+
+### Changed
+### Removed
+
+## [1.5.1]
+### Added
+### Fixed
+### Changed
+- When running on BIG-IQ, poll TCW longer to match the TCW timeout
+
+### Removed
+
+## [1.5.0]
+### Added
+- Add legacy schemas to /schema for validation.
+- Add Authorized Keys capability to user declarations.
+- Allow setting global analytics settings.
+
+### Fixed
+- Resolve [Issue 14](https://github.com/F5Networks/f5-declarative-onboarding/issues/14)
+- Resolve [Issue 26](https://github.com/F5Networks/f5-declarative-onboarding/issues/26)
+- Resolve [Issue 40](https://github.com/F5Networks/f5-declarative-onboarding/issues/40)
+- Resolve [Issue 35](https://github.com/F5Networks/f5-declarative-onboarding/issues/35)
+- Fix bug in which credentials could appear in declaration results when revoking a license.
+- Fix issue in which initial clustering failure would prevent clustering from working on subsequent attempts due to using the wrong device name (resolved in f5-cloud-libs).
+
+### Changed
+- Disable DHCP for DNS/NTP if DO will be configuring them.
+- RADIUS server secret will no longer appear in the log.
+- LicensePool now respects custom management access port of BIG-IP that is being licensed.
+- When a 400 is received from restjavad, DO will now retry licensing.
+
+### Removed
+- License keys will no longer appear in the log.
+
 
 ## Version 1.4.1
-+ Fix vulnerability CVE-2019-5021 in DO container
+### Added
+### Fixed
+- Fix vulnerability CVE-2019-5021 in DO container
+### Changed
+### Removed
+
 
 ## Version 1.4.0
-+ Allow for onboarding multiple devices at once.
-    + taskId is now returned from POST onboard requests
-    + New /task API to retrieve status by task
-+ Initial port to run on BIG-IQ for use in onboarding BIG-IP from BIG-IQ
+### Added
+- Allow for onboarding multiple devices at once.
+    - taskId is now returned from POST onboard requests
+    - New /task API to retrieve status by task
+- Initial port to run on BIG-IQ for use in onboarding BIG-IP from BIG-IQ
+
+### Fixed
+### Changed
+### Removed
+
 
 ## Version 1.3.1
-+ Resolve [Issue 7](https://github.com/F5Networks/f5-declarative-onboarding/issues/7)
-+ Resolve [Issue 17](https://github.com/F5Networks/f5-declarative-onboarding/issues/17)
-+ Resolve [Issue 18](https://github.com/F5Networks/f5-declarative-onboarding/issues/18)
-+ Resolve [Issue 21](https://github.com/F5Networks/f5-declarative-onboarding/issues/21)
-+ Resolve [Issue 32](https://github.com/F5Networks/f5-declarative-onboarding/issues/32)
+### Added
+### Fixed
+- Resolve [Issue 7](https://github.com/F5Networks/f5-declarative-onboarding/issues/7)
+- Resolve [Issue 17](https://github.com/F5Networks/f5-declarative-onboarding/issues/17)
+- Resolve [Issue 18](https://github.com/F5Networks/f5-declarative-onboarding/issues/18)
+- Resolve [Issue 21](https://github.com/F5Networks/f5-declarative-onboarding/issues/21)
+- Resolve [Issue 32](https://github.com/F5Networks/f5-declarative-onboarding/issues/32)
+
+### Changed
+### Removed
+
 
 ## Version 1.3.0
-+ Allow $schema property for use in local validation of declaration
-+ Allow for licenses to be revoked when licensed via BIG-IQ
-+ Allow modification of a SelfIp address
-+ Add 'overwrite' option when licensing via BIG-IQ
-+ Fix bug in which all self ips would be updated if there was a change to any of them
-+ Fix bug in which clustering was not working if ASM was provisioned
+### Added
+- Add 'overwrite' option when licensing via BIG-IQ
+
+### Fixed
+- Fix bug in which all self ips would be updated if there was a change to any of them
+- Fix bug in which clustering was not working if ASM was provisioned
+
+### Changed
+- Allow $schema property for use in local validation of declaration
+- Allow for licenses to be revoked when licensed via BIG-IQ
+- Allow modification of a SelfIp address
+
+### Removed
+
+
+
 
 ## Version 1.2.0
-+ Support for remote provisioning via ASG.
-+ Fix bug which rejected CIDR of 1x on SelfIp.
-+ Fix bug in which DB vars are not rolled back in the event of an error
+### Added
+- Support for remote provisioning via ASG.
+
+### Fixed
+- Fix bug which rejected CIDR of 1x on SelfIp.
+- Fix bug in which DB vars are not rolled back in the event of an error
+
+### Changed
+### Removed
+
+
 
 ## Version 1.1.0
-+ Support licensing via BIG-IQ utility, purchased, and reg key pools.
-+ Allow setting global db variables.
-+ Allow partition access 'all-partitions' when creating regular users.
-+ Allow shell of 'none' when creating regular users.
-+ Better reporting of schema validation errors.
-+ Fix clustering race condition when onboarding 2 devices at the same time.
-+ Fix bug which was improperly deleting objects which just had a property change.
-+ Apply defaults from the schema.
-+ Dis-allow sync-failover device group with both autoSync and fullLoadOnSync.
-+ Ensure that non-floating self IPs are created before floating self IPs.
-+ Handle missing content-type header.
-+ Fix issue where device name was not being set if hostname already matched declaration.
+### Added
+- Support licensing via BIG-IQ utility, purchased, and reg key pools.
+### Fixed
+- Fix clustering race condition when onboarding 2 devices at the same time.
+- Fix bug which was improperly deleting objects which just had a property change.
+- Fix issue where device name was not being set if hostname already matched declaration.
+
+### Changed
+- Allow setting global db variables.
+- Allow partition access 'all-partitions' when creating regular users.
+- Allow shell of 'none' when creating regular users.
+- Better reporting of schema validation errors.
+- Apply defaults from the schema.
+- Dis-allow sync-failover device group with both autoSync and fullLoadOnSync.
+- Ensure that non-floating self IPs are created before floating self IPs.
+- Handle missing content-type header.
+
+### Removed
+
 
 ## Version 1.0.0
-+ Supports
-    + DNS
-    + NTP
-    + License with reg key
-    + User creation/modification
-    + VLANs
-    + Self IPs
-    + Routes
-    + DSC
+### Added
+- Initial release of DO, which supports
+    - DNS
+    - NTP
+    - License with reg key
+    - User creation/modification
+    - VLANs
+    - Self IPs
+    - Routes
+    - DSC
+    
+### Fixed
+### Changed
+### Removed
+
