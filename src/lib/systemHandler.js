@@ -97,8 +97,8 @@ class SystemHandler {
                 return handleTrafficControl.call(this);
             })
             .then(() => {
-                logger.fine('Checking SSH');
-                return handleSSH.call(this);
+                logger.fine('Checking SSHD');
+                return handleSSHD.call(this);
             })
             .then(() => {
                 logger.fine('Done processing system declaration.');
@@ -613,45 +613,45 @@ function handleTrafficControl() {
         });
 }
 
-function handleSSH() {
-    if (!this.declaration.Common || !this.declaration.Common.SSH) {
+function handleSSHD() {
+    if (!this.declaration.Common || !this.declaration.Common.SSHD) {
         return Promise.resolve();
     }
 
-    const ssh = this.declaration.Common.SSH;
+    const sshd = this.declaration.Common.SSHD;
     let includeString = '';
 
-    if (ssh.ciphers) {
-        includeString = includeString.concat(`Ciphers ${ssh.ciphers.join(',')}\n`);
+    if (sshd.ciphers) {
+        includeString = includeString.concat(`Ciphers ${sshd.ciphers.join(',')}\n`);
     }
-    if (ssh.loginGraceTime) {
-        includeString = includeString.concat(`LoginGraceTime ${ssh.loginGraceTime}\n`);
+    if (sshd.loginGraceTime) {
+        includeString = includeString.concat(`LoginGraceTime ${sshd.loginGraceTime}\n`);
     }
-    if (ssh.MACS) {
-        includeString = includeString.concat(`MACs ${ssh.MACS.join(',')}\n`);
+    if (sshd.MACS) {
+        includeString = includeString.concat(`MACs ${sshd.MACS.join(',')}\n`);
     }
-    if (ssh.maxAuthTries) {
-        includeString = includeString.concat(`MaxAuthTries ${ssh.maxAuthTries}\n`);
+    if (sshd.maxAuthTries) {
+        includeString = includeString.concat(`MaxAuthTries ${sshd.maxAuthTries}\n`);
     }
-    if (ssh.maxStartups) {
-        includeString = includeString.concat(`MaxStartups ${ssh.maxStartups}\n`);
+    if (sshd.maxStartups) {
+        includeString = includeString.concat(`MaxStartups ${sshd.maxStartups}\n`);
     }
-    if (ssh.protocol) {
-        includeString = includeString.concat(`Protocol ${ssh.protocol}\n`);
+    if (sshd.protocol) {
+        includeString = includeString.concat(`Protocol ${sshd.protocol}\n`);
     }
 
-    const sshObj = {
-        banner: ssh.banner ? 'enabled' : 'disabled',
-        bannerText: ssh.banner,
+    const sshdObj = {
+        banner: sshd.banner ? 'enabled' : 'disabled',
+        bannerText: sshd.banner,
         include: includeString,
-        inactivityTimeout: ssh.inactivityTimeout
+        inactivityTimeout: sshd.inactivityTimeout
     };
 
-    return this.bigIp.modify(PATHS.SSH, sshObj)
+    return this.bigIp.modify(PATHS.SSHD, sshdObj)
         .catch((err) => {
-            const errorSSH = `Error modifying SSH settings: ${err.message}`;
-            logger.severe(errorSSH);
-            err.message = errorSSH;
+            const errorSSHD = `Error modifying SSHD settings: ${err.message}`;
+            logger.severe(errorSSHD);
+            err.message = errorSSHD;
             return Promise.reject(err);
         });
 }

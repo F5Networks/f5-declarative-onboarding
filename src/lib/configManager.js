@@ -277,9 +277,9 @@ class ConfigManager {
                             delete patchedItem.remoteServers;
                         }
 
-                        if (schemaClass === 'SSH') {
+                        if (schemaClass === 'SSHD') {
                             if (patchedItem.include) {
-                                patchSSH.call(
+                                patchSSHD.call(
                                     this,
                                     patchedItem
                                 );
@@ -708,7 +708,7 @@ function patchAuth(schemaMerge, authClass, authItem) {
     return patchedClass;
 }
 
-function patchSSH(patchedItem) {
+function patchSSHD(patchedItem) {
     const includes = patchedItem.include.split('\n');
     includes.forEach((i) => {
         const currentInclude = i.split(' ');

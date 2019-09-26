@@ -1090,8 +1090,8 @@ describe('inspectHandler', () => {
                             portFindThresholdTimeout: 30,
                             rejectUnmatched: true
                         },
-                        currentSSH: {
-                            class: 'SSH',
+                        currentSSHD: {
+                            class: 'SSHD',
                             banner: 'This is the banner text',
                             inactivityTimeout: 10000,
                             ciphers: [
@@ -1316,8 +1316,8 @@ describe('inspectHandler', () => {
                                 class: 'System',
                                 hostname: 'myhost.bigip.com'
                             },
-                            currentSSH: {
-                                class: 'SSH'
+                            currentSSHD: {
+                                class: 'SSHD'
                             }
                         }
                     }

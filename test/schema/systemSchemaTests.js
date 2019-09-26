@@ -1006,18 +1006,18 @@ describe('system.schema.json', () => {
         });
     });
 
-    describe('SSH', () => {
+    describe('SSHD', () => {
         describe('valid', () => {
             it('should validate declaration with minimal properties', () => {
                 const data = {
-                    "class": "SSH"
+                    "class": "SSHD"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
             it('should validate declaration with all properties', () => {
                 const data = {
-                    "class": "SSH",
+                    "class": "SSHD",
                     "banner": "Hello there",
                     "ciphers": [
                         "aes128-ctr",
@@ -1039,7 +1039,7 @@ describe('system.schema.json', () => {
         describe('invalid', () => {
             it('should invalidate out of range inactivityTimeout', () => {
                 const data = {
-                    "class": "SSH",
+                    "class": "SSHD",
                     "inactivityTimeout": 9999999999999
                 };
                 assert.strictEqual(validate(data), false, 'inactivityTimeout should be within the range');
@@ -1048,7 +1048,7 @@ describe('system.schema.json', () => {
 
             it('should invalidate invalid cipher', () => {
                 const data = {
-                    "class": "SSH",
+                    "class": "SSHD",
                     "ciphers": [
                         "I'm invalid"
                     ]
@@ -1059,7 +1059,7 @@ describe('system.schema.json', () => {
 
             it('should invalidate invalid MAC', () => {
                 const data = {
-                    "class": "SSH",
+                    "class": "SSHD",
                     "MACS": [
                         "Also invalid"
                     ]
@@ -1070,7 +1070,7 @@ describe('system.schema.json', () => {
 
             it('should invalidate additional properties', () => {
                 const data = {
-                    "class": "SSH",
+                    "class": "SSHD",
                     "newProp": "value"
                 };
                 assert.strictEqual(validate(data), false, 'there should not be additional properties');

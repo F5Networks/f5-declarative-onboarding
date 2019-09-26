@@ -1361,11 +1361,11 @@ describe('systemHandler', () => {
         });
     });
 
-    describe('SSH', () => {
-        it('should handle ssh', () => {
+    describe('SSHD', () => {
+        it('should handle sshd', () => {
             const declaration = {
                 Common: {
-                    SSH: {
+                    SSHD: {
                         banner: 'Text for banner',
                         inactivityTimeout: 12345,
                         ciphers: [
@@ -1392,8 +1392,8 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock);
             return systemHandler.process()
                 .then(() => {
-                    const sshData = dataSent[PATHS.SSH][0];
-                    assert.deepStrictEqual(sshData,
+                    const sshdData = dataSent[PATHS.SSHD][0];
+                    assert.deepStrictEqual(sshdData,
                         {
                             banner: 'enabled',
                             bannerText: 'Text for banner',
