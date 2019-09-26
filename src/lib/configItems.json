@@ -428,7 +428,7 @@
     },
     {
         "path": "/tm/sys/sshd",
-        "schemaClass": "SSH",
+        "schemaClass": "SSHD",
         "properties": [
             { "id": "bannerText", "newId": "banner" },
             { "id": "include" },

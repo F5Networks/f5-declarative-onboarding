@@ -58,7 +58,7 @@ module.exports = {
         System: '/tm/sys/global-settings',
         DagGlobals: '/tm/net/dag-globals',
         TrafficControl: '/tm/ltm/global-settings/traffic-control',
-        SSH: '/tm/sys/sshd'
+        SSHD: '/tm/sys/sshd'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -88,7 +88,7 @@ module.exports = {
         'DagGlobals',
         'System',
         'TrafficControl',
-        'SSH'
+        'SSHD'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

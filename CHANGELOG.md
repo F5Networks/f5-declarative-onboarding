@@ -3,7 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.8.0
 ### Added
-- Add support for SSH class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
+- Add support for SSHD class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
 - Add support for consoleInactivityTimeout in System class
 - Add support for hostname in System class
 ### Fixed

@@ -810,14 +810,14 @@
         {
             "if": {
                 "required": ["class"],
-                "properties": { "class": { "const": "SSH" } }
+                "properties": { "class": { "const": "SSHD" } }
             },
             "then": {
                 "properties": {
                     "class": {
                         "description": "Indicates this contains SSH configuration.",
                         "type": "string",
-                        "const": "SSH"
+                        "const": "SSHD"
                     },
                     "banner": {
                         "description": "Enables or disabled the display of the banner text field when a user logs in.",
