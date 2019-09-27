@@ -61,6 +61,7 @@ const CLASSES_OF_TRUTH = [
     'DagGlobals',
     'System',
     'TrafficControl',
+    'HTTPD',
     'SSHD'
 ];
 

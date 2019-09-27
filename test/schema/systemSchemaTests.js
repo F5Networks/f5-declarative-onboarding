@@ -1006,6 +1006,47 @@ describe('system.schema.json', () => {
         });
     });
 
+    describe('HTTPD', () => {
+        describe('valid', () => {
+            it('should validate default system httpd', () => {
+                const data = {
+                    class: 'HTTPD'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate system httpd', () => {
+                const data = {
+                    class: 'HTTPD',
+                    allow: [
+                        'all',
+                        '10.10.0.0/24',
+                        '10.11.0.0/24',
+                        '10.12.1.2'
+                    ],
+                    authPamIdleTimeout: 43200,
+                    maxClients: 12,
+                    sslCiphersuite: ['ECDHE-RSA-AES128-GCM-SHA256'],
+                    sslProtocol: 'all -SSLv3 -TLSv1'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate a route domain in allow', () => {
+                const data = {
+                    class: 'HTTPD',
+                    allow: [
+                        '10.10.0.0%1'
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'allow should not contain route domains');
+                assert.notStrictEqual(getErrorString().indexOf('should match exactly one schema in oneOf'), -1);
+            });
+        });
+    });
+
     describe('SSHD', () => {
         describe('valid', () => {
             it('should validate declaration with minimal properties', () => {

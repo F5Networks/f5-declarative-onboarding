@@ -1361,6 +1361,38 @@ describe('systemHandler', () => {
         });
     });
 
+    describe('HTTPD', () => {
+        it('should Handle HTTPD', () => {
+            const declaration = {
+                Common: {
+                    HTTPD: {
+                        allow: [
+                            '10.10.10.10'
+                        ],
+                        authPamIdleTimeout: 43200,
+                        maxClients: 11,
+                        sslCiphersuite: [
+                            'ECDHE-RSA-AES128-GCM-SHA256',
+                            'ECDHE-RSA-AES256-GCM-SHA384',
+                            'ECDHE-RSA-AES128'
+                        ],
+                        sslProtocol: 'all -TLSv1'
+                    }
+                }
+            };
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepEqual(dataSent[PATHS.HTTPD][0].allow, ['10.10.10.10']);
+                    assert.deepEqual(dataSent[PATHS.HTTPD][0].authPamIdleTimeout, 43200);
+                    assert.deepEqual(dataSent[PATHS.HTTPD][0].maxClients, 11);
+                    assert.deepEqual(dataSent[PATHS.HTTPD][0].sslCiphersuite,
+                        'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128');
+                    assert.deepEqual(dataSent[PATHS.HTTPD][0].sslProtocol, 'all -TLSv1');
+                });
+        });
+    });
+
     describe('SSHD', () => {
         it('should handle sshd', () => {
             const declaration = {

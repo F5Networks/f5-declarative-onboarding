@@ -760,6 +760,13 @@ describe('inspectHandler', () => {
                 portFindThresholdTimeout: 30,
                 rejectUnmatched: 'enabled'
             },
+            '/tm/sys/httpd': {
+                allow: ['All'],
+                authPamIdleTimeout: 1200,
+                maxClients: 10,
+                sslCiphersuite: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES128-SHA256:ECDHE-ECDSA-AES256-SHA384:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA:AES256-SHA:AES128-SHA256:AES256-SHA256',
+                sslProtocol: 'all -SSLv2 -SSLv3 -TLSv1'
+            },
             '/tm/sys/sshd': {
                 banner: 'enabled',
                 bannerText: 'This is the banner text',
@@ -1090,6 +1097,33 @@ describe('inspectHandler', () => {
                             portFindThresholdTimeout: 30,
                             rejectUnmatched: true
                         },
+                        currentHTTPD: {
+                            class: 'HTTPD',
+                            allow: ['all'],
+                            authPamIdleTimeout: 1200,
+                            maxClients: 10,
+                            sslCiphersuite: [
+                                'ECDHE-RSA-AES128-GCM-SHA256',
+                                'ECDHE-RSA-AES256-GCM-SHA384',
+                                'ECDHE-RSA-AES128-SHA',
+                                'ECDHE-RSA-AES256-SHA',
+                                'ECDHE-RSA-AES128-SHA256',
+                                'ECDHE-RSA-AES256-SHA384',
+                                'ECDHE-ECDSA-AES128-GCM-SHA256',
+                                'ECDHE-ECDSA-AES256-GCM-SHA384',
+                                'ECDHE-ECDSA-AES128-SHA',
+                                'ECDHE-ECDSA-AES256-SHA',
+                                'ECDHE-ECDSA-AES128-SHA256',
+                                'ECDHE-ECDSA-AES256-SHA384',
+                                'AES128-GCM-SHA256',
+                                'AES256-GCM-SHA384',
+                                'AES128-SHA',
+                                'AES256-SHA',
+                                'AES128-SHA256',
+                                'AES256-SHA256'
+                            ],
+                            sslProtocol: 'all -SSLv2 -SSLv3 -TLSv1'
+                        },
                         currentSSHD: {
                             class: 'SSHD',
                             banner: 'This is the banner text',
@@ -1315,6 +1349,9 @@ describe('inspectHandler', () => {
                             currentSystem: {
                                 class: 'System',
                                 hostname: 'myhost.bigip.com'
+                            },
+                            currentHTTPD: {
+                                class: 'HTTPD'
                             },
                             currentSSHD: {
                                 class: 'SSHD'

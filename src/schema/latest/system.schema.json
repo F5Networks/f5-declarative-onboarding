@@ -169,6 +169,187 @@
         {
             "if": {
                 "required": ["class"],
+                "properties": { "class": { "const": "HTTPD" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Configures the HTTP daemon for the system.  Important: F5 Networks recommends that users of the Configuration utility exit the utility before changes are made to the system using the httpd component.  This is because making changes to the system using this component causes a restart of the httpd daemon.  Additionally, restarting the httpd daemon creates the necessity for a restart of the Configuration utility.",
+                        "type": "string",
+                        "const": "HTTPD"
+                    },
+                    "allow": {
+                        "description": "Configures IP addresses for the HTTP clients from which the httpd daemon accepts requests.",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "const": "none"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "anyOf": [
+                                        { "format": "ipWithCidr" },
+                                        { "const": "all" }
+                                    ]
+                                }
+                            }
+                        ],
+                        "default": ["all"]
+                    },
+                    "authPamIdleTimeout": {
+                        "description": "Specifies the number of seconds of inactivity that can elapse before the GUI session is automatically logged out.",
+                        "type": "integer",
+                        "minimum": 120,
+                        "maximum": 2147483647,
+                        "default": 1200
+                    },
+                    "maxClients": {
+                        "description": "Maximum number of clients allowed to be simultaneously connected.",
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 256,
+                        "default": 10
+                    },
+                    "sslCiphersuite": {
+                        "description": "Specifies the ciphers that the system uses.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "ECDHE-RSA-AES256-GCM-SHA384",
+                                "ECDHE-ECDSA-AES256-GCM-SHA384",
+                                "ECDHE-RSA-AES256-SHA384",
+                                "ECDHE-ECDSA-AES256-SHA384",
+                                "ECDHE-RSA-AES256-SHA",
+                                "ECDHE-ECDSA-AES256-SHA",
+                                "DH-DSS-AES256-GCM-SHA384",
+                                "DHE-DSS-AES256-GCM-SHA384",
+                                "DH-RSA-AES256-GCM-SHA384",
+                                "DHE-RSA-AES256-GCM-SHA384",
+                                "DHE-RSA-AES256-SHA256",
+                                "DHE-DSS-AES256-SHA256",
+                                "DH-RSA-AES256-SHA256",
+                                "DH-DSS-AES256-SHA256",
+                                "DHE-RSA-AES256-SHA",
+                                "DHE-DSS-AES256-SHA",
+                                "DH-RSA-AES256-SHA",
+                                "DH-DSS-AES256-SHA",
+                                "DHE-RSA-CAMELLIA256-SHA",
+                                "DHE-DSS-CAMELLIA256-SHA",
+                                "DH-RSA-CAMELLIA256-SHA",
+                                "DH-DSS-CAMELLIA256-SHA",
+                                "ECDH-RSA-AES256-GCM-SHA384",
+                                "ECDH-ECDSA-AES256-GCM-SHA384",
+                                "ECDH-RSA-AES256-SHA384",
+                                "ECDH-ECDSA-AES256-SHA384",
+                                "ECDH-RSA-AES256-SHA",
+                                "ECDH-ECDSA-AES256-SHA",
+                                "AES256-GCM-SHA384",
+                                "AES256-SHA256",
+                                "AES256-SHA",
+                                "CAMELLIA256-SHA",
+                                "PSK-AES256-CBC-SHA",
+                                "ECDHE-RSA-AES128-GCM-SHA256",
+                                "ECDHE-ECDSA-AES128-GCM-SHA256",
+                                "ECDHE-RSA-AES128-SHA256",
+                                "ECDHE-ECDSA-AES128-SHA256",
+                                "ECDHE-RSA-AES128-SHA",
+                                "ECDHE-ECDSA-AES128-SHA",
+                                "DH-DSS-AES128-GCM-SHA256",
+                                "DHE-DSS-AES128-GCM-SHA256",
+                                "DH-RSA-AES128-GCM-SHA256",
+                                "DHE-RSA-AES128-GCM-SHA256",
+                                "DHE-RSA-AES128-SHA256",
+                                "DHE-DSS-AES128-SHA256",
+                                "DH-RSA-AES128-SHA256",
+                                "DH-DSS-AES128-SHA256",
+                                "DHE-RSA-AES128-SHA",
+                                "DHE-DSS-AES128-SHA",
+                                "DH-RSA-AES128-SHA",
+                                "DH-DSS-AES128-SHA",
+                                "DHE-RSA-SEED-SHA",
+                                "DHE-DSS-SEED-SHA",
+                                "DH-RSA-SEED-SHA",
+                                "DH-DSS-SEED-SHA",
+                                "DHE-RSA-CAMELLIA128-SHA",
+                                "DHE-DSS-CAMELLIA128-SHA",
+                                "DH-RSA-CAMELLIA128-SHA",
+                                "DH-DSS-CAMELLIA128-SHA",
+                                "ECDH-RSA-AES128-GCM-SHA256",
+                                "ECDH-ECDSA-AES128-GCM-SHA256",
+                                "ECDH-RSA-AES128-SHA256",
+                                "ECDH-ECDSA-AES128-SHA256",
+                                "ECDH-RSA-AES128-SHA",
+                                "ECDH-ECDSA-AES128-SHA",
+                                "AES128-GCM-SHA256",
+                                "AES128-SHA256",
+                                "AES128-SHA",
+                                "SEED-SHA",
+                                "CAMELLIA128-SHA",
+                                "PSK-AES128-CBC-SHA",
+                                "ECDHE-RSA-RC4-SHA",
+                                "ECDHE-ECDSA-RC4-SHA",
+                                "ECDH-RSA-RC4-SHA",
+                                "ECDH-ECDSA-RC4-SHA",
+                                "RC4-SHA",
+                                "RC4-MD5",
+                                "PSK-RC4-SHA",
+                                "ECDHE-RSA-DES-CBC3-SHA",
+                                "ECDHE-ECDSA-DES-CBC3-SHA",
+                                "EDH-RSA-DES-CBC3-SHA",
+                                "EDH-DSS-DES-CBC3-SHA",
+                                "DH-RSA-DES-CBC3-SHA",
+                                "DH-DSS-DES-CBC3-SHA",
+                                "ECDH-RSA-DES-CBC3-SHA",
+                                "ECDH-ECDSA-DES-CBC3-SHA",
+                                "DES-CBC3-SHA",
+                                "PSK-3DES-EDE-CBC-SHA",
+                                "EDH-RSA-DES-CBC-SHA",
+                                "EDH-DSS-DES-CBC-SHA",
+                                "DES-CBC-SHA",
+                                "EXP-EDH-RSA-DES-CBC-SHA",
+                                "EXP-EDH-DSS-DES-CBC-SHA",
+                                "EXP-DES-CBC-SHA",
+                                "EXP-RC2-CBC-MD5",
+                                "EXP-RC4-MD5"
+                            ]
+                        },
+                        "default": [
+                            "ECDHE-RSA-AES128-GCM-SHA256",
+                            "ECDHE-RSA-AES256-GCM-SHA384",
+                            "ECDHE-RSA-AES128-SHA",
+                            "ECDHE-RSA-AES256-SHA",
+                            "ECDHE-RSA-AES128-SHA256",
+                            "ECDHE-RSA-AES256-SHA384",
+                            "ECDHE-ECDSA-AES128-GCM-SHA256",
+                            "ECDHE-ECDSA-AES256-GCM-SHA384",
+                            "ECDHE-ECDSA-AES128-SHA",
+                            "ECDHE-ECDSA-AES256-SHA",
+                            "ECDHE-ECDSA-AES128-SHA256",
+                            "ECDHE-ECDSA-AES256-SHA384",
+                            "AES128-GCM-SHA256",
+                            "AES256-GCM-SHA384",
+                            "AES128-SHA",
+                            "AES256-SHA",
+                            "AES128-SHA256",
+                            "AES256-SHA256"
+                        ]
+                    },
+                    "sslProtocol": {
+                        "description": "The list of SSL protocols to accept on the management console.  A space-separated list of tokens in the format accepted by the Apache mod_ssl SSLProtocol directive.",
+                        "type": "string",
+                        "default": "all -SSLv2 -SSLv3 -TLSv1"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
                 "properties": { "class": { "const": "SnmpAgent" } }
             },
             "then": {

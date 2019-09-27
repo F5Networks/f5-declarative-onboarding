@@ -97,6 +97,10 @@ class SystemHandler {
                 return handleTrafficControl.call(this);
             })
             .then(() => {
+                logger.fine('Checking HTTPD');
+                return handleHTTPD.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking SSHD');
                 return handleSSHD.call(this);
             })
@@ -611,6 +615,40 @@ function handleTrafficControl() {
             err.message = errorTrafficControl;
             return Promise.reject(err);
         });
+}
+
+function handleHTTPD() {
+    if (this.declaration.Common && this.declaration.Common.HTTPD
+        && Object.keys(this.declaration.Common.HTTPD).length > 0) {
+        const httpd = this.declaration.Common.HTTPD;
+        // allow defaults to 'All' on BIGIP but can be either 'all' or 'All'.  For consistency with other schema enums
+        // and BIGIP's default let's always use 'all' with the user and 'All' with BIGIP.
+        if (Array.isArray(httpd.allow)) {
+            httpd.allow = httpd.allow.map(item => (item === 'all' ? 'All' : item));
+        }
+
+        let cipherString = '';
+        if (httpd.sslCiphersuite) {
+            cipherString = httpd.sslCiphersuite.join(':');
+        }
+        return this.bigIp.modify(
+            PATHS.HTTPD,
+            {
+                allow: httpd.allow,
+                authPamIdleTimeout: httpd.authPamIdleTimeout,
+                maxClients: httpd.maxClients,
+                sslCiphersuite: cipherString,
+                sslProtocol: httpd.sslProtocol
+
+            }
+        ).catch((err) => {
+            const errorHTTPD = `Error modifying HTTPD settings: ${err.message}`;
+            logger.severe(errorHTTPD);
+            err.message = errorHTTPD;
+            return Promise.reject(err);
+        });
+    }
+    return Promise.resolve();
 }
 
 function handleSSHD() {
