@@ -58,6 +58,7 @@ module.exports = {
         System: '/tm/sys/global-settings',
         DagGlobals: '/tm/net/dag-globals',
         TrafficControl: '/tm/ltm/global-settings/traffic-control',
+        HTTPD: '/tm/sys/httpd',
         SSHD: '/tm/sys/sshd'
     },
     STATUS: {
@@ -88,6 +89,7 @@ module.exports = {
         'DagGlobals',
         'System',
         'TrafficControl',
+        'HTTPD',
         'SSHD'
     ],
     AUTH: {

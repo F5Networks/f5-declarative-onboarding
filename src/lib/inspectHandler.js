@@ -332,7 +332,10 @@ function processItemProperty(property, configObject) {
         delete configObject[property.id];
     }
     if ('replaceIfValue' in property) {
-        if (configObject[property.id] === property.replaceIfValue) {
+        if (Array.isArray(configObject[property.id])) {
+            configObject[property.id] = configObject[property.id]
+                .map(item => (item === property.replaceIfValue ? property.newValue : item));
+        } else if (configObject[property.id] === property.replaceIfValue) {
             configObject[property.id] = property.newValue;
         }
     }

@@ -158,6 +158,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 },
                 DNS: {
                     doNotDeleteMe: {}
+                },
+                Analytics: {
+                    doNotDeleteMe: {}
+                },
+                HTTPD: {
+                    doNotDeleteMe: {}
                 }
             }
         };

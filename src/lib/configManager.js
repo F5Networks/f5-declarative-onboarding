@@ -286,6 +286,14 @@ class ConfigManager {
                                 delete patchedItem.include;
                             }
                         }
+                        if (schemaClass === 'HTTPD') {
+                            if (patchedItem.sslCiphersuite) {
+                                patchHTTPD.call(
+                                    this,
+                                    patchedItem
+                                );
+                            }
+                        }
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
                     }
@@ -732,6 +740,10 @@ function patchSSHD(patchedItem) {
             patchedItem.protocol = parseInt(currentInclude[1], 10);
         }
     });
+}
+
+function patchHTTPD(patchedItem) {
+    patchedItem.sslCiphersuite = patchedItem.sslCiphersuite.split(':');
 }
 
 function shouldIgnore(item, ignoreList) {

@@ -405,6 +405,23 @@
         "nameless": true
     },
     {
+        "path": "/tm/sys/httpd",
+        "schemaClass": "HTTPD",
+        "properties": [
+            { "id": "allow" },
+            { "id": "maxClients" },
+            { "id": "authPamIdleTimeout" },
+            { "id": "sslCiphersuite" },
+            { "id": "sslProtocol" }
+        ],
+        "declaration": {
+            "properties": [
+                { "id": "allow", "replaceIfValue": "All", "newValue": "all" }
+            ]
+        },
+        "nameless": true
+    },
+    {
         "path": "/tm/ltm/global-settings/traffic-control",
         "schemaClass": "TrafficControl",
         "properties": [

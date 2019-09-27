@@ -57,6 +57,12 @@ describe('declarationParser', () => {
                     ],
                     "timezone": "UTC"
                 },
+                "myHTTPD": {
+                    "class": "HTTPD",
+                    "allow": [
+                        "10.10.0.0/24"
+                    ]
+                },
                 "root": {
                     "class": "User",
                     "userType": "root",
@@ -134,6 +140,10 @@ describe('declarationParser', () => {
         assert.strictEqual(
             parsedDeclaration.Common.NTP.servers[0],
             '0.pool.ntp.org'
+        );
+        assert.strictEqual(
+            parsedDeclaration.Common.HTTPD.allow[0],
+            '10.10.0.0/24'
         );
 
         // network
