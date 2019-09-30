@@ -646,7 +646,7 @@ describe('inspectHandler', () => {
             ],
             '/tm/sys/snmp/traps': [
                 {
-                    name: '/Common/myTrapDestination',
+                    name: '/Common/otherTrapDestination',
                     version: '3',
                     host: '1.2.3.4',
                     port: 8080,
@@ -658,7 +658,22 @@ describe('inspectHandler', () => {
                     community: 'communityName',
                     securityName: 'someSnmpUser',
                     engineId: '0x80001f8880c6b6067fdacfb558'
+                },
+                {
+                    name: '/Common/mgmtTrapDestination',
+                    version: '3',
+                    host: '1.2.3.4',
+                    port: 8080,
+                    authPassword: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
+                    authProtocol: 'sha',
+                    privacyPassword: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
+                    privacyProtocol: 'aes',
+                    network: 'mgmt',
+                    community: 'communityName',
+                    securityName: 'someSnmpUser',
+                    engineId: '0x80001f8880c6b6067fdacfb558'
                 }
+
             ],
             '/tm/auth/remote-user': {
                 defaultPartition: 'Common',
@@ -967,13 +982,31 @@ describe('inspectHandler', () => {
                             authentication: false,
                             device: true
                         },
-                        myTrapDestination: {
+                        otherTrapDestination: {
                             class: 'SnmpTrapDestination',
                             version: '3',
                             destination: '1.2.3.4',
                             community: 'communityName',
                             port: 8080,
                             network: 'other',
+                            securityName: 'someSnmpUser',
+                            authentication: {
+                                password: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
+                                protocol: 'sha'
+                            },
+                            privacy: {
+                                password: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
+                                protocol: 'aes'
+                            },
+                            engineId: '0x80001f8880c6b6067fdacfb558'
+                        },
+                        mgmtTrapDestination: {
+                            class: 'SnmpTrapDestination',
+                            version: '3',
+                            destination: '1.2.3.4',
+                            community: 'communityName',
+                            port: 8080,
+                            network: 'management',
                             securityName: 'someSnmpUser',
                             authentication: {
                                 password: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',

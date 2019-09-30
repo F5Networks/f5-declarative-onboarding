@@ -1283,6 +1283,26 @@ describe('systemHandler', () => {
             });
     });
 
+    it('should not change mgmt', () => {
+        const declaration = {
+            Common: {
+                SnmpTrapDestination: {
+                    dest: {
+                        network: 'mgmt'
+                    }
+                }
+            }
+        };
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(
+                    dataSent[PATHS.SnmpTrapDestination][0].traps.dest.network,
+                    'mgmt'
+                );
+            });
+    });
+
     it('should handle syslog', () => {
         const declaration = {
             Common: {

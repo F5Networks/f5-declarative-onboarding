@@ -358,7 +358,12 @@
             { "id": "privacyProtocol", "newId": "privacy.protocol" },
             { "id": "engineId" },
             { "id": "securityName" }
-        ]
+        ],
+        "declaration": {
+            "properties": [
+                { "id": "network", "replaceIfValue": "mgmt", "newValue": "management" }
+            ]
+        }
     },
     {
         "path": "/tm/sys/snmp",
