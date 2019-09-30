@@ -117,6 +117,16 @@ describe('authHandler', () => {
                         serviceType: 'callback-login',
                         partition: 'Common'
                     });
+
+                    assert.strictEqual(pathsSent[3], '/tm/auth/radius');
+                    assert.deepEqual(dataSent[3], {
+                        name: 'system-auth',
+                        partition: 'Common',
+                        servers: [
+                            'system_auth_name1',
+                            'system_auth_name2'
+                        ]
+                    });
                 });
         });
     });

@@ -98,6 +98,7 @@ module.exports = {
     RADIUS: {
         SERVER_PREFIX: 'system_auth_name',
         PRIMARY_SERVER: 'system_auth_name1',
-        SECONDARY_SERVER: 'system_auth_name2'
+        SECONDARY_SERVER: 'system_auth_name2',
+        SYSTEM_AUTH: 'system-auth'
     }
 };

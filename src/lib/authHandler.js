@@ -95,6 +95,7 @@ function handleRadius() {
         return Promise.resolve();
     }
     const serverProms = [];
+    const authServers = [RADIUS.PRIMARY_SERVER];
 
     const primary = radius.servers.primary;
     primary.name = RADIUS.PRIMARY_SERVER;
@@ -106,7 +107,9 @@ function handleRadius() {
         secondary.name = RADIUS.SECONDARY_SERVER;
         secondary.partition = 'Common';
         serverProms.push(this.bigIp.createOrModify(PATHS.AuthRadiusServer, secondary));
+        authServers.push(RADIUS.SECONDARY_SERVER);
     }
+
     const opts = { silent: true };
     return Promise.all(serverProms)
         .then(() => this.bigIp.createOrModify(
@@ -117,6 +120,14 @@ function handleRadius() {
                 partition: 'Common'
             },
             undefined, undefined, opts
+        ))
+        .then(() => this.bigIp.createOrModify(
+            PATHS.AuthRadius,
+            {
+                name: RADIUS.SYSTEM_AUTH,
+                servers: authServers,
+                partition: 'Common'
+            }
         ))
         .catch((err) => {
             logger.severe(`Error configuring remote RADIUS auth: ${err.message}`);
