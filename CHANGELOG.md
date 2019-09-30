@@ -9,6 +9,7 @@ Changes to this project are documented in this file. More detail and links can b
 - Add support for hostname in System class
 ### Fixed
 - Fix bug in which DO was unable to use management network for SnmpTrapDestination
+- Fix bug in which DO creates incomplete RADIUS authentication configuration
 ### Changed
 ### Removed
 
