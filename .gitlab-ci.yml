@@ -315,7 +315,6 @@ build asg:
 create postman collection:
     stage: post build
     except:
-        - tags
         - schedules
     tags:
         - cm-official-docker-executor
