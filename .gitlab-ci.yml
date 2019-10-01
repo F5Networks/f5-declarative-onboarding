@@ -286,7 +286,6 @@ build asg:
     image: docker:latest
     stage: post build
     except:
-        - tags
         - schedules
     tags:
         - cm-official-docker-executor
