@@ -20,6 +20,7 @@ const assert = require('assert');
 const sinon = require('sinon');
 const fs = require('fs');
 
+const doUtil = require('../../../../src/lib/doUtil');
 const InfoResponse = require('../../../../src/lib/infoResponse');
 
 const PACKAGE_VERSION = require('../../../../package.json').version;
@@ -36,7 +37,7 @@ describe('infoResponse', () => {
         sinon.stub(fs, 'readFileSync').returns(PACKAGE_VERSION);
     });
 
-    after(() => {
+    afterEach(() => {
         sinon.restore();
     });
 
@@ -69,17 +70,18 @@ describe('infoResponse', () => {
 
     ['', 'one more time'].forEach((titleItem) => {
         it(`should return the proper data ${titleItem}`, () => {
-            const packageVersion = PACKAGE_VERSION.split('-');
             const schemaVersionMax = SCHEMA_VERSIONS[0];
             const schemaVersionMin = SCHEMA_VERSIONS[SCHEMA_VERSIONS.length - 1];
+
+            sinon.stub(doUtil, 'getDoVersion').returns({ VERSION: '1.2.3', RELEASE: '4' });
 
             const info = infoResponse.getData();
             assert.strictEqual(typeof info.version, 'string');
             assert.strictEqual(typeof info.release, 'string');
             assert.strictEqual(typeof info.schemaCurrent, 'string');
             assert.strictEqual(typeof info.schemaMinimum, 'string');
-            assert.strictEqual(info.version, packageVersion[0], 'Version number should match version number from package.json');
-            assert.strictEqual(info.release, packageVersion[1], 'Release number should match release number from package.json');
+            assert.strictEqual(info.version, '1.2.3', 'Version number should match version number from doUtil.getDoVersion');
+            assert.strictEqual(info.release, '4', 'Release number should match release number from doUtil.getDoVersion');
             assert.strictEqual(info.schemaCurrent, schemaVersionMax, 'Currrent schema version should match version from base.schema.json');
             assert.strictEqual(info.schemaMinimum, schemaVersionMin, 'Minimal schema version should match version from base.schema.json');
         });

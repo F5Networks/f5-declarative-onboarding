@@ -22,6 +22,7 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
+const fs = require('fs');
 const dns = require('dns');
 const netMock = require('net');
 const sinon = require('sinon');
@@ -71,6 +72,10 @@ describe('doUtil', () => {
     beforeEach(() => {
         socket.connectCalls = 0;
         createConnectionCalled = false;
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     describe('getBigIp', () => {
@@ -165,6 +170,18 @@ describe('doUtil', () => {
             return assert.isRejected(doUtil.getCurrentPlatform(),
                 'http error',
                 'should have rejected');
+        });
+    });
+
+    describe('getDoVersion', () => {
+        it('should return default if no version file is found', () => {
+            sinon.stub(fs, 'readFileSync').throws();
+            assert.deepEqual(doUtil.getDoVersion(), { VERSION: '0.0.0', RELEASE: '0' });
+        });
+
+        it('should return real version if version file is found', () => {
+            sinon.stub(fs, 'readFileSync').returns('1.2.3-4');
+            assert.deepEqual(doUtil.getDoVersion(), { VERSION: '1.2.3', RELEASE: '4' });
         });
     });
 
@@ -331,9 +348,6 @@ describe('doUtil', () => {
         beforeEach(() => {
             sinon.stub(dns, 'lookup').callsArg(1);
             sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value(cloudUtilMock.NO_RETRY);
-        });
-        afterEach(() => {
-            sinon.restore();
         });
 
         it('should reject if undefined, invalid ip, or hostname does not exist', () => {
