@@ -148,7 +148,7 @@ In the following declaration, we show only the SSHD class.  You can use this cla
 
 
 
-.. literalinclude:: ../examples/ssh.json
+.. literalinclude:: ../examples/sshd.json
    :language: json
 
 
