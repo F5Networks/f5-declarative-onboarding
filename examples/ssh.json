@@ -5,7 +5,7 @@
     "Common": {
         "class": "Tenant",
         "sshSettings": {
-            "class": "SSH",
+            "class": "SSHD",
             "banner": "Banner to display",
             "inactivityTimeout": 123,
             "ciphers": [
