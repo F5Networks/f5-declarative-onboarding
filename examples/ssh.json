@@ -6,7 +6,7 @@
         "class": "Tenant",
         "sshSettings": {
             "class": "SSH",
-            "banner": "Banner to dsiplay",
+            "banner": "Banner to display",
             "inactivityTimeout": 123,
             "ciphers": [
                 "aes128-ctr",
