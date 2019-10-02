@@ -6,7 +6,11 @@
         "class": "Tenant",
         "sshSettings": {
             "class": "SSHD",
+<<<<<<< HEAD:examples/sshd.json
             "banner": "Banner to dsiplay",
+=======
+            "banner": "Banner to display",
+>>>>>>> doc-wip-do:examples/ssh.json
             "inactivityTimeout": 123,
             "ciphers": [
                 "aes128-ctr",

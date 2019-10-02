@@ -16,7 +16,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.7.0
 ### Added
-- Add /inspect endpoint to determine existing configuraiton of device
+- Add /inspect endpoint to determine existing configuration of device
 - Add support for Authentication class
 - Add support for Authentication - Radius
 - Add support for Authentication - TACACS
