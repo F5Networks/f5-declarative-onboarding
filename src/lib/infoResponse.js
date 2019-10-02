@@ -16,11 +16,11 @@
 
 'use strict';
 
-const fs = require('fs');
 const BASE_URL = require('./sharedConstants').BASE_URL;
 const ENDPOINTS = require('./sharedConstants').ENDPOINTS;
 const STATUS = require('./sharedConstants').STATUS;
 
+const doUtil = require('./doUtil');
 const schema = require('../schema/latest/base.schema.json');
 
 class InfoResponse {
@@ -55,11 +55,11 @@ class InfoResponse {
     }
 
     getData() {
-        const codeVersion = fs.readFileSync(`${__dirname}/../version`, 'ascii').split('-');
         const schemaVersions = schema.properties.schemaVersion.enum;
+        const versionInfo = doUtil.getDoVersion();
         return {
-            version: codeVersion[0],
-            release: codeVersion[1],
+            version: versionInfo.VERSION,
+            release: versionInfo.RELEASE,
             schemaCurrent: schemaVersions[0],
             schemaMinimum: schemaVersions[schemaVersions.length - 1]
         };

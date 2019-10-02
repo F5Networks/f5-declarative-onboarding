@@ -16,6 +16,7 @@
 
 'use strict';
 
+const TeemDevice = require('@f5devcentral/f5-teem').Device;
 const DeclarationParser = require('./declarationParser');
 const DiffHandler = require('./diffHandler');
 const Logger = require('./logger');
@@ -27,6 +28,7 @@ const DeleteHandler = require('./deleteHandler');
 const ProvisionHandler = require('./provisionHandler');
 const DeprovisionHandler = require('./deprovisionHandler');
 const AuthHandler = require('./authHandler');
+const doUtil = require('./doUtil');
 
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 
@@ -77,6 +79,11 @@ class DeclarationHandler {
     constructor(bigIp, eventEmitter) {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
+        const assetInfo = {
+            name: 'Declarative Onboarding',
+            version: doUtil.getDoVersion().VERSION
+        };
+        this.teemDevice = new TeemDevice(assetInfo);
     }
 
     /**
@@ -146,6 +153,12 @@ class DeclarationHandler {
             ).process())
             .then(() => {
                 logger.info('Done processing declaration.');
+                if (!declaration.parsed) {
+                    this.teemDevice.report('Declarative Onboarding Telemetry Data', '1', declaration)
+                        .catch((err) => {
+                            logger.warning(`Unable to send device report: ${err.message}`);
+                        });
+                }
                 return Promise.resolve();
             })
             .catch((err) => {
