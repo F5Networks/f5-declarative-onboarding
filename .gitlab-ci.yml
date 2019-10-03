@@ -73,6 +73,7 @@ deploy bigip 13.1:
     only:
         - schedules
         - tags
+        - triggers
     script:
         - cd /root/cicd-bigip-deploy && make configure &&
             make printvars && cat ${PROJECT_DIR}/project-vars &&
@@ -103,9 +104,9 @@ integration test 13.1:
     only:
         - schedules
         - tags
+        - triggers
     script:
        - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
-       - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
        - yum install -y nodejs
        - npm install
        - npm run integration
@@ -126,6 +127,7 @@ teardown bigip 13.1:
     only:
         - schedules
         - tags
+        - triggers
 
 # deploy bigip 14.0:
 #     image: ${CICD_CONTAINER_DEPLOY}
@@ -143,6 +145,7 @@ teardown bigip 13.1:
 #     only:
 #         - schedules
 #         - tags
+#         - triggers
 #     script:
 #         - cd /root/cicd-bigip-deploy && make configure &&
 #             make printvars && cat ${PROJECT_DIR}/project-vars &&
@@ -173,6 +176,7 @@ teardown bigip 13.1:
 #     only:
 #         - schedules
 #         - tags
+#         - triggers
 #     script:
 #        - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
 #        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
@@ -196,6 +200,7 @@ teardown bigip 13.1:
 #     only:
 #         - schedules
 #         - tags
+#         - triggers
 
 # deploy bigip 14.1:
 #     image: ${CICD_CONTAINER_DEPLOY}
@@ -213,6 +218,7 @@ teardown bigip 13.1:
 #     only:
 #         - schedules
 #         - tags
+#         - triggers
 #     script:
 #         - cd /root/cicd-bigip-deploy && make configure &&
 #             make printvars && cat ${PROJECT_DIR}/project-vars &&
@@ -243,6 +249,7 @@ teardown bigip 13.1:
 #     only:
 #         - schedules
 #         - tags
+#         - triggers
 #     script:
 #        - export TEST_HARNESS_FILE=${CI_PROJECT_DIR}/harness_facts_flat.json
 #        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
@@ -266,7 +273,7 @@ teardown bigip 13.1:
 #     only:
 #         - schedules
 #         - tags
-
+#         - triggers
 
 build rpm:
     image: node:8-alpine
