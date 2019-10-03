@@ -1,7 +1,8 @@
 {
-    "schemaVersion": "1.0.0",
+    "schemaVersion": "1.8.0",
     "class": "Device",
     "async": false,
+    "label": "Configuring SSHD settings",
     "Common": {
         "class": "Tenant",
         "sshSettings": {
