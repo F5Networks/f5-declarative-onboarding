@@ -1,6 +1,6 @@
 {
   "name": "f5-declarative-onboarding",
-  "version": "1.7.0-3",
+  "version": "1.8.0-2",
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
   "repository": {
@@ -20,6 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@f5devcentral/f5-cloud-libs": "beta",
+    "@f5devcentral/f5-teem": "^1.0.0",
     "ajv": "^6.5.3",
     "deep-diff": "^1.0.2",
     "is-in-subnet": "^1.9.0",
@@ -27,6 +28,8 @@
   },
   "devDependencies": {
     "@f5devcentral/eslint-config-f5-atg": "latest",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "colors": "^1.3.3",
     "coveralls": "^3.0.2",
     "eslint": "^5.4.0",
@@ -39,12 +42,12 @@
     "sinon": "^7.3.2"
   },
   "scripts": {
-    "build": "./build/buildRpm.sh",
-    "test": "mocha --recursive test/nodejs test/schema",
-    "functional": "mocha test/functional/test.js",
+    "build": "scripts/build/buildRpm.sh",
+    "test": "mocha --recursive test/unit test/schema",
+    "integration": "mocha test/integration/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "coverage": "nyc npm test",
-    "lint": "eslint nodejs test"
+    "lint": "eslint src test"
   },
   "nyc": {
     "reporter": [

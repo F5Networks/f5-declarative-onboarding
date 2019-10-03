@@ -11,11 +11,11 @@ The following is an example declaration that onboards a standalone BIG-IP system
 
 .. literalinclude:: ../examples/onboard.json
    :language: json
-   
+
 
 :ref:`Back to top<bigipexamples>`
 
-| 
+|
 
 
 .. _example2:
@@ -29,7 +29,7 @@ The following is an example declaration that onboards a clustered BIG-IP system.
 
 :ref:`Back to top<bigipexamples>`
 
-| 
+|
 
 
 
@@ -45,7 +45,7 @@ The following is another example using a declaration for use in a container, but
 
 :ref:`Back to top<bigipexamples>`
 
-| 
+|
 
 .. _avrstream:
 
@@ -60,7 +60,7 @@ In this example, we are licensing a new BIG-IP, provisioning AVR, and creating a
 
 .. literalinclude:: ../examples/avrStreamingSupport.json
    :language: json
-   :emphasize-lines: 17, 19-29 
+   :emphasize-lines: 17, 19-29
 
 
 :ref:`Back to top<bigipexamples>`
@@ -72,21 +72,21 @@ In this example, we are licensing a new BIG-IP, provisioning AVR, and creating a
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The **keys** property of the User class is available in DO v1.5.0 and later. 
+   The **keys** property of the User class is available in DO v1.5.0 and later.
 
 In this example, we are adding public SSH keys to the root user and a guestUser. This can provide a higher level of security and easier automation.
 
 **Important notes about using the keys property**
 
 - Only the root user's master key (noted by the ``Host Processor Superuser``), in authorized_keys will be preserved. All other keys configured prior to running this declaration, WILL BE DELETED.
-- If the **keys** field is left empty it will default to an empty array. This means leaving it empty will clear the authorized_keys file, except for the root's master key.  
+- If the **keys** field is left empty it will default to an empty array. This means leaving it empty will clear the authorized_keys file, except for the root's master key.
 - For non-root users, the path to the authorized_keys is **/home/{username}/.ssh/authorized_keys**.
 - For root, the path is **/root/.ssh/authorized_keys**.
 - DO will set the non-root user's .ssh directory permissions to 700, with the authorized_keys permissions set to 600.
 
 .. literalinclude:: ../examples/publicKeys.json
    :language: json
-   :emphasize-lines: 13-16, 27-30 
+   :emphasize-lines: 13-16, 27-30
 
 
 :ref:`Back to top<bigipexamples>`
@@ -97,17 +97,17 @@ In this example, we are adding public SSH keys to the root user and a guestUser.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The **routeDomain** class is available in DO v1.6.0 and later. 
+   The **routeDomain** class is available in DO v1.6.0 and later.
 
 In this example, we show how to use a Route Domain in a declaration.  A route domain is a configuration object that isolates network traffic for a particular application on the network.  For more information on Route Domains, see |rddoc|.
 
-In the following declaration, we include a VLAN to show how to reference a VLAN that is being created.  The SelfIp and the Route both show using the RouteDomain with **%100**, which is the **id** of the RouteDomain. 
+In the following declaration, we include a VLAN to show how to reference a VLAN that is being created.  The SelfIp and the Route both show using the RouteDomain with **%100**, which is the **id** of the RouteDomain.
 
 
 
 .. literalinclude:: ../examples/routeDomains.json
    :language: json
-   :emphasize-lines: 21, 25, 28-46 
+   :emphasize-lines: 21, 25, 28-46
 
 
 :ref:`Back to top<bigipexamples>`
@@ -119,11 +119,11 @@ In the following declaration, we include a VLAN to show how to reference a VLAN 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The **DagGlobals** class is available in DO v1.7.0 and later. 
+   The **DagGlobals** class is available in DO v1.7.0 and later.
 
-In this example, we show how to use the DagGlobals class to set or modify the DAG global IPv6 prefix length.  DAG Globals contain the global disaggregation settings; see the |dagdoc| documentation for more information. 
+In this example, we show how to use the DagGlobals class to set or modify the DAG global IPv6 prefix length.  DAG Globals contain the global disaggregation settings; see the |dagdoc| documentation for more information.
 
-In the following declaration snippet, we show only the DagGlobals class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+In the following declaration snippet, we show only the DagGlobals class.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
 
 
@@ -140,11 +140,11 @@ In the following declaration snippet, we show only the DagGlobals class.  You ca
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The ability to configure SNMP in a declaration is available in DO v1.7.0 and later. 
+   The ability to configure SNMP in a declaration is available in DO v1.7.0 and later.
 
-In this example, we show how to configure SNMP in a Declarative Onboarding declaration.  You can use DO to configure SNMP agents, users, communities, trap events, and trap destinations.  See the |snmpdoc| in the BIG-IP documentation for specific information. 
+In this example, we show how to configure SNMP in a Declarative Onboarding declaration.  You can use DO to configure SNMP agents, users, communities, trap events, and trap destinations.  See the |snmpdoc| in the BIG-IP documentation for specific information.
 
-In the following declaration snippet we show only the classes related to SNMP.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+In the following declaration snippet we show only the classes related to SNMP.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
 .. literalinclude:: ../examples/snmp.json
    :language: json
@@ -157,13 +157,13 @@ In the following declaration snippet we show only the classes related to SNMP.  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The ability to configure RADIUS, LDAP, and TACACS authentication in a declaration is available in DO v1.7.0 and later. 
+   The ability to configure RADIUS, LDAP, and TACACS authentication in a declaration is available in DO v1.7.0 and later.
 
 In this example, we show how to configure RADIUS, LDAP, and TACACS authentication in a Declarative Onboarding declaration using the **Authentication** class. The authentication class can (but does not have to) contain multiple authentication method subclasses but only one can be enabled at a time using the **enableSourceType** property (which matches the BIG-IP UI behavior).
 
-This example declaration contains all three authentication methods with the **enableSourceType** property set to **radius**.    
+This example declaration contains all three authentication methods with the **enableSourceType** property set to **radius**.
 
-In the following declaration snippet we show only the classes related to authentication.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+In the following declaration snippet we show only the classes related to authentication.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
 .. literalinclude:: ../examples/authMethods.json
    :language: json
@@ -176,13 +176,13 @@ In the following declaration snippet we show only the classes related to authent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The ability to configure remote roles for authentication is available in DO v1.7.0 and later. 
+   The ability to configure remote roles for authentication is available in DO v1.7.0 and later.
 
 In this example, we show how to configure a remote role for authentication using the **RemoteAuthRole** class. See |loref| in the Schema reference for a description of each of the parameters for this class.
 
 **Important**: The BIG-IP only allows one role per user for each partition/tenant.  Because some remote servers allow multiple user roles, the BIG-IP uses the **lineOrder** parameter to choose one of the conflicting roles for the user at login time. In these cases, the system chooses the role with the lowest line-order number.  See |lineorder| in the BIG-IP documentation for more information and examples.
 
-In the following declaration snippet we show only the classes related to remote auth roles.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+In the following declaration snippet we show only the classes related to remote auth roles.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
 .. literalinclude:: ../examples/remoteRoles.json
    :language: json
@@ -195,11 +195,11 @@ In the following declaration snippet we show only the classes related to remote 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for configuring all LTM global traffic control properties is available in DO v1.7.0 and later. 
+   Support for configuring all LTM global traffic control properties is available in DO v1.7.0 and later.
 
-In this example, we show how you can configure BIG-IP LTM global traffic control settings (ltm global-settings traffic-control) using a Declarative Onboarding declaration. For descriptions and usage details on these properties, see |tcref| in the Schema Reference.  
+In this example, we show how you can configure BIG-IP LTM global traffic control settings (ltm global-settings traffic-control) using a Declarative Onboarding declaration. For descriptions and usage details on these properties, see |tcref| in the Schema Reference.
 
-In the following declaration snippet we show only the classes related to Traffic Control.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+In the following declaration snippet we show only the classes related to Traffic Control.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
 .. literalinclude:: ../examples/trafficControl.json
    :language: json
@@ -212,13 +212,13 @@ In the following declaration snippet we show only the classes related to Traffic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The ability to configure a syslog destination is available in DO v1.7.0 and later. 
+   The ability to configure a syslog destination is available in DO v1.7.0 and later.
 
 In this example, we show how to configure a syslog destination using the **SyslogRemoteServer** class.  For information on syslog destinations, see |sldocs| and the |slkb| Knowledge Base article.  Also see |slref| in the Schema reference for usage options.
 
 **Important**: The remote syslog server must be accessible from your BIG-IP system on the default route domain (Domain 0) or management network, and conversely, your BIG-IP system is accessible from the remote syslog server.
 
-In the following declaration snippet we show only the SyslogRemoteServer class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+In the following declaration snippet we show only the SyslogRemoteServer class.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
 .. literalinclude:: ../examples/syslogDestination.json
    :language: json
@@ -228,11 +228,11 @@ In the following declaration snippet we show only the SyslogRemoteServer class. 
 
 .. _cmphash:
 
-13: Using the CMP Hash property in a VLAN 
+13: Using the CMP Hash property in a VLAN
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The VLAN property **cmp-hash** is available in DO v1.7.0 and later. 
+   The VLAN property **cmp-hash** is available in DO v1.7.0 and later.
 
 Starting in 1.7.0, you have the option of using the **cmp-hash** property on a VLAN.  The CMP Hash setting allows all connections from a client system to use the same set of TMMs, improving system performance. For more information, see |cmpdocs| in the BIG-IP documentation.  You can also see |cmpref| in the Schema Reference for usage options.
 
@@ -309,4 +309,7 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trunk" target="_blank">Trunk class</a>
 
 
+.. |sshd| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#sshd" target="_blank">SSHD</a>
 
