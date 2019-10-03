@@ -420,22 +420,22 @@ pages:
         - develop
         - doc-release-branch
 
-publish docs to production:
-    image: ${CONTAINTHEDOCS_IMAGE}
-    stage: publish
-    environment:
-        name: production
-        url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest
-    only:
-        # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
-        # fill in desired release branch name and uncomment to add deployment from a branch
-        - doc-publish@automation-toolchain/f5-declarative-onboarding
-    tags:
-        - cm-official-docker-executor
-    dependencies:
-        - create docs
-    script:
-        # Publish docs to clouddocs.f5.com (live site).
-        - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
-        # create invalidation to clear cloudfront cache
-        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
+# publish docs to production:
+#     image: ${CONTAINTHEDOCS_IMAGE}
+#     stage: publish
+#     environment:
+#         name: production
+#         url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest
+#     only:
+#         # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
+#         # fill in desired release branch name and uncomment to add deployment from a branch
+#         - doc-publish@automation-toolchain/f5-declarative-onboarding
+#     tags:
+#         - cm-official-docker-executor
+#     dependencies:
+#         - create docs
+#     script:
+#         # Publish docs to clouddocs.f5.com (live site).
+#         - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
+#         # create invalidation to clear cloudfront cache
+#         - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
