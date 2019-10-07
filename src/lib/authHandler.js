@@ -16,6 +16,7 @@
 
 'use strict';
 
+const CLOUD_UTIL_NO_RETRY = require('@f5devcentral/f5-cloud-libs').util.NO_RETRY;
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const RADIUS = require('./sharedConstants').RADIUS;
@@ -117,18 +118,15 @@ function handleRadius() {
             {
                 name: AUTH.SUBCLASSES_NAME,
                 serviceType: radius.serviceType,
+                servers: authServers,
                 partition: 'Common'
             },
             undefined, undefined, opts
         ))
-        .then(() => this.bigIp.createOrModify(
-            PATHS.AuthRadius,
-            {
-                name: RADIUS.SYSTEM_AUTH,
-                servers: authServers,
-                partition: 'Common'
-            }
-        ))
+        .then(() => (radius.servers.secondary ? Promise.resolve() : this.bigIp.delete(
+            `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`,
+            null, null, CLOUD_UTIL_NO_RETRY
+        )))
         .catch((err) => {
             logger.severe(`Error configuring remote RADIUS auth: ${err.message}`);
             return Promise.reject(err);

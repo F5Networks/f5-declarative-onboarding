@@ -11,6 +11,8 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 - Fix bug in which DO was unable to use management network for SnmpTrapDestination
 - Fix bug in which DO creates incomplete RADIUS authentication configuration
+- Fix bug in which DO was unable to remove Radius System Auth configuration
+- Fix bug in which DO doesn't remove secondary Radius server when it is abesnt in declaration
 ### Changed
 ### Removed
 
