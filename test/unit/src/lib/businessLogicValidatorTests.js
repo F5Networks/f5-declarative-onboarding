@@ -50,9 +50,31 @@ describe('businessLogicValidator', () => {
                     class: 'Device',
                     Common: {
                         class: 'Tenant',
-                        mySettings: {
-                            class: 'Settings',
+                        mySystem: {
+                            class: 'System',
                             hostname: 'my.bigip.com'
+                        }
+                    }
+                }
+            };
+
+            return validator.validate(data)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
+                });
+        });
+
+        it('should handle Common.hostname with System defined w/o hostname', () => {
+            const data = {
+                class: 'DO',
+                declaration: {
+                    schemaVersion: '1.0.0',
+                    class: 'Device',
+                    Common: {
+                        class: 'Tenant',
+                        hostname: 'my.bigip.com',
+                        mySystem: {
+                            class: 'System'
                         }
                     }
                 }
@@ -75,7 +97,7 @@ describe('businessLogicValidator', () => {
                     Common: {
                         hostname: '111.bigip.com',
                         class: 'Tenant',
-                        mySettings: {
+                        mySystem: {
                             class: 'System',
                             hostname: '222.bigip.com'
                         }

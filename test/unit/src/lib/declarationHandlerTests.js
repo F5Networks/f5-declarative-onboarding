@@ -272,6 +272,33 @@ describe('declarationHandler', () => {
             'processing error should have been caught');
     });
 
+    it('should not use old System hostname if Common.hostname is specified', () => {
+        const newDeclaration = {
+            parsed: true,
+            Common: {
+                hostname: 'my.new.hostname'
+            }
+        };
+
+        const state = {
+            currentConfig: {
+                name: 'current'
+            },
+            originalConfig: {
+                Common: {
+                    System: {
+                        hostname: 'my.old.hostname'
+                    }
+                }
+            }
+        };
+        const declarationHandler = new DeclarationHandler(bigIpMock);
+        return declarationHandler.process(newDeclaration, state)
+            .then(() => {
+                assert.strictEqual(declarationWithDefaults.Common.System.hostname, undefined);
+            });
+    });
+
     it('should apply fix for Default Route Domain - no Route Domains in declaration', () => {
         const newDeclaration = {
             parsed: true,
