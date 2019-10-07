@@ -1,12 +1,13 @@
 {
-    "schemaVersion": "1.0.0",
+    "schemaVersion": "1.8.0",
     "class": "Device",
     "async": false,
+    "label": "Configuring SSHD settings",
     "Common": {
         "class": "Tenant",
         "sshSettings": {
             "class": "SSHD",
-            "banner": "Banner to dsiplay",
+            "banner": "Banner to display",
             "inactivityTimeout": 123,
             "ciphers": [
                 "aes128-ctr",

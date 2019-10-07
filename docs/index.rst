@@ -7,6 +7,8 @@ F5 Declarative onboarding uses a |declare| model to initially configure a BIG-IP
 
 A declarative model means you provide a JSON declaration rather than a set of imperative commands. The declaration represents the configuration which Declarative Onboarding is responsible for creating on a BIG-IP system.  You send a declaration file using a single Rest API call.
 
+You can use Microsoft Visual Studio Code to validate your declarations, see :doc:`validate` for information.
+
 This guide contains information on downloading, installing, and using F5 Declarative Onboarding.
 
 .. NOTE:: To see what's new in Declarative Onboarding, see the the :ref:`revision-history`.

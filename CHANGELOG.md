@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 - Add support for HTTPD class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
 - Add support for consoleInactivityTimeout in System class
 - Add support for hostname in System class
+- AUTOTOOL-747: Add Declarative Onboarding analytics reporting to F5
 ### Fixed
 - Fix bug in which DO was unable to use management network for SnmpTrapDestination
 - Fix bug in which DO creates incomplete RADIUS authentication configuration
@@ -15,7 +16,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.7.0
 ### Added
-- Add /inspect endpoint to determine existing configuraiton of device
+- Add /inspect endpoint to determine existing configuration of device
 - Add support for Authentication class
 - Add support for Authentication - Radius
 - Add support for Authentication - TACACS

@@ -70,10 +70,14 @@
             }
         },
         {
+<<<<<<< HEAD:schema/latest/network.schema.json
+            "if": { "properties": { "class": { "const": "VLAN" } } },
+=======
             "if": {
                 "required": ["class"],
                 "properties": { "class": { "const": "VLAN" } }
             },
+>>>>>>> develop:src/schema/1.8.0/network.schema.json
             "then": {
                 "required": ["class", "interfaces"],
                 "properties": {

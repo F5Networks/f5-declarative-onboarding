@@ -16,6 +16,7 @@
 
 'use strict';
 
+const fs = require('fs');
 const net = require('net');
 const exec = require('child_process').exec;
 const dns = require('dns');
@@ -144,6 +145,29 @@ module.exports = {
         });
     },
 
+
+    /**
+     * Gets the current version of DO if available.
+     *
+     * In typical dev environments, there is no version file present. However, the
+     * version file is created by the RPM spec file so will be there in production.
+     *
+     * @returns {Object} Object containing VERSION and RELEASE
+     */
+    getDoVersion() {
+        let versionString = '0.0.0-0';
+        try {
+            versionString = fs.readFileSync(`${__dirname}/../version`, 'ascii');
+        } catch (err) {
+            logger.debug('Version file not found');
+        }
+
+        const versionInfo = versionString.split('-');
+        return {
+            VERSION: versionInfo[0],
+            RELEASE: versionInfo[1]
+        };
+    },
 
     /**
      * Determines if a reboot is required.

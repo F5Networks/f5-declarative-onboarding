@@ -1,0 +1,21 @@
+{
+    "schemaVersion": "1.7.0",
+    "class": "Device",
+    "async": true,
+    "webhook": "https://example.com/myHook",
+    "Common": {
+        "class": "Tenant",
+        "external": {
+            "class": "VLAN",
+            "tag": 4094,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ],
+            "cmpHash": "src-ip"
+        }
+    }
+}

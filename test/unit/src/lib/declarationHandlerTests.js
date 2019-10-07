@@ -24,6 +24,7 @@ const assert = chai.assert;
 
 const sinon = require('sinon');
 
+const TeemDevice = require('@f5devcentral/f5-teem').Device;
 const DeclarationParser = require('../../../../src/lib/declarationParser');
 const DiffHandler = require('../../../../src/lib/diffHandler');
 const SystemHandler = require('../../../../src/lib/systemHandler');
@@ -191,6 +192,60 @@ describe('declarationHandler', () => {
                         }
                     });
             });
+    });
+
+    it('should send TEEM report', (done) => {
+        const newDeclaration = {
+            name: 'new'
+        };
+        const state = {
+            currentConfig: {
+                name: 'current'
+            },
+            originalConfig: {
+                Common: {}
+            }
+        };
+
+        const assetInfo = {
+            name: 'Declarative Onboarding',
+            version: '1.2.3'
+        };
+        const teemDevice = new TeemDevice(assetInfo, 'staging');
+
+        sinon.stub(teemDevice, 'report').callsFake((type, version, declaration) => {
+            assert.deepEqual(declaration, newDeclaration);
+            done();
+            return Promise.resolve();
+        });
+        const declarationHandler = new DeclarationHandler(bigIpMock);
+        declarationHandler.teemDevice = teemDevice;
+        declarationHandler.process(newDeclaration, state);
+    });
+
+    it('should succeed even if TEEM report fails', () => {
+        const newDeclaration = {
+            name: 'new'
+        };
+        const state = {
+            currentConfig: {
+                name: 'current'
+            },
+            originalConfig: {
+                Common: {}
+            }
+        };
+
+        const assetInfo = {
+            name: 'Declarative Onboarding',
+            version: '1.2.3'
+        };
+        const teemDevice = new TeemDevice(assetInfo, 'staging');
+
+        sinon.stub(teemDevice, 'report').rejects();
+        const declarationHandler = new DeclarationHandler(bigIpMock);
+        declarationHandler.teemDevice = teemDevice;
+        return declarationHandler.process(newDeclaration, state);
     });
 
     it('should report processing errors', () => {
