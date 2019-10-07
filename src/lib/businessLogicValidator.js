@@ -27,17 +27,20 @@ class BusinessLogicValidator {
             return Promise.resolve({ isValid });
         }
 
+        // no System class
         const sysWrapper = doUtil.getClassObjects(data.declaration, 'System');
         if (!sysWrapper) {
             return Promise.resolve({ isValid });
         }
 
+        // no hostname in Common
         const common = data.declaration.Common;
         if (!common.hostname) {
             return Promise.resolve({ isValid });
         }
 
-        if (Object.keys(sysWrapper).find(key => sysWrapper[key] === 'hostname') !== 'undefined') {
+        // hostname is in Common and System is present
+        if (Object.keys(sysWrapper).find(key => typeof sysWrapper[key].hostname !== 'undefined')) {
             isValid = false;
             errors.push('multiple hostnames in declaration');
         }

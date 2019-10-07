@@ -191,6 +191,9 @@ function applyDefaults(declaration, state) {
         // if the missing or empty, fill in the original
         if (!(key in commonDeclaration) || (typeof item === 'object' && Object.keys(item).length === 0)) {
             commonDeclaration[key] = original;
+            if (key === 'System' && commonDeclaration.hostname) {
+                delete commonDeclaration[key].hostname;
+            }
         } else if (key === 'Authentication') {
             // some more auth oddities
             if (typeof item.remoteUsersDefaults === 'undefined') {
