@@ -123,27 +123,27 @@ function getAuthClassPromises() {
     if (auth) {
         const authToDelete = ['radius', 'ldap', 'tacacs'];
         Object.keys(auth).forEach((authItem) => {
-            if (authToDelete.indexOf(authItem) > -1) {
-                authPromises.push(
-                    this.bigIp.delete(
-                        `/tm/auth/${authItem}/${AUTH.SUBCLASSES_NAME}`,
-                        null, null, cloudUtil.NO_RETRY
-                    )
-                );
-                if (authItem === 'radius') {
-                    // quirk with radius-servers needing separate DELETEs
-                    // and they also have name constants
-                    const serverNames = [RADIUS.PRIMARY_SERVER, RADIUS.SECONDARY_SERVER];
-                    serverNames.forEach((server) => {
-                        authPromises.push(
-                            this.bigIp.delete(
-                                `${PATHS.AuthRadiusServer}/~Common~${server}`,
-                                null, null, cloudUtil.NO_RETRY
-                            )
-                        );
-                    });
-                }
+            if (authToDelete.indexOf(authItem) === -1) {
+                return;
             }
+            let promise = this.bigIp.delete(
+                `/tm/auth/${authItem}/${AUTH.SUBCLASSES_NAME}`,
+                null, null, cloudUtil.NO_RETRY
+            );
+            if (authItem === 'radius') {
+                // quirk with radius-servers:
+                // 1) needing separate DELETEs and they also have name constants
+                // 2) should be deleted only when /tm/auth/radius/system-auth object was deleted
+                promise = promise.then(() => Promise.all(
+                    [RADIUS.PRIMARY_SERVER, RADIUS.SECONDARY_SERVER].map(
+                        server => this.bigIp.delete(
+                            `${PATHS.AuthRadiusServer}/~Common~${server}`,
+                            null, null, cloudUtil.NO_RETRY
+                        )
+                    )
+                ));
+            }
+            authPromises.push(promise);
         });
     }
     return authPromises;

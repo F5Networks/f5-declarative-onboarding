@@ -97,9 +97,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
     it('should issue deletes for Authentication subclasses', () => {
         bigIpMock.delete = path => new Promise((resolve) => {
             deletedPaths.push(path);
-            setTimeout(() => {
-                resolve();
-            }, path.includes(PATHS.Route) ? 50 : 0);
+            resolve();
         });
 
         const declaration = {
@@ -117,19 +115,24 @@ describe(('deleteHandler'), function testDeleteHandler() {
             .then(() => {
                 assert.strictEqual(deletedPaths.length, 5);
                 assert.strictEqual(deletedPaths[0], '/tm/auth/radius/system-auth');
-                assert.strictEqual(deletedPaths[1], '/tm/auth/radius-server/~Common~system_auth_name1');
-                assert.strictEqual(deletedPaths[2], '/tm/auth/radius-server/~Common~system_auth_name2');
-                assert.strictEqual(deletedPaths[3], '/tm/auth/tacacs/system-auth');
-                assert.strictEqual(deletedPaths[4], '/tm/auth/ldap/system-auth');
+                assert.strictEqual(deletedPaths[1], '/tm/auth/tacacs/system-auth');
+                assert.strictEqual(deletedPaths[2], '/tm/auth/ldap/system-auth');
+                assert.strictEqual(deletedPaths[3], '/tm/auth/radius-server/~Common~system_auth_name1');
+                assert.strictEqual(deletedPaths[4], '/tm/auth/radius-server/~Common~system_auth_name2');
             });
     });
 
     it('should issue deletes for Authentication radius servers', () => {
+        /*
+            /tm/auth/radius/system-auth should be deleted at first, that why
+            its 'delete' promise will be resolved with delay.
+            Expected result: order of issued deletes should be preserved.
+         */
         bigIpMock.delete = path => new Promise((resolve) => {
             deletedPaths.push(path);
             setTimeout(() => {
                 resolve();
-            }, path.includes(PATHS.Route) ? 50 : 0);
+            }, path.includes('/tm/auth/radius/system-auth') ? 50 : 0);
         });
 
         const declaration = {
@@ -149,6 +152,30 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.strictEqual(deletedPaths[2], '/tm/auth/radius-server/~Common~system_auth_name2');
             });
     });
+
+    it('should have no unhandled promises rejection when issue deletes for Authentication radius servers', () => {
+        const errorMsg = 'this is a processing error';
+        bigIpMock.delete = path => new Promise((resolve, reject) => {
+            if (path.indexOf('system_auth_name1') !== -1) {
+                reject(new Error(errorMsg));
+            } else {
+                resolve();
+            }
+        });
+
+        const declaration = {
+            Common: {
+                Authentication: {
+                    radius: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return assert.isRejected(deleteHandler.process(), 'this is a processing error',
+            'processing error should have been caught');
+    });
+
 
     it('should not issue deletes for non-deletable classes', () => {
         const declaration = {

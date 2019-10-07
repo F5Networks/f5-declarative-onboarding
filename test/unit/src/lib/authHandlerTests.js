@@ -115,18 +115,44 @@ describe('authHandler', () => {
                     assert.deepEqual(dataSent[2], {
                         name: 'system-auth',
                         serviceType: 'callback-login',
-                        partition: 'Common'
-                    });
-
-                    assert.strictEqual(pathsSent[3], '/tm/auth/radius');
-                    assert.deepEqual(dataSent[3], {
-                        name: 'system-auth',
                         partition: 'Common',
                         servers: [
                             'system_auth_name1',
                             'system_auth_name2'
                         ]
                     });
+                });
+        });
+
+        it('should issue delete for radius secondary server when it is abesnt in declaration', () => {
+            const deletePath = [];
+            bigIpMock.delete = (path) => {
+                deletePath.push(path);
+                return Promise.resolve();
+            };
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'radius',
+                        fallback: true,
+                        radius: {
+                            serviceType: 'callback-login',
+                            servers: {
+                                primary: {
+                                    server: '1.2.3.4',
+                                    port: 1811,
+                                    secret: 'something'
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(deletePath.length, 1);
+                    assert.strictEqual(deletePath[0], '/tm/auth/radius-server/~Common~system_auth_name2');
                 });
         });
     });
