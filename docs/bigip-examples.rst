@@ -245,7 +245,21 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 
 
 
+.. _sshex:
 
+8: Configuring SSHD settings in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring SSHD settings is available in DO v1.8.0 and later. 
+
+In this example, we show how you can configure SSHD settings in a Declarative Onboarding declaration. For usage and options, see |sshd| in the Schema Reference.
+
+In the following declaration, we show only the SSHD class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+
+.. literalinclude:: ../examples/sshd.json
+   :language: json
 
 .. |br| raw:: html
 
