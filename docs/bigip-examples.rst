@@ -147,7 +147,6 @@ In this example, we show how you can configure SSHD settings in a Declarative On
 In the following declaration, we show only the SSHD class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
 
-
 .. literalinclude:: ../examples/sshd.json
    :language: json
 
