@@ -247,7 +247,7 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 
 .. _sshex:
 
-8: Configuring SSHD settings in a declaration
+14: Configuring SSHD settings in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
