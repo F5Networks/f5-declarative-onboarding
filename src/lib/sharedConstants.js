@@ -56,6 +56,7 @@ module.exports = {
         SnmpTrapDestination: '/tm/sys/snmp',
         Syslog: '/tm/sys/syslog',
         System: '/tm/sys/global-settings',
+        CLI: '/tm/cli/global-settings',
         DagGlobals: '/tm/net/dag-globals',
         TrafficControl: '/tm/ltm/global-settings/traffic-control',
         HTTPD: '/tm/sys/httpd',

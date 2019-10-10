@@ -39,6 +39,9 @@ describe('declarationParser', () => {
                     "licenseType": "regKey",
                     "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
                 },
+                "mySystem": {
+                    "class": "System"
+                },
                 "myDns": {
                     "class": "DNS",
                     "nameServers": [

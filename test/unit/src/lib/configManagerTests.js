@@ -16,7 +16,12 @@
 
 'use strict';
 
-const assert = require('assert');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chai.use(chaiAsPromised);
+const assert = chai.assert;
+
 const URL = require('url');
 
 const ConfigManager = require('../../../../src/lib/configManager');
@@ -402,7 +407,7 @@ describe('configManager', () => {
                     );
                     assert.deepEqual(
                         state.currentConfig.Common.FailoverUnicast.port,
-                        '1026'
+                        1026
                     );
                 });
         });
@@ -480,6 +485,266 @@ describe('configManager', () => {
             return configManager.get({}, state, doState)
                 .then(() => {
                     assert.strictEqual(state.currentConfig.Common.SelfIp.selfIp1.allowService, 'none');
+                });
+        });
+    });
+
+    describe('System oddities', () => {
+        it('should merge cli settings into System class', () => {
+            const configItems = [
+                {
+                    path: '/tm/sys/global-settings',
+                    schemaClass: 'System',
+                    properties: [
+                        { id: 'hostname' },
+                        { id: 'consoleInactivityTimeout' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/cli/global-settings',
+                    schemaClass: 'System',
+                    schemaMerge: {
+                        action: 'add'
+                    },
+                    properties: [
+                        { id: 'idleTimeout', newId: 'cliInactivityTimeout' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/sys/global-settings'] = { hostname: 'host.org', consoleInactivityTimeout: 60 };
+            listResponses['/tm/cli/global-settings'] = { idleTimeout: 30 };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.System,
+                        {
+                            hostname: 'host.org',
+                            consoleInactivityTimeout: 60,
+                            cliInactivityTimeout: 1800 // minutes converted to seconds
+                        }
+                    );
+                });
+        });
+
+        it('should map cliInactivityTimeout to 0 if disabled', () => {
+            const configItems = [
+                {
+                    path: '/tm/sys/global-settings',
+                    schemaClass: 'System',
+                    properties: [
+                        { id: 'hostname' },
+                        { id: 'consoleInactivityTimeout' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/cli/global-settings',
+                    schemaClass: 'System',
+                    schemaMerge: {
+                        action: 'add'
+                    },
+                    properties: [
+                        { id: 'idleTimeout', newId: 'cliInactivityTimeout' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/sys/global-settings'] = { hostname: 'host.org', consoleInactivityTimeout: 60 };
+            listResponses['/tm/cli/global-settings'] = { idleTimeout: 'disabled' };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.System,
+                        {
+                            hostname: 'host.org',
+                            consoleInactivityTimeout: 60,
+                            cliInactivityTimeout: 0
+                        }
+                    );
+                });
+        });
+
+        it('default action should replace', () => {
+            // empty path with replace is not currently used and I do not foresee a use case for it
+            // implementing for completeness just in case
+            const configItems = [
+                {
+                    path: '/tm/sys/global-settings',
+                    schemaClass: 'System',
+                    properties: [
+                        { id: 'hostname' },
+                        { id: 'consoleInactivityTimeout' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/cli/global-settings',
+                    schemaClass: 'System',
+                    schemaMerge: {
+                    },
+                    properties: [
+                        { id: 'idleTimeout', newId: 'cliInactivityTimeout' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/sys/global-settings'] = { hostname: 'host.org', consoleInactivityTimeout: 60 };
+            listResponses['/tm/cli/global-settings'] = { idleTimeout: 30 };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.System,
+                        {
+                            cliInactivityTimeout: 1800 // minutes converted to seconds
+                        }
+                    );
+                });
+        });
+
+        it('should merge multiple subclasses into a parent class', () => {
+            const configItems = [
+                {
+                    path: '/tm/sys/source',
+                    schemaClass: 'System',
+                    properties: [
+                        { id: 'hostname' },
+                        { id: 'consoleInactivityTimeout' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/sys/syssub1',
+                    schemaClass: 'System',
+                    schemaMerge: {
+                        action: 'add'
+                    },
+                    properties: [
+                        { id: 'subProp1' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/sys/syssub2',
+                    schemaClass: 'System',
+                    schemaMerge: {
+                        action: 'add'
+                    },
+                    properties: [
+                        { id: 'subProp2' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/sys/syssub3',
+                    schemaClass: 'System',
+                    schemaMerge: {
+                        path: ['sysSub3']
+                    },
+                    properties: [
+                        { id: 'subProp3' }
+                    ],
+                    nameless: true
+                }
+            ];
+            listResponses['/tm/sys/source'] = { hostname: 'host.org', consoleInactivityTimeout: 45 };
+            listResponses['/tm/sys/syssub1'] = { subProp1: 'subPropVal1' };
+            listResponses['/tm/sys/syssub2'] = { subProp2: true };
+            listResponses['/tm/sys/syssub3'] = { subProp3: true };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.System,
+                        {
+                            hostname: 'host.org',
+                            consoleInactivityTimeout: 45,
+                            subProp1: 'subPropVal1',
+                            subProp2: true,
+                            sysSub3: {
+                                subProp3: true
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should error if merging same property names', () => {
+            const configItems = [
+                {
+                    path: '/tm/sys/source',
+                    schemaClass: 'System',
+                    properties: [
+                        { id: 'hostname' },
+                        { id: 'idleTimeout' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/sys/elsewhere',
+                    schemaClass: 'System',
+                    schemaMerge: {
+                        action: 'add'
+                    },
+                    properties: [
+                        { id: 'idleTimeout' }
+                    ],
+                    nameless: true
+                }
+            ];
+            listResponses['/tm/sys/source'] = { hostname: 'host.org', idleTimeout: 45 };
+            listResponses['/tm/sys/elsewhere'] = { idleTimeout: 30 };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            assert.isRejected(configManager.get({}, state, doState), "Cannot overwrite property in a schema merge 'idleTimeout'");
+        });
+
+        it('should omit a subclass prop when skipWhenOmitted is set to true', () => {
+            const configItems = [
+                {
+                    path: '/tm/sys/source',
+                    schemaClass: 'System',
+                    properties: [
+                        { id: 'hostname' },
+                        { id: 'consoleInactivityTimeout' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/sys/syssub',
+                    schemaClass: 'System',
+                    schemaMerge: {
+                        path: ['sysSub'],
+                        skipWhenOmitted: true
+                    },
+                    properties: [
+                        { id: 'requiredField' }
+                    ],
+                    nameless: true
+                }
+            ];
+
+            listResponses['/tm/sys/source'] = { hostname: 'host.org', consoleInactivityTimeout: 45 };
+            listResponses['/tm/sys/syssub'] = { name: 'namelessClass without the required field' };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.System,
+                        {
+                            hostname: 'host.org',
+                            consoleInactivityTimeout: 45
+                        }
+                    );
                 });
         });
     });

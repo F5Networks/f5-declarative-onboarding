@@ -266,6 +266,12 @@ class ConfigManager {
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
                             );
                         }
+                        if (schemaClass === 'System') {
+                            const schemaMerge = this.configItems[index].schemaMerge;
+                            patchedItem = patchSys.call(
+                                this, schemaMerge, currentConfig[schemaClass], patchedItem
+                            );
+                        }
                         if (schemaClass === 'SyslogRemoteServer') {
                             const servers = patchedItem.remoteServers || [];
                             servers.forEach((server) => {
@@ -549,6 +555,9 @@ function mapSchemaMerge(obj, value, opts) {
     if (opts.skipWhenOmitted && isOmitted) {
         return obj;
     }
+    if (typeof opts.path === 'undefined') {
+        opts.path = [];
+    }
 
     const pathProps = opts.path.slice(0);
     const key = pathProps.pop();
@@ -560,11 +569,24 @@ function mapSchemaMerge(obj, value, opts) {
     }, obj);
     // default action would be replace
     if (opts.action === 'add') {
+        if (key === undefined) {
+            Object.keys(value).forEach((assignKey) => {
+                if (Object.prototype.hasOwnProperty.call(pointer, assignKey)) {
+                    throw new Error(`Cannot overwrite property in a schema merge '${assignKey}'`);
+                } else {
+                    pointer[assignKey] = value[assignKey];
+                }
+            });
+            return obj;
+        }
         if (typeof pointer[key] === 'undefined') {
             pointer[key] = {};
         }
         pointer[key] = Object.assign(pointer[key], value);
     } else {
+        if (key === undefined) {
+            return value;
+        }
         pointer[key] = value;
     }
     return obj;
@@ -713,6 +735,27 @@ function patchAuth(schemaMerge, authClass, authItem) {
     }
 
     patchedClass = mapSchemaMerge.call(this, authClassCopy, patchedItem, schemaMerge);
+    return patchedClass;
+}
+
+function patchSys(schemaMerge, sysClass, sysItem) {
+    let patchedClass = {};
+
+    // mapping the first object in configItems.json which should not have schemaMerge defined
+    if (!schemaMerge) {
+        patchedClass = Object.assign(patchedClass, sysItem);
+        return patchedClass;
+    }
+
+    // mapping the schemaMerge object in configItems.json
+    const sysClassCopy = !sysClass ? {} : JSON.parse(JSON.stringify(sysClass));
+    const patchedItem = Object.assign({}, sysItem);
+    patchedClass = mapSchemaMerge.call(this, sysClassCopy, patchedItem, schemaMerge);
+    if (sysItem.cliInactivityTimeout === 'disabled') {
+        patchedClass.cliInactivityTimeout = 0;
+    } else if (typeof patchedClass.cliInactivityTimeout !== 'undefined') {
+        patchedClass.cliInactivityTimeout = parseInt(patchedClass.cliInactivityTimeout, 10) * 60;
+    }
     return patchedClass;
 }
 

@@ -9,6 +9,17 @@
         "nameless": true
     },
     {
+        "path": "/tm/cli/global-settings",
+        "schemaClass": "System",
+        "schemaMerge": {
+            "action": "add"
+        },
+        "properties": [
+            { "id": "idleTimeout", "newId": "cliInactivityTimeout" }
+        ],
+        "nameless": true
+    },
+    {
         "path": "/tm/sys/db",
         "schemaClass": "DbVariables",
         "properties": [

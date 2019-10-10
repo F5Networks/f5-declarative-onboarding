@@ -849,10 +849,18 @@
                         "format": "hostname"
                     },
                     "consoleInactivityTimeout": {
-                        "description": "Configure automatic logout for idle serial console sessions (command line sessions). The default value is 0 (zero), which means that no timeout is set. The valid range is 0 - 2147483647.",
+                        "description": "Configure automatic logout for idle serial console sessions (command line sessions) in seconds. The default value 0 means that no timeout is set.",
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 2147483647,
+                        "default": 0
+                    },
+                    "cliInactivityTimeout": {
+                        "description": "If not 0, log a user in tmsh interactive mode out automatically after a specified set of seconds specified in multiples of 60.  The default value 0 disables the timeout period.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 128849018820,
+                        "multipleOf": 60,
                         "default": 0
                     }
                 },
