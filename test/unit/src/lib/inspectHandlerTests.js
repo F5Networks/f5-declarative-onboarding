@@ -437,6 +437,9 @@ describe('inspectHandler', () => {
                 hostname,
                 consoleInactivityTimeout: 0
             },
+            '/tm/cli/global-settings': {
+                idleTimeout: 'disabled'
+            },
             '/tm/sys/provision': [
                 { name: 'afm', level: 'nominal' },
                 { name: 'am', level: 'minimum' },
@@ -1110,7 +1113,8 @@ describe('inspectHandler', () => {
                         currentSystem: {
                             class: 'System',
                             hostname: 'myhost.bigip.com',
-                            consoleInactivityTimeout: 0
+                            consoleInactivityTimeout: 0,
+                            cliInactivityTimeout: 0
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',
@@ -1209,7 +1213,9 @@ describe('inspectHandler', () => {
                         classes[item.schemaClass] = true;
                         if (typeof item.schemaMerge !== 'undefined') {
                             subProps[item.schemaClass] = subProps[item.schemaClass] || [];
-                            subProps[item.schemaClass].push(item.schemaMerge.path);
+                            if (typeof item.schemaMerge.path !== 'undefined') {
+                                subProps[item.schemaClass].push(item.schemaMerge.path);
+                            }
                         }
                     }
                     if (typeof item.declaration !== 'undefined' && typeof item.declaration.name !== 'undefined') {
@@ -1300,6 +1306,40 @@ describe('inspectHandler', () => {
                     basicInspectHandlerAsserts(data, 200, 'OK', '', []);
                     // check Analytics data
                     assert.strictEqual(data.declaration.declaration.Common.currentAnalytics.offboxProtocol, undefined, 'Should have no "offboxProtocol" property');
+                });
+        });
+
+        it('should convert System cliInactivityTimeout to seconds (int)', () => {
+            listResponses['/tm/cli/global-settings'] = {
+                idleTimeout: 60
+            };
+            listResponses['/tm/sys/global-settings'] = {
+                hostname,
+                consoleInactivityTimeout: 60
+            };
+            return inspectHandler.process()
+                .then((data) => {
+                    basicInspectHandlerAsserts(data, 200, 'OK', '', []);
+                    // check System data
+                    assert.strictEqual(data.declaration.declaration.Common.currentSystem.cliInactivityTimeout, 3600);
+                    assert.strictEqual(data.declaration.declaration.Common.currentSystem.consoleInactivityTimeout, 60);
+                });
+        });
+
+        it('should convert System cliInactivityTimeout to seconds (string)', () => {
+            listResponses['/tm/cli/global-settings'] = {
+                idleTimeout: '60'
+            };
+            listResponses['/tm/sys/global-settings'] = {
+                hostname,
+                consoleInactivityTimeout: 60
+            };
+            return inspectHandler.process()
+                .then((data) => {
+                    basicInspectHandlerAsserts(data, 200, 'OK', '', []);
+                    // check System data
+                    assert.strictEqual(data.declaration.declaration.Common.currentSystem.cliInactivityTimeout, 3600);
+                    assert.strictEqual(data.declaration.declaration.Common.currentSystem.consoleInactivityTimeout, 60);
                 });
         });
 

@@ -184,8 +184,15 @@ function handleSystem() {
     if (hostname) {
         promises.push(this.bigIp.onboard.hostname(hostname));
     }
-    if (system && Object.keys(system).length) {
-        promises.push(this.bigIp.modify(PATHS.System, system));
+
+    if (system) {
+        if (typeof system.consoleInactivityTimeout !== 'undefined') {
+            promises.push(this.bigIp.modify(PATHS.System,
+                { consoleInactivityTimeout: system.consoleInactivityTimeout }));
+        }
+        if (typeof system.cliInactivityTimeout !== 'undefined') {
+            promises.push(this.bigIp.modify(PATHS.CLI, { idleTimeout: system.cliInactivityTimeout / 60 }));
+        }
     }
 
     return Promise.all(promises);

@@ -1,5 +1,5 @@
 {
-    "schemaVersion": "1.7.0",
+    "schemaVersion": "1.8.0",
     "class": "Device",
     "label": "Configuring System",
     "async": true,
@@ -8,7 +8,8 @@
         "mySystem": {
             "class": "System",
             "hostname": "my.bigip.com",
-            "consoleInactivityTimeout": 0
+            "cliInactivityTimeout": 1200,
+            "consoleInactivityTimeout": 1200
         }
     }
 }

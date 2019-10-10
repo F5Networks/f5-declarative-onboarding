@@ -923,7 +923,8 @@ describe('system.schema.json', () => {
                 const data = {
                     "class": "System",
                     "hostname": "bigip.example.com",
-                    "consoleInactivityTimeout": 50
+                    "consoleInactivityTimeout": 50,
+                    "cliInactivityTimeout": 60
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -947,6 +948,15 @@ describe('system.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'not a valid type');
                 assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
+            });
+
+            it('should invalidate when consoleInactivity is not a multple of 60', () => {
+                const data = {
+                    "class": "System",
+                    "cliInactivityTimeout": 121
+                };
+                assert.strictEqual(validate(data), false, 'not a valid value');
+                assert.notStrictEqual(getErrorString().indexOf('should be multiple of 60'), -1);
             });
         });
     });

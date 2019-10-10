@@ -446,6 +446,44 @@ describe('systemHandler', () => {
             });
     });
 
+    it('should handle consoleInactivityTimeout and cliInactivityTimeout', () => {
+        // these props are posted to separate paths
+        const declaration = {
+            Common: {
+                System: {
+                    consoleInactivityTimeout: 50,
+                    cliInactivityTimeout: 1200
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
+                assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 20 }); // seconds converted to minutes
+            });
+    });
+
+    it('should handle cliInactivityTimeout equal to 0', () => {
+        // these props are posted to separate paths
+        const declaration = {
+            Common: {
+                System: {
+                    consoleInactivityTimeout: 50,
+                    cliInactivityTimeout: 0
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
+                assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 0 });
+            });
+    });
+
     it('should handle root users without keys', () => {
         // Stubs out the remote call to confirm the key is not added to the user
         sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
