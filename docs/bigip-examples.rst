@@ -248,7 +248,7 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 .. _sshex:
 
 14: Configuring SSHD settings in a declaration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for configuring SSHD settings is available in DO v1.8.0 and later. 
