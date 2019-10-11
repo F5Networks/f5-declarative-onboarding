@@ -5,7 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 - Add support for SSHD class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
 - Add support for HTTPD class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
-- Add support for cliInactivityTimeout, consoleInactivityTimeout, and hostname in System class
+- AUTOTOOL-708: Add support for cliInactivityTimeout, consoleInactivityTimeout, and hostname in System class
 - AUTOTOOL-747: Add Declarative Onboarding analytics reporting to F5
 ### Fixed
 - Fix bug in which DO was unable to use management network for SnmpTrapDestination
