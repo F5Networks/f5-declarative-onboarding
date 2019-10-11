@@ -5,7 +5,7 @@
     "description": "System properties for onboarding a BIG-IP.",
     "properties": {
         "hostname": {
-            "description": "Hostname to set for device. Note: hostname is mutually exclusive with System.hostname.",
+            "description": "Hostname to set for the device. Note: If you set the hostname as part of the System class, you CANNOT set a hostname in the Common class (they are mutually exclusive).",
             "type": "string",
             "format": "hostname"
         }
@@ -844,7 +844,7 @@
                         "const": "System"
                     },
                     "hostname": {
-                        "description": "Hostname to set for device. Note: System.hostname is mutually exclusive with hostname.",
+                        "description": "Hostname to set for the device. Note: If you set the hostname as part of the Common class, you CANNOT set a hostname in the System class (they are mutually exclusive).",
                         "type": "string",
                         "format": "hostname"
                     },
@@ -856,7 +856,7 @@
                         "default": 0
                     },
                     "cliInactivityTimeout": {
-                        "description": "If not 0, log a user in tmsh interactive mode out automatically after a specified set of seconds specified in multiples of 60.  The default value 0 disables the timeout period.",
+                        "description": "Configure automatic logout for idle users in TMSH interactive mode. A setting other than 0 automatically logs a user out after a specified number of seconds, which must be entered in multiples of 60.  The default value 0 means that no timeout is set.",
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 128849018820,
