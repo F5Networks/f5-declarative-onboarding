@@ -87,6 +87,8 @@ The next lines of the declaration set the partition (tenant) on the BIG-IP in wh
 
 While not strictly required, you must include Common and the tenant class to set any other parameters in Declarative Onboarding; therefore the required column is set to Yes for the Tenant class.
 
+.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class (introduced in DO 1.8.0).  See |systemex| for information on the System class.
+
 .. NOTE:: For the rest of the classes on this page, the required column in the tables applies only if you are using the class in the heading.  None of the classes are required.
 
 .. code-block:: javascript

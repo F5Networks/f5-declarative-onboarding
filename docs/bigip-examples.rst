@@ -261,6 +261,31 @@ In the following declaration, we show only the SSHD class.  You can use this cla
 .. literalinclude:: ../examples/sshd.json
    :language: json
 
+:ref:`Back to top<bigipexamples>`
+
+.. _systemex:
+
+15: Configuring System settings in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring system settings such as hostname and console timeout is available in DO v1.8.0 and later. 
+
+In this example, we show how you can configure some System settings in a Declarative Onboarding declaration. This enables you to set auto-timeout values for serial console (CLI) and TMSH interactive mode sessions, as well as set a hostname, if you have not set one in the Common class. 
+
+.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class; they are mutually exclusive.
+
+For usage and options, see |sysclass| in the Schema Reference.
+
+In the following declaration, we show only the System class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+
+.. literalinclude:: ../examples/system.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+
 .. |br| raw:: html
 
    <br />
@@ -322,8 +347,11 @@ In the following declaration, we show only the SSHD class.  You can use this cla
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trunk" target="_blank">Trunk class</a>
 
-
 .. |sshd| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#sshd" target="_blank">SSHD</a>
+
+.. |sysclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#system" target="_blank">System</a>
 
