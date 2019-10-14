@@ -36,6 +36,8 @@ Notes and tips
 
 - After using Declarative Onboarding, if you want to use a declarative model to configure applications and services on a BIG-IP device, see the |as3| documentation.
 
+- Declarative Onboarding gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system's phone home feature as described in |phone|.
+
 
 
 .. |br| raw:: html
@@ -63,4 +65,6 @@ Notes and tips
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/dist/do.examples.collection.json" target="_blank">Declarative Onboarding Postman collection</a>
 
+.. |phone| raw:: html
 
+   <a href="https://support.f5.com/csp/article/K15000#phone" target="_blank">K15000</a>
