@@ -18,6 +18,8 @@ Additionally, see :doc:`json-pointers` for information on using JSON/Declarative
 
 To see how to use BIG-IQ to license your BIG-IP VEs, see :doc:`big-iq-licensing`.  If you want to use Declarative Onboarding in a Docker Container, see :doc:`do-container`.
 
+.. IMPORTANT:: Domain name resolution is used anywhere the declaration accepts a hostname. DO makes sure that any hostnames are resolvable and fails if they are not. The exception is deviceGroup.members, which do not require hostname resolution as they have been added to the trust)
+
 
 
 Sample declaration for a standalone BIG-IP
