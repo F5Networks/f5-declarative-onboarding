@@ -24,6 +24,8 @@ The following are prerequisites for using F5 Declarative Onboarding:
 Notes and tips
 ~~~~~~~~~~~~~~
 
+- Declarative Onboarding gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system's phone home feature as described in |phone|
+
 - With the release of Declarative Onboarding 1.2.0, the GitHub repository includes a |github| with all of the example declarations. For information on importing this collection and using Postman collections, see the |postman|.  
 
 - The first time you POST a Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration. Declarative Onboarding is meant to initially configure a BIG-IP device. However, if you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.  **Important**: No matter what you send in a subsequent declaration, Declarative Onboarding will never unlicense a BIG-IP device, it will never delete a user, and it never break the device trust once it has been established.
@@ -35,8 +37,6 @@ Notes and tips
 - If you POST a declaration that modifies the password for the admin account, even if the declaration returns an error, the password can be changed.  Therefore you may need to update the admin password in the client you are using to send the declaration.
 
 - After using Declarative Onboarding, if you want to use a declarative model to configure applications and services on a BIG-IP device, see the |as3| documentation.
-
-- Declarative Onboarding gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system's phone home feature as described in |phone|.
 
 
 
