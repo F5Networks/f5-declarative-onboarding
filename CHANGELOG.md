@@ -1,6 +1,13 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.9.0
+### Added
+### Fixed
+- AUTOTOOL-807: Fix bug in which DO was unable to set hostname in AWS environment (K45728203)
+### Changed
+### Removed
+
 ## 1.8.0
 ### Added
 - Add support for SSHD class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)

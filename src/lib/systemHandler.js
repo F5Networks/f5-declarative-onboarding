@@ -182,7 +182,8 @@ function handleSystem() {
         hostname = common.hostname;
     }
     if (hostname) {
-        promises.push(this.bigIp.onboard.hostname(hostname));
+        promises.push(disableDhcpOptions.call(this, ['host-name'])
+            .then(() => this.bigIp.onboard.hostname(hostname)));
     }
 
     if (system) {
