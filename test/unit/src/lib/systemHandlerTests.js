@@ -139,7 +139,7 @@ describe('systemHandler', () => {
             });
     });
 
-    describe('DNS/NTP', () => {
+    describe('DNS/NTP/System', () => {
         let bigIpStub;
 
         function setUpBigIpStubWithRequestOptions(requestOptions, bigIpVersion, isDhcpEnabled) {
@@ -399,89 +399,120 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock);
             return systemHandler.process();
         });
-    });
 
-    it('should handle hostname', () => {
-        const declaration = {
-            Common: {
-                hostname: 'myhost.example.com'
-            }
-        };
-
-        let hostnameSent;
-        bigIpMock.onboard = {
-            hostname(hostname) {
-                hostnameSent = hostname;
-                return Promise.resolve();
-            }
-        };
-
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .then(() => {
-                assert.strictEqual(hostnameSent, 'myhost.example.com');
-            });
-    });
-
-    it('should handle hostname via System class', () => {
-        const declaration = {
-            Common: {
-                System: {
+        it('should handle hostname', () => {
+            const declaration = {
+                Common: {
                     hostname: 'myhost.example.com'
                 }
-            }
-        };
-        let hostnameSent;
-        bigIpMock.onboard = {
-            hostname(hostname) {
-                hostnameSent = hostname;
-                return Promise.resolve();
-            }
-        };
+            };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .then(() => {
-                assert.strictEqual(hostnameSent, 'myhost.example.com');
-            });
-    });
-
-    it('should handle consoleInactivityTimeout and cliInactivityTimeout', () => {
-        // these props are posted to separate paths
-        const declaration = {
-            Common: {
-                System: {
-                    consoleInactivityTimeout: 50,
-                    cliInactivityTimeout: 1200
+            let hostnameSent;
+            bigIpMock.onboard = {
+                hostname(hostname) {
+                    hostnameSent = hostname;
+                    return Promise.resolve();
                 }
-            }
-        };
+            };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .then(() => {
-                assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
-                assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 20 }); // seconds converted to minutes
-            });
-    });
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostnameSent, 'myhost.example.com');
+                });
+        });
 
-    it('should handle cliInactivityTimeout equal to 0', () => {
-        // these props are posted to separate paths
-        const declaration = {
-            Common: {
-                System: {
-                    consoleInactivityTimeout: 50,
-                    cliInactivityTimeout: 0
+        it('should handle hostname via System class', () => {
+            const declaration = {
+                Common: {
+                    System: {
+                        hostname: 'myhost.example.com'
+                    }
                 }
-            }
-        };
+            };
+            let hostnameSent;
+            bigIpMock.onboard = {
+                hostname(hostname) {
+                    hostnameSent = hostname;
+                    return Promise.resolve();
+                }
+            };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .then(() => {
-                assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
-                assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 0 });
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostnameSent, 'myhost.example.com');
+                });
+        });
+
+        it('should disable hostname from DHCP if we configure the hostname (aws)', () => {
+            const declaration = {
+                Common: {
+                    hostname: 'myhost.example.com'
+                }
+            };
+            let hostnameSent;
+            bigIpMock.onboard = {
+                hostname(hostname) {
+                    hostnameSent = hostname;
+                    return Promise.resolve();
+                }
+            };
+
+            setUpBigIpStubWithRequestOptions(
+                ['one', 'two', 'host-name', 'domain-name'], '14.1'
+            );
+
+            sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
+                assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
+                assert.strictEqual(body.requestOptions.length, 3);
+                assert.strictEqual(body.requestOptions.indexOf('host-name'), -1);
             });
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostnameSent, 'myhost.example.com');
+                });
+        });
+
+        it('should handle consoleInactivityTimeout and cliInactivityTimeout', () => {
+            // these props are posted to separate paths
+            const declaration = {
+                Common: {
+                    System: {
+                        consoleInactivityTimeout: 50,
+                        cliInactivityTimeout: 1200
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
+                    assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 20 }); // seconds converted to minutes
+                });
+        });
+
+        it('should handle cliInactivityTimeout equal to 0', () => {
+            // these props are posted to separate paths
+            const declaration = {
+                Common: {
+                    System: {
+                        consoleInactivityTimeout: 50,
+                        cliInactivityTimeout: 0
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
+                    assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 0 });
+                });
+        });
     });
 
     it('should handle root users without keys', () => {
