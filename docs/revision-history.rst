@@ -11,6 +11,14 @@ Document Revision History
         - Description
         - Date
              
+      * - 2.5
+        - Updated the documentation for Declarative Onboarding v1.8.0.  This release contains the following changes: |br| * Added support for SSHD (see the :ref:`SSHD example<sshex>`) |br| * Added support for HTTPD (see the :ref:`HTTPD example<httpdex>`) |br| * Added a System class which includes cliInactivityTimeout, consoleInactivityTimeout, and hostname (see :ref:`System example<systemex>`) |br| * Added a note about DO collecting non-identifiable usage data (see :ref:`notestips`) |br| * Added a troubleshooting entry and other notes about DO performing hostname resolution, and failing if the hostname resolution fails (see :ref:`Troubleshooting<hostnameres>`) |br| * Added a troubleshooting entry and other notes about the **/dist** directory going away on GitHub, and the DO RPM being available as a release Asset (see :ref:`Troubleshooting<nodist>`) |br| |br| Issues Resolved: |br| * DO was unable to use management network for SnmpTrapDestination |br| * DO creates incomplete RADIUS authentication configuration |br| * DO was unable to remove Radius System Auth configuration |br| * DO does not remove secondary Radius server when it is absent in declaration
+        - 10-22-19
+
+      * - 2.4
+        - Updated the documentation for Declarative Onboarding v1.7.0. This release contains the following changes: |br| * Added the /inspect endpoint for GET requests to retrieve the current device configuration as a DO declaration (see :ref:`inspect-endpoint`) |br| * Added support for LDAP, RADIUS, and TACACS authentication in a declaration (see the :ref:`Auth method example<authmethods>`) |br| * Added support for Remote Roles in authentication (see the :ref:`Remote Roles example<remoterole>`) |br| * Added support for configuring SNMP (see the :ref:`SNMP example<snmp>`) |br| * Added support for configuring global Traffic Control properties (see :ref:`Traffic Control example<trafcontrol>`) |br| * Added support for configuring syslog destinations (see :ref:`syslog destination example<syslogdest>`) |br| * Added support for using cmp-hash in the VLAN class (see :ref:`cmp-hash example<cmphash>`) |br| * Added support for DAG Globals (see :ref:`DAG Globals example<dag>`) |br| * Added support for the Trunk class (see the |trunkref| in the schema reference) |br| * Added a Schema Reference Appendix  |br| * Added a note to :ref:`devicegroup` stating as of DO 1.7.0, **owner** is required. |br| * Improved masking of nested secrets |br| * Improved handling of route domains |br| |br| Issues Resolved: |br| * The values of schemaCurrent and schemaMinium do not always return correct values |br| * Management Route class does not work |br| * DO sets task status to ERROR right away while it is still rolling back |br| * DO unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Route Domain with ID 0 unless otherwise specified. |br| * Device Group **owner** is now required |br| * configsyncIp now allows **none** as valid value |br| * When targetSshKey is used DO now tries bash shell to modify targetUsername password if tmsh shell fails |br| * DO now handles the automatic update of the root password when the admin password changes on BIG-IP version 14.0+. 
+        - 09-10-19
+
       * - 2.3
         - This documentation only update contains the following changes: |br| * Added a troubleshooting page with an entry about reposting a declaration with new VLANs, Self IPs, and/or Route Domain (see :ref:`trouble`) |br| * Updated the Route Domain example per GitHub issue |54| (see :ref:`routedomain-class`).
         - 08-01-19
@@ -81,6 +89,10 @@ Document Revision History
 .. |54| raw:: html
 
    <a href="<a href="https://github.com/F5Networks/f5-declarative-onboarding/issues/54" target="_blank">#54</a>
+
+.. |trunkref| raw:: html
+  
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trunk" target="_blank">Trunk Class</a>
 
 
 

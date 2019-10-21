@@ -18,6 +18,8 @@ Additionally, see :doc:`json-pointers` for information on using JSON/Declarative
 
 To see how to use BIG-IQ to license your BIG-IP VEs, see :doc:`big-iq-licensing`.  If you want to use Declarative Onboarding in a Docker Container, see :doc:`do-container`.
 
+.. IMPORTANT:: Domain name resolution is used anywhere the declaration accepts a hostname. DO makes sure that any hostnames are resolvable and fails if they are not. The exception is deviceGroup.members, which do not require hostname resolution as they have been added to the trust)
+
 
 
 Sample declaration for a standalone BIG-IP
@@ -86,6 +88,8 @@ Common class
 The next lines of the declaration set the partition (tenant) on the BIG-IP in which all other objects are placed.  This **must** be Common.  All of the other parameters in Declarative Onboarding are under this Common class. 
 
 While not strictly required, you must include Common and the tenant class to set any other parameters in Declarative Onboarding; therefore the required column is set to Yes for the Tenant class.
+
+.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class (introduced in DO 1.8.0).  See :ref:`systemex` for information on the System class.
 
 .. NOTE:: For the rest of the classes on this page, the required column in the tables applies only if you are using the class in the heading.  None of the classes are required.
 
@@ -374,6 +378,9 @@ VLAN class
 ``````````
 The next lines of the declaration configure VLANs on the BIG-IP system. In this case, the name you give the VLAN class is used for the name of the VLAN on the BIG-IP.
 
+**New in DO 1.7.0 and later**
+Declarative Onboarding v1.7.0 and later includes the **cmp-hash** property, which is not included in this example declaration.  For information on this property, see the table below the example, and :ref:`CMP Hash example<cmphash>`.
+
 
 
 .. code-block:: javascript
@@ -404,21 +411,24 @@ The next lines of the declaration configure VLANs on the BIG-IP system. In this 
     },
 
 
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| Parameter          | Options                        | Required*? |  Description/Notes                                                                                                                 |
-+====================+================================+============+====================================================================================================================================+
-| class              | VLAN                           |   Yes      |  Indicates that this property contains VLAN configuration.                                                                         |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minimum of 1 and a maximum of 4094. If set, the VLAN defaults the **tagged** parameter to **true**.  |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198.                                 |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| interfaces         | string                         |   Yes      |  Interfaces for the VLAN.                                                                                                          |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| name               | string                         |   Yes      |  The name for the interface, such as 1.1 or 1.2.                                                                                   |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| tagged             | true, false                    |   No       |  Specifies whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.                     |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+--------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                        | Required*? |  Description/Notes                                                                                                                                                                                                                                                               |
++====================+================================+============+==================================================================================================================================================================================================================================================================================+
+| class              | VLAN                           |   Yes      |  Indicates that this property contains VLAN configuration.                                                                                                                                                                                                                       |
++--------------------+--------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| tag                | integer                        |   No       |  Tag for the VLAN.  Must be a minimum of 1 and a maximum of 4094. If set, the VLAN defaults the **tagged** parameter to **true**.                                                                                                                                                |
++--------------------+--------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| mtu                | integer                        |   No       |  The maximum transmission unit (mtu) for the VLAN. Must be a minimum of 576 and a maximum of 9198.                                                                                                                                                                               |
++--------------------+--------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| interfaces         | string                         |   Yes      |  Interfaces for the VLAN.                                                                                                                                                                                                                                                        |
++--------------------+--------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| name               | string                         |   Yes      |  The name for the interface, such as 1.1 or 1.2.                                                                                                                                                                                                                                 |
++--------------------+--------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| tagged             | true, false                    |   No       |  Specifies whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.                                                                                                                                                                   |
++--------------------+--------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| cmp-hash           | default, dst-ip, src-ip        |   No       |  This optional setting allows all connections from a client system to use the same set of TMMs, improving system performance. You can choose source or destination IP, or default which specifies that the default CMP hash uses L4 ports. See :ref:`CMP Hash example<cmphash>`. |
++--------------------+--------------------------------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
 
 \* The required column applies only if you are using this class.
 

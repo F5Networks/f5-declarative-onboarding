@@ -8,6 +8,8 @@ Downloading the RPM file
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The first task is to download the latest RPM file.  Go to the |github|, and download the latest (highest numbered) RPM file.
 
+.. IMPORTANT:: Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
+
 .. TIP:: Once you have downloaded the RPM, we recommend :ref:`hash-ref`.
 
 
@@ -167,7 +169,7 @@ You can compare the checksum produced by that command against the **.sha256** fi
 
 .. |github| raw:: html
 
-   <a href="https://github.com/F5Networks/f5-declarative-onboarding/tree/master/dist" target="_blank">F5 Declarative Onboarding site on GitHub</a>  
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/releases" target="_blank">F5 Declarative Onboarding site on GitHub</a>  
 
 .. |status| raw:: html
 
@@ -181,3 +183,7 @@ You can compare the checksum produced by that command against the **.sha256** fi
 .. |reset| raw:: html
 
    <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-system-secure-password-policy-14-0-0/01.html#unique_208231698" target="_blank">Resetting passwords in v14</a>
+
+.. |release| raw:: html
+
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/releases" target="_blank">GitHub Release</a>

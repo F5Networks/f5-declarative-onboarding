@@ -14,7 +14,7 @@ If `npx` is available on your system, you can run the locally installed version 
 
 ## Functional Testing
 1. You will need to get the following setup before running the DO functional tests.
-  * To reflect DO's pipeline you will need 3 new BIG-IPs. You can use this [Heat Template](test/functional/heatTemplateExample.md) to create these in VIO.
+  * To reflect DO's pipeline you will need 3 new BIG-IPs. You can use this [Heat Template](test/integration/heatTemplateExample.md) to create these in VIO.
     * Note: For future runs of the test, you'll need to delete and relaunch not only the BIG-IPs but the Stack object as well.
   * You will also need a BIG-IQ.
     * This BIG-IQ needs to be setup and running, make note of the login credentials for step 4.

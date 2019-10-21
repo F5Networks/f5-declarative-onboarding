@@ -6,6 +6,8 @@ Prerequisites and Requirements
 
 The following are prerequisites for using F5 Declarative Onboarding:
 
+- Domain name resolution is used anywhere the declaration accepts a hostname. DO makes sure that any hostnames are resolvable and fails if they are not.  The exception is deviceGroup.members, which do not require hostname resolution as they have been added to the trust.
+
 - You must have an existing BIG-IP device with a management IP address.  
 
 - The BIG-IP must be running version 13.1.0 or later.  
@@ -21,8 +23,14 @@ The following are prerequisites for using F5 Declarative Onboarding:
 
 - You should be familiar with the F5 BIG-IP and F5 terminology.  The settings and features Declarative Onboarding uses are well-documented in the product documentation. For general information and documentation on the BIG-IP system, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.  
 
+.. _notestips:
+
 Notes and tips
 ~~~~~~~~~~~~~~
+
+- Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
+
+- Declarative Onboarding gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system's phone home feature as described in |phone|
 
 - With the release of Declarative Onboarding 1.2.0, the GitHub repository includes a |github| with all of the example declarations. For information on importing this collection and using Postman collections, see the |postman|.  
 
@@ -63,4 +71,10 @@ Notes and tips
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/dist/do.examples.collection.json" target="_blank">Declarative Onboarding Postman collection</a>
 
+.. |phone| raw:: html
 
+   <a href="https://support.f5.com/csp/article/K15000#phone" target="_blank">K15000</a>
+
+.. |release| raw:: html
+
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/releases" target="_blank">GitHub Release</a>

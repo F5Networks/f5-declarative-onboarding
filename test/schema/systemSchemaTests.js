@@ -27,8 +27,8 @@ const ajv = new Ajv(
         extendRefs: 'fail'
     }
 );
-const systemSchema = require('../../schema/system.schema.json');
-const customFormats = require('../../schema/formats.js');
+const systemSchema = require('../../src/schema/latest/system.schema.json');
+const customFormats = require('../../src/schema/latest/formats.js');
 
 Object.keys(customFormats).forEach((customFormat) => {
     ajv.addFormat(customFormat, customFormats[customFormat]);
@@ -39,6 +39,17 @@ const validate = ajv.compile(systemSchema);
 /* eslint-disable quotes, quote-props */
 
 describe('system.schema.json', () => {
+    describe('hostname', () => {
+        describe('valid', () => {
+            it('should accept a class-less hostname', () => {
+                const data = {
+                    "hostname": 'my.bigip.com'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+    });
+
     describe('DNS', () => {
         describe('valid', () => {
             it('should validate dns data', () => {
@@ -620,7 +631,7 @@ describe('system.schema.json', () => {
                     "version": "1",
                     "destination": "1.2.3.4",
                     "port": 80,
-                    "network": "other",
+                    "network": "management",
                     "community": "myCommunity"
                 };
                 assert.ok(validate(data), getErrorString(validate));
@@ -899,6 +910,57 @@ describe('system.schema.json', () => {
         });
     });
 
+    describe('System', () => {
+        describe('valid', () => {
+            it('should validate default values', () => {
+                const data = {
+                    "class": "System"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate system settings', () => {
+                const data = {
+                    "class": "System",
+                    "hostname": "bigip.example.com",
+                    "consoleInactivityTimeout": 50,
+                    "cliInactivityTimeout": 60
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate when console timeout is out of range', () => {
+                const data = {
+                    "class": "System",
+                    "consoleInactivityTimeout": 2147483648
+                };
+
+                assert.strictEqual(validate(data), false, 'consoleInactivityTimeout is out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 2147483647'), -1);
+            });
+
+            it('should invalidate when invalid type', () => {
+                const data = {
+                    "class": "System",
+                    "consoleInactivityTimeout": "five"
+                };
+                assert.strictEqual(validate(data), false, 'not a valid type');
+                assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
+            });
+
+            it('should invalidate when consoleInactivity is not a multple of 60', () => {
+                const data = {
+                    "class": "System",
+                    "cliInactivityTimeout": 121
+                };
+                assert.strictEqual(validate(data), false, 'not a valid value');
+                assert.notStrictEqual(getErrorString().indexOf('should be multiple of 60'), -1);
+            });
+        });
+    });
+
     describe('TrafficControl', () => {
         describe('valid', () => {
             it('should validate default traffic control', () => {
@@ -950,6 +1012,120 @@ describe('system.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'allowIpSourceRoute should require acceptIpOptions to be enabled');
                 assert.notStrictEqual(getErrorString().indexOf('should be equal to constant'), -1);
+            });
+        });
+    });
+
+    describe('HTTPD', () => {
+        describe('valid', () => {
+            it('should validate default system httpd', () => {
+                const data = {
+                    class: 'HTTPD'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate system httpd', () => {
+                const data = {
+                    class: 'HTTPD',
+                    allow: [
+                        'all',
+                        '10.10.0.0/24',
+                        '10.11.0.0/24',
+                        '10.12.1.2'
+                    ],
+                    authPamIdleTimeout: 43200,
+                    maxClients: 12,
+                    sslCiphersuite: ['ECDHE-RSA-AES128-GCM-SHA256'],
+                    sslProtocol: 'all -SSLv3 -TLSv1'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate a route domain in allow', () => {
+                const data = {
+                    class: 'HTTPD',
+                    allow: [
+                        '10.10.0.0%1'
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'allow should not contain route domains');
+                assert.notStrictEqual(getErrorString().indexOf('should match exactly one schema in oneOf'), -1);
+            });
+        });
+    });
+
+    describe('SSHD', () => {
+        describe('valid', () => {
+            it('should validate declaration with minimal properties', () => {
+                const data = {
+                    "class": "SSHD"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate declaration with all properties', () => {
+                const data = {
+                    "class": "SSHD",
+                    "banner": "Hello there",
+                    "ciphers": [
+                        "aes128-ctr",
+                        "aes192-ctr"
+                    ],
+                    "inactivityTimeout": 10000,
+                    "loginGraceTime": 30,
+                    "MACS": [
+                        "hmac-sha1"
+                    ],
+                    "maxAuthTries": 100,
+                    "maxStartups": "4",
+                    "protocol": 2
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate out of range inactivityTimeout', () => {
+                const data = {
+                    "class": "SSHD",
+                    "inactivityTimeout": 9999999999999
+                };
+                assert.strictEqual(validate(data), false, 'inactivityTimeout should be within the range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 2147483647'), -1);
+            });
+
+            it('should invalidate invalid cipher', () => {
+                const data = {
+                    "class": "SSHD",
+                    "ciphers": [
+                        "I'm invalid"
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'ciphers should only contain one of the allowed values');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate invalid MAC', () => {
+                const data = {
+                    "class": "SSHD",
+                    "MACS": [
+                        "Also invalid"
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'MACS should only contain one of the allowed values');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "class": "SSHD",
+                    "newProp": "value"
+                };
+                assert.strictEqual(validate(data), false, 'there should not be additional properties');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
             });
         });
     });

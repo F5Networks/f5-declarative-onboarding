@@ -1,0 +1,26 @@
+{
+    "schemaVersion": "1.7.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "TEAM1": {
+            "class": "RemoteAuthRole",
+            "attribute": "memberOF=CN=Team-1,add-ldap-path",
+            "console": "tmsh",
+            "lineOrder": 925,
+            "role": "admin",
+            "remoteAccess": false,
+            "userPartition": "all"
+        },
+        "TEAM2": {
+            "class": "RemoteAuthRole",
+            "attribute": "memberOF=CN=Team-2,add-ldap-path",
+            "console": "tmsh",
+            "lineOrder": 940,
+            "role": "guest",
+            "remoteAccess": true,
+            "userPartition": "all"
+        }
+    }
+}

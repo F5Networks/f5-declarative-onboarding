@@ -7,6 +7,8 @@
 ## Introduction
 F5 Declarative onboarding uses a declarative model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.
 
+**IMPORTANT** Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in this repository.  These files can be found on the [Release page](https://github.com/F5Networks/f5-declarative-onboarding/releases), as **Assets**.
+
 ## Documentation
 For the documentation on Declarative Onboarding, including download, installation, and usage instructions, see the Declarative Onboarding [User Guide](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest).
 

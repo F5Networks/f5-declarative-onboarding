@@ -2,9 +2,9 @@
 .nyc_output/
 out/
 node_modules/
-build/rpmbuild/
+build/
 docs/_build/
 coverage/
 npm-debug.log
 docs/schema-reference.rst
-dist/do.schema.json
+dist/

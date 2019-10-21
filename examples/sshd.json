@@ -1,0 +1,28 @@
+{
+    "schemaVersion": "1.8.0",
+    "class": "Device",
+    "async": false,
+    "label": "Configuring SSHD settings",
+    "Common": {
+        "class": "Tenant",
+        "sshSettings": {
+            "class": "SSHD",
+            "banner": "Banner to display",
+            "inactivityTimeout": 123,
+            "ciphers": [
+                "aes128-ctr",
+                "aes192-ctr",
+                "aes256-ctr"
+            ],
+            "loginGraceTime": 100,
+            "MACS": [
+                "hmac-sha1",
+                "hmac-ripemd160",
+                "hmac-md5"
+            ],
+            "maxAuthTries": 10,
+            "maxStartups": "5",
+            "protocol": 1
+        }
+    }
+}
