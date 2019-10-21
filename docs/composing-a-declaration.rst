@@ -18,6 +18,8 @@ Additionally, see :doc:`json-pointers` for information on using JSON/Declarative
 
 To see how to use BIG-IQ to license your BIG-IP VEs, see :doc:`big-iq-licensing`.  If you want to use Declarative Onboarding in a Docker Container, see :doc:`do-container`.
 
+.. IMPORTANT:: Domain name resolution is used anywhere the declaration accepts a hostname. DO makes sure that any hostnames are resolvable and fails if they are not. The exception is deviceGroup.members, which do not require hostname resolution as they have been added to the trust)
+
 
 
 Sample declaration for a standalone BIG-IP
@@ -87,7 +89,7 @@ The next lines of the declaration set the partition (tenant) on the BIG-IP in wh
 
 While not strictly required, you must include Common and the tenant class to set any other parameters in Declarative Onboarding; therefore the required column is set to Yes for the Tenant class.
 
-.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class (introduced in DO 1.8.0).  See |systemex| for information on the System class.
+.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class (introduced in DO 1.8.0).  See :ref:`systemex` for information on the System class.
 
 .. NOTE:: For the rest of the classes on this page, the required column in the tables applies only if you are using the class in the heading.  None of the classes are required.
 
