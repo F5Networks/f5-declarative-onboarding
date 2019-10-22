@@ -16,7 +16,12 @@
 
 'use strict';
 
-const assert = require('assert');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chai.use(chaiAsPromised);
+const assert = chai.assert;
+const sinon = require('sinon');
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
 
 const NetworkHandler = require('../../../../src/lib/networkHandler');
@@ -59,6 +64,10 @@ describe('networkHandler', () => {
                 return Promise.resolve();
             }
         };
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     describe('Trunk', () => {
@@ -527,6 +536,15 @@ describe('networkHandler', () => {
     });
 
     describe('Route', () => {
+        const deletedPaths = [];
+        beforeEach(() => {
+            deletedPaths.length = 0;
+            bigIpMock.delete = (path) => {
+                deletedPaths.push(path);
+                return Promise.resolve();
+            };
+        });
+
         it('should handle fully specified Routes', () => {
             const declaration = {
                 Common: {
@@ -546,11 +564,17 @@ describe('networkHandler', () => {
                     }
                 }
             };
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const routeData = dataSent[PATHS.Route];
+                    assert.deepEqual(deletedPaths, []);
                     assert.strictEqual(routeData[0].name, 'route1');
                     assert.strictEqual(routeData[0].gw, '0.0.0.0');
                     assert.strictEqual(routeData[0].network, 'default');
@@ -558,9 +582,65 @@ describe('networkHandler', () => {
                     assert.strictEqual(routeData[0].partition, 'Common');
                     assert.strictEqual(routeData[1].name, 'route2');
                     assert.strictEqual(routeData[1].gw, '1.1.1.1');
-                    assert.strictEqual(routeData[1].network, '2.2.2.2');
+                    assert.strictEqual(routeData[1].network, '2.2.2.2/32');
                     assert.strictEqual(routeData[1].mtu, 1400);
                     assert.strictEqual(routeData[1].partition, 'Common');
+                });
+        });
+
+        const declaration = {
+            Common: {
+                Route: {
+                    theRoute: {
+                        name: 'theRoute',
+                        gw: '10.11.12.13',
+                        network: '50.60.70.80',
+                        mtu: 1000
+                    }
+                }
+            }
+        };
+        const state = {
+            currentConfig: {
+                Common: {
+                    Route: {
+                        theRoute: {
+                            name: 'theRoute',
+                            gw: '10.11.12.13',
+                            network: '51.62.73.84',
+                            mtu: 1000
+                        }
+                    }
+                }
+            }
+        };
+
+        it('should delete and recreate Route if network updated', () => {
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const routeData = dataSent[PATHS.Route];
+                    assert.deepEqual(deletedPaths, ['/tm/net/route/~Common~theRoute']);
+                    assert.strictEqual(routeData[0].name, 'theRoute');
+                    assert.strictEqual(routeData[0].gw, '10.11.12.13');
+                    assert.strictEqual(routeData[0].network, '50.60.70.80/32');
+                    assert.strictEqual(routeData[0].mtu, 1000);
+                    assert.strictEqual(routeData[0].partition, 'Common');
+                });
+        });
+
+        it('should not delete the existing Route if network not updated', () => {
+            state.currentConfig.Common.Route.theRoute.network = '50.60.70.80/32';
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const routeData = dataSent[PATHS.Route];
+                    assert.deepEqual(deletedPaths, []);
+                    assert.strictEqual(routeData[0].name, 'theRoute');
+                    assert.strictEqual(routeData[0].partition, 'Common');
+                    assert.strictEqual(routeData[0].gw, '10.11.12.13');
+                    assert.strictEqual(routeData[0].network, '50.60.70.80/32');
+                    assert.strictEqual(routeData[0].mtu, 1000);
                 });
         });
     });

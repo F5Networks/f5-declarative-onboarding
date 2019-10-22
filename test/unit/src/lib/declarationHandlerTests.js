@@ -32,6 +32,7 @@ const NetworkHandler = require('../../../../src/lib/networkHandler');
 const DscHandler = require('../../../../src/lib/dscHandler');
 const DeleteHandler = require('../../../../src/lib/deleteHandler');
 const DeclarationHandler = require('../../../../src/lib/declarationHandler');
+const doUtilMock = require('../../../../src/lib/doUtil');
 
 let parsedDeclarations;
 let declarationWithDefaults;
@@ -550,7 +551,12 @@ describe('AVR dependencies', () => {
     }
 
     beforeEach(() => {
+        sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
         isAvrProvisioned = false;
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     it('should add analytics and avr provisioning in the same declaration', () => {

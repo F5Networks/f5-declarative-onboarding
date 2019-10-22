@@ -1007,6 +1007,15 @@ describe('systemHandler', () => {
     });
 
     describe('ManagementRoute', () => {
+        const deletedPaths = [];
+        beforeEach(() => {
+            deletedPaths.length = 0;
+            bigIpMock.delete = (path) => {
+                deletedPaths.push(path);
+                return Promise.resolve();
+            };
+        });
+
         it('should handle the ManagementRoutes', () => {
             const declaration = {
                 Common: {
@@ -1027,11 +1036,17 @@ describe('systemHandler', () => {
                     }
                 }
             };
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     const managementRouteData = dataSent[PATHS.ManagementRoute];
+                    assert.deepEqual(deletedPaths, []);
                     assert.strictEqual(managementRouteData[0].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[0].partition, 'Common');
                     assert.strictEqual(managementRouteData[0].gateway, '1.1.1.1');
@@ -1041,8 +1056,73 @@ describe('systemHandler', () => {
                     assert.strictEqual(managementRouteData[1].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[1].partition, 'Common');
                     assert.strictEqual(managementRouteData[1].gateway, '1.2.3.4');
-                    assert.strictEqual(managementRouteData[1].network, '4.3.2.1');
+                    assert.strictEqual(managementRouteData[1].network, '4.3.2.1/32');
                     assert.strictEqual(managementRouteData[1].mtu, 1);
+                });
+        });
+
+        const declaration = {
+            Common: {
+                ManagementRoute: {
+                    theManagementRoute: {
+                        name: 'theManagementRoute',
+                        gw: '4.3.2.1',
+                        network: '1.2.3.4',
+                        mtu: 123
+                    }
+                }
+            }
+        };
+        const state = {
+            currentConfig: {
+                Common: {
+                    ManagementRoute: {
+                        theManagementRoute: {
+                            name: 'theManagementRoute',
+                            gw: '4.3.2.1',
+                            network: '10.20.30.40',
+                            mtu: 123
+                        }
+                    }
+                }
+            }
+        };
+
+        it('should delete and recreate ManagementRoute if network updated', () => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const managementRouteData = dataSent[PATHS.ManagementRoute];
+                    assert.deepEqual(deletedPaths, ['/tm/sys/management-route/~Common~theManagementRoute']);
+                    assert.strictEqual(managementRouteData[0].name, 'theManagementRoute');
+                    assert.strictEqual(managementRouteData[0].partition, 'Common');
+                    assert.strictEqual(managementRouteData[0].gateway, '4.3.2.1');
+                    assert.strictEqual(managementRouteData[0].network, '1.2.3.4/32');
+                    assert.strictEqual(managementRouteData[0].mtu, 123);
+                });
+        });
+
+        it('should reject if platform is not BIG-IP', () => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            doUtilStub.restore();
+            sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('notBigIp');
+
+            return assert.isRejected(systemHandler.process(),
+                'Cannot update network property when running remotely');
+        });
+
+        it('should not delete the existing ManagementRoute if network not updated', () => {
+            state.currentConfig.Common.ManagementRoute.theManagementRoute.network = '1.2.3.4/32';
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const managementRouteData = dataSent[PATHS.ManagementRoute];
+                    assert.deepEqual(deletedPaths, []);
+                    assert.strictEqual(managementRouteData[0].name, 'theManagementRoute');
+                    assert.strictEqual(managementRouteData[0].partition, 'Common');
+                    assert.strictEqual(managementRouteData[0].gateway, '4.3.2.1');
+                    assert.strictEqual(managementRouteData[0].network, '1.2.3.4/32');
+                    assert.strictEqual(managementRouteData[0].mtu, 123);
                 });
         });
     });
