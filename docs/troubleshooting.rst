@@ -33,8 +33,29 @@ If you want to onboard with DO and have non-default VLANs, Self IPs, or Route Do
 
 This is being tracked by |github54|.
 
+| 
+
+.. _hostnameres:
+
+I'm getting an unable to resolve host error
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Domain name resolution is used anywhere the declaration accepts a hostname. DO makes sure that any hostnames are resolvable and fails if they are not.  Check the hostname(s) in your declaration if you are receiving this error.
+
+| 
+
+.. _nodist:
+
+I can no longer find the DO source RPM on GitHub
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files are no longer located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
+
 
 .. |github54| raw:: html
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/issues/56" target="_blank">GitHub issue #56</a>
 
+.. |release| raw:: html
+
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/releases" target="_blank">GitHub Release</a>

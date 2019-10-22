@@ -253,7 +253,7 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 
    Support for configuring SSHD settings is available in DO v1.8.0 and later. 
 
-In this example, we show how you can configure SSHD settings in a Declarative Onboarding declaration. For usage and options, see |sshd| in the Schema Reference.
+In this example, we show how you can configure SSHD (SSH daemon) settings in a Declarative Onboarding declaration. For usage and options, see |sshd| in the Schema Reference.
 
 In the following declaration, we show only the SSHD class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
@@ -263,9 +263,29 @@ In the following declaration, we show only the SSHD class.  You can use this cla
 
 :ref:`Back to top<bigipexamples>`
 
+.. _httpdex:
+
+15: Configuring HTTPD settings in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring HTTPD settings is available in DO v1.8.0 and later. 
+
+In this example, we show how you can configure HTTPD (HTTP daemon) settings in a Declarative Onboarding declaration. For usage and options, see |httpd| in the Schema Reference.
+
+.. NOTE:: If you use the BIG-IP Configuration utility, we recommend you exit the utility before changes are made to the system using the HTTPD component. Making changes to the system using this component causes a restart of the httpd daemon, and restarting the httpd daemon requires a restart of the Configuration utility.
+
+In the following declaration, we show only the HTTPD class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+
+.. literalinclude:: ../examples/httpd.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
 .. _systemex:
 
-15: Configuring System settings in a declaration
+16: Configuring System settings in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
@@ -350,6 +370,10 @@ In the following declaration, we show only the System class.  You can use this c
 .. |sshd| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#sshd" target="_blank">SSHD</a>
+
+.. |httpd| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#httpd" target="_blank">HTTPD</a>
 
 .. |sysclass| raw:: html
 
