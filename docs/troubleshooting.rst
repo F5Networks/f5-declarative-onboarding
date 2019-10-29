@@ -49,7 +49,9 @@ Domain name resolution is used anywhere the declaration accepts a hostname. DO m
 I can no longer find the DO source RPM on GitHub
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files are no longer located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
+Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files are no longer located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**. 
+
+You can find historical files on GitHub by using the **Branch** drop-down, clicking the **Tags** tab, and then selecting the appropriate release.
 
 
 .. |github54| raw:: html
