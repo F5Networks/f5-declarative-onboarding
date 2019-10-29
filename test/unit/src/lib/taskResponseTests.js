@@ -64,7 +64,7 @@ state.tasks = {
 
 describe('taskResponse', () => {
     beforeEach(() => {
-        taskResponse = new TaskResponse(state);
+        taskResponse = new TaskResponse(state, 'GET');
     });
 
     it('should return the proper selfLink', () => {
@@ -111,7 +111,8 @@ describe('taskResponse', () => {
         assert.deepEqual(taskResponse.getData(1234), {
             declaration: {
                 hello: 'declaration for 1234'
-            }
+            },
+            httpStatus: 200
         });
     });
 
@@ -122,7 +123,17 @@ describe('taskResponse', () => {
                 originalConfig: { hello: 'original config for 1234' },
                 currentConfig: { foo: 'config for 1234' },
                 declaration: { hello: 'declaration for 1234' },
-                lastUpdate: 'last update 1234'
+                lastUpdate: 'last update 1234',
+                httpStatus: 200
+            }
+        );
+    });
+
+    it('should return httpStatus of 404 when it does not exist', () => {
+        assert.deepEqual(
+            taskResponse.getData(123),
+            {
+                httpStatus: 404
             }
         );
     });

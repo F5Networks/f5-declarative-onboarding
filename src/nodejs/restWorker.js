@@ -1106,7 +1106,10 @@ function sendResponse(restOperation, endpoint, itemId) {
     response.getResponse()
         .then((body) => {
             restOperation.setBody(body);
-            if (Array.isArray(response)) {
+            if (body && body.httpStatus) {
+                restOperation.setStatusCode(body.httpStatus);
+                delete body.httpStatus;
+            } else if (Array.isArray(response)) {
                 restOperation.setStatusCode(200);
             } else if (body && body.result && body.result.code) {
                 restOperation.setStatusCode(body.result.code);
@@ -1136,18 +1139,19 @@ function forgeResponse(restOperation, endpoint, itemId) {
 
     const doState = new State(this.state.doState);
     let responder;
+    const method = restOperation.getMethod().toUpperCase();
     switch (endpoint) {
     case ENDPOINTS.CONFIG:
-        responder = new ConfigResponse(doState);
+        responder = new ConfigResponse(doState, method);
         break;
     case ENDPOINTS.INFO:
-        responder = new InfoResponse();
+        responder = new InfoResponse(method);
         break;
     case ENDPOINTS.INSPECT:
-        responder = new InspectResponse(restOperation.getUri().query);
+        responder = new InspectResponse(restOperation.getUri().query, method);
         break;
     case ENDPOINTS.TASK: {
-        responder = new TaskResponse(doState);
+        responder = new TaskResponse(doState, method);
         break;
     }
     default:

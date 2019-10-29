@@ -507,7 +507,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST');
                     })
                     .then(() => common.testGetStatus(3, 60 * 1000, bigipAddress, auth,
-                        constants.HTTP_UNPROCESSABLE))
+                        constants.HTTP_SUCCESS))
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                         resolve();
