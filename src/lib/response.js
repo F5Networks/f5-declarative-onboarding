@@ -50,6 +50,7 @@ function getResponse(id, responder, options) {
     if (!responder.exists(id)) {
         return Promise.resolve({
             id,
+            httpStatus: 404,
             result: {
                 code: 404,
                 message: 'item does not exist',

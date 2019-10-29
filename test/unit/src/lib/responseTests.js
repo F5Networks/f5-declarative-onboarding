@@ -138,4 +138,14 @@ describe('response', () => {
                 assert.strictEqual(response[1].id, '5678');
             });
     });
+
+    it('should 404 when task does not exist', () => {
+        new Response(123, responder).getResponse()
+            .then((response) => {
+                assert.strictEqual(response.result.code, 404);
+                assert.strictEqual(response.httpStatus, 404);
+                assert.strictEqual(response.result.message, 'item does not exist');
+                assert.deepEqual(response.result.errors, ['item does not exist']);
+            });
+    });
 });

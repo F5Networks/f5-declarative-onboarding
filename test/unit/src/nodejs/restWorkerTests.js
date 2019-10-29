@@ -64,7 +64,8 @@ describe('restWorker', () => {
                 return {
                     query: 'foo'
                 };
-            }
+            },
+            getMethod() { return 'Get'; }
         };
         sinon.stub(doUtilMock, 'rebootRequired').resolves(false);
     });
@@ -654,6 +655,7 @@ describe('restWorker', () => {
         let saveCalled;
 
         beforeEach(() => {
+            restOperationMock.getMethod = () => 'Post';
             ConfigManagerMock.prototype.get = () => Promise.resolve();
 
             DeclarationHandlerMock.prototype.process = () => Promise.resolve();
