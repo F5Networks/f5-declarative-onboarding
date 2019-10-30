@@ -65,7 +65,7 @@ class TaskResponse {
             declaration: this.state.getDeclaration(id)
         };
 
-        if (HTTP.METHODS.indexOf(this.method) > -1) {
+        if (HTTP.METHODS[HTTP.METHODS.indexOf('GET')] === this.method) {
             data.httpStatus = 200;
         }
 
