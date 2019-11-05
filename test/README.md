@@ -18,7 +18,7 @@ If `npx` is available on your system, you can run the locally installed version 
     * Note: For future runs of the test, you'll need to delete and relaunch not only the BIG-IPs but the Stack object as well.
   * You will also need a BIG-IQ.
     * This BIG-IQ needs to be setup and running, make note of the login credentials for step 4.
-    * Get two "clpv2 license F5-BIG-MSP-LOADV2-LIC" licenses from go/license.
+    * Get two "clpv2 license F5-BIG-MSP-LOADV2-LIC" eval (not dev) licenses from go/license.
       * Then add them to the BIG-IQ via Devices -> 'License Management' -> Licenses -> click 'Add License'
       * Name one 'myLicense' and the other 'myOtherLicensePool'
 2. A Harness file is required to run the functional testing. This file will need the following (example below):
@@ -37,7 +37,7 @@ If `npx` is available on your system, you can run the locally installed version 
       * `tmsh modify sys sshd include "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,aes192-cbc,aes256-cbc,arcfour,rijndael-cbc@lysator.liu.se"`
       * Note: This command occassionally has issues on 14.1.
 3. To setup the BIG-IPs for testing, run the following command from the root of the DO repo:
-  * `RPM_PACKAGE=build/rpmbuild/RPMS/noarch/f5-declarative-onboarding-1.4.0-1.noarch.rpm TEST_HARNESS_FILE=test_harness.json node test/functional/setup.js`
+  * `RPM_PACKAGE=build/rpmbuild/RPMS/noarch/f5-declarative-onboarding-1.4.0-1.noarch.rpm TEST_HARNESS_FILE=test_harness.json node test/integration/setup.js`
     * RPM_PACKAGE: This is the RPM to be used in the testing.
     * TEST_HARNESS_FILE: This is the PATH to the file created in step 2.
   * Note: This will only install the RPM if there's a name change from what is installed.
