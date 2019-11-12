@@ -104,10 +104,11 @@ module.exports = {
      * @auth {Object} : authorization dictionary with (username, password) or F5 token
      * @expectedCode {int} : expected HTTP status code for the request
      * @method {String} : HTTP request method (POST, GET)
+     * @interval {Number} : Seconds to wait between requests (default 60)
      * Returns Promise which resolves with response body on success or rejects with error
     */
-    testRequest(body, url, auth, expectedCode, method) {
-        logger.debug(`POSTing ${JSON.stringify(body)} to ${url}`);
+    testRequest(body, url, auth, expectedCode, method, interval) {
+        logger.debug(`${method} ${JSON.stringify(body)} ${url}`);
         const func = function () {
             return new Promise((resolve, reject) => {
                 const options = module.exports.buildBody(url, body, auth, method);
@@ -125,7 +126,7 @@ module.exports = {
                     });
             });
         };
-        return module.exports.tryOften(func, 10, 60 * 1000, [constants.HTTP_UNAVAILABLE], true);
+        return module.exports.tryOften(func, 10, (interval || 60) * 1000, [constants.HTTP_UNAVAILABLE], true);
     },
 
     /**

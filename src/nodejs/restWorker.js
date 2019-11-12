@@ -377,7 +377,7 @@ class RestWorker {
         let exampleResponse;
 
         try {
-            const example = `${__dirname}/../../../examples/onboard.json`;
+            const example = `${__dirname}/../examples/onboard.json`;
             exampleResponse = JSON.parse(fs.readFileSync(example).toString());
         } catch (err) {
             logger.warning(`Error reading example file: ${err}`);

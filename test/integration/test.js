@@ -640,6 +640,38 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 });
         });
     });
+
+    describe('Test Example Endpoint', () => {
+        const exampleEndpoint = `${constants.DO_API}/example`;
+        let thisMachine;
+        let authData;
+
+        before(() => {
+            thisMachine = machines[0];
+            authData = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
+        });
+
+        it('should retrieve an example', () => {
+            logger.info(this.ctx.test.title);
+
+            return common.testRequest(
+                null,
+                `${common.hostname(thisMachine.ip, constants.PORT)}${exampleEndpoint}`,
+                authData,
+                constants.HTTP_SUCCESS,
+                'GET',
+                1
+            )
+                .then(JSON.parse)
+                .then((body) => {
+                    logger.debug(`Got example ${JSON.stringify(body)}`);
+                    assert.notStrictEqual(body.Common, undefined);
+                });
+        });
+    });
 });
 
 /**

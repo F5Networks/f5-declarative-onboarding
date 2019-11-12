@@ -17,6 +17,7 @@
 'use strict';
 
 const assert = require('assert');
+const fs = require('fs');
 const sinon = require('sinon');
 const State = require('../../../../src/lib/state');
 const RealValidator = require('../../../../src/lib/validator');
@@ -577,6 +578,26 @@ describe('restWorker', () => {
                 reject(err);
             }
         }));
+    });
+
+    describe('getExampleState', () => {
+        let restWorker;
+
+        beforeEach(() => {
+            restWorker = new RestWorker();
+        });
+
+        it('should return contents of onboard.json', () => {
+            sinon.stub(fs, 'readFileSync').callsFake(() => (JSON.stringify({ hello: 'world' })));
+            const response = restWorker.getExampleState();
+            assert.deepEqual(response, { hello: 'world' });
+        });
+
+        it('should handle errors gracefully', () => {
+            sinon.stub(fs, 'readFileSync').throws();
+            const response = restWorker.getExampleState();
+            assert.deepEqual(response, { message: 'no example available' });
+        });
     });
 
     describe('onDelete', () => {
