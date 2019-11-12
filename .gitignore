@@ -8,3 +8,4 @@ coverage/
 npm-debug.log
 docs/schema-reference.rst
 dist/
+test/logs

@@ -21,6 +21,7 @@ const fs = require('fs');
 const request = require('request');
 const util = require('util');
 const constants = require('./constants.js');
+const logger = require('./logger').getInstance();
 
 module.exports = {
 
@@ -75,7 +76,6 @@ module.exports = {
                         resolve(response);
                     })
                     .catch((error) => {
-                        /* eslint-disable no-console */
                         trialsCopy -= 1;
                         if (checkError) {
                             let willReject = true;
@@ -107,11 +107,13 @@ module.exports = {
      * Returns Promise which resolves with response body on success or rejects with error
     */
     testRequest(body, url, auth, expectedCode, method) {
+        logger.debug(`POSTing ${JSON.stringify(body)} to ${url}`);
         const func = function () {
             return new Promise((resolve, reject) => {
                 const options = module.exports.buildBody(url, body, auth, method);
                 module.exports.sendRequest(options)
                     .then((response) => {
+                        logger.debug(`current status: ${response.response.statusCode}, waiting for ${expectedCode}`);
                         if (response.response.statusCode === expectedCode) {
                             resolve(response.body);
                         } else {
@@ -143,6 +145,7 @@ module.exports = {
                     constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
                 module.exports.sendRequest(options)
                     .then((response) => {
+                        logger.debug(`current status: ${response.response.statusCode}, waiting for ${expectedCode}`);
                         if (response.response.statusCode === expectedCode) {
                             resolve(JSON.parse(response.body));
                         } else {

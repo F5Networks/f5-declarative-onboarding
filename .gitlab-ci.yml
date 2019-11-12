@@ -116,6 +116,11 @@ integration test 13.1:
        - yum install -y nodejs
        - npm install
        - npm run integration
+    artifacts:
+        name: f5-declarative-onboarding-$CI_BUILD_REF
+        when: always
+        paths:
+            - test/logs
 
 teardown bigip 13.1:
     image: ${CICD_CONTAINER_DEPLOY}
