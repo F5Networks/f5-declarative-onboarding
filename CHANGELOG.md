@@ -6,6 +6,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 - AUTOTOOL-807: Fix bug in which DO was unable to set hostname in AWS environment (K45728203)
 - AUTOTOOL-806: Fix bug in which changes to the network property for ManagementRoute and Route would not actually update the config [Issue 75](https://github.com/F5Networks/f5-declarative-onboarding/issues/75)
+- AUTOTOOL-904: Fix /example endpoint
 ### Changed
 - AUTOTOOL-727: Changed HTTP status for GET requests to be 200 unless something goes wrong with the actual request. The results of the request will contain the status. (This change could possibly break compatibility with previous versions)
 - AUTOTOOL-855: Updated packages
