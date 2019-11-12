@@ -36,11 +36,13 @@
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
     "handlebars": "^4.5.1",
+    "mkdirp": "^0.5.1",
     "mocha": "^6.2.2",
     "node-ssh": "^6.0.0",
     "nyc": "^14.1.1",
     "request": "^2.88.0",
-    "sinon": "^7.5.0"
+    "sinon": "^7.5.0",
+    "winston": "^2.4.4"
   },
   "scripts": {
     "build": "scripts/build/buildRpm.sh",
