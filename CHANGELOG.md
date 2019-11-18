@@ -45,7 +45,7 @@ Changes to this project are documented in this file. More detail and links can b
 - Resolve [Issue 60](https://github.com/F5Networks/f5-declarative-onboarding/issues/60)
 - Resolve [Issue 67](https://github.com/F5Networks/f5-declarative-onboarding/issues/67)
 - Fix bug in which DO sets task status to ERROR right away while it is still rolling back
-- Fix bug in which DO was unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Rotue Domain with ID 0 unless otherwise specified.
+- Fix bug in which DO was unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Route Domain with ID 0 unless otherwise specified.
 ### Changed
 - Allow 'none' as valid value for configsyncIp (ConfigSync class)
 - Handle the automatic update of root password when admin password changes on 14.0 and later

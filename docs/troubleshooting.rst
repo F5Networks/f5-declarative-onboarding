@@ -53,6 +53,16 @@ Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files are 
 
 You can find historical files on GitHub by using the **Branch** drop-down, clicking the **Tags** tab, and then selecting the appropriate release.
 
+|
+
+Why is a GET request no longer returning the error code as the HTTP status when an error occurs?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Beginning with DO 1.9.0, F5 has changed the response from a GET request. Previously, if there was a task that had an error, the GET response would return that error as the HTTP status, but the GET request itself would not error. This meant that in some cases, it would look like the request failed when it was actually successful.
+
+In DO 1.9.0 and later, a GET request returns a 200 status code unless there is an actual issue with the request. The results of the request contains the status. 
+
+This change in behavior could possibly break compatibility with previous versions of DO.
+
 
 .. |github54| raw:: html
 

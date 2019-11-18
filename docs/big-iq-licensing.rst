@@ -5,10 +5,6 @@ Composing a declaration for licensing BIG-IP with a BIG-IQ
 ==========================================================
 If you have an existing BIG-IQ device with a pool of F5 licenses (BIG-IQ License Manager), you can reference it from your Declarative Onboarding declaration in order to license your BIG-IP device. 
 
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for BIG-IQ License Manager is available in Declarative Onboarding 1.1.0 and later
-
 To use this feature:
 
 - You must have an existing BIG-IQ device with a pool of BIG-IP VE licenses. 
@@ -18,6 +14,8 @@ To use this feature:
 Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
 
 See :doc:`bigiq-examples` for additional example declarations.
+
+.. NOTE:: See |compat| for information on BIG-IQ and Declarative Onboarding compatibility
 
 
 Declaration class licensing with BIG-IQ
@@ -241,3 +239,6 @@ This revokes the license from the BIG-IP VE from the **myPool** license pool fro
    
    <br />
 
+.. |compat| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K54909607" target="_blank">K54909607</a>
