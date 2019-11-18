@@ -5,7 +5,7 @@ BIG-IQ example declarations
 
 The following are example declarations for licensing with BIG-IQ.  See :doc:`big-iq-licensing` for detailed information about composing declarations with BIG-IQ.
 
-See the |bigiq| documentation for more detailed information on License pool types.
+See the |bigiq| documentation for more detailed information on License pool types.  See |compat| for information on BIG-IQ and Declarative Onboarding compatibility
 
 
 
@@ -188,3 +188,7 @@ This example is similar to example 9, however in this case, we are using a diffe
 .. |bigiq| raw:: html
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-iq-centralized-mgmt/manuals/product/big-iq-centralized-management-device-6-1-0/04.html" target="_blank">BIG-IQ</a>
+
+.. |compat| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K54909607" target="_blank">K54909607</a>
