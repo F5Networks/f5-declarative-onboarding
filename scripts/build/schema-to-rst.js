@@ -11,7 +11,7 @@
 const fs = require('fs');
 
 const outputRst = `${__dirname}/../../docs/schema-reference.rst`;
-const schema = require('../../dist/do.schema.json');
+const schema = require('../../docs/do.schema.json');
 
 function getTypes(property) {
     let types = [];

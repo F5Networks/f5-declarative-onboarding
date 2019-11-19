@@ -7,5 +7,6 @@ docs/_build/
 coverage/
 npm-debug.log
 docs/schema-reference.rst
+docs/do.schema.json
 dist/
 test/logs
