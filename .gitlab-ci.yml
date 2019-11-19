@@ -4,6 +4,7 @@ stages:
     - lint
     - test
     - build
+    - docs
     - deploy 13.1
     - integration test 13.1
     - teardown 13.1
@@ -512,7 +513,7 @@ publish to artifactory:
 
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
-    stage: post build
+    stage: build
     except:
         - tags
         - schedules
@@ -520,6 +521,9 @@ create docs:
         - node scripts/build/schema-build.js
         - node scripts/build/schema-check.js
         - node scripts/build/schema-to-rst.js
+        - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
+        -   rm -rf docs/_templates
+        - fi
         - make html
         - echo "Checking grammar and style"
         # Runs the grammar check on everything except the /docs/drafts directory
@@ -537,7 +541,7 @@ create docs:
 # Deploy docs to Pages for review
 # Docs are staged on this projects pages site
 pages:
-    stage: publish
+    stage: docs
     except:
         - tags
         - schedules
@@ -581,16 +585,33 @@ pages:
         - develop
         - doc-release-branch
 
+Publish docs to staging:
+  image: ${CONTAINTHEDOCS_IMAGE}
+  stage: docs
+  environment: 
+    name: staging
+    url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
+  tags:
+    - cm-official-docker-executor
+  only:
+    - docs-staging@automation-toolchain/f5-declarative-onboarding
+  dependencies:
+    - create docs
+  script:
+    - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
+    # create invalidation to clear cloudfront cache
+    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest
+
 publish docs to production:
     image: ${CONTAINTHEDOCS_IMAGE}
-    stage: publish
+    stage: docs
     environment:
         name: production
         url: https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest
     only:
         # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
         # fill in desired release branch name and uncomment to add deployment from a branch
-        - doc-publish@automation-toolchain/f5-declarative-onboarding
+        - doc-latest@automation-toolchain/f5-declarative-onboarding
     tags:
         - cm-official-docker-executor
     dependencies:
