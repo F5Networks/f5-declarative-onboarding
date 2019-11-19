@@ -61,7 +61,7 @@ Beginning with DO 1.9.0, F5 has changed the response from a GET request. Previou
 
 In DO 1.9.0 and later, a GET request returns a 200 status code unless there is an actual issue with the request. The results of the request contains the status. 
 
-This change in behavior could possibly break compatibility with previous versions of DO.
+This change in behavior could break compatibility with previous versions of DO.
 
 
 .. |github54| raw:: html
