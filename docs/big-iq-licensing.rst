@@ -15,7 +15,7 @@ Additionally, see :doc:`json-pointers` for information on using JSON/Declarative
 
 See :doc:`bigiq-examples` for additional example declarations.
 
-.. NOTE:: See |compat| for information on BIG-IQ and Declarative Onboarding compatibility
+.. NOTE:: See |compat| for information on BIG-IQ and Declarative Onboarding compatibility.
 
 
 Declaration class licensing with BIG-IQ
