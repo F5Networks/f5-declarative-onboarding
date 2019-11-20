@@ -492,6 +492,7 @@ describe('restWorker', () => {
 
         const code1234 = 200;
         const code5678 = 300;
+        const code8888 = 422;
         const declaration1234 = {
             foo: 'bar'
         };
@@ -514,6 +515,11 @@ describe('restWorker', () => {
                             internalDeclaration: declaration5678,
                             result: {
                                 code: code5678
+                            }
+                        },
+                        8888: {
+                            result: {
+                                code: code8888
                             }
                         }
                     }
@@ -570,6 +576,44 @@ describe('restWorker', () => {
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/task/1234'
+            });
+
+            try {
+                restWorker.onGet(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
+        it('should return 200 for an invalid task using experimental statusCodes', () => new Promise((resolve, reject) => {
+            restOperationMock.complete = () => {
+                assert.strictEqual(Array.isArray(responseBody), false);
+                assert.strictEqual(responseBody.result.code, 422);
+                assert.strictEqual(statusCode, 200);
+                resolve();
+            };
+            restOperationMock.getUri = () => ({
+                pathname: '/shared/declarative-onboarding/task/8888',
+                query: { statusCodes: 'experimental' }
+            });
+
+            try {
+                restWorker.onGet(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
+        it('should return 422 for an invalid task using legacy statusCodes', () => new Promise((resolve, reject) => {
+            restOperationMock.complete = () => {
+                assert.strictEqual(Array.isArray(responseBody), false);
+                assert.strictEqual(responseBody.result.code, 422);
+                assert.strictEqual(statusCode, 422);
+                resolve();
+            };
+            restOperationMock.getUri = () => ({
+                pathname: '/shared/declarative-onboarding/task/8888',
+                query: { statusCodes: 'legacy' }
             });
 
             try {
@@ -826,7 +870,6 @@ describe('restWorker', () => {
                         vlan: 'foo'
                     }
                 }
-
             };
             restWorker.validator = new RealValidator();
 

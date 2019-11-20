@@ -26,6 +26,8 @@
  *                            result for all tasks.
  * @param {Object} [options] - Query options
  * @param {String} [options.show] - What to show of the state. Only current option is 'full'
+ * @param {String} [options.statusCodes] - Which set of status codes to use.
+ *                                         Options are 'legacy' (default) and 'experimental'
  */
 class Response {
     constructor(itemId, responder, options) {

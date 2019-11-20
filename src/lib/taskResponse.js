@@ -69,7 +69,7 @@ class TaskResponse {
             data.httpStatus = 200;
         }
 
-        if (options && options.show && options.show === 'full') {
+        if (options && options.show === 'full') {
             data.currentConfig = this.state.getCurrentConfig(id);
             data.originalConfig = this.state.getOriginalConfigByTaskId(id);
             data.lastUpdate = this.state.getLastUpdate(id);
