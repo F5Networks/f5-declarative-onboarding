@@ -18,6 +18,7 @@
 'use strict';
 
 const fs = require('fs');
+const qs = require('querystring');
 const request = require('request');
 const util = require('util');
 const constants = require('./constants.js');
@@ -139,11 +140,12 @@ module.exports = {
      * @expectedCode {String} - expected HTTP status code for when the API responds; typically HTTP_SUCCESS
      * Returns a Promise with response/error
     */
-    testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode) {
+    testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode, queryObj) {
         const func = function () {
             return new Promise((resolve, reject) => {
+                const query = qs.encode(Object.assign(queryObj || {}, { show: 'full' }));
                 const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
-                    constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
+                    constants.PORT)}${constants.DO_API}?${query}`, null, auth, 'GET');
                 module.exports.sendRequest(options)
                     .then((response) => {
                         logger.debug(`current status: ${response.response.statusCode}, waiting for ${expectedCode}`);
@@ -236,6 +238,7 @@ module.exports = {
                 'Content-Type': 'application/json'
             }
         };
+
         if (auth && 'token' in auth) {
             options.headers['X-F5-Auth-Token'] = auth.token;
         } else if (auth && 'username' in auth && 'password' in auth) {

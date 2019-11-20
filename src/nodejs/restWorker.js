@@ -1106,9 +1106,10 @@ function sendResponse(restOperation, endpoint, itemId) {
     response.getResponse()
         .then((body) => {
             restOperation.setBody(body);
-            if (body && body.httpStatus) {
+            const query = restOperation.getUri().query;
+            // TODO for next major release (DO 2.0): Remove query && query.statusCodes from subsequent line
+            if (body && body.httpStatus && query && query.statusCodes === 'experimental') {
                 restOperation.setStatusCode(body.httpStatus);
-                delete body.httpStatus;
             } else if (Array.isArray(response)) {
                 restOperation.setStatusCode(200);
             } else if (body && body.result && body.result.code) {
@@ -1116,7 +1117,7 @@ function sendResponse(restOperation, endpoint, itemId) {
             } else {
                 restOperation.setStatusCode(200);
             }
-
+            delete body.httpStatus;
             restOperation.complete();
         })
         .catch((err) => {

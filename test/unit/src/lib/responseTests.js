@@ -95,7 +95,7 @@ class Responder {
             declaration: this.state.getDeclaration(id)
         };
 
-        if (options && options.show && options.show === 'full') {
+        if (options && options.show === 'full') {
             data.currentConfig = this.state.getCurrentConfig(id);
             data.originalConfig = this.state.getOriginalConfigByTaskId(id);
             data.lastUpdate = this.state.getLastUpdate(id);

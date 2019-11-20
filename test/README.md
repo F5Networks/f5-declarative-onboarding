@@ -57,7 +57,8 @@ If `npx` is available on your system, you can run the locally installed version 
 
 ### Example Harness file
 ```json
-[{
+[
+    {
         "admin_ip": "10.1.1.10",
         "admin_username": "admin",
         "admin_password": "admin",

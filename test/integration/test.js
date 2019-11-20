@@ -214,6 +214,41 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
     });
 
+    describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+
+        function testStatusCode(query, expectedCode) {
+            const thisMachine = machines[1];
+            const bigipAddress = thisMachine.ip;
+            const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
+            const bodyFile = `${BODIES}/bogus.json`;
+            const url = `${common.hostname(bigipAddress, constants.PORT)}${constants.DO_API}`;
+
+            return common.readFile(bodyFile)
+                .then(fileRead => JSON.parse(fileRead))
+                .then(body => common.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST'))
+                .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth, expectedCode, query))
+                .then((responseBody) => {
+                    assert.strictEqual(responseBody.code, constants.HTTP_UNPROCESSABLE);
+                    assert.strictEqual(responseBody.result.code, constants.HTTP_UNPROCESSABLE);
+                    assert.strictEqual(responseBody.status, 'ERROR');
+                })
+                .catch((error) => {
+                    // common.testGetStatus will throw error on 14+ (legacy)
+                    assert.strictEqual(error.message, 'error is unrecoverable : Unexpected end of JSON input');
+                });
+        }
+
+        it('should return 422 without using a query parameter',
+            () => testStatusCode({ }, constants.HTTP_UNPROCESSABLE));
+
+        it('should return 422 using legacy statusCodes',
+            () => testStatusCode({ statusCodes: 'legacy' }, constants.HTTP_UNPROCESSABLE));
+
+        it('should return 200 using experimental statusCodes',
+            () => testStatusCode({ statusCodes: 'experimental' }, constants.HTTP_SUCCESS));
+    });
+
     describe('Test Auth Settings', function testAuth() {
         this.timeout(1000 * 60 * 30); // 30 minutes
         let body;
