@@ -181,7 +181,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         body = JSON.parse(fileRead);
                     })
                     .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
+                        + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
                     .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
                         constants.HTTP_SUCCESS))
                     .then((response) => {
@@ -240,7 +240,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         }
 
         it('should return 422 without using a query parameter',
-            () => testStatusCode({ }, constants.HTTP_UNPROCESSABLE));
+            () => testStatusCode({}, constants.HTTP_UNPROCESSABLE));
 
         it('should return 422 using legacy statusCodes',
             () => testStatusCode({ statusCodes: 'legacy' }, constants.HTTP_UNPROCESSABLE));
@@ -265,7 +265,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         body = JSON.parse(fileRead);
                     })
                     .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
+                        + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
                     .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
                         constants.HTTP_SUCCESS))
                     .then((response) => {
@@ -343,7 +343,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         return body;
                     })
                     .then(body => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
+                        + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
                     .then(() => common.testGetStatus(20, 60 * 1000, bigipAddress, bigipAuth,
                         constants.HTTP_SUCCESS))
                     .then(() => {
@@ -400,7 +400,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     return body;
                 })
                 .then(body => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
+                    + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
                 .then(() => common.testGetStatus(20, 60 * 1000, bigipAddress,
                     bigipAuth, constants.HTTP_SUCCESS))
                 .then(() => getAuditLink(bigIqAddress, bigipAddress, bigIqAuth))
@@ -472,7 +472,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .then(() => getF5Token(bigIqAddress, bigIqAuth))
                 .then((token) => {
                     const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
-                            + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
+                        + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
                     body, { token }, 'POST');
                     return common.sendRequest(options);
                 })
@@ -540,6 +540,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 username: thisMachine.adminUsername,
                 password: thisMachine.adminPassword
             };
+            const query = { statusCodes: 'experimental' };
+
             return new Promise((resolve, reject) => {
                 // get current configuration to compare against later
                 common.testGetStatus(1, 1, bigipAddress, auth, constants.HTTP_SUCCESS)
@@ -555,7 +557,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST');
                     })
                     .then(() => common.testGetStatus(3, 60 * 1000, bigipAddress, auth,
-                        constants.HTTP_UNPROCESSABLE))
+                        constants.HTTP_SUCCESS, query))
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                         resolve();
@@ -577,7 +579,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             logger.info(this.ctx.test.title);
             // this is a bit weird, because testGetStatus will resolve if the status we passed in
             // is the one found after the request. Since we asked for HTTP_UNPROCESSABLE, it will actually
-            // resolve iff the configuration was indeed rollbacked. At this point then, since before has
+            // resolve if the configuration was indeed rollbacked. At this point then, since before has
             // resolved, we can just assert the response
             assert.ok(currentState);
         });
@@ -620,7 +622,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     currentAuth.ldap.bindPassword = '';
                 }
                 if (typeof currentAuth.radius !== 'undefined'
-                        && typeof currentAuth.radius.servers !== 'undefined') {
+                    && typeof currentAuth.radius.servers !== 'undefined') {
                     const radiusServers = currentAuth.radius.servers;
                     Object.keys(radiusServers).forEach((rsName) => {
                         radiusServers[rsName].secret = '';
