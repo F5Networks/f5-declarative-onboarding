@@ -588,7 +588,7 @@ pages:
 Publish docs to staging:
   image: ${CONTAINTHEDOCS_IMAGE}
   stage: docs
-  environment: 
+  environment:
     name: staging
     url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
   tags:
