@@ -268,7 +268,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
         };
 
         const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-        deleteHandler.process()
+        return deleteHandler.process()
             .then(() => {
                 assert.strictEqual(deletedPaths[0], '/tm/auth/remote-role/role-info/test');
             });

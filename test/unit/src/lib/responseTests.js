@@ -107,8 +107,8 @@ class Responder {
 const responder = new Responder(state);
 
 describe('response', () => {
-    it('should set success response in result', () => {
-        new Response(1234, responder).getResponse()
+    it('should set success response in result',
+        () => new Response(1234, responder).getResponse()
             .then((response) => {
                 assert.strictEqual(response.id, 1234);
                 assert.strictEqual(response.result.code, 200);
@@ -117,35 +117,31 @@ describe('response', () => {
                 assert.deepEqual(response.result.errors, ['error 1', 'error 2']);
                 assert.strictEqual(response.currentConfig, undefined);
                 assert.strictEqual(response.originalConfig, undefined);
-            });
-    });
+            }));
 
-    it('should include full response if options say so', () => {
-        new Response(1234, responder, { show: 'full' }).getResponse()
+    it('should include full response if options say so',
+        () => new Response(1234, responder, { show: 'full' }).getResponse()
             .then((response) => {
                 assert.deepEqual(response.currentConfig, { foo: 'config for 1234' });
                 assert.deepEqual(response.originalConfig, { hello: 'original config for 1234' });
                 assert.deepEqual(response.lastUpdate, 'last update 1234');
-            });
-    });
+            }));
 
-    it('should return an array of tasks if no task id is set', () => {
-        new Response(null, responder).getResponse()
+    it('should return an array of tasks if no task id is set',
+        () => new Response(null, responder).getResponse()
             .then((response) => {
                 assert.ok(Array.isArray(response));
                 assert.strictEqual(response.length, 2);
                 assert.strictEqual(response[0].id, '1234');
                 assert.strictEqual(response[1].id, '5678');
-            });
-    });
+            }));
 
-    it('should 404 when task does not exist', () => {
-        new Response(123, responder).getResponse()
+    it('should 404 when task does not exist',
+        () => new Response(123, responder).getResponse()
             .then((response) => {
                 assert.strictEqual(response.result.code, 404);
                 assert.strictEqual(response.httpStatus, 404);
                 assert.strictEqual(response.result.message, 'item does not exist');
                 assert.deepEqual(response.result.errors, ['item does not exist']);
-            });
-    });
+            }));
 });

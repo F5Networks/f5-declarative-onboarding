@@ -69,6 +69,10 @@
         "myFailoverUnicast": {
           "class": "FailoverUnicast",
           "address": "/Common/mySelfIp/address"
+        },
+        "mySystem": {
+          "class": "System",
+          "autoPhonehome": false
         }
     }
 }

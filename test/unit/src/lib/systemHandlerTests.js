@@ -515,6 +515,22 @@ describe('systemHandler', () => {
         });
     });
 
+    it('should handle autoPhonehome', () => {
+        const declaration = {
+            Common: {
+                System: {
+                    autoPhonehome: false
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(dataSent[PATHS.Phonehome][0], { autoPhonehome: 'disabled' });
+            });
+    });
+
     it('should handle root users without keys', () => {
         // Stubs out the remote call to confirm the key is not added to the user
         sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);

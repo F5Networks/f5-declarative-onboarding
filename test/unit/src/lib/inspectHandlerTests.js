@@ -440,6 +440,9 @@ describe('inspectHandler', () => {
             '/tm/cli/global-settings': {
                 idleTimeout: 'disabled'
             },
+            '/tm/sys/software/update': {
+                autoPhonehome: 'disabled'
+            },
             '/tm/sys/provision': [
                 { name: 'afm', level: 'nominal' },
                 { name: 'am', level: 'minimum' },
@@ -1114,7 +1117,8 @@ describe('inspectHandler', () => {
                             class: 'System',
                             hostname: 'myhost.bigip.com',
                             consoleInactivityTimeout: 0,
-                            cliInactivityTimeout: 0
+                            cliInactivityTimeout: 0,
+                            autoPhonehome: false
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',
