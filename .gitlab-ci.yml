@@ -611,7 +611,7 @@ publish docs to production:
     only:
         # Currently will only deploy to clouddocs.f5.com on commits to doc-publish
         # fill in desired release branch name and uncomment to add deployment from a branch
-        - doc-latest@automation-toolchain/f5-declarative-onboarding
+        - docs-latest@automation-toolchain/f5-declarative-onboarding
     tags:
         - cm-official-docker-executor
     dependencies:
