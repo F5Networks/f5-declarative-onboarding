@@ -313,26 +313,26 @@ Ok, overview done!  Now let's dive into the major areas to be aware of as a deve
 ---
 ### Core modules
 
-All core modules are included inside `../nodejs/`
+All core modules are included inside `../src/`
 
-- [state.js](../nodejs/state.js)
+- [state.js](../src/lib/state.js)
     - Purpose: Holds the current state (current config, last declaration, etc) of all BIG-IP configured by DO.
-- [restWorker.js](../nodejs/restWorker.js)
+- [restWorker.js](../src/nodejs/restWorker.js)
     - Purpose: Hook for incoming HTTP requests. Highlevel orchestration of request handling and reboot handling.
-- [configManager.js](../nodejs/configManager.js)
+- [configManager.js](../src/lib/configManager.js)
     - Purpose: Collects the current configuration of the BIG-IP for everything that is in the DO domain.
-    - Controlled by [configItems.json](../nodejs/configItems.json).
-        - This is a DSL. See notes in the [configManager.js](../nodejs/configManager.js) ```get``` method for usage details.
-- [declarationHandler.js](../nodejs/declarationHandler.js)
+    - Controlled by [configItems.json](../src/lib/configItems.json).
+        - This is a DSL. See notes in the [configManager.js](../src/lib/configManager.js) ```get``` method for usage details.
+- [declarationHandler.js](../src/lib/declarationHandler.js)
     - Purpose: Top-level coordinator of applying config to the BIG-IP.
     - Parses declaration and hands off to Handlers - one for each major subsystem, plus one to handle deletions.
-- [systemHandler.js](../nodejs/systemHandler.js)
+- [systemHandler.js](../src/lib/systemHandler.js)
     - Purpose: sys module configuration and licensing.
-- [networkHandler.js](../nodejs/networkHandler.js)
+- [networkHandler.js](../src/lib/networkHandler.js)
     - Purpose: net module configuration.
-- [dscHandler.js](../nodejs/dscHandler.js)
+- [dscHandler.js](../src/lib/dscHandler.js)
     - Purpose: DSC (clustering) configuration and syncing.
-- [deleteHandler.js](../nodejs/deleteHandler.js)
+- [deleteHandler.js](../src/lib/deleteHandler.js)
     - Prupose: Deletes items in the proper order.
 
 ---

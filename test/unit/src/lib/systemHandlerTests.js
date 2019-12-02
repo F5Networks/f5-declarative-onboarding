@@ -139,7 +139,7 @@ describe('systemHandler', () => {
             });
     });
 
-    describe('DNS/NTP', () => {
+    describe('DNS/NTP/System', () => {
         let bigIpStub;
 
         function setUpBigIpStubWithRequestOptions(requestOptions, bigIpVersion, isDhcpEnabled) {
@@ -399,89 +399,120 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock);
             return systemHandler.process();
         });
-    });
 
-    it('should handle hostname', () => {
-        const declaration = {
-            Common: {
-                hostname: 'myhost.example.com'
-            }
-        };
-
-        let hostnameSent;
-        bigIpMock.onboard = {
-            hostname(hostname) {
-                hostnameSent = hostname;
-                return Promise.resolve();
-            }
-        };
-
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .then(() => {
-                assert.strictEqual(hostnameSent, 'myhost.example.com');
-            });
-    });
-
-    it('should handle hostname via System class', () => {
-        const declaration = {
-            Common: {
-                System: {
+        it('should handle hostname', () => {
+            const declaration = {
+                Common: {
                     hostname: 'myhost.example.com'
                 }
-            }
-        };
-        let hostnameSent;
-        bigIpMock.onboard = {
-            hostname(hostname) {
-                hostnameSent = hostname;
-                return Promise.resolve();
-            }
-        };
+            };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .then(() => {
-                assert.strictEqual(hostnameSent, 'myhost.example.com');
-            });
-    });
-
-    it('should handle consoleInactivityTimeout and cliInactivityTimeout', () => {
-        // these props are posted to separate paths
-        const declaration = {
-            Common: {
-                System: {
-                    consoleInactivityTimeout: 50,
-                    cliInactivityTimeout: 1200
+            let hostnameSent;
+            bigIpMock.onboard = {
+                hostname(hostname) {
+                    hostnameSent = hostname;
+                    return Promise.resolve();
                 }
-            }
-        };
+            };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .then(() => {
-                assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
-                assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 20 }); // seconds converted to minutes
-            });
-    });
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostnameSent, 'myhost.example.com');
+                });
+        });
 
-    it('should handle cliInactivityTimeout equal to 0', () => {
-        // these props are posted to separate paths
-        const declaration = {
-            Common: {
-                System: {
-                    consoleInactivityTimeout: 50,
-                    cliInactivityTimeout: 0
+        it('should handle hostname via System class', () => {
+            const declaration = {
+                Common: {
+                    System: {
+                        hostname: 'myhost.example.com'
+                    }
                 }
-            }
-        };
+            };
+            let hostnameSent;
+            bigIpMock.onboard = {
+                hostname(hostname) {
+                    hostnameSent = hostname;
+                    return Promise.resolve();
+                }
+            };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
-        return systemHandler.process()
-            .then(() => {
-                assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
-                assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 0 });
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostnameSent, 'myhost.example.com');
+                });
+        });
+
+        it('should disable hostname from DHCP if we configure the hostname (aws)', () => {
+            const declaration = {
+                Common: {
+                    hostname: 'myhost.example.com'
+                }
+            };
+            let hostnameSent;
+            bigIpMock.onboard = {
+                hostname(hostname) {
+                    hostnameSent = hostname;
+                    return Promise.resolve();
+                }
+            };
+
+            setUpBigIpStubWithRequestOptions(
+                ['one', 'two', 'host-name', 'domain-name'], '14.1'
+            );
+
+            sinon.stub(bigIpMock, 'modify').callsFake((path, body) => {
+                assert.strictEqual(path, '/tm/sys/management-dhcp/sys-mgmt-dhcp-config');
+                assert.strictEqual(body.requestOptions.length, 3);
+                assert.strictEqual(body.requestOptions.indexOf('host-name'), -1);
             });
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostnameSent, 'myhost.example.com');
+                });
+        });
+
+        it('should handle consoleInactivityTimeout and cliInactivityTimeout', () => {
+            // these props are posted to separate paths
+            const declaration = {
+                Common: {
+                    System: {
+                        consoleInactivityTimeout: 50,
+                        cliInactivityTimeout: 1200
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
+                    assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 20 }); // seconds converted to minutes
+                });
+        });
+
+        it('should handle cliInactivityTimeout equal to 0', () => {
+            // these props are posted to separate paths
+            const declaration = {
+                Common: {
+                    System: {
+                        consoleInactivityTimeout: 50,
+                        cliInactivityTimeout: 0
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
+                    assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 0 });
+                });
+        });
     });
 
     it('should handle root users without keys', () => {
@@ -976,6 +1007,15 @@ describe('systemHandler', () => {
     });
 
     describe('ManagementRoute', () => {
+        const deletedPaths = [];
+        beforeEach(() => {
+            deletedPaths.length = 0;
+            bigIpMock.delete = (path) => {
+                deletedPaths.push(path);
+                return Promise.resolve();
+            };
+        });
+
         it('should handle the ManagementRoutes', () => {
             const declaration = {
                 Common: {
@@ -996,11 +1036,17 @@ describe('systemHandler', () => {
                     }
                 }
             };
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     const managementRouteData = dataSent[PATHS.ManagementRoute];
+                    assert.deepEqual(deletedPaths, []);
                     assert.strictEqual(managementRouteData[0].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[0].partition, 'Common');
                     assert.strictEqual(managementRouteData[0].gateway, '1.1.1.1');
@@ -1010,8 +1056,73 @@ describe('systemHandler', () => {
                     assert.strictEqual(managementRouteData[1].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[1].partition, 'Common');
                     assert.strictEqual(managementRouteData[1].gateway, '1.2.3.4');
-                    assert.strictEqual(managementRouteData[1].network, '4.3.2.1');
+                    assert.strictEqual(managementRouteData[1].network, '4.3.2.1/32');
                     assert.strictEqual(managementRouteData[1].mtu, 1);
+                });
+        });
+
+        const declaration = {
+            Common: {
+                ManagementRoute: {
+                    theManagementRoute: {
+                        name: 'theManagementRoute',
+                        gw: '4.3.2.1',
+                        network: '1.2.3.4',
+                        mtu: 123
+                    }
+                }
+            }
+        };
+        const state = {
+            currentConfig: {
+                Common: {
+                    ManagementRoute: {
+                        theManagementRoute: {
+                            name: 'theManagementRoute',
+                            gw: '4.3.2.1',
+                            network: '10.20.30.40',
+                            mtu: 123
+                        }
+                    }
+                }
+            }
+        };
+
+        it('should delete and recreate ManagementRoute if network updated', () => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const managementRouteData = dataSent[PATHS.ManagementRoute];
+                    assert.deepEqual(deletedPaths, ['/tm/sys/management-route/~Common~theManagementRoute']);
+                    assert.strictEqual(managementRouteData[0].name, 'theManagementRoute');
+                    assert.strictEqual(managementRouteData[0].partition, 'Common');
+                    assert.strictEqual(managementRouteData[0].gateway, '4.3.2.1');
+                    assert.strictEqual(managementRouteData[0].network, '1.2.3.4/32');
+                    assert.strictEqual(managementRouteData[0].mtu, 123);
+                });
+        });
+
+        it('should reject if platform is not BIG-IP', () => {
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            doUtilStub.restore();
+            sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('notBigIp');
+
+            return assert.isRejected(systemHandler.process(),
+                'Cannot update network property when running remotely');
+        });
+
+        it('should not delete the existing ManagementRoute if network not updated', () => {
+            state.currentConfig.Common.ManagementRoute.theManagementRoute.network = '1.2.3.4/32';
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const managementRouteData = dataSent[PATHS.ManagementRoute];
+                    assert.deepEqual(deletedPaths, []);
+                    assert.strictEqual(managementRouteData[0].name, 'theManagementRoute');
+                    assert.strictEqual(managementRouteData[0].partition, 'Common');
+                    assert.strictEqual(managementRouteData[0].gateway, '4.3.2.1');
+                    assert.strictEqual(managementRouteData[0].network, '1.2.3.4/32');
+                    assert.strictEqual(managementRouteData[0].mtu, 123);
                 });
         });
     });

@@ -16,12 +16,15 @@
 
 'use strict';
 
+const HTTP = require('http');
+
 const BASE_URL = require('./sharedConstants').BASE_URL;
 const ENDPOINTS = require('./sharedConstants').ENDPOINTS;
 
 class TaskResponse {
-    constructor(state) {
+    constructor(state, method) {
         this.state = state;
+        this.method = method;
     }
 
     // can't be a static method because the caller does not know the class type
@@ -54,11 +57,19 @@ class TaskResponse {
     }
 
     getData(id, options) {
+        if (!this.exists(id)) {
+            return { httpStatus: 404 };
+        }
+
         const data = {
             declaration: this.state.getDeclaration(id)
         };
 
-        if (options && options.show && options.show === 'full') {
+        if (HTTP.METHODS[HTTP.METHODS.indexOf('GET')] === this.method) {
+            data.httpStatus = 200;
+        }
+
+        if (options && options.show === 'full') {
             data.currentConfig = this.state.getCurrentConfig(id);
             data.originalConfig = this.state.getOriginalConfigByTaskId(id);
             data.lastUpdate = this.state.getLastUpdate(id);

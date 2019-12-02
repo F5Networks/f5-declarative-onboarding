@@ -56,6 +56,10 @@ class ConfigResponse {
     }
 
     getData(id) {
+        if (!this.exists(id)) {
+            return { httpStatus: 404 };
+        }
+
         const data = this.state.getOriginalConfigByConfigId(id);
         return data;
     }

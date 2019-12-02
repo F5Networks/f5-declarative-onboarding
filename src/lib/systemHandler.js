@@ -182,7 +182,8 @@ function handleSystem() {
         hostname = common.hostname;
     }
     if (hostname) {
-        promises.push(this.bigIp.onboard.hostname(hostname));
+        promises.push(disableDhcpOptions.call(this, ['host-name'])
+            .then(() => this.bigIp.onboard.hostname(hostname)));
     }
 
     if (system) {
@@ -432,31 +433,57 @@ function handleLicensePool(license) {
 }
 
 function handleManagementRoute() {
-    const promises = [];
-    doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
-        if (managementRoute && managementRoute.name) {
-            const routeBody = {
-                name: managementRoute.name,
-                partition: tenant,
-                gateway: managementRoute.gw,
-                network: managementRoute.network,
-                mtu: managementRoute.mtu
-            };
+    return doUtil.getCurrentPlatform()
+        .then((platform) => {
+            const promises = [];
+            doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
+                let promise = Promise.resolve();
+                const mask = managementRoute.network.includes(':') ? 128 : 32;
+                managementRoute.network = managementRoute.network !== 'default'
+                    && managementRoute.network !== 'default-inet6' && !managementRoute.network.includes('/')
+                    ? `${managementRoute.network}/${mask}` : managementRoute.network;
+                // Need to do a delete if the network property is updated
+                if (this.state.currentConfig.Common.ManagementRoute
+                    && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
+                    && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
+                        .network !== managementRoute.network) {
+                    if (platform !== 'BIG-IP') {
+                        throw new Error('Cannot update network property when running remotely');
+                    }
+                    promise = promise.then(() => this.bigIp.delete(
+                        `${PATHS.ManagementRoute}/~Common~${managementRoute.name}`,
+                        null,
+                        null,
+                        cloudUtil.NO_RETRY
+                    ));
+                }
 
-            if (managementRoute.type) {
-                routeBody.type = managementRoute.type;
-            }
+                if (managementRoute && managementRoute.name) {
+                    const routeBody = {
+                        name: managementRoute.name,
+                        partition: tenant,
+                        gateway: managementRoute.gw,
+                        network: managementRoute.network,
+                        mtu: managementRoute.mtu
+                    };
 
-            promises.push(
-                this.bigIp.createOrModify(PATHS.ManagementRoute, routeBody, null, cloudUtil.MEDIUM_RETRY)
-            );
-        }
-    });
+                    if (managementRoute.type) {
+                        routeBody.type = managementRoute.type;
+                    }
 
-    return Promise.all(promises)
-        .catch((err) => {
-            logger.severe(`Error creating management routes: ${err.message}`);
-            throw err;
+                    promise = promise.then(() => this.bigIp.createOrModify(
+                        PATHS.ManagementRoute, routeBody, null, cloudUtil.MEDIUM_RETRY
+                    ));
+                }
+
+                promises.push(promise);
+            });
+
+            return Promise.all(promises)
+                .catch((err) => {
+                    logger.severe(`Error creating management routes: ${err.message}`);
+                    throw err;
+                });
         });
 }
 

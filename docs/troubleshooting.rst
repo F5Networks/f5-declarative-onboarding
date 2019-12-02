@@ -49,7 +49,22 @@ Domain name resolution is used anywhere the declaration accepts a hostname. DO m
 I can no longer find the DO source RPM on GitHub
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files are no longer located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
+Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files are no longer located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**. 
+
+You can find historical files on GitHub by using the **Branch** drop-down, clicking the **Tags** tab, and then selecting the appropriate release.
+
+|
+
+.. _newget:
+
+How can I see HTTP status in a GET request?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In DO versions 1.8.0 and earlier, if there was a task that had an error, the GET response would return that error as the HTTP status.
+
+In DO 1.9.0 and later, there is a new query parameter (**statusCodes**) that allows a GET request to return a 200 status code unless there is an actual error with the request. The results in the body of the response contain the status of the task. You can use **statusCodes=legacy** if you want the behavior in DO versions 1.8.0 and earlier as described above.
+
+See :ref:`GET on the HTTP Methods page <getquery>` for more information and usage options.
+
 
 
 .. |github54| raw:: html

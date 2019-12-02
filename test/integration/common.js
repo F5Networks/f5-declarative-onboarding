@@ -18,9 +18,11 @@
 'use strict';
 
 const fs = require('fs');
+const qs = require('querystring');
 const request = require('request');
 const util = require('util');
 const constants = require('./constants.js');
+const logger = require('./logger').getInstance();
 
 module.exports = {
 
@@ -75,7 +77,6 @@ module.exports = {
                         resolve(response);
                     })
                     .catch((error) => {
-                        /* eslint-disable no-console */
                         trialsCopy -= 1;
                         if (checkError) {
                             let willReject = true;
@@ -104,14 +105,17 @@ module.exports = {
      * @auth {Object} : authorization dictionary with (username, password) or F5 token
      * @expectedCode {int} : expected HTTP status code for the request
      * @method {String} : HTTP request method (POST, GET)
+     * @interval {Number} : Seconds to wait between requests (default 60)
      * Returns Promise which resolves with response body on success or rejects with error
     */
-    testRequest(body, url, auth, expectedCode, method) {
+    testRequest(body, url, auth, expectedCode, method, interval) {
+        logger.debug(`${method} ${JSON.stringify(body)} ${url}`);
         const func = function () {
             return new Promise((resolve, reject) => {
                 const options = module.exports.buildBody(url, body, auth, method);
                 module.exports.sendRequest(options)
                     .then((response) => {
+                        logger.debug(`current status: ${response.response.statusCode}, waiting for ${expectedCode}`);
                         if (response.response.statusCode === expectedCode) {
                             resolve(response.body);
                         } else {
@@ -123,7 +127,7 @@ module.exports = {
                     });
             });
         };
-        return module.exports.tryOften(func, 10, 60 * 1000, [constants.HTTP_UNAVAILABLE], true);
+        return module.exports.tryOften(func, 10, (interval || 60) * 1000, [constants.HTTP_UNAVAILABLE], true);
     },
 
     /**
@@ -136,13 +140,15 @@ module.exports = {
      * @expectedCode {String} - expected HTTP status code for when the API responds; typically HTTP_SUCCESS
      * Returns a Promise with response/error
     */
-    testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode) {
+    testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode, queryObj) {
         const func = function () {
             return new Promise((resolve, reject) => {
+                const query = qs.encode(Object.assign(queryObj || {}, { show: 'full' }));
                 const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
-                    constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
+                    constants.PORT)}${constants.DO_API}?${query}`, null, auth, 'GET');
                 module.exports.sendRequest(options)
                     .then((response) => {
+                        logger.debug(`current status: ${response.response.statusCode}, waiting for ${expectedCode}`);
                         if (response.response.statusCode === expectedCode) {
                             resolve(JSON.parse(response.body));
                         } else {
@@ -232,6 +238,7 @@ module.exports = {
                 'Content-Type': 'application/json'
             }
         };
+
         if (auth && 'token' in auth) {
             options.headers['X-F5-Auth-Token'] = auth.token;
         } else if (auth && 'username' in auth && 'password' in auth) {

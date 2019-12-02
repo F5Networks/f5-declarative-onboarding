@@ -1,6 +1,19 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.9.0
+### Added
+- AUTOTOOL-910: Add query parameter {statusCodes: 'experimental'} to enable new status codes as implemented in AUTOTOOL-727
+### Fixed
+- AUTOTOOL-807: Fix bug in which DO was unable to set hostname in AWS environment (K45728203)
+- AUTOTOOL-806: Fix bug in which changes to the network property for ManagementRoute and Route would not actually update the config [Issue 75](https://github.com/F5Networks/f5-declarative-onboarding/issues/75)
+- AUTOTOOL-904: Fix /example endpoint
+### Changed
+- AUTOTOOL-727: Changed HTTP status for GET requests to be 200 unless something goes wrong with the actual request. The results of the request will contain the status. (This change could break compatibility with previous versions)
+- AUTOTOOL-855: Updated packages
+- AUTOTOOL-945: Integration test improvements: Debug logs are now written to test/logs. Retry when getting current assignments from BIG-IQ.
+### Removed
+
 ## 1.8.0
 ### Added
 - Add support for SSHD class [Issue 50](https://github.com/F5Networks/f5-declarative-onboarding/issues/50)
@@ -35,7 +48,7 @@ Changes to this project are documented in this file. More detail and links can b
 - Resolve [Issue 60](https://github.com/F5Networks/f5-declarative-onboarding/issues/60)
 - Resolve [Issue 67](https://github.com/F5Networks/f5-declarative-onboarding/issues/67)
 - Fix bug in which DO sets task status to ERROR right away while it is still rolling back
-- Fix bug in which DO was unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Rotue Domain with ID 0 unless otherwise specified.
+- Fix bug in which DO was unable to create new VLAN(s) when no Route Domain(s) specified in declaration. Now DO will add new VLAN(s) to Route Domain with ID 0 unless otherwise specified.
 ### Changed
 - Allow 'none' as valid value for configsyncIp (ConfigSync class)
 - Handle the automatic update of root password when admin password changes on 14.0 and later

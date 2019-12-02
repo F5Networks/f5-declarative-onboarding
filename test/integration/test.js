@@ -26,6 +26,7 @@
 const assert = require('assert');
 const constants = require('./constants.js');
 const common = require('./common.js');
+const logger = require('./logger').getInstance();
 
 const configItems = require('../../src/lib/configItems.json');
 
@@ -106,9 +107,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     .then((readBody) => {
                         body = readBody;
                     })
-                    .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, auth,
-                    constants.HTTP_ACCEPTED, 'POST'))
+                    .then(() => common.testRequest(
+                        body,
+                        `${common.hostname(bigipAddress, constants.PORT)}${constants.DO_API}`, auth,
+                        constants.HTTP_ACCEPTED, 'POST'
+                    ))
                     .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
                         constants.HTTP_SUCCESS))
                     .then((response) => {
@@ -178,7 +181,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         body = JSON.parse(fileRead);
                     })
                     .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
+                        + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
                     .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
                         constants.HTTP_SUCCESS))
                     .then((response) => {
@@ -211,6 +214,41 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
     });
 
+    describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+
+        function testStatusCode(query, expectedCode) {
+            const thisMachine = machines[1];
+            const bigipAddress = thisMachine.ip;
+            const auth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
+            const bodyFile = `${BODIES}/bogus.json`;
+            const url = `${common.hostname(bigipAddress, constants.PORT)}${constants.DO_API}`;
+
+            return common.readFile(bodyFile)
+                .then(fileRead => JSON.parse(fileRead))
+                .then(body => common.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST'))
+                .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth, expectedCode, query))
+                .then((responseBody) => {
+                    assert.strictEqual(responseBody.code, constants.HTTP_UNPROCESSABLE);
+                    assert.strictEqual(responseBody.result.code, constants.HTTP_UNPROCESSABLE);
+                    assert.strictEqual(responseBody.status, 'ERROR');
+                })
+                .catch((error) => {
+                    // common.testGetStatus will throw error on 14+ (legacy)
+                    assert.strictEqual(error.message, 'error is unrecoverable : Unexpected end of JSON input');
+                });
+        }
+
+        it('should return 422 without using a query parameter',
+            () => testStatusCode({}, constants.HTTP_UNPROCESSABLE));
+
+        it('should return 422 using legacy statusCodes',
+            () => testStatusCode({ statusCodes: 'legacy' }, constants.HTTP_UNPROCESSABLE));
+
+        it('should return 200 using experimental statusCodes',
+            () => testStatusCode({ statusCodes: 'experimental' }, constants.HTTP_SUCCESS));
+    });
+
     describe('Test Auth Settings', function testAuth() {
         this.timeout(1000 * 60 * 30); // 30 minutes
         let body;
@@ -227,7 +265,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         body = JSON.parse(fileRead);
                     })
                     .then(() => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
+                        + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST'))
                     .then(() => common.testGetStatus(30, 60 * 1000, bigipAddress, auth,
                         constants.HTTP_SUCCESS))
                     .then((response) => {
@@ -305,7 +343,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         return body;
                     })
                     .then(body => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
+                        + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
                     .then(() => common.testGetStatus(20, 60 * 1000, bigipAddress, bigipAuth,
                         constants.HTTP_SUCCESS))
                     .then(() => {
@@ -324,25 +362,31 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             });
         });
 
-        it('should have licensed', () => new Promise((resolve, reject) => getAuditLink(bigIqAddress, bigipAddress, bigIqAuth)
-            .then((auditLink) => {
-                // save the licensing link to compare against later
-                oldAuditLink = auditLink;
-                assert.ok(auditLink);
-                resolve();
-            })
-            .catch((error) => {
-                console.log(error);
-                return common.dumpDeclaration(bigipAddress, bigipAuth);
-            })
-            .then((declarationStatus) => {
-                reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-            })
-            .catch((err) => {
-                reject(err);
-            })));
+        it('should have licensed', () => {
+            logger.info(this.ctx.test.title);
+            return new Promise((resolve, reject) => {
+                getAuditLink(bigIqAddress, bigipAddress, bigIqAuth)
+                    .then((auditLink) => {
+                        // save the licensing link to compare against later
+                        oldAuditLink = auditLink;
+                        assert.ok(auditLink);
+                        resolve();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return common.dumpDeclaration(bigipAddress, bigipAuth);
+                    })
+                    .then((declarationStatus) => {
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            });
+        });
 
         it('should have re-licensed with new pool', () => new Promise((resolve, reject) => {
+            logger.info(this.ctx.test.title);
             const bodyFileRevokingRelicensing = `${BODIES}/revoking_relicensing_big_iq.json`;
             // now revoke and re-license using another license pool
             return common.readFile(bodyFileRevokingRelicensing)
@@ -356,7 +400,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     return body;
                 })
                 .then(body => common.testRequest(body, `${common.hostname(bigipAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
+                    + `${constants.DO_API}`, bigipAuth, constants.HTTP_ACCEPTED, 'POST'))
                 .then(() => common.testGetStatus(20, 60 * 1000, bigipAddress,
                     bigipAuth, constants.HTTP_SUCCESS))
                 .then(() => getAuditLink(bigIqAddress, bigipAddress, bigIqAuth))
@@ -381,36 +425,40 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 });
         }));
 
-        it('should have revoked old license', () => new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
-            .then((token) => {
-                const options = common.buildBody(oldAuditLink, null, { token }, 'GET');
-                return common.sendRequest(options);
-            })
-            .then((response) => {
-                if (response.response.statusCode !== constants.HTTP_SUCCESS) {
-                    reject(new Error('could not check revoking'));
-                }
-                return response.body;
-            })
-            .then(JSON.parse)
-            .then((assignment) => {
-                assert.strictEqual(assignment.status, 'REVOKED');
-            })
-            .then(() => {
-                resolve();
-            })
-            .catch((error) => {
-                console.log(error);
-                return common.dumpDeclaration(bigipAddress, bigipAuth);
-            })
-            .then((declarationStatus) => {
-                reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-            })
-            .catch((err) => {
-                reject(err);
-            })));
+        it('should have revoked old license', () => {
+            logger.info(this.ctx.test.title);
+            return new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
+                .then((token) => {
+                    const options = common.buildBody(oldAuditLink, null, { token }, 'GET');
+                    return common.sendRequest(options);
+                })
+                .then((response) => {
+                    if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+                        reject(new Error('could not check revoking'));
+                    }
+                    return response.body;
+                })
+                .then(JSON.parse)
+                .then((assignment) => {
+                    assert.strictEqual(assignment.status, 'REVOKED');
+                })
+                .then(() => {
+                    resolve();
+                })
+                .catch((error) => {
+                    console.log(error);
+                    return common.dumpDeclaration(bigipAddress, bigipAuth);
+                })
+                .then((declarationStatus) => {
+                    reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                })
+                .catch((err) => {
+                    reject(err);
+                }));
+        });
 
         it('should have revoked new license', () => new Promise((resolve, reject) => {
+            logger.info(this.ctx.test.title);
             let body;
             const bodyFileRevoking = `${BODIES}/revoke_from_bigiq.json`;
             return common.readFile(bodyFileRevoking)
@@ -424,7 +472,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .then(() => getF5Token(bigIqAddress, bigIqAuth))
                 .then((token) => {
                     const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
-                            + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
+                        + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
                     body, { token }, 'POST');
                     return common.sendRequest(options);
                 })
@@ -492,6 +540,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 username: thisMachine.adminUsername,
                 password: thisMachine.adminPassword
             };
+            const query = { statusCodes: 'experimental' };
+
             return new Promise((resolve, reject) => {
                 // get current configuration to compare against later
                 common.testGetStatus(1, 1, bigipAddress, auth, constants.HTTP_SUCCESS)
@@ -507,7 +557,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             + `${constants.DO_API}`, auth, constants.HTTP_ACCEPTED, 'POST');
                     })
                     .then(() => common.testGetStatus(3, 60 * 1000, bigipAddress, auth,
-                        constants.HTTP_UNPROCESSABLE))
+                        constants.HTTP_SUCCESS, query))
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                         resolve();
@@ -526,18 +576,21 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should have rollback status', () => {
+            logger.info(this.ctx.test.title);
             // this is a bit weird, because testGetStatus will resolve if the status we passed in
             // is the one found after the request. Since we asked for HTTP_UNPROCESSABLE, it will actually
-            // resolve iff the configuration was indeed rollbacked. At this point then, since before has
+            // resolve if the configuration was indeed rollbacked. At this point then, since before has
             // resolved, we can just assert the response
             assert.ok(currentState);
         });
 
         it('should match VLAN', () => {
+            logger.info(this.ctx.test.title);
             assert.ok(testVlan(body.VLAN.myVlan, currentState));
         });
 
         it('should match routing', () => {
+            logger.info(this.ctx.test.title);
             assert.ok(testRoute(body.Route.myRoute, currentState));
         });
     });
@@ -569,7 +622,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     currentAuth.ldap.bindPassword = '';
                 }
                 if (typeof currentAuth.radius !== 'undefined'
-                        && typeof currentAuth.radius.servers !== 'undefined') {
+                    && typeof currentAuth.radius.servers !== 'undefined') {
                     const radiusServers = currentAuth.radius.servers;
                     Object.keys(radiusServers).forEach((rsName) => {
                         radiusServers[rsName].secret = '';
@@ -578,16 +631,21 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             }
         };
 
-        it('should get declaration with current device\'s configuration', () => common.testRequest(
-            null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
-            authData, constants.HTTP_SUCCESS, 'GET'
-        )
-            .then(JSON.parse)
-            .then((body) => {
-                assert.notStrictEqual(body[0].declaration, undefined, 'Should have "declaration" property');
-            }));
+        it('should get declaration with current device\'s configuration', () => {
+            logger.info(this.ctx.test.title);
+            return common.testRequest(
+                null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
+                authData, constants.HTTP_SUCCESS, 'GET'
+            )
+                .then(JSON.parse)
+                .then((body) => {
+                    assert.notStrictEqual(body[0].declaration, undefined, 'Should have "declaration" property');
+                });
+        });
 
         it('should post declaration with current device\'s configuration', () => {
+            logger.info(this.ctx.test.title);
+
             let originDeclaration;
 
             return common.testRequest(
@@ -616,6 +674,38 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     removeSecrets(declaration);
                     removeSecrets(originDeclaration);
                     assert.deepStrictEqual(declaration, originDeclaration, 'Should match original declaration');
+                });
+        });
+    });
+
+    describe('Test Example Endpoint', () => {
+        const exampleEndpoint = `${constants.DO_API}/example`;
+        let thisMachine;
+        let authData;
+
+        before(() => {
+            thisMachine = machines[0];
+            authData = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
+        });
+
+        it('should retrieve an example', () => {
+            logger.info(this.ctx.test.title);
+
+            return common.testRequest(
+                null,
+                `${common.hostname(thisMachine.ip, constants.PORT)}${exampleEndpoint}`,
+                authData,
+                constants.HTTP_SUCCESS,
+                'GET',
+                1
+            )
+                .then(JSON.parse)
+                .then((body) => {
+                    logger.debug(`Got example ${JSON.stringify(body)}`);
+                    assert.notStrictEqual(body.Common, undefined);
                 });
         });
     });
@@ -659,34 +749,52 @@ function getF5Token(deviceIp, auth) {
 function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
     return getF5Token(bigIqAddress, bigIqAuth)
         .then((token) => {
-            const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
+            const func = function () {
+                const options = common.buildBody(
+                    `${common.hostname(bigIqAddress, constants.PORT)}`
                     + `${constants.ICONTROL_API}/cm/device/licensing/assignments`,
-            null, { token }, 'GET');
-            return common.sendRequest(options);
-        })
-        .then((response) => {
-            if (response.response.statusCode !== constants.HTTP_SUCCESS) {
-                return Promise.reject(new Error('could not license'));
-            }
-            return response.body;
-        })
-        .then(response => JSON.parse(response))
-        .then(response => response.items)
-        .then((assignments) => {
-            const assignment = assignments.find(current => current.deviceAddress === bigIpAddress);
-            if (assignment) {
-                const licensingStatus = assignment.status;
-                if (licensingStatus === 'LICENSED') {
-                    const auditLink = assignment.auditRecordReference.link;
-                    // audit links come with the ip address as localhost, we need to
-                    // replace it with the address of the BIG-IQ, in order to use it later
-                    // to check licensing of a particular device
-                    const auditLinkRemote = auditLink.replace(/localhost/gi, bigIqAddress);
-                    return auditLinkRemote;
-                }
-                return Promise.reject(new Error(`device license status : ${licensingStatus}`));
-            }
-            return Promise.reject(new Error('no license match for device address'));
+                    null,
+                    { token },
+                    'GET'
+                );
+                return common.sendRequest(options)
+                    .then((response) => {
+                        if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+                            return Promise.reject(new Error('could not license'));
+                        }
+                        return response.body;
+                    })
+                    .then(response => JSON.parse(response))
+                    .then(response => response.items)
+                    .then((assignments) => {
+                        logger.debug(`current assignments: ${JSON.stringify(
+                            assignments.map(
+                                assignment => ({
+                                    deviceAddress: assignment.deviceAddress,
+                                    status: assignment.status,
+                                    id: assignment.id
+                                })
+                            ),
+                            null,
+                            4
+                        )}`);
+                        const assignment = assignments.find(current => current.deviceAddress === bigIpAddress);
+                        if (assignment) {
+                            const licensingStatus = assignment.status;
+                            if (licensingStatus === 'LICENSED') {
+                                const auditLink = assignment.auditRecordReference.link;
+                                // audit links come with the ip address as localhost, we need to
+                                // replace it with the address of the BIG-IQ, in order to use it later
+                                // to check licensing of a particular device
+                                const auditLinkRemote = auditLink.replace(/localhost/gi, bigIqAddress);
+                                return auditLinkRemote;
+                            }
+                            return Promise.reject(new Error(`device license status : ${licensingStatus}`));
+                        }
+                        return Promise.reject(new Error('no license match for device address'));
+                    });
+            };
+            return common.tryOften(func, 5, 30 * 1000);
         });
 }
 

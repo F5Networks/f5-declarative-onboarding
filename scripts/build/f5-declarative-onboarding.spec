@@ -23,6 +23,7 @@ mkdir -p %{_builddir}/schema
 cp %{main}/package.json %{_builddir}
 cp -r %{main}/src %{_builddir}
 cp -r %{main}/node_modules %{_builddir}
+cp -r %{main}/examples %{_builddir}
 echo -n %{version}-%{release} > %{_builddir}/version
 
 %install
@@ -34,6 +35,7 @@ cp %{_builddir}/version $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/src/lib $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/src/nodejs $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/src/schema/latest $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}/schema
+cp -r %{_builddir}/examples $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 $(cd $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}/schema; ln -s latest/*.json .)
 cp -r %{_builddir}/node_modules $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 mv $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}/nodejs/manifest.json $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
