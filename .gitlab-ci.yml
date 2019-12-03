@@ -498,8 +498,8 @@ publish to artifactory:
     script:
         - RPM_FILE=$(ls dist/*.rpm)
         - RPM_NAME=$(basename $RPM_FILE)
-        - HASH_FILE=${RPM_FILE}.sha256.txt
-        - HASH_NAME=$(basename $HASH_FILE)
+        - HASH_FILE=${RPM_FILE}.sha256
+        - HASH_NAME=$(basename $HASH_FILE).txt
         - POSTMAN_FILE=$(ls dist/*.collection.json)
         - POSTMAN_NAME=$(basename $POSTMAN_FILE)
         - >-
