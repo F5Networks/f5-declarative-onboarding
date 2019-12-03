@@ -42,19 +42,43 @@ GET
 You can use the GET method to retrieve the status of declarations you previously sent to Declarative Onboarding. Use the GET method to the URI
 ``https://<BIG-IP>/mgmt/shared/declarative-onboarding``.  Only declarations you create
 in Declarative Onboarding return, GET does not return anything that was not created by Declarative Onboarding.
-You can also use ``https://<BIG-IP>/mgmt/shared/declarative-onboarding?show=full`` to retrieve the original and current configuration.
 
 .. NOTE:: If you are using a single NIC BIG-IP system, you must include port 8443 after your IP address in your GET: **https://<BIG-IP>:8443/mgmt/shared/declarative-onboarding**
 
-|
+.. _getquery:
+
+GET query parameters
+^^^^^^^^^^^^^^^^^^^^
 
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The following two new GET endpoints are available in Declarative Onboarding v1.4 and later.
+   **statusCodes** is available in DO v1.9.0 and later. 
+
+You can use the following optional URL query parameters with a GET request.  
+
+The statusCodes parameter is only available in DO 1.9.0 and later.  
+
++-------------------------+----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Query Parameter         | Options              | Description/Notes                                                                                                                                                                                                                                                                                                                                                   |
++=========================+======================+=====================================================================================================================================================================================================================================================================================================================================================================+
+| show                    | full                 | Using **?show=full** retrieves the original and current configuration.                                                                                                                                                                                                                                                                                              |
++-------------------------+----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| statusCodes             | legacy, experimental | In DO 1.9.0+, using statusCodes determines how DO returns HTTP status codes. **Legacy** is the default, the GET response will return any errors as the HTTP status. With **experimental**, a GET request returns a 200 HTTP status code unless there is an actual error with the request. The results in the body of the response contain the status of the task.   |
++-------------------------+----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+**Examples**
+
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding?show=full`` |br| DO returns the original and current configuration.
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding?statusCodes=legacy``  |br| If there is an error, the GET response would return that error as the HTTP status, but the GET request itself would not error.
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding?statusCodes=experimental``  |br| Returns a 200 HTTP status code unless there is an issue with the request.  The results contain the status. 
+
+|
 
 .. _getnote:
 
-**Declarative Onboarding v1.4 introduces two new endpoints for the GET method**
+Additional endpoints for GET
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Declarative Onboarding v1.4 introduced two new endpoints for the GET method
 
 - ``/shared/declarative-onboarding/task`` with optional ``/<taskId>``  
   If you do not specify a taskId, DO returns an array of all tasks. If you use the taskId, DO returns the specific task.  The response looks like that for the POST response.
@@ -79,6 +103,7 @@ You can also use ``https://<BIG-IP>/mgmt/shared/declarative-onboarding?show=full
             }
         }
     ]
+
 
 When the task has completed, you see the code, status and message change:
 
@@ -175,17 +200,17 @@ The full endpoint is **https://MGMT_IP/mgmt/shared/declarative-onboarding/inspec
 
 You can use the following optional URL query parameters with a GET request to the /inspect endpoint:
 
-+-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Query Parameter         | Options    | Description/Notes                                                                                                                                                                                       |
-+=========================+============+=========================================================================================================================================================================================================+
-| targetHost              | IP or string     | targetHost allows you to specify the IP address or domain name of the host from which you want to retrieve the current configuration. If you do not use this parameter, localhost is used.        |
-+-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| targetPort              | integer    | The port for the targetHost (min=0, max=65535).  The default value is either 443 or 8443; if no targetPort value is provided, DO tries to establish a connection to the host using one of these ports). |
-+-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| targetUsername          | string     |  The username for the targetHost.  The default is **admin**                                                                                                                                             |
-+-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| targetPassword          | string     |  The password for the targetHost.  The default is **admin**                                                                                                                                             |
-+-------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++-------------------------+--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Query Parameter         | Options      | Description/Notes                                                                                                                                                                                       |
++=========================+==============+=========================================================================================================================================================================================================+
+| targetHost              | IP or string | targetHost allows you to specify the IP address or domain name of the host from which you want to retrieve the current configuration. If you do not use this parameter, localhost is used.              |
++-------------------------+--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| targetPort              | integer      | The port for the targetHost (min=0, max=65535).  The default value is either 443 or 8443; if no targetPort value is provided, DO tries to establish a connection to the host using one of these ports). |
++-------------------------+--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| targetUsername          | string       |  The username for the targetHost.  The default is **admin**                                                                                                                                             |
++-------------------------+--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| targetPassword          | string       |  The password for the targetHost.  The default is **admin**                                                                                                                                             |
++-------------------------+--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 **Examples**
 
@@ -342,6 +367,9 @@ Example of the response for error 409
             }
         }
     ]
+
+
+|
 
 
 

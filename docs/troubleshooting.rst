@@ -55,13 +55,16 @@ You can find historical files on GitHub by using the **Branch** drop-down, click
 
 |
 
-Why is a GET request no longer returning the error code as the HTTP status when an error occurs?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Beginning with DO 1.9.0, F5 has changed the response from a GET request. Previously, if there was a task that had an error, the GET response would return that error as the HTTP status, but the GET request itself would not error. This meant that in some cases, it would look like the request failed when it was actually successful.
+.. _newget:
 
-In DO 1.9.0 and later, a GET request returns a 200 status code unless there is an actual issue with the request. The results of the request contains the status. 
+How can I see HTTP status in a GET request?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In DO versions 1.8.0 and earlier, if there was a task that had an error, the GET response would return that error as the HTTP status.
 
-This change in behavior could break compatibility with previous versions of DO.
+In DO 1.9.0 and later, there is a new query parameter (**statusCodes**) that allows a GET request to return a 200 status code unless there is an actual error with the request. The results in the body of the response contain the status of the task. You can use **statusCodes=legacy** if you want the behavior in DO versions 1.8.0 and earlier as described above.
+
+See :ref:`GET on the HTTP Methods page <getquery>` for more information and usage options.
+
 
 
 .. |github54| raw:: html
