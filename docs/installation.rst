@@ -8,7 +8,7 @@ Downloading the RPM file
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The first task is to download the latest RPM file.  Go to the |github|, and download the latest (highest numbered) RPM file.
 
-.. IMPORTANT:: Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
+.. IMPORTANT:: Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**. You can find historical files on GitHub by using the **Branch** drop-down, clicking the **Tags** tab, and then selecting the appropriate release.
 
 .. TIP:: Once you have downloaded the RPM, we recommend :ref:`hash-ref`.
 

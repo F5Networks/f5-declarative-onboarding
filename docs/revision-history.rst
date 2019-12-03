@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 2.6
+        - Updated the documentation for Declarative Onboarding v1.9.0.  This release contains the following changes: |br| * Added a new query parameter for GET requests for HTTP status codes (see :ref:`getquery`)  |br| * Added a link to the AskF5 article for DO and BIG-IQ compatibility |br| |br| Issues Resolved: |br| * DO was unable to set hostname in AWS environment (`K45728203 <https://support.f5.com/csp/article/K45728203>`_) |br| * Changes to the network property for ManagementRoute and Route would not actually update the config (`Issue 75 <https://github.com/F5Networks/f5-declarative-onboarding/issues/75>`_) |br| * The /example endpoint was not working.
+        - 12-03-19
+
       * - 2.5
         - Updated the documentation for Declarative Onboarding v1.8.0.  This release contains the following changes: |br| * Added support for SSHD (see the :ref:`SSHD example<sshex>`) |br| * Added support for HTTPD (see the :ref:`HTTPD example<httpdex>`) |br| * Added a System class which includes cliInactivityTimeout, consoleInactivityTimeout, and hostname (see :ref:`System example<systemex>`) |br| * Added a note about DO collecting non-identifiable usage data (see :ref:`notestips`) |br| * Added a troubleshooting entry and other notes about DO performing hostname resolution, and failing if the hostname resolution fails (see :ref:`Troubleshooting<hostnameres>`) |br| * Added a troubleshooting entry and other notes about the **/dist** directory going away on GitHub, and the DO RPM being available as a release Asset (see :ref:`Troubleshooting<nodist>`) |br| |br| Issues Resolved: |br| * DO was unable to use management network for SnmpTrapDestination |br| * DO creates incomplete RADIUS authentication configuration |br| * DO was unable to remove Radius System Auth configuration |br| * DO does not remove secondary Radius server when it is absent in declaration
         - 10-22-19

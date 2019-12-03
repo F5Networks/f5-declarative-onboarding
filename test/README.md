@@ -18,7 +18,7 @@ If `npx` is available on your system, you can run the locally installed version 
     * Note: For future runs of the test, you'll need to delete and relaunch not only the BIG-IPs but the Stack object as well.
   * You will also need a BIG-IQ.
     * This BIG-IQ needs to be setup and running, make note of the login credentials for step 4.
-    * Get two "clpv2 license F5-BIG-MSP-LOADV2-LIC" licenses from go/license.
+    * Get two "clpv2 license F5-BIG-MSP-LOADV2-LIC" eval (not dev) licenses from go/license.
       * Then add them to the BIG-IQ via Devices -> 'License Management' -> Licenses -> click 'Add License'
       * Name one 'myLicense' and the other 'myOtherLicensePool'
 2. A Harness file is required to run the functional testing. This file will need the following (example below):
@@ -37,12 +37,14 @@ If `npx` is available on your system, you can run the locally installed version 
       * `tmsh modify sys sshd include "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,aes192-cbc,aes256-cbc,arcfour,rijndael-cbc@lysator.liu.se"`
       * Note: This command occassionally has issues on 14.1.
 3. To setup the BIG-IPs for testing, run the following command from the root of the DO repo:
-  * `RPM_PACKAGE=build/rpmbuild/RPMS/noarch/f5-declarative-onboarding-1.4.0-1.noarch.rpm TEST_HARNESS_FILE=test_harness.json node test/functional/setup.js`
+  * npm run build
+  * npm ci
+  * `RPM_PACKAGE=$(ls -1t dist/*.rpm | head -1) TEST_HARNESS_FILE=test_harness.json node test/integration/setup.js`
     * RPM_PACKAGE: This is the RPM to be used in the testing.
     * TEST_HARNESS_FILE: This is the PATH to the file created in step 2.
   * Note: This will only install the RPM if there's a name change from what is installed.
 4. Now you are able to run the tests you want.
-  * `TEST_HARNESS_FILE=test_harness.json BIG_IQ_HOST=10.145.68.175 BIG_IQ_USERNAME=admin BIG_IQ_PASSWORD=admin ARTIFACTORY_BASE_URL=https://<our_artifactory_url>/artifactory npx mocha test/functional/test.js`
+  * `TEST_HARNESS_FILE=test_harness.json BIG_IQ_HOST=10.145.68.175 BIG_IQ_USERNAME=admin BIG_IQ_PASSWORD=admin ARTIFACTORY_BASE_URL=https://<our_artifactory_url>/artifactory npm run integration`
     * TEST_HARNESS_FILE: This is the PATH to the file created in step 2.
     * BIG_IQ_HOST: IP address to the BIG-IQ setup in step 1.
     * BIG_IQ_USERNAME: The username for the BIG-IQ setup in step 1.
@@ -50,11 +52,13 @@ If `npx` is available on your system, you can run the locally installed version 
     * ARTIFACTORY_BASE_URL: This is the base link to the development artifactory.
   * Note: That due to the setup file in the test directory you are not able to use the '\*' wildcard character. It will fail to run.
   * Note: The tests in test.js are not independent and do require a functional BIG-IQ to run successfully.
+  * Note: Debug logs from the test run are written to test/logs and are available as an artifact from the CI/CD job.
 
 
 ### Example Harness file
 ```json
-[{
+[
+    {
         "admin_ip": "10.1.1.10",
         "admin_username": "admin",
         "admin_password": "admin",

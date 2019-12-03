@@ -17,6 +17,7 @@
 'use strict';
 
 const assert = require('assert');
+const fs = require('fs');
 const sinon = require('sinon');
 const State = require('../../../../src/lib/state');
 const RealValidator = require('../../../../src/lib/validator');
@@ -64,7 +65,8 @@ describe('restWorker', () => {
                 return {
                     query: 'foo'
                 };
-            }
+            },
+            getMethod() { return 'Get'; }
         };
         sinon.stub(doUtilMock, 'rebootRequired').resolves(false);
     });
@@ -490,6 +492,7 @@ describe('restWorker', () => {
 
         const code1234 = 200;
         const code5678 = 300;
+        const code8888 = 422;
         const declaration1234 = {
             foo: 'bar'
         };
@@ -512,6 +515,11 @@ describe('restWorker', () => {
                             internalDeclaration: declaration5678,
                             result: {
                                 code: code5678
+                            }
+                        },
+                        8888: {
+                            result: {
+                                code: code8888
                             }
                         }
                     }
@@ -576,6 +584,64 @@ describe('restWorker', () => {
                 reject(err);
             }
         }));
+
+        it('should return 200 for an invalid task using experimental statusCodes', () => new Promise((resolve, reject) => {
+            restOperationMock.complete = () => {
+                assert.strictEqual(Array.isArray(responseBody), false);
+                assert.strictEqual(responseBody.result.code, 422);
+                assert.strictEqual(statusCode, 200);
+                resolve();
+            };
+            restOperationMock.getUri = () => ({
+                pathname: '/shared/declarative-onboarding/task/8888',
+                query: { statusCodes: 'experimental' }
+            });
+
+            try {
+                restWorker.onGet(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
+        it('should return 422 for an invalid task using legacy statusCodes', () => new Promise((resolve, reject) => {
+            restOperationMock.complete = () => {
+                assert.strictEqual(Array.isArray(responseBody), false);
+                assert.strictEqual(responseBody.result.code, 422);
+                assert.strictEqual(statusCode, 422);
+                resolve();
+            };
+            restOperationMock.getUri = () => ({
+                pathname: '/shared/declarative-onboarding/task/8888',
+                query: { statusCodes: 'legacy' }
+            });
+
+            try {
+                restWorker.onGet(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+    });
+
+    describe('getExampleState', () => {
+        let restWorker;
+
+        beforeEach(() => {
+            restWorker = new RestWorker();
+        });
+
+        it('should return contents of onboard.json', () => {
+            sinon.stub(fs, 'readFileSync').callsFake(() => (JSON.stringify({ hello: 'world' })));
+            const response = restWorker.getExampleState();
+            assert.deepEqual(response, { hello: 'world' });
+        });
+
+        it('should handle errors gracefully', () => {
+            sinon.stub(fs, 'readFileSync').throws();
+            const response = restWorker.getExampleState();
+            assert.deepEqual(response, { message: 'no example available' });
+        });
     });
 
     describe('onDelete', () => {
@@ -654,6 +720,7 @@ describe('restWorker', () => {
         let saveCalled;
 
         beforeEach(() => {
+            restOperationMock.getMethod = () => 'Post';
             ConfigManagerMock.prototype.get = () => Promise.resolve();
 
             DeclarationHandlerMock.prototype.process = () => Promise.resolve();
@@ -803,7 +870,6 @@ describe('restWorker', () => {
                         vlan: 'foo'
                     }
                 }
-
             };
             restWorker.validator = new RealValidator();
 

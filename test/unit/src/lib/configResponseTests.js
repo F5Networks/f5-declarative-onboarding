@@ -141,4 +141,13 @@ describe('configResponse', () => {
                 lastUpdate: 'last update 5678'
             });
     });
+
+    it('should return httpStatus of 404 when it does not exist', () => {
+        assert.deepEqual(
+            configResponse.getData(123),
+            {
+                httpStatus: 404
+            }
+        );
+    });
 });

@@ -255,33 +255,46 @@ function handleSelfIp() {
 }
 
 function handleRoute() {
-    return new Promise((resolve, reject) => {
-        const promises = [];
-        doUtil.forEach(this.declaration, 'Route', (tenant, route) => {
-            if (route && route.name) {
-                const routeBody = {
-                    name: route.name,
-                    partition: tenant,
-                    gw: route.gw,
-                    network: route.network,
-                    mtu: route.mtu
-                };
+    const promises = [];
+    doUtil.forEach(this.declaration, 'Route', (tenant, route) => {
+        let promise = Promise.resolve();
+        const mask = route.network.includes(':') ? 128 : 32;
+        route.network = route.network !== 'default' && route.network !== 'default-inet6'
+            && !route.network.includes('/') ? `${route.network}/${mask}` : route.network;
+        // Need to do a delete if the network property is updated
+        if (this.state.currentConfig.Common.Route
+            && this.state.currentConfig.Common.Route[route.name]
+            && this.state.currentConfig.Common.Route[route.name].network !== route.network) {
+            promise = promise.then(() => this.bigIp.delete(
+                `${PATHS.Route}/~Common~${route.name}`,
+                null,
+                null,
+                cloudUtil.NO_RETRY
+            ));
+        }
 
-                promises.push(
-                    this.bigIp.createOrModify(PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY)
-                );
-            }
-        });
+        if (route && route.name) {
+            const routeBody = {
+                name: route.name,
+                partition: tenant,
+                gw: route.gw,
+                network: route.network,
+                mtu: route.mtu
+            };
 
-        Promise.all(promises)
-            .then(() => {
-                resolve();
-            })
-            .catch((err) => {
-                logger.severe(`Error creating routes: ${err.message}`);
-                reject(err);
-            });
+            promise = promise.then(() => this.bigIp.createOrModify(
+                PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY
+            ));
+        }
+
+        promises.push(promise);
     });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating routes: ${err.message}`);
+            throw err;
+        });
 }
 
 function handleTrunk() {

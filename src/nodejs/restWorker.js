@@ -377,7 +377,7 @@ class RestWorker {
         let exampleResponse;
 
         try {
-            const example = `${__dirname}/../../../examples/onboard.json`;
+            const example = `${__dirname}/../examples/onboard.json`;
             exampleResponse = JSON.parse(fs.readFileSync(example).toString());
         } catch (err) {
             logger.warning(`Error reading example file: ${err}`);
@@ -1106,14 +1106,18 @@ function sendResponse(restOperation, endpoint, itemId) {
     response.getResponse()
         .then((body) => {
             restOperation.setBody(body);
-            if (Array.isArray(response)) {
+            const query = restOperation.getUri().query;
+            // TODO for next major release (DO 2.0): Remove query && query.statusCodes from subsequent line
+            if (body && body.httpStatus && query && query.statusCodes === 'experimental') {
+                restOperation.setStatusCode(body.httpStatus);
+            } else if (Array.isArray(response)) {
                 restOperation.setStatusCode(200);
             } else if (body && body.result && body.result.code) {
                 restOperation.setStatusCode(body.result.code);
             } else {
                 restOperation.setStatusCode(200);
             }
-
+            delete body.httpStatus;
             restOperation.complete();
         })
         .catch((err) => {
@@ -1136,18 +1140,19 @@ function forgeResponse(restOperation, endpoint, itemId) {
 
     const doState = new State(this.state.doState);
     let responder;
+    const method = restOperation.getMethod().toUpperCase();
     switch (endpoint) {
     case ENDPOINTS.CONFIG:
-        responder = new ConfigResponse(doState);
+        responder = new ConfigResponse(doState, method);
         break;
     case ENDPOINTS.INFO:
-        responder = new InfoResponse();
+        responder = new InfoResponse(method);
         break;
     case ENDPOINTS.INSPECT:
-        responder = new InspectResponse(restOperation.getUri().query);
+        responder = new InspectResponse(restOperation.getUri().query, method);
         break;
     case ENDPOINTS.TASK: {
-        responder = new TaskResponse(doState);
+        responder = new TaskResponse(doState, method);
         break;
     }
     default:
