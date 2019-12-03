@@ -194,6 +194,10 @@ function handleSystem() {
         if (typeof system.cliInactivityTimeout !== 'undefined') {
             promises.push(this.bigIp.modify(PATHS.CLI, { idleTimeout: system.cliInactivityTimeout / 60 }));
         }
+        if (typeof system.autoPhonehome !== 'undefined') {
+            const phonehome = system.autoPhonehome ? 'enabled' : 'disabled';
+            promises.push(this.bigIp.modify(PATHS.Phonehome, { autoPhonehome: phonehome }));
+        }
     }
 
     return Promise.all(promises);

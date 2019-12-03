@@ -307,7 +307,7 @@ function mapTruth(configObject, property) {
 }
 
 /**
- * Process item proerty
+ * Process item property
  *
  * @param {Object} property                            - property object
  * @param {String} [property.id]                       - property name

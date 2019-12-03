@@ -753,7 +753,7 @@ function patchSys(schemaMerge, sysClass, sysItem) {
     patchedClass = mapSchemaMerge.call(this, sysClassCopy, patchedItem, schemaMerge);
     if (sysItem.cliInactivityTimeout === 'disabled') {
         patchedClass.cliInactivityTimeout = 0;
-    } else if (typeof patchedClass.cliInactivityTimeout !== 'undefined') {
+    } else if (typeof sysItem.cliInactivityTimeout !== 'undefined') {
         patchedClass.cliInactivityTimeout = parseInt(patchedClass.cliInactivityTimeout, 10) * 60;
     }
     return patchedClass;

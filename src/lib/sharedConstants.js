@@ -60,7 +60,8 @@ module.exports = {
         DagGlobals: '/tm/net/dag-globals',
         TrafficControl: '/tm/ltm/global-settings/traffic-control',
         HTTPD: '/tm/sys/httpd',
-        SSHD: '/tm/sys/sshd'
+        SSHD: '/tm/sys/sshd',
+        Phonehome: '/tm/sys/software/update'
     },
     STATUS: {
         STATUS_OK: 'OK',
