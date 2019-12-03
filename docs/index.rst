@@ -31,6 +31,7 @@ Use the following links, the navigation on the left, and/or the Next and Previou
    prereqs
    components
    using-do
+   troubleshooting
    examples
    revision-history
    schema-reference
