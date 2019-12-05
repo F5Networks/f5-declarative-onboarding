@@ -16,7 +16,12 @@
 
 'use strict';
 
-const assert = require('assert');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chai.use(chaiAsPromised);
+const assert = chai.assert;
+
 const sinon = require('sinon');
 
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
@@ -154,6 +159,32 @@ describe('authHandler', () => {
                     assert.strictEqual(deletePath.length, 1);
                     assert.strictEqual(deletePath[0], '/tm/auth/radius-server/~Common~system_auth_name2');
                 });
+        });
+
+        it('should ignore non-primary/secondary servers', () => {
+            const deletePath = [];
+            bigIpMock.delete = (path) => {
+                deletePath.push(path);
+                return Promise.resolve();
+            };
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'radius',
+                        fallback: true,
+                        radius: {
+                            servers: {
+                                name: 'foo',
+                                server: '1.2.3.4',
+                                port: 1811,
+                                secret: 'something'
+                            }
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return assert.isFulfilled(authHandler.process());
         });
     });
 
