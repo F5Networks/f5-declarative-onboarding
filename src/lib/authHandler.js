@@ -92,7 +92,7 @@ function handleRemoteAuthRoles() {
 function handleRadius() {
     const radius = this.declaration.Common.Authentication.radius;
 
-    if (!radius || !radius.servers) {
+    if (!radius || !radius.servers || !radius.servers.primary) {
         return Promise.resolve();
     }
     const serverProms = [];
