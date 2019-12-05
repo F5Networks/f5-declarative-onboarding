@@ -72,7 +72,8 @@ module.exports = {
         STATUS_REVOKING: 'REVOKING'
     },
     EVENTS: {
-        DO_LICENSE_REVOKED: 'DO_LICENSE_REVOKED'
+        LICENSE_WILL_BE_REVOKED: 'DO_LICENSE_WILL_BE_REVOKED',
+        READY_FOR_REVOKE: 'DO_READY_FOR_REVOKE'
     },
     NAMELESS_CLASSES: [
         'DbVariables',

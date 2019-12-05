@@ -98,22 +98,20 @@ class RestWorker {
 
         // If this device's license is going to be revoked, services will
         // restart and we need to know that's what happened when this worker is restarted.
-        this.eventEmitter.on(EVENTS.DO_LICENSE_REVOKED, (taskId, bigIpPassword, bigIqPassword) => {
+        this.eventEmitter.on(EVENTS.LICENSE_WILL_BE_REVOKED, (taskId, bigIpPassword, bigIqPassword) => {
             doUtil.getCurrentPlatform()
                 .then((platform) => {
                     if (platform === PRODUCTS.BIGIP) {
-                        // if we need to relicense after we restart, so store passwords
-                        cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID);
-                        cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID);
-
-                        this.state.doState.updateResult(
-                            taskId,
-                            202,
-                            STATUS.STATUS_REVOKING,
-                            'revoking license'
-                        );
-                        save.call(this);
+                        logger.debug('Prepping for revoke');
+                        return prepForRevoke.call(this, taskId, bigIpPassword, bigIqPassword);
                     }
+                    return Promise.resolve();
+                })
+                .then(() => {
+                    logger.debug('State ready for revoke');
+                    this.eventEmitter.emit(
+                        EVENTS.READY_FOR_REVOKE
+                    );
                 })
                 .catch((err) => {
                     logger.warning(`Error handling onStartCompleted: ${err.message}`);
@@ -744,6 +742,7 @@ function handleStartupState(success, error) {
                     Promise.resolve()
                         .then(() => {
                             if (hasBigIpUser) {
+                                logger.debug('Decrypting BIG-IP user data');
                                 return cryptoUtil.decryptId(BIG_IP_ENCRYPTION_ID);
                             }
                             return Promise.resolve();
@@ -754,6 +753,7 @@ function handleStartupState(success, error) {
                                 deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID));
                             }
                             if (hasBigIqUser) {
+                                logger.debug('Decrypting BIG-IQ user data');
                                 return cryptoUtil.decryptId(BIG_IQ_ENCRYPTION_ID);
                             }
                             return Promise.resolve();
@@ -763,6 +763,7 @@ function handleStartupState(success, error) {
                                 declaration.Common[licenseName].bigIqPassword = password;
                                 deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID));
                             }
+                            logger.debug('Deleting encrypted data');
                             return Promise.all(deletePromises);
                         })
                         .then(() => onboard.call(this, declaration, {}, currentTaskId))
@@ -1227,6 +1228,30 @@ function getPathInfo(uri) {
         }
     }
     return pathInfo;
+}
+
+function prepForRevoke(taskId, bigIpPassword, bigIqPassword) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
+    const encryptPromises = [];
+    // if we need to relicense after we restart, so store passwords
+    encryptPromises.push(cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID));
+    encryptPromises.push(cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID));
+
+    return Promise.all(encryptPromises)
+        // We have to save sys config here to save the enrypted data in case
+        // something restarts
+        .then(() => this.bigIps[taskId].save())
+        .then(() => {
+            this.state.doState.updateResult(
+                taskId,
+                202,
+                STATUS.STATUS_REVOKING,
+                'revoking license'
+            );
+            return save.call(this);
+        });
 }
 
 module.exports = RestWorker;
