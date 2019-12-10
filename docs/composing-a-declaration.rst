@@ -51,6 +51,8 @@ Base components
 ```````````````
 The first few lines of your declaration are a part of the base components and define top-level options. When you POST a declaration, depending on the complexity of your declaration and the modules you are provisioning, it may take some time before the system returns a success message.  You can use the property **"async": "true",** in your declaration, and then use GET to poll for status.
 
+For more information, see |deviceclass| in the Schema Reference.
+
 .. code-block:: javascript
    :linenos:
 
@@ -89,7 +91,9 @@ The next lines of the declaration set the partition (tenant) on the BIG-IP in wh
 
 While not strictly required, you must include Common and the tenant class to set any other parameters in Declarative Onboarding; therefore the required column is set to Yes for the Tenant class.
 
-.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class (introduced in DO 1.8.0).  See :ref:`systemex` for information on the System class.
+For more information, see |devicecommon| in the Schema Reference.
+
+.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class (introduced in DO 1.8.0). We recommend using the :ref:`system-class` for hostname (and have updated this example to move hostname to System).  
 
 .. NOTE:: For the rest of the classes on this page, the required column in the tables applies only if you are using the class in the heading.  None of the classes are required.
 
@@ -100,22 +104,68 @@ While not strictly required, you must include Common and the tenant class to set
 
     "Common": {
         "class": "Tenant",
-        "hostname": "bigip.example.com",
     
         
 |
 
 
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| Parameter          | Options                        | Required*? |  Description/Notes                                                                                                                 |
-+====================+================================+============+====================================================================================================================================+
-| class              | Tenant                         |   Yes      |  Specifies the class for Common is a tenant. The name must be **Common** as in line 6.                                             |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| hostname           | string                         |   No       |  Hostname you want to set for this BIG-IP device. The default hostname on a new BIG-IP is **bigip1**.                              |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+--------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                        | Required*? |  Description/Notes                                                                                                                                                        |
++====================+================================+============+===========================================================================================================================================================================+
+| class              | Tenant                         |   Yes      |  Specifies the class for Common is a tenant. The name must be **Common** as in line 6.                                                                                    |
++--------------------+--------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| hostname           | string                         |   No       |  Hostname you want to set for this BIG-IP device (if you did NOT set hostname in the System class). Hostname is not included in this example because it is set in System. |
++--------------------+--------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
 
+.. _system-class:
+
+System class
+````````````
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring system settings is available in DO v1.8.0 and later. The **autoPhonehome** System property is available in DO v1.10.0 and later.
+
+The next lines of the declaration set the system-level options. This includes inactivity timeouts for CLI and Console sessions, and the ability to disable the phonehome property (see the table for details) in DO 1.10.0 and later. 
+
+For more information, see |systemclass| in the Schema Reference. Also see :ref:`The System Class example<systemex>` for an example declaration.
+
+.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class. We recommend using the System class for hostname
+
+The name *mySystem* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+
+.. code-block:: javascript
+   :linenos:
+   :lineno-start: 9
+
+
+    "mySystem": {
+        "class": "System",
+        "hostname": "bigip.example.com",
+        "cliInactivityTimeout": 1200,
+        "consoleInactivityTimeout": 1200,
+        "autoPhonehome": true
+    }, 
+    
+|
+
+
++--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter                | Options         | Required*? |  Description/Notes                                                                                                                                                                                                                |
++==========================+=================+============+===================================================================================================================================================================================================================================+
+| class                    | System          |   Yes      | Indicates that this property contains system information.                                                                                                                                                                         |
++--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| cliInactivityTimeout     | integer         |   No       | Specifies automatic logout for idle users in TMSH interactive mode. A setting other than 0 automatically logs a user out after a specified number of seconds (multiples of 60). The default value 0 means that no timeout is set. |
++--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| consoleInactivityTimeout | integer         |   No       | Specifies automatic logout for idle serial console sessions (command line sessions) in seconds. The default value 0 means that no timeout is set.                                                                                 |
++--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| hostname                 | string          |   No       | Hostname (if you did NOT set hostname in the Common class) you want to set for this BIG-IP device. The default hostname on a new BIG-IP is **bigip1**.                                                                            |
++--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| autoPhonehome            | **true**, false |   No       | Enables the BIG-IP system to send non-confidential, high-level device information to F5 in order to help determine product usage to optimize product development. Choose False to disable sending this information to F5.         |
++--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+\* The required column applies only if you are using this class.
 
 .. _license-class:
 
@@ -123,12 +173,14 @@ License class
 `````````````
 The next lines of the declaration set the licensing options if you are using an F5 Bring Your Own License (BYOL). If your BIG-IP system already has a license (for example, you are using a pay-as-you-go (PAYG) license), you do not need this class. Contact your F5 sales representative if you require a license.
 
+For more information, see |licenseclass| in the Schema Reference.
+
 The name *myLicense* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 10
+   :lineno-start: 16
 
 
     "myLicense": {
@@ -138,7 +190,6 @@ The name *myLicense* we use in this example is arbitrary; it is not used anywher
     },
         
 |
-
 
 +--------------------+--------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Parameter          | Options                        | Required*? |  Description/Notes                                                                                                                                                |
@@ -161,7 +212,7 @@ The name *myLicense* we use in this example is arbitrary; it is not used anywher
 
 DNS class
 `````````
-The next lines of the declaration set the DNS options on the BIG-IP system. 
+The next lines of the declaration set the DNS options on the BIG-IP system. For more information, see |dnsclass| in the Schema Reference.
 
 The name *myDNS* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
@@ -170,7 +221,7 @@ The name *myDNS* we use in this example is arbitrary; it is not used anywhere in
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 15
+   :lineno-start: 21
 
 
     "myDns": {
@@ -203,7 +254,7 @@ The name *myDNS* we use in this example is arbitrary; it is not used anywhere in
 
 NTP class
 `````````
-The next lines of the declaration set the NTP (network time protocol) options on the BIG-IP. 
+The next lines of the declaration set the NTP (network time protocol) options on the BIG-IP. For more information, see |ntpclass| in the Schema Reference.
 
 The name *myNTP* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
@@ -214,7 +265,7 @@ For instructions on how to get a current list of timezones on the BIG-IP, see ht
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 25
+   :lineno-start: 31
 
 
     "myNtp": {
@@ -247,7 +298,7 @@ For instructions on how to get a current list of timezones on the BIG-IP, see ht
 
 User class
 ``````````
-The next lines of the declaration create (or modify) the users and their associated roles and access control. 
+The next lines of the declaration create (or modify) the users and their associated roles and access control. For more information, see |userclass| in the Schema Reference.
 
 If you are modifying the root password, you must supply the existing root password (**default** on a new BIG-IP). All other user accounts, including admin, do not have this requirement. As mentioned in the :ref:`prereqs`, if you are using BIG-IP v14.0 or later, the root password may be the same as your admin password you reset before installing Declarative Onboarding. 
 
@@ -260,7 +311,7 @@ Note that the **keys** property is not included in the example at the top of thi
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 34
+   :lineno-start: 40
 
 
     "root": {
@@ -341,14 +392,14 @@ Note that the **keys** property is not included in the example at the top of thi
 
 Provision class
 ```````````````
-The next lines of the declaration set the provisioning options on the BIG-IP.  For information on the available modules, see |f5|, and for information on provisioning levels, see |prov|. By default, the BIG-IP has the Local Traffic Manager (ltm) provisioned as nominal.
+The next lines of the declaration set the provisioning options on the BIG-IP.  For information on the available modules, see |f5|, and for information on provisioning levels, see |prov|. By default, the BIG-IP has the Local Traffic Manager (ltm) provisioned as nominal. For more information, see |provisionclass| in the Schema Reference.
 
 The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 67
+   :lineno-start: 73
 
 
     "myProvisioning": {
@@ -376,7 +427,7 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 VLAN class
 ``````````
-The next lines of the declaration configure VLANs on the BIG-IP system. In this case, the name you give the VLAN class is used for the name of the VLAN on the BIG-IP.
+The next lines of the declaration configure VLANs on the BIG-IP system. In this case, the name you give the VLAN class is used for the name of the VLAN on the BIG-IP. For more information, see |vlanclass| in the Schema Reference.
 
 **New in DO 1.7.0 and later**
 Declarative Onboarding v1.7.0 and later includes the **cmp-hash** property, which is not included in this example declaration.  For information on this property, see the table below the example, and :ref:`CMP Hash example<cmphash>`.
@@ -385,7 +436,7 @@ Declarative Onboarding v1.7.0 and later includes the **cmp-hash** property, whic
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 72
+   :lineno-start: 78
 
     "external": {
         "class": "VLAN",
@@ -436,12 +487,14 @@ Declarative Onboarding v1.7.0 and later includes the **cmp-hash** property, whic
 
 Self IP class
 `````````````
-The next lines of the declaration configure self IP address(es) on the BIG-IP system. In this case, the name you give the Self IP class is used for the name of the Self IP on the BIG-IP.
+The next lines of the declaration configure self IP address(es) on the BIG-IP system. In this case, the name you give the Self IP class is used for the name of the Self IP on the BIG-IP.  
+
+For more information, see |ntpclass| in the Schema Reference.
 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 94
+   :lineno-start: 90
 
     "external-self": {
         "class": "SelfIp",
@@ -481,14 +534,14 @@ The next lines of the declaration configure self IP address(es) on the BIG-IP sy
 
 Route class
 ```````````
-The next lines of the declaration configure routes on the BIG-IP system.   In this case, the name you give the Route class is used for the name of the route on the BIG-IP.
+The next lines of the declaration configure routes on the BIG-IP system.   In this case, the name you give the Route class is used for the name of the route on the BIG-IP. For more information, see |routeclass| in the Schema Reference.
 
 In this example, we use the name **default**, which sets the default route on the BIG-IP system.  If you want to create a different route, simply use a unique name (something other than default).
 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 108
+   :lineno-start: 116
 
         "default": {
             "class": "Route",
@@ -521,11 +574,13 @@ Management Route class
 ``````````````````````
 The next lines of the declaration configure the management route on the BIG-IP system. For specific information on management routes, see |mgmtroutes| in the BIG-IP Routing Administration guide.
 
+For more information, see |mgmtrouteclass| in the Schema Reference.
+
 
 
 .. code-block:: bash
    :linenos:
-   :lineno-start: 113
+   :lineno-start: 122
 
         "managementRoute": {
             "class": "ManagementRoute",
@@ -558,14 +613,14 @@ The next lines of the declaration configure the management route on the BIG-IP s
 
 Route Domain class
 ``````````````````
-The next lines of the declaration configure route domains on the BIG-IP system.  For specific information on Route Domains, see the |rddocs|.
+The next lines of the declaration configure route domains on the BIG-IP system.  For specific information on Route Domains, see the |rddocs|. For more information on Route Domains in DO, see |routedomainclass| in the Schema Reference.
 
 With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rdomain>`.
 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 121
+   :lineno-start: 128
 
         "myRouteDomain": {
             "class": "RouteDomain",
@@ -631,14 +686,14 @@ With Route Domains, the **id** is required, and you use the id as an identifier 
 
 DB Variable class
 `````````````````
-The next lines of the declaration enable the ability to set arbitrary database variables in a declaration. You simply supply a name and a value for the database variable you want to use.
+The next lines of the declaration enable the ability to set arbitrary database variables in a declaration. You simply supply a name and a value for the database variable you want to use. For more information, see |dbvarclass| in the Schema Reference.
 
 |
 
 
 .. code-block:: javascript
    :linenos:
-   :lineno-start: 140
+   :lineno-start: 147
 
                 "dbvars": {
                     "class": "DbVariables",
@@ -697,3 +752,65 @@ The next lines of the declaration enable the ability to set arbitrary database v
 .. |rddocs| raw:: html
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-tmos-routing-administration-14-1-0/09.html" target="_blank">Route Domain documentation</a>
+
+
+.. |systemclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#system" target="_blank">System Class</a>
+
+.. |licenseclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#license" target="_blank">License Class</a>
+
+.. |ntpclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#ntp" target="_blank">NTP Class</a>
+
+.. |dnsclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#dns" target="_blank">DNS Class</a>
+
+.. |userclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#user" target="_blank">User Class</a>
+
+.. |provisionclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#provision" target="_blank">Provision Class</a>
+
+.. |vlanclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#vlan" target="_blank">VLAN Class</a>
+
+.. |selfipclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#selfip" target="_blank">Self IP Class</a>
+
+.. |routeclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#route" target="_blank">Route Class</a>
+
+.. |mgmtrouteclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementroute" target="_blank">Management Route Class</a>
+
+.. |routedomainclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routedonain" target="_blank">Route Domain Class</a>
+
+.. |dbvarclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#dbvariables" target="_blank">DB Variables Class</a>
+
+.. |deviceclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#device" target="_blank">Device Class</a>
+
+.. |devicecommon| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#device-common" target="_blank">Device Common Class</a>
+
+
+
+
+
