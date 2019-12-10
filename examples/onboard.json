@@ -6,7 +6,13 @@
     "label": "my BIG-IP declaration for declarative onboarding",
     "Common": {
         "class": "Tenant",
-        "hostname": "bigip.example.com",
+        "mySystem": {
+            "class": "System",
+            "hostname": "bigip.example.com",
+            "cliInactivityTimeout": 1200,
+            "consoleInactivityTimeout": 1200,
+            "autoPhonehome": true
+        },
         "myLicense": {
             "class": "License",
             "licenseType": "regKey",
