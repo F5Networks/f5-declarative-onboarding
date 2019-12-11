@@ -509,7 +509,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                 rejectThis(new Error(err));
                             }));
                     };
-                    return common.tryOften(func, 5, 30 * 1000, [constants.HTTP_ACCEPTED, 'GRANTED'], true);
+                    return common.tryOften(func, 10, 30 * 1000, [constants.HTTP_ACCEPTED, 'GRANTED'], true);
                 })
                 .then(() => {
                     resolve();

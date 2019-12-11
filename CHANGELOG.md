@@ -9,6 +9,7 @@ Changes to this project are documented in this file. More detail and links can b
     - Make sure config is saved before issuing revoke command
     - Fix issue when existing radius servers are present and none are the primary
 ### Changed
+- AUTOTOOL-903: Integration test improvements: Run integration tests against BIG-IP 13.1, 14.0 and 14.1 instances
 ### Removed
 
 ## 1.9.0
