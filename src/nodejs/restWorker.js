@@ -470,31 +470,32 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
     /* jshint validthis: true */
 
     let promise = Promise.resolve();
+
+    promise = promise.then(() => {
+        logger.fine('Getting and saving current configuration');
+        return getAndSaveCurrentConfig.call(this, bigIp, declaration, taskId);
+    });
+
     // Don't overwrite the error state if it's there
     if (this.state.doState.getStatus(taskId) !== STATUS.STATUS_ERROR) {
-        promise = promise.then(() => doUtil.rebootRequired(bigIp)
+        promise = promise.then(() => doUtil.rebootRequired(bigIp))
             .then((rebootRequired) => {
-                if (!rebootRequired) {
-                    logger.fine('No reboot required');
-                    this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
-                } else {
+                if (rebootRequired) {
                     logger.fine('Reboot required.');
-                    this.state.doState.updateResult(
+                    return this.state.doState.updateResult(
                         taskId,
                         202,
                         STATUS.STATUS_REBOOTING,
                         'reboot required'
                     );
                 }
-                return Promise.resolve();
-            }));
+
+                logger.fine('No reboot required');
+                return this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
+            });
     }
 
-    return promise
-        .then(() => {
-            logger.fine('Getting and saving current configuration');
-            return getAndSaveCurrentConfig.call(this, bigIp, declaration, taskId);
-        });
+    return promise;
 }
 
 function rebootIfRequired(bigIp, taskId) {
@@ -622,7 +623,6 @@ function pollTcw(tcwId, taskId, incomingRestOp) {
 function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
-
     const configManager = new ConfigManager(`${__dirname}/../lib/configItems.json`, bigIp);
     return configManager.get(declaration, this.state.doState.getTask(taskId), this.state.doState)
         .then(() => save.call(this));
