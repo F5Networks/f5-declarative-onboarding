@@ -25,7 +25,8 @@
         },
         "myProvisioning": {
           "class": "Provision",
-          "ltm": "nominal"
+          "ltm": "nominal",
+          "gtm": "minimum"
         },
         "myVlan": {
             "class": "VLAN",
