@@ -103,10 +103,6 @@ For unreachable devices (with no route to BIG-IP), BIG-IP credentials are not re
 
 6: Revoking a BIG-IP license from BIG-IQ without relicensing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Revoking a license is available in Declarative Onboarding v1.3.0 and later.
-
 The following is an example of using BIG-IQ to revoke a license from an unreachable BIG-IP VE using **revokeFrom** and specifying the license pool. In this example, we are only revoking the license, and not relicensing the BIG-IP VE.  See See :ref:`Revoking a license using BIG-IQ<revoke-main>` for specific details on this example.
 
 .. literalinclude:: ../examples/revokeViaBigIqUnreachable.json
@@ -120,9 +116,6 @@ The following is an example of using BIG-IQ to revoke a license from an unreacha
 
 .. _relicense:
 
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Revoking a license is available in Declarative Onboarding v1.3.0 and later.
 
 7: Revoking and relicensing a BIG-IP (with route) from BIG-IQ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -142,9 +135,6 @@ The following is an example of using BIG-IQ to revoke a license and then relicen
 
 8: Revoking and relicensing a BIG-IP (no route) from BIG-IQ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Revoking a license and relicensing is available in Declarative Onboarding v1.3.0 and later.
 
 The following is an example of using BIG-IQ to revoke a license and then relicense an unreachable BIG-IP VE. In this example, we are both revoking the initial license and relicensing the BIG-IP VE from a different license pool on the BIG-IQ. Additionally, because the BIG-IP device does not have a route to the BIG-IQ (unreachable), you must use **overwrite = true** to let the BIG-IP VE know the system is overwriting the license. 
 
@@ -165,9 +155,6 @@ We have highlighted the new licensing pool, the revoke line, the hypervisor, and
 
 9: Revoking and relicensing a BIG-IP (no route) from a different BIG-IQ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Revoking a license and relicensing is available in Declarative Onboarding v1.3.0 and later.
 
 This example is similar to example 9, however in this case, we are using a different BIG-IQ device to revoke and relicense the BIG-IP VE from an unreachable BIG-IP VE. In this case, we specify additional information in the *revokeFrom* property to reference the BIG-IQ that initially licensed the BIG-IP VE.  Again, specifying the appropriate hypervisor is required. See :ref:`Revoking a license using BIG-IQ<revoke-main>` for specific details on this example.
 
@@ -179,11 +166,28 @@ This example is similar to example 9, however in this case, we are using a diffe
 :ref:`Back to top<iqexamples>`
 
 
+.. _bigiqdo1:
+
+9: Onboarding a BIG-IP in AWS via BIG-IQ
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In this example, we onboard a BIG-IP VE in AWS using the DO endpoint on the BIG-IQ device.  This example uses both targetHost to specify the BIG-IP information, and bigIqSettings.  
+
+See :ref:`do-bigiq-table` for information on the bigIqSettings parameters.  These parameters are highlighted in the following declaration.
+
+See the BIG-IQ API documentation for similar examples for |bigiqazure| and |bigiqvmware|.
+
+.. literalinclude:: ../examples/onboardViaBigIqAws.json
+   :language: json
+   :emphasize-lines: 49-59
+
+
+:ref:`Back to top<iqexamples>`
+
+
 .. |br| raw:: html
 
    <br />
-
-
 
 .. |bigiq| raw:: html
 
@@ -192,3 +196,12 @@ This example is similar to example 9, however in this case, we are using a diffe
 .. |compat| raw:: html
 
    <a href="https://support.f5.com/csp/article/K54909607" target="_blank">K54909607</a>
+
+
+.. |bigiqazure| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/big-iq/mgmt-api/v7.0.0/ApiReferences/bigiq_public_api_ref/r_do_onboarding.html#post-to-onboard-a-big-ip-ve-in-azure" target="_blank">Microsoft Azure</a>
+
+.. |bigiqvmware| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/big-iq/mgmt-api/v7.0.0/ApiReferences/bigiq_public_api_ref/r_do_onboarding.html#post-to-onboard-a-big-ip-ve-in-vmware-cloud-environment" target="_blank">VMware Cloud</a>
