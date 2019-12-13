@@ -1,0 +1,60 @@
+{
+    "class": "DO",
+    "declaration": {
+        "schemaVersion": "1.5.0",
+        "class": "Device",
+        "async": true,
+        "Common": {
+            "class": "Tenant",
+            "myLicense": {
+                "class": "License",
+                "licenseType": "regKey",
+                "regKey": "xxx-xxx-xxx-xx"
+            },
+            "myProvision": {
+                "class": "Provision",
+                "ltm": "nominal"
+            },
+            "myNtp": {
+                "class": "NTP",
+                "servers": [
+                        "time.nist.gov"
+                ],
+                "timezone": "UTC"
+            },
+            "admin": {
+                "class": "User",
+                "userType": "regular",
+                "partitionAccess": {
+                    "all-partitions": {
+                            "role": "admin"
+                    }
+                },
+                "shell": "tmsh",
+                "password": "adminpassword"
+            },
+            "root": {
+                "class": "User",
+                "userType": "root",
+                "newPassword": "rootpassword",
+                "oldPassword": "adminpassword"
+            }
+        }
+    },
+    "targetHost": "54.10.10.10",
+    "targetUsername": "admin",
+    "targetSshKey": {
+        "path": "/var/ssh/restnoded/privatessh.key"
+    },
+    "bigIqSettings": {
+        "failImportOnConflict": false,
+        "conflictPolicy": "USE_BIGIQ",
+        "deviceConflictPolicy": "USE_BIGIP",
+        "versionedConflictPolicy": "KEEP_VERSION",
+        "statsConfig": {
+            "enabled": true,
+            "zone": "default"
+        },
+        "snapshotWorkingConfig": false
+    }
+}
