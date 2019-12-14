@@ -1110,13 +1110,13 @@ function sendResponse(restOperation, endpoint, itemId) {
             const query = restOperation.getUri().query;
             // TODO for next major release (DO 2.0): Remove query && query.statusCodes from subsequent line
             if (body && body.httpStatus && query && query.statusCodes === 'experimental') {
-                restOperation.setStatusCode(body.httpStatus);
+                setStatusCode(body.httpStatus, restOperation);
             } else if (Array.isArray(response)) {
-                restOperation.setStatusCode(200);
+                setStatusCode(200, restOperation);
             } else if (body && body.result && body.result.code) {
-                restOperation.setStatusCode(body.result.code);
+                setStatusCode(body.result.code, restOperation);
             } else {
-                restOperation.setStatusCode(200);
+                setStatusCode(200, restOperation);
             }
             delete body.httpStatus;
             restOperation.complete();
@@ -1202,9 +1202,19 @@ function postWebhook(restOperation, endpoint, itemId, webhook) {
 
 function sendError(restOperation, code, message) {
     restOperation.setContentType('application/json');
-    restOperation.setStatusCode(code);
+    setStatusCode(code, restOperation);
     restOperation.setBody(message);
     restOperation.complete();
+}
+
+function setStatusCode(code, restOperation) {
+    // restOperation must have an integer code (or else the framework crashes)
+    if (Number.isInteger(code)) {
+        restOperation.setStatusCode(code);
+    } else {
+        logger.debug(`Got non-integer status code ${code}`);
+        restOperation.setStatusCode(500);
+    }
 }
 
 /**
