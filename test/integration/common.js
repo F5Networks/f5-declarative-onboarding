@@ -198,16 +198,30 @@ module.exports = {
     /**
      * sendRequest - prepares and sends a request with some configuration
      * @options {Object} : configuration options for request
+     * @retryOptions {Object} : options for retrying request. see tryOften
      * Returns Promise with response/error
     */
-    sendRequest(options) {
-        return new Promise((resolve, reject) => {
-            request(options, (error, response, body) => {
-                if (error) { reject(error); }
-                const responseObj = { response, body };
-                resolve(responseObj);
+    sendRequest(options, retryOptions) {
+        const func = function () {
+            return new Promise((resolve, reject) => {
+                request(options, (error, response, body) => {
+                    if (error) { reject(error); }
+                    const responseObj = { response, body };
+                    resolve(responseObj);
+                });
             });
-        });
+        };
+
+        if (retryOptions) {
+            return module.exports.tryOften(
+                func,
+                retryOptions.trials,
+                retryOptions.timeInterval,
+                null,
+                false
+            );
+        }
+        return func();
     },
 
     /**

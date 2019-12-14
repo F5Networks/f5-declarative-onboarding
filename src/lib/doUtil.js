@@ -201,7 +201,7 @@ module.exports = {
                 // Double check the db var. If either the prompt or the db var says
                 // reboot required, then reboot is required.
                 if (!promptSaysRebootRequired) {
-                    return bigIp.list('/tm/sys/db/provision.action', null, cloudUtil.NO_RETRY)
+                    return bigIp.list('/tm/sys/db/provision.action', null, cloudUtil.MEDIUM_RETRY)
                         .then(response => Promise.resolve(response.value === 'reboot'));
                 }
                 return Promise.resolve(true);
