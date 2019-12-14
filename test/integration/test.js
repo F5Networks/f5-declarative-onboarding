@@ -69,7 +69,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             const path = '/orchestration-as3-generic/as3-properties-latest.json';
             const options = common.buildBody(process.env.ARTIFACTORY_BASE_URL + path, null, null, 'GET');
             options.rejectUnauthorized = false;
-            return common.sendRequest(options)
+            const retryOptions = {
+                trials: 10,
+                timeInterval: 1000
+            };
+            return common.sendRequest(options, retryOptions)
                 .then((res) => {
                     const as3Properties = JSON.parse(res.response.body.replace(/\\n/g, ''));
                     const keyCount = Object.keys(as3Properties).length;
@@ -367,6 +371,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             return new Promise((resolve, reject) => {
                 getAuditLink(bigIqAddress, bigipAddress, bigIqAuth)
                     .then((auditLink) => {
+                        logger.info(`auditLink: ${auditLink}`);
                         // save the licensing link to compare against later
                         oldAuditLink = auditLink;
                         assert.ok(auditLink);
@@ -405,6 +410,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     bigipAuth, constants.HTTP_SUCCESS))
                 .then(() => getAuditLink(bigIqAddress, bigipAddress, bigIqAuth))
                 .then((auditLink) => {
+                    logger.info(`auditLink: ${auditLink}`);
                     // if the new audit link is equal to the old, it means the old license wasn't
                     // revoked, because an audit link represents a licensed device (see getAuditLink)
                     assert.notStrictEqual(oldAuditLink, auditLink);
@@ -427,10 +433,16 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should have revoked old license', () => {
             logger.info(this.ctx.test.title);
+            const retryOptions = {
+                trials: 100,
+                timeInterval: 1000
+            };
             return new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
                 .then((token) => {
+                    logger.debug(`oldAuditLink: ${oldAuditLink}`);
+                    logger.debug(`token: ${token}`);
                     const options = common.buildBody(oldAuditLink, null, { token }, 'GET');
-                    return common.sendRequest(options);
+                    return common.sendRequest(options, retryOptions);
                 })
                 .then((response) => {
                     if (response.response.statusCode !== constants.HTTP_SUCCESS) {
@@ -457,10 +469,14 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }));
         });
 
-        it('should have revoked new license', () => new Promise((resolve, reject) => {
+        it('claenup by revoking new license', () => new Promise((resolve, reject) => {
             logger.info(this.ctx.test.title);
             let body;
             const bodyFileRevoking = `${BODIES}/revoke_from_bigiq.json`;
+            const retryOptions = {
+                trials: 100,
+                timeInterval: 1000
+            };
             return common.readFile(bodyFileRevoking)
                 .then(JSON.parse)
                 .then((bodyStub) => {
@@ -474,7 +490,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
                         + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
                     body, { token }, 'POST');
-                    return common.sendRequest(options);
+                    return common.sendRequest(options, retryOptions);
                 })
                 .then((response) => {
                     if (response.response.statusCode !== constants.HTTP_ACCEPTED) {
@@ -484,28 +500,37 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 })
                 .then(JSON.parse)
                 .then((response) => {
+                    logger.info(`Expecting STARTED. Got ${response.status}`);
                     assert.strictEqual(response.status, 'STARTED');
                 })
                 .then(() => {
                     const func = function () {
+                        logger.debug('In retry func');
                         return new Promise((resolveThis, rejectThis) => getF5Token(bigIqAddress, bigIqAuth)
                             .then((token) => {
                                 const options = common.buildBody(newAuditLink, null,
                                     { token }, 'GET');
-                                return common.sendRequest(options);
+                                return common.sendRequest(options, retryOptions);
                             })
                             .then((response) => {
+                                logger.debug(`Audit status code ${response.response.statusCode}`);
                                 if (response.response.statusCode === constants.HTTP_SUCCESS) {
+                                    logger.debug('Got success status for GET request');
+                                    logger.debug(`Looking for REVOKED. Got ${JSON.parse(response.body).status}`);
                                     if (JSON.parse(response.body).status === 'REVOKED') {
+                                        logger.debug('resolving retry func');
                                         resolveThis();
                                     } else {
+                                        logger.debug('rejecting retry func for status');
                                         rejectThis(new Error(JSON.parse(response.body).status));
                                     }
                                 } else {
+                                    logger.debug('rejecting retry func for status code');
                                     rejectThis(new Error(response.response.statusCode));
                                 }
                             })
                             .catch((err) => {
+                                logger.debug(`Retry func caught ${err.message}`);
                                 rejectThis(new Error(err));
                             }));
                     };
@@ -721,7 +746,11 @@ function getF5Token(deviceIp, auth) {
     return new Promise((resolve, reject) => {
         const options = common.buildBody(`${common.hostname(deviceIp, constants.PORT)}`
             + `${constants.ICONTROL_API}/shared/authn/login`, auth, auth, 'POST');
-        return common.sendRequest(options)
+        const retryOptions = {
+            trials: 100,
+            timeInterval: 1000
+        };
+        return common.sendRequest(options, retryOptions)
             .then((response) => {
                 if (response.response.statusCode !== constants.HTTP_SUCCESS) {
                     reject(new Error('could not get token'));
@@ -757,8 +786,13 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
                     { token },
                     'GET'
                 );
-                return common.sendRequest(options)
+                const retryOptions = {
+                    trials: 10,
+                    timeInterval: 1000
+                };
+                return common.sendRequest(options, retryOptions)
                     .then((response) => {
+                        logger.info(`get assignments response ${JSON.stringify(response)}`);
                         if (response.response.statusCode !== constants.HTTP_SUCCESS) {
                             return Promise.reject(new Error('could not license'));
                         }

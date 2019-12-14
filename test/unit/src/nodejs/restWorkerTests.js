@@ -557,6 +557,11 @@ describe('restWorker', () => {
                             result: {
                                 code: code8888
                             }
+                        },
+                        9999: {
+                            result: {
+                                code: 'this is non-numeric'
+                            }
                         }
                     }
                 }
@@ -649,6 +654,23 @@ describe('restWorker', () => {
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/task/8888',
+                query: { statusCodes: 'legacy' }
+            });
+
+            try {
+                restWorker.onGet(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
+        it('should not set non-numeric status code', () => new Promise((resolve, reject) => {
+            restOperationMock.complete = () => {
+                assert.strictEqual(statusCode, 500);
+                resolve();
+            };
+            restOperationMock.getUri = () => ({
+                pathname: '/shared/declarative-onboarding/task/9999',
                 query: { statusCodes: 'legacy' }
             });
 
