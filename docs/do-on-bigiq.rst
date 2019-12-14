@@ -10,7 +10,7 @@ You can use the Declarative Onboarding endpoint on the BIG-IQ v7.0 and later to 
 
 See |kb| for information on BIG-IQ Centralized Management compatibility with F5 Declarative Onboarding.
 
-See the |bigiqdo| for for information on DO and BIG-IQ.
+See the |bigiqdo| for information on DO and BIG-IQ.
 
 Verifying DO is installed on the BIG-IQ
 ---------------------------------------
