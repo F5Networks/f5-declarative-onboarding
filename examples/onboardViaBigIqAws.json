@@ -9,7 +9,7 @@
             "myLicense": {
                 "class": "License",
                 "licenseType": "regKey",
-                "regKey": "xxx-xxx-xxx-xx"
+                "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
             },
             "myProvision": {
                 "class": "Provision",
