@@ -16,9 +16,9 @@ Verifying DO is installed on the BIG-IQ
 ---------------------------------------
 You can ensure DO is installed on the BIG-IQ device using the following methods:
 
-- From your RESTful client, after entering your credentials, use **GET** to send |br| ``https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding/info``  
+- From your RESTful client, after entering your credentials, use **GET** to send |br| ``https://(IP address of BIG-IQ)/mgmt/shared/declarative-onboarding/info``  
 
-- Run the following cURL command: |br| ``curl -sku $CREDS https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding/info``  
+- Run the following cURL command: |br| ``curl -sku $CREDS https://(IP address of BIG-IQ)/mgmt/shared/declarative-onboarding/info``  
 
 In either case, you should see something similar to the following returned:
 
@@ -43,7 +43,7 @@ In either case, you should see something similar to the following returned:
     ]
 
 
-You can also GET to send ``https://(IP address of BIG-IP)/mgmt/shared/declarative-onboarding/example`` to retrieve an example declaration.
+You can also GET to send ``https://(IP address of BIG-IQ)/mgmt/shared/declarative-onboarding/example`` to retrieve an example declaration.
 
 
 .. _do-bigiq-table:
@@ -123,7 +123,7 @@ The JSON in the body of the POST request can includes the following parameters. 
    * - declaration
      - object
      - True 
-     - The Declarative Onboarding declaration that you want to transmit. The DO declaration includes the BIG-IP objects you want the system to configure. For more information about creating a DO declaration, see `Composing a Declarative Onboarding declaration for a standalone BIG-IP <https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/composing-a-declaration.html>`_ for information on how to create a DO declaration.
+     - The Declarative Onboarding declaration that you want to transmit. The DO declaration includes the BIG-IP objects you want the system to configure. 
    * -      *async*
      - boolean
      - True 
@@ -143,11 +143,11 @@ The JSON in the body of the POST request can includes the following parameters. 
    * - targetPassphrase
      - string
      - True 
-     - Admin password of the onboarding BIG-IP. Required for the initial or subsequent onboardings of a BIG-IP in Azure or VMware environment. You must specify a `targetUsername` or `targetSshKey` when using an Azure or VMware environment. Not required for onboarding BIG-IP VEs in AWS cloud, if you have specified `targetSshKey`.
+     - Admin password of the onboarding BIG-IP. Required for the initial or subsequent onboarding of a BIG-IP in Azure or VMware environment. You must specify a `targetUsername` or `targetSshKey` when using an Azure or VMware environment. Not required for onboarding BIG-IP VEs in AWS cloud, if you have specified `targetSshKey`.
    * - targetSshKey
      - object
      - False 
-     - Required for initial onboarding of a new BIG-IP VE in an AWS cloud. Use `targetPassphrase` for any subsequent onboarding of the same BIG-IP VE on AWS. `targetSshKey` is not used in Azure and VMware environments, those environment alway uses `targetUsername` and `targetPassphrase`. 
+     - Required for initial onboarding of a new BIG-IP VE in an AWS cloud. Use `targetPassphrase` for any subsequent onboarding of the same BIG-IP VE on AWS. `targetSshKey` is not used in Azure and VMware environments, those environments alway use `targetUsername` and `targetPassphrase`. 
    * -      *path*
      - string
      - False 
