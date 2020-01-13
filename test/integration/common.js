@@ -150,7 +150,13 @@ module.exports = {
                     .then((response) => {
                         logger.debug(`current status: ${response.response.statusCode}, waiting for ${expectedCode}`);
                         if (response.response.statusCode === expectedCode) {
-                            resolve(JSON.parse(response.body));
+                            let parsedResponse;
+                            try {
+                                parsedResponse = JSON.parse(response.body);
+                            } catch (err) {
+                                parsedResponse = response.body;
+                            }
+                            resolve(parsedResponse);
                         } else {
                             reject(new Error(response.response.statusCode));
                         }
@@ -160,8 +166,7 @@ module.exports = {
                     });
             });
         };
-        return module.exports.tryOften(func, trials, timeInterval,
-            [constants.HTTP_ACCEPTED, constants.HTTP_UNAVAILABLE, constants.HTTP_NOTFOUND], true);
+        return module.exports.tryOften(func, trials, timeInterval, null, false);
     },
 
     /**

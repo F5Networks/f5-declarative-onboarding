@@ -87,7 +87,7 @@ deploy:
         name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
         paths:
             - ${TEST_HARNESS_FILE}
-        expire_in: 40min
+        expire_in: 1 day
 
 integration-test:
     image: centos
