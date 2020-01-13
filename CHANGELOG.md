@@ -4,6 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.10.0
 ### Added
 - AUTOTOOL-993: Add support for System autoPhonehome setting
+- AUTOTOOL-916: Add support for provisioning CGNAT on BIG-IP v15.0+
 ### Fixed
 - AUTOTOOL-343: On BIG-IP 14+, revoke license from BIG-IQ does not work
     - Make sure config is saved before issuing revoke command

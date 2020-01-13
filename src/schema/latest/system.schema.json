@@ -71,7 +71,7 @@
                     }
                 },
                 "propertyNames": {
-                    "description": "The module to provision.",
+                    "description": "The module to provision. Note: 'cgnat' is only supported on TMOS v15+",
                     "enum": [
                         "class",
                         "afm",
@@ -79,6 +79,7 @@
                         "apm",
                         "asm",
                         "avr",
+                        "cgnat",
                         "dos",
                         "fps",
                         "gtm",

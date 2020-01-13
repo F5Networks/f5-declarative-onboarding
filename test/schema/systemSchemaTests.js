@@ -679,7 +679,8 @@ describe('system.schema.json', () => {
                 const data = {
                     "class": "Provision",
                     "ltm": "nominal",
-                    "afm": "none"
+                    "afm": "none",
+                    "cgnat": "minimum"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
