@@ -12,8 +12,8 @@ Document Revision History
         - Date
              
       * - 2.7
-        - Updated the documentation for Declarative Onboarding v1.10.0.  This release contains the following changes: |br| * Added the :ref:`system-class` to the Composing a Standalone declaration page |br| * Added support for disabling autoPhonehome in the System class (see :ref:`system-class`)  |br| *   |br| |br| Issues Resolved: |br| * On BIG-IP 14 and later, revoke license from BIG-IQ does not work |br| *
-        - 12-03-19
+        - Updated the documentation for Declarative Onboarding v1.10.0.  This release contains the following changes: |br| * Added the :ref:`system-class` to the Composing a Standalone declaration page |br| * Added support for disabling autoPhonehome in the System class (see :ref:`system-class`)  |br| * Added support for provisioning CGNAT in TMOS version 15.0 and later (see :ref:`provision-class`    |br| |br| Issues Resolved: |br| * On BIG-IP 14 and later, revoke license from BIG-IQ does not work |br| *
+        - 01-28-20
       
       * - 2.6
         - Updated the documentation for Declarative Onboarding v1.9.0.  This release contains the following changes: |br| * Added a new query parameter for GET requests for HTTP status codes (see :ref:`getquery`)  |br| * Added a link to the AskF5 article for DO and BIG-IQ compatibility |br| |br| Issues Resolved: |br| * DO was unable to set hostname in AWS environment (`K45728203 <https://support.f5.com/csp/article/K45728203>`_) |br| * Changes to the network property for ManagementRoute and Route would not actually update the config (`Issue 75 <https://github.com/F5Networks/f5-declarative-onboarding/issues/75>`_) |br| * The /example endpoint was not working.
