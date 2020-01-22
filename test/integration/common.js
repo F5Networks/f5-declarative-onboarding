@@ -140,25 +140,31 @@ module.exports = {
      * @expectedCode {String} - expected HTTP status code for when the API responds; typically HTTP_SUCCESS
      * Returns a Promise with response/error
     */
-    testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode, queryObj) {
+    testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode, queryObj = {}) {
         const func = function () {
             return new Promise((resolve, reject) => {
-                const query = qs.encode(Object.assign(queryObj || {}, { show: 'full' }));
+                const query = qs.encode(Object.assign(queryObj, { show: 'full' }));
                 const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
                     constants.PORT)}${constants.DO_API}?${query}`, null, auth, 'GET');
                 module.exports.sendRequest(options)
                     .then((response) => {
-                        logger.debug(`current status: ${response.response.statusCode}, waiting for ${expectedCode}`);
-                        if (response.response.statusCode === expectedCode) {
+                        const statusCode = response.response.statusCode;
+                        logger.debug(`current status: ${statusCode}, waiting for ${expectedCode}`);
+                        if (statusCode === expectedCode) {
                             let parsedResponse;
                             try {
                                 parsedResponse = JSON.parse(response.body);
                             } catch (err) {
                                 parsedResponse = response.body;
                             }
+
+                            // 'experimental' statusCode will always return 200, response.code may differ.
+                            if (queryObj.statusCodes === 'experimental' && !parsedResponse.code) {
+                                reject(new Error(parsedResponse.result.code));
+                            }
                             resolve(parsedResponse);
                         } else {
-                            reject(new Error(response.response.statusCode));
+                            reject(new Error(statusCode));
                         }
                     })
                     .catch((error) => {

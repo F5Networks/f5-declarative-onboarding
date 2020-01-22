@@ -11,7 +11,7 @@
             "hostname": "bigip.example.com",
             "cliInactivityTimeout": 1200,
             "consoleInactivityTimeout": 1200,
-            "autoPhonehome": true
+            "autoPhonehome": false
         },
         "myLicense": {
             "class": "License",

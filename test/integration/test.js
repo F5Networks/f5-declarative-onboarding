@@ -455,7 +455,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }));
         });
 
-        it('claenup by revoking new license', () => new Promise((resolve, reject) => {
+        it('cleanup by revoking new license', () => new Promise((resolve, reject) => {
             logTestTitle(this.ctx.test.title);
             let body;
             const bodyFileRevoking = `${BODIES}/revoke_from_bigiq.json`;
