@@ -14,8 +14,8 @@
 
 ## Process for release candidates
 * Update package.json and package-lock.json with version (X.Y.Z-#)
-* mkdir schema/<version>
-* cp src/schema/latest/* src/schema/<version>
+* mkdir schema/\<version\>
+* cp src/schema/latest/* src/schema/\<version\>
 * git add and commit
 * git tag -m 'Release candidate X.Y.Z-#' vX.Y.Z-#
 * git push origin
