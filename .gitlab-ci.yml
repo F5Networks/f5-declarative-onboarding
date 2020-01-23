@@ -18,8 +18,8 @@ variables:
     DO_LICENSING: 'false'
     DO_PROVISIONING: 'false'
     TEST_HARNESS_FILE: ${CI_PROJECT_DIR}/harness_facts_flat_${BIGIP_VERSION}.json
-    BIGIP_VERSION: '14.1.0.6'
-    BIGIP_BUILD: '0.0.9'
+    BIGIP_VERSION: ${DEFAULT_BIGIP_VERSION}
+    BIGIP_BUILD: ${DEFAULT_BIGIP_BUILD}
 
 lint:
     image: node:8
