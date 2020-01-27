@@ -34,7 +34,9 @@ Yes.  See the |support| to see the versions of DO that are currently supported.
   - The DO Container is specifically for DO use cases, 
   - F5 API Services Gateway is specifically for custom iControl LX extension use cases (and is community-supported) 
 
-- Initial DO Container releases are community-supported, and will be fully F5 supported in a future release 
+The DO container is currently Community Supported and in the F5Devcentral organization on Docker Hub. Once it is fully supported by F5, it will move to **f5networks** on Docker Hub.
+
+See :doc:`do-container` for more information.
 
 |
 
@@ -103,6 +105,8 @@ See :doc:`validate` for information.
 **Does DO collect any usage data?** 
 
 The Declarative Onboarding (DO) Extension gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system’s phone home feature as described in |phone|. 
+
+|
 
 .. _contract:
 
