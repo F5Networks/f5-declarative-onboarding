@@ -1,5 +1,6 @@
-Declarative Onboarding Frequently Asked Questions (FAQ)
--------------------------------------------------------
+Declarative Onboarding FAQ
+--------------------------
+The following are frequently asked questions for Declarative Onboarding.
 
 
 **What is Declarative Onboarding?**
