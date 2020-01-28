@@ -47,6 +47,20 @@ module.exports = {
         return util.promisify(request)(options);
     },
 
+
+    /**
+     * delayPromise- promise based timeout function
+     * @time {Integer} - Time in milliseconds to wait
+     * @value {Variable} - Optional pass through value
+     */
+    delayPromise(time, value) {
+        return new Promise(((resolve) => {
+            setTimeout(() => {
+                resolve(value);
+            }, time);
+        }));
+    },
+
     /**
      * tryOften - tries a function that is a Promise for a definite amount of times, spacing the trials out
      *            by the defined interval, until runs out of trials,
@@ -63,38 +77,22 @@ module.exports = {
      * (Inspired by the cloud-libs.util's tryUntil, except without some of the machinery we won't need here
     */
     tryOften(targetFunction, trials, timeInterval, acceptErrors, checkError) {
-        return new Promise((resolve, reject) => {
-            let timer;
-            let trialsCopy = trials;
-            const intervalFunction = function () {
-                if (trialsCopy === 0) {
-                    clearInterval(timer);
-                    reject(new Error('number of trials exhausted'));
+        return targetFunction.apply(this)
+            .catch((error) => {
+                if (checkError) {
+                    if (!acceptErrors.some(err => (err === parseInt(error.message, 10) || err === error.message))) {
+                        // non-trivial error, we reject
+                        throw new Error(`error is unrecoverable : ${error.message}`);
+                    }
                 }
-                targetFunction.apply(this)
-                    .then((response) => {
-                        clearInterval(timer);
-                        resolve(response);
-                    })
-                    .catch((error) => {
-                        trialsCopy -= 1;
-                        if (checkError) {
-                            let willReject = true;
-                            acceptErrors.forEach((err) => {
-                                if (err === parseInt(error.message, 10) || err === error.message) {
-                                    willReject = false;
-                                }
-                            });
-                            if (willReject) {
-                                // non-trivial error, we reject
-                                reject(new Error(`error is unrecoverable : ${error.message}`));
-                                clearInterval(timer);
-                            }
-                        }
-                    });
-            };
-            timer = setInterval(intervalFunction, timeInterval);
-        });
+                if (trials === 0) {
+                    throw new Error(`number of trials exhasted: ${error.message}`);
+                }
+                return module.exports.delayPromise(timeInterval)
+                    .then(() => module.exports.tryOften(
+                        targetFunction, trials - 1, timeInterval, acceptErrors, checkError
+                    ));
+            });
     },
 
     /**
