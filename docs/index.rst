@@ -24,11 +24,12 @@ To provide feedback on this documentation, you can file a GitHub Issue or email 
 Use the following links, the navigation on the left, and/or the Next and Previous buttons to explore the documentation.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :includehidden:
    :glob:
 
    prereqs
+   faq
    components
    using-do
    troubleshooting
