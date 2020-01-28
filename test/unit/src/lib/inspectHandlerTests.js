@@ -440,12 +440,16 @@ describe('inspectHandler', () => {
             '/tm/cli/global-settings': {
                 idleTimeout: 'disabled'
             },
+            '/tm/sys/software/update': {
+                autoPhonehome: 'disabled'
+            },
             '/tm/sys/provision': [
                 { name: 'afm', level: 'nominal' },
                 { name: 'am', level: 'minimum' },
                 { name: 'apm', level: 'nominal' },
                 { name: 'asm', level: 'minimum' },
                 { name: 'avr', level: 'nominal' },
+                { name: 'cgnat', level: 'minimum' },
                 { name: 'dos', level: 'minimum' },
                 { name: 'fps', level: 'nominal' },
                 { name: 'gtm', level: 'minimum' },
@@ -809,6 +813,7 @@ describe('inspectHandler', () => {
                             apm: 'nominal',
                             asm: 'minimum',
                             avr: 'nominal',
+                            cgnat: 'minimum',
                             dos: 'minimum',
                             fps: 'nominal',
                             gtm: 'minimum',
@@ -1114,7 +1119,8 @@ describe('inspectHandler', () => {
                             class: 'System',
                             hostname: 'myhost.bigip.com',
                             consoleInactivityTimeout: 0,
-                            cliInactivityTimeout: 0
+                            cliInactivityTimeout: 0,
+                            autoPhonehome: false
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',

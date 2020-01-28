@@ -98,22 +98,20 @@ class RestWorker {
 
         // If this device's license is going to be revoked, services will
         // restart and we need to know that's what happened when this worker is restarted.
-        this.eventEmitter.on(EVENTS.DO_LICENSE_REVOKED, (taskId, bigIpPassword, bigIqPassword) => {
+        this.eventEmitter.on(EVENTS.LICENSE_WILL_BE_REVOKED, (taskId, bigIpPassword, bigIqPassword) => {
             doUtil.getCurrentPlatform()
                 .then((platform) => {
                     if (platform === PRODUCTS.BIGIP) {
-                        // if we need to relicense after we restart, so store passwords
-                        cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID);
-                        cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID);
-
-                        this.state.doState.updateResult(
-                            taskId,
-                            202,
-                            STATUS.STATUS_REVOKING,
-                            'revoking license'
-                        );
-                        save.call(this);
+                        logger.debug('Prepping for revoke');
+                        return prepForRevoke.call(this, taskId, bigIpPassword, bigIqPassword);
                     }
+                    return Promise.resolve();
+                })
+                .then(() => {
+                    logger.debug('State ready for revoke');
+                    this.eventEmitter.emit(
+                        EVENTS.READY_FOR_REVOKE
+                    );
                 })
                 .catch((err) => {
                     logger.warning(`Error handling onStartCompleted: ${err.message}`);
@@ -472,31 +470,32 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
     /* jshint validthis: true */
 
     let promise = Promise.resolve();
+
+    promise = promise.then(() => {
+        logger.fine('Getting and saving current configuration');
+        return getAndSaveCurrentConfig.call(this, bigIp, declaration, taskId);
+    });
+
     // Don't overwrite the error state if it's there
     if (this.state.doState.getStatus(taskId) !== STATUS.STATUS_ERROR) {
-        promise = promise.then(() => doUtil.rebootRequired(bigIp)
+        promise = promise.then(() => doUtil.rebootRequired(bigIp))
             .then((rebootRequired) => {
-                if (!rebootRequired) {
-                    logger.fine('No reboot required');
-                    this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
-                } else {
+                if (rebootRequired) {
                     logger.fine('Reboot required.');
-                    this.state.doState.updateResult(
+                    return this.state.doState.updateResult(
                         taskId,
                         202,
                         STATUS.STATUS_REBOOTING,
                         'reboot required'
                     );
                 }
-                return Promise.resolve();
-            }));
+
+                logger.fine('No reboot required');
+                return this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
+            });
     }
 
-    return promise
-        .then(() => {
-            logger.fine('Getting and saving current configuration');
-            return getAndSaveCurrentConfig.call(this, bigIp, declaration, taskId);
-        });
+    return promise;
 }
 
 function rebootIfRequired(bigIp, taskId) {
@@ -624,7 +623,6 @@ function pollTcw(tcwId, taskId, incomingRestOp) {
 function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
-
     const configManager = new ConfigManager(`${__dirname}/../lib/configItems.json`, bigIp);
     return configManager.get(declaration, this.state.doState.getTask(taskId), this.state.doState)
         .then(() => save.call(this));
@@ -744,6 +742,7 @@ function handleStartupState(success, error) {
                     Promise.resolve()
                         .then(() => {
                             if (hasBigIpUser) {
+                                logger.debug('Decrypting BIG-IP user data');
                                 return cryptoUtil.decryptId(BIG_IP_ENCRYPTION_ID);
                             }
                             return Promise.resolve();
@@ -754,6 +753,7 @@ function handleStartupState(success, error) {
                                 deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID));
                             }
                             if (hasBigIqUser) {
+                                logger.debug('Decrypting BIG-IQ user data');
                                 return cryptoUtil.decryptId(BIG_IQ_ENCRYPTION_ID);
                             }
                             return Promise.resolve();
@@ -763,6 +763,7 @@ function handleStartupState(success, error) {
                                 declaration.Common[licenseName].bigIqPassword = password;
                                 deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID));
                             }
+                            logger.debug('Deleting encrypted data');
                             return Promise.all(deletePromises);
                         })
                         .then(() => onboard.call(this, declaration, {}, currentTaskId))
@@ -1109,13 +1110,13 @@ function sendResponse(restOperation, endpoint, itemId) {
             const query = restOperation.getUri().query;
             // TODO for next major release (DO 2.0): Remove query && query.statusCodes from subsequent line
             if (body && body.httpStatus && query && query.statusCodes === 'experimental') {
-                restOperation.setStatusCode(body.httpStatus);
+                setStatusCode(body.httpStatus, restOperation);
             } else if (Array.isArray(response)) {
-                restOperation.setStatusCode(200);
+                setStatusCode(200, restOperation);
             } else if (body && body.result && body.result.code) {
-                restOperation.setStatusCode(body.result.code);
+                setStatusCode(body.result.code, restOperation);
             } else {
-                restOperation.setStatusCode(200);
+                setStatusCode(200, restOperation);
             }
             delete body.httpStatus;
             restOperation.complete();
@@ -1201,9 +1202,19 @@ function postWebhook(restOperation, endpoint, itemId, webhook) {
 
 function sendError(restOperation, code, message) {
     restOperation.setContentType('application/json');
-    restOperation.setStatusCode(code);
+    setStatusCode(code, restOperation);
     restOperation.setBody(message);
     restOperation.complete();
+}
+
+function setStatusCode(code, restOperation) {
+    // restOperation must have an integer code (or else the framework crashes)
+    if (Number.isInteger(code)) {
+        restOperation.setStatusCode(code);
+    } else {
+        logger.debug(`Got non-integer status code ${code}`);
+        restOperation.setStatusCode(500);
+    }
 }
 
 /**
@@ -1227,6 +1238,30 @@ function getPathInfo(uri) {
         }
     }
     return pathInfo;
+}
+
+function prepForRevoke(taskId, bigIpPassword, bigIqPassword) {
+    // Rest framework complains about 'this' because of 'strict', but we use call(this)
+    /* jshint validthis: true */
+
+    const encryptPromises = [];
+    // if we need to relicense after we restart, so store passwords
+    encryptPromises.push(cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID));
+    encryptPromises.push(cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID));
+
+    return Promise.all(encryptPromises)
+        // We have to save sys config here to save the enrypted data in case
+        // something restarts
+        .then(() => this.bigIps[taskId].save())
+        .then(() => {
+            this.state.doState.updateResult(
+                taskId,
+                202,
+                STATUS.STATUS_REVOKING,
+                'revoking license'
+            );
+            return save.call(this);
+        });
 }
 
 module.exports = RestWorker;

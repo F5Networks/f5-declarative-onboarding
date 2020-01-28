@@ -60,7 +60,8 @@ module.exports = {
         DagGlobals: '/tm/net/dag-globals',
         TrafficControl: '/tm/ltm/global-settings/traffic-control',
         HTTPD: '/tm/sys/httpd',
-        SSHD: '/tm/sys/sshd'
+        SSHD: '/tm/sys/sshd',
+        Phonehome: '/tm/sys/software/update'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -71,7 +72,8 @@ module.exports = {
         STATUS_REVOKING: 'REVOKING'
     },
     EVENTS: {
-        DO_LICENSE_REVOKED: 'DO_LICENSE_REVOKED'
+        LICENSE_WILL_BE_REVOKED: 'DO_LICENSE_WILL_BE_REVOKED',
+        READY_FOR_REVOKE: 'DO_READY_FOR_REVOKE'
     },
     NAMELESS_CLASSES: [
         'DbVariables',

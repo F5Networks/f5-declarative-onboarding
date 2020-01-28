@@ -517,7 +517,7 @@ describe('configManager', () => {
             listResponses['/tm/cli/global-settings'] = { idleTimeout: 30 };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.System,
@@ -557,7 +557,7 @@ describe('configManager', () => {
             listResponses['/tm/cli/global-settings'] = { idleTimeout: 'disabled' };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.System,
@@ -598,7 +598,7 @@ describe('configManager', () => {
             listResponses['/tm/cli/global-settings'] = { idleTimeout: 30 };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.System,
@@ -777,7 +777,7 @@ describe('configManager', () => {
             listResponses['/tm/auth/authsub'] = { subProp1: 'subPropVal1' };
 
             const configManager = new ConfigManager(configItems, bigIpMock);
-            configManager.get({}, state, doState)
+            return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepEqual(
                         state.currentConfig.Common.Authentication,

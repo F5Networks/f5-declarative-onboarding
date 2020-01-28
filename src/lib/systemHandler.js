@@ -194,6 +194,10 @@ function handleSystem() {
         if (typeof system.cliInactivityTimeout !== 'undefined') {
             promises.push(this.bigIp.modify(PATHS.CLI, { idleTimeout: system.cliInactivityTimeout / 60 }));
         }
+        if (typeof system.autoPhonehome !== 'undefined') {
+            const phonehome = system.autoPhonehome ? 'enabled' : 'disabled';
+            promises.push(this.bigIp.modify(PATHS.Phonehome, { autoPhonehome: phonehome }));
+        }
     }
 
     return Promise.all(promises);
@@ -340,7 +344,7 @@ function handleLicensePool(license) {
         })
         .then((resolvedBigIp) => {
             bigIp = resolvedBigIp;
-            let possiblyRevoke;
+            let possiblyRevoke = Promise.resolve();
 
             if (license.revokeFrom) {
                 let licenseInfo;
@@ -364,25 +368,30 @@ function handleLicensePool(license) {
 
                 // If our license is about to be revoked, let everyone know
                 if (licenseInfo.reachable) {
-                    this.eventEmitter.emit(
-                        EVENTS.DO_LICENSE_REVOKED,
-                        this.state.id,
-                        licenseInfo.bigIpPassword,
-                        licenseInfo.bigIqPassword
-                    );
+                    logger.debug('Waiting for revoke ready');
+                    possiblyRevoke = possiblyRevoke.then(() => waitForRevokeReady(this.eventEmitter));
+                    process.nextTick(() => {
+                        this.eventEmitter.emit(
+                            EVENTS.LICENSE_WILL_BE_REVOKED,
+                            this.state.id,
+                            licenseInfo.bigIpPassword,
+                            licenseInfo.bigIqPassword
+                        );
+                    });
                 }
 
-                possiblyRevoke = bigIp.onboard.revokeLicenseViaBigIq(
-                    options.bigIqHost || 'localhost',
-                    options.bigIqUser,
-                    options.bigIqPassword || options.bigIqPasswordUri,
-                    options.licensePoolName,
-                    {
-                        bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, licenseInfo),
-                        passwordIsUri: !!options.bigIqPasswordUri,
-                        noUnreachable: !!license.reachable
-                    }
-                );
+                possiblyRevoke = possiblyRevoke
+                    .then(() => bigIp.onboard.revokeLicenseViaBigIq(
+                        options.bigIqHost || 'localhost',
+                        options.bigIqUser,
+                        options.bigIqPassword || options.bigIqPasswordUri,
+                        options.licensePoolName,
+                        {
+                            bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, licenseInfo),
+                            passwordIsUri: !!options.bigIqPasswordUri,
+                            noUnreachable: !!license.reachable
+                        }
+                    ));
             } else {
                 possiblyRevoke = Promise.resolve();
             }
@@ -861,6 +870,21 @@ function restartDhcp() {
 
             return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isDhcpRunning);
         });
+}
+
+function waitForRevokeReady(eventEmitter) {
+    const REVOKE_READY_TIMEOUT = 30000; // 30 seconds
+    eventEmitter.removeAllListeners(EVENTS.READY_FOR_REVOKE);
+    return new Promise((resolve, reject) => {
+        const readyTimer = setTimeout(() => {
+            reject(new Error('Timed out waiting for revoke ready event'));
+        }, REVOKE_READY_TIMEOUT);
+        eventEmitter.on(EVENTS.READY_FOR_REVOKE, () => {
+            logger.debug('Ready for revoke');
+            clearTimeout(readyTimer);
+            resolve();
+        });
+    });
 }
 
 module.exports = SystemHandler;

@@ -20,6 +20,17 @@
         "nameless": true
     },
     {
+        "path": "/tm/sys/software/update",
+        "schemaClass": "System",
+        "schemaMerge": {
+            "action": "add"
+        },
+        "properties": [
+            { "id": "autoPhonehome", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
+        ],
+        "nameless": true
+    },
+    {
         "path": "/tm/sys/db",
         "schemaClass": "DbVariables",
         "properties": [

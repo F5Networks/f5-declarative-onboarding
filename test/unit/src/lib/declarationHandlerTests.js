@@ -212,7 +212,7 @@ describe('declarationHandler', () => {
             name: 'Declarative Onboarding',
             version: '1.2.3'
         };
-        const teemDevice = new TeemDevice(assetInfo, 'staging');
+        const teemDevice = new TeemDevice(assetInfo);
 
         sinon.stub(teemDevice, 'report').callsFake((type, version, declaration) => {
             assert.deepEqual(declaration, newDeclaration);
@@ -241,7 +241,7 @@ describe('declarationHandler', () => {
             name: 'Declarative Onboarding',
             version: '1.2.3'
         };
-        const teemDevice = new TeemDevice(assetInfo, 'staging');
+        const teemDevice = new TeemDevice(assetInfo);
 
         sinon.stub(teemDevice, 'report').rejects();
         const declarationHandler = new DeclarationHandler(bigIpMock);

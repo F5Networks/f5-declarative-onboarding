@@ -25,7 +25,8 @@
         },
         "myProvisioning": {
           "class": "Provision",
-          "ltm": "nominal"
+          "ltm": "nominal",
+          "gtm": "minimum"
         },
         "myVlan": {
             "class": "VLAN",
@@ -69,6 +70,10 @@
         "myFailoverUnicast": {
           "class": "FailoverUnicast",
           "address": "/Common/mySelfIp/address"
+        },
+        "mySystem": {
+          "class": "System",
+          "autoPhonehome": false
         }
     }
 }

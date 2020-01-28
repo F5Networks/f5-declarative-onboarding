@@ -452,7 +452,7 @@ describe('restWorker', () => {
             }));
         });
 
-        it('should handle DO_LICENSE_REVOKED event', () => new Promise((resolve, reject) => {
+        it('should handle LICENSE_WILL_BE_REVOKED event', () => new Promise((resolve, reject) => {
             const bigIpPassword = 'myBigIpPassword';
             const bigIqPassword = 'myBigIqPassword';
             const restWorker = new RestWorker();
@@ -468,10 +468,46 @@ describe('restWorker', () => {
 
             const success = () => {
                 restWorker.eventEmitter.emit(
-                    EVENTS.DO_LICENSE_REVOKED,
+                    EVENTS.LICENSE_WILL_BE_REVOKED,
                     1234,
                     bigIpPassword,
                     bigIqPassword
+                );
+            };
+            const error = () => {
+                reject(new Error('should have called success'));
+            };
+
+            try {
+                restWorker.platform = 'BIG-IP';
+                restWorker.onStartCompleted(success, error);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
+        it('should emit READY_FOR_REVOKE from LICENSE_WILL_BE_REVOKED event', () => new Promise((resolve, reject) => {
+            const restWorker = new RestWorker();
+            const taskId = 1234;
+
+            bigIpMock = {
+                save() {
+                    return Promise.resolve();
+                }
+            };
+            restWorker.bigIps[taskId] = bigIpMock;
+
+            cryptoUtilMock.encryptValue = () => Promise.resolve();
+            restWorker.eventEmitter.on(EVENTS.READY_FOR_REVOKE, () => {
+                resolve();
+            });
+
+            const success = () => {
+                restWorker.eventEmitter.emit(
+                    EVENTS.LICENSE_WILL_BE_REVOKED,
+                    taskId,
+                    'foo',
+                    'foofoo'
                 );
             };
             const error = () => {
@@ -520,6 +556,11 @@ describe('restWorker', () => {
                         8888: {
                             result: {
                                 code: code8888
+                            }
+                        },
+                        9999: {
+                            result: {
+                                code: 'this is non-numeric'
                             }
                         }
                     }
@@ -613,6 +654,23 @@ describe('restWorker', () => {
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/task/8888',
+                query: { statusCodes: 'legacy' }
+            });
+
+            try {
+                restWorker.onGet(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
+        it('should not set non-numeric status code', () => new Promise((resolve, reject) => {
+            restOperationMock.complete = () => {
+                assert.strictEqual(statusCode, 500);
+                resolve();
+            };
+            restOperationMock.getUri = () => ({
+                pathname: '/shared/declarative-onboarding/task/9999',
                 query: { statusCodes: 'legacy' }
             });
 

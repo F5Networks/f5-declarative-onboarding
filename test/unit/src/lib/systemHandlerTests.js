@@ -22,6 +22,7 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
+const EventEmitter = require('events');
 const dns = require('dns');
 const sinon = require('sinon');
 
@@ -29,6 +30,7 @@ const doUtilMock = require('../../../../src/lib/doUtil');
 const cloudUtil = require('../../../../node_modules/@f5devcentral/f5-cloud-libs').util;
 
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
+const EVENTS = require('../../../../src/lib/sharedConstants').EVENTS;
 
 const SystemHandler = require('../../../../src/lib/systemHandler');
 
@@ -515,6 +517,22 @@ describe('systemHandler', () => {
         });
     });
 
+    it('should handle autoPhonehome', () => {
+        const declaration = {
+            Common: {
+                System: {
+                    autoPhonehome: false
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(dataSent[PATHS.Phonehome][0], { autoPhonehome: 'disabled' });
+            });
+    });
+
     it('should handle root users without keys', () => {
         // Stubs out the remote call to confirm the key is not added to the user
         sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
@@ -917,6 +935,28 @@ describe('systemHandler', () => {
     });
 
     describe('revoke', () => {
+        let eventEmitter;
+        let willBeRevokedCalled;
+        let clock;
+
+        beforeEach(() => {
+            willBeRevokedCalled = false;
+            eventEmitter = new EventEmitter();
+            eventEmitter.on(EVENTS.LICENSE_WILL_BE_REVOKED, () => {
+                willBeRevokedCalled = true;
+                eventEmitter.emit(
+                    EVENTS.READY_FOR_REVOKE
+                );
+            });
+            sinon.stub(doUtilMock, 'getBigIp').resolves(bigIpMock);
+            clock = sinon.useFakeTimers();
+        });
+
+        afterEach(() => {
+            sinon.restore();
+            clock.restore();
+        });
+
         it('should handle revoke from license pool', () => {
             const declaration = {
                 Common: {
@@ -946,7 +986,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIqHostSent, '10.145.112.44');
@@ -955,7 +995,65 @@ describe('systemHandler', () => {
                     assert.strictEqual(licensePoolSent, 'clpv2');
                     assert.strictEqual(optionsSent.noUnreachable, false);
                     assert.strictEqual(activeCalled, false);
+                    assert.strictEqual(willBeRevokedCalled, false);
                 });
+        });
+
+        it('should wait for revokeReady if BIG-IP is reachable', () => {
+            const declaration = {
+                Common: {
+                    License: {
+                        licenseType: 'licensePool',
+                        bigIqHost: '10.145.112.44',
+                        bigIqUsername: 'admin',
+                        bigIqPassword: 'foofoo',
+                        reachable: true,
+                        revokeFrom: 'clpv2'
+                    }
+                }
+            };
+
+            bigIpMock.onboard = {
+                revokeLicenseViaBigIq() {}
+            };
+            bigIpMock.deviceInfo = () => Promise.resolve({});
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
+            systemHandler.state = {};
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(willBeRevokedCalled, true);
+                });
+        });
+
+        it('should handle timeout of revokeReady', () => {
+            const declaration = {
+                Common: {
+                    License: {
+                        licenseType: 'licensePool',
+                        bigIqHost: '10.145.112.44',
+                        bigIqUsername: 'admin',
+                        bigIqPassword: 'foofoo',
+                        reachable: true,
+                        revokeFrom: 'clpv2'
+                    }
+                }
+            };
+
+            eventEmitter.removeAllListeners(EVENTS.LICENSE_WILL_BE_REVOKED);
+            eventEmitter.on(EVENTS.LICENSE_WILL_BE_REVOKED, () => {
+                clock.tick(30001);
+                willBeRevokedCalled = true;
+            });
+
+            bigIpMock.onboard = {
+                revokeLicenseViaBigIq() {}
+            };
+            bigIpMock.deviceInfo = () => Promise.resolve({});
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
+            systemHandler.state = {};
+            return assert.isRejected(systemHandler.process(), 'Timed out waiting for revoke ready event');
         });
 
         it('should handle revoke from license pool from a different BIG-IQ', () => {
@@ -993,7 +1091,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIqHostSent, '10.145.112.45');

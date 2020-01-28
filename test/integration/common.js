@@ -47,6 +47,20 @@ module.exports = {
         return util.promisify(request)(options);
     },
 
+
+    /**
+     * delayPromise- promise based timeout function
+     * @time {Integer} - Time in milliseconds to wait
+     * @value {Variable} - Optional pass through value
+     */
+    delayPromise(time, value) {
+        return new Promise(((resolve) => {
+            setTimeout(() => {
+                resolve(value);
+            }, time);
+        }));
+    },
+
     /**
      * tryOften - tries a function that is a Promise for a definite amount of times, spacing the trials out
      *            by the defined interval, until runs out of trials,
@@ -63,38 +77,22 @@ module.exports = {
      * (Inspired by the cloud-libs.util's tryUntil, except without some of the machinery we won't need here
     */
     tryOften(targetFunction, trials, timeInterval, acceptErrors, checkError) {
-        return new Promise((resolve, reject) => {
-            let timer;
-            let trialsCopy = trials;
-            const intervalFunction = function () {
-                if (trialsCopy === 0) {
-                    clearInterval(timer);
-                    reject(new Error('number of trials exhausted'));
+        return targetFunction.apply(this)
+            .catch((error) => {
+                if (checkError) {
+                    if (!acceptErrors.some(err => (err === parseInt(error.message, 10) || err === error.message))) {
+                        // non-trivial error, we reject
+                        throw new Error(`error is unrecoverable : ${error.message}`);
+                    }
                 }
-                targetFunction.apply(this)
-                    .then((response) => {
-                        clearInterval(timer);
-                        resolve(response);
-                    })
-                    .catch((error) => {
-                        trialsCopy -= 1;
-                        if (checkError) {
-                            let willReject = true;
-                            acceptErrors.forEach((err) => {
-                                if (err === parseInt(error.message, 10) || err === error.message) {
-                                    willReject = false;
-                                }
-                            });
-                            if (willReject) {
-                                // non-trivial error, we reject
-                                reject(new Error(`error is unrecoverable : ${error.message}`));
-                                clearInterval(timer);
-                            }
-                        }
-                    });
-            };
-            timer = setInterval(intervalFunction, timeInterval);
-        });
+                if (trials === 0) {
+                    throw new Error(`number of trials exhasted: ${error.message}`);
+                }
+                return module.exports.delayPromise(timeInterval)
+                    .then(() => module.exports.tryOften(
+                        targetFunction, trials - 1, timeInterval, acceptErrors, checkError
+                    ));
+            });
     },
 
     /**
@@ -140,19 +138,31 @@ module.exports = {
      * @expectedCode {String} - expected HTTP status code for when the API responds; typically HTTP_SUCCESS
      * Returns a Promise with response/error
     */
-    testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode, queryObj) {
+    testGetStatus(trials, timeInterval, ipAddress, auth, expectedCode, queryObj = {}) {
         const func = function () {
             return new Promise((resolve, reject) => {
-                const query = qs.encode(Object.assign(queryObj || {}, { show: 'full' }));
+                const query = qs.encode(Object.assign(queryObj, { show: 'full' }));
                 const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
                     constants.PORT)}${constants.DO_API}?${query}`, null, auth, 'GET');
                 module.exports.sendRequest(options)
                     .then((response) => {
-                        logger.debug(`current status: ${response.response.statusCode}, waiting for ${expectedCode}`);
-                        if (response.response.statusCode === expectedCode) {
-                            resolve(JSON.parse(response.body));
+                        const statusCode = response.response.statusCode;
+                        logger.debug(`current status: ${statusCode}, waiting for ${expectedCode}`);
+                        if (statusCode === expectedCode) {
+                            let parsedResponse;
+                            try {
+                                parsedResponse = JSON.parse(response.body);
+                            } catch (err) {
+                                parsedResponse = response.body;
+                            }
+
+                            // 'experimental' statusCode will always return 200, response.code may differ.
+                            if (queryObj.statusCodes === 'experimental' && !parsedResponse.code) {
+                                reject(new Error(parsedResponse.result.code));
+                            }
+                            resolve(parsedResponse);
                         } else {
-                            reject(new Error(response.response.statusCode));
+                            reject(new Error(statusCode));
                         }
                     })
                     .catch((error) => {
@@ -160,8 +170,7 @@ module.exports = {
                     });
             });
         };
-        return module.exports.tryOften(func, trials, timeInterval,
-            [constants.HTTP_ACCEPTED, constants.HTTP_UNAVAILABLE, constants.HTTP_NOTFOUND], true);
+        return module.exports.tryOften(func, trials, timeInterval, null, false);
     },
 
     /**
@@ -198,16 +207,30 @@ module.exports = {
     /**
      * sendRequest - prepares and sends a request with some configuration
      * @options {Object} : configuration options for request
+     * @retryOptions {Object} : options for retrying request. see tryOften
      * Returns Promise with response/error
     */
-    sendRequest(options) {
-        return new Promise((resolve, reject) => {
-            request(options, (error, response, body) => {
-                if (error) { reject(error); }
-                const responseObj = { response, body };
-                resolve(responseObj);
+    sendRequest(options, retryOptions) {
+        const func = function () {
+            return new Promise((resolve, reject) => {
+                request(options, (error, response, body) => {
+                    if (error) { reject(error); }
+                    const responseObj = { response, body };
+                    resolve(responseObj);
+                });
             });
-        });
+        };
+
+        if (retryOptions) {
+            return module.exports.tryOften(
+                func,
+                retryOptions.trials,
+                retryOptions.timeInterval,
+                null,
+                false
+            );
+        }
+        return func();
     },
 
     /**

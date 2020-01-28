@@ -1,6 +1,18 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.10.0
+### Added
+- AUTOTOOL-993: Add support for System autoPhonehome setting
+- AUTOTOOL-916: Add support for provisioning CGNAT on BIG-IP v15.0+
+### Fixed
+- AUTOTOOL-343: On BIG-IP 14+, revoke license from BIG-IQ does not work
+    - Make sure config is saved before issuing revoke command
+    - Fix issue when existing radius servers are present and none are the primary
+### Changed
+- AUTOTOOL-903: Integration test improvements: Run integration tests against BIG-IP 13.1, 14.0 and 14.1 instances
+### Removed
+
 ## 1.9.0
 ### Added
 - AUTOTOOL-910: Add query parameter {statusCodes: 'experimental'} to enable new status codes as implemented in AUTOTOOL-727
