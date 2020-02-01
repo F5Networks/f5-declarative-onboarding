@@ -103,6 +103,7 @@ integration-test:
     script:
         - yum install -y nodejs
         - npm install
+        - echo BIGIP_VERSION $BIGIP_VERSION
         - npm run integration
     artifacts:
         name: f5-declarative-onboarding-$CI_BUILD_REF
