@@ -84,6 +84,6 @@ Use the following procedure to validate a declaration.
 
 .. |schema| raw:: html
 
-   <a href="https://github.com/F5Networks/f5-declarative-onboarding/tree/master/schema" target="_blank">schema</a>
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/tree/master/src/schema" target="_blank">schema</a>
 
 
