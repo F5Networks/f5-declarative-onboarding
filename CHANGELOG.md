@@ -3,6 +3,13 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.10.0
 ### Added
+### Fixed
+- AUTOTOOL-1139: Route Configuration can conflict with DHCP
+### Changed
+### Removed
+
+## 1.10.0
+### Added
 - AUTOTOOL-993: Add support for System autoPhonehome setting
 - AUTOTOOL-916: Add support for provisioning CGNAT on BIG-IP v15.0+
 ### Fixed

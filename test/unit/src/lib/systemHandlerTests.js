@@ -1223,6 +1223,22 @@ describe('systemHandler', () => {
                     assert.strictEqual(managementRouteData[0].mtu, 123);
                 });
         });
+
+        it('should not do anything with an empty ManagementRoute', () => {
+            const theDeclaration = {
+                Common: {
+                    ManagementRoute: {
+                        theManagementRoute: {}
+                    }
+                }
+            };
+            const systemHandler = new SystemHandler(theDeclaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepEqual(deletedPaths, []);
+                    assert.deepEqual(dataSent, null);
+                });
+        });
     });
 
     it('should handle SnmpAgent', () => {
