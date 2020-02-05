@@ -643,6 +643,22 @@ describe('networkHandler', () => {
                     assert.strictEqual(routeData[0].mtu, 1000);
                 });
         });
+
+        it('should not do anything with an empty Route', () => {
+            const theDeclaration = {
+                Common: {
+                    Route: {
+                        theRoute: {}
+                    }
+                }
+            };
+            const networkHandler = new NetworkHandler(theDeclaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    assert.deepEqual(deletedPaths, []);
+                    assert.deepEqual(dataSent[PATHS.Route], undefined);
+                });
+        });
     });
 
     describe('RouteDomain', () => {

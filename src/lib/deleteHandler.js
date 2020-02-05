@@ -25,7 +25,7 @@ const AUTH = require('./sharedConstants').AUTH;
 const logger = new Logger(module);
 
 // This is an ordered list - objects will be deleted in this order
-const DELETABLE_CLASSES = ['DeviceGroup', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole'];
+const DELETABLE_CLASSES = ['DeviceGroup', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute'];
 
 const READ_ONLY_DEVICE_GROUPS = ['device_trust_group', 'gtm', 'datasync-global-dg'];
 
