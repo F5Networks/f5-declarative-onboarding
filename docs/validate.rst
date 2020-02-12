@@ -31,7 +31,7 @@ Use the following procedure to validate a declaration.
     .. code-block:: json
 
         {
-            "$schema": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/latest/base.schema.json",
+            "$schema": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/base.schema.json",
 
 
 
