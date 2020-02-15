@@ -125,7 +125,8 @@ module.exports = {
                     });
             });
         };
-        return module.exports.tryOften(func, 10, (interval || 60) * 1000, [constants.HTTP_UNAVAILABLE], true);
+        return module.exports.tryOften(func, 10, (interval || 60) * 1000,
+            [constants.HTTP_UNAVAILABLE, constants.HTTP_BAD_REQUEST], true);
     },
 
     /**
