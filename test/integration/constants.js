@@ -10,6 +10,7 @@ module.exports = Object.freeze({
     HTTP_SUCCESS: 200,
     HTTP_UNAVAILABLE: 503,
     HTTP_UNPROCESSABLE: 422,
+    HTTP_BAD_REQUEST: 400,
     ICONTROL_API: '/mgmt',
     PORT: 443,
     DO_API: '/mgmt/shared/declarative-onboarding'
