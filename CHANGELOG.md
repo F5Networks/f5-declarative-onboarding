@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.10.0
 ### Added
+- AUTOTOOL-1223: Allow provisioning SSLO module
 ### Fixed
 - AUTOTOOL-1139: Route Configuration can conflict with DHCP
 ### Changed
