@@ -5,7 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 - AUTOTOOL-1223: Allow provisioning SSLO module
 ### Fixed
-- AUTOTOOL-1139: Route Configuration can conflict with DHCP
+- AUTOTOOL-1139 ([GitHub Issue 100](https://github.com/F5Networks/f5-declarative-onboarding/issues/100)): Route Configuration can conflict with DHCP
 ### Changed
 ### Removed
 
