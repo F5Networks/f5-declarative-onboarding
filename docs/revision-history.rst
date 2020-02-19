@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 2.8
+        - Updated the documentation for Declarative Onboarding v1.11.0.  This release contains the following changes: |br| * Added support for provisioning SSL Orchestrator (SSLO), see :ref:`provision-class`  |br| *  |br| |br| Issues Resolved: |br| * Route Configuration can conflict with DHCP (`GitHub issue 100 <https://github.com/F5Networks/f5-declarative-onboarding/issues/100>`_)
+        - 03-10-20
+
       * - 2.7
         - Updated the documentation for Declarative Onboarding v1.10.0.  This release contains the following changes: |br| * Added the :ref:`system-class` to the Composing a Standalone declaration page |br| * Added support for disabling autoPhonehome in the System class (see :ref:`system-class`)  |br| * Added support for provisioning CGNAT in TMOS version 15.0 and later (see :ref:`provision-class`)  |br| |br| Issues Resolved: |br| * On BIG-IP 14 and later, revoke license from BIG-IQ did not work |br| *  DO now makes sure config is saved before issuing revoke command |br| * Fixed issue when existing Radius servers were present and none were the primary
         - 01-28-20
