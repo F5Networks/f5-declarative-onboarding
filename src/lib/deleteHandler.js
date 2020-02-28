@@ -126,22 +126,41 @@ function getAuthClassPromises() {
             if (authToDelete.indexOf(authItem) === -1) {
                 return;
             }
-            let promise = this.bigIp.delete(
-                `/tm/auth/${authItem}/${AUTH.SUBCLASSES_NAME}`,
-                null, null, cloudUtil.NO_RETRY
-            );
+
+            let promise = this.bigIp.list(`/tm/auth/${authItem}`, null, null, cloudUtil.NO_RETRY)
+                .then(authItems => authItems.some(
+                    item => item.fullPath === `/Common/${AUTH.SUBCLASSES_NAME}`
+                ))
+                .then((shouldDelete) => {
+                    if (shouldDelete) {
+                        return this.bigIp.delete(
+                            `/tm/auth/${authItem}/${AUTH.SUBCLASSES_NAME}`,
+                            null, null, cloudUtil.NO_RETRY
+                        );
+                    }
+                    return Promise.resolve();
+                });
+
             if (authItem === 'radius') {
                 // quirk with radius-servers:
                 // 1) needing separate DELETEs and they also have name constants
                 // 2) should be deleted only when /tm/auth/radius/system-auth object was deleted
-                promise = promise.then(() => Promise.all(
-                    [RADIUS.PRIMARY_SERVER, RADIUS.SECONDARY_SERVER].map(
-                        server => this.bigIp.delete(
-                            `${PATHS.AuthRadiusServer}/~Common~${server}`,
-                            null, null, cloudUtil.NO_RETRY
-                        )
-                    )
-                ));
+                promise = promise.then(() => this.bigIp.list(PATHS.AuthRadiusServer, null, null, cloudUtil.NO_RETRY))
+                    .then(authItems => Promise.all(
+                        [RADIUS.PRIMARY_SERVER, RADIUS.SECONDARY_SERVER].map((server) => {
+                            const shouldDelete = authItems.some(
+                                item => item.fullPath === `/Common/${AUTH.SUBCLASSES_NAME}`
+                            );
+
+                            if (shouldDelete) {
+                                return this.bigIp.delete(
+                                    `${PATHS.AuthRadiusServer}/~Common~${server}`,
+                                    null, null, cloudUtil.NO_RETRY
+                                );
+                            }
+                            return Promise.resolve();
+                        })
+                    ));
             }
             authPromises.push(promise);
         });

@@ -8,6 +8,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1139 ([GitHub Issue 100](https://github.com/F5Networks/f5-declarative-onboarding/issues/100)): Route Configuration can conflict with DHCP
 - AUTOTOOL-1125 ([GitHub Issue 104](https://github.com/F5Networks/f5-declarative-onboarding/issues/104)): Setting ConfigSync does not handle device name / hostname mismatch and ([GitHub Issue 113](https://github.com/F5Networks/f5-declarative-onboarding/issues/113)): Attempting to modify ConfigSync on non-existing device - device not resolving properly
 - AUTOTOOL-1166: Requiring a reboot causes task to never complete
+- AUTOTOOL-1235: Relicensing BIG-IP can be interrupted by service restart
 ### Changed
 ### Removed
 
