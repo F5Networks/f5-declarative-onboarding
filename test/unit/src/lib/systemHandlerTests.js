@@ -144,7 +144,7 @@ describe('systemHandler', () => {
     describe('DNS/NTP/System', () => {
         let bigIpStub;
 
-        function setUpBigIpStubWithRequestOptions(requestOptions, bigIpVersion, isDhcpEnabled) {
+        function setUpBigIpStubWithRequestOptions(requestOptions, bigIpVersion, isDhcpEnabled, globalHostname) {
             if (bigIpStub) {
                 bigIpStub.restore();
             }
@@ -170,7 +170,8 @@ describe('systemHandler', () => {
 
                 if (path === '/tm/sys/global-settings') {
                     const globalSettings = {
-                        mgmtDhcp: isDhcpEnabled
+                        mgmtDhcp: isDhcpEnabled,
+                        hostname: globalHostname
                     };
                     return Promise.resolve(globalSettings);
                 }
@@ -444,6 +445,26 @@ describe('systemHandler', () => {
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(hostnameSent, 'myhost.example.com');
+                });
+        });
+
+        it('should handle no hostname in declaration', () => {
+            const declaration = {
+                Common: {}
+            };
+            setUpBigIpStubWithRequestOptions([], '', '', 'global.hostname');
+            let hostnameSent;
+            bigIpMock.onboard = {
+                hostname(hostname) {
+                    hostnameSent = hostname;
+                    return Promise.resolve();
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostnameSent, 'global.hostname');
                 });
         });
 

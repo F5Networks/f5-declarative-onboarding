@@ -184,6 +184,13 @@ function handleSystem() {
     if (hostname) {
         promises.push(disableDhcpOptions.call(this, ['host-name'])
             .then(() => this.bigIp.onboard.hostname(hostname)));
+    } else {
+        promises.push(this.bigIp.list(PATHS.System)
+            .then((globalSettings) => {
+                if (globalSettings && globalSettings.hostname) {
+                    this.bigIp.onboard.hostname(globalSettings.hostname);
+                }
+            }));
     }
 
     if (system) {

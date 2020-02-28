@@ -542,11 +542,13 @@ describe('AVR dependencies', () => {
                 return Promise.resolve();
             },
             onboard: {
+                hostname: () => Promise.resolve(),
                 provision: (data) => {
                     isAvrProvisioned = data.avr && data.avr !== 'none';
                     return Promise.resolve([]);
                 }
-            }
+            },
+            list: () => Promise.resolve()
         };
     }
 
