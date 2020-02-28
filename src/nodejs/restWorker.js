@@ -482,16 +482,18 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
             .then((rebootRequired) => {
                 if (rebootRequired) {
                     logger.fine('Reboot required.');
-                    return this.state.doState.updateResult(
+                    this.state.doState.updateResult(
                         taskId,
                         202,
                         STATUS.STATUS_REBOOTING,
                         'reboot required'
                     );
+                    return save.call(this);
                 }
 
                 logger.fine('No reboot required');
-                return this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
+                this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
+                return Promise.resolve();
             });
     }
 
