@@ -19,6 +19,7 @@
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
+const promiseUtil = require('./promiseUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const EVENTS = require('./sharedConstants').EVENTS;
@@ -398,7 +399,14 @@ function handleLicensePool(license) {
                             passwordIsUri: !!options.bigIqPasswordUri,
                             noUnreachable: !!license.reachable
                         }
-                    ));
+                    ))
+                    .then(() => {
+                        // If our license is revoked, wait for restart
+                        if (licenseInfo.reachable) {
+                            return promiseUtil.delay(120000);
+                        }
+                        return Promise.resolve();
+                    });
             } else {
                 possiblyRevoke = Promise.resolve();
             }

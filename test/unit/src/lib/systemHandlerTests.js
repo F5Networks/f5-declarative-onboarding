@@ -27,6 +27,7 @@ const dns = require('dns');
 const sinon = require('sinon');
 
 const doUtilMock = require('../../../../src/lib/doUtil');
+const promiseUtil = require('../../../../src/lib/promiseUtil');
 const cloudUtil = require('../../../../node_modules/@f5devcentral/f5-cloud-libs').util;
 
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
@@ -1038,6 +1039,8 @@ describe('systemHandler', () => {
                 revokeLicenseViaBigIq() {}
             };
             bigIpMock.deviceInfo = () => Promise.resolve({});
+
+            sinon.stub(promiseUtil, 'delay').resolves();
 
             const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
             systemHandler.state = {};
