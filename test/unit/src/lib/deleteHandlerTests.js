@@ -226,6 +226,39 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
+    it('should handle non-array response from bigIp.list', () => {
+        bigIpMock.delete = path => new Promise((resolve) => {
+            deletedPaths.push(path);
+            resolve();
+        });
+
+        bigIpMock.list = path => new Promise((resolve) => {
+            fetchedPaths.push(path);
+            resolve({});
+        });
+
+        const declaration = {
+            Common: {
+                Authentication: {
+                    radius: {},
+                    tacacs: {},
+                    ldap: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(fetchedPaths.length, 4);
+                assert.strictEqual(fetchedPaths[0], '/tm/auth/radius');
+                assert.strictEqual(fetchedPaths[1], '/tm/auth/tacacs');
+                assert.strictEqual(fetchedPaths[2], '/tm/auth/ldap');
+                assert.strictEqual(fetchedPaths[3], '/tm/auth/radius-server');
+                assert.strictEqual(deletedPaths.length, 0);
+            });
+    });
+
 
     it('should not issue deletes for non-deletable classes', () => {
         const declaration = {
