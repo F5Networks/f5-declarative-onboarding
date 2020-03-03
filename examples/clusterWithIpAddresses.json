@@ -1,0 +1,40 @@
+{
+    "class": "Device",
+    "schemaVersion": "1.0.0",
+    "async": true,
+    "label": "BIG-IP declaration for declarative onboarding",
+    "Common": {
+        "class": "Tenant",
+        "hostname": "do.example.1",
+        "configSync": {
+            "class": "ConfigSync",
+            "configsyncIp": "10.0.0.1"
+        },
+        "failoverAddress": {
+            "class": "FailoverUnicast",
+            "address": "10.0.0.1"
+        },
+        "trust": {
+        	"class": "DeviceTrust",
+            "localUsername": "exampleUsername",
+            "localPassword": "examplePassword",
+            "remoteHost": "10.0.0.1",
+            "remoteUsername": "exampleUsername",
+            "remotePassword": "examplePassword"
+        },
+        "failoverGroup": {
+            "class": "DeviceGroup",
+            "type": "sync-failover",
+            "members": [
+                "10.0.0.1",
+                "10.0.0.2"
+            ],
+            "owner": "/Common/failoverGroup/members/0",
+            "autoSync": true,
+            "saveOnAutoSync": false,
+            "networkFailover": false,
+            "fullLoadOnSync": false,
+            "asmSync": false
+        }
+    }
+}
