@@ -10,6 +10,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1166: Requiring a reboot causes task to never complete
 - AUTOTOOL-1235: Relicensing BIG-IP can be interrupted by service restart
 ### Changed
+- AUTOTOOL-1124: Allow IP addresses for configuring cluster members
 ### Removed
 
 ## 1.10.0

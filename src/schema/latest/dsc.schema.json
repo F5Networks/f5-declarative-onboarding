@@ -95,7 +95,11 @@
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "format": "hostname"
+                            "anyOf": [
+                                { "format": "ipv4" },
+                                { "format": "ipv6" },
+                                { "format": "hostname" }
+                            ]
                         }
                     },
                     "autoSync": {

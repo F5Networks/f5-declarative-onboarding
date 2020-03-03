@@ -326,6 +326,7 @@ describe('dscHandler', () => {
         let addToDeviceGroupNameSent;
         let devicesSent;
         let joinClusterCalled;
+        let joinClusterMembers;
         let syncCalled;
         let syncCompleteCalled;
         let removeDeviceNames;
@@ -374,9 +375,10 @@ describe('dscHandler', () => {
                     addToDeviceGroupNameSent = deviceGroupName;
                     return Promise.resolve();
                 },
-                joinCluster(deviceGroupName) {
+                joinCluster(deviceGroupName, remoteHost, remoteUsername, remotePassword, isLocal, options) {
                     addToDeviceGroupNameSent = deviceGroupName;
                     joinClusterCalled = true;
+                    joinClusterMembers = options.syncCompDevices;
                     return Promise.resolve();
                 },
                 removeFromDeviceGroup(deviceNames, deviceGroup) {
@@ -393,6 +395,7 @@ describe('dscHandler', () => {
                 if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
                     return Promise.resolve(deviceList);
                 }
+
                 return Promise.reject(new Error('Unexpected path'));
             };
             sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
@@ -581,6 +584,111 @@ describe('dscHandler', () => {
                     assert.strictEqual(removeDeviceGroup, 'failoverGroup',
                         'Should remove old device from device group');
                 });
+        });
+
+        it('should join the device group when using ip addresses if we have DeviceGroup and DeviceTrust', () => {
+            sinon.stub(doUtil, 'getBigIp').resolves(bigIpMock);
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['10.1.2.3', '10.7.8.9', 'bigip1.example.com'],
+                            owner: 'someOtherHost'
+                        }
+                    },
+                    DeviceTrust: {
+                        remoteHost: 'someOtherHost'
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
+                    return Promise.resolve(deviceList);
+                }
+                if (path === '/tm/cm/device') {
+                    return Promise.resolve([
+                        {
+                            name: 'do.test.1',
+                            configsyncIp: '10.1.2.3',
+                            managementIp: '10.1.2.4'
+                        },
+                        {
+                            name: 'do.test.2',
+                            configsyncIp: '10.4.5.6',
+                            managementIp: '10.7.8.9'
+                        }
+                    ]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(addToDeviceGroupNameSent, 'failoverGroup');
+                    assert.strictEqual(joinClusterCalled, true);
+                    assert.strictEqual(removeFromDeviceGroupCalled, true,
+                        'Should call removeFromDeviceGroup');
+                    assert.deepStrictEqual(removeDeviceNames, ['bigip2.example.com',
+                        'remove.example.com'], 'Should remove old device');
+                    assert.strictEqual(removeDeviceGroup, 'failoverGroup',
+                        'Should remove old device from device group');
+                    assert.deepStrictEqual(joinClusterMembers,
+                        ['do.test.1', 'do.test.2', 'bigip1.example.com']);
+                });
+        });
+
+        it('should remove IP addresses not found in the trust', () => {
+            sinon.stub(doUtil, 'getBigIp').resolves(bigIpMock);
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['10.1.2.4', '10.1.2.2'],
+                            owner: 'someOtherHost'
+                        }
+                    },
+                    DeviceTrust: {
+                        remoteHost: 'someOtherHost'
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
+                    return Promise.resolve(deviceList);
+                }
+                if (path === '/tm/cm/device') {
+                    return Promise.resolve([
+                        {
+                            name: 'do.test.1',
+                            configsyncIp: '10.1.2.3',
+                            managementIp: '10.1.2.4'
+                        },
+                        {
+                            name: 'do.test.2',
+                            configsyncIp: '10.4.5.6',
+                            managementIp: '10.7.8.9'
+                        }
+                    ]);
+                }
+                return Promise.reject(new Error('Unexpected path'));
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return assert.isFulfilled(dscHandler.process())
+                .then(() => assert.deepStrictEqual(joinClusterMembers, ['do.test.1']));
         });
 
         it('should join device group if we are not the owner and we only have DeviceGroup', () => {
