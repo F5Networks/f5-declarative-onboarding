@@ -140,7 +140,7 @@ For more information on Device Groups on the BIG-IP, see |group|.  In this examp
 
 **Important**: You cannot use *autoSync* and *fullLoadOnSync* together. 
 
-.. NOTE::  In Declarative Onboarding v1.11.0 and later, the member and owner parameters can be IP addresses.
+.. NOTE::  In Declarative Onboarding v1.11.0 and later, the member and owner parameters can be IP addresses.  See :ref:`Example 17<example17>` for an example declaration.
 
 
 
