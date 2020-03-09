@@ -124,8 +124,8 @@ module.exports = {
      * @returns {Promise} A promise which is resolved with the platform.
      */
     getCurrentPlatform() {
-        return new Promise((resolve, reject) => {
-            httpUtil.get('http://localhost:8100/shared/identified-devices/config/device-info')
+        function retryFunc() {
+            return httpUtil.get('http://localhost:8100/shared/identified-devices/config/device-info')
                 .then((deviceInfo) => {
                     let platform = 'CONTAINER';
                     if (deviceInfo && deviceInfo.slots) {
@@ -136,13 +136,15 @@ module.exports = {
                         }
                     }
                     logger.info(`Platform: ${platform}`);
-                    resolve(platform);
+                    return platform;
                 })
                 .catch((err) => {
                     logger.warning(`Error detecting current platform: ${err.message}`);
-                    reject(err);
+                    return Promise.reject(err);
                 });
-        });
+        }
+
+        return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, retryFunc);
     },
 
 

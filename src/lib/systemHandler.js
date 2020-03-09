@@ -19,6 +19,7 @@
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
+const promiseUtil = require('./promiseUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const EVENTS = require('./sharedConstants').EVENTS;
@@ -184,6 +185,13 @@ function handleSystem() {
     if (hostname) {
         promises.push(disableDhcpOptions.call(this, ['host-name'])
             .then(() => this.bigIp.onboard.hostname(hostname)));
+    } else {
+        promises.push(this.bigIp.list(PATHS.System)
+            .then((globalSettings) => {
+                if (globalSettings && globalSettings.hostname) {
+                    this.bigIp.onboard.hostname(globalSettings.hostname);
+                }
+            }));
     }
 
     if (system) {
@@ -391,7 +399,14 @@ function handleLicensePool(license) {
                             passwordIsUri: !!options.bigIqPasswordUri,
                             noUnreachable: !!license.reachable
                         }
-                    ));
+                    ))
+                    .then(() => {
+                        // If our license is revoked, wait for restart
+                        if (licenseInfo.reachable) {
+                            return promiseUtil.delay(120000);
+                        }
+                        return Promise.resolve();
+                    });
             } else {
                 possiblyRevoke = Promise.resolve();
             }
@@ -447,27 +462,27 @@ function handleManagementRoute() {
             const promises = [];
             doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
                 let promise = Promise.resolve();
-                const mask = managementRoute.network.includes(':') ? 128 : 32;
-                managementRoute.network = managementRoute.network !== 'default'
-                    && managementRoute.network !== 'default-inet6' && !managementRoute.network.includes('/')
-                    ? `${managementRoute.network}/${mask}` : managementRoute.network;
-                // Need to do a delete if the network property is updated
-                if (this.state.currentConfig.Common.ManagementRoute
-                    && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
-                    && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
-                        .network !== managementRoute.network) {
-                    if (platform !== 'BIG-IP') {
-                        throw new Error('Cannot update network property when running remotely');
-                    }
-                    promise = promise.then(() => this.bigIp.delete(
-                        `${PATHS.ManagementRoute}/~Common~${managementRoute.name}`,
-                        null,
-                        null,
-                        cloudUtil.NO_RETRY
-                    ));
-                }
-
                 if (managementRoute && managementRoute.name) {
+                    const mask = managementRoute.network.includes(':') ? 128 : 32;
+                    managementRoute.network = managementRoute.network !== 'default'
+                        && managementRoute.network !== 'default-inet6' && !managementRoute.network.includes('/')
+                        ? `${managementRoute.network}/${mask}` : managementRoute.network;
+                    // Need to do a delete if the network property is updated
+                    if (this.state.currentConfig.Common.ManagementRoute
+                        && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
+                        && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
+                            .network !== managementRoute.network) {
+                        if (platform !== 'BIG-IP') {
+                            throw new Error('Cannot update network property when running remotely');
+                        }
+                        promise = promise.then(() => this.bigIp.delete(
+                            `${PATHS.ManagementRoute}/~Common~${managementRoute.name}`,
+                            null,
+                            null,
+                            cloudUtil.NO_RETRY
+                        ));
+                    }
+
                     const routeBody = {
                         name: managementRoute.name,
                         partition: tenant,

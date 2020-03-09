@@ -684,6 +684,14 @@ describe('system.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should allow sslo', () => {
+                const data = {
+                    "class": "Provision",
+                    "sslo": "nominal"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {

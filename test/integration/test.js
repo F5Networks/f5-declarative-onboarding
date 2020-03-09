@@ -147,7 +147,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match provisioning', () => {
-            const provisionModules = ['ltm'];
+            const provisionModules = ['ltm', 'gtm'];
             assert.ok(testProvisioning(body.Common.myProvisioning, currentState, provisionModules));
         });
 

@@ -258,22 +258,22 @@ function handleRoute() {
     const promises = [];
     doUtil.forEach(this.declaration, 'Route', (tenant, route) => {
         let promise = Promise.resolve();
-        const mask = route.network.includes(':') ? 128 : 32;
-        route.network = route.network !== 'default' && route.network !== 'default-inet6'
-            && !route.network.includes('/') ? `${route.network}/${mask}` : route.network;
-        // Need to do a delete if the network property is updated
-        if (this.state.currentConfig.Common.Route
-            && this.state.currentConfig.Common.Route[route.name]
-            && this.state.currentConfig.Common.Route[route.name].network !== route.network) {
-            promise = promise.then(() => this.bigIp.delete(
-                `${PATHS.Route}/~Common~${route.name}`,
-                null,
-                null,
-                cloudUtil.NO_RETRY
-            ));
-        }
-
         if (route && route.name) {
+            const mask = route.network.includes(':') ? 128 : 32;
+            route.network = route.network !== 'default' && route.network !== 'default-inet6'
+                && !route.network.includes('/') ? `${route.network}/${mask}` : route.network;
+            // Need to do a delete if the network property is updated
+            if (this.state.currentConfig.Common.Route
+                && this.state.currentConfig.Common.Route[route.name]
+                && this.state.currentConfig.Common.Route[route.name].network !== route.network) {
+                promise = promise.then(() => this.bigIp.delete(
+                    `${PATHS.Route}/~Common~${route.name}`,
+                    null,
+                    null,
+                    cloudUtil.NO_RETRY
+                ));
+            }
+
             const routeBody = {
                 name: route.name,
                 partition: tenant,
