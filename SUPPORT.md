@@ -24,9 +24,9 @@ Versions no longer supported:
 |------------------|---------------|---------------------|-----------------|
 | DO 1.1.0         | Feature       | 20-Dec-2018         | 20-Mar-2019     |
 | DO 1.2.0         | Feature       | 16-Jan-2019         | 16-Apr-2019     |
-| DO 1.3.0	       | Feature	   | 27-Feb-2019	     | 27-May-2019     |
-| DO 1.3.1	       | Feature	   | 07-May-2019	     | 07-Aug-2019     |
-| DO 1.4.0	       | Feature	   | 08-May-2019	     | 08-Aug-2019     |
+| DO 1.3.0	       | Feature       | 27-Feb-2019	     | 27-May-2019     |
+| DO 1.3.1	       | Feature       | 07-May-2019	     | 07-Aug-2019     |
+| DO 1.4.0	       | Feature       | 08-May-2019	     | 08-Aug-2019     |
 | DO 1.4.1         | Fix*          | 21-May-2019         | 08-Aug-2019     |
 | DO 1.5.0         | Feature       | 18-Jun-2019         | 18-Sep-2019     |
 | DO 1.6.0         | Feature       | 30-Jul-2019         | 30-Oct-2019     |
