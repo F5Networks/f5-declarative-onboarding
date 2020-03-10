@@ -333,4 +333,16 @@ describe('state', () => {
         const task = state.getTask(taskId);
         assert.strictEqual(task.result.message, 'foo');
     });
+
+    it('should set the request options', () => {
+        const state = new State();
+        const taskId = state.addTask();
+
+        const reqOpts = {
+            method: 'POST',
+            query: {}
+        };
+        state.setRequestOptions(taskId, reqOpts);
+        assert.deepEqual(state.getRequestOptions(taskId), reqOpts);
+    });
 });

@@ -239,7 +239,9 @@ describe('restWorker', () => {
                             1234: {
                                 result: {
                                     status: STATUS.STATUS_REBOOTING
-                                }
+                                },
+                                internalDeclaration: {},
+                                requestOptions: {}
                             }
                         }
                     }

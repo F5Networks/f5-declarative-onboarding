@@ -300,6 +300,32 @@ class State {
     }
 
     /**
+     * Sets the request options for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} reqOpts - The request options to set.
+     */
+    setRequestOptions(taskId, reqOpts) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].requestOptions = reqOpts;
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the request options for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getRequestOptions(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].requestOptions;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
      * Gets the declaration for a task
      *
      * @param {String} taskId - The id of the task.
