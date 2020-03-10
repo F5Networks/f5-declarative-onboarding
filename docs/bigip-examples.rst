@@ -306,6 +306,26 @@ In the following declaration, we show only the System class.  You can use this c
 :ref:`Back to top<bigipexamples>`
 
 
+.. _example17:
+
+17: Clustered declaration with IP addresses for Device Group owner and members
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for using IP addresses for Device Group owners and members is available in DO v1.11.0 and later. 
+
+The following is an example declaration that onboards a clustered BIG-IP system, but shows how you can use an IP address for the Device Group members and owner.  
+
+See :ref:`devicegroup` for more information.
+
+.. literalinclude:: ../examples/clusterWithIpAddresses.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+
 .. |br| raw:: html
 
    <br />
