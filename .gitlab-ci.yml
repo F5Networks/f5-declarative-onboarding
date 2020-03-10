@@ -1,4 +1,4 @@
-image: node:8
+image: node:12
 
 stages:
     - lint
@@ -18,9 +18,10 @@ variables:
     DO_LICENSING: 'false'
     DO_PROVISIONING: 'false'
     TEST_HARNESS_FILE: ${CI_PROJECT_DIR}/harness_facts_flat_${BIGIP_VERSION}.json
+    BIGIP_VERSION: ${DEFAULT_BIGIP_VERSION}
+    BIGIP_BUILD: ${DEFAULT_BIGIP_BUILD}
 
 lint:
-    image: node:8
     stage: lint
     tags:
         - cm-official-docker-executor
@@ -28,7 +29,7 @@ lint:
         - npm ci
         - npm run lint
 
-test_node4:
+test_node:4:
     image: node:4
     stage: test
     tags:
@@ -39,7 +40,7 @@ test_node4:
         - npm install mocha@5.2.0
         - npm test
 
-test_node6:
+test_node:6:
     image: node:6
     stage: test
     tags:
@@ -48,7 +49,16 @@ test_node6:
         - npm install
         - npm test
 
-test_node8:
+test_node:8:
+    image: node:8
+    stage: test
+    tags:
+        - cm-official-docker-executor
+    script:
+        - npm ci
+        - npm test
+
+test_node:latest:
     stage: test
     tags:
         - cm-official-docker-executor
@@ -79,7 +89,7 @@ deploy:
             cp ${PROJECT_DIR}/harness_facts_flat.json ${TEST_HARNESS_FILE} &&
             cd ${CI_PROJECT_DIR}
         - if [[ $? != 0 ]]; then echo setup failed && exit 1; fi
-        - curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+        - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
         - yum install -y nodejs
         - npm install
         - node test/integration/setup.js
@@ -90,7 +100,6 @@ deploy:
         expire_in: 1 day
 
 integration-test:
-    image: centos
     tags:
         - cm-official-docker-executor
     only:
@@ -99,9 +108,14 @@ integration-test:
         - triggers
     stage: integration-test
     script:
-        - yum install -y nodejs
         - npm install
+        - echo BIGIP_VERSION $BIGIP_VERSION
         - npm run integration
+    after_script:
+        - apt-get update
+        - apt-get install -y jq
+        - apt-get install -y expect
+        - scripts/dev/collectRemoteIntegrationTestLogs.sh ${TEST_HARNESS_FILE}
     artifacts:
         name: f5-declarative-onboarding-$CI_BUILD_REF
         when: always

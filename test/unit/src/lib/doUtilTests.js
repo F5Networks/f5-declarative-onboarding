@@ -165,6 +165,8 @@ describe('doUtil', () => {
 
         it('should handle errors', () => {
             const error = 'http error';
+            sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value(cloudUtilMock.NO_RETRY);
+
             httpUtilMock.get = () => Promise.reject(new Error(error));
 
             return assert.isRejected(doUtil.getCurrentPlatform(),

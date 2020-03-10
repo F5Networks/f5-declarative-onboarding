@@ -776,6 +776,7 @@ describe('restWorker', () => {
         let restWorker;
         let bigIpOptionsCalled;
         let saveCalled;
+        let saveStateCalled;
 
         beforeEach(() => {
             restOperationMock.getMethod = () => 'Post';
@@ -785,6 +786,7 @@ describe('restWorker', () => {
 
             bigIpOptionsCalled = {};
             saveCalled = false;
+            saveStateCalled = false;
             bigIpMock = {
                 save() {
                     saveCalled = true;
@@ -804,13 +806,18 @@ describe('restWorker', () => {
             });
 
             RestWorker.prototype.saveState = (foo, state, callback) => {
+                saveStateCalled = true;
                 callback();
             };
 
             restWorker = new RestWorker();
             restWorker.validator = validatorMock;
             const doState = new State();
-            updateResultSpy = sinon.spy(doState, 'updateResult');
+            const origUpdateResult = doState.updateResult;
+            updateResultSpy = sinon.stub(doState, 'updateResult').callsFake((taskId, code, status, message, errors) => {
+                saveStateCalled = false;
+                return origUpdateResult.call(doState, taskId, code, status, message, errors);
+            });
             restWorker.state = {
                 doState
             };
@@ -965,7 +972,13 @@ describe('restWorker', () => {
             doUtilMock.rebootRequired.restore();
             sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
             restOperationMock.complete = () => {
-                assert.strictEqual(responseBody.result.status, 'REBOOTING');
+                try {
+                    assert.strictEqual(responseBody.result.status, 'REBOOTING');
+                    assert.ok(saveStateCalled, 'State should have been saved after updating');
+                } catch (err) {
+                    reject(err);
+                }
+
                 resolve();
             };
 

@@ -1,6 +1,18 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.11.0
+### Added
+- AUTOTOOL-1223: Allow provisioning SSLO module
+### Fixed
+- AUTOTOOL-1139 ([GitHub Issue 100](https://github.com/F5Networks/f5-declarative-onboarding/issues/100)): Route Configuration can conflict with DHCP
+- AUTOTOOL-1125 ([GitHub Issue 104](https://github.com/F5Networks/f5-declarative-onboarding/issues/104)): Setting ConfigSync does not handle device name / hostname mismatch and ([GitHub Issue 113](https://github.com/F5Networks/f5-declarative-onboarding/issues/113)): Attempting to modify ConfigSync on non-existing device - device not resolving properly
+- AUTOTOOL-1166: Requiring a reboot causes task to never complete
+- AUTOTOOL-1235: Relicensing BIG-IP can be interrupted by service restart
+### Changed
+- AUTOTOOL-1124: Allow IP addresses for configuring cluster members
+### Removed
+
 ## 1.10.0
 ### Added
 - AUTOTOOL-993: Add support for System autoPhonehome setting

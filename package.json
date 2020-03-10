@@ -1,6 +1,6 @@
 {
   "name": "f5-declarative-onboarding",
-  "version": "1.10.0-2",
+  "version": "1.11.0-1",
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
   "repository": {
@@ -19,12 +19,12 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
-    "@f5devcentral/f5-cloud-libs": "beta",
-    "@f5devcentral/f5-teem": "^1.1.0",
-    "ajv": "^6.10.2",
+    "@f5devcentral/f5-cloud-libs": "^4.15.0",
+    "@f5devcentral/f5-teem": "^1.2.0",
+    "ajv": "^6.11.0",
     "deep-diff": "^1.0.2",
     "is-in-subnet": "^2.1.0",
-    "uuid": "^3.3.3"
+    "uuid": "^3.4.0"
   },
   "devDependencies": {
     "@f5devcentral/eslint-config-f5-atg": "latest",
@@ -32,12 +32,12 @@
     "chai-as-promised": "^7.1.1",
     "colors": "^1.4.0",
     "coveralls": "^3.0.7",
-    "eslint": "^6.6.0",
+    "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-import": "^2.20.1",
     "mkdirp": "^0.5.1",
     "mocha": "^6.2.2",
-    "node-ssh": "^6.0.0",
+    "node-ssh": "^7.0.0",
     "nyc": "^14.1.1",
     "request": "^2.88.0",
     "sinon": "^7.5.0",

@@ -147,7 +147,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match provisioning', () => {
-            const provisionModules = ['ltm'];
+            const provisionModules = ['ltm', 'gtm'];
             assert.ok(testProvisioning(body.Common.myProvisioning, currentState, provisionModules));
         });
 
@@ -802,10 +802,10 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
                             null,
                             4
                         )}`);
-                        const assignment = assignments.find(current => current.deviceAddress === bigIpAddress);
-                        if (assignment) {
-                            const licensingStatus = assignment.status;
-                            if (licensingStatus === 'LICENSED') {
+                        const bigIpAssignments = assignments.filter(current => current.deviceAddress === bigIpAddress);
+                        if (bigIpAssignments.length > 0) {
+                            const assignment = bigIpAssignments.find(current => current.status === 'LICENSED');
+                            if (assignment) {
                                 const auditLink = assignment.auditRecordReference.link;
                                 // audit links come with the ip address as localhost, we need to
                                 // replace it with the address of the BIG-IQ, in order to use it later
@@ -813,7 +813,7 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
                                 const auditLinkRemote = auditLink.replace(/localhost/gi, bigIqAddress);
                                 return auditLinkRemote;
                             }
-                            return Promise.reject(new Error(`device license status : ${licensingStatus}`));
+                            return Promise.reject(new Error(`device license status : ${bigIpAssignments[0].status}`));
                         }
                         return Promise.reject(new Error('no license match for device address'));
                     });

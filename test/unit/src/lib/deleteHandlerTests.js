@@ -33,6 +33,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
     this.timeout(10 * 1000);
     let bigIpMock;
     const deletedPaths = [];
+    const fetchedPaths = [];
     const deletedDeviceGroups = [];
 
     before(() => {
@@ -52,8 +53,16 @@ describe(('deleteHandler'), function testDeleteHandler() {
             deletedPaths.push(path);
             return Promise.resolve();
         };
+        bigIpMock.list = path => new Promise((resolve) => {
+            fetchedPaths.push(path);
+            resolve([
+                { fullPath: '/Common/system-auth' }
+            ]);
+        });
+
         deletedPaths.length = 0;
         deletedDeviceGroups.length = 0;
+        fetchedPaths.length = 0;
     });
 
     it('should issue deletes for Routes, SelfIps, and VLANs in that order', () => {
@@ -113,6 +122,11 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock);
         return deleteHandler.process()
             .then(() => {
+                assert.strictEqual(fetchedPaths.length, 4);
+                assert.strictEqual(fetchedPaths[0], '/tm/auth/radius');
+                assert.strictEqual(fetchedPaths[1], '/tm/auth/tacacs');
+                assert.strictEqual(fetchedPaths[2], '/tm/auth/ldap');
+                assert.strictEqual(fetchedPaths[3], '/tm/auth/radius-server');
                 assert.strictEqual(deletedPaths.length, 5);
                 assert.strictEqual(deletedPaths[0], '/tm/auth/radius/system-auth');
                 assert.strictEqual(deletedPaths[1], '/tm/auth/tacacs/system-auth');
@@ -146,6 +160,9 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock);
         return deleteHandler.process()
             .then(() => {
+                assert.strictEqual(fetchedPaths.length, 2);
+                assert.strictEqual(fetchedPaths[0], '/tm/auth/radius');
+                assert.strictEqual(fetchedPaths[1], '/tm/auth/radius-server');
                 assert.strictEqual(deletedPaths.length, 3);
                 assert.strictEqual(deletedPaths[0], '/tm/auth/radius/system-auth');
                 assert.strictEqual(deletedPaths[1], '/tm/auth/radius-server/~Common~system_auth_name1');
@@ -174,6 +191,72 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock);
         return assert.isRejected(deleteHandler.process(), 'this is a processing error',
             'processing error should have been caught');
+    });
+
+    it('should not issue deletes for missing Authentication items', () => {
+        bigIpMock.delete = path => new Promise((resolve) => {
+            deletedPaths.push(path);
+            resolve();
+        });
+
+        bigIpMock.list = path => new Promise((resolve) => {
+            fetchedPaths.push(path);
+            resolve([]);
+        });
+
+        const declaration = {
+            Common: {
+                Authentication: {
+                    radius: {},
+                    tacacs: {},
+                    ldap: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(fetchedPaths.length, 4);
+                assert.strictEqual(fetchedPaths[0], '/tm/auth/radius');
+                assert.strictEqual(fetchedPaths[1], '/tm/auth/tacacs');
+                assert.strictEqual(fetchedPaths[2], '/tm/auth/ldap');
+                assert.strictEqual(fetchedPaths[3], '/tm/auth/radius-server');
+                assert.strictEqual(deletedPaths.length, 0);
+            });
+    });
+
+    it('should handle non-array response from bigIp.list', () => {
+        bigIpMock.delete = path => new Promise((resolve) => {
+            deletedPaths.push(path);
+            resolve();
+        });
+
+        bigIpMock.list = path => new Promise((resolve) => {
+            fetchedPaths.push(path);
+            resolve({});
+        });
+
+        const declaration = {
+            Common: {
+                Authentication: {
+                    radius: {},
+                    tacacs: {},
+                    ldap: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(fetchedPaths.length, 4);
+                assert.strictEqual(fetchedPaths[0], '/tm/auth/radius');
+                assert.strictEqual(fetchedPaths[1], '/tm/auth/tacacs');
+                assert.strictEqual(fetchedPaths[2], '/tm/auth/ldap');
+                assert.strictEqual(fetchedPaths[3], '/tm/auth/radius-server');
+                assert.strictEqual(deletedPaths.length, 0);
+            });
     });
 
 

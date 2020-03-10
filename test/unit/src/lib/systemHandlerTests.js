@@ -27,6 +27,7 @@ const dns = require('dns');
 const sinon = require('sinon');
 
 const doUtilMock = require('../../../../src/lib/doUtil');
+const promiseUtil = require('../../../../src/lib/promiseUtil');
 const cloudUtil = require('../../../../node_modules/@f5devcentral/f5-cloud-libs').util;
 
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
@@ -144,7 +145,7 @@ describe('systemHandler', () => {
     describe('DNS/NTP/System', () => {
         let bigIpStub;
 
-        function setUpBigIpStubWithRequestOptions(requestOptions, bigIpVersion, isDhcpEnabled) {
+        function setUpBigIpStubWithRequestOptions(requestOptions, bigIpVersion, isDhcpEnabled, globalHostname) {
             if (bigIpStub) {
                 bigIpStub.restore();
             }
@@ -170,7 +171,8 @@ describe('systemHandler', () => {
 
                 if (path === '/tm/sys/global-settings') {
                     const globalSettings = {
-                        mgmtDhcp: isDhcpEnabled
+                        mgmtDhcp: isDhcpEnabled,
+                        hostname: globalHostname
                     };
                     return Promise.resolve(globalSettings);
                 }
@@ -444,6 +446,26 @@ describe('systemHandler', () => {
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(hostnameSent, 'myhost.example.com');
+                });
+        });
+
+        it('should handle no hostname in declaration', () => {
+            const declaration = {
+                Common: {}
+            };
+            setUpBigIpStubWithRequestOptions([], '', '', 'global.hostname');
+            let hostnameSent;
+            bigIpMock.onboard = {
+                hostname(hostname) {
+                    hostnameSent = hostname;
+                    return Promise.resolve();
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostnameSent, 'global.hostname');
                 });
         });
 
@@ -1018,6 +1040,8 @@ describe('systemHandler', () => {
             };
             bigIpMock.deviceInfo = () => Promise.resolve({});
 
+            sinon.stub(promiseUtil, 'delay').resolves();
+
             const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
             systemHandler.state = {};
             return systemHandler.process()
@@ -1221,6 +1245,22 @@ describe('systemHandler', () => {
                     assert.strictEqual(managementRouteData[0].gateway, '4.3.2.1');
                     assert.strictEqual(managementRouteData[0].network, '1.2.3.4/32');
                     assert.strictEqual(managementRouteData[0].mtu, 123);
+                });
+        });
+
+        it('should not do anything with an empty ManagementRoute', () => {
+            const theDeclaration = {
+                Common: {
+                    ManagementRoute: {
+                        theManagementRoute: {}
+                    }
+                }
+            };
+            const systemHandler = new SystemHandler(theDeclaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepEqual(deletedPaths, []);
+                    assert.deepEqual(dataSent, null);
                 });
         });
     });
