@@ -47,6 +47,7 @@ test_node:6:
         - cm-official-docker-executor
     script:
         - npm install
+        - npm install mocha@6.2.2
         - npm test
 
 test_node:8:
