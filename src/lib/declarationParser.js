@@ -142,9 +142,11 @@ const logger = new Logger(module);
  * @class
  */
 class DeclarationParser {
-    constructor(declaration) {
+    constructor(declaration, modules) {
         this.declaration = {};
         Object.assign(this.declaration, declaration);
+
+        this.modules = Object.assign([], modules);
     }
 
     /**
@@ -206,10 +208,10 @@ class DeclarationParser {
                         // If the config object does not get a name property, just assign
                         // the object directly. Otherwise, put create a named sub property
                         if (NAMELESS_CLASSES.indexOf(propertyClass) !== -1) {
-                            property = assignDefaults(propertyClass, property);
+                            property = assignDefaults(propertyClass, property, this.modules);
                             Object.assign(parsed[tenantName][propertyClass], property);
                         } else {
-                            property = assignDefaults(propertyClass, property);
+                            property = assignDefaults(propertyClass, property, this.modules);
                             parsed[tenantName][propertyClass][propertyName] = {};
                             // Some classes (SnmpCommunity, for example) allow the user to assign the 'name' property
                             // so do not override it. This allows for special characters in names.
@@ -242,25 +244,9 @@ class DeclarationParser {
  *
  * @param {String} propertyClass - The property class (DNS, NTP, etc).
  * @param {Object} property - The property to assign defaults to.
+ * @param {Array.<String>} - The names of the modules on the target BIG-IP
  */
-function assignDefaults(propertyClass, property) {
-    const modules = [
-        'afm',
-        'am',
-        'apm',
-        'asm',
-        'avr',
-        'dos',
-        'fps',
-        'gtm',
-        'ilx',
-        'lc',
-        'ltm',
-        'pem',
-        'swg',
-        'urldb'
-    ];
-
+function assignDefaults(propertyClass, property, modules) {
     switch (propertyClass) {
     case 'Provision':
         modules.forEach((module) => {

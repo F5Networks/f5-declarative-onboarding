@@ -36,141 +36,156 @@ const doUtilMock = require('../../../../src/lib/doUtil');
 
 let parsedDeclarations;
 let declarationWithDefaults;
-
-const bigIpMock = {
-    modify() {
-        return Promise.resolve();
-    }
-};
+let bigIpMock;
 
 describe('declarationHandler', () => {
-    beforeEach(() => {
-        parsedDeclarations = [];
-        declarationWithDefaults = {};
+    describe('General testing', () => {
+        beforeEach(() => {
+            parsedDeclarations = [];
+            declarationWithDefaults = {};
 
-        sinon.stub(DeclarationParser.prototype, 'parse').callsFake(function parse() {
-            parsedDeclarations.push(this.declaration);
-            return {
-                parsedDeclaration: {
-                    Common: {}
+            sinon.stub(DeclarationParser.prototype, 'parse').callsFake(function parse() {
+                parsedDeclarations.push(this.declaration);
+                return {
+                    parsedDeclaration: {
+                        Common: {}
+                    }
+                };
+            });
+
+            sinon.stub(DiffHandler.prototype, 'process').callsFake((declaration) => {
+                declarationWithDefaults = declaration;
+                return Promise.resolve(
+                    {
+                        toUpdate: {},
+                        toDelete: {}
+                    }
+                );
+            });
+
+            sinon.stub(SystemHandler.prototype, 'process').resolves();
+            sinon.stub(NetworkHandler.prototype, 'process').resolves();
+            sinon.stub(DscHandler.prototype, 'process').resolves();
+            sinon.stub(DeleteHandler.prototype, 'process').resolves();
+
+            bigIpMock = {
+                list(path) {
+                    if (path === '/tm/sys/provision') {
+                        return Promise.resolve([
+                            {
+                                kind: 'tm:sys:provision:provisionstate',
+                                name: 'afm',
+                                fullPath: 'afm',
+                                generation: 1,
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/afm?ver=12.1.5.1',
+                                cpuRatio: 0,
+                                diskRatio: 0,
+                                level: 'none',
+                                memoryRatio: 0
+                            },
+                            {
+                                kind: 'tm:sys:provision:provisionstate',
+                                name: 'avr',
+                                fullPath: 'avr',
+                                generation: 1,
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/avr?ver=12.1.5.1',
+                                cpuRatio: 0,
+                                diskRatio: 0,
+                                level: 'none',
+                                memoryRatio: 0
+                            },
+                            {
+                                kind: 'tm:sys:provision:provisionstate',
+                                name: 'urldb',
+                                fullPath: 'urldb',
+                                generation: 1,
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/urldb?ver=12.1.5.1',
+                                cpuRatio: 0,
+                                diskRatio: 0,
+                                level: 'none',
+                                memoryRatio: 0
+                            }
+                        ]);
+                    }
+
+                    throw new Error(`Unrecognized path: ${path} is in list`);
+                },
+
+                modify() {
+                    return Promise.resolve();
                 }
             };
         });
 
-        sinon.stub(DiffHandler.prototype, 'process').callsFake((declaration) => {
-            declarationWithDefaults = declaration;
-            return Promise.resolve(
-                {
-                    toUpdate: {},
-                    toDelete: {}
-                }
-            );
+        afterEach(() => {
+            sinon.restore();
         });
 
-        sinon.stub(SystemHandler.prototype, 'process').resolves();
-        sinon.stub(NetworkHandler.prototype, 'process').resolves();
-        sinon.stub(DscHandler.prototype, 'process').resolves();
-        sinon.stub(DeleteHandler.prototype, 'process').resolves();
-    });
-
-    afterEach(() => {
-        sinon.restore();
-    });
-
-    it('should parse declarations if not parsed', () => {
-        const newDeclaration = {
-            name: 'new'
-        };
-        const state = {
-            currentConfig: {
-                name: 'current'
-            },
-            originalConfig: {
-                Common: {}
-            }
-        };
-
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        return declarationHandler.process(newDeclaration, state)
-            .then(() => {
-                assert.strictEqual(parsedDeclarations.length, 2);
-            });
-    });
-
-    it('should not parse declarations if parsed', () => {
-        const newDeclaration = {
-            name: 'new',
-            parsed: true,
-            Common: {}
-        };
-        const state = {
-            currentConfig: {
-                name: 'current'
-            },
-            originalConfig: {
-                Common: {}
-            }
-        };
-
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        declarationHandler.process(newDeclaration, state)
-            .then(() => {
-                assert.strictEqual(parsedDeclarations.length, 1);
-                assert.strictEqual(parsedDeclarations[0].name, 'current');
-            });
-    });
-
-    it('should apply defaults for missing items', () => {
-        const newDeclaration = {
-            name: 'new',
-            parsed: true,
-            Common: {
-                VLAN: {},
-                Authentication: {
-                    authKey: true
+        it('should parse declarations if not parsed', () => {
+            const newDeclaration = {
+                name: 'new'
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
                 },
-                ConfigSync: {
-                    configsyncIp: 'configsyncIp1'
+                originalConfig: {
+                    Common: {}
                 }
-            }
-        };
-        // originalConfig is mix of different keys and values
-        // just to test different cases and avoid CLASSES_OF_TRUTH modifications
-        const state = {
-            currentConfig: {
-                name: 'current'
-            },
-            originalConfig: {
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.strictEqual(parsedDeclarations.length, 2);
+                });
+        });
+
+        it('should not parse declarations if parsed', () => {
+            const newDeclaration = {
+                name: 'new',
+                parsed: true,
+                Common: {}
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.strictEqual(parsedDeclarations.length, 1);
+                    assert.strictEqual(parsedDeclarations[0].name, 'current');
+                });
+        });
+
+        it('should apply defaults for missing items', () => {
+            const newDeclaration = {
+                name: 'new',
+                parsed: true,
                 Common: {
-                    System: {
-                        hostname: 'my.bigip.com'
-                    },
-                    DNS: {
-                        foo: 'bar'
-                    },
-                    NTP: ['one', 'two'],
-                    VLAN: ['vlan1', 'vlan2'],
-                    SelfIp: false,
-                    RouteDomain: 0,
-                    ManagementRoute: true,
+                    VLAN: {},
                     Authentication: {
-                        authKey: true,
-                        remoteUsersDefaults: {
-                            user: 'user'
-                        }
+                        authKey: true
                     },
                     ConfigSync: {
-                        configsyncIp: 'something'
+                        configsyncIp: 'configsyncIp1'
                     }
                 }
-            }
-        };
-
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        return declarationHandler.process(newDeclaration, state)
-            .then(() => {
-                assert.deepStrictEqual(declarationWithDefaults.Common,
-                    {
+            };
+            // originalConfig is mix of different keys and values
+            // just to test different cases and avoid CLASSES_OF_TRUTH modifications
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {
                         System: {
                             hostname: 'my.bigip.com'
                         },
@@ -189,420 +204,477 @@ describe('declarationHandler', () => {
                             }
                         },
                         ConfigSync: {
-                            configsyncIp: 'configsyncIp1'
+                            configsyncIp: 'something'
                         }
-                    });
-            });
-    });
+                    }
+                }
+            };
 
-    it('should send TEEM report', (done) => {
-        const newDeclaration = {
-            name: 'new'
-        };
-        const state = {
-            currentConfig: {
-                name: 'current'
-            },
-            originalConfig: {
-                Common: {}
-            }
-        };
-
-        const assetInfo = {
-            name: 'Declarative Onboarding',
-            version: '1.2.3'
-        };
-        const teemDevice = new TeemDevice(assetInfo);
-
-        sinon.stub(teemDevice, 'report').callsFake((type, version, declaration) => {
-            assert.deepEqual(declaration, newDeclaration);
-            done();
-            return Promise.resolve();
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.deepStrictEqual(declarationWithDefaults.Common,
+                        {
+                            System: {
+                                hostname: 'my.bigip.com'
+                            },
+                            DNS: {
+                                foo: 'bar'
+                            },
+                            NTP: ['one', 'two'],
+                            VLAN: ['vlan1', 'vlan2'],
+                            SelfIp: false,
+                            RouteDomain: 0,
+                            ManagementRoute: true,
+                            Authentication: {
+                                authKey: true,
+                                remoteUsersDefaults: {
+                                    user: 'user'
+                                }
+                            },
+                            ConfigSync: {
+                                configsyncIp: 'configsyncIp1'
+                            }
+                        });
+                });
         });
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        declarationHandler.teemDevice = teemDevice;
-        declarationHandler.process(newDeclaration, state);
-    });
 
-    it('should succeed even if TEEM report fails', () => {
-        const newDeclaration = {
-            name: 'new'
-        };
-        const state = {
-            currentConfig: {
-                name: 'current'
-            },
-            originalConfig: {
-                Common: {}
-            }
-        };
-
-        const assetInfo = {
-            name: 'Declarative Onboarding',
-            version: '1.2.3'
-        };
-        const teemDevice = new TeemDevice(assetInfo);
-
-        sinon.stub(teemDevice, 'report').rejects();
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        declarationHandler.teemDevice = teemDevice;
-        return declarationHandler.process(newDeclaration, state);
-    });
-
-    it('should report processing errors', () => {
-        const errorMessage = 'this is a processing error';
-        SystemHandler.prototype.process = () => Promise.reject(new Error(errorMessage));
-
-        const newDeclaration = {
-            name: 'new',
-            parsed: true,
-            Common: {}
-        };
-        const state = {
-            currentConfig: {
-                name: 'current'
-            },
-            originalConfig: {
-                Common: {}
-            }
-        };
-
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        return assert.isRejected(declarationHandler.process(newDeclaration, state),
-            'this is a processing error',
-            'processing error should have been caught');
-    });
-
-    it('should not use old System hostname if Common.hostname is specified', () => {
-        const newDeclaration = {
-            parsed: true,
-            Common: {
-                hostname: 'my.new.hostname'
-            }
-        };
-
-        const state = {
-            currentConfig: {
-                name: 'current'
-            },
-            originalConfig: {
-                Common: {
-                    System: {
-                        hostname: 'my.old.hostname'
-                    }
+        it('should send TEEM report', (done) => {
+            const newDeclaration = {
+                name: 'new'
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
                 }
-            }
-        };
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        return declarationHandler.process(newDeclaration, state)
-            .then(() => {
-                assert.strictEqual(declarationWithDefaults.Common.System.hostname, undefined);
-            });
-    });
+            };
 
-    it('should apply fix for Default Route Domain - no Route Domains in declaration', () => {
-        const newDeclaration = {
-            parsed: true,
-            Common: {}
-        };
-        const state = {
-            currentConfig: {
-                name: 'current'
-            },
-            originalConfig: {
-                Common: {}
-            }
-        };
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        return declarationHandler.process(newDeclaration, state)
-            .then(() => {
-                assert.strictEqual(declarationWithDefaults.Common.RouteDomain, undefined);
-            });
-    });
+            const assetInfo = {
+                name: 'Declarative Onboarding',
+                version: '1.2.3'
+            };
+            const teemDevice = new TeemDevice(assetInfo);
 
-    it('should apply fix for Default Route Domain - rename Default Route Domain', () => {
-        // test check also that multiple Default Route Domains will be
-        // removed from declaration
-        const newDeclaration = {
-            parsed: true,
-            Common: {
-                RouteDomain: {
-                    rd0: {
-                        id: 0
-                    },
-                    rd0_2: {
-                        id: 0
-                    },
-                    rd1: {
-                        id: 1
-                    }
+            sinon.stub(teemDevice, 'report').callsFake((type, version, declaration) => {
+                assert.deepEqual(declaration, newDeclaration);
+                done();
+                return Promise.resolve();
+            });
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            declarationHandler.teemDevice = teemDevice;
+            declarationHandler.process(newDeclaration, state);
+        });
+
+        it('should succeed even if TEEM report fails', () => {
+            const newDeclaration = {
+                name: 'new'
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
                 }
-            }
-        };
-        const state = {
-            currentConfig: {
-                name: 'current'
-            },
-            originalConfig: {
+            };
+
+            const assetInfo = {
+                name: 'Declarative Onboarding',
+                version: '1.2.3'
+            };
+            const teemDevice = new TeemDevice(assetInfo);
+
+            sinon.stub(teemDevice, 'report').rejects();
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            declarationHandler.teemDevice = teemDevice;
+            return declarationHandler.process(newDeclaration, state);
+        });
+
+        it('should report processing errors', () => {
+            const errorMessage = 'this is a processing error';
+            SystemHandler.prototype.process = () => Promise.reject(new Error(errorMessage));
+
+            const newDeclaration = {
+                name: 'new',
+                parsed: true,
+                Common: {}
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return assert.isRejected(declarationHandler.process(newDeclaration, state),
+                'this is a processing error',
+                'processing error should have been caught');
+        });
+
+        it('should not use old System hostname if Common.hostname is specified', () => {
+            const newDeclaration = {
+                parsed: true,
                 Common: {
-                    RouteDomain: {
-                        0: {
-                            id: 0,
-                            vlan: []
+                    hostname: 'my.new.hostname'
+                }
+            };
+
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {
+                        System: {
+                            hostname: 'my.old.hostname'
                         }
                     }
                 }
-            }
-        };
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        return declarationHandler.process(newDeclaration, state)
-            .then(() => {
-                const routeDomain = declarationWithDefaults.Common.RouteDomain;
-                assert.strictEqual(Object.keys(routeDomain).length, 2);
-                assert.strictEqual(routeDomain.rd0, undefined);
-                assert.strictEqual(routeDomain.rd0_2, undefined);
-                assert.strictEqual(routeDomain['0'].id, 0);
-                assert.strictEqual(routeDomain['0'].vlan, undefined);
-                assert.notStrictEqual(routeDomain.rd1, undefined);
-                assert.strictEqual(routeDomain.rd1.id, 1);
-            });
-    });
+            };
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.strictEqual(declarationWithDefaults.Common.System.hostname, undefined);
+                });
+        });
 
-    it('should apply fix for Default Route Domain - copy Default Route Domain from Current Configuration', () => {
-        const newDeclaration = {
-            parsed: true,
-            Common: {
-                RouteDomain: {
-                    rd1: {
-                        id: 1
-                    }
+        it('should apply fix for Default Route Domain - no Route Domains in declaration', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {}
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
                 }
-            }
-        };
-        const state = {
-            currentConfig: {
-                name: 'current',
+            };
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.strictEqual(declarationWithDefaults.Common.RouteDomain, undefined);
+                });
+        });
+
+        it('should apply fix for Default Route Domain - rename Default Route Domain', () => {
+            // test check also that multiple Default Route Domains will be
+            // removed from declaration
+            const newDeclaration = {
                 parsed: true,
                 Common: {
                     RouteDomain: {
-                        0: {
+                        rd0: {
                             id: 0
+                        },
+                        rd0_2: {
+                            id: 0
+                        },
+                        rd1: {
+                            id: 1
                         }
                     }
                 }
-            },
-            originalConfig: {
-                Common: {}
-            }
-        };
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        return declarationHandler.process(newDeclaration, state)
-            .then(() => {
-                const routeDomain = declarationWithDefaults.Common.RouteDomain;
-                assert.notStrictEqual(routeDomain['0'], undefined);
-                assert.strictEqual(routeDomain['0'].id, 0);
-                assert.notStrictEqual(routeDomain.rd1, undefined);
-                assert.strictEqual(routeDomain.rd1.id, 1);
-            });
-    });
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {
+                        RouteDomain: {
+                            0: {
+                                id: 0,
+                                vlan: []
+                            }
+                        }
+                    }
+                }
+            };
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                    assert.strictEqual(Object.keys(routeDomain).length, 2);
+                    assert.strictEqual(routeDomain.rd0, undefined);
+                    assert.strictEqual(routeDomain.rd0_2, undefined);
+                    assert.strictEqual(routeDomain['0'].id, 0);
+                    assert.strictEqual(routeDomain['0'].vlan, undefined);
+                    assert.notStrictEqual(routeDomain.rd1, undefined);
+                    assert.strictEqual(routeDomain.rd1.id, 1);
+                });
+        });
 
-    it('should apply Route Domain VLANs fix', () => {
-        /**
-         * ideas of the test are:
-         * - remove non-existing VLANs from Route Domains
-         * - add VLANs to Route Domain 0 if they don't belong to any other Route Domain
-         * - check that VLANs from another partition or subfolder are untouched
-         * - should keep default VLANs
-         */
-        const newDeclaration = {
-            parsed: true,
-            Common: {
-                RouteDomain: {
-                    0: {
-                        id: 0,
-                        vlans: [
-                            'nonExistingVlan', // should remove - non-existing vlan
-                            '/Partition/vlan', // should keep - partition !== Common
-                            '/Partition/folder/vlan', // should keep - partition !== Common
-                            '/Common/vlan', // should keep - exist in current confing
-                            '/Common/folder/vlan', // should keep - belongs to folder under Common
-                            'vlan1', // should keep - defined in declaration
-                            '/Common/vlan2' // should keep - defined in declaration
-                        ]
-                    },
-                    rd1: {
-                        id: 1,
-                        vlans: [
-                            'nonExistingVlan2', // should remove - non-existing vlan
-                            '/Partition1/vlan', // should keep - partition !== Common
-                            '/Partition1/folder/vlan', // should keep - partition !== Common
-                            '/Common/vlan10', // should remove - non-existing vlan
-                            '/Common/folder/vlan2', // should keep - belongs to folder under Common
-                            'vlan3', // should keep - defined in declaration
-                            '/Common/vlan4', // should keep - defined in declaration
-                            '/Common/rd1Vlan' // should keep - was attached to RD 2
-                        ]
-                    },
-                    rd2: {
-                        id: 2 // should restore /Common/rd2Vlan
-                    },
-                    rd3: {
-                        id: 3 // should keep 'vlans' (undefined) property untouched
+        it('should apply fix for Default Route Domain - copy Default Route Domain from Current Configuration', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    RouteDomain: {
+                        rd1: {
+                            id: 1
+                        }
+                    }
+                }
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current',
+                    parsed: true,
+                    Common: {
+                        RouteDomain: {
+                            0: {
+                                id: 0
+                            }
+                        }
                     }
                 },
-                VLAN: {
-                    vlan1: {}, // should add to RD 0
-                    vlan2: {}, // should add to RD 0
-                    vlan3: {}, // should add to RD 1
-                    vlan4: {}, // should add to RD 1
-                    vlan5: {}, // should add to RD 0
-                    vlan6: {} // should add to RD 0
+                originalConfig: {
+                    Common: {}
                 }
-            }
-        };
-        const state = {
-            currentConfig: {
-                name: 'current',
+            };
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                    assert.notStrictEqual(routeDomain['0'], undefined);
+                    assert.strictEqual(routeDomain['0'].id, 0);
+                    assert.notStrictEqual(routeDomain.rd1, undefined);
+                    assert.strictEqual(routeDomain.rd1.id, 1);
+                });
+        });
+
+        it('should apply Route Domain VLANs fix', () => {
+            /**
+             * ideas of the test are:
+             * - remove non-existing VLANs from Route Domains
+             * - add VLANs to Route Domain 0 if they don't belong to any other Route Domain
+             * - check that VLANs from another partition or subfolder are untouched
+             * - should keep default VLANs
+             */
+            const newDeclaration = {
                 parsed: true,
                 Common: {
                     RouteDomain: {
                         0: {
                             id: 0,
                             vlans: [
-                                '/Common/http-tunnel', // should keep it  - exist in current confing
-                                '/Common/vlan' // should keep - exist in current confing
+                                'nonExistingVlan', // should remove - non-existing vlan
+                                '/Partition/vlan', // should keep - partition !== Common
+                                '/Partition/folder/vlan', // should keep - partition !== Common
+                                '/Common/vlan', // should keep - exist in current confing
+                                '/Common/folder/vlan', // should keep - belongs to folder under Common
+                                'vlan1', // should keep - defined in declaration
+                                '/Common/vlan2' // should keep - defined in declaration
                             ]
                         },
                         rd1: {
                             id: 1,
                             vlans: [
-                                '/Common/socks-tunnel' // should keep - exist in current confing
+                                'nonExistingVlan2', // should remove - non-existing vlan
+                                '/Partition1/vlan', // should keep - partition !== Common
+                                '/Partition1/folder/vlan', // should keep - partition !== Common
+                                '/Common/vlan10', // should remove - non-existing vlan
+                                '/Common/folder/vlan2', // should keep - belongs to folder under Common
+                                'vlan3', // should keep - defined in declaration
+                                '/Common/vlan4', // should keep - defined in declaration
+                                '/Common/rd1Vlan' // should keep - was attached to RD 2
                             ]
                         },
                         rd2: {
-                            id: 2,
-                            vlans: [
-                                '/Common/rd2Vlan', // should keep - exist in current confing
-                                '/Common/rd1Vlan' // should keep - exist in current confing and attached to RD 1
-                            ]
+                            id: 2 // should restore /Common/rd2Vlan
+                        },
+                        rd3: {
+                            id: 3 // should keep 'vlans' (undefined) property untouched
                         }
+                    },
+                    VLAN: {
+                        vlan1: {}, // should add to RD 0
+                        vlan2: {}, // should add to RD 0
+                        vlan3: {}, // should add to RD 1
+                        vlan4: {}, // should add to RD 1
+                        vlan5: {}, // should add to RD 0
+                        vlan6: {} // should add to RD 0
                     }
                 }
-            },
-            originalConfig: {
-                Common: {
-                    RouteDomain: {
-                        0: {
-                            id: 0,
-                            vlans: []
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current',
+                    parsed: true,
+                    Common: {
+                        RouteDomain: {
+                            0: {
+                                id: 0,
+                                vlans: [
+                                    '/Common/http-tunnel', // should keep it  - exist in current confing
+                                    '/Common/vlan' // should keep - exist in current confing
+                                ]
+                            },
+                            rd1: {
+                                id: 1,
+                                vlans: [
+                                    '/Common/socks-tunnel' // should keep - exist in current confing
+                                ]
+                            },
+                            rd2: {
+                                id: 2,
+                                vlans: [
+                                    '/Common/rd2Vlan', // should keep - exist in current confing
+                                    '/Common/rd1Vlan' // should keep - exist in current confing and attached to RD 1
+                                ]
+                            }
                         }
                     }
-                }
-            }
-        };
-        const declarationHandler = new DeclarationHandler(bigIpMock);
-        return declarationHandler.process(newDeclaration, state)
-            .then(() => {
-                const routeDomain = declarationWithDefaults.Common.RouteDomain;
-                assert.deepStrictEqual(routeDomain['0'].vlans.sort(), [
-                    '/Common/http-tunnel',
-                    '/Partition/vlan',
-                    '/Partition/folder/vlan',
-                    '/Common/vlan',
-                    '/Common/folder/vlan',
-                    'vlan1',
-                    '/Common/vlan2',
-                    'vlan5',
-                    'vlan6'
-                ].sort());
-                assert.deepStrictEqual(routeDomain.rd1.vlans.sort(), [
-                    '/Common/socks-tunnel',
-                    '/Partition1/vlan',
-                    '/Partition1/folder/vlan',
-                    '/Common/folder/vlan2',
-                    'vlan3',
-                    '/Common/vlan4',
-                    '/Common/rd1Vlan'
-                ].sort());
-                assert.deepStrictEqual(routeDomain.rd2.vlans, ['/Common/rd2Vlan']);
-                assert.strictEqual(routeDomain.rd3.vlans, undefined);
-            });
-    });
-});
-
-describe('AVR dependencies', () => {
-    let isAvrProvisioned;
-    function AvrBigIpMock() {
-        return {
-            modify: () => Promise.resolve(),
-            replace: (path) => {
-                if (path === '/tm/analytics/global-settings') {
-                    assert(isAvrProvisioned, 'Trying to change AVR settings without AVR provisioned');
-                }
-                return Promise.resolve();
-            },
-            onboard: {
-                hostname: () => Promise.resolve(),
-                provision: (data) => {
-                    isAvrProvisioned = data.avr && data.avr !== 'none';
-                    return Promise.resolve([]);
-                }
-            },
-            list: () => Promise.resolve()
-        };
-    }
-
-    beforeEach(() => {
-        sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
-        isAvrProvisioned = false;
-    });
-
-    afterEach(() => {
-        sinon.restore();
-    });
-
-    it('should add analytics and avr provisioning in the same declaration', () => {
-        const declaration = {
-            parsed: true,
-            Common: {
-                Analytics: {
-                    interval: 60
                 },
-                Provision: {
-                    avr: 'nominal'
+                originalConfig: {
+                    Common: {
+                        RouteDomain: {
+                            0: {
+                                id: 0,
+                                vlans: []
+                            }
+                        }
+                    }
                 }
-            }
-        };
+            };
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                    assert.deepStrictEqual(routeDomain['0'].vlans.sort(), [
+                        '/Common/http-tunnel',
+                        '/Partition/vlan',
+                        '/Partition/folder/vlan',
+                        '/Common/vlan',
+                        '/Common/folder/vlan',
+                        'vlan1',
+                        '/Common/vlan2',
+                        'vlan5',
+                        'vlan6'
+                    ].sort());
+                    assert.deepStrictEqual(routeDomain.rd1.vlans.sort(), [
+                        '/Common/socks-tunnel',
+                        '/Partition1/vlan',
+                        '/Partition1/folder/vlan',
+                        '/Common/folder/vlan2',
+                        'vlan3',
+                        '/Common/vlan4',
+                        '/Common/rd1Vlan'
+                    ].sort());
+                    assert.deepStrictEqual(routeDomain.rd2.vlans, ['/Common/rd2Vlan']);
+                    assert.strictEqual(routeDomain.rd3.vlans, undefined);
+                });
+        });
 
-        const state = {
-            originalConfig: {
-                Common: {}
-            },
-            currentConfig: {
+        it('should error if list returns a failure', () => {
+            bigIpMock.list = () => { throw new Error('This is an error'); };
+
+            const declaration = {
                 parsed: true,
                 Common: {}
-            }
-        };
-        const handler = new DeclarationHandler(new AvrBigIpMock());
-        return handler.process(declaration, state);
-    });
+            };
 
-    it('should remove analytics and avr provisioning in the same declaration', () => {
-        isAvrProvisioned = true;
-        const declaration = {
-            parsed: true,
-            Common: {}
-        };
-
-        const state = {
-            originalConfig: {
-                Common: {
-                    Provision: {
-                        avr: 'none'
+            const state = {
+                originalConfig: {
+                    Common: { }
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {
+                        Analytics: {
+                            interval: 60
+                        },
+                        Provision: {
+                            ltm: 'nominal'
+                        }
                     }
                 }
-            },
-            currentConfig: {
+            };
+
+            const handler = new DeclarationHandler(bigIpMock);
+            return assert.isRejected(handler.process(declaration, state), /This is an error/);
+        });
+    });
+
+    describe('AVR dependencies', () => {
+        let isAvrProvisioned;
+        function AvrBigIpMock() {
+            return {
+                modify: () => Promise.resolve(),
+                replace: (path) => {
+                    if (path === '/tm/analytics/global-settings') {
+                        assert(isAvrProvisioned, 'Trying to change AVR settings without AVR provisioned');
+                    }
+                    return Promise.resolve();
+                },
+                onboard: {
+                    hostname: () => Promise.resolve(),
+                    provision: (data) => {
+                        isAvrProvisioned = data.avr && data.avr !== 'none';
+                        return Promise.resolve([]);
+                    }
+                },
+                list: (path) => {
+                    if (path === '/tm/sys/provision') {
+                        return Promise.resolve([
+                            {
+                                kind: 'tm:sys:provision:provisionstate',
+                                name: 'afm',
+                                fullPath: 'afm',
+                                generation: 1,
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/afm?ver=12.1.5.1',
+                                cpuRatio: 0,
+                                diskRatio: 0,
+                                level: 'none',
+                                memoryRatio: 0
+                            },
+                            {
+                                kind: 'tm:sys:provision:provisionstate',
+                                name: 'avr',
+                                fullPath: 'avr',
+                                generation: 1,
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/avr?ver=12.1.5.1',
+                                cpuRatio: 0,
+                                diskRatio: 0,
+                                level: 'none',
+                                memoryRatio: 0
+                            },
+                            {
+                                kind: 'tm:sys:provision:provisionstate',
+                                name: 'urldb',
+                                fullPath: 'urldb',
+                                generation: 1,
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/urldb?ver=12.1.5.1',
+                                cpuRatio: 0,
+                                diskRatio: 0,
+                                level: 'none',
+                                memoryRatio: 0
+                            }
+                        ]);
+                    }
+                    return Promise.resolve();
+                }
+            };
+        }
+
+        beforeEach(() => {
+            sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
+            isAvrProvisioned = false;
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it('should add analytics and avr provisioning in the same declaration', () => {
+            const declaration = {
                 parsed: true,
                 Common: {
                     Analytics: {
@@ -612,12 +684,56 @@ describe('AVR dependencies', () => {
                         avr: 'nominal'
                     }
                 }
-            }
-        };
-        const handler = new DeclarationHandler(new AvrBigIpMock());
-        return handler.process(declaration, state)
-            .then(() => {
-                assert(!isAvrProvisioned, 'AVR was not de-provisioned');
-            });
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+            const handler = new DeclarationHandler(new AvrBigIpMock());
+            return handler.process(declaration, state)
+                .then(() => {
+                    assert(isAvrProvisioned, 'AVR was not provisioned');
+                });
+        });
+
+        it('should remove analytics and avr provisioning in the same declaration', () => {
+            isAvrProvisioned = true;
+            const declaration = {
+                parsed: true,
+                Common: {}
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {
+                        Provision: {
+                            avr: 'none'
+                        }
+                    }
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {
+                        Analytics: {
+                            interval: 60
+                        },
+                        Provision: {
+                            avr: 'nominal'
+                        }
+                    }
+                }
+            };
+            const handler = new DeclarationHandler(new AvrBigIpMock());
+            return handler.process(declaration, state)
+                .then(() => {
+                    assert(!isAvrProvisioned, 'AVR was not de-provisioned');
+                });
+        });
     });
 });

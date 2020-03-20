@@ -97,36 +97,53 @@ class DeclarationHandler {
      */
     process(declaration, state) {
         logger.fine('Processing declaration.');
-        let parsedOldDeclaration;
         let parsedNewDeclaration;
+        let parsedOldDeclaration;
 
         const newDeclaration = JSON.parse(JSON.stringify(declaration));
-
         const oldDeclaration = {};
         Object.assign(oldDeclaration, state.currentConfig);
 
-        if (!oldDeclaration.parsed) {
-            const declarationParser = new DeclarationParser(oldDeclaration);
-            parsedOldDeclaration = declarationParser.parse().parsedDeclaration;
-        } else {
-            parsedOldDeclaration = {};
-            Object.assign(parsedOldDeclaration, oldDeclaration);
-        }
-
-        if (!newDeclaration.parsed) {
-            const declarationParser = new DeclarationParser(newDeclaration);
-            parsedNewDeclaration = declarationParser.parse().parsedDeclaration;
-        } else {
-            parsedNewDeclaration = {};
-            Object.assign(parsedNewDeclaration, newDeclaration);
-        }
-        applyDefaults(parsedNewDeclaration, state);
-        applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
-
-        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
         let updateDeclaration;
         let deleteDeclaration;
-        return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration)
+
+        // modules available on the target BIG-IP
+        const modules = [];
+
+        return Promise.resolve()
+            .then(() => this.bigIp.list('/tm/sys/provision'))
+            .then((provisionModules) => {
+                provisionModules.forEach((module) => {
+                    modules.push(module.name);
+                });
+            })
+            .then(() => {
+                if (oldDeclaration.parsed) {
+                    return Object.assign({}, oldDeclaration);
+                }
+                const declarationParser = new DeclarationParser(oldDeclaration, modules);
+                return declarationParser.parse().parsedDeclaration;
+            })
+            .then((parsedDeclaration) => {
+                parsedOldDeclaration = parsedDeclaration;
+            })
+            .then(() => {
+                if (newDeclaration.parsed) {
+                    return Object.assign({}, newDeclaration);
+                }
+                const declarationParser = new DeclarationParser(newDeclaration, modules);
+                return declarationParser.parse().parsedDeclaration;
+            })
+            .then((parsedDeclaration) => {
+                parsedNewDeclaration = parsedDeclaration;
+            })
+            .then(() => {
+                applyDefaults(parsedNewDeclaration, state);
+                applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
+
+                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
+                return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration);
+            })
             .then((declarationDiffs) => {
                 updateDeclaration = declarationDiffs.toUpdate;
                 deleteDeclaration = declarationDiffs.toDelete;
@@ -321,7 +338,7 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
                     // - not in the declaration (otherwise it might attached to RD already or
                     //   will be added to RD 0)
                     if (parsedName.partition === commonPartition && !parsedName.folder
-                            && declarationVlans.indexOf(parsedName.name) === -1) {
+                        && declarationVlans.indexOf(parsedName.name) === -1) {
                         currentVlan2rd[vlan] = routeDomains[rdName].id;
                     }
                 });
