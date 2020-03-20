@@ -229,4 +229,26 @@ describe('declarationParser', () => {
         // original pointer
         assert.strictEqual(parsedDeclaration.Common.License.notAPointer, '/foo/bar');
     });
+
+    it('should return default modules and user modules', () => {
+        const declaration = {
+            class: 'Device',
+            Common: {
+                class: 'Tenant',
+                provisioning: {
+                    class: 'Provision',
+                    ltm: 'nominal'
+                }
+            }
+        };
+
+        const declarationParser = new DeclarationParser(declaration, ['afm', 'swg']);
+        const parsedDeclaration = declarationParser.parse().parsedDeclaration;
+        return assert.deepStrictEqual(parsedDeclaration.Common.Provision,
+            {
+                afm: 'none',
+                ltm: 'nominal',
+                swg: 'none'
+            });
+    });
 });
