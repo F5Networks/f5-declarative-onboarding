@@ -1,15 +1,6 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
-## 1.12.0
-### Added
-### Fixed
-- AUTOTOOL-1094 ([GitHub Issue 91](https://github.com/F5Networks/f5-declarative-onboarding/issues/91)): Provisioning fails if module does not exist on box
-- AUTOTOOL-1170: Call webhook after declaration requiring reboot
-- AUTOTOOL-1388: Fix allowed schema versions
-### Changed
-### Removed
-
 ## 1.11.1
 ### Added
 ### Fixed
