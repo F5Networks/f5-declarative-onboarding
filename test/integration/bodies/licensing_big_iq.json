@@ -1,21 +1,25 @@
 {
-  "schemaVersion": "1.3.0",
-  "class": "Device",
-  "async" : true,
-  "Common": {
-    "class": "Tenant",
-    "myLicense" : {
-        "class" : "License",
-        "licenseType" : "licensePool",
-        "bigIqHost" : "<bigiq_host>",
-        "bigIqUsername" : "<big_iq_username>",
-        "bigIqPassword" : "<big_iq_password>",
-        "licensePool" : "myLicense",
-        "skuKeyword1" : "F5-BIG-MSP-BR-3G",
-        "unitOfMeasure" : "hourly",
-        "reachable" : true,
-        "bigIpUsername" : "<bigIpUsername>",
-        "bigIpPassword" : "<bigIpPassword>"
+    "schemaVersion": "1.3.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "myLicense": {
+            "class": "License",
+            "licenseType": "licensePool",
+            "bigIqHost": "<bigiq_host>",
+            "bigIqUsername": "<big_iq_username>",
+            "bigIqPassword": "<big_iq_password>",
+            "licensePool": "myLicense",
+            "skuKeyword1": "F5-BIG-MSP-BR-3G",
+            "unitOfMeasure": "hourly",
+            "reachable": true,
+            "bigIpUsername": "<bigIpUsername>",
+            "bigIpPassword": "<bigIpPassword>"
+        },
+        "mySystem": {
+            "class": "System",
+            "autoPhonehome": false
+        }
     }
-  }
 }

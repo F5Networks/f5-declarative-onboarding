@@ -1,7 +1,7 @@
 {
-  "licensePoolName" : "myOtherLicensePool",
-  "command" : "revoke",
-  "address" : "<bigipaddress>",
-  "user" : "<bigipuser>",
-  "password" : "<bigippassword>"
+    "licensePoolName": "myOtherLicensePool",
+    "command": "revoke",
+    "address": "<bigipaddress>",
+    "user": "<bigipuser>",
+    "password": "<bigippassword>"
 }
