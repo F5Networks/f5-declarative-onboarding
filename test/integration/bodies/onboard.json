@@ -1,15 +1,15 @@
 {
-  "schemaVersion": "1.0.0",
-  "class": "Device",
-  "async": true,
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
     "Common": {
-      "class": "Tenant",
+        "class": "Tenant",
         "hostname": "f5.example.com",
         "myDns": {
             "class": "DNS",
             "nameServers": [
-              "8.8.8.8",
-              "2001:4860:4860::8844"
+                "8.8.8.8",
+                "2001:4860:4860::8844"
             ],
             "search": [
                 "f5.com"
@@ -18,15 +18,15 @@
         "myNtp": {
             "class": "NTP",
             "servers": [
-              "0.pool.ntp.org",
-              "1.pool.ntp.org"
+                "0.pool.ntp.org",
+                "1.pool.ntp.org"
             ],
             "timezone": "UTC"
         },
         "myProvisioning": {
-          "class": "Provision",
-          "ltm": "nominal",
-          "gtm": "minimum"
+            "class": "Provision",
+            "ltm": "nominal",
+            "gtm": "minimum"
         },
         "myVlan": {
             "class": "VLAN",
@@ -39,22 +39,24 @@
                 }
             ]
         },
-        "internal" : {
-            "class" : "VLAN",
-            "tag" : 4094,
-            "mtu" : 1500,
-            "interfaces" : [
-              {
-                "name" : "1.1",
-                "tagged" : false
-              }
+        "internal": {
+            "class": "VLAN",
+            "tag": 4094,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": false
+                }
             ]
         },
         "mySelfIp": {
             "class": "SelfIp",
             "address": "10.148.75.46/24",
             "vlan": "myVlan",
-            "allowService": ["tcp:80"],
+            "allowService": [
+                "tcp:80"
+            ],
             "trafficGroup": "traffic-group-local-only"
         },
         "myRoute": {
@@ -68,12 +70,12 @@
             "configsyncIp": "/Common/mySelfIp/address"
         },
         "myFailoverUnicast": {
-          "class": "FailoverUnicast",
-          "address": "/Common/mySelfIp/address"
+            "class": "FailoverUnicast",
+            "address": "/Common/mySelfIp/address"
         },
         "mySystem": {
-          "class": "System",
-          "autoPhonehome": false
+            "class": "System",
+            "autoPhonehome": false
         }
     }
 }
