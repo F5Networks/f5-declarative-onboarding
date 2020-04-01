@@ -81,7 +81,8 @@
                         "patternProperties": {
                             "^[^\\x00-\\x20:\\x7f-\\xff]{1,254}$": {
                                 "type": "string",
-                                "pattern": "^[^\\x00-\\x1f\\x7f-\\xff]{0,8192}$"
+                                "pattern": "^[^\\x00-\\x1f\\x7f-\\xff]*$",
+                                "maxLength": 8192
                             }
                         },
                         "additionalProperties": false

@@ -147,6 +147,24 @@ describe('base.schema.json', () => {
                 );
                 assert.notStrictEqual(getErrorString().indexOf('dependencies/username/not'), -1);
             });
+
+            it('should invalidate credentials with long values', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Credentials": [
+                        {
+                            "tokens": {
+                                "X-F5-Auth-Token": 'a'.repeat(8193)
+                            }
+                        }
+                    ]
+                };
+                assert.strictEqual(
+                    validate(data), false, 'long token should not be valid'
+                );
+                assert.notStrictEqual(getErrorString().indexOf('Credentials/items/properties/tokens/patternProperties'), -1);
+            });
         });
     });
 
