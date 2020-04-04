@@ -14,6 +14,40 @@
         {
             "if": {
                 "required": ["class"],
+                "properties": { "class": { "const": "DeviceCertificate" } }
+            },
+            "then": {
+                "description": "PKI certificate with optional chain",
+                "required": ["class", "certificate"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains device certificate information",
+                        "type": "string",
+                        "const": "DeviceCertificate"
+                    },
+                    "certificate": {
+                        "description": "X.509 public-key certificate",
+                        "if": true,
+                        "then": {
+                            "$ref": "definitions.schema.json#/definitions/F5string"
+                        },
+                        "f5fetch": "pki-cert"
+                    },
+                    "privateKey": {
+                        "description": "Private key matching certificate's public key (optional)",
+                        "if": true,
+                        "then": {
+                            "$ref": "definitions.schema.json#/definitions/F5string"
+                        },
+                        "f5fetch": "pki-key"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
                 "properties": { "class": { "const": "License" } }
             },
             "then": {

@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.12.0
 ### Added
+- AUTOTOOL-152: Ability to upload device certificate
 ### Fixed
 - AUTOTOOL-1094 ([GitHub Issue 91](https://github.com/F5Networks/f5-declarative-onboarding/issues/91)): Provisioning fails if module does not exist on box
 - AUTOTOOL-1170: Call webhook after declaration requiring reboot

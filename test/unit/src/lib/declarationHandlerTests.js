@@ -27,18 +27,70 @@ const sinon = require('sinon');
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
 const DeclarationParser = require('../../../../src/lib/declarationParser');
 const DiffHandler = require('../../../../src/lib/diffHandler');
+const AnalyticsHandler = require('../../../../src/lib/analyticsHandler');
+const AuthHandler = require('../../../../src/lib/authHandler');
 const SystemHandler = require('../../../../src/lib/systemHandler');
 const NetworkHandler = require('../../../../src/lib/networkHandler');
 const DscHandler = require('../../../../src/lib/dscHandler');
 const DeleteHandler = require('../../../../src/lib/deleteHandler');
 const DeclarationHandler = require('../../../../src/lib/declarationHandler');
+const DeprovisionHandler = require('../../../../src/lib/deprovisionHandler');
+const ProvisionHandler = require('../../../../src/lib/provisionHandler');
 const doUtilMock = require('../../../../src/lib/doUtil');
 
 let parsedDeclarations;
 let declarationWithDefaults;
+let systemHandlerStub;
+let networkHandlerStub;
+let provisionHandlerStub;
+let deprovisionHandlerStub;
 let bigIpMock;
 
 describe('declarationHandler', () => {
+    const handlersCalled = [];
+    function handlerCalled(handlerName) {
+        handlersCalled.push(handlerName);
+    }
+
+    beforeEach(() => {
+        sinon.stub(AnalyticsHandler.prototype, 'process').callsFake(() => {
+            handlerCalled('AnalyticsHandler');
+            return Promise.resolve();
+        });
+        sinon.stub(AuthHandler.prototype, 'process').callsFake(() => {
+            handlerCalled('AuthHandler');
+            return Promise.resolve();
+        });
+        sinon.stub(DeleteHandler.prototype, 'process').callsFake(() => {
+            handlerCalled('DeleteHandler');
+            return Promise.resolve();
+        });
+        deprovisionHandlerStub = sinon.stub(DeprovisionHandler.prototype, 'process').callsFake(() => {
+            handlerCalled('DeprovisionHandler');
+            return Promise.resolve();
+        });
+        sinon.stub(DscHandler.prototype, 'process').callsFake(() => {
+            handlerCalled('DscHandler');
+            return Promise.resolve();
+        });
+        networkHandlerStub = sinon.stub(NetworkHandler.prototype, 'process').callsFake(() => {
+            handlerCalled('NetworkHandler');
+            return Promise.resolve();
+        });
+        systemHandlerStub = sinon.stub(SystemHandler.prototype, 'process').callsFake(() => {
+            handlerCalled('SystemHandler');
+            return Promise.resolve();
+        });
+        provisionHandlerStub = sinon.stub(ProvisionHandler.prototype, 'process').callsFake(() => {
+            handlerCalled('ProvisionHandler');
+            return Promise.resolve();
+        });
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
     describe('General testing', () => {
         beforeEach(() => {
             parsedDeclarations = [];
@@ -62,11 +114,6 @@ describe('declarationHandler', () => {
                     }
                 );
             });
-
-            sinon.stub(SystemHandler.prototype, 'process').resolves();
-            sinon.stub(NetworkHandler.prototype, 'process').resolves();
-            sinon.stub(DscHandler.prototype, 'process').resolves();
-            sinon.stub(DeleteHandler.prototype, 'process').resolves();
 
             bigIpMock = {
                 list(path) {
@@ -115,10 +162,6 @@ describe('declarationHandler', () => {
                     return Promise.resolve();
                 }
             };
-        });
-
-        afterEach(() => {
-            sinon.restore();
         });
 
         it('should parse declarations if not parsed', () => {
@@ -239,6 +282,42 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should call each handler', () => {
+            const newDeclaration = {
+                name: 'new',
+                parsed: true,
+                Common: {}
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
+                }
+            };
+            const handlerNames = [
+                'AnalyticsHandler',
+                'AuthHandler',
+                'DeleteHandler',
+                'DeprovisionHandler',
+                'DscHandler',
+                'NetworkHandler',
+                'ProvisionHandler',
+                'SystemHandler'
+            ];
+            handlersCalled.length = 0;
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.strictEqual(handlersCalled.length, handlerNames.length);
+                    handlerNames.forEach((handlerName) => {
+                        assert.notStrictEqual(handlersCalled.indexOf(handlerName), -1);
+                    });
+                });
+        });
+
         it('should send TEEM report', (done) => {
             const newDeclaration = {
                 name: 'new'
@@ -315,6 +394,70 @@ describe('declarationHandler', () => {
             return assert.isRejected(declarationHandler.process(newDeclaration, state),
                 'this is a processing error',
                 'processing error should have been caught');
+        });
+
+        it('should update status based on handler status', () => {
+            const systemHandlerStatus = {
+                rebootRequired: true,
+                rollbackInfo: {
+                    systemHandler: {
+                        propA: {
+                            files: [
+                                'fileA', 'fileB'
+                            ]
+                        },
+                        propB: 'foo'
+                    }
+                }
+            };
+            const networkHandlerStatus = {
+                rebootRequired: false,
+                rollbackInfo: {
+                    networkHandler: {
+                        propA: 'hello',
+                        propB: 'world'
+                    }
+                }
+            };
+
+            systemHandlerStub.restore();
+            sinon.stub(SystemHandler.prototype, 'process').resolves(systemHandlerStatus);
+            networkHandlerStub.restore();
+            sinon.stub(NetworkHandler.prototype, 'process').resolves(networkHandlerStatus);
+
+            const newDeclaration = {
+                name: 'new',
+                parsed: true,
+                Common: {}
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then((status) => {
+                    assert.strictEqual(status.rebootRequired, true);
+                    assert.deepEqual(
+                        status.rollbackInfo.systemHandler,
+                        {
+                            propA: { files: ['fileA', 'fileB'] },
+                            propB: 'foo'
+                        }
+                    );
+                    assert.deepEqual(
+                        status.rollbackInfo.networkHandler,
+                        {
+                            propA: 'hello',
+                            propB: 'world'
+                        }
+                    );
+                });
         });
 
         it('should not use old System hostname if Common.hostname is specified', () => {
@@ -665,12 +808,10 @@ describe('declarationHandler', () => {
         }
 
         beforeEach(() => {
+            provisionHandlerStub.restore();
+            deprovisionHandlerStub.restore();
             sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
             isAvrProvisioned = false;
-        });
-
-        afterEach(() => {
-            sinon.restore();
         });
 
         it('should add analytics and avr provisioning in the same declaration', () => {
