@@ -35,6 +35,18 @@ module.exports = {
                 && (lowerAddress.match(/[^0-9a-f:.%\x2f]/) === null)
                 && (IPv4rex.test(lowerAddress) || IPv6rex.test(lowerAddress))));
     },
+    f5base64: (string) => {
+        const regex = /^([0-9A-Za-z/+_-]*|[0-9A-Za-z/+_-]+={1,2})$/;
+        return regex.test(string);
+    },
+    f5bigip: (name) => {
+        // "f5bigip" ought to match names of BIG-IP configuration
+        // components.  In fact it merely excludes egregious errors.
+        // It does demand absolute pathnames (i.e., starting with /
+        // like "/Common/foo") and it forbids space in names
+        const regex = /^\/[^\s"#'*<>?[-\]{-}]+$/;
+        return regex.test(name);
+    },
     ipWithCidr: (address) => {
         const lowerAddress = address.toLowerCase();
         return (!lowerAddress.length

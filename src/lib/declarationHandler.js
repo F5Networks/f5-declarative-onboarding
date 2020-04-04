@@ -149,26 +149,41 @@ class DeclarationHandler {
                 deleteDeclaration = declarationDiffs.toDelete;
                 return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
             })
-            .then(() => new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new AuthHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new ProvisionHandler(
-                updateDeclaration,
-                this.bigIp,
-                this.eventEmitter,
-                state
-            ).process())
-            .then(() => new NetworkHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new DscHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new AnalyticsHandler(updateDeclaration, this.bigIp, this.eventEmitter, state)
-                .process())
-            .then(() => new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new DeprovisionHandler(
-                updateDeclaration,
-                this.bigIp,
-                this.eventEmitter,
-                state
-            ).process())
             .then(() => {
+                const handlers = [
+                    [SystemHandler, updateDeclaration],
+                    [AuthHandler, updateDeclaration],
+                    [ProvisionHandler, updateDeclaration],
+                    [NetworkHandler, updateDeclaration],
+                    [DscHandler, updateDeclaration],
+                    [AnalyticsHandler, updateDeclaration],
+                    [DeleteHandler, deleteDeclaration],
+                    [DeprovisionHandler, updateDeclaration]
+                ];
+
+                const handlerStatuses = [];
+                return processHandlers(
+                    handlers,
+                    handlerStatuses,
+                    this.bigIp,
+                    this.eventEmitter,
+                    state
+                );
+            })
+            .then((handlerStatuses) => {
+                const status = {
+                    rollbackInfo: {}
+                };
+                handlerStatuses.forEach((handlerStatus) => {
+                    if (handlerStatus.rebootRequired === true) {
+                        status.rebootRequired = true;
+                    }
+                    if (handlerStatus.rollbackInfo) {
+                        Object.keys(handlerStatus.rollbackInfo).forEach((key) => {
+                            status.rollbackInfo[key] = JSON.parse(JSON.stringify(handlerStatus.rollbackInfo[key]));
+                        });
+                    }
+                });
                 logger.info('Done processing declaration.');
                 if (!declaration.parsed) {
                     this.teemDevice.report('Declarative Onboarding Telemetry Data', '1', declaration)
@@ -176,7 +191,7 @@ class DeclarationHandler {
                             logger.warning(`Unable to send device report: ${err.message}`);
                         });
                 }
-                return Promise.resolve();
+                return Promise.resolve(status);
             })
             .catch((err) => {
                 logger.severe(`Error processing declaration: ${err.message}`);
@@ -400,6 +415,45 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
             rd.vlans.push(vlanName);
         }
     });
+}
+
+function processHandler(Handler, declaration, bigIp, eventEmitter, state) {
+    return new Handler(declaration, bigIp, eventEmitter, state).process();
+}
+
+/**
+ *
+ * @param {Object[]} handlers - Array of handlers and declaration for the handler. Each element is
+ *                              [handler, declaration]
+ * @param {Object} handlerStatuses - Array in which to store handlerStatus information. If present, handler status
+ *                                   must be an object that has any post processing directives required.
+ *                                   Directives can be
+ *     {
+ *         rebootRequired: true if a reboot should be forced at end of declaration processing,
+ *         rollbackInfo: {
+ *             handlerName: {
+ *                 handler_specific_rollback_data
+ *             }
+ *         }
+ *     }
+ * @param {BigIp} bigIp - BigIp used for processing
+ * @param {EventEmitter} eventEmitter - EventEmitter to which events should be sent
+ * @param {Object} state - The [doState]{@link State} object
+ * @param {*} index - Index of handler in handlers array. Used for recursion.
+ */
+function processHandlers(handlers, handlerStatuses, bigIp, eventEmitter, state, index) {
+    const i = index || 0;
+
+    if (i < handlers.length) {
+        const handler = handlers[i][0];
+        const declaration = handlers[i][1];
+        return processHandler(handler, declaration, bigIp, eventEmitter, state)
+            .then((status) => {
+                handlerStatuses.push(status || {});
+                return processHandlers(handlers, handlerStatuses, bigIp, eventEmitter, state, i + 1);
+            });
+    }
+    return handlerStatuses;
 }
 
 module.exports = DeclarationHandler;

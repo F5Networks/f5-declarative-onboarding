@@ -174,12 +174,19 @@ module.exports = {
     /**
      * Determines if a reboot is required.
      *
-     * @param {BigOp} bigIp - BigIp object
+     * @param {BigIp} bigIp - BigIp object
+     * @param {Object} state - The [doState]{@link State} object
+     * @param {String} taskId - The id of the task
      *
      * @returns {Promise} - A promise which resolves true or false based on whehter or not
      *                      the BigIp requires a reboot.
      */
-    rebootRequired(bigIp) {
+    rebootRequired(bigIp, state, taskId) {
+        if (state && state.getRebootRequired(taskId)) {
+            logger.debug('DO state indicates reboot required');
+            return Promise.resolve(true);
+        }
+
         return this.getCurrentPlatform()
             .then((platform) => {
                 let promise;
@@ -188,7 +195,7 @@ module.exports = {
                     promise = this.executeBashCommandLocal('cat /var/prompt/ps1');
                 } else {
                     // Otherwise, use a remote command
-                    promise = this.executeBashCommandRemote(bigIp, 'cat /var/prompt/ps1');
+                    promise = this.executeBashCommandIControl(bigIp, 'cat /var/prompt/ps1');
                 }
 
                 return promise;
@@ -231,13 +238,16 @@ module.exports = {
     },
 
     /**
-     * Returns a promise to execute a bash command on a BIG-IP remotely.
+     * Returns a promise to execute a bash command on a BIG-IP via iControl REST.
      *
+     * @param {BigIp} bigIp - BigIp object
      * @param {string} command - bash command to execute
+     * @param {Object} [retryOptions] - Options for retrying the command. See f5-cloud-libs bigIp commands for details.
+     * @param {Object} [options] - Command options. See f5-cloud-libs bigIp commands for details.
      *
      * @returns {Promise} - resolves to a string containing the command output
      */
-    executeBashCommandRemote(bigIp, command) {
+    executeBashCommandIControl(bigIp, command, retryOptions, options) {
         const commandBody = {
             command: 'run',
             utilCmdArgs: `-c "${command}"`
@@ -247,7 +257,8 @@ module.exports = {
             '/tm/util/bash',
             commandBody,
             null,
-            cloudUtil.SHORT_RETRY
+            retryOptions || cloudUtil.SHORT_RETRY,
+            options
         )
             .then(result => result.commandResult);
     },

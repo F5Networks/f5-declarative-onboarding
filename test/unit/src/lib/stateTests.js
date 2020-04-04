@@ -307,6 +307,24 @@ describe('state', () => {
         assert.notStrictEqual(declaration.foo.bar.password, undefined);
     });
 
+    it('should mask top level keys', () => {
+        const state = new State();
+        const declaration = {
+            foo: {
+                privateKey: {
+                    hello: 'world'
+                }
+            }
+        };
+
+        const taskId = state.addTask();
+
+        state.setDeclaration(taskId, declaration);
+        const internalDeclaration = state.getDeclaration(taskId);
+
+        assert.strictEqual(internalDeclaration.foo.privateKey, undefined);
+    });
+
     it('should update results', () => {
         const state = new State();
         const code = 1;

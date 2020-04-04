@@ -413,13 +413,15 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
             declarationHandler = new DeclarationHandler(this.bigIps[taskId], this.eventEmitter);
             return declarationHandler.process(declaration, this.state.doState.getTask(taskId));
         })
-        .then(() => {
+        .then((status) => {
+            this.state.doState.setRebootRequired(taskId, status.rebootRequired);
+            this.state.doState.setRollbackInfo(taskId, status.rollbackInfo);
             logger.fine('Saving sys config.');
             return this.bigIps[taskId].save();
         })
         .then(() => {
             logger.fine('Onboard configuration complete. Checking for reboot.');
-            return doUtil.rebootRequired(this.bigIps[taskId]);
+            return doUtil.rebootRequired(this.bigIps[taskId], this.state.doState, taskId);
         })
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
@@ -483,7 +485,7 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
 
     // Don't overwrite the error state if it's there
     if (this.state.doState.getStatus(taskId) !== STATUS.STATUS_ERROR) {
-        promise = promise.then(() => doUtil.rebootRequired(bigIp))
+        promise = promise.then(() => doUtil.rebootRequired(bigIp, this.state.doState, taskId))
             .then((rebootRequired) => {
                 if (rebootRequired) {
                     logger.fine('Reboot required.');
@@ -507,7 +509,7 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
 
 function rebootIfRequired(bigIp, taskId) {
     return new Promise((resolve, reject) => {
-        doUtil.rebootRequired(bigIp)
+        doUtil.rebootRequired(bigIp, this.state.doState, taskId)
             .then((rebootRequired) => {
                 if (rebootRequired) {
                     logger.info('Reboot required. Rebooting...');
@@ -750,7 +752,7 @@ function handleStartupState(success, error) {
                         .then(() => {
                             if (hasBigIpUser) {
                                 logger.debug('Decrypting BIG-IP user data');
-                                return cryptoUtil.decryptId(BIG_IP_ENCRYPTION_ID);
+                                return cryptoUtil.decryptStoredValueById(BIG_IP_ENCRYPTION_ID);
                             }
                             return Promise.resolve();
                         })
@@ -761,7 +763,7 @@ function handleStartupState(success, error) {
                             }
                             if (hasBigIqUser) {
                                 logger.debug('Decrypting BIG-IQ user data');
-                                return cryptoUtil.decryptId(BIG_IQ_ENCRYPTION_ID);
+                                return cryptoUtil.decryptStoredValueById(BIG_IQ_ENCRYPTION_ID);
                             }
                             return Promise.resolve();
                         })
@@ -1259,8 +1261,8 @@ function prepForRevoke(taskId, bigIpPassword, bigIqPassword) {
 
     const encryptPromises = [];
     // if we need to relicense after we restart, so store passwords
-    encryptPromises.push(cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID));
-    encryptPromises.push(cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID));
+    encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIpPassword, BIG_IP_ENCRYPTION_ID));
+    encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID));
 
     return Promise.all(encryptPromises)
         // We have to save sys config here to save the enrypted data in case

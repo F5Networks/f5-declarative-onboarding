@@ -59,7 +59,7 @@ describe('cryptoUtil', () => {
         });
     });
 
-    describe('decryptId', () => {
+    describe('decryptStoredValueById', () => {
         it('should decrypt ids', () => {
             const secret = 'mySecret';
             const tmshResponse = `foo {
@@ -74,7 +74,7 @@ describe('cryptoUtil', () => {
                 secretSent = value;
             });
 
-            return cryptoUtil.decryptId('foo')
+            return cryptoUtil.decryptStoredValueById('foo')
                 .then(() => {
                     assert.strictEqual(secretSent, 'mySecret');
                 });
@@ -83,7 +83,7 @@ describe('cryptoUtil', () => {
         it('should handle errors', () => {
             const error = 'tmsh error';
             sinon.stub(cloudUtil, 'runTmshCommand').rejects(new Error(error));
-            return assert.isRejected(cryptoUtil.decryptId('foo'), 'tmsh error',
+            return assert.isRejected(cryptoUtil.decryptStoredValueById('foo'), 'tmsh error',
                 'should have caught error');
         });
     });
@@ -118,7 +118,7 @@ describe('cryptoUtil', () => {
         });
     });
 
-    describe('encryptValue', () => {
+    describe('encryptAndStoreValue', () => {
         it('should encrypt values', () => {
             const value = 'myValue';
             const id = 'myId';
@@ -127,11 +127,16 @@ describe('cryptoUtil', () => {
             sinon.stub(doUtil, 'getBigIp').resolves({
                 create(path, body) {
                     bodySent = body;
+                    return Promise.resolve({
+                        secret: 'encryptedValue'
+                    });
+                },
+                delete() {
                     return Promise.resolve();
                 }
             });
 
-            return cryptoUtil.encryptValue(value, id)
+            return cryptoUtil.encryptAndStoreValue(value, id)
                 .then(() => {
                     assert.strictEqual(bodySent.secret, 'myValue');
                     assert.strictEqual(bodySent.name, 'myId');
@@ -146,7 +151,7 @@ describe('cryptoUtil', () => {
                 }
             });
 
-            return assert.isRejected(cryptoUtil.encryptValue(), 'create error',
+            return assert.isRejected(cryptoUtil.encryptAndStoreValue(), 'create error',
                 'should have caught error');
         });
     });

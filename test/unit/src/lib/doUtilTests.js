@@ -249,7 +249,7 @@ describe('doUtil', () => {
             });
 
             it('should return true if the prompt is REBOOT REQUIRED', () => {
-                doUtil.executeBashCommandRemote = () => Promise.resolve('REBOOT REQUIRED');
+                doUtil.executeBashCommandIControl = () => Promise.resolve('REBOOT REQUIRED');
 
                 return doUtil.rebootRequired(bigIpMock)
                     .then((rebootRequired) => {
@@ -258,7 +258,7 @@ describe('doUtil', () => {
             });
 
             it('should return false if the prompt is REBOOT REQUIRED', () => {
-                doUtil.executeBashCommandRemote = () => Promise.resolve('Active');
+                doUtil.executeBashCommandIControl = () => Promise.resolve('Active');
 
                 return doUtil.rebootRequired(bigIpMock)
                     .then((rebootRequired) => {
