@@ -1202,7 +1202,7 @@ function copyFiles(from, to) {
 function areFilesDifferent(fileA, fileB) {
     return doUtil.executeBashCommandIControl(this.bigIp, `diff ${fileB} ${fileA}`)
         .then((result) => {
-            if (result !== '' && result.indexOf('No such file or directory') === -1) {
+            if (result && result.indexOf('No such file or directory') === -1) {
                 return Promise.resolve(true);
             }
             return Promise.resolve(false);
