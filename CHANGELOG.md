@@ -9,6 +9,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1170: Call webhook after declaration requiring reboot
 - AUTOTOOL-1388: Fix allowed schema versions
 - AUTOTOOL-1440 ([GitHub Issue 132](https://github.com/F5Networks/f5-declarative-onboarding/issues/132)): Schema is incompatible with golang regexp
+- [GitHub Issue 103](https://github.com/F5Networks/f5-declarative-onboarding/issues/103): Avoid deleting dos-global-dg device group
 ### Changed
 ### Removed
 

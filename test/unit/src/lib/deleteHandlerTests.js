@@ -311,6 +311,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
                     device_trust_group: {},
                     gtm: {},
                     'datasync-global-dg': {},
+                    'dos-global-dg': {},
                     deleteThisGroup: {}
                 }
             }
