@@ -151,7 +151,6 @@ function encryptValueOnBigIp(value, id, bigIp) {
         .then((encryptInfo) => {
             encryptedData = encryptInfo.secret;
         })
-        .then(() => bigIp.delete(`${ENCRYPT_PATH}/${id}`))
         .then(() => encryptedData);
 }
 

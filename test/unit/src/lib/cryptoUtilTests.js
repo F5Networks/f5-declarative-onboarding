@@ -119,11 +119,13 @@ describe('cryptoUtil', () => {
     });
 
     describe('encryptAndStoreValue', () => {
-        it('should encrypt values', () => {
+        it('should encrypt values and not delete them', () => {
             const value = 'myValue';
             const id = 'myId';
 
+            let deleteCalled = false;
             let bodySent;
+
             sinon.stub(doUtil, 'getBigIp').resolves({
                 create(path, body) {
                     bodySent = body;
@@ -132,6 +134,7 @@ describe('cryptoUtil', () => {
                     });
                 },
                 delete() {
+                    deleteCalled = true;
                     return Promise.resolve();
                 }
             });
@@ -140,6 +143,7 @@ describe('cryptoUtil', () => {
                 .then(() => {
                     assert.strictEqual(bodySent.secret, 'myValue');
                     assert.strictEqual(bodySent.name, 'myId');
+                    assert.strictEqual(deleteCalled, false);
                 });
         });
 
