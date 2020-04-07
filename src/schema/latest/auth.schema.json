@@ -171,18 +171,20 @@
                     "type": "string",
                     "enum": [
                         "admin",
-                        "fraud-protection-manager",
                         "application-editor",
+                        "auditor",
                         "certificate-manager",
                         "firewall-manager",
+                        "fraud-protection-manager",
                         "guest",
+                        "irule-manager",
                         "manager",
                         "no-access",
                         "operator",
                         "resource-admin",
+                        "user-manager",
                         "web-application-security-administrator",
-                        "web-application-security-editor",
-                        "user-manager"
+                        "web-application-security-editor"
                     ],
                     "default": "no-access"
                 },
