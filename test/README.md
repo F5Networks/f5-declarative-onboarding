@@ -27,10 +27,12 @@ If `npx` is available on your system, you can run the locally installed version 
     * This file requires exactly 3 machines, any additional will be ignored.
   * Each object needs:
     * admin_ip: The IP for the BIG-IP.
-    * admin_username: The username for logging into the UI.
-    * admin_password: That username's password.
-    * root_username: The root user's username.
-    * root_password: That root user's password.
+    * f5_rest_user object with:
+      * username: The username for logging into the UI.
+      * password: That username's password.
+    * ssh_user object with:
+      * username: A root privileged user's username.
+      * password: That user's password.
   * The BIG-IPs being referenced must allow for default ssh ciphers.
     * You can check this by sshing into the BIG-IP, without the -c option. If the ssh fails because of a 'no matching cipher found' error, the setup will also fail.
     * To fix this, ssh into the BIG-IP via a terminal and run the following command:
