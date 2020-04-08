@@ -17,6 +17,7 @@ variables:
     NUMBER_OF_BIGIP: 3
     DO_LICENSING: 'false'
     DO_PROVISIONING: 'false'
+    DO_PHONING_HOME: 'false'
     TEST_HARNESS_FILE: ${CI_PROJECT_DIR}/harness_facts_flat_${BIGIP_VERSION}.json
     BIGIP_VERSION: ${DEFAULT_BIGIP_VERSION}
     BIGIP_BUILD: ${DEFAULT_BIGIP_BUILD}
@@ -74,7 +75,7 @@ test_node:latest:
 # BIGIP_VERSION         - BIG-IP Version (ex: 13.1.1.4)
 # BIGIP_BUILD           - BIG-IP Build (ex: 0.0.4)
 deploy:
-    image: ${CICD_CONTAINER_DEPLOY}
+    image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
     tags:
         - cm-official-docker-executor
     only:
@@ -82,13 +83,25 @@ deploy:
         - tags
         - triggers
     stage: deploy
+    variables:
+        DEFAULT_RETRY_DELAY: 20
+        DEFAULT_RETRIES: 60
+        DEVICE_ANSIBLE_CONNECTION_DELAY: 10
+        DEVICE_ANSIBLE_CONNECTION_RETRIES: 100
+        DEVICE_FAILOVER_LINKSUP_DELAY: 10
+        DEVICE_HTTPS_PORT_DELAY: 10
+        SSH_AVAILABILITY_DELAY: 10
+        SSH_AVAILABILITY_RETRIES: 100
+        VIO_DEPLOYMENT_DELAY: 20
+        VIO_DEPLOYMENT_RETRIES: 100
     script:
         - export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
-        - cd /root/cicd-bigip-deploy && make configure &&
-            make printvars && cat ${PROJECT_DIR}/project-vars &&
-            make setup && ls -als ${PROJECT_DIR} &&
-            cp ${PROJECT_DIR}/harness_facts_flat.json ${TEST_HARNESS_FILE} &&
-            cd ${CI_PROJECT_DIR}
+        - cd /root/cicd-bigip-deploy && make configure && make printvars
+        - ls -als "${PROJECT_DIR}"
+        - cat "${PROJECT_DIR}/project-declaration-parsed"
+        - make setup
+        - cp ${PROJECT_DIR}/harness_facts_flat.json ${TEST_HARNESS_FILE}
+        - cd ${CI_PROJECT_DIR}
         - if [[ $? != 0 ]]; then echo setup failed && exit 1; fi
         - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
         - yum install -y nodejs
@@ -124,7 +137,7 @@ integration-test:
             - test/logs
 
 teardown:
-    image: ${CICD_CONTAINER_DEPLOY}
+    image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
     tags:
         - cm-official-docker-executor
     script:
