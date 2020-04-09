@@ -325,6 +325,30 @@ See :ref:`devicegroup` for more information.
 
 |
 
+.. _example18:
+
+18: Including a TLS/SSL Certificate and Key in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for including TLS/SSL certificates and keys is available in DO v1.12.0 and later. 
+
+This example declaration shows how you can include an TLS/SSL certificates in a Declarative Onboarding declaration.  For specific information on certificates and keys on BIG-IP, see |certdoc| in the BIG-IP documentation.
+
+A couple of things to note when including certificates and keys in a declaration:
+
+- DO reboots the BIG-IP device to include the certificate
+- Like other settings in DO, if a subsequent declaration is posted without the certificate, DO will restore the certificate that was there when it first ran.
+
+See |certclass| in the schema reference for more information and usage.
+
+.. literalinclude:: ../examples/deviceCertificate.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
 
 .. |br| raw:: html
 
@@ -398,4 +422,12 @@ See :ref:`devicegroup` for more information.
 .. |sysclass| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#system" target="_blank">System</a>
+
+.. |certclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#devicecertificate" target="_blank">DeviceCertificate</a>
+
+.. |certdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-system-ssl-administration-14-1-0/03.html" target="_blank">SSL Certificate Management</a>
 
