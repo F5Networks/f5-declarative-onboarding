@@ -327,17 +327,21 @@ See :ref:`devicegroup` for more information.
 
 .. _example18:
 
-18: Including a TLS/SSL Certificate and Key in a declaration
+18: Updating the TLS/SSL Device Certificate in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for including TLS/SSL certificates and keys is available in DO v1.12.0 and later. 
+   Support for including a TLS/SSL device certificate and key is available in DO v1.12.0 and later. 
 
-This example declaration shows how you can include an TLS/SSL certificates in a Declarative Onboarding declaration.  For specific information on certificates and keys on BIG-IP, see |certdoc| in the BIG-IP documentation.
+This example declaration shows how you can create/upload a device certificate in a Declarative Onboarding declaration. The BIG-IP system uses the device certificate to authenticate access to the Configuration utility and to accommodate device-to-device communication processes, such as configuration synchronization. 
+
+For more information and how this process works manually, see the KB article |certdoc|.
 
 A couple of things to note when including certificates and keys in a declaration:
 
-- DO reboots the BIG-IP device to include the certificate
+- DO always writes to **/config/httpd/conf/ssl.crt/server.crt** and **ssl.key/server.key**
+- If the device certificate is updated (that is, if the certificate in the declaration does not match the certificate in those directories, DO reboots the BIG-IP device in order to include the updated certificate
+- DO makes backups of these in those directories before overwriting the existing certificate and key
 - Like other settings in DO, if a subsequent declaration is posted without the certificate, DO will restore the certificate that was there when it first ran.
 
 See |certclass| in the schema reference for more information and usage.
@@ -429,5 +433,5 @@ See |certclass| in the schema reference for more information and usage.
 
 .. |certdoc| raw:: html
 
-   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/big-ip-system-ssl-administration-14-1-0/03.html" target="_blank">SSL Certificate Management</a>
+   <a href="https://support.f5.com/csp/article/K6353" target="_blank">Updating a self-signed SSL device certificate on a BIG-IP system</a>
 
