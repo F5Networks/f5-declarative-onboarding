@@ -340,8 +340,8 @@ For more information and how this process works manually, see the KB article |ce
 A couple of things to note when including certificates and keys in a declaration:
 
 - DO always writes to **/config/httpd/conf/ssl.crt/server.crt** and **ssl.key/server.key**
-- If the device certificate is updated (that is, if the certificate in the declaration does not match the certificate in those directories, DO reboots the BIG-IP device in order to include the updated certificate
-- DO makes backups of these in those directories before overwriting the existing certificate and key
+- If the device certificate is updated (that is, if the certificate in the declaration does not match the certificate in those directories), DO reboots the BIG-IP device in order to include the updated certificate
+- DO makes backups of the certificates and keys in those directories before overwriting the existing certificate and key
 - Like other settings in DO, if a subsequent declaration is posted without the certificate, DO will restore the certificate that was there when it first ran.
 
 See |certclass| in the schema reference for more information and usage.
