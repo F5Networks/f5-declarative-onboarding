@@ -17,6 +17,7 @@
 'use strict';
 
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
+const TeemRecord = require('@f5devcentral/f5-teem').Record;
 const DeclarationParser = require('./declarationParser');
 const DiffHandler = require('./diffHandler');
 const Logger = require('./logger');
@@ -186,10 +187,18 @@ class DeclarationHandler {
                 });
                 logger.info('Done processing declaration.');
                 if (!declaration.parsed) {
-                    this.teemDevice.report('Declarative Onboarding Telemetry Data', '1', declaration)
+                    const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
+                    return Promise.resolve()
+                        .then(() => record.calculateAssetId())
+                        .then(() => record.addRegKey())
+                        .then(() => record.addPlatformInfo())
+                        .then(() => record.addProvisionedModules())
+                        .then(() => record.addClassCount(declaration))
+                        .then(() => this.teemDevice.reportRecord(record))
                         .catch((err) => {
                             logger.warning(`Unable to send device report: ${err.message}`);
-                        });
+                        })
+                        .then(() => status);
                 }
                 return Promise.resolve(status);
             })

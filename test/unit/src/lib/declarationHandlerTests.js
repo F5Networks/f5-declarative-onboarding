@@ -25,6 +25,7 @@ const assert = chai.assert;
 const sinon = require('sinon');
 
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
+const TeemRecord = require('@f5devcentral/f5-teem').Record;
 const DeclarationParser = require('../../../../src/lib/declarationParser');
 const DiffHandler = require('../../../../src/lib/diffHandler');
 const AnalyticsHandler = require('../../../../src/lib/analyticsHandler');
@@ -318,7 +319,7 @@ describe('declarationHandler', () => {
                 });
         });
 
-        it('should send TEEM report', (done) => {
+        it('should send TEEM report', () => {
             const newDeclaration = {
                 name: 'new'
             };
@@ -337,14 +338,27 @@ describe('declarationHandler', () => {
             };
             const teemDevice = new TeemDevice(assetInfo);
 
-            sinon.stub(teemDevice, 'report').callsFake((type, version, declaration) => {
-                assert.deepEqual(declaration, newDeclaration);
-                done();
-                return Promise.resolve();
-            });
+            const isAddClassCountCalled = sinon.spy(TeemRecord.prototype, 'addClassCount');
+            const isAddPlatformInfoCalled = sinon.spy(TeemRecord.prototype, 'addPlatformInfo');
+            const isAddRegKeyCalled = sinon.spy(TeemRecord.prototype, 'addRegKey');
+            const isAddProvisionedModulesCalled = sinon.spy(TeemRecord.prototype, 'addProvisionedModules');
+            const isCalculateAssetIdCalled = sinon.spy(TeemRecord.prototype, 'calculateAssetId');
+
             const declarationHandler = new DeclarationHandler(bigIpMock);
             declarationHandler.teemDevice = teemDevice;
-            declarationHandler.process(newDeclaration, state);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.strictEqual(isAddClassCountCalled.calledOnce, true,
+                        'should call addClassCount() once');
+                    assert.strictEqual(isAddPlatformInfoCalled.calledOnce, true,
+                        'should call addPlatformInfo() once');
+                    assert.strictEqual(isAddRegKeyCalled.calledOnce, true,
+                        'should call addRegKey() once');
+                    assert.strictEqual(isAddProvisionedModulesCalled.calledOnce, true,
+                        'should call addProvisionedModules() once');
+                    assert.strictEqual(isCalculateAssetIdCalled.calledOnce, true,
+                        'should call calculateAssetId() once');
+                });
         });
 
         it('should succeed even if TEEM report fails', () => {

@@ -20,7 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@f5devcentral/f5-cloud-libs": "^4.15.0",
-    "@f5devcentral/f5-teem": "^1.3.2",
+    "@f5devcentral/f5-teem": "^1.4.2",
     "ajv": "^6.12.0",
     "deep-diff": "^1.0.2",
     "is-in-subnet": "^2.1.0",
