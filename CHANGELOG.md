@@ -12,6 +12,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-902 ([GitHub Issue 81](https://github.com/F5Networks/f5-declarative-onboarding/issues/81)): Added missing roles for RemoteAuthRole.role enum
 - [GitHub Issue 103](https://github.com/F5Networks/f5-declarative-onboarding/issues/103): Avoid deleting dos-global-dg device group
 ### Changed
+- AUTOTOOL-1014: Update to f5-teem 1.4.2
 ### Removed
 
 ## 1.11.1
