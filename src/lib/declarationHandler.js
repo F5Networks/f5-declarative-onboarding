@@ -194,6 +194,7 @@ class DeclarationHandler {
                         .then(() => record.addPlatformInfo())
                         .then(() => record.addProvisionedModules())
                         .then(() => record.addClassCount(declaration))
+                        .then(() => record.addJsonObject(declaration.controls || {}))
                         .then(() => this.teemDevice.reportRecord(record))
                         .catch((err) => {
                             logger.warning(`Unable to send device report: ${err.message}`);
