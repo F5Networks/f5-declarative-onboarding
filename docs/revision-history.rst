@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 2.9
+        - Updated the documentation for Declarative Onboarding v1.12.0.  This release contains the following changes: |br| * Added support for updating/uploading Device certificates (see :ref:`example18`)  |br| |br| Issues Resolved: |br| 
+        - 04-21-20
+
       * - 2.8
         - Updated the documentation for Declarative Onboarding v1.11.0.  This release contains the following changes: |br| * Added support for provisioning SSL Orchestrator (SSLO), see :ref:`provision-class`  |br| * Added support for using IP addresses for Device Group members and owner (see :ref:`devicegroup` and :ref:`example17`) |br| |br| Issues Resolved: |br| * Route Configuration can conflict with DHCP (`GitHub issue 100 <https://github.com/F5Networks/f5-declarative-onboarding/issues/100>`_) |br| * Setting ConfigSync does not handle device name / hostname mismatch (`GitHub Issue 104 <https://github.com/F5Networks/f5-declarative-onboarding/issues/104>`_) |br| * Attempting to modify ConfigSync on non-existing device - device not resolving properly (`GitHub Issue 113 <https://github.com/F5Networks/f5-declarative-onboarding/issues/113>`_) |br| * Requiring a reboot causes task to never complete |br| * Relicensing BIG-IP can be interrupted by service restart
         - 03-10-20
