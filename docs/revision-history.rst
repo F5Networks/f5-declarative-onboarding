@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 2.9
-        - Updated the documentation for Declarative Onboarding v1.12.0.  This release contains the following changes: |br| * Added support for updating/uploading Device certificates (see :ref:`example18`)  |br| |br| Issues Resolved: |br| 
+        - Updated the documentation for Declarative Onboarding v1.12.0.  This release contains the following changes: |br| * Added support for updating/uploading Device certificates (see :ref:`example18`)  |br| |br| Issues Resolved: |br| * Provisioning fails if module does not exist on box (`GitHub Issue 91 <https://github.com/F5Networks/f5-declarative-onboarding/issues/91>`_) |br| * Call webhook after declaration requiring reboot |br| * Fix allowed schema versions (also fixed in patch release 1.11.1) |br| * Schema is incompatible with golang regexp (`GitHub Issue 132 <https://github.com/F5Networks/f5-declarative-onboarding/issues/132>`_) |br| * Added missing roles for RemoteAuthRole.role enum (`GitHub Issue 81 <https://github.com/F5Networks/f5-declarative-onboarding/issues/81>`_) |br| * Avoid deleting dos-global-dg device group (`GitHub Issue 103 <https://github.com/F5Networks/f5-declarative-onboarding/issues/103>`_) 
         - 04-21-20
 
       * - 2.8
