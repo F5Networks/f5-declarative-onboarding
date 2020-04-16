@@ -1,0 +1,20 @@
+{
+    "schemaVersion": "1.12.0",
+    "class": "Device",
+    "label": "Configuring System",
+    "async": true,
+    "controls": {
+        "class": "Controls",
+        "userAgent": "BIG-IQ/7.1 Configured by API"
+    },
+    "Common": {
+        "class": "Tenant",
+        "mySystem": {
+            "class": "System",
+            "hostname": "my.bigip.com",
+            "cliInactivityTimeout": 1200,
+            "consoleInactivityTimeout": 1200,
+            "autoPhonehome": true
+        }
+    }
+}

@@ -321,7 +321,14 @@ describe('declarationHandler', () => {
 
         it('should send TEEM report', () => {
             const newDeclaration = {
-                name: 'new'
+                name: 'new',
+                foo: {
+                    class: 'bar'
+                },
+                controls: {
+                    class: 'Controls',
+                    userAgent: 'test userAgent'
+                }
             };
             const state = {
                 currentConfig: {
@@ -343,11 +350,22 @@ describe('declarationHandler', () => {
             const isAddRegKeyCalled = sinon.spy(TeemRecord.prototype, 'addRegKey');
             const isAddProvisionedModulesCalled = sinon.spy(TeemRecord.prototype, 'addProvisionedModules');
             const isCalculateAssetIdCalled = sinon.spy(TeemRecord.prototype, 'calculateAssetId');
+            const isAddJsonObjectCalled = sinon.spy(TeemRecord.prototype, 'addJsonObject');
+
+            // report should not be called
+            const isReportCalled = sinon.stub(teemDevice, 'report').rejects();
+
+            // check the record sent to reportRecord
+            let record;
+            sinon.stub(teemDevice, 'reportRecord').callsFake((recordIn) => {
+                record = recordIn;
+            });
 
             const declarationHandler = new DeclarationHandler(bigIpMock);
             declarationHandler.teemDevice = teemDevice;
             return declarationHandler.process(newDeclaration, state)
                 .then(() => {
+                    // Check that each class was called
                     assert.strictEqual(isAddClassCountCalled.calledOnce, true,
                         'should call addClassCount() once');
                     assert.strictEqual(isAddPlatformInfoCalled.calledOnce, true,
@@ -358,6 +376,26 @@ describe('declarationHandler', () => {
                         'should call addProvisionedModules() once');
                     assert.strictEqual(isCalculateAssetIdCalled.calledOnce, true,
                         'should call calculateAssetId() once');
+                    assert.strictEqual(isAddJsonObjectCalled.calledOnce, true,
+                        'should call addJsonObject() once');
+                    assert.strictEqual(isReportCalled.called, false,
+                        'report() should not have been called');
+
+                    // Check that the record body object was filled with input
+                    assert.deepStrictEqual(
+                        record.recordBody,
+                        {
+                            bar: 1,
+                            Controls: 1,
+                            class: 'Controls',
+                            modules: {},
+                            platform: 'unknown',
+                            platformID: 'unknown',
+                            platformVersion: 'unknown',
+                            regkey: 'unknown',
+                            userAgent: 'test userAgent'
+                        }
+                    );
                 });
         });
 
@@ -380,7 +418,7 @@ describe('declarationHandler', () => {
             };
             const teemDevice = new TeemDevice(assetInfo);
 
-            sinon.stub(teemDevice, 'report').rejects();
+            sinon.stub(teemDevice, 'reportRecord').rejects();
             const declarationHandler = new DeclarationHandler(bigIpMock);
             declarationHandler.teemDevice = teemDevice;
             return declarationHandler.process(newDeclaration, state);

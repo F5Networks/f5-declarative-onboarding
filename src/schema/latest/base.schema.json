@@ -134,6 +134,20 @@
                 ]
             }
         },
+        "controls": {
+            "description": "Options to control configuration process",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Controls"
+                },
+                "userAgent": {
+                    "description": "User Agent information to include in TEEM report",
+                    "type": "string"
+                }
+            }
+        },
         "result": {
             "description": "Status of current request. This is set by the system.",
             "type": "object",

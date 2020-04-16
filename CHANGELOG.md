@@ -1,6 +1,13 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.13.0
+### Added
+- AUTOTOOL-1437: Add userAgent to a controls object
+### Fixed
+### Changed
+### Removed
+
 ## 1.12.0
 ### Added
 - AUTOTOOL-152: Ability to upload device certificate
