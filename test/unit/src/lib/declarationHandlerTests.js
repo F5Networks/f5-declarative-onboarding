@@ -328,6 +328,18 @@ describe('declarationHandler', () => {
                 controls: {
                     class: 'Controls',
                     userAgent: 'test userAgent'
+                },
+                Common: {
+                    class: 'Tenant',
+                    myAuth: {
+                        class: 'Authentication',
+                        radius: {
+                            serviceType: 'call-check'
+                        },
+                        ldap: {
+                            port: 654
+                        }
+                    }
                 }
             };
             const state = {
@@ -385,15 +397,88 @@ describe('declarationHandler', () => {
                     assert.deepStrictEqual(
                         record.recordBody,
                         {
+                            authenticationType: {
+                                radius: 1,
+                                tacacs: 0,
+                                ldap: 1
+                            },
+                            Authentication: 1,
                             bar: 1,
                             Controls: 1,
-                            class: 'Controls',
+                            Tenant: 1,
                             modules: {},
                             platform: 'unknown',
                             platformID: 'unknown',
                             platformVersion: 'unknown',
                             regkey: 'unknown',
                             userAgent: 'test userAgent'
+                        }
+                    );
+                });
+        });
+
+        it('should count complicated authentication declaration', () => {
+            const newDeclaration = {
+                name: 'new',
+                Common: {
+                    class: 'Tenant',
+                    myAuth: {
+                        class: 'Authentication',
+                        radius: { serviceType: 'call-check' },
+                        ldap: { port: 654 }
+                    },
+                    funky: {
+                        class: 'Authentication',
+                        radius: { serviceType: 'call-check' },
+                        monkey: {
+                            // Should not count these two
+                            ldap: { port: 654 },
+                            tacacs: { foo: 'bar' }
+                        }
+                    }
+                }
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
+                }
+            };
+
+            const assetInfo = {
+                name: 'Declarative Onboarding',
+                version: '1.2.3'
+            };
+            const teemDevice = new TeemDevice(assetInfo);
+
+            // check the record sent to reportRecord
+            let record;
+            sinon.stub(teemDevice, 'reportRecord').callsFake((recordIn) => {
+                record = recordIn;
+            });
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            declarationHandler.teemDevice = teemDevice;
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    // Check that the record body object was filled with input
+                    assert.deepStrictEqual(
+                        record.recordBody,
+                        {
+                            authenticationType: {
+                                ldap: 1,
+                                radius: 2,
+                                tacacs: 0
+                            },
+                            Authentication: 2,
+                            Tenant: 1,
+                            modules: {},
+                            platform: 'unknown',
+                            platformID: 'unknown',
+                            platformVersion: 'unknown',
+                            regkey: 'unknown'
                         }
                     );
                 });

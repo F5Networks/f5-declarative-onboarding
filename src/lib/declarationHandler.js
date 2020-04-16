@@ -187,6 +187,18 @@ class DeclarationHandler {
                 });
                 logger.info('Done processing declaration.');
                 if (!declaration.parsed) {
+                    // gather/calculate extra fields
+                    const extraFields = {};
+                    if (declaration.controls) {
+                        extraFields.userAgent = declaration.controls.userAgent;
+                    }
+                    if (declaration.Common) {
+                        extraFields.authenticationType = countAuthenticationTypes(
+                            declaration.Common,
+                            { ldap: 0, radius: 0, tacacs: 0 }
+                        );
+                    }
+
                     const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
                     return Promise.resolve()
                         .then(() => record.calculateAssetId())
@@ -194,7 +206,7 @@ class DeclarationHandler {
                         .then(() => record.addPlatformInfo())
                         .then(() => record.addProvisionedModules())
                         .then(() => record.addClassCount(declaration))
-                        .then(() => record.addJsonObject(declaration.controls || {}))
+                        .then(() => record.addJsonObject(extraFields))
                         .then(() => this.teemDevice.reportRecord(record))
                         .catch((err) => {
                             logger.warning(`Unable to send device report: ${err.message}`);
@@ -464,6 +476,32 @@ function processHandlers(handlers, handlerStatuses, bigIp, eventEmitter, state, 
             });
     }
     return handlerStatuses;
+}
+
+/**
+ * Recursively counts the number of types in Authentication classes in the provided declaration.
+ *
+ * Assumption: Authentication classes will not be inside of an array
+ *
+ * @param {Object} declaration - declaration to count
+ *
+ * @returns {Object} - An object with integers: ldap, radius, and tacas
+ */
+function countAuthenticationTypes(declaration, count) {
+    // iterate through the declaration
+    Object.keys(declaration).forEach((key) => {
+        if (declaration[key].class === 'Authentication') {
+            count.ldap += (declaration[key].ldap) ? 1 : 0;
+            count.radius += (declaration[key].radius) ? 1 : 0;
+            count.tacacs += (declaration[key].tacacs) ? 1 : 0;
+        }
+
+        if (typeof declaration[key] === 'object') {
+            countAuthenticationTypes(declaration[key], count);
+        }
+    });
+
+    return count;
 }
 
 module.exports = DeclarationHandler;
