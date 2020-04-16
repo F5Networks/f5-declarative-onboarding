@@ -4,6 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.13.0
 ### Added
 - AUTOTOOL-1437: Add userAgent to a controls object
+- AUTOTOOL-1445: Add authentication type to DO TEEM telemetry
 ### Fixed
 ### Changed
 ### Removed
