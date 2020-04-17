@@ -71,6 +71,10 @@ class SystemHandler {
         logger.fine('Checking db variables.');
         return handleDbVars.call(this)
             .then(() => {
+                logger.fine('Checking DHCP options.');
+                return handleDhcpOptions.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking DNS.');
                 return handleDNS.call(this);
             })
@@ -139,13 +143,33 @@ function handleDbVars() {
     return Promise.resolve();
 }
 
+function handleDhcpOptions() {
+    const dhcpOptionsToDisable = [];
+    const common = this.declaration.Common;
+
+    if (common.NTP) {
+        dhcpOptionsToDisable.push('ntp-servers');
+    }
+    if (common.DNS && common.DNS.nameServers) {
+        dhcpOptionsToDisable.push('domain-name-servers');
+    }
+    if (common.DNS && common.DNS.search) {
+        // dhclient calls search 'domain-name'
+        dhcpOptionsToDisable.push('domain-name');
+    }
+    if ((common.System && common.System.hostname) || common.hostname) {
+        dhcpOptionsToDisable.push('host-name');
+    }
+
+    return disableDhcpOptions.call(this, dhcpOptionsToDisable);
+}
+
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
         const promises = (ntp.servers || []).map(server => doUtil.checkDnsResolution(server));
 
         return Promise.all(promises)
-            .then(() => disableDhcpOptions.call(this, ['ntp-servers']))
             .then(() => this.bigIp.replace(
                 PATHS.NTP,
                 {
@@ -160,24 +184,13 @@ function handleNTP() {
 function handleDNS() {
     if (this.declaration.Common.DNS) {
         const dns = this.declaration.Common.DNS;
-        const dhcpOptionsToDisable = [];
-
-        if (dns.nameServers) {
-            dhcpOptionsToDisable.push('domain-name-servers');
-        }
-        if (dns.search) {
-            // dhclient calls search 'domain-name'
-            dhcpOptionsToDisable.push('domain-name');
-        }
-
-        return disableDhcpOptions.call(this, dhcpOptionsToDisable)
-            .then(() => this.bigIp.replace(
-                PATHS.DNS,
-                {
-                    'name-servers': dns.nameServers,
-                    search: dns.search || []
-                }
-            ));
+        return this.bigIp.replace(
+            PATHS.DNS,
+            {
+                'name-servers': dns.nameServers,
+                search: dns.search || []
+            }
+        );
     }
     return Promise.resolve();
 }
@@ -311,8 +324,7 @@ function handleSystem() {
         hostname = common.hostname;
     }
     if (hostname) {
-        promises.push(disableDhcpOptions.call(this, ['host-name'])
-            .then(() => this.bigIp.onboard.hostname(hostname)));
+        promises.push(this.bigIp.onboard.hostname(hostname));
     } else {
         promises.push(this.bigIp.list(PATHS.System)
             .then((globalSettings) => {
