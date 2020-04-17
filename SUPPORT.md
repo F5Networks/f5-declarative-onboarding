@@ -15,7 +15,10 @@ Currently supported versions:
 |------------------|---------------|---------------------|-----------------|
 | DO 1.10.0        | Feature       | 27-Jan-2020         | 27-Apr-2020     |
 | DO 1.11.0        | Feature       | 10-Mar-2020         | 10-Jun-2020     |
-| DO 1.11.1        | Fix           | 30-Mar-2020         | 10-Jun-2020     |
+| DO 1.11.1        | Fix*          | 30-Mar-2020         | 10-Jun-2020     |
+| DO 1.12.0        | Feature       | 21-Apr-2020         | 21-Jul-2020     |
+
+\* Fix for Allowed schema version
 
 
 
