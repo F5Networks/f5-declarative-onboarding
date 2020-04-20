@@ -47,8 +47,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 deployedMachines.forEach((deployedMachine) => {
                     machines.push({
                         ip: deployedMachine.admin_ip,
-                        adminUsername: deployedMachine.admin_username,
-                        adminPassword: deployedMachine.admin_password
+                        adminUsername: deployedMachine.f5_rest_user.username,
+                        adminPassword: deployedMachine.f5_rest_user.password
                     });
                 });
                 return Promise.resolve();

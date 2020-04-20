@@ -38,6 +38,9 @@ module.exports = {
     getDeclaration(taskId) {
         return this.tasks[taskId].declaration;
     },
+    getRequestOptions(taskId) {
+        return this.tasks[taskId].requestOptions;
+    },
     getCurrentConfig(taskId) {
         return this.tasks[taskId].currentConfig;
     },

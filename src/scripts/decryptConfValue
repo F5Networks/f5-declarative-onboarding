@@ -1,0 +1,24 @@
+#!/usr/bin/php
+<?php
+    if (sizeof($argv) != 3) {
+        echo "usage: $argv[0] <encrypted_value_part_1[,...,encrypted_value_part_n]> <output_file>\n";
+        return -1;
+    }
+
+    $encrypted_value_str = $argv[1];
+    $output_file = $argv[2];
+
+    $encrypted_value_array = explode(',', $encrypted_value_str);
+    $file_handle = fopen($output_file, "w") or die("Unable to open file {$output_file}");
+
+    coapi_login("admin");
+    $query_result = coapi_query("master_key");
+    $row = coapi_fetch($query_result);
+    $master_key = $row["master_key"];
+    foreach($encrypted_value_array as &$encrypted_value) {
+        $plain = f5_decrypt_string($encrypted_value, $master_key);
+        fwrite($file_handle, $plain);
+    }
+    fclose($file_handle);
+    return 0;
+?>

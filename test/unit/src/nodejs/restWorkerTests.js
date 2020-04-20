@@ -239,7 +239,9 @@ describe('restWorker', () => {
                             1234: {
                                 result: {
                                     status: STATUS.STATUS_REBOOTING
-                                }
+                                },
+                                internalDeclaration: {},
+                                requestOptions: {}
                             }
                         }
                     }
@@ -282,7 +284,7 @@ describe('restWorker', () => {
                 doUtilMock.rebootRequired.restore();
                 sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
 
-                cryptoUtilMock.decryptId = (id) => {
+                cryptoUtilMock.decryptStoredValueById = (id) => {
                     let password;
                     if (id === 'doBigIp') {
                         password = bigIpPassword;
@@ -457,7 +459,7 @@ describe('restWorker', () => {
             const bigIqPassword = 'myBigIqPassword';
             const restWorker = new RestWorker();
             const encryptedValues = [];
-            cryptoUtilMock.encryptValue = (value) => {
+            cryptoUtilMock.encryptAndStoreValue = (value) => {
                 encryptedValues.push(value);
                 if (encryptedValues.length === 2) {
                     assert.strictEqual(encryptedValues[0], 'myBigIpPassword');
@@ -497,7 +499,7 @@ describe('restWorker', () => {
             };
             restWorker.bigIps[taskId] = bigIpMock;
 
-            cryptoUtilMock.encryptValue = () => Promise.resolve();
+            cryptoUtilMock.encryptAndStoreValue = () => Promise.resolve();
             restWorker.eventEmitter.on(EVENTS.READY_FOR_REVOKE, () => {
                 resolve();
             });
@@ -782,7 +784,7 @@ describe('restWorker', () => {
             restOperationMock.getMethod = () => 'Post';
             ConfigManagerMock.prototype.get = () => Promise.resolve();
 
-            DeclarationHandlerMock.prototype.process = () => Promise.resolve();
+            DeclarationHandlerMock.prototype.process = () => Promise.resolve({});
 
             bigIpOptionsCalled = {};
             saveCalled = false;

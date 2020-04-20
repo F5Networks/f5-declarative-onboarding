@@ -17,6 +17,7 @@
 'use strict';
 
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
+const TeemRecord = require('@f5devcentral/f5-teem').Record;
 const DeclarationParser = require('./declarationParser');
 const DiffHandler = require('./diffHandler');
 const Logger = require('./logger');
@@ -97,69 +98,109 @@ class DeclarationHandler {
      */
     process(declaration, state) {
         logger.fine('Processing declaration.');
-        let parsedOldDeclaration;
         let parsedNewDeclaration;
+        let parsedOldDeclaration;
 
         const newDeclaration = JSON.parse(JSON.stringify(declaration));
-
         const oldDeclaration = {};
         Object.assign(oldDeclaration, state.currentConfig);
 
-        if (!oldDeclaration.parsed) {
-            const declarationParser = new DeclarationParser(oldDeclaration);
-            parsedOldDeclaration = declarationParser.parse().parsedDeclaration;
-        } else {
-            parsedOldDeclaration = {};
-            Object.assign(parsedOldDeclaration, oldDeclaration);
-        }
-
-        if (!newDeclaration.parsed) {
-            const declarationParser = new DeclarationParser(newDeclaration);
-            parsedNewDeclaration = declarationParser.parse().parsedDeclaration;
-        } else {
-            parsedNewDeclaration = {};
-            Object.assign(parsedNewDeclaration, newDeclaration);
-        }
-        applyDefaults(parsedNewDeclaration, state);
-        applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
-
-        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
         let updateDeclaration;
         let deleteDeclaration;
-        return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration)
+
+        // modules available on the target BIG-IP
+        const modules = [];
+
+        return Promise.resolve()
+            .then(() => this.bigIp.list('/tm/sys/provision'))
+            .then((provisionModules) => {
+                provisionModules.forEach((module) => {
+                    modules.push(module.name);
+                });
+            })
+            .then(() => {
+                if (oldDeclaration.parsed) {
+                    return Object.assign({}, oldDeclaration);
+                }
+                const declarationParser = new DeclarationParser(oldDeclaration, modules);
+                return declarationParser.parse().parsedDeclaration;
+            })
+            .then((parsedDeclaration) => {
+                parsedOldDeclaration = parsedDeclaration;
+            })
+            .then(() => {
+                if (newDeclaration.parsed) {
+                    return Object.assign({}, newDeclaration);
+                }
+                const declarationParser = new DeclarationParser(newDeclaration, modules);
+                return declarationParser.parse().parsedDeclaration;
+            })
+            .then((parsedDeclaration) => {
+                parsedNewDeclaration = parsedDeclaration;
+            })
+            .then(() => {
+                applyDefaults(parsedNewDeclaration, state);
+                applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
+
+                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
+                return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration);
+            })
             .then((declarationDiffs) => {
                 updateDeclaration = declarationDiffs.toUpdate;
                 deleteDeclaration = declarationDiffs.toDelete;
                 return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
             })
-            .then(() => new SystemHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new AuthHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new ProvisionHandler(
-                updateDeclaration,
-                this.bigIp,
-                this.eventEmitter,
-                state
-            ).process())
-            .then(() => new NetworkHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new DscHandler(updateDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new AnalyticsHandler(updateDeclaration, this.bigIp, this.eventEmitter, state)
-                .process())
-            .then(() => new DeleteHandler(deleteDeclaration, this.bigIp, this.eventEmitter, state).process())
-            .then(() => new DeprovisionHandler(
-                updateDeclaration,
-                this.bigIp,
-                this.eventEmitter,
-                state
-            ).process())
             .then(() => {
+                const handlers = [
+                    [SystemHandler, updateDeclaration],
+                    [AuthHandler, updateDeclaration],
+                    [ProvisionHandler, updateDeclaration],
+                    [NetworkHandler, updateDeclaration],
+                    [DscHandler, updateDeclaration],
+                    [AnalyticsHandler, updateDeclaration],
+                    [DeleteHandler, deleteDeclaration],
+                    [DeprovisionHandler, updateDeclaration]
+                ];
+
+                const handlerStatuses = [];
+                return processHandlers(
+                    handlers,
+                    handlerStatuses,
+                    this.bigIp,
+                    this.eventEmitter,
+                    state
+                );
+            })
+            .then((handlerStatuses) => {
+                const status = {
+                    rollbackInfo: {}
+                };
+                handlerStatuses.forEach((handlerStatus) => {
+                    if (handlerStatus.rebootRequired === true) {
+                        status.rebootRequired = true;
+                    }
+                    if (handlerStatus.rollbackInfo) {
+                        Object.keys(handlerStatus.rollbackInfo).forEach((key) => {
+                            status.rollbackInfo[key] = JSON.parse(JSON.stringify(handlerStatus.rollbackInfo[key]));
+                        });
+                    }
+                });
                 logger.info('Done processing declaration.');
                 if (!declaration.parsed) {
-                    this.teemDevice.report('Declarative Onboarding Telemetry Data', '1', declaration)
+                    const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
+                    return Promise.resolve()
+                        .then(() => record.calculateAssetId())
+                        .then(() => record.addRegKey())
+                        .then(() => record.addPlatformInfo())
+                        .then(() => record.addProvisionedModules())
+                        .then(() => record.addClassCount(declaration))
+                        .then(() => this.teemDevice.reportRecord(record))
                         .catch((err) => {
                             logger.warning(`Unable to send device report: ${err.message}`);
-                        });
+                        })
+                        .then(() => status);
                 }
-                return Promise.resolve();
+                return Promise.resolve(status);
             })
             .catch((err) => {
                 logger.severe(`Error processing declaration: ${err.message}`);
@@ -321,7 +362,7 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
                     // - not in the declaration (otherwise it might attached to RD already or
                     //   will be added to RD 0)
                     if (parsedName.partition === commonPartition && !parsedName.folder
-                            && declarationVlans.indexOf(parsedName.name) === -1) {
+                        && declarationVlans.indexOf(parsedName.name) === -1) {
                         currentVlan2rd[vlan] = routeDomains[rdName].id;
                     }
                 });
@@ -383,6 +424,45 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
             rd.vlans.push(vlanName);
         }
     });
+}
+
+function processHandler(Handler, declaration, bigIp, eventEmitter, state) {
+    return new Handler(declaration, bigIp, eventEmitter, state).process();
+}
+
+/**
+ *
+ * @param {Object[]} handlers - Array of handlers and declaration for the handler. Each element is
+ *                              [handler, declaration]
+ * @param {Object} handlerStatuses - Array in which to store handlerStatus information. If present, handler status
+ *                                   must be an object that has any post processing directives required.
+ *                                   Directives can be
+ *     {
+ *         rebootRequired: true if a reboot should be forced at end of declaration processing,
+ *         rollbackInfo: {
+ *             handlerName: {
+ *                 handler_specific_rollback_data
+ *             }
+ *         }
+ *     }
+ * @param {BigIp} bigIp - BigIp used for processing
+ * @param {EventEmitter} eventEmitter - EventEmitter to which events should be sent
+ * @param {Object} state - The [doState]{@link State} object
+ * @param {*} index - Index of handler in handlers array. Used for recursion.
+ */
+function processHandlers(handlers, handlerStatuses, bigIp, eventEmitter, state, index) {
+    const i = index || 0;
+
+    if (i < handlers.length) {
+        const handler = handlers[i][0];
+        const declaration = handlers[i][1];
+        return processHandler(handler, declaration, bigIp, eventEmitter, state)
+            .then((status) => {
+                handlerStatuses.push(status || {});
+                return processHandlers(handlers, handlerStatuses, bigIp, eventEmitter, state, i + 1);
+            });
+    }
+    return handlerStatuses;
 }
 
 module.exports = DeclarationHandler;

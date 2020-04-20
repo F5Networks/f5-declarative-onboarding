@@ -220,18 +220,45 @@ describe('auth.schema.json', () => {
     });
 
     describe('Remote - Roles', () => {
+        const data = {
+            "class": "RemoteAuthRole",
+            "attribute": "attributeValue",
+            "console": "tmsh",
+            "remoteAccess": true,
+            "lineOrder": 1050,
+            "userPartition": "Common"
+        };
         describe('valid', () => {
-            it('should validate remote roles', () => {
-                const data = {
-                    "class": "RemoteAuthRole",
-                    "attribute": "attributeValue",
-                    "console": "tmsh",
-                    "remoteAccess": true,
-                    "lineOrder": 1050,
-                    "role": "guest",
-                    "userPartition": "Common"
-                };
-                assert.ok(validate(data), getErrorString(validate));
+            const roles = [
+                'admin',
+                'resource-admin',
+                'user-manager',
+                'auditor',
+                'manager',
+                'application-editor',
+                'operator',
+                'firewall-manager',
+                'fraud-protection-manager',
+                'certificate-manager',
+                'irule-manager',
+                'guest',
+                'web-application-security-administrator',
+                'web-application-security-editor',
+                'no-access'
+            ];
+            roles.forEach((role) => {
+                it(`should validate ${role.role} remote role`, () => {
+                    const dataCopy = JSON.parse(JSON.stringify(data));
+                    dataCopy.role = role;
+                    assert.ok(dataCopy, getErrorString(validate));
+                });
+            });
+        });
+        describe('invalid', () => {
+            it(`should invalidate incorrect remote role`, () => {
+                const dataCopy = JSON.parse(JSON.stringify(data));
+                dataCopy.role = 'root';
+                assert.strictEqual(validate(dataCopy), false, 'incorrect remote roles should fail');
             });
         });
     });

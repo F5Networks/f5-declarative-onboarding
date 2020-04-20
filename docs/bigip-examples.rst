@@ -306,6 +306,54 @@ In the following declaration, we show only the System class.  You can use this c
 :ref:`Back to top<bigipexamples>`
 
 
+.. _example17:
+
+17: Clustered declaration with IP addresses for Device Group owner and members
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for using IP addresses for Device Group owners and members is available in DO v1.11.0 and later. 
+
+The following is an example declaration that onboards a clustered BIG-IP system, but shows how you can use an IP address for the Device Group members and owner.  
+
+See :ref:`devicegroup` for more information.
+
+.. literalinclude:: ../examples/clusterWithIpAddresses.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example18:
+
+18: Updating the TLS/SSL Device Certificate in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for including a TLS/SSL device certificate and key is available in DO v1.12.0 and later. 
+
+This example declaration shows how you can create/upload a device certificate in a Declarative Onboarding declaration. The BIG-IP system uses the device certificate to authenticate access to the Configuration utility and to accommodate device-to-device communication processes, such as configuration synchronization. 
+
+For more information and how this process works manually, see the KB article |certdoc|.
+
+A couple of things to note when including certificates and keys in a declaration:
+
+- DO always writes to **/config/httpd/conf/ssl.crt/server.crt** and **ssl.key/server.key**
+- If the device certificate is updated (that is, if the certificate in the declaration does not match the certificate in those directories), DO reboots the BIG-IP device in order to include the updated certificate
+- DO makes backups of the certificates and keys in those directories before overwriting the existing certificate and key
+- Like other settings in DO, if a subsequent declaration is posted without the certificate, DO will restore the certificate that was there when it first ran.
+
+See |certclass| in the schema reference for more information and usage.
+
+.. literalinclude:: ../examples/deviceCertificate.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+
 .. |br| raw:: html
 
    <br />
@@ -378,4 +426,12 @@ In the following declaration, we show only the System class.  You can use this c
 .. |sysclass| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#system" target="_blank">System</a>
+
+.. |certclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#devicecertificate" target="_blank">DeviceCertificate</a>
+
+.. |certdoc| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K6353" target="_blank">Updating a self-signed SSL device certificate on a BIG-IP system</a>
 
