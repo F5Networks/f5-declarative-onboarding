@@ -307,6 +307,24 @@ describe('state', () => {
         assert.notStrictEqual(declaration.foo.bar.password, undefined);
     });
 
+    it('should mask top level keys', () => {
+        const state = new State();
+        const declaration = {
+            foo: {
+                privateKey: {
+                    hello: 'world'
+                }
+            }
+        };
+
+        const taskId = state.addTask();
+
+        state.setDeclaration(taskId, declaration);
+        const internalDeclaration = state.getDeclaration(taskId);
+
+        assert.strictEqual(internalDeclaration.foo.privateKey, undefined);
+    });
+
     it('should update results', () => {
         const state = new State();
         const code = 1;
@@ -332,5 +350,17 @@ describe('state', () => {
 
         const task = state.getTask(taskId);
         assert.strictEqual(task.result.message, 'foo');
+    });
+
+    it('should set the request options', () => {
+        const state = new State();
+        const taskId = state.addTask();
+
+        const reqOpts = {
+            method: 'POST',
+            query: {}
+        };
+        state.setRequestOptions(taskId, reqOpts);
+        assert.deepEqual(state.getRequestOptions(taskId), reqOpts);
     });
 });

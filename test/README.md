@@ -27,10 +27,12 @@ If `npx` is available on your system, you can run the locally installed version 
     * This file requires exactly 3 machines, any additional will be ignored.
   * Each object needs:
     * admin_ip: The IP for the BIG-IP.
-    * admin_username: The username for logging into the UI.
-    * admin_password: That username's password.
-    * root_username: The root user's username.
-    * root_password: That root user's password.
+    * f5_rest_user object with:
+      * username: The username for logging into the UI.
+      * password: That username's password.
+    * ssh_user object with:
+      * username: A root privileged user's username.
+      * password: That user's password.
   * The BIG-IPs being referenced must allow for default ssh ciphers.
     * You can check this by sshing into the BIG-IP, without the -c option. If the ssh fails because of a 'no matching cipher found' error, the setup will also fail.
     * To fix this, ssh into the BIG-IP via a terminal and run the following command:
@@ -44,7 +46,7 @@ If `npx` is available on your system, you can run the locally installed version 
     * TEST_HARNESS_FILE: This is the PATH to the file created in step 2.
   * Note: This will only install the RPM if there's a name change from what is installed.
 4. Now you are able to run the tests you want.
-  * `TEST_HARNESS_FILE=test_harness.json BIG_IQ_HOST=10.145.68.175 BIG_IQ_USERNAME=admin BIG_IQ_PASSWORD=admin ARTIFACTORY_BASE_URL=https://<our_artifactory_url>/artifactory npm run integration`
+  * `TEST_HARNESS_FILE=test_harness.json BIG_IQ_HOST=10.145.68.175 BIG_IQ_USERNAME=admin BIG_IQ_PASSWORD=admin ARTIFACTORY_BASE_URL=<our_artifactory_url> npm run integration`
     * TEST_HARNESS_FILE: This is the PATH to the file created in step 2.
     * BIG_IQ_HOST: IP address to the BIG-IQ setup in step 1.
     * BIG_IQ_USERNAME: The username for the BIG-IQ setup in step 1.
@@ -61,21 +63,21 @@ If `npx` is available on your system, you can run the locally installed version 
     {
         "admin_ip": "10.1.1.10",
         "admin_username": "admin",
-        "admin_password": "admin",
+        "admin_password": "admin_password",
         "root_username": "root",
-        "root_password": "default"
+        "root_password": "root_password"
     }, {
         "admin_ip": "10.1.2.3",
         "admin_username": "admin",
-        "admin_password": "admin",
+        "admin_password": "admin_password",
         "root_username": "root",
-        "root_password": "default"
+        "root_password": "root_password"
     }, {
         "admin_ip": "10.123.45.67",
         "admin_username": "admin",
-        "admin_password": "admin",
+        "admin_password": "admin_password",
         "root_username": "root",
-        "root_password": "default"
+        "root_password": "root_password"
     }
 ]
 ```

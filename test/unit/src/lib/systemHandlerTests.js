@@ -28,6 +28,8 @@ const sinon = require('sinon');
 
 const doUtilMock = require('../../../../src/lib/doUtil');
 const promiseUtil = require('../../../../src/lib/promiseUtil');
+const cryptoUtil = require('../../../../src/lib/cryptoUtil');
+
 const cloudUtil = require('../../../../node_modules/@f5devcentral/f5-cloud-libs').util;
 
 const PATHS = require('../../../../src/lib/sharedConstants').PATHS;
@@ -54,7 +56,8 @@ describe('systemHandler', () => {
     let pathSent;
     let dataSent;
     let bigIpMock;
-    let doUtilStub;
+    let doUtilGetCurrentPlatformStub;
+    let doUtilExecuteBashCommandStub;
     let activeCalled;
 
     beforeEach(() => {
@@ -98,7 +101,8 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             }
         };
-        doUtilStub = sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));
+        doUtilGetCurrentPlatformStub = sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));
+        doUtilExecuteBashCommandStub = sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves('');
         sinon.stub(dns, 'lookup').callsArg(1);
         sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
     });
@@ -140,6 +144,144 @@ describe('systemHandler', () => {
                         hello: 123
                     });
             });
+    });
+
+    describe('DeviceCertificate', () => {
+        const filesCopied = [];
+        let diff = '';
+        let certWritten;
+        let keyWritten;
+
+        beforeEach(() => {
+            filesCopied.length = 0;
+            certWritten = '';
+            keyWritten = '';
+
+            doUtilExecuteBashCommandStub.restore();
+            sinon.stub(doUtilMock, 'executeBashCommandIControl').callsFake((bigIp, command) => {
+                if (command.startsWith('cat')) {
+                    if (command.endsWith('server.crt')) {
+                        return Promise.resolve('old cert');
+                    }
+                    if (command.endsWith('server.key')) {
+                        return Promise.resolve('old key');
+                    }
+                }
+                if (command.startsWith('echo')) {
+                    if (command.endsWith('server.crt')) {
+                        certWritten = command;
+                        return Promise.resolve();
+                    }
+                }
+                if (command.startsWith('cp')) {
+                    // command is 'cp from to', so grab the from
+                    const tokens = command.split(' ');
+                    filesCopied.push(tokens[1]);
+                    return Promise.resolve();
+                }
+                if (command.startsWith('ls')) {
+                    return Promise.resolve('');
+                }
+                if (command.startsWith('diff')) {
+                    return Promise.resolve(diff);
+                }
+                if (command.startsWith('/usr/bin/php')) {
+                    keyWritten = command;
+                    return Promise.resolve();
+                }
+                return Promise.reject(new Error('Unhandled bash command in test'));
+            });
+
+            sinon.stub(cryptoUtil, 'encryptValue').resolves('encrypted key');
+        });
+
+        it('should handle DeviceCertificates with changes', () => {
+            const declaration = {
+                Common: {
+                    DeviceCertificate: {
+                        myCertificate: {
+                            certificate: {
+                                base64: 'Zm9vCg==' // 'foo'
+                            },
+                            privateKey: {
+                                base64: 'YmFyCg==' // 'bar'
+                            }
+                        }
+                    }
+                }
+            };
+
+            const expectedFilesToRollback = [
+                {
+                    from: '/config/httpd/conf/ssl.crt/server.crt.DO.bak',
+                    to: '/config/httpd/conf/ssl.crt/server.crt'
+                },
+                {
+                    from: '/config/httpd/conf/ssl.key/server.key.DO.bak',
+                    to: '/config/httpd/conf/ssl.key/server.key'
+                }
+            ];
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then((status) => {
+                    assert.strictEqual(certWritten.startsWith('echo \'foo\''), true);
+                    assert.notStrictEqual(keyWritten.indexOf('encrypted key'), -1);
+                    assert.strictEqual(filesCopied.length, 2);
+                    assert.strictEqual(filesCopied[0], '/config/httpd/conf/ssl.crt/server.crt');
+                    assert.strictEqual(filesCopied[1], '/config/httpd/conf/ssl.key/server.key');
+                    assert.strictEqual(status.rebootRequired, true);
+                    assert.deepEqual(
+                        status.rollbackInfo.systemHandler.deviceCertificate.files,
+                        expectedFilesToRollback
+                    );
+                });
+        });
+
+        it('should not set rebootRequired if there are no changes', () => {
+            const declaration = {
+                Common: {
+                    DeviceCertificate: {
+                        myCertificate: {
+                            certificate: {
+                                base64: 'b2xkIGNlcnQK' // 'old cert'
+                            },
+                            privateKey: {
+                                base64: 'b2xkIGtleQo=' // 'old key'
+                            }
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then((status) => {
+                    assert.strictEqual(certWritten, '');
+                    assert.strictEqual(keyWritten, '');
+                    assert.strictEqual(filesCopied.length, 0);
+                    assert.strictEqual(status.rebootRequired, false);
+                    assert.strictEqual(
+                        status.rollbackInfo.systemHandler.deviceCertificate,
+                        undefined
+                    );
+                });
+        });
+
+        it('should restore original cert and key if none are in declaration', () => {
+            const declaration = {
+                Common: {
+                }
+            };
+
+            diff = 'they are different';
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then((status) => {
+                    assert.strictEqual(status.rebootRequired, true);
+                });
+        });
     });
 
     describe('DNS/NTP/System', () => {
@@ -557,7 +699,8 @@ describe('systemHandler', () => {
 
     it('should handle root users without keys', () => {
         // Stubs out the remote call to confirm the key is not added to the user
-        sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
+        doUtilExecuteBashCommandStub.restore();
+        sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves(superuserKey);
 
         const declaration = {
             Common: {
@@ -595,7 +738,8 @@ describe('systemHandler', () => {
     });
 
     it('should handle root users with keys', () => {
-        sinon.stub(doUtilMock, 'executeBashCommandRemote').resolves(superuserKey);
+        doUtilExecuteBashCommandStub.restore();
+        sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves(superuserKey);
 
         const declaration = {
             Common: {
@@ -636,7 +780,8 @@ describe('systemHandler', () => {
 
     it('should handle non-root users with & without keys', () => {
         const bashCmds = [];
-        sinon.stub(doUtilMock, 'executeBashCommandRemote').callsFake((bigIp, bashCmd) => {
+        doUtilExecuteBashCommandStub.restore();
+        sinon.stub(doUtilMock, 'executeBashCommandIControl').callsFake((bigIp, bashCmd) => {
             bashCmds.push(bashCmd);
             return Promise.resolve(superuserKey);
         });
@@ -706,7 +851,7 @@ describe('systemHandler', () => {
                     ]
                 );
                 assert.deepEqual(bodiesSent[1].shell, 'tmsh');
-                assert.strictEqual(bashCmds[0],
+                assert.strictEqual(bashCmds[8],
                     [
                         ` mkdir -p ${sshPaths[0]}; `,
                         `echo '${testKey}' > `,
@@ -715,7 +860,7 @@ describe('systemHandler', () => {
                         `chmod -R 700 ${sshPaths[0]}; `,
                         `chmod 600 ${sshPaths[0]}/authorized_keys`
                     ].join(''));
-                assert.strictEqual(bashCmds[1],
+                assert.strictEqual(bashCmds[9],
                     [
                         ` mkdir -p ${sshPaths[1]}; `,
                         'echo \'\' > ',
@@ -909,8 +1054,10 @@ describe('systemHandler', () => {
         let bigIqHostSent;
         let optionsSent;
 
-        doUtilStub.restore();
+        doUtilGetCurrentPlatformStub.restore();
+        doUtilExecuteBashCommandStub.restore();
         sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IQ'));
+        sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves('');
 
         bigIpMock.host = host;
         bigIpMock.onboard = {
@@ -1226,11 +1373,12 @@ describe('systemHandler', () => {
 
         it('should reject if platform is not BIG-IP', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
-            doUtilStub.restore();
+            doUtilGetCurrentPlatformStub.restore();
             sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('notBigIp');
 
-            return assert.isRejected(systemHandler.process(),
-                'Cannot update network property when running remotely');
+            doUtilExecuteBashCommandStub.restore();
+            sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves('');
+            return assert.isRejected(systemHandler.process(), 'Cannot update network property when running remotely');
         });
 
         it('should not delete the existing ManagementRoute if network not updated', () => {

@@ -47,10 +47,10 @@ function setupMachines(harnessInfo) {
         const installPromises = [];
         harnessInfo.forEach((machine) => {
             installPromises.push(new Promise((resolve, reject) => {
-                const username = machine.root_username;
-                const password = machine.root_password;
-                const adminUsername = machine.admin_username;
-                const adminPassword = machine.admin_password;
+                const username = machine.ssh_user.username;
+                const password = machine.ssh_user.password;
+                const adminUsername = machine.f5_rest_user.username;
+                const adminPassword = machine.f5_rest_user.password;
                 const ipAddress = machine.admin_ip;
                 scpRpm(ipAddress, username, password)
                     .then(() => installRpm(ipAddress, adminUsername, adminPassword))
@@ -127,6 +127,6 @@ function scpRpm(host, username, password) {
                 });
         });
     };
-    // try 10 times, with 1min for each time, and do not reject on error
-    return common.tryOften(func, 10, 60 * 1000, null, false);
+    // try 30 times, with 1min for each time, and do not reject on error
+    return common.tryOften(func, 30, 60 * 1000, null, false);
 }

@@ -193,6 +193,11 @@ class RestWorker {
 
         this.validator.validate(wrapper)
             .then((validation) => {
+                const reqOpts = {
+                    method: restOperation.getMethod().toUpperCase(),
+                    query: restOperation.getUri().query
+                };
+                this.state.doState.setRequestOptions(taskId, reqOpts);
                 this.state.doState.setDeclaration(taskId, declaration);
                 if (!validation.isValid) {
                     const message = `Bad declaration: ${JSON.stringify(validation.errors)}`;
@@ -325,7 +330,7 @@ class RestWorker {
                                     })
                                     .then(() => {
                                         logger.fine('Onboard complete.');
-                                        postWebhook.call(this, restOperation, ENDPOINTS.TASK, taskId,
+                                        postWebhook.call(this, reqOpts, ENDPOINTS.TASK, taskId,
                                             declaration.webhook);
                                     });
                             }
@@ -408,13 +413,15 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
             declarationHandler = new DeclarationHandler(this.bigIps[taskId], this.eventEmitter);
             return declarationHandler.process(declaration, this.state.doState.getTask(taskId));
         })
-        .then(() => {
+        .then((status) => {
+            this.state.doState.setRebootRequired(taskId, status.rebootRequired);
+            this.state.doState.setRollbackInfo(taskId, status.rollbackInfo);
             logger.fine('Saving sys config.');
             return this.bigIps[taskId].save();
         })
         .then(() => {
             logger.fine('Onboard configuration complete. Checking for reboot.');
-            return doUtil.rebootRequired(this.bigIps[taskId]);
+            return doUtil.rebootRequired(this.bigIps[taskId], this.state.doState, taskId);
         })
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
@@ -478,7 +485,7 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
 
     // Don't overwrite the error state if it's there
     if (this.state.doState.getStatus(taskId) !== STATUS.STATUS_ERROR) {
-        promise = promise.then(() => doUtil.rebootRequired(bigIp))
+        promise = promise.then(() => doUtil.rebootRequired(bigIp, this.state.doState, taskId))
             .then((rebootRequired) => {
                 if (rebootRequired) {
                     logger.fine('Reboot required.');
@@ -502,7 +509,7 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
 
 function rebootIfRequired(bigIp, taskId) {
     return new Promise((resolve, reject) => {
-        doUtil.rebootRequired(bigIp)
+        doUtil.rebootRequired(bigIp, this.state.doState, taskId)
             .then((rebootRequired) => {
                 if (rebootRequired) {
                     logger.info('Reboot required. Rebooting...');
@@ -745,7 +752,7 @@ function handleStartupState(success, error) {
                         .then(() => {
                             if (hasBigIpUser) {
                                 logger.debug('Decrypting BIG-IP user data');
-                                return cryptoUtil.decryptId(BIG_IP_ENCRYPTION_ID);
+                                return cryptoUtil.decryptStoredValueById(BIG_IP_ENCRYPTION_ID);
                             }
                             return Promise.resolve();
                         })
@@ -756,7 +763,7 @@ function handleStartupState(success, error) {
                             }
                             if (hasBigIqUser) {
                                 logger.debug('Decrypting BIG-IQ user data');
-                                return cryptoUtil.decryptId(BIG_IQ_ENCRYPTION_ID);
+                                return cryptoUtil.decryptStoredValueById(BIG_IQ_ENCRYPTION_ID);
                             }
                             return Promise.resolve();
                         })
@@ -1054,6 +1061,11 @@ function updateStateAfterReboot(taskId, success, error) {
 
     // If we were rebooting and are now in this function, all should be well
     this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
+
+    const declaration = this.state.doState.getDeclaration(taskId);
+    const reqOpts = this.state.doState.getRequestOptions(taskId);
+    postWebhook.call(this, reqOpts, ENDPOINTS.TASK, taskId, declaration.webhook);
+
     save.call(this)
         .then(() => {
             logger.fine('Rebooting complete. Onboarding complete.');
@@ -1105,13 +1117,18 @@ function sendResponse(restOperation, endpoint, itemId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
-    const response = forgeResponse.call(this, restOperation, endpoint, itemId);
+    const reqOpts = {
+        method: restOperation.getMethod().toUpperCase(),
+        query: restOperation.getUri().query
+    };
+
+    const response = forgeResponse.call(this, reqOpts, endpoint, itemId);
     response.getResponse()
         .then((body) => {
             restOperation.setBody(body);
-            const query = restOperation.getUri().query;
             // TODO for next major release (DO 2.0): Remove query && query.statusCodes from subsequent line
-            if (body && body.httpStatus && query && query.statusCodes === 'experimental') {
+            if (body && body.httpStatus && reqOpts.query
+                && reqOpts.query.statusCodes === 'experimental') {
                 setStatusCode(body.httpStatus, restOperation);
             } else if (Array.isArray(response)) {
                 setStatusCode(200, restOperation);
@@ -1137,25 +1154,24 @@ function sendResponse(restOperation, endpoint, itemId) {
  * @param {String} [itemId] - The id of the item to send the response for. Default is to send
  *                            result for all items at the endpoint.
  */
-function forgeResponse(restOperation, endpoint, itemId) {
+function forgeResponse(reqOpts, endpoint, itemId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
     const doState = new State(this.state.doState);
     let responder;
-    const method = restOperation.getMethod().toUpperCase();
     switch (endpoint) {
     case ENDPOINTS.CONFIG:
-        responder = new ConfigResponse(doState, method);
+        responder = new ConfigResponse(doState, reqOpts.method);
         break;
     case ENDPOINTS.INFO:
-        responder = new InfoResponse(method);
+        responder = new InfoResponse(reqOpts.method);
         break;
     case ENDPOINTS.INSPECT:
-        responder = new InspectResponse(restOperation.getUri().query, method);
+        responder = new InspectResponse(reqOpts.query, reqOpts.method);
         break;
     case ENDPOINTS.TASK: {
-        responder = new TaskResponse(doState, method);
+        responder = new TaskResponse(doState, reqOpts.method);
         break;
     }
     default:
@@ -1163,8 +1179,7 @@ function forgeResponse(restOperation, endpoint, itemId) {
         throw new Error(`No responder for endpoint: ${endpoint}`);
     }
 
-    restOperation.setContentType('application/json');
-    const response = new Response(itemId, responder, restOperation.getUri().query);
+    const response = new Response(itemId, responder, reqOpts.query);
     return response;
 }
 
@@ -1177,29 +1192,27 @@ function forgeResponse(restOperation, endpoint, itemId) {
  *                            result for all items at the endpoint.
  * @param {String} webhook - url to post to
  */
-function postWebhook(restOperation, endpoint, itemId, webhook) {
+function postWebhook(reqOpts, endpoint, itemId, webhook) {
     if (webhook === undefined) {
         return;
     }
-    if (endpoint === ENDPOINTS.TASK) {
-        const response = forgeResponse.call(this, restOperation, endpoint, itemId);
-        response.getResponse()
-            .then((body) => {
-                const options = {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body
-                };
-                return httpUtil.post(webhook, options)
-                    .catch((err) => {
-                        logger.fine(`Webhook failed POST: ${JSON.stringify(err)}`);
-                    });
-            })
-            .catch((err) => {
-                logger.error(`postWebhook failed: ${JSON.stringify(err)}`);
-            });
-    }
+    const response = forgeResponse.call(this, reqOpts, endpoint, itemId);
+    response.getResponse()
+        .then((body) => {
+            const options = {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body
+            };
+            return httpUtil.post(webhook, options)
+                .catch((err) => {
+                    logger.fine(`Webhook failed POST: ${JSON.stringify(err)}`);
+                });
+        })
+        .catch((err) => {
+            logger.error(`postWebhook failed: ${JSON.stringify(err)}`);
+        });
 }
 
 function sendError(restOperation, code, message) {
@@ -1248,8 +1261,8 @@ function prepForRevoke(taskId, bigIpPassword, bigIqPassword) {
 
     const encryptPromises = [];
     // if we need to relicense after we restart, so store passwords
-    encryptPromises.push(cryptoUtil.encryptValue(bigIpPassword, BIG_IP_ENCRYPTION_ID));
-    encryptPromises.push(cryptoUtil.encryptValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID));
+    encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIpPassword, BIG_IP_ENCRYPTION_ID));
+    encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID));
 
     return Promise.all(encryptPromises)
         // We have to save sys config here to save the enrypted data in case

@@ -20,6 +20,7 @@ const assert = require('assert');
 const Ajv = require('ajv');
 
 const baseSchema = require('../../src/schema/latest/base.schema.json');
+const definitionsSchema = require('../../src/schema/latest/definitions.schema.json');
 const systemSchema = require('../../src/schema/latest/system.schema.json');
 const networkSchema = require('../../src/schema/latest/network.schema.json');
 const dscSchema = require('../../src/schema/latest/dsc.schema.json');
@@ -41,6 +42,7 @@ Object.keys(customFormats).forEach((customFormat) => {
 });
 
 const validate = ajv
+    .addSchema(definitionsSchema)
     .addSchema(systemSchema)
     .addSchema(networkSchema)
     .addSchema(dscSchema)
@@ -146,6 +148,24 @@ describe('base.schema.json', () => {
                     validate(data), false, 'username/password with tokens should not be valid'
                 );
                 assert.notStrictEqual(getErrorString().indexOf('dependencies/username/not'), -1);
+            });
+
+            it('should invalidate credentials with long values', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Credentials": [
+                        {
+                            "tokens": {
+                                "X-F5-Auth-Token": 'a'.repeat(8193)
+                            }
+                        }
+                    ]
+                };
+                assert.strictEqual(
+                    validate(data), false, 'long token should not be valid'
+                );
+                assert.notStrictEqual(getErrorString().indexOf('Credentials/items/properties/tokens/patternProperties'), -1);
             });
         });
     });

@@ -34,6 +34,7 @@ cp %{_builddir}/package.json $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp %{_builddir}/version $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/src/lib $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/src/nodejs $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
+cp -r %{_builddir}/src/scripts $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 cp -r %{_builddir}/src/schema/latest $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}/schema
 cp -r %{_builddir}/examples $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}
 $(cd $RPM_BUILD_ROOT%{IAPP_INSTALL_DIR}/schema; ln -s latest/*.json .)

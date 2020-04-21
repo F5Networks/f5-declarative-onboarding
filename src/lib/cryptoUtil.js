@@ -17,6 +17,7 @@
 'use strict';
 
 const childProcess = require('child_process');
+const crypto = require('crypto');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
@@ -70,13 +71,13 @@ module.exports = {
      * Decrypts the encrypted configuration identified by id.
      *
      * This can only be used when running on a BIG-IP. Items are expected to have been
-     * encrypted with encryptValue.
+     * encrypted with encryptAndStoreValue.
      *
-     * @param {String} id - The id used when calling encryptValue
+     * @param {String} id - The id used when calling encryptAndStoreValue
      *
      * @returns {Promise} A promise which is resolved with the decrypted value.
      */
-    decryptId(id) {
+    decryptStoredValueById(id) {
         return cloudUtil.runTmshCommand(`list auth radius-server ${id}`)
             .then((response) => {
                 const parsed = cloudUtil.parseTmshResponse(response);
@@ -104,25 +105,72 @@ module.exports = {
     },
 
     /**
-     * Encrypts data on a BIG-IP.
+     * Encrypts data on a BIG-IP and stores it with an ID.
      *
      * @param {String} value - The value to encrypt.
-     * @param {String} id - Unique id with which to later retrieve this value
+     * @param {String} id - Unique id with which to later retrieve this value.
+     *
+     * @returns {Promise} A promise which is resolved when complete.
      */
-    encryptValue(value, id) {
+    encryptAndStoreValue(value, id) {
         return doUtil.getBigIp(logger)
-            .then((bigIp) => {
-                const body = {
-                    name: id,
-                    server: id,
-                    secret: value
-                };
-
-                return bigIp.create(ENCRYPT_PATH, body);
-            })
+            .then(bigIp => encryptValueOnBigIp(value, id, bigIp))
             .catch((err) => {
                 logger.warning('Failed to encrypt data', err);
                 return Promise.reject(err);
             });
+    },
+
+    /**
+     * Encrypts data on a BIG-IP. Value is returned, not stored.
+     *
+     * @param {String} value - The value to encrypt.
+     *
+     * @returns {Promise} A promise which is resolved with the encrypted value.
+     *                    The returned data is in an array. If
+     *                    the plaintext value is more than 500 bytes, it will be
+     *                    split into chunks and there will be more than one element
+     *                    in the array.
+     */
+    encryptValue(value) {
+        const splitData = value.match(/[^]{1,500}/g);
+        return encryptValuesInArray(splitData, []);
     }
 };
+
+function encryptValueOnBigIp(value, id, bigIp) {
+    const body = {
+        name: id,
+        server: id,
+        secret: value
+    };
+
+    let encryptedData;
+
+    return bigIp.create(ENCRYPT_PATH, body)
+        .then((encryptInfo) => {
+            encryptedData = encryptInfo.secret;
+        })
+        .then(() => encryptedData);
+}
+
+function encryptValuesInArray(valueArray, encryptedData, index) {
+    index = index || 0;
+    const id = `declarative_onboarding_delete_me_${index}_${crypto.randomBytes(6).toString('hex')}`;
+    let bigIp;
+    return doUtil.getBigIp(logger)
+        .then((theBigIp) => {
+            bigIp = theBigIp;
+            return encryptValueOnBigIp(valueArray[index], id, bigIp);
+        })
+        .then((secret) => {
+            encryptedData.push(secret);
+        })
+        .then(() => {
+            index += 1;
+            if (index < valueArray.length) {
+                return encryptValuesInArray(valueArray, encryptedData, index);
+            }
+            return encryptedData;
+        });
+}

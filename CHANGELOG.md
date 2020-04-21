@@ -1,6 +1,27 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.12.0
+### Added
+- AUTOTOOL-152: Ability to upload device certificate
+### Fixed
+- AUTOTOOL-1094 ([GitHub Issue 91](https://github.com/F5Networks/f5-declarative-onboarding/issues/91)): Provisioning fails if module does not exist on box
+- AUTOTOOL-1170: Call webhook after declaration requiring reboot
+- AUTOTOOL-1388: Fix allowed schema versions
+- AUTOTOOL-1440 ([GitHub Issue 132](https://github.com/F5Networks/f5-declarative-onboarding/issues/132)): Schema is incompatible with golang regexp
+- AUTOTOOL-902 ([GitHub Issue 81](https://github.com/F5Networks/f5-declarative-onboarding/issues/81)): Added missing roles for RemoteAuthRole.role enum
+- [GitHub Issue 103](https://github.com/F5Networks/f5-declarative-onboarding/issues/103): Avoid deleting dos-global-dg device group
+### Changed
+- AUTOTOOL-1014: Update to f5-teem 1.4.2
+### Removed
+
+## 1.11.1
+### Added
+### Fixed
+- AUTOTOOL-1388: Fix allowed schema versions
+### Changed
+### Removed
+
 ## 1.11.0
 ### Added
 - AUTOTOOL-1223: Allow provisioning SSLO module

@@ -300,6 +300,86 @@ class State {
     }
 
     /**
+     * Sets the rebootRequired flag for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {boolaen} rebootRequired - Whether or not reboot is required
+     */
+    setRebootRequired(taskId, rebootRequired) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].rebootRequired = rebootRequired;
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the rebootRequired flag for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getRebootRequired(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].rebootRequired;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets the request options for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} reqOpts - The request options to set.
+     */
+    setRequestOptions(taskId, reqOpts) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].requestOptions = reqOpts;
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the request options for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getRequestOptions(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].requestOptions;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets the rollback info for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} rollbackInfo - Information required during rollback
+     */
+    setRollbackInfo(taskId, rollbackInfo) {
+        if (rollbackInfo) {
+            if (this.tasks[taskId]) {
+                this.tasks[taskId].rollbackInfo = JSON.parse(JSON.stringify(rollbackInfo));
+            } else {
+                throw new Error('taskId does not exist');
+            }
+        }
+    }
+
+    /**
+     * Gets the rollback info for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getRollbackInfo(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].rollbackInfo;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
      * Gets the declaration for a task
      *
      * @param {String} taskId - The id of the task.
@@ -394,7 +474,9 @@ function mask(declaration) {
     const masked = JSON.parse(JSON.stringify(declaration));
 
     Object.keys(masked).forEach((key) => {
-        if (!Array.isArray(masked[key]) && typeof masked[key] === 'object') {
+        if (MASK_REGEX.test(key)) {
+            delete masked[key];
+        } else if (!Array.isArray(masked[key]) && typeof masked[key] === 'object') {
             masked[key] = mask(masked[key]);
         } else if (Array.isArray(masked[key])) {
             masked[key].forEach((item, index) => {

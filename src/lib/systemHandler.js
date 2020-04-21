@@ -19,12 +19,15 @@
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
+const cryptoUtil = require('./cryptoUtil');
 const promiseUtil = require('./promiseUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const EVENTS = require('./sharedConstants').EVENTS;
 
 const logger = new Logger(module);
+
+const ORIGINAL_FILE_POSTFIX = 'DO.orig';
 
 /**
  * Handles system parts of a declaration.
@@ -45,13 +48,19 @@ class SystemHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.rebootRequired = false;
+        this.rollbackInfo = {
+            systemHandler: {}
+        };
     }
 
     /**
      * Starts processing.
      *
      * @returns {Promise} A promise which is resolved when processing is complete
-     *                    or rejected if an error occurs.
+     *                    or rejected if an error occurs. Promise is resolved with
+     *                    post-processing directives. See {@link DeclarationHandler}
+     *                    for details.
      */
     process() {
         logger.fine('Processing system declaration.');
@@ -72,6 +81,10 @@ class SystemHandler {
             .then(() => {
                 logger.fine('Checking ManagementRoute.');
                 return handleManagementRoute.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking DeviceCertificate.');
+                return handleDeviceCertificate.call(this);
             })
             .then(() => {
                 logger.fine('Checking System.');
@@ -107,7 +120,10 @@ class SystemHandler {
             })
             .then(() => {
                 logger.fine('Done processing system declaration.');
-                return Promise.resolve();
+                return Promise.resolve({
+                    rebootRequired: this.rebootRequired,
+                    rollbackInfo: this.rollbackInfo
+                });
             })
             .catch((err) => {
                 logger.severe(`Error processing system declaration: ${err.message}`);
@@ -164,6 +180,118 @@ function handleDNS() {
             ));
     }
     return Promise.resolve();
+}
+
+function handleDeviceCertificate() {
+    const certificateFullPath = '/config/httpd/conf/ssl.crt/server.crt';
+    const keyFullPath = '/config/httpd/conf/ssl.key/server.key';
+    const storeOriginalPromise = storeOriginalCertAndKey.call(this, certificateFullPath, keyFullPath);
+
+    if (this.declaration.Common.DeviceCertificate) {
+        const certificateName = Object.keys(this.declaration.Common.DeviceCertificate)[0];
+        const decryptScript = `${__dirname}/../scripts/decryptConfValue`;
+        const writePromises = [];
+        let certificatePromise = Promise.resolve();
+        let keyPromise = Promise.resolve();
+        let newCertificate;
+        let newKey;
+        let originalCertificate;
+        let originalKey;
+
+        // This is too much of a special case for the configManager to get the current state.
+        // We need to read server.crt and server.key and compare them to what is in the declaration
+
+        if (certificateName) {
+            const certificateDeclaration = this.declaration.Common.DeviceCertificate[certificateName];
+            if (certificateDeclaration.certificate) {
+                if (certificateDeclaration.certificate.base64) {
+                    newCertificate = Buffer.from(
+                        certificateDeclaration.certificate.base64,
+                        'base64'
+                    ).toString().trim();
+                }
+                if (newCertificate) {
+                    let needsWrite = false;
+                    certificatePromise = certificatePromise
+                        .then(() => doUtil.executeBashCommandIControl(
+                            this.bigIp,
+                            `cat ${certificateFullPath}`
+                        ))
+                        .then((data) => {
+                            originalCertificate = data.trim();
+                            if (newCertificate !== originalCertificate) {
+                                needsWrite = true;
+                                // Make a copy of the current file in case we need to rollback
+                                return storeDeviceCertRollbackInfo.call(this, certificateFullPath);
+                            }
+                            return Promise.resolve();
+                        })
+                        .then(() => {
+                            if (needsWrite) {
+                                writePromises.push(doUtil.executeBashCommandIControl(
+                                    this.bigIp,
+                                    `echo '${newCertificate}' > ${certificateFullPath}`,
+                                    cloudUtil.NO_RETRY,
+                                    { silent: true } // keeping it out of the logs just because it's a lot of data
+                                ));
+                            }
+                        });
+                }
+            }
+
+            if (certificateDeclaration.privateKey) {
+                if (certificateDeclaration.privateKey.base64) {
+                    newKey = Buffer.from(
+                        certificateDeclaration.privateKey.base64,
+                        'base64'
+                    ).toString().trim();
+                }
+                if (newKey) {
+                    let needsWrite = false;
+                    keyPromise = keyPromise
+                        .then(() => doUtil.executeBashCommandIControl(
+                            this.bigIp,
+                            `cat ${keyFullPath}`
+                        ))
+                        .then((data) => {
+                            originalKey = data.trim();
+                            if (newKey !== originalKey) {
+                                needsWrite = true;
+                                // Make a copy of the current file in case we need to rollback
+                                return storeDeviceCertRollbackInfo.call(this, `${keyFullPath}`);
+                            }
+                            return Promise.resolve();
+                        })
+                        .then(() => {
+                            if (needsWrite) {
+                                writePromises.push(
+                                    cryptoUtil.encryptValue(newKey)
+                                        .then(results => doUtil.executeBashCommandIControl(
+                                            this.bigIp,
+                                            `/usr/bin/php -f ${decryptScript} '${results}' ${keyFullPath}`
+                                        ))
+                                );
+                            }
+                        });
+                }
+            }
+
+            return Promise.resolve()
+                .then(() => storeOriginalPromise)
+                .then(() => certificatePromise)
+                .then(() => keyPromise)
+                .then(() => Promise.all(writePromises))
+                .then(() => {
+                    if (writePromises.length > 0) {
+                        // Really all we need to do is restart httpd but I can't find a way to do that
+                        // succesfully. Anything through iControl REST fails on the second restart.
+                        this.rebootRequired = true;
+                    }
+                });
+        }
+    }
+    return storeOriginalPromise
+        .then(() => restoreCertAndKey.call(this, certificateFullPath, keyFullPath));
 }
 
 function handleSystem() {
@@ -227,7 +355,7 @@ function handleUser() {
                         .then(() => {
                             const sshPath = '/root/.ssh';
                             const catCmd = `cat ${sshPath}/authorized_keys`;
-                            return doUtil.executeBashCommandRemote(this.bigIp, catCmd)
+                            return doUtil.executeBashCommandIControl(this.bigIp, catCmd)
                                 .then((origAuthKey) => {
                                     const masterKeys = origAuthKey
                                         .split('\n')
@@ -241,7 +369,7 @@ function handleUser() {
                                         ` echo '${user.keys.join('\n')}' > `,
                                         `${sshPath}/authorized_keys`
                                     ].join('');
-                                    return doUtil.executeBashCommandRemote(this.bigIp, echoKeys);
+                                    return doUtil.executeBashCommandIControl(this.bigIp, echoKeys);
                                 });
                         })
                 );
@@ -263,7 +391,7 @@ function handleUser() {
                             const bashCmd = [
                                 makeSshDir, echoKeys, chownUser, chmodUser, chmodKeys
                             ].join('; ');
-                            doUtil.executeBashCommandRemote(this.bigIp, bashCmd);
+                            doUtil.executeBashCommandIControl(this.bigIp, bashCmd);
                         })
                 );
             } else {
@@ -840,7 +968,7 @@ function disableDhcpOptions(optionsToDisable) {
             if (!requiresDhcpRestart) {
                 return Promise.resolve();
             }
-            return restartDhcp.call(this);
+            return restartService.call(this, 'dhclient');
         });
 }
 
@@ -855,35 +983,183 @@ function getBigIqManagementPort(currentPlatform, license) {
     return bigIqMgmtPort;
 }
 
-function restartDhcp() {
+function restartService(service) {
     return this.bigIp.create(
         '/tm/sys/service',
         {
             command: 'restart',
-            name: 'dhclient'
-        }
+            name: service
+        },
+        null,
+        cloudUtil.NO_RETRY
     )
+        .catch((err) => {
+            logger.debug(`Ingoring expected socket hangup: ${err}`);
+        })
         .then(() => {
-            function isDhcpRunning() {
-                return this.bigIp.list('/tm/sys/service/dhclient/stats', undefined, cloudUtil.NO_RETRY)
-                    .then((dhcpStats) => {
-                        if (dhcpStats.apiRawValues
-                            && dhcpStats.apiRawValues.apiAnonymous
-                            && dhcpStats.apiRawValues.apiAnonymous.indexOf('running') !== -1) {
+            function isServiceRunning() {
+                return this.bigIp.list(`/tm/sys/service/${service}/stats`, undefined, cloudUtil.NO_RETRY)
+                    .then((serviceStats) => {
+                        if (serviceStats.apiRawValues
+                            && serviceStats.apiRawValues.apiAnonymous
+                            && serviceStats.apiRawValues.apiAnonymous.indexOf('running') !== -1) {
                             return Promise.resolve();
                         }
 
                         let message;
-                        if (dhcpStats.apiRawValues && dhcpStats.apiRawValues.apiAnonymous) {
-                            message = `dhclient status is ${dhcpStats.apiRawValues.apiAnonymous}`;
+                        if (serviceStats.apiRawValues && serviceStats.apiRawValues.apiAnonymous) {
+                            message = `${service} status is ${serviceStats.apiRawValues.apiAnonymous}`;
                         } else {
-                            message = 'Unable to read dhclient status';
+                            message = `Unable to read ${service} status`;
                         }
                         return Promise.reject(new Error(message));
                     });
             }
 
-            return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isDhcpRunning);
+            return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isServiceRunning);
+        });
+}
+
+/**
+ * If copies of the original device cert and key do not exist, create them.
+ * This is needed so we can restore them in the case that a declaration
+ * is posted w/o cert and key and we need to restore the original.
+ *
+ * @param {String} certFullPath - Full path to device certificate
+ * @param {String} keyFullPath - Full path to device key
+ */
+function storeOriginalCertAndKey(certFullPath, keyFullPath) {
+    const originalCertPath = `${certFullPath}.${ORIGINAL_FILE_POSTFIX}`;
+    const originalKeyPath = `${keyFullPath}.${ORIGINAL_FILE_POSTFIX}`;
+    return doUtil.executeBashCommandIControl(
+        this.bigIp,
+        `ls ${originalCertPath}`
+    )
+        .then((result) => {
+            if (result.indexOf('No such file or directory') > -1) {
+                return doUtil.executeBashCommandIControl(
+                    this.bigIp,
+                    `cp ${certFullPath} ${certFullPath}.${ORIGINAL_FILE_POSTFIX}`
+                );
+            }
+            return Promise.resolve();
+        })
+        .then(() => doUtil.executeBashCommandIControl(
+            this.bigIp,
+            `ls ${originalKeyPath}`
+        ))
+        .then((result) => {
+            if (result.indexOf('No such file or directory') > -1) {
+                return doUtil.executeBashCommandIControl(
+                    this.bigIp,
+                    `cp ${keyFullPath} ${keyFullPath}.${ORIGINAL_FILE_POSTFIX}`
+                );
+            }
+            return Promise.resolve();
+        });
+}
+
+function restoreCertAndKey(certFullPath, keyFullPath) {
+    if (this.state
+        && this.state.rollbackInfo
+        && this.state.rollbackInfo.systemHandler
+        && this.state.rollbackInfo.systemHandler.deviceCertificate) {
+        return rollbackCertAndKey.call(this);
+    }
+    return restoreOriginalCertAndKey.call(this, certFullPath, keyFullPath);
+}
+
+function rollbackCertAndKey() {
+    const files = this.state.rollbackInfo.systemHandler.deviceCertificate.files;
+    const copyPromises = files.reduce((acc, curr) => {
+        acc.push(copyFiles.call(this, curr.from, curr.to));
+        return acc;
+    }, []);
+    return Promise.all(copyPromises)
+        .then(() => {
+            if (copyPromises.length > 0) {
+                this.rebootRequired = true;
+            }
+        });
+}
+
+/**
+ * Restores the original device cert and key if they are different
+ * from the current cert and key
+ *
+ * @param {String} certFullPath - Full path to device certificate
+ * @param {String} keyFullPath - Full path to device key
+ */
+function restoreOriginalCertAndKey(certFullPath, keyFullPath) {
+    const originalCertPath = `${certFullPath}.${ORIGINAL_FILE_POSTFIX}`;
+    const originalKeyPath = `${keyFullPath}.${ORIGINAL_FILE_POSTFIX}`;
+    let certWritten = false;
+    let keyWritten = false;
+    return Promise.resolve()
+        .then(() => areFilesDifferent.call(this, originalCertPath, certFullPath))
+        .then((different) => {
+            if (different) {
+                certWritten = true;
+                return storeDeviceCertRollbackInfo.call(this, certFullPath);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
+            if (certWritten) {
+                return copyFiles.call(this, originalCertPath, certFullPath);
+            }
+            return Promise.resolve(true);
+        })
+        .then(() => areFilesDifferent.call(this, originalKeyPath, keyFullPath))
+        .then((different) => {
+            if (different) {
+                keyWritten = true;
+                return storeDeviceCertRollbackInfo.call(this, keyFullPath);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
+            if (keyWritten) {
+                return copyFiles.call(this, originalKeyPath, keyFullPath);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
+            if (certWritten || keyWritten) {
+                // Really all we need to do is restart httpd but I can't find a way to do that
+                // succesfully. Anything through iControl REST fails on the second restart.
+                this.rebootRequired = true;
+            }
+        });
+}
+
+/**
+ * Makes backup of files in case we need to roll them back.
+ *
+ * @param {String} originalFile - Full path to file we might rollback.
+ *
+ * @returns {Promise} A promise which resolves with info on what files
+ *                    to rollback. Data in resolved promise is
+ *     {
+ *         from: 'full_path_to_copy_from_during_rollback,
+ *         to: 'full_path_to_copy_to_during_rollback
+ *     }
+ */
+function storeDeviceCertRollbackInfo(originalFile) {
+    return doUtil.executeBashCommandIControl(
+        this.bigIp,
+        `cp ${originalFile} ${originalFile}.DO.bak`
+    )
+        .then(() => {
+            if (!this.rollbackInfo.systemHandler.deviceCertificate) {
+                this.rollbackInfo.systemHandler.deviceCertificate = {
+                    files: []
+                };
+            }
+            this.rollbackInfo.systemHandler.deviceCertificate.files.push({
+                from: `${originalFile}.DO.bak`,
+                to: `${originalFile}`
+            });
         });
 }
 
@@ -900,6 +1176,37 @@ function waitForRevokeReady(eventEmitter) {
             resolve();
         });
     });
+}
+
+/**
+ * Copies file from 'from' to 'to'
+ *
+ * @param {String} from - Full path of file to copy from
+ * @param {String} to - Full path of file to copy to
+ *
+ * @returns {Promise} A promise which is resolved if successful and rejected otherwise.
+ */
+function copyFiles(from, to) {
+    return doUtil.executeBashCommandIControl(this.bigIp, `cp ${from} ${to}`);
+}
+
+/**
+ * Compares two files to see if they are different
+ *
+ * @param {String} fileA - Full path of one file
+ * @param {String} fileB - Full path of the other file
+ *
+ * @returns {Promise} A promise which is resolved with 'true' if files
+ *                    are different and false otherwise.
+ */
+function areFilesDifferent(fileA, fileB) {
+    return doUtil.executeBashCommandIControl(this.bigIp, `diff ${fileB} ${fileA}`)
+        .then((result) => {
+            if (result && result.indexOf('No such file or directory') === -1) {
+                return Promise.resolve(true);
+            }
+            return Promise.resolve(false);
+        });
 }
 
 module.exports = SystemHandler;
