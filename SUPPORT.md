@@ -15,14 +15,10 @@ Currently supported versions:
 |------------------|---------------|---------------------|-----------------|
 | DO 1.10.0        | Feature       | 27-Jan-2020         | 27-Apr-2020     |
 | DO 1.11.0        | Feature       | 10-Mar-2020         | 10-Jun-2020     |
-<<<<<<< HEAD
 | DO 1.11.1        | Fix*          | 30-Mar-2020         | 10-Jun-2020     |
 | DO 1.12.0        | Feature       | 21-Apr-2020         | 21-Jul-2020     |
 
 \* Fix for Allowed schema version
-=======
-| DO 1.11.1        | Fix           | 30-Mar-2020         | 10-Jun-2020     |
->>>>>>> 0c57480e50fea301dc56c4fa706aff8565ee1c96
 
 
 
@@ -32,9 +28,9 @@ Versions no longer supported:
 |------------------|---------------|---------------------|-----------------|
 | DO 1.1.0         | Feature       | 20-Dec-2018         | 20-Mar-2019     |
 | DO 1.2.0         | Feature       | 16-Jan-2019         | 16-Apr-2019     |
-| DO 1.3.0	       | Feature       | 27-Feb-2019	     | 27-May-2019     |
-| DO 1.3.1	       | Feature       | 07-May-2019	     | 07-Aug-2019     |
-| DO 1.4.0	       | Feature       | 08-May-2019	     | 08-Aug-2019     |
+| DO 1.3.0	       | Feature       | 27-Feb-2019	       | 27-May-2019     |
+| DO 1.3.1	       | Feature       | 07-May-2019	       | 07-Aug-2019     |
+| DO 1.4.0	       | Feature       | 08-May-2019	       | 08-Aug-2019     |
 | DO 1.4.1         | Fix*          | 21-May-2019         | 08-Aug-2019     |
 | DO 1.5.0         | Feature       | 18-Jun-2019         | 18-Sep-2019     |
 | DO 1.6.0         | Feature       | 30-Jul-2019         | 30-Oct-2019     |
