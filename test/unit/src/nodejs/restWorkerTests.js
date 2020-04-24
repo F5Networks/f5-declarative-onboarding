@@ -895,10 +895,32 @@ describe('restWorker', () => {
 
         it('should handle missing content header with valid content', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
+                try {
+                    assert.strictEqual(statusCode, 200);
+                } catch (err) {
+                    reject(err);
+                    return;
+                }
                 resolve();
             };
 
             restOperationMock.getContentType = () => {};
+            restOperationMock.getBody = () => '{}';
+
+            try {
+                restWorker.onPost(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
+        it('should handle the charset in the Content-Type header', () => new Promise((resolve, reject) => {
+            restOperationMock.complete = () => {
+                assert.strictEqual(statusCode, 200);
+                resolve();
+            };
+
+            restOperationMock.getContentType = () => 'application/json; charset=UTF-8';
 
             try {
                 restWorker.onPost(restOperationMock);
