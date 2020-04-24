@@ -161,7 +161,7 @@ class RestWorker {
         let bigIpOptions;
         let platform;
 
-        if (contentType.toLowerCase() !== 'application/json') {
+        if (!contentType.toLowerCase().startsWith('application/json')) {
             try {
                 body = JSON.parse(body);
             } catch (err) {
