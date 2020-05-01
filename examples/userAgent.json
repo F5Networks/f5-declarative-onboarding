@@ -1,5 +1,5 @@
 {
-    "schemaVersion": "1.13.0",
+    "schemaVersion": "1.12.0",
     "class": "Device",
     "label": "Configuring System",
     "async": true,
