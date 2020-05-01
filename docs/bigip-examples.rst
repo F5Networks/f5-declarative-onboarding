@@ -353,6 +353,26 @@ See |certclass| in the schema reference for more information and usage.
 
 |
 
+.. _example19:
+
+19: Using the userAgent Controls property 
+`````````````````````````````````````````
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for **userAgent** is available in DO v3.13.0 and later
+
+In this example, we show how you can use the **userAgent** property in the new **Controls** class. The userAgent property allows you to set a unique identifier in usage data.
+
+This declaration includes the Controls class with userAgent set to **BIG-IQ/7.1 Configured by API**.  
+
+See |controls| in the Schema Reference for more information.
+
+
+.. literalinclude:: ../examples/userAgent.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
 
 .. |br| raw:: html
 
@@ -434,4 +454,9 @@ See |certclass| in the schema reference for more information and usage.
 .. |certdoc| raw:: html
 
    <a href="https://support.f5.com/csp/article/K6353" target="_blank">Updating a self-signed SSL device certificate on a BIG-IP system</a>
+
+.. |controls| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#device-controls" target="_blank">Device_Controls</a>
+
 
