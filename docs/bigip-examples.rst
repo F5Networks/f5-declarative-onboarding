@@ -356,7 +356,7 @@ See |certclass| in the schema reference for more information and usage.
 .. _example19:
 
 19: Using the userAgent Controls property 
-`````````````````````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for **userAgent** is available in DO v3.13.0 and later
