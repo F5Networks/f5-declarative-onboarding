@@ -247,7 +247,7 @@ describe('auth.schema.json', () => {
                 'no-access'
             ];
             roles.forEach((role) => {
-                it(`should validate ${role.role} remote role`, () => {
+                it(`should validate ${role} remote role`, () => {
                     const dataCopy = JSON.parse(JSON.stringify(data));
                     dataCopy.role = role;
                     assert.ok(dataCopy, getErrorString(validate));
