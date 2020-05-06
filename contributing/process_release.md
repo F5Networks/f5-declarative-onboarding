@@ -16,6 +16,7 @@
 * Determine version
   * \<fullVersion\> should be value found in package.json (e.g. 1.13.0-1)
   * \<version\> is \<fullVersion\> but only the major, minor, and patch numbers (e.g. 1.13.0)
+* git checkout develop (or whichever branch you want to make a tag of)
 * mkdir src/schema/\<version\>
 * cp src/schema/latest/* src/schema/\<version\>
 * git add and commit
