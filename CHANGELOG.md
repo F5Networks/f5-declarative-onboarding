@@ -6,7 +6,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1437: Add userAgent to a controls object
 - AUTOTOOL-1445: Add authentication type to DO TEEM telemetry
 ### Fixed
-- AUTOTOOL-1491: Cannot create a device group with AFM provisioned
+- AUTOTOOL-1491 ([GitHub Issue 138](https://github.com/F5Networks/f5-declarative-onboarding/issues/138)): Cannot create a device group with AFM provisioned
 - AUTOTOOL-1469: Problems with latest Azure image
 - AUTOTOOL-901 ([GitHub Issue 79](https://github.com/F5Networks/f5-declarative-onboarding/issues/79)): charset not allowed in Content-Type header
 ### Changed
