@@ -26,6 +26,7 @@
             "action": "add"
         },
         "properties": [
+            { "id": "autoCheck", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "autoPhonehome", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
         ],
         "nameless": true

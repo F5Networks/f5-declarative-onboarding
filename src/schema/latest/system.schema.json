@@ -902,6 +902,10 @@
                     "autoPhonehome": {
                         "description": "Enables the BIG-IP system to send non-confidential, high-level device information to F5 in order to help determine product usage to optimize product development.",
                         "type": "boolean"
+                    },
+                    "autoCheck": {
+                        "description": "Enables the BIG-IP system to check for and recommend software updates.",
+                        "type": "boolean"
                     }
                 },
                 "additionalProperties": false

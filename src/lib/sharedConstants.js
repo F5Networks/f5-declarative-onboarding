@@ -61,7 +61,7 @@ module.exports = {
         TrafficControl: '/tm/ltm/global-settings/traffic-control',
         HTTPD: '/tm/sys/httpd',
         SSHD: '/tm/sys/sshd',
-        Phonehome: '/tm/sys/software/update'
+        SoftwareUpdate: '/tm/sys/software/update'
     },
     STATUS: {
         STATUS_OK: 'OK',

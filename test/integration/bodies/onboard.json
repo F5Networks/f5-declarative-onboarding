@@ -75,6 +75,7 @@
         },
         "mySystem": {
             "class": "System",
+            "autoCheck": false,
             "autoPhonehome": false
         }
     }

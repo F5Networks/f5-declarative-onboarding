@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 - AUTOTOOL-1437: Add userAgent to a controls object
 - AUTOTOOL-1445: Add authentication type to DO TEEM telemetry
+- AUTOTOOL-1236: Add support for System autoCheck setting
 ### Fixed
 - AUTOTOOL-1491 ([GitHub Issue 138](https://github.com/F5Networks/f5-declarative-onboarding/issues/138)): Cannot create a device group with AFM provisioned
 - AUTOTOOL-1469: Problems with latest Azure image
