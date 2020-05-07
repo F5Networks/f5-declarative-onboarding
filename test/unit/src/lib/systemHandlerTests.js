@@ -693,7 +693,23 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.deepStrictEqual(dataSent[PATHS.Phonehome][0], { autoPhonehome: 'disabled' });
+                assert.deepStrictEqual(dataSent[PATHS.SoftwareUpdate][0], { autoPhonehome: 'disabled' });
+            });
+    });
+
+    it('should handle autoCheck', () => {
+        const declaration = {
+            Common: {
+                System: {
+                    autoCheck: false
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(dataSent[PATHS.SoftwareUpdate][0], { autoCheck: 'disabled' });
             });
     });
 

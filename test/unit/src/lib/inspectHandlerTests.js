@@ -441,6 +441,7 @@ describe('inspectHandler', () => {
                 idleTimeout: 'disabled'
             },
             '/tm/sys/software/update': {
+                autoCheck: 'enabled',
                 autoPhonehome: 'disabled'
             },
             '/tm/sys/provision': [
@@ -1120,6 +1121,7 @@ describe('inspectHandler', () => {
                             hostname: 'myhost.bigip.com',
                             consoleInactivityTimeout: 0,
                             cliInactivityTimeout: 0,
+                            autoCheck: true,
                             autoPhonehome: false
                         },
                         currentTrafficControl: {

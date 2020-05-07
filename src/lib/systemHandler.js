@@ -344,7 +344,11 @@ function handleSystem() {
         }
         if (typeof system.autoPhonehome !== 'undefined') {
             const phonehome = system.autoPhonehome ? 'enabled' : 'disabled';
-            promises.push(this.bigIp.modify(PATHS.Phonehome, { autoPhonehome: phonehome }));
+            promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoPhonehome: phonehome }));
+        }
+        if (typeof system.autoCheck !== 'undefined') {
+            const check = system.autoCheck ? 'enabled' : 'disabled';
+            promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoCheck: check }));
         }
     }
 
