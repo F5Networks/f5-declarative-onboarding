@@ -67,9 +67,19 @@ class SystemHandler {
         if (!this.declaration.Common) {
             return Promise.resolve();
         }
-
-        logger.fine('Checking db variables.');
-        return handleDbVars.call(this)
+        return Promise.resolve()
+            .then(() => {
+                logger.fine('Getting Device-Info.');
+                return this.bigIp.deviceInfo()
+                    .then((info) => {
+                        this.bigIpVersion = info.version;
+                        return Promise.resolve();
+                    });
+            })
+            .then(() => {
+                logger.fine('Checking db variables.');
+                return handleDbVars.call(this);
+            })
             .then(() => {
                 logger.fine('Checking DHCP options.');
                 return handleDhcpOptions.call(this);
@@ -343,12 +353,25 @@ function handleSystem() {
             promises.push(this.bigIp.modify(PATHS.CLI, { idleTimeout: system.cliInactivityTimeout / 60 }));
         }
         if (typeof system.autoPhonehome !== 'undefined') {
-            const phonehome = system.autoPhonehome ? 'enabled' : 'disabled';
-            promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoPhonehome: phonehome }));
+            const autoPhonehome = system.autoPhonehome ? 'enabled' : 'disabled';
+            promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoPhonehome }));
         }
         if (typeof system.autoCheck !== 'undefined') {
-            const check = system.autoCheck ? 'enabled' : 'disabled';
-            promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoCheck: check }));
+            const autoCheck = system.autoCheck ? 'enabled' : 'disabled';
+            promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoCheck }));
+        }
+        if (typeof system.tmshAuditLog !== 'undefined') {
+            const audit = system.tmshAuditLog ? 'enabled' : 'disabled';
+            promises.push(this.bigIp.modify(PATHS.CLI, { audit }));
+        }
+        if (typeof system.mcpAuditLog !== 'undefined') {
+            const value = system.mcpAuditLog;
+            promises.push(this.bigIp.modify('/tm/sys/db/config.auditing', { value }));
+        }
+        if (typeof system.guiAuditLog !== 'undefined'
+            && cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
+            const guiAudit = system.guiAuditLog ? 'enabled' : 'disabled';
+            promises.push(this.bigIp.modify(PATHS.System, { guiAudit }));
         }
     }
 

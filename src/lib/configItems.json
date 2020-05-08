@@ -4,7 +4,8 @@
         "schemaClass": "System",
         "properties": [
             { "id": "hostname" },
-            { "id": "consoleInactivityTimeout" }
+            { "id": "consoleInactivityTimeout" },
+            { "id": "guiAudit", "newId": "guiAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
         ],
         "nameless": true
     },
@@ -15,7 +16,8 @@
             "action": "add"
         },
         "properties": [
-            { "id": "idleTimeout", "newId": "cliInactivityTimeout" }
+            { "id": "idleTimeout", "newId": "cliInactivityTimeout" },
+            { "id": "audit", "newId": "tmshAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
         ],
         "nameless": true
     },

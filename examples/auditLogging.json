@@ -1,0 +1,14 @@
+{
+    "schemaVersion": "1.13.0",
+    "class": "Device",
+    "async": false,
+    "Common": {
+        "class": "Tenant",
+        "mySys": {
+            "class": "System",
+            "tmshAuditLog": true,
+            "guiAuditLog": true,
+            "mcpAuditLog": "enable"
+        }
+    }
+}
