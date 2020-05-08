@@ -435,10 +435,12 @@ describe('inspectHandler', () => {
         const defaultResponses = () => ({
             '/tm/sys/global-settings': {
                 hostname,
-                consoleInactivityTimeout: 0
+                consoleInactivityTimeout: 0,
+                guiAudit: 'disabled'
             },
             '/tm/cli/global-settings': {
-                idleTimeout: 'disabled'
+                idleTimeout: 'disabled',
+                audit: 'enabled'
             },
             '/tm/sys/software/update': {
                 autoCheck: 'enabled',
@@ -1122,7 +1124,9 @@ describe('inspectHandler', () => {
                             consoleInactivityTimeout: 0,
                             cliInactivityTimeout: 0,
                             autoCheck: true,
-                            autoPhonehome: false
+                            autoPhonehome: false,
+                            tmshAuditLog: true,
+                            guiAuditLog: false
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',
