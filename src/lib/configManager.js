@@ -714,6 +714,10 @@ function patchAuth(schemaMerge, authClass, authItem) {
     // this is going to be for a subclass (e.g. radius, ldap, etc)
     const authClassCopy = !authClass ? {} : Object.assign({}, authClass);
 
+    if (typeof authItem.sslCiphers === 'string') {
+        authItem.sslCiphers = authItem.sslCiphers.split(':');
+    }
+
     if (authItem.name && authItem.name.indexOf(RADIUS.SERVER_PREFIX) > -1) {
         // radius servers have name constants
         // note also that serverReferences are returned by iControl as obj instead of array

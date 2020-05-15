@@ -750,6 +750,52 @@ describe('configManager', () => {
     });
 
     describe('Authentication oddities', () => {
+        it('should handle LDAP sslCiphers', () => {
+            const configItems = [
+                {
+                    path: '/tm/auth/source',
+                    schemaClass: 'Authentication',
+                    properties: [
+                        { id: 'type' },
+                        { id: 'fallback' }
+                    ],
+                    nameless: true
+                },
+                {
+                    path: '/tm/auth/ldap',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['ldap']
+                    },
+                    properties: [
+                        { id: 'sslCiphers' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/auth/source'] = { type: 'ldap', fallback: true };
+            listResponses['/tm/auth/ldap'] = { sslCiphers: '123:456:7890' };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(
+                        state.currentConfig.Common.Authentication,
+                        {
+                            enabledSourceType: 'ldap',
+                            fallback: true,
+                            ldap: {
+                                sslCiphers: [
+                                    '123',
+                                    '456',
+                                    '7890'
+                                ]
+                            }
+                        }
+                    );
+                });
+        });
+
         it('should merge an auth subclass into a parent auth class', () => {
             const configItems = [
                 {
