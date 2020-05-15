@@ -353,6 +353,9 @@
             { "id": "searchBaseDn" },
             { "id": "searchTimeout" },
             { "id": "servers" },
+            { "id": "ssl" },
+            { "id": "sslCheckPeer", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "sslCiphers" },
             { "id": "userTemplate" },
             { "id": "version" }
         ],

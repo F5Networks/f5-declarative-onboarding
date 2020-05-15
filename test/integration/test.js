@@ -948,7 +948,7 @@ function testLdapAuth(target, response) {
             'bindDn', 'bindTimeout', 'checkBindPassword', 'checkRemoteRole', 'filter', 'groupDn',
             'groupMemberAttribute', 'idleTimeout', 'ignoreAuthInfoUnavailable',
             'ignoreUnknownUser', 'loginAttribute', 'port', 'searchScope', 'searchBaseDn',
-            'searchTimeout', 'servers', 'userTemplate', 'version'
+            'searchTimeout', 'servers', 'ssl', 'sslCheckPeer', 'sslCiphers', 'userTemplate', 'version'
         ]
     );
 }

@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.13.0
 ### Added
+- AUTOTOOL-1380: ([GitHub Issue 126](https://github.com/F5Networks/f5-declarative-onboarding/issues/126)): Add fields to partially support SSL for LDAP auth.  Additional fields for this GitHub issue TBD.
 - AUTOTOOL-1437: Add userAgent to a controls object
 - AUTOTOOL-1445: Add authentication type to DO TEEM telemetry
 - AUTOTOOL-1236: Add support for System autoCheck setting

@@ -744,6 +744,13 @@ describe('inspectHandler', () => {
                 servers: [
                     '127.0.0.1'
                 ],
+                ssl: 'enabled',
+                sslCheckPeer: true,
+                sslCiphers: [
+                    'ECDHE-RSA-AES128-GCM-SHA256',
+                    'ECDHE-RSA-AES128-CBC-SHA',
+                    'ECDHE-RSA-AES128-SHA256'
+                ],
                 userTemplate: '%s',
                 version: 3
             },
@@ -1100,6 +1107,13 @@ describe('inspectHandler', () => {
                                 searchTimeout: 30,
                                 servers: [
                                     '127.0.0.1'
+                                ],
+                                ssl: 'enabled',
+                                sslCheckPeer: false,
+                                sslCiphers: [
+                                    'ECDHE-RSA-AES128-GCM-SHA256',
+                                    'ECDHE-RSA-AES128-CBC-SHA',
+                                    'ECDHE-RSA-AES128-SHA256'
                                 ],
                                 userTemplate: '%s',
                                 version: 3
