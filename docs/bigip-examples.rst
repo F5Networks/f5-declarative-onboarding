@@ -361,7 +361,7 @@ See |certclass| in the schema reference for more information and usage.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for **userAgent** is available in DO v3.13.0 and later
+   Support for **userAgent** is available in DO v1.13.0 and later
 
 In this example, we show how you can use the **userAgent** property in the new **Controls** class. The userAgent property allows you to set a unique identifier in usage data.
 
