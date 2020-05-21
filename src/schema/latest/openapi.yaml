@@ -4,8 +4,8 @@ info:
   description: F5 Declarative Onboarding
   version: 1.13.0
   contact:
-    name: Fred Slater
-    email: f.slater@f5.com
+    name: Declarative Onboarding
+    email: solutionsfeedback@f5.com
     url: 'https://github.com/F5Networks/f5-declarative-onboarding'
   license:
     name: Apache 2.0
