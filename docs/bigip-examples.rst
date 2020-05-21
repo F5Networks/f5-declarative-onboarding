@@ -291,7 +291,7 @@ In the following declaration, we show only the HTTPD class.  You can use this cl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for configuring system settings such as hostname and console timeout is available in DO v1.8.0 and later. 
+   Support for disabling the auto-check feature is available in DO v1.13 and later. 
 
 In this example, we show how you can configure some System settings in a Declarative Onboarding declaration. This enables you to set auto-timeout values for serial console (CLI) and TMSH interactive mode sessions, as well as set a hostname, if you have not set one in the Common class. 
 
@@ -299,7 +299,9 @@ In this example, we show how you can configure some System settings in a Declara
 
 For usage and options, see |sysclass| in the Schema Reference.
 
-In the following declaration, we show only the System class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+DO 1.13 introduced the ability to disable the automatic update check feature.  The autoCheck property controls whether the BIG-IP checks for and recommends software updates.  See |k15000| for more information. 
+
+In the following declaration, we show only the System class (including autoCheck introduced in 1.13).  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
 
 .. literalinclude:: ../examples/system.json
@@ -464,4 +466,9 @@ See |controls| in the Schema Reference for more information.
 .. |auth| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#authentication" target="_blank">Authentication</a>
+
+.. |k15000| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K15000" target="_blank">K15000</a>
+
 
