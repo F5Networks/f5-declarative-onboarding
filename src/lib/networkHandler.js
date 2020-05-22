@@ -56,6 +56,10 @@ class NetworkHandler {
         logger.fine('Checking Trunks.');
         return handleTrunk.call(this)
             .then(() => {
+                logger.fine('Checking MAC_Masquerades');
+                return handleMacMasquerade.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking VLANs.');
                 return handleVlan.call(this);
             })
@@ -84,6 +88,48 @@ class NetworkHandler {
                 return Promise.reject(err);
             });
     }
+}
+
+function handleMacMasquerade() {
+    if (this.declaration.Common && this.declaration.Common.MAC_Masquerade) {
+        const macMasquerade = this.declaration.Common.MAC_Masquerade;
+        return Promise.resolve()
+            .then(() => {
+                if (!Object.keys(macMasquerade).some(masquerade => macMasquerade[masquerade].source)) {
+                    return Promise.resolve();
+                }
+                return this.bigIp.list('/tm/sys/mac-address');
+            })
+            .then((macs) => {
+                Object.keys(macMasquerade).forEach((masquerade) => {
+                    const trafficGroup = macMasquerade[masquerade].trafficGroup;
+                    if (macMasquerade[masquerade].source) {
+                        const sourceInterface = macMasquerade[masquerade].source.interface;
+                        let mac;
+                        Object.keys(macs.entries).forEach((property) => {
+                            if (macs.entries[property].nestedStats.entries.objectId.description === sourceInterface) {
+                                mac = macs.entries[property].nestedStats.entries.macAddress.description;
+                            }
+                        });
+                        if (mac) {
+                            // eslint-disable-next-line no-bitwise
+                            const newMac = mac.slice(0, 1) + ((parseInt(mac.charAt(1), 16) >>> 0) ^ 2).toString(16)
+                                + mac.slice(2); // https://support.f5.com/csp/article/K3523
+                            this.bigIp.modify(`${PATHS.TrafficGroup}/~Common~${trafficGroup}`, { mac: newMac });
+                        } else {
+                            throw new Error('Cannot find MAC for given interface');
+                        }
+                    } else {
+                        this.bigIp.modify(`${PATHS.TrafficGroup}/~Common~${trafficGroup}`, { mac: 'none' });
+                    }
+                });
+            })
+            .catch((err) => {
+                logger.severe(`Error creating MAC Masquerade: ${err.message}`);
+                throw err;
+            });
+    }
+    return Promise.resolve();
 }
 
 function handleVlan() {

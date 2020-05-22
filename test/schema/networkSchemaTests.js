@@ -37,6 +37,60 @@ Object.keys(customFormats).forEach((customFormat) => {
 const validate = ajv.compile(networkSchema);
 
 describe('network.schema.json', () => {
+    describe('MAC_Masquerade', () => {
+        describe('valid', () => {
+            it('should validate minimal data', () => {
+                const data = {
+                    class: 'MAC_Masquerade'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate masquerade data', () => {
+                const data = {
+                    class: 'MAC_Masquerade',
+                    source: {
+                        interface: '1.1'
+                    },
+                    trafficGroup: 'traffic-group-1'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional properties', () => {
+                const data = {
+                    class: 'MAC_Masquerade',
+                    rogueProperty: true
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
+            });
+
+            it('should invalidate additional source properties', () => {
+                const data = {
+                    class: 'MAC_Masquerade',
+                    source: {
+                        interface: '1.1',
+                        rogueProperty: true
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
+            });
+
+            it('should invalidate unexpected traffic group', () => {
+                const data = {
+                    class: 'MAC_Masquerade',
+                    trafficGroup: 'traffic-jam'
+                };
+                assert.strictEqual(validate(data), false, 'non-enum traffic group should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+        });
+    });
+
     describe('Trunk', () => {
         describe('valid', () => {
             it('should validate minimal data', () => {
@@ -66,7 +120,7 @@ describe('network.schema.json', () => {
         });
 
         describe('invalid', () => {
-            it('should invalidate additional prpoerties', () => {
+            it('should invalidate additional properties', () => {
                 const data = {
                     class: 'Trunk',
                     rogueProperty: true
@@ -389,7 +443,7 @@ describe('network.schema.json', () => {
         });
 
         describe('invalid', () => {
-            it('should invalidate out of ragne id', () => {
+            it('should invalidate out of range id', () => {
                 const data = {
                     class: 'RouteDomain',
                     id: 123456
@@ -416,7 +470,7 @@ describe('network.schema.json', () => {
                 assert.notStrictEqual(getErrorString().indexOf('should have required property \'id\''), -1);
             });
 
-            it('should invlaidate bad routing protocol', () => {
+            it('should invalidate bad routing protocol', () => {
                 const data = {
                     class: 'RouteDomain',
                     id: 1,

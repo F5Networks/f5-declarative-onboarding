@@ -96,6 +96,19 @@ describe('declarationParser', () => {
                         "class": "Interface",
                         "tagged": true
                     }
+                },
+                "myMac": {
+                    "class": "MAC_Masquerade",
+                    "source": {
+                        "interface": "1.1"
+                    }
+                },
+                "myMac2": {
+                    "class": "MAC_Masquerade",
+                    "source": {
+                        "interface": "1.2"
+                    },
+                    "trafficGroup": "traffic-group-local-only"
                 }
             },
             "Tenant1": {

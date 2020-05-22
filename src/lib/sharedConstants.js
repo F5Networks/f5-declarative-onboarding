@@ -59,6 +59,7 @@ module.exports = {
         CLI: '/tm/cli/global-settings',
         DagGlobals: '/tm/net/dag-globals',
         TrafficControl: '/tm/ltm/global-settings/traffic-control',
+        TrafficGroup: '/tm/cm/traffic-group',
         HTTPD: '/tm/sys/httpd',
         SSHD: '/tm/sys/sshd',
         SoftwareUpdate: '/tm/sys/software/update'
