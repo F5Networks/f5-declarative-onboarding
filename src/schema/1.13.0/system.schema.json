@@ -902,6 +902,28 @@
                     "autoPhonehome": {
                         "description": "Enables the BIG-IP system to send non-confidential, high-level device information to F5 in order to help determine product usage to optimize product development.",
                         "type": "boolean"
+                    },
+                    "autoCheck": {
+                        "description": "Enables the BIG-IP system to check for and recommend software updates.",
+                        "type": "boolean"
+                    },
+                    "tmshAuditLog": {
+                        "description": "Enables audit logging for tmsh.",
+                        "type": "boolean"
+                    },
+                    "guiAuditLog": {
+                        "description": "Enables audit logging for the GUI. Only available on TMOS v14+",
+                        "type": "boolean"
+                    },
+                    "mcpAuditLog": {
+                        "description": "Enables audit logging for MCP.",
+                        "type": "string",
+                        "enum": [
+                            "disable",
+                            "enable",
+                            "verbose",
+                            "all"
+                        ]
                     }
                 },
                 "additionalProperties": false
