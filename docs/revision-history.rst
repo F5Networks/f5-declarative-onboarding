@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.0
-        - Updated the documentation for Declarative Onboarding v1.13.0.  This release contains the following changes: |br| * Added support for SSL in LDAP configurations (see the :ref:`Auth methods example <authmethods>`  |br| |br| Issues Resolved: |br| * 
+        - Updated the documentation for Declarative Onboarding v1.13.0.  This release contains the following changes: |br| * Added support for SSL in LDAP configurations (see the :ref:`Auth methods example <authmethods>`) |br| * Added support for the userAgent property in the new Controls class (see :ref:`example19`) |br| * Added support for disabling the update auto-check in a declaration - `GitHub Issue 107 <https://github.com/F5Networks/f5-declarative-onboarding/issues/107>`_ (see :ref:`systemex`) |br| *    |br| |br| Issues Resolved: |br| * 
         - 06-02-20
 
       * - 2.9

@@ -271,7 +271,7 @@ In the following declaration, we show only the SSHD class.  You can use this cla
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for configuring HTTPD settings is available in DO v1.8.0 and later. 
+   Support for configuring HTTPD settings is available in DO v1.8 and later. 
 
 In this example, we show how you can configure HTTPD (HTTP daemon) settings in a Declarative Onboarding declaration. For usage and options, see |httpd| in the Schema Reference.
 
@@ -303,6 +303,8 @@ DO 1.13 introduced the ability to disable the automatic update check feature.  T
 
 In the following declaration, we show only the System class (including autoCheck introduced in 1.13).  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
+**Important**: If you try to use this declaration with a DO version prior to 1.13, it will fail.  Either upgrade to 1.13, or remove the autoCheck line.
+
 
 .. literalinclude:: ../examples/system.json
    :language: json
@@ -316,7 +318,7 @@ In the following declaration, we show only the System class (including autoCheck
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for using IP addresses for Device Group owners and members is available in DO v1.11.0 and later. 
+   Support for using IP addresses for Device Group owners and members is available in DO v1.11 and later. 
 
 The following is an example declaration that onboards a clustered BIG-IP system, but shows how you can use an IP address for the Device Group members and owner.  
 
@@ -335,7 +337,7 @@ See :ref:`devicegroup` for more information.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for including a TLS/SSL device certificate and key is available in DO v1.12.0 and later. 
+   Support for including a TLS/SSL device certificate and key is available in DO v1.12 and later. 
 
 This example declaration shows how you can create/upload a device certificate in a Declarative Onboarding declaration. The BIG-IP system uses the device certificate to authenticate access to the Configuration utility and to accommodate device-to-device communication processes, such as configuration synchronization. 
 
@@ -363,7 +365,7 @@ See |certclass| in the schema reference for more information and usage.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for **userAgent** is available in DO v1.13.0 and later
+   Support for **userAgent** is available in DO v1.13 and later
 
 In this example, we show how you can use the **userAgent** property in the new **Controls** class. The userAgent property allows you to set a unique identifier in usage data.
 
@@ -373,6 +375,28 @@ See |controls| in the Schema Reference for more information.
 
 
 .. literalinclude:: ../examples/userAgent.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example20:
+
+19: Configuring Audit Logging in a declaration  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring audit logging is available in DO v1.13 and later
+
+In this example, we show how you can configure audit logging in the System class of a Declarative Onboarding declaration.  This allows audit logging to start as early as possible.
+
+See |sysclass| in the Schema Reference for DO usage and options. For detailed information about audit logging on the BIG-IP, see the |auditlog|.
+
+.. IMPORTANT:: **guiAuditLog** is only available on TMOS v14.0 and later
+
+
+.. literalinclude:: ../examples/auditLogging.json
    :language: json
 
 :ref:`Back to top<bigipexamples>`
@@ -470,5 +494,10 @@ See |controls| in the Schema Reference for more information.
 .. |k15000| raw:: html
 
    <a href="https://support.f5.com/csp/article/K15000" target="_blank">K15000</a>
+
+.. |auditlog| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-user-account-administration-13-1-0/6.html" target="_blank">Audit Logging documentation</a>
+
 
 
