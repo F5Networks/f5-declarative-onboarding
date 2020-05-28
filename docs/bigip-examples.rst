@@ -427,7 +427,7 @@ See |sysclass| in the Schema Reference for DO usage and options. For detailed in
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for configuring mac masquerade on Traffic Groups is available in DO v1.13 and later
+   Support mac masquerade on Traffic Groups is available in DO v1.13 and later
 
 In this example, we show how you can configure Mac Masquerading on Traffic Groups.  This is a part of the new **Mac_Masquerade** and **Mac_Masquerade_Source** classes.  
 
