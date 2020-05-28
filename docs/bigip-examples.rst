@@ -401,7 +401,7 @@ See |controls| in the Schema Reference for more information.
 
 .. _example20:
 
-19: Configuring Audit Logging in a declaration  
+20: Configuring Audit Logging in a declaration  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
@@ -421,9 +421,9 @@ See |sysclass| in the Schema Reference for DO usage and options. For detailed in
 
 |
 
-.. _example20:
+.. _example21:
 
-20: Configuring Mac Masquerading on Traffic Groups 
+21: Configuring Mac Masquerading on Traffic Groups 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
