@@ -31,8 +31,6 @@ The following is an example declaration that onboards a clustered BIG-IP system.
 
 |
 
-
-
 .. _example6:
 
 3: Using JSON Pointers
@@ -65,8 +63,9 @@ In this example, we are licensing a new BIG-IP, provisioning AVR, and creating a
 
 :ref:`Back to top<bigipexamples>`
 
-.. _keys:
+|
 
+.. _keys:
 
 5: Adding public SSH keys to a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -91,6 +90,8 @@ In this example, we are adding public SSH keys to the root user and a guestUser.
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
 .. _rdomain:
 
 6: Adding Route Domains to a declaration
@@ -112,6 +113,7 @@ In the following declaration, we include a VLAN to show how to reference a VLAN 
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
 .. _dag:
 
@@ -134,6 +136,8 @@ In the following declaration snippet, we show only the DagGlobals class.  You ca
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
 .. _snmp:
 
 8: Configuring SNMP in a declaration
@@ -150,6 +154,8 @@ In the following declaration snippet we show only the classes related to SNMP.  
    :language: json
 
 :ref:`Back to top<bigipexamples>`
+
+|
 
 .. _authmethods:
 
@@ -172,6 +178,8 @@ In the following declaration snippet we show only the classes related to authent
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
 .. _remoterole:
 
 10: Configuring Remote Roles for authentication
@@ -191,6 +199,8 @@ In the following declaration snippet we show only the classes related to remote 
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
 .. _trafcontrol:
 
 11: Configuring Traffic Control properties
@@ -207,6 +217,8 @@ In the following declaration snippet we show only the classes related to Traffic
    :language: json
 
 :ref:`Back to top<bigipexamples>`
+
+|
 
 .. _syslogdest:
 
@@ -227,6 +239,7 @@ In the following declaration snippet we show only the SyslogRemoteServer class. 
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
 .. _cmphash:
 
@@ -245,7 +258,7 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 
 :ref:`Back to top<bigipexamples>`
 
-
+|
 
 .. _sshex:
 
@@ -264,6 +277,8 @@ In the following declaration, we show only the SSHD class.  You can use this cla
    :language: json
 
 :ref:`Back to top<bigipexamples>`
+
+|
 
 .. _httpdex:
 
@@ -284,6 +299,8 @@ In the following declaration, we show only the HTTPD class.  You can use this cl
    :language: json
 
 :ref:`Back to top<bigipexamples>`
+
+|
 
 .. _systemex:
 
@@ -311,6 +328,7 @@ In the following declaration, we show only the System class (including autoCheck
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
 .. _example17:
 
@@ -397,6 +415,28 @@ See |sysclass| in the Schema Reference for DO usage and options. For detailed in
 
 
 .. literalinclude:: ../examples/auditLogging.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example20:
+
+20: Configuring Mac Masquerading on Traffic Groups 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring mac masquerade on Traffic Groups is available in DO v1.13 and later
+
+In this example, we show how you can configure Mac Masquerading on Traffic Groups.  This is a part of the new **Mac_Masquerade** and **Mac_Masquerade_Source** classes.  
+
+For detailed information about Mac Masquerade on the BIG-IP, see |mmkb|.
+
+See |macm| and |macms| in the Schema Reference for DO usage and options. 
+
+
+.. literalinclude:: ../examples/macMasquerade.json
    :language: json
 
 :ref:`Back to top<bigipexamples>`
@@ -499,5 +539,14 @@ See |sysclass| in the Schema Reference for DO usage and options. For detailed in
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-user-account-administration-13-1-0/6.html" target="_blank">Audit Logging documentation</a>
 
+.. |macm| raw:: html
 
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mac-masquerade" target="_blank">Mac_Masquerade</a>
 
+.. |macms| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mac-masquerade-source" target="_blank">Mac_Masquerade_Source</a>
+
+.. |mmkb| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K13502" target="_blank">K13502: Configuring MAC masquerade</a>
