@@ -423,13 +423,13 @@ See |sysclass| in the Schema Reference for DO usage and options. For detailed in
 
 .. _example21:
 
-21: Configuring Mac Masquerading on Traffic Groups 
+21: Configuring MAC Masquerading on Traffic Groups 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support mac masquerade on Traffic Groups is available in DO v1.13 and later
 
-In this example, we show how you can configure Mac Masquerading on Traffic Groups.  This is a part of the new **Mac_Masquerade** and **Mac_Masquerade_Source** classes.  
+In this example, we show how you can configure MAC Masquerading on Traffic Groups.  This is a part of the new **MAC_Masquerade** and **MAC_Masquerade_Source** classes.  
 
 For detailed information about Mac Masquerade on the BIG-IP, see |mmkb|.
 
