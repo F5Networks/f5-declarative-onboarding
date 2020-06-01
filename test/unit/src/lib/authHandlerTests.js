@@ -305,6 +305,8 @@ describe('authHandler', () => {
                                 '1.2.3.4',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
+                            ssl: 'disabled',
+                            sslCheckPeer: false,
                             version: 3
                         }
                     }
@@ -341,6 +343,9 @@ describe('authHandler', () => {
                                 '1.2.3.4',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
+                            ssl: 'disabled',
+                            sslCheckPeer: 'disabled',
+                            sslCiphers: '',
                             userTemplate: 'none',
                             version: 3
                         }
@@ -375,6 +380,13 @@ describe('authHandler', () => {
                                 'my.host.com',
                                 '1.2.3.4',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            ssl: 'tls-start',
+                            sslCheckPeer: true,
+                            sslCiphers: [
+                                'ECDHE-RSA-AES128-GCM-SHA256',
+                                'ECDHE-RSA-AES128-CBC-SHA',
+                                'ECDHE-RSA-AES128-SHA256'
                             ],
                             userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
                             version: 2
@@ -413,6 +425,9 @@ describe('authHandler', () => {
                                 '1.2.3.4',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
+                            ssl: 'tls-start',
+                            sslCheckPeer: 'enabled',
+                            sslCiphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-CBC-SHA:ECDHE-RSA-AES128-SHA256',
                             userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
                             version: 2
                         }

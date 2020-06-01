@@ -435,12 +435,15 @@ describe('inspectHandler', () => {
         const defaultResponses = () => ({
             '/tm/sys/global-settings': {
                 hostname,
-                consoleInactivityTimeout: 0
+                consoleInactivityTimeout: 0,
+                guiAudit: 'disabled'
             },
             '/tm/cli/global-settings': {
-                idleTimeout: 'disabled'
+                idleTimeout: 'disabled',
+                audit: 'enabled'
             },
             '/tm/sys/software/update': {
+                autoCheck: 'enabled',
                 autoPhonehome: 'disabled'
             },
             '/tm/sys/provision': [
@@ -740,6 +743,13 @@ describe('inspectHandler', () => {
                 searchTimeout: 30,
                 servers: [
                     '127.0.0.1'
+                ],
+                ssl: 'enabled',
+                sslCheckPeer: true,
+                sslCiphers: [
+                    'ECDHE-RSA-AES128-GCM-SHA256',
+                    'ECDHE-RSA-AES128-CBC-SHA',
+                    'ECDHE-RSA-AES128-SHA256'
                 ],
                 userTemplate: '%s',
                 version: 3
@@ -1098,6 +1108,13 @@ describe('inspectHandler', () => {
                                 servers: [
                                     '127.0.0.1'
                                 ],
+                                ssl: 'enabled',
+                                sslCheckPeer: false,
+                                sslCiphers: [
+                                    'ECDHE-RSA-AES128-GCM-SHA256',
+                                    'ECDHE-RSA-AES128-CBC-SHA',
+                                    'ECDHE-RSA-AES128-SHA256'
+                                ],
                                 userTemplate: '%s',
                                 version: 3
                             },
@@ -1120,7 +1137,10 @@ describe('inspectHandler', () => {
                             hostname: 'myhost.bigip.com',
                             consoleInactivityTimeout: 0,
                             cliInactivityTimeout: 0,
-                            autoPhonehome: false
+                            autoCheck: true,
+                            autoPhonehome: false,
+                            tmshAuditLog: true,
+                            guiAuditLog: false
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',

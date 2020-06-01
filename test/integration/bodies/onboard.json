@@ -75,7 +75,11 @@
         },
         "mySystem": {
             "class": "System",
-            "autoPhonehome": false
+            "autoCheck": false,
+            "autoPhonehome": false,
+            "tmshAuditLog": false,
+            "guiAuditLog": true,
+            "mcpAuditLog": "verbose"
         }
     }
 }

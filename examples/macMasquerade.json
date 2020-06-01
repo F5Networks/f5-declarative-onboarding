@@ -1,0 +1,15 @@
+{
+    "schemaVersion": "1.13.0",
+    "class": "Device",
+    "async": false,
+    "Common": {
+        "class": "Tenant",
+        "myMac": {
+            "class": "MAC_Masquerade",
+            "source": {
+                "interface": "1.1"
+            },
+            "trafficGroup": "traffic-group-1"
+        }
+    }
+}

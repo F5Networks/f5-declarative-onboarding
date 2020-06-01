@@ -99,9 +99,12 @@ describe('systemHandler', () => {
                 }
                 dataSent[path].push(data);
                 return Promise.resolve();
+            },
+            deviceInfo() {
+                return Promise.resolve({ version: '15.1.0.1' });
             }
         };
-        doUtilGetCurrentPlatformStub = sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));
+        doUtilGetCurrentPlatformStub = sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
         doUtilExecuteBashCommandStub = sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves('');
         sinon.stub(dns, 'lookup').callsArg(1);
         sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
@@ -693,7 +696,91 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.deepStrictEqual(dataSent[PATHS.Phonehome][0], { autoPhonehome: 'disabled' });
+                assert.deepStrictEqual(dataSent[PATHS.SoftwareUpdate][0], { autoPhonehome: 'disabled' });
+            });
+    });
+
+    it('should handle autoCheck', () => {
+        const declaration = {
+            Common: {
+                System: {
+                    autoCheck: false
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(dataSent[PATHS.SoftwareUpdate][0], { autoCheck: 'disabled' });
+            });
+    });
+
+    it('should handle tmshAuditLog', () => {
+        const declaration = {
+            Common: {
+                System: {
+                    tmshAuditLog: true
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(dataSent[PATHS.CLI][0], { audit: 'enabled' });
+            });
+    });
+
+    it('should handle guiAuditLog', () => {
+        const declaration = {
+            Common: {
+                System: {
+                    guiAuditLog: true
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(dataSent[PATHS.System][0], { guiAudit: 'enabled' });
+            });
+    });
+
+    it('should ignore guiAuditLog if version < 14.0', () => {
+        sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1.3' });
+        const declaration = {
+            Common: {
+                System: {
+                    tmshAuditLog: true,
+                    guiAuditLog: true
+                }
+            }
+        };
+        const expected = { '/tm/cli/global-settings': [{ audit: 'enabled' }] };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                // note guiAuditLog info is absent, only tmshAuditLog info is present
+                assert.deepStrictEqual(dataSent, expected);
+            });
+    });
+
+    it('should handle mcpAuditLog', () => {
+        const declaration = {
+            Common: {
+                System: {
+                    mcpAuditLog: 'verbose'
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(dataSent['/tm/sys/db/config.auditing'][0], { value: 'verbose' });
             });
     });
 
@@ -1056,7 +1143,7 @@ describe('systemHandler', () => {
 
         doUtilGetCurrentPlatformStub.restore();
         doUtilExecuteBashCommandStub.restore();
-        sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IQ'));
+        sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IQ');
         sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves('');
 
         bigIpMock.host = host;

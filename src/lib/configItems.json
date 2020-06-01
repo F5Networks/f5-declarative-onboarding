@@ -4,7 +4,8 @@
         "schemaClass": "System",
         "properties": [
             { "id": "hostname" },
-            { "id": "consoleInactivityTimeout" }
+            { "id": "consoleInactivityTimeout" },
+            { "id": "guiAudit", "newId": "guiAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
         ],
         "nameless": true
     },
@@ -15,7 +16,8 @@
             "action": "add"
         },
         "properties": [
-            { "id": "idleTimeout", "newId": "cliInactivityTimeout" }
+            { "id": "idleTimeout", "newId": "cliInactivityTimeout" },
+            { "id": "audit", "newId": "tmshAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
         ],
         "nameless": true
     },
@@ -26,6 +28,7 @@
             "action": "add"
         },
         "properties": [
+            { "id": "autoCheck", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "autoPhonehome", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
         ],
         "nameless": true
@@ -169,6 +172,15 @@
             { "name": "^gtm$" }
         ],
         "declaration": false
+    },
+    {
+        "path": "/tm/cm/traffic-group",
+        "schemaClass": "MAC_Masquerade",
+        "properties": [
+            { "id": "mac"}
+        ],
+        "declaration": false,
+        "nameless": true
     },
     {
         "path": "/tm/analytics/global-settings",
@@ -350,6 +362,9 @@
             { "id": "searchBaseDn" },
             { "id": "searchTimeout" },
             { "id": "servers" },
+            { "id": "ssl" },
+            { "id": "sslCheckPeer", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "sslCiphers" },
             { "id": "userTemplate" },
             { "id": "version" }
         ],

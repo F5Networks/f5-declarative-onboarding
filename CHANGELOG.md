@@ -1,6 +1,22 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.13.0
+### Added
+- AUTOTOOL-1380: ([GitHub Issue 126](https://github.com/F5Networks/f5-declarative-onboarding/issues/126)): Add fields to partially support SSL for LDAP auth.  Additional fields for this GitHub issue TBD.
+- AUTOTOOL-1437: Add userAgent to a controls object
+- AUTOTOOL-1445: Add authentication type to DO TEEM telemetry
+- AUTOTOOL-1236: ([GitHub Issue 107](https://github.com/F5Networks/f5-declarative-onboarding/issues/107)): Add support for System autoCheck setting
+- AUTOTOOL-1248: ([GitHub Issue 120](https://github.com/F5Networks/f5-declarative-onboarding/issues/120)): Add support for System tmshAuditLog and guiAuditLog
+- AUTOTOOL-1322: ([GitHub Issue 96](https://github.com/F5Networks/f5-declarative-onboarding/issues/96)): Support generated MAC Masquerade on Traffic Groups according to https://support.f5.com/csp/article/K3523.   
+### Fixed
+- AUTOTOOL-1491 ([GitHub Issue 138](https://github.com/F5Networks/f5-declarative-onboarding/issues/138)): Cannot create a device group with AFM provisioned
+- AUTOTOOL-1469: Problems with latest Azure image
+- AUTOTOOL-901 ([GitHub Issue 79](https://github.com/F5Networks/f5-declarative-onboarding/issues/79)): charset not allowed in Content-Type header
+### Changed
+- Update @f5devcentral/f5-teem package dependency to 1.4.6
+### Removed
+
 ## 1.12.0
 ### Added
 - AUTOTOOL-152: Ability to upload device certificate
