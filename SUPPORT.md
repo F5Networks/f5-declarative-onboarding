@@ -13,10 +13,10 @@ Currently supported versions:
 
 | Software Version | Release Type  | First Customer Ship |End of Support   |
 |------------------|---------------|---------------------|-----------------|
-| DO 1.10.0        | Feature       | 27-Jan-2020         | 27-Apr-2020     |
 | DO 1.11.0        | Feature       | 10-Mar-2020         | 10-Jun-2020     |
 | DO 1.11.1        | Fix*          | 30-Mar-2020         | 10-Jun-2020     |
 | DO 1.12.0        | Feature       | 21-Apr-2020         | 21-Jul-2020     |
+| DO 1.13.0        | Feature       | 02-Jun-2020         | 02-Sep-2020     |
 
 \* Fix for Allowed schema version
 
@@ -37,6 +37,7 @@ Versions no longer supported:
 | DO 1.7.0         | Feature       | 10-Sep-2019         | 10-Dec-2019     |
 | DO 1.8.0         | Feature       | 22-Oct-2019         | 22-Jan-2020     |
 | DO 1.9.0         | Feature       | 03-Dec-2019         | 03-Mar-2020     |
+| DO 1.10.0        | Feature       | 27-Jan-2020         | 27-Apr-2020     |
 
 \* Fix for updated Docker Container packaging only
 
