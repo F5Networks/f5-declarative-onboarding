@@ -37,7 +37,7 @@ module.exports = {
     /**
      * Decrypts an encrypted configuration value.
      *
-     * Only works wehn running locally on a BIG-IP.
+     * Only works when running locally on a BIG-IP.
      *
      * @param {String} value - The value to decrypt.
      *

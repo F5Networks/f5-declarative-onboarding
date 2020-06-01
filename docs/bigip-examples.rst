@@ -157,11 +157,13 @@ In the following declaration snippet we show only the classes related to SNMP.  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The ability to configure RADIUS, LDAP, and TACACS authentication in a declaration is available in DO v1.7.0 and later.
+   The ability to enable SSL for LDAP is available in DO 1.13 and later
 
 In this example, we show how to configure RADIUS, LDAP, and TACACS authentication in a Declarative Onboarding declaration using the **Authentication** class. The authentication class can (but does not have to) contain multiple authentication method subclasses but only one can be enabled at a time using the **enableSourceType** property (which matches the BIG-IP UI behavior).
 
-This example declaration contains all three authentication methods with the **enableSourceType** property set to **radius**.
+This example declaration contains all three authentication methods with the **enableSourceType** property set to **radius**. It also includes the SSL options for LDAP introduced in DO 1.13.
+
+For more information on options and DO usage, see |auth| and the subsequent entries in the Schema Reference.
 
 In the following declaration snippet we show only the classes related to authentication.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
@@ -289,7 +291,7 @@ In the following declaration, we show only the HTTPD class.  You can use this cl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for configuring system settings such as hostname and console timeout is available in DO v1.8.0 and later. 
+   Support for disabling the auto-check feature is available in DO v1.13 and later. 
 
 In this example, we show how you can configure some System settings in a Declarative Onboarding declaration. This enables you to set auto-timeout values for serial console (CLI) and TMSH interactive mode sessions, as well as set a hostname, if you have not set one in the Common class. 
 
@@ -297,7 +299,9 @@ In this example, we show how you can configure some System settings in a Declara
 
 For usage and options, see |sysclass| in the Schema Reference.
 
-In the following declaration, we show only the System class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+DO 1.13 introduced the ability to disable the automatic update check feature.  The autoCheck property controls whether the BIG-IP checks for and recommends software updates.  See |k15000| for more information. 
+
+In the following declaration, we show only the System class (including autoCheck introduced in 1.13).  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
 
 .. literalinclude:: ../examples/system.json
@@ -352,6 +356,26 @@ See |certclass| in the schema reference for more information and usage.
 :ref:`Back to top<bigipexamples>`
 
 |
+
+.. _example19:
+
+19: Using the userAgent Controls property 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for **userAgent** is available in DO v1.13.0 and later
+
+In this example, we show how you can use the **userAgent** property in the new **Controls** class. The userAgent property allows you to set a unique identifier in usage data.
+
+This declaration includes the Controls class with userAgent set to **BIG-IQ/7.1 Configured by API**.  
+
+See |controls| in the Schema Reference for more information.
+
+
+.. literalinclude:: ../examples/userAgent.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
 
 
 .. |br| raw:: html
@@ -434,4 +458,17 @@ See |certclass| in the schema reference for more information and usage.
 .. |certdoc| raw:: html
 
    <a href="https://support.f5.com/csp/article/K6353" target="_blank">Updating a self-signed SSL device certificate on a BIG-IP system</a>
+
+.. |controls| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#device-controls" target="_blank">Device_Controls</a>
+
+.. |auth| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#authentication" target="_blank">Authentication</a>
+
+.. |k15000| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K15000" target="_blank">K15000</a>
+
 

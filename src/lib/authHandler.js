@@ -186,6 +186,9 @@ function handleLdap() {
         searchBaseDn: ldap.searchBaseDn || 'none',
         searchTimeout: ldap.searchTimeout,
         servers: ldap.servers,
+        ssl: ldap.ssl,
+        sslCheckPeer: ldap.sslCheckPeer ? 'enabled' : 'disabled',
+        sslCiphers: ldap.sslCiphers ? ldap.sslCiphers.join(':') : '',
         userTemplate: ldap.userTemplate || 'none',
         version: ldap.version
     };

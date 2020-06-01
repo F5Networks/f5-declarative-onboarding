@@ -247,7 +247,7 @@ describe('auth.schema.json', () => {
                 'no-access'
             ];
             roles.forEach((role) => {
-                it(`should validate ${role.role} remote role`, () => {
+                it(`should validate ${role} remote role`, () => {
                     const dataCopy = JSON.parse(JSON.stringify(data));
                     dataCopy.role = role;
                     assert.ok(dataCopy, getErrorString(validate));
@@ -385,6 +385,13 @@ describe('auth.schema.json', () => {
                             '1.2.3.4',
                             'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                         ],
+                        ssl: "enabled",
+                        sslCheckPeer: true,
+                        sslCiphers: [
+                            "ECDHE-RSA-AES128-GCM-SHA256",
+                            "ECDHE-RSA-AES128-CBC-SHA",
+                            "ECDHE-RSA-AES128-SHA256"
+                        ],
                         userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
                         version: 2
                     }
@@ -437,6 +444,40 @@ describe('auth.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'at least one server in servers array should be mandatory for ldap authentication');
                 assert.notStrictEqual(getErrorString().indexOf('"limit": 1'), -1);
+            });
+
+            it('should invalidate data with unexpected ssl value', () => {
+                const data = {
+                    class: 'Authentication',
+                    enabledSourceType: 'ldap',
+                    ldap: {
+                        servers: [
+                            'my.host.com'
+                        ],
+                        ssl: 'blah'
+                    }
+                };
+
+                assert.strictEqual(validate(data), false, 'expected values for ssl should be mandatory for ldap authentication');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate data with unknown cipher', () => {
+                const data = {
+                    class: 'Authentication',
+                    enabledSourceType: 'ldap',
+                    ldap: {
+                        servers: [
+                            'my.host.com'
+                        ],
+                        sslCiphers: [
+                            'mycipher'
+                        ]
+                    }
+                };
+
+                assert.strictEqual(validate(data), false, 'contents should match');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
             });
         });
     });

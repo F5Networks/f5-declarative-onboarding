@@ -125,7 +125,7 @@ System class
 ````````````
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for configuring system settings is available in DO v1.8.0 and later. The **autoPhonehome** System property is available in DO v1.10.0 and later.
+   The **autoCheck** property is available in DO 1.13 and later. The **autoPhonehome** property is available in DO v1.10.0 and later.
 
 The next lines of the declaration set the system-level options. This includes inactivity timeouts for CLI and Console sessions, and the ability to disable the phonehome property (see the table for details) in DO 1.10.0 and later. 
 
@@ -134,6 +134,8 @@ For more information, see |systemclass| in the Schema Reference. Also see :ref:`
 .. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class. We recommend using the System class for hostname
 
 The name *mySystem* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+
+This snippet includes the **autoCheck** property which is not in the full declaration at the top of this page.
 
 .. code-block:: javascript
    :linenos:
@@ -145,6 +147,7 @@ The name *mySystem* we use in this example is arbitrary; it is not used anywhere
         "hostname": "bigip.example.com",
         "cliInactivityTimeout": 1200,
         "consoleInactivityTimeout": 1200,
+        "autoCheck": false,
         "autoPhonehome": true
     }, 
     
@@ -161,6 +164,8 @@ The name *mySystem* we use in this example is arbitrary; it is not used anywhere
 | consoleInactivityTimeout | integer         |   No       | Specifies automatic logout for idle serial console sessions (command line sessions) in seconds. The default value 0 means that no timeout is set.                                                                                 |
 +--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | hostname                 | string          |   No       | Hostname (if you did NOT set hostname in the Common class) you want to set for this BIG-IP device. The default hostname on a new BIG-IP is **bigip1**.                                                                            |
++--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| autoCheck                | **true**, false |   No       | Enables the BIG-IP system to check for and recommend software updates.  See |k15000| for more information.                                                                                                                        |
 +--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | autoPhonehome            | **true**, false |   No       | Enables the BIG-IP system to send non-confidential, high-level device information to F5 in order to help determine product usage to optimize product development. Choose False to disable sending this information to F5.         |
 +--------------------------+-----------------+------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -812,3 +817,8 @@ The next lines of the declaration enable the ability to set arbitrary database v
 .. |devicecommon| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#device-common" target="_blank">Device Common Class</a>
+
+
+.. |k15000| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K15000" target="_blank">K15000</a>

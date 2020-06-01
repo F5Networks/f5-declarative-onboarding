@@ -142,47 +142,62 @@ function handleFailoverUnicast() {
  * Otherwise, handle device trust and group separately.
  */
 function handleDeviceTrustAndGroup() {
-    const deviceGroup = pullDeviceGroup(this.declaration.Common);
+    const deviceGroups = pullDeviceGroup(this.declaration.Common);
 
-    if (this.declaration.Common.DeviceTrust && deviceGroup) {
+    if (this.declaration.Common.DeviceTrust && deviceGroups.length > 0) {
         let convertedAddresses;
         const deviceTrust = this.declaration.Common.DeviceTrust;
 
-        return convertToHostnames.call(this, deviceGroup.members, deviceGroup.owner)
-            .then((convertedHostnames) => {
-                convertedAddresses = convertedHostnames;
-                return this.bigIp.deviceInfo();
-            })
-            .then((deviceInfo) => {
-                if (deviceInfo.hostname !== convertedAddresses.owner) {
-                    return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
-                }
-                return Promise.resolve(true);
-            })
-            .then((isRemote) => {
-                if (!isRemote) {
-                    logger.fine('Passing off to join cluster function.');
-                    return handleJoinCluster.call(this, convertedAddresses.members);
-                }
-                // If this host is the remote host, we only create the device group and
-                // ignore device trust.
-                return handleDeviceGroup.call(this, convertedAddresses);
-            })
-            .catch((err) => {
-                logger.severe(`Error creating/joining device trust/group: ${err.message}`);
-                return Promise.reject(err);
-            });
+        let promises = Promise.resolve();
+        deviceGroups.forEach((deviceGroup) => {
+            promises = promises.then(() => convertToHostnames.call(this, deviceGroup.members, deviceGroup.owner))
+                .then((convertedHostnames) => {
+                    convertedAddresses = convertedHostnames;
+                    return this.bigIp.deviceInfo();
+                })
+                .then((deviceInfo) => {
+                    if (deviceInfo.hostname !== convertedAddresses.owner) {
+                        return isRemoteHost.call(this, deviceInfo, deviceTrust.remoteHost);
+                    }
+                    return Promise.resolve(true);
+                })
+                .then((isRemote) => {
+                    if (!isRemote) {
+                        logger.fine('Passing off to join cluster function.');
+                        return handleJoinCluster.call(this, convertedAddresses.members, deviceGroup);
+                    }
+                    // If this host is the remote host, we only create the device group and
+                    // ignore device trust.
+                    return handleDeviceGroup.call(this, convertedAddresses, deviceGroup);
+                })
+                .catch((err) => {
+                    logger.severe(`Error creating/joining device trust/group: ${err.message}`);
+                    return Promise.reject(err);
+                });
+        });
+        return promises;
     }
 
     return handleDeviceTrust.call(this)
         .then(() => {
-            if (deviceGroup) {
-                return convertToHostnames.call(this, deviceGroup.members, deviceGroup.owner);
+            if (deviceGroups.length > 0) {
+                let promises = Promise.resolve();
+                deviceGroups.forEach((deviceGroup) => {
+                    promises = promises.then(() => convertToHostnames
+                        .call(this, deviceGroup.members, deviceGroup.owner));
+                });
+                return promises;
             }
 
             return Promise.resolve({});
         })
-        .then(convertedAddresses => handleDeviceGroup.call(this, convertedAddresses))
+        .then((convertedAddresses) => {
+            let promises = Promise.resolve();
+            deviceGroups.forEach((deviceGroup) => {
+                promises = promises.then(() => handleDeviceGroup.call(this, convertedAddresses, deviceGroup));
+            });
+            return promises;
+        })
         .catch((err) => {
             logger.severe(`Error handling device trust and group: ${err.message}`);
             return Promise.reject(err);
@@ -193,17 +208,15 @@ function handleDeviceTrustAndGroup() {
  * Handles joining a cluster. There is a lot to this, especially when ASM is
  * provisioned. f5-cloud-libs has all the logic for this.
  */
-function handleJoinCluster(convertedMembers) {
-    if (this.declaration.Common.DeviceTrust && this.declaration.Common.DeviceGroup) {
+function handleJoinCluster(convertedMembers, deviceGroup) {
+    if (this.declaration.Common.DeviceTrust && deviceGroup) {
         const deviceTrust = this.declaration.Common.DeviceTrust;
-        const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
-        const deviceGroup = pullDeviceGroup(this.declaration.Common);
 
         this.bigIp.user = deviceTrust.localUsername;
         this.bigIp.password = deviceTrust.localPassword;
         return doUtil.checkDnsResolution(deviceTrust.remoteHost)
             .then(() => this.bigIp.cluster.joinCluster(
-                deviceGroupName,
+                deviceGroup.name,
                 deviceTrust.remoteHost,
                 deviceTrust.remoteUsername,
                 deviceTrust.remotePassword,
@@ -214,7 +227,7 @@ function handleJoinCluster(convertedMembers) {
                 }
             ))
             .then(() => convertToHostnames.call(this, deviceGroup.members, deviceGroup.owner))
-            .then(syncedConverted => pruneDeviceGroup.call(this, deviceGroupName, syncedConverted.members));
+            .then(syncedConverted => pruneDeviceGroup.call(this, deviceGroup.name, syncedConverted.members));
     }
     return Promise.resolve();
 }
@@ -271,32 +284,24 @@ function handleDeviceTrust() {
 /**
  * Handles creating or joining the device group.
  */
-function handleDeviceGroup(convertedAddresses) {
-    if (this.declaration.Common.DeviceGroup) {
-        const deviceGroupName = Object.keys(this.declaration.Common.DeviceGroup)[0];
-        let deviceGroup;
-        if (deviceGroupName) {
-            deviceGroup = this.declaration.Common.DeviceGroup[deviceGroupName];
-        }
+function handleDeviceGroup(convertedAddresses, deviceGroup) {
+    if (deviceGroup) {
+        return this.bigIp.deviceInfo()
+            .then((deviceInfo) => {
+                const hostname = deviceInfo.hostname;
+                // If we are the owner, create the group
+                if (hostname === convertedAddresses.owner) {
+                    return createDeviceGroup.call(this, deviceGroup.name, deviceGroup,
+                        convertedAddresses.members);
+                }
 
-        if (deviceGroup) {
-            return this.bigIp.deviceInfo()
-                .then((deviceInfo) => {
-                    const hostname = deviceInfo.hostname;
-                    // If we are the owner, create the group
-                    if (hostname === convertedAddresses.owner) {
-                        return createDeviceGroup.call(this, deviceGroupName, deviceGroup,
-                            convertedAddresses.members);
-                    }
-
-                    return joinDeviceGroup.call(this, deviceGroupName, hostname)
-                        .then(() => pruneDeviceGroup.call(this, deviceGroupName, convertedAddresses.members));
-                })
-                .catch((err) => {
-                    logger.severe(`Error handling device group: ${err.message}`);
-                    return Promise.reject(err);
-                });
-        }
+                return joinDeviceGroup.call(this, deviceGroup.name, hostname)
+                    .then(() => pruneDeviceGroup.call(this, deviceGroup.name, convertedAddresses.members));
+            })
+            .catch((err) => {
+                logger.severe(`Error handling device group: ${err.message}`);
+                return Promise.reject(err);
+            });
     }
 
     return Promise.resolve();
@@ -462,7 +467,8 @@ function pruneDeviceGroup(deviceGroupName, deviceNames) {
 /**
  * Calls target BIG-IPs to pull their hostname for clustering purposes.
  *
- * @param {String[]} members - Members of the cluster
+ * @param {String[]} deviceGroupMembers - Members of the cluster
+ * @param {String} deviceGroupOwner - The supplied address of the owning machine
  *
  * @returns {Promise} This promise will contain an array of member host
  *                    names.
@@ -484,7 +490,7 @@ function convertToHostnames(deviceGroupMembers, deviceGroupOwner) {
             const converted = {};
 
             const convertAddress = function (address) {
-                // check if member is an IP
+                // check if member is not an IP
                 if (!ipF5(address)) {
                     return address;
                 }
@@ -516,20 +522,17 @@ function convertToHostnames(deviceGroupMembers, deviceGroupOwner) {
  *
  * @param {Object} Common - Common property of parsed declaration.
  *
- * @returns {Object|undefined} the DeviceGroup from the Common object.
+ * @returns {array} <Object> - An array of DeviceGroup objects, will be empty if none found.
  */
 function pullDeviceGroup(Common) {
-    let deviceGroup;
+    let deviceGroups = [];
     if (Common.DeviceGroup) {
-        const deviceGroupName = Object.keys(Common.DeviceGroup)[0];
-        if (deviceGroupName) {
-            deviceGroup = Common.DeviceGroup[deviceGroupName];
-            if (deviceGroup) {
-                return deviceGroup;
-            }
-        }
+        deviceGroups = Object.keys(Common.DeviceGroup).map((key) => {
+            const deviceGroup = Object.assign({ name: key }, Common.DeviceGroup[key]); // Add name for later reference
+            return deviceGroup;
+        });
     }
-    return deviceGroup;
+    return deviceGroups;
 }
 
 

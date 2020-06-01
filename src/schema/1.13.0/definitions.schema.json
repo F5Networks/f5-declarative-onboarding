@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/definitions.schema.json",
+    "title": "F5 Declarative Onboarding schema common definitions",
+    "description": "Common definitions for use in Declarative Onboarding schemas.",
+    "definitions": {
+        "F5string": {
+            "description": "String value in base64",
+            "type": "object",
+            "properties": {
+                "base64": {
+                    "description": "Base64-encoded value (in JSON string)",
+                    "type": "string",
+                    "format": "f5base64"
+                }
+            }
+        },
+        "additionalProperties": false
+    }
+}
