@@ -307,7 +307,7 @@ pages:
         paths:
             - public
     only:
-        # - develop
+        - develop
         - doc-release-branch
 
 Publish docs to staging:
