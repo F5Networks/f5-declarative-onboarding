@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* jshint ignore: start */
+
 'use strict';
 
 const fs = require('fs');
