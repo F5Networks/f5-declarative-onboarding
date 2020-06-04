@@ -433,7 +433,7 @@ In this example, we show how you can configure MAC Masquerading on Traffic Group
 
 For detailed information about Mac Masquerade on the BIG-IP, see |mmkb|.
 
-See |macm| and |macms| in the Schema Reference for DO usage and options. 
+See |macm| in the Schema Reference for DO usage and options. 
 
 
 .. literalinclude:: ../examples/macMasquerade.json
@@ -542,10 +542,6 @@ See |macm| and |macms| in the Schema Reference for DO usage and options.
 .. |macm| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mac-masquerade" target="_blank">Mac_Masquerade</a>
-
-.. |macms| raw:: html
-
-   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mac-masquerade-source" target="_blank">Mac_Masquerade_Source</a>
 
 .. |mmkb| raw:: html
 
