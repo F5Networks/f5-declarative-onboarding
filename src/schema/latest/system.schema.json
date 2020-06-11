@@ -3,13 +3,6 @@
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/system.schema.json",
     "title": "F5 Declarative Onboarding system declaration",
     "description": "System properties for onboarding a BIG-IP.",
-    "properties": {
-        "hostname": {
-            "description": "Hostname to set for the device. Note: If you set the hostname as part of the System class, you CANNOT set a hostname in the Common class (they are mutually exclusive).",
-            "type": "string",
-            "format": "hostname"
-        }
-    },
     "allOf": [
         {
             "if": {

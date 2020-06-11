@@ -1,6 +1,13 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.14.0
+### Added
+### Fixed
+- AUTOTOOL-1091: Bad class values do not fail schema validation
+### Changed
+### Removed
+
 ## 1.13.0
 ### Added
 - AUTOTOOL-1380: ([GitHub Issue 126](https://github.com/F5Networks/f5-declarative-onboarding/issues/126)): Add fields to partially support SSL for LDAP auth.  Additional fields for this GitHub issue TBD.
