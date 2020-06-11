@@ -42,17 +42,6 @@ const validate = ajv
 /* eslint-disable quotes, quote-props */
 
 describe('system.schema.json', () => {
-    describe('hostname', () => {
-        describe('valid', () => {
-            it('should accept a class-less hostname', () => {
-                const data = {
-                    "hostname": 'my.bigip.com'
-                };
-                assert.ok(validate(data), getErrorString(validate));
-            });
-        });
-    });
-
     describe('DNS', () => {
         describe('valid', () => {
             it('should validate dns data', () => {

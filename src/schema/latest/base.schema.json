@@ -124,9 +124,52 @@
                 "class": {
                     "type": "string",
                     "const": "Tenant"
+                },
+                "hostname": {
+                    "description": "Hostname to set for the device. Note: If you set the hostname as part of the System class, you CANNOT set a hostname in the Common class (they are mutually exclusive).",
+                    "type": "string",
+                    "format": "hostname"
                 }
             },
             "additionalProperties": {
+                "properties": {
+                    "class": {
+                        "enum": [
+                            "Analytics",
+                            "Authentication",
+                            "ConfigSync",
+                            "DagGlobals",
+                            "DbVariables",
+                            "DeviceCertificate",
+                            "DeviceGroup",
+                            "DeviceTrust",
+                            "DNS",
+                            "FailoverUnicast",
+                            "HTTPD",
+                            "License",
+                            "MAC_Masquerade",
+                            "ManagementRoute",
+                            "NTP",
+                            "Provision",
+                            "RemoteAuthRole",
+                            "Route",
+                            "RouteDomain",
+                            "SelfIp",
+                            "SnmpAgent",
+                            "SnmpCommunity",
+                            "SnmpTrapEvents",
+                            "SnmpTrapDestination",
+                            "SnmpUser",
+                            "SSHD",
+                            "SyslogRemoteServer",
+                            "System",
+                            "TrafficControl",
+                            "Trunk",
+                            "User",
+                            "VLAN"
+                        ]
+                    }
+                },
                 "allOf": [
                     { "$ref": "system.schema.json#" },
                     { "$ref": "network.schema.json#" },
