@@ -174,7 +174,10 @@ describe('network.schema.json', () => {
                     ],
                     mtu: 1500,
                     tag: 1234,
-                    cmpHash: 'dst-ip'
+                    cmpHash: 'dst-ip',
+                    failsafeEnabled: true,
+                    failsafeAction: 'reboot',
+                    failsafeTimeout: 3600
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -221,6 +224,36 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "foo"'), -1);
+            });
+
+            it('should invalidate unexpected failsafe action', () => {
+                const data = {
+                    class: 'VLAN',
+                    interfaces: [
+                        {
+                            name: 'myInterface',
+                            tagged: false
+                        }
+                    ],
+                    failsafeAction: 'do-nothing'
+                };
+                assert.strictEqual(validate(data), false, 'non-enum failsafe action should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate out of range failsafe timeout', () => {
+                const data = {
+                    class: 'VLAN',
+                    interfaces: [
+                        {
+                            name: 'myInterface',
+                            tagged: false
+                        }
+                    ],
+                    failsafeTimeout: 3601
+                };
+                assert.strictEqual(validate(data), false, 'out of range failsafe timeout should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 3600'), -1);
             });
         });
     });

@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.14.0
 ### Added
+- AUTOTOOL-1610: Add support for VLAN failsafe settings
 ### Fixed
 - AUTOTOOL-1091: Bad class values do not fail schema validation
 - AUTOTOOL-1659: MAC_Masquerade fails to roll back properly

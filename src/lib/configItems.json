@@ -97,7 +97,10 @@
             { "id": "mtu" },
             { "id": "tag" },
             { "id": "interfacesReference" },
-            { "id": "cmpHash" }
+            { "id": "cmpHash" },
+            { "id": "failsafe", "newId": "failsafeEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "failsafeAction" },
+            { "id": "failsafeTimeout" }
         ],
         "references": {
             "interfacesReference": [

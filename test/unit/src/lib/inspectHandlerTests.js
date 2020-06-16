@@ -493,7 +493,10 @@ describe('inspectHandler', () => {
                     interfacesReference: {
                         link: 'https://localhost/mgmt/tm/net/vlan/~Common~internalVlan/interfaces'
                     },
-                    cmpHash: 'default'
+                    cmpHash: 'default',
+                    failsafe: 'enabled',
+                    failsafeAction: 'reboot',
+                    failsafeTimeout: 3600
                 },
                 {
                     name: 'externalVlan',
@@ -502,7 +505,10 @@ describe('inspectHandler', () => {
                     interfacesReference: {
                         link: 'https://localhost/mgmt/tm/net/vlan/~Common~externalVlan/interfaces'
                     },
-                    cmpHash: 'src-ip'
+                    cmpHash: 'src-ip',
+                    failsafe: 'disabled',
+                    failsafeAction: 'failover-restart-tm',
+                    failsafeTimeout: 90
                 }
             ],
             '/tm/net/vlan/~Common~externalVlan/interfaces': [
@@ -870,7 +876,10 @@ describe('inspectHandler', () => {
                                 { name: '2.2', tagged: false }
                             ],
                             class: 'VLAN',
-                            cmpHash: 'default'
+                            cmpHash: 'default',
+                            failsafeEnabled: true,
+                            failsafeAction: 'reboot',
+                            failsafeTimeout: 3600
                         },
                         externalVlan: {
                             mtu: 1500,
@@ -880,7 +889,10 @@ describe('inspectHandler', () => {
                                 { name: '1.2', tagged: false }
                             ],
                             class: 'VLAN',
-                            cmpHash: 'src-ip'
+                            cmpHash: 'src-ip',
+                            failsafeEnabled: false,
+                            failsafeAction: 'failover-restart-tm',
+                            failsafeTimeout: 90
                         },
                         internalSelfIp: {
                             address: '10.0.0.2/24',
