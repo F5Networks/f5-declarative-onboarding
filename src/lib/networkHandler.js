@@ -103,25 +103,30 @@ function handleMacMasquerade() {
             .then((macs) => {
                 Object.keys(macMasquerade).forEach((masquerade) => {
                     const trafficGroup = macMasquerade[masquerade].trafficGroup;
+                    // Fetch existing mac on rollback or default to none
+                    let mac = macMasquerade[masquerade].mac || 'none';
+
+                    // Update mac with unique mac address if source is defined
                     if (macMasquerade[masquerade].source) {
                         const sourceInterface = macMasquerade[masquerade].source.interface;
-                        let mac;
+                        let sourceMac;
                         Object.keys(macs.entries).forEach((property) => {
                             if (macs.entries[property].nestedStats.entries.objectId.description === sourceInterface) {
-                                mac = macs.entries[property].nestedStats.entries.macAddress.description;
+                                sourceMac = macs.entries[property].nestedStats.entries.macAddress.description;
                             }
                         });
-                        if (mac) {
-                            // eslint-disable-next-line no-bitwise
-                            const newMac = mac.slice(0, 1) + ((parseInt(mac.charAt(1), 16) >>> 0) ^ 2).toString(16)
-                                + mac.slice(2); // https://support.f5.com/csp/article/K3523
-                            this.bigIp.modify(`${PATHS.TrafficGroup}/~Common~${trafficGroup}`, { mac: newMac });
+                        if (sourceMac) {
+                            // https://support.f5.com/csp/article/K3523
+                            mac = sourceMac.slice(0, 1)
+                                // eslint-disable-next-line no-bitwise
+                                + ((parseInt(sourceMac.charAt(1), 16) >>> 0) ^ 2).toString(16)
+                                + sourceMac.slice(2);
                         } else {
                             throw new Error('Cannot find MAC for given interface');
                         }
-                    } else {
-                        this.bigIp.modify(`${PATHS.TrafficGroup}/~Common~${trafficGroup}`, { mac: 'none' });
                     }
+
+                    this.bigIp.modify(`${PATHS.TrafficGroup}/~Common~${trafficGroup}`, { mac });
                 });
             })
             .catch((err) => {

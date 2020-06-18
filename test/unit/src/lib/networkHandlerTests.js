@@ -798,6 +798,25 @@ describe('networkHandler', () => {
                     assert.strictEqual(dataSent['/tm/cm/traffic-group/~Common~traffic-group-1'][0].mac, 'none');
                 });
         });
+
+        it('should reuse masquerade on rollback when source not specified', () => {
+            const declaration = {
+                Common: {
+                    MAC_Masquerade: {
+                        myMac: {
+                            trafficGroup: 'traffic-group-1',
+                            mac: '0f:a0:98:f1:5f:55'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    assert.strictEqual(dataSent['/tm/cm/traffic-group/~Common~traffic-group-1'][0].mac, '0f:a0:98:f1:5f:55');
+                });
+        });
     });
 
     describe('DagGlobals', () => {

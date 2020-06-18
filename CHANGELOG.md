@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 ### Fixed
 - AUTOTOOL-1091: Bad class values do not fail schema validation
+- AUTOTOOL-1659: MAC_Masquerade fails to roll back properly
 ### Changed
 ### Removed
 
