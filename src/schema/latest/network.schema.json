@@ -158,6 +158,24 @@
                         "type": "string",
                         "enum": ["default", "dst-ip", "src-ip"],
                         "default": "default"
+                    },
+                    "failsafeEnabled": {
+                        "description": "Enables a fail-safe mechanism that causes the active cluster to fail over to a redundant cluster when loss of traiffic is detected on a VLAN",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "failsafeAction": {
+                        "description": "Specifies the action for the system to take when the fail-safe mechanism is triggered",
+                        "type": "string",
+                        "enum": ["failover", "failover-restart-tm", "reboot", "restart-all"],
+                        "default": "failover-restart-tm"
+                    },
+                    "failsafeTimeout": {
+                        "description": "Specifies the number of seconds that an active unit can run without detecting network traffic on this VLAN before starting a failover",
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 3600,
+                        "default": 90
                     }
                 },
                 "additionalProperties": false

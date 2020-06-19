@@ -165,7 +165,10 @@ function handleVlan() {
                     interfaces,
                     name: vlan.name,
                     partition: tenant,
-                    cmpHash: vlan.cmpHash
+                    cmpHash: vlan.cmpHash,
+                    failsafe: vlan.failsafeEnabled ? 'enabled' : 'disabled',
+                    failsafeAction: vlan.failsafeAction,
+                    failsafeTimeout: vlan.failsafeTimeout
                 };
 
                 if (vlan.mtu) {
