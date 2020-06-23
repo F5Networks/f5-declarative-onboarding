@@ -98,7 +98,7 @@
             { "id": "tag" },
             { "id": "interfacesReference" },
             { "id": "cmpHash" },
-            { "id": "failsafe", "newId": "failsafeEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "failsafe", "newId": "failsafeEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "failsafeAction" },
             { "id": "failsafeTimeout" }
         ],
