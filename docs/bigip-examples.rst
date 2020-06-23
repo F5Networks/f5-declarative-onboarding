@@ -451,7 +451,7 @@ See |macm| in the Schema Reference for DO usage and options.
 
    Support for VLAN Failsafe is available in DO v1.14 and later
 
-In this example, we show how you can configure VLAN Failsafe settings in a Declarative Onboarding declaration.  This is a part of the |cmpref|, and includes the new properties **failSafeEnabled**, **failSafeAction**, and **failSafeTimeout**.
+In this example, we show how you can configure VLAN Failsafe settings in a Declarative Onboarding declaration.  This is a part of the |cmpref|, and includes the new properties **failsafeEnabled**, **failsafeAction**, and **failsafeTimeout**.
 
 For detailed information about VLAN Failsafe on the BIG-IP, see |vlanfs|.
 
