@@ -429,7 +429,7 @@ See |sysclass| in the Schema Reference for DO usage and options. For detailed in
 
    Support for MAC Masquerade on Traffic Groups is available in DO v1.13 and later
 
-In this example, we show how you can configure MAC Masquerading on Traffic Groups.  This is a part of the new **MAC_Masquerade** and **MAC_Masquerade_Source** classes.  
+In this example, we show how you can configure MAC Masquerading on Traffic Groups.  This is a part of the new **MAC_Masquerade** class.  
 
 For detailed information about Mac Masquerade on the BIG-IP, see |mmkb|.
 
@@ -449,17 +449,18 @@ See |macm| in the Schema Reference for DO usage and options.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support mac masquerade on Traffic Groups is available in DO v1.13 and later
+   Support for VLAN Failsafe is available in DO v1.14 and later
 
-In this example, we show how you can configure MAC Masquerading on Traffic Groups.  This is a part of the new **MAC_Masquerade** and **MAC_Masquerade_Source** classes.  
+In this example, we show how you can configure VLAN Failsafe settings in a Declarative Onboarding declaration.  This is a part of the |cmpref|, and includes the new properties **failSafeEnabled**, **failSafeAction**, and **failSafeTimeout**.
 
-For detailed information about Mac Masquerade on the BIG-IP, see |mmkb|.
+For detailed information about VLAN Failsafe on the BIG-IP, see |vlanfs|.
 
-See |macm| in the Schema Reference for DO usage and options. 
+See |cmpref| in the Schema Reference for DO usage and options. 
 
 
-.. literalinclude:: ../examples/macMasquerade.json
+.. literalinclude:: ../examples/vlanFailsafe.json
    :language: json
+
 
 :ref:`Back to top<bigipexamples>`
 
@@ -569,3 +570,7 @@ See |macm| in the Schema Reference for DO usage and options.
 .. |mmkb| raw:: html
 
    <a href="https://support.f5.com/csp/article/K13502" target="_blank">K13502: Configuring MAC masquerade</a>
+
+.. |vlanfs| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K13297" target="_blank">K13297: Overview of VLAN failsafe</a>
