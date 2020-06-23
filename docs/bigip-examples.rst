@@ -441,6 +441,29 @@ See |macm| in the Schema Reference for DO usage and options.
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
+.. _example22:
+
+22: Configuring VLAN Failsafe 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support mac masquerade on Traffic Groups is available in DO v1.13 and later
+
+In this example, we show how you can configure MAC Masquerading on Traffic Groups.  This is a part of the new **MAC_Masquerade** and **MAC_Masquerade_Source** classes.  
+
+For detailed information about Mac Masquerade on the BIG-IP, see |mmkb|.
+
+See |macm| in the Schema Reference for DO usage and options. 
+
+
+.. literalinclude:: ../examples/macMasquerade.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+
 
 .. |br| raw:: html
 
