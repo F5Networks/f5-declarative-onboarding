@@ -62,7 +62,8 @@ module.exports = {
         TrafficGroup: '/tm/cm/traffic-group',
         HTTPD: '/tm/sys/httpd',
         SSHD: '/tm/sys/sshd',
-        SoftwareUpdate: '/tm/sys/software/update'
+        SoftwareUpdate: '/tm/sys/software/update',
+        Tunnel: '/tm/net/tunnels/tunnel'
     },
     STATUS: {
         STATUS_OK: 'OK',

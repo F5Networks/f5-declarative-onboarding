@@ -418,12 +418,12 @@ describe('network.schema.json', () => {
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
             });
 
-            it('should invalidate missing gateway', () => {
+            it('should invalidate missing gateway and vlanOrTunnel', () => {
                 const data = {
                     class: 'Route'
                 };
                 assert.strictEqual(validate(data), false, 'missing gateway should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "gw"'), -1);
+                assert.notStrictEqual(getErrorString().indexOf('should match exactly one schema in oneOf'), -1);
             });
 
             it('should invalidate route data with bad gateway IP address', () => {
@@ -600,6 +600,101 @@ describe('network.schema.json', () => {
                     roundRobinMode: 'newRRMode'
                 };
                 assert.strictEqual(validate(data), false, 'roundRobinMode should only match values in enum');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+        });
+    });
+
+    describe('Tunnel', () => {
+        describe('valid', () => {
+            it('should validate minimal schema', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate with all properties', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    mtu: 5,
+                    usePmtu: false,
+                    typeOfService: 10,
+                    autoLastHop: 'enabled'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate invalid tunnelType', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'InvalidTunnelType'
+                };
+                assert.strictEqual(validate(data), false, 'tunnelType should match one of the enum values');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate additional properties', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    newProperty: 'helloThere'
+                };
+                assert.strictEqual(validate(data), false, 'can\'t have additional properties');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate invalid mtu value', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    mtu: 70000
+                };
+                assert.strictEqual(validate(data), false, 'mtu is out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+            });
+
+            it('should invalidate invalid usePmtu value', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    usePmtu: 'yes'
+                };
+                assert.strictEqual(validate(data), false, 'usePmtu should be a boolean');
+                assert.notStrictEqual(getErrorString().indexOf('should be boolean'), -1);
+            });
+
+            it('should invalidate invalid enum value for typeOfService', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    typeOfService: 'newType'
+                };
+                assert.strictEqual(validate(data), false, 'typeOfService should match one of the enum values');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate invalid integer value for typeOfService', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    typeOfService: 300
+                };
+                assert.strictEqual(validate(data), false, 'typeOfService should be in the 0-255 range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 255'), -1);
+            });
+
+            it('should invalidate invalid enum value for autoLastHop', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    autoLastHop: 'auto'
+                };
+                assert.strictEqual(validate(data), false, 'autoLastHop should match one of the enum values');
                 assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
             });
         });
