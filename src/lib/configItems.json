@@ -124,7 +124,8 @@
         "properties": [
             { "id": "gw" },
             { "id": "network" },
-            { "id": "mtu" }
+            { "id": "mtu" },
+            { "id": "interface", "newId": "target" }
         ]
     },
     {
@@ -497,5 +498,16 @@
             { "id": "inactivityTimeout" }
         ],
         "nameless": true
+    },
+    {
+        "path": "/tm/net/tunnels/tunnel",
+        "schemaClass": "Tunnel",
+        "properties": [
+            { "id": "autoLasthop", "newId": "autoLastHop" },
+            { "id": "mtu" },
+            { "id": "profile", "newId": "tunnelType" },
+            { "id": "tos", "newId": "typeOfService" },
+            { "id": "usePmtu", "truth": "enabled", "falsehood": "disabled" }
+        ]
     }
 ]

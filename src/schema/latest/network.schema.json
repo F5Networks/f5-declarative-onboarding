@@ -206,7 +206,7 @@
                         "default": "traffic-group-local-only"
                     },
                     "vlan": {
-                        "description": "VLAN for the self IP.",
+                        "description": "VLAN or Tunnel for the self IP.",
                         "type": "string"
                     },
                     "allowService": {
@@ -236,7 +236,6 @@
                 "properties": { "class": { "const": "Route" } }
             },
             "then": {
-                "required": ["class", "gw"],
                 "properties": {
                     "class": {
                         "description": "Indicates that this property contains Route configuration.",
@@ -265,9 +264,28 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 9198
+                    },
+                    "target": {
+                        "description": "The VLAN or Tunnel for the Route.",
+                        "type": "string",
+                        "minLength": 0
                     }
                 },
-                "additionalProperties": false
+                "additionalProperties": false,
+                "oneOf": [
+                    {
+                        "required": ["class", "gw"],
+                        "not": {
+                            "required": ["target"]
+                        }
+                    },
+                    {
+                        "required": ["class", "target"],
+                        "not": {
+                            "required": ["gw"]
+                        }
+                    }
+                ]
             }
         },
         {
@@ -379,6 +397,65 @@
                         "type": "string",
                         "enum": ["global", "local"],
                         "default": "global"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Tunnel" } }
+            },
+            "then": {
+                "required": ["class", "tunnelType"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Tunnel configuration.",
+                        "type": "string",
+                        "enum": ["Tunnel"]
+                    },
+                    "tunnelType": {
+                        "description": "Specifies the profile that you want to associate with the Tunnel.",
+                        "type": "string",
+                        "enum": ["tcp-forward"]
+                    },
+                    "mtu": {
+                        "description": "Specifies the maximum transmission unit of the Tunnel.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535,
+                        "default": 0
+                    },
+                    "usePmtu": {
+                        "description": "Enable or disable the Tunnel to use Path MTU information provided by ICMP NeedFrag error messages.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "typeOfService": {
+                        "description": "Specifies a value for insertion into the Type of Service octet within the IP header of the encapsulating header of transmitted packets.",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": ["preserve"]
+                            },
+                            {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 255
+                            }
+                        ],
+                        "default": "preserve"
+                    },
+                    "autoLastHop": {
+                        "description": "Specifies that packets are returned to the MAC address from which they were sent when enabled. The default setting specifies that the system uses the default route to send back the request.",
+                        "type": "string",
+                        "enum": [
+                            "default",
+                            "enabled",
+                            "disabled"
+                        ],
+                        "default": "default"
                     }
                 },
                 "additionalProperties": false

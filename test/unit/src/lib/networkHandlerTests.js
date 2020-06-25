@@ -566,6 +566,12 @@ describe('networkHandler', () => {
                             gw: '1.1.1.1',
                             network: '2.2.2.2',
                             mtu: 1400
+                        },
+                        route3: {
+                            name: 'route3',
+                            target: 'targetTunnel',
+                            network: '1.2.3.4',
+                            mtu: 100
                         }
                     }
                 }
@@ -591,6 +597,11 @@ describe('networkHandler', () => {
                     assert.strictEqual(routeData[1].network, '2.2.2.2/32');
                     assert.strictEqual(routeData[1].mtu, 1400);
                     assert.strictEqual(routeData[1].partition, 'Common');
+                    assert.strictEqual(routeData[2].name, 'route3');
+                    assert.strictEqual(routeData[2].interface, '/Common/targetTunnel');
+                    assert.strictEqual(routeData[2].network, '1.2.3.4/32');
+                    assert.strictEqual(routeData[2].mtu, 100);
+                    assert.strictEqual(routeData[2].partition, 'Common');
                 });
         });
 
@@ -844,6 +855,51 @@ describe('networkHandler', () => {
                     assert.strictEqual(dagGlobalsData[0].dagIpv6PrefixLen, 120);
                     assert.strictEqual(dagGlobalsData[0].icmpHash, 'ipicmp');
                     assert.strictEqual(dagGlobalsData[0].roundRobinMode, 'local');
+                });
+        });
+    });
+
+    describe('Tunnel', () => {
+        it('should handle fully specified Tunnel', () => {
+            const declaration = {
+                Common: {
+                    Tunnel: {
+                        tunnel1: {
+                            name: 'tunnel1',
+                            tunnelType: 'tcp-forward',
+                            mtu: 0,
+                            usePmtu: true,
+                            typeOfService: 'preserve',
+                            autoLastHop: 'default'
+                        },
+                        tunnel2: {
+                            name: 'tunnel2',
+                            tunnelType: 'tcp-forward',
+                            mtu: 1000,
+                            usePmtu: false,
+                            typeOfService: 12,
+                            autoLastHop: 'enabled'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const tunnels = dataSent[PATHS.Tunnel];
+                    assert.strictEqual(tunnels[0].name, 'tunnel1');
+                    assert.strictEqual(tunnels[0].profile, '/Common/tcp-forward');
+                    assert.strictEqual(tunnels[0].mtu, 0);
+                    assert.strictEqual(tunnels[0].usePmtu, 'enabled');
+                    assert.strictEqual(tunnels[0].tos, 'preserve');
+                    assert.strictEqual(tunnels[0].autoLasthop, 'default');
+                    assert.strictEqual(tunnels[1].name, 'tunnel2');
+                    assert.strictEqual(tunnels[1].profile, '/Common/tcp-forward');
+                    assert.strictEqual(tunnels[1].mtu, 1000);
+                    assert.strictEqual(tunnels[1].usePmtu, 'disabled');
+                    assert.strictEqual(tunnels[1].tos, 12);
+                    assert.strictEqual(tunnels[1].autoLasthop, 'enabled');
                 });
         });
     });

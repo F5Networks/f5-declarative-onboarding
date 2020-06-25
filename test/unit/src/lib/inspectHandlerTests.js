@@ -388,7 +388,34 @@ describe('inspectHandler', () => {
 
     describe('declaration verification', () => {
         let listResponses;
-        let failWhenNoPropertyinResponse;
+        let failWhenNoPropertyInResponse;
+        let missedProperties;
+
+        const addMissedProperty = function (uri, property) {
+            missedProperties[uri] = missedProperties[uri] || {};
+            if (missedProperties[uri][property] !== false) {
+                missedProperties[uri][property] = true;
+            }
+        };
+        const removeMissedProperty = function (uri, property) {
+            missedProperties[uri] = missedProperties[uri] || {};
+            missedProperties[uri][property] = false;
+        };
+        const verifyMissedProperties = function () {
+            const missed = [];
+            Object.keys(missedProperties).forEach((uri) => {
+                const props = missedProperties[uri];
+                Object.keys(props).forEach((prop) => {
+                    if (props[prop]) {
+                        missed.push(`${uri}::${prop}`);
+                    }
+                });
+            });
+
+            if (missed.length > 0) {
+                throw new Error(`These properties have no response data: ${JSON.stringify(missed)}`);
+            }
+        };
 
         const pathsToIgnore = configItems.filter(item => item.declaration === false).map(item => item.path);
         const deviceName = 'device1';
@@ -420,8 +447,12 @@ describe('inspectHandler', () => {
                         ret.name = data.name;
                     }
                     $select.forEach((key) => {
-                        if (key !== 'name' && failWhenNoPropertyinResponse) {
-                            assert.notStrictEqual(data[key], undefined, `Should have '${key}' in response data for '${parsedURL.pathname}' in listResponses`);
+                        if (key !== 'name' && failWhenNoPropertyInResponse) {
+                            if (typeof data[key] === 'undefined') {
+                                addMissedProperty(parsedURL.pathname, key);
+                            } else {
+                                removeMissedProperty(parsedURL.pathname, key);
+                            }
                         }
                         ret[key] = data[key];
                     });
@@ -546,6 +577,12 @@ describe('inspectHandler', () => {
                     name: 'testRoute2',
                     gw: '11.0.0.11',
                     network: '30.0.0.0/24',
+                    mtu: 0
+                },
+                {
+                    name: 'testRoute3',
+                    interface: '/Common/tunnel',
+                    network: '1.2.3.4/32',
                     mtu: 0
                 }
             ],
@@ -810,7 +847,17 @@ describe('inspectHandler', () => {
                 bannerText: 'This is the banner text',
                 inactivityTimeout: 10000,
                 include: 'Ciphers aes128-ctr,aes256-ctr\nLoginGraceTime 10\nMACs hmac-sha1\nMaxAuthTries 5\nMaxStartups 3\nProtocol 1\n'
-            }
+            },
+            '/tm/net/tunnels/tunnel': [
+                {
+                    name: 'tunnel',
+                    mtu: 0,
+                    profile: '/Common/tcp-forward',
+                    tos: 'preserve',
+                    usePmtu: 'enabled',
+                    autoLasthop: 'default'
+                }
+            ]
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -917,6 +964,12 @@ describe('inspectHandler', () => {
                         testRoute2: {
                             gw: '11.0.0.11',
                             network: '30.0.0.0/24',
+                            mtu: 0,
+                            class: 'Route'
+                        },
+                        testRoute3: {
+                            target: 'tunnel',
+                            network: '1.2.3.4/32',
                             mtu: 0,
                             class: 'Route'
                         },
@@ -1214,6 +1267,14 @@ describe('inspectHandler', () => {
                             maxAuthTries: 5,
                             maxStartups: '3',
                             protocol: 1
+                        },
+                        tunnel: {
+                            class: 'Tunnel',
+                            tunnelType: 'tcp-forward',
+                            mtu: 0,
+                            usePmtu: true,
+                            typeOfService: 'preserve',
+                            autoLastHop: 'default'
                         }
                     }
                 }
@@ -1227,14 +1288,19 @@ describe('inspectHandler', () => {
 
         beforeEach(() => {
             // skip data asserts
+            missedProperties = {};
             expectedDeclaration = undefined;
-            failWhenNoPropertyinResponse = false;
+            failWhenNoPropertyInResponse = false;
             inspectHandler = new InspectHandler();
             listResponses = defaultResponses();
         });
 
         after(() => {
             sinon.restore();
+        });
+
+        afterEach(() => {
+            verifyMissedProperties();
         });
 
         it('should verify that all items from configItems.json are covered', () => {
@@ -1295,7 +1361,7 @@ describe('inspectHandler', () => {
         });
 
         it('should verify declaration from response', () => {
-            failWhenNoPropertyinResponse = true;
+            failWhenNoPropertyInResponse = true;
             return inspectHandler.process()
                 .then((data) => {
                     expectedDeclaration = referenceDeclaration;

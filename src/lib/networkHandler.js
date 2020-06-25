@@ -68,6 +68,10 @@ class NetworkHandler {
                 return handleRouteDomain.call(this);
             })
             .then(() => {
+                logger.fine('Checking Tunnels');
+                return handleTunnel.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking SelfIps.');
                 return handleSelfIp.call(this);
             })
@@ -331,10 +335,19 @@ function handleRoute() {
             const routeBody = {
                 name: route.name,
                 partition: tenant,
-                gw: route.gw,
                 network: route.network,
                 mtu: route.mtu
             };
+
+            if (route.target) {
+                if (route.target.startsWith('/')) {
+                    routeBody.interface = route.target;
+                } else {
+                    routeBody.interface = `/${tenant}/${route.target}`;
+                }
+            } else {
+                routeBody.gw = route.gw;
+            }
 
             promise = promise.then(() => this.bigIp.createOrModify(
                 PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY
@@ -423,6 +436,33 @@ function handleDagGlobals() {
         this.bigIp.modify(PATHS.DagGlobals, body);
     }
     return Promise.resolve();
+}
+
+function handleTunnel() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'Tunnel', (tenant, tunnel) => {
+        if (tunnel && tunnel.name && tunnel.tunnelType) {
+            const tunnelBody = {
+                name: tunnel.name,
+                partition: tenant,
+                autoLasthop: tunnel.autoLastHop,
+                mtu: tunnel.mtu,
+                profile: `/Common/${tunnel.tunnelType}`,
+                tos: tunnel.typeOfService,
+                usePmtu: tunnel.usePmtu ? 'enabled' : 'disabled'
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.Tunnel, tunnelBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Tunnels: ${err.message}`);
+            throw err;
+        });
 }
 
 /**

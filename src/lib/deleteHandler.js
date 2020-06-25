@@ -25,7 +25,7 @@ const AUTH = require('./sharedConstants').AUTH;
 const logger = new Logger(module);
 
 // This is an ordered list - objects will be deleted in this order
-const DELETABLE_CLASSES = ['DeviceGroup', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute'];
+const DELETABLE_CLASSES = ['DeviceGroup', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute', 'Tunnel'];
 
 const READ_ONLY_DEVICE_GROUPS = ['device_trust_group', 'gtm', 'datasync-global-dg', 'dos-global-dg'];
 
@@ -83,6 +83,10 @@ class DeleteHandler {
                         classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
                     } else if (deleteableClass === 'RouteDomain' && itemToDelete === '0') {
                         // Route Domain 0 can't be deleted
+                    } else if (deleteableClass === 'Tunnel' && (itemToDelete === 'socks-tunnel'
+                        || itemToDelete === 'http-tunnel')) {
+                        // The socks and http tunnels can't be deleted due to the socks and the
+                        // http-explicit profiles referencing them
                     } else {
                         const commonPrefix = deleteableClass === 'Trunk' ? '' : '~Common~';
                         const path = `${PATHS[deleteableClass]}/${commonPrefix}${itemToDelete}`;
