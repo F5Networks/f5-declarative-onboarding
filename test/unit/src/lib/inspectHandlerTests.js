@@ -503,6 +503,43 @@ describe('inspectHandler', () => {
                 nameServers: ['172.27.1.1'],
                 search: ['localhost']
             },
+            '/tm/net/dns-resolver': [
+                {
+                    name: 'testDnsResolver',
+                    answerDefaultZones: 'no',
+                    cacheSize: 5767168,
+                    forwardZones: [
+                        {
+                            name: 'amazonaws.com',
+                            nameservers: [
+                                {
+                                    name: '8.8.8.8:53'
+                                },
+                                {
+                                    name: '8.8.8.7:53'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'idservice.net',
+                            nameservers: [
+                                {
+                                    name: '8.8.4.4:53'
+                                },
+                                {
+                                    name: '8.8.4.3:53'
+                                }
+                            ]
+                        }
+                    ],
+                    randomizeQueryNameCase: 'yes',
+                    routeDomain: 0,
+                    useIpv4: 'yes',
+                    useIpv6: 'yes',
+                    useTcp: 'yes',
+                    useUdp: 'yes'
+                }
+            ],
             '/tm/net/trunk': [
                 {
                     name: 'testTrunk',
@@ -903,6 +940,33 @@ describe('inspectHandler', () => {
                             nameServers: ['172.27.1.1'],
                             search: ['localhost'],
                             class: 'DNS'
+                        },
+                        testDnsResolver: {
+                            answerDefaultZones: false,
+                            cacheSize: 5767168,
+                            forwardZones: [
+                                {
+                                    name: 'amazonaws.com',
+                                    nameservers: [
+                                        '8.8.8.8:53',
+                                        '8.8.8.7:53'
+                                    ]
+                                },
+                                {
+                                    name: 'idservice.net',
+                                    nameservers: [
+                                        '8.8.4.4:53',
+                                        '8.8.4.3:53'
+                                    ]
+                                }
+                            ],
+                            randomizeQueryNameCase: true,
+                            routeDomain: 0,
+                            useIpv4: true,
+                            useIpv6: true,
+                            useTcp: true,
+                            useUdp: true,
+                            class: 'DNS_Resolver'
                         },
                         testTrunk: {
                             distributionHash: 'dst-mac',

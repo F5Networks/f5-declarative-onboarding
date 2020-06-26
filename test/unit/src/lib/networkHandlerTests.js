@@ -70,12 +70,130 @@ describe('networkHandler', () => {
         sinon.restore();
     });
 
+    describe('DNS_Resolver', () => {
+        it('should handle fully specified DNS_Resolver', () => {
+            const declaration = {
+                Common: {
+                    DNS_Resolver: {
+                        dnsResolver1: {
+                            name: 'dnsResolver1',
+                            answerDefaultZones: false,
+                            cacheSize: 5767168,
+                            forwardZones: [
+                                {
+                                    name: 'amazonaws.com',
+                                    nameservers: [
+                                        '8.8.8.8:53',
+                                        '8.8.8.7:53'
+                                    ]
+                                },
+                                {
+                                    name: 'idservice.net',
+                                    nameservers: [
+                                        '8.8.4.4:53',
+                                        '8.8.4.3:53'
+                                    ]
+                                }
+                            ],
+                            randomizeQueryNameCase: true,
+                            routeDomain: '0',
+                            useIpv4: true,
+                            useIpv6: false,
+                            useTcp: true,
+                            useUdp: false
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const resolverData = dataSent[PATHS.DNS_Resolver];
+                    assert.strictEqual(resolverData.length, 1);
+                    assert.strictEqual(resolverData[0].name, 'dnsResolver1');
+                    assert.strictEqual(resolverData[0].partition, 'Common');
+                    assert.strictEqual(resolverData[0].answerDefaultZones, 'no');
+                    assert.strictEqual(resolverData[0].cacheSize, 5767168);
+
+                    assert.strictEqual(resolverData[0].forwardZones.length, 2);
+                    assert.strictEqual(resolverData[0].forwardZones[0].name, 'amazonaws.com');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '8.8.8.8:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '8.8.8.7:53');
+
+                    assert.strictEqual(resolverData[0].forwardZones[1].name, 'idservice.net');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '8.8.4.4:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '8.8.4.3:53');
+
+                    assert.strictEqual(resolverData[0].randomizeQueryNameCase, 'yes');
+                    assert.strictEqual(resolverData[0].routeDomain, '0');
+                    assert.strictEqual(resolverData[0].useIpv4, 'yes');
+                    assert.strictEqual(resolverData[0].useIpv6, 'no');
+                    assert.strictEqual(resolverData[0].useTcp, 'yes');
+                    assert.strictEqual(resolverData[0].useUdp, 'no');
+                });
+        });
+
+        it('should handle fully specified DNS_Resolver on rollback', () => {
+            // nameservers look different on rollback but should produce same result
+            const declaration = {
+                Common: {
+                    DNS_Resolver: {
+                        dnsResolver1: {
+                            name: 'dnsResolver1',
+                            forwardZones: [
+                                {
+                                    name: 'amazonaws.com',
+                                    nameservers: [
+                                        {
+                                            name: '8.8.8.8:53'
+                                        },
+                                        {
+                                            name: '8.8.8.7:53'
+                                        }
+                                    ]
+                                },
+                                {
+                                    name: 'idservice.net',
+                                    nameservers: [
+                                        {
+                                            name: '8.8.4.4:53'
+                                        },
+                                        {
+                                            name: '8.8.4.3:53'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const resolverData = dataSent[PATHS.DNS_Resolver];
+                    assert.strictEqual(resolverData.length, 1);
+                    assert.strictEqual(resolverData[0].name, 'dnsResolver1');
+                    assert.strictEqual(resolverData[0].partition, 'Common');
+                    assert.strictEqual(resolverData[0].forwardZones.length, 2);
+                    assert.strictEqual(resolverData[0].forwardZones[0].name, 'amazonaws.com');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '8.8.8.8:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '8.8.8.7:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].name, 'idservice.net');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '8.8.4.4:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '8.8.4.3:53');
+                });
+        });
+    });
+
     describe('Trunk', () => {
         it('should handle fully specified Trunk', () => {
             const declaration = {
                 Common: {
                     Trunk: {
-                        myTrunk: {
+                        trunk1: {
                             name: 'trunk1',
                             distributionHash: 'dst-mac',
                             interfaces: [

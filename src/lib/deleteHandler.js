@@ -25,7 +25,7 @@ const AUTH = require('./sharedConstants').AUTH;
 const logger = new Logger(module);
 
 // This is an ordered list - objects will be deleted in this order
-const DELETABLE_CLASSES = ['DeviceGroup', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute', 'Tunnel'];
+const DELETABLE_CLASSES = ['DeviceGroup', 'DNS_Resolver', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute', 'Tunnel'];
 
 const READ_ONLY_DEVICE_GROUPS = ['device_trust_group', 'gtm', 'datasync-global-dg', 'dos-global-dg'];
 
@@ -68,6 +68,24 @@ class DeleteHandler {
      */
     process() {
         logger.fine('Processing deletes.');
+
+        function isRetainedItem(aClass, item) {
+            const items = {
+                RouteDomain: {
+                    0: {} // Route Domain 0 can't be deleted
+                },
+                Tunnel: {
+                    'http-tunnel': {}, // referenced by http-tunnel profile
+                    'socks-tunnel': {} // referenced by socks profile
+                },
+                DNS_Resolver: {
+                    'f5-aws-dns': {} // referenced by Security Offbox Service f5-tap-ingress-aws-global
+                }
+            };
+
+            return items[aClass] && items[aClass][item];
+        }
+
         const promises = [];
         DELETABLE_CLASSES.forEach((deleteableClass) => {
             if (this.declaration.Common[deleteableClass]) {
@@ -81,16 +99,15 @@ class DeleteHandler {
                     } else if (deleteableClass === 'RemoteAuthRole') {
                         const path = `${PATHS.AuthRemoteRole}/${itemToDelete}`;
                         classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
-                    } else if (deleteableClass === 'RouteDomain' && itemToDelete === '0') {
-                        // Route Domain 0 can't be deleted
-                    } else if (deleteableClass === 'Tunnel' && (itemToDelete === 'socks-tunnel'
-                        || itemToDelete === 'http-tunnel')) {
-                        // The socks and http tunnels can't be deleted due to the socks and the
-                        // http-explicit profiles referencing them
-                    } else {
+                    } else if (!isRetainedItem(deleteableClass, itemToDelete)) {
                         const commonPrefix = deleteableClass === 'Trunk' ? '' : '~Common~';
                         const path = `${PATHS[deleteableClass]}/${commonPrefix}${itemToDelete}`;
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        let retry = cloudUtil.NO_RETRY;
+                        if (deleteableClass === 'RouteDomain') { // DNS_Resolver deletes first but can be too slow
+                            retry = cloudUtil.SHORT_RETRY;
+                            retry.continueOnError = true;
+                        }
+                        classPromises.push(this.bigIp.delete(path, null, null, retry));
                     }
                 });
                 if (classPromises.length > 0) {

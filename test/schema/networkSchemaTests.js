@@ -37,6 +37,113 @@ Object.keys(customFormats).forEach((customFormat) => {
 const validate = ajv.compile(networkSchema);
 
 describe('network.schema.json', () => {
+    describe('DNS_Resolver', () => {
+        describe('valid', () => {
+            it('should validate minimal data', () => {
+                const data = {
+                    class: 'DNS_Resolver'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate dns resolver data', () => {
+                const data = {
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            name: 'google.public-dns',
+                            nameservers: [
+                                '8.8.8.8:53',
+                                '8.8.4.4:53'
+                            ]
+                        }
+                    ],
+                    routeDomain: 0,
+                    cacheSize: 9437184,
+                    answerDefaultZones: false,
+                    randomizeQueryNameCase: true,
+                    useIpv4: true,
+                    useIpv6: true,
+                    useUdp: true,
+                    useTcp: true
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional properties', () => {
+                const data = {
+                    class: 'DNS_Resolver',
+                    rogueProperty: true
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
+            });
+
+            it('should invalidate additional forward zones properties', () => {
+                const data = {
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            name: 'google.public.dns',
+                            nameservers: [
+                                '8.8.8.8:53',
+                                '8.8.4.4:53'
+                            ],
+                            rogueProperty: true
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
+            });
+
+            it('should invalidate missing forward zone name', () => {
+                const data = {
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            nameservers: [
+                                '8.8.8.8:53',
+                                '8.8.4.4:53'
+                            ]
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'missing nameserver name should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'name\''), -1);
+            });
+
+            it('should invalidate bad nameserver name', () => {
+                const data = {
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            name: 'google.public_dns'
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'invalid hostname should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"hostname\\"'), -1);
+            });
+
+            it('should invalidate service:port that is not in an array', () => {
+                const data = {
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            name: 'google.public.dns',
+                            nameservers: '8.8.8.8:53'
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'nameservers should be in an array');
+                assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".forwardZones[0].nameservers"'), -1);
+                assert.notStrictEqual(getErrorString().indexOf('should be array'), -1);
+            });
+        });
+    });
     describe('MAC_Masquerade', () => {
         describe('valid', () => {
             it('should validate minimal data', () => {

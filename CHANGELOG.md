@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.14.0
 ### Added
+- AUTOTOOL-126: Add support for DNS Resolver
 - AUTOTOOL-1610: Add support for VLAN failsafe settings
 - AUTOTOOL-1358: ([GitHub Issue 123](https://github.com/F5Networks/f5-declarative-onboarding/issues/123)): TCP Forward Tunnel Support
 ### Fixed

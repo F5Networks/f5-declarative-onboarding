@@ -233,6 +233,88 @@
         {
             "if": {
                 "required": ["class"],
+                "properties": { "class": { "const": "DNS_Resolver" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains DNS Resolver configuration.",
+                        "type": "string",
+                        "const": "DNS_Resolver"
+                    },
+                    "answerDefaultZones": {
+                        "description": "Specifies whether the resolver answers queries for default zones: localhost, reverse 127.0.0.1, ::1, and AS112 zones.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "cacheSize": {
+                        "description": "Specifies the maximum cach size in bytes of the DNS Resolver object",
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 9437184,
+                        "default": 5767168
+                    },
+                    "forwardZones": {
+                        "description": "Forward zones on a DNS Resolver.  A given zone name should only use the symbols allowed for a fully qualified domain name (FQDN), namely ASCII letters a through z, digits 0 through 9, hyphen, nad period.  For example site.example.com would be a valid zone name.  A DNS Resolver configured with a forward zone will forward any queries that resulted in a cache-miss and which also match a configured zone name, to the nameserver specified on the zone.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                                "name": {
+                                    "description": "Name of a forward zone.",
+                                    "type": "string",
+                                    "format": "hostname"
+                                },
+                                "nameservers": {
+                                    "description": "Specifies the IP address and service port of a recursive nameserver that answers DNS queries when the response cannot be found in the internal DNS resolver cache.  Enter each address in the format address:port (IPv4) or addrss.port (IPv6).  The port is usually 53.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "randomizeQueryNameCase": {
+                        "description": "Specifies whether the resolver randomizes the case of query names.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "routeDomain": {
+                        "description": "Specifies the name of the route domain the resolver uses for outbound traffic.",
+                        "type": "string",
+                        "default": "0"
+                    },
+                    "useIpv4": {
+                        "description": "Specifies whether the resolver sends DNS queries to IPv4",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "useIpv6": {
+                        "description": "Specifies whether the resolver sends DNS queries to IPv6",
+                        "type": "boolean",
+                        "default": true
+                    }, 
+                    "useTcp": {
+                        "description": "Specifies whether the resolver sends DNS queries over TCP",
+                        "type": "boolean",
+                        "default": true
+                    },    
+                    "useUdp": {
+                        "description": "Specifies whether the resolver sends DNS queries over UDP",
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
                 "properties": { "class": { "const": "Route" } }
             },
             "then": {
