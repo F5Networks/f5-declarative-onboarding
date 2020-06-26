@@ -212,6 +212,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         it('should match routing', () => {
             assert.ok(testRoute(body.Common.myRoute, currentState));
         });
+
+        it('should match dns resolver', () => {
+            assert.ok(testDnsResolver(body.Common.myResolver, currentState));
+        });
     });
 
     describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {
@@ -900,6 +904,19 @@ function testVlan(target, response) {
 */
 function testRoute(target, response) {
     return compareSimple(target, response.Route.myRoute, ['gw', 'network', 'mtu']);
+}
+
+/**
+ * testDnsResolver - test a DNS resolver configuration pattern from a DO status call
+ *                   against a target object schemed on a declaration
+ * @target {Object} : object to be tested against
+ * @response {Object} : object from status response to compare with target
+ * Returns Promise true/false
+*/
+function testDnsResolver(target, response) {
+    const validName = target.forwardZones[0].name === 'forward.net';
+    const validNameserver = target.forwardZones[0].nameservers[0] === '10.10.10.10:53';
+    return validName && validNameserver && compareSimple(target, response.DNS_Resolver.myResolver, ['routeDomain']);
 }
 
 function testFailoverUnicast(target, response) {

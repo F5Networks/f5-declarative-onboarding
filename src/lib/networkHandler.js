@@ -68,6 +68,10 @@ class NetworkHandler {
                 return handleRouteDomain.call(this);
             })
             .then(() => {
+                logger.fine('Checking DNS_Resolvers');
+                return handleDnsResolver.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking Tunnels');
                 return handleTunnel.call(this);
             })
@@ -360,6 +364,44 @@ function handleRoute() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating routes: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleDnsResolver() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'DNS_Resolver', (tenant, resolver) => {
+        if (resolver && resolver.name) {
+            let forwardZones;
+            if (resolver.forwardZones) {
+                forwardZones = resolver.forwardZones.map(zone => ({
+                    name: zone.name,
+                    nameservers: zone.nameservers.map(nameserver => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })))
+                }));
+            }
+            const resolverBody = {
+                name: resolver.name,
+                partition: tenant,
+                answerDefaultZones: resolver.answerDefaultZones ? 'yes' : 'no',
+                cacheSize: resolver.cacheSize,
+                forwardZones: forwardZones || 'none',
+                randomizeQueryNameCase: resolver.randomizeQueryNameCase ? 'yes' : 'no',
+                routeDomain: resolver.routeDomain,
+                useIpv4: resolver.useIpv4 ? 'yes' : 'no',
+                useIpv6: resolver.useIpv6 ? 'yes' : 'no',
+                useTcp: resolver.useTcp ? 'yes' : 'no',
+                useUdp: resolver.useUdp ? 'yes' : 'no'
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.DNS_Resolver, resolverBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating DNS_Resolvers: ${err.message}`);
             throw err;
         });
 }

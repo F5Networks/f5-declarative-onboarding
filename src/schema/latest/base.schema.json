@@ -144,6 +144,7 @@
                             "DeviceGroup",
                             "DeviceTrust",
                             "DNS",
+                            "DNS_Resolver",
                             "FailoverUnicast",
                             "HTTPD",
                             "License",

@@ -97,18 +97,29 @@ describe('declarationParser', () => {
                         "tagged": true
                     }
                 },
-                "myMac": {
+                "commonMac": {
                     "class": "MAC_Masquerade",
                     "source": {
                         "interface": "1.1"
                     }
                 },
-                "myMac2": {
+                "commonMac2": {
                     "class": "MAC_Masquerade",
                     "source": {
                         "interface": "1.2"
                     },
                     "trafficGroup": "traffic-group-local-only"
+                },
+                "commonDNS": {
+                    "class": "DNS_Resolver",
+                    "forwardZones": [
+                        {
+                            "name": "google.public.dns",
+                            "nameservers": [
+                                "8.8.8.8:53"
+                            ]
+                        }
+                    ]
                 }
             },
             "Tenant1": {
@@ -165,6 +176,14 @@ describe('declarationParser', () => {
         // network
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, 'commonVlan');
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.tag, 1111);
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac.name, 'commonMac');
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac.source.interface, '1.1');
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac2.name, 'commonMac2');
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac2.source.interface, '1.2');
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac2.trafficGroup, 'traffic-group-local-only');
+        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.name, 'commonDNS');
+        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.forwardZones[0].name, 'google.public.dns');
+        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.forwardZones[0].nameservers[0], '8.8.8.8:53');
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.name, 'app1Vlan');
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.tag, 1234);
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app2Vlan.tag, 3456);
