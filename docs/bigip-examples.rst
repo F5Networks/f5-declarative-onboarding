@@ -484,6 +484,25 @@ For detailed information about the DNS Resolver, see |dnsdoc| on AskF5.
 .. literalinclude:: ../examples/dnsResolver.json
    :language: json
 
+|
+
+.. _example24:
+
+24: Configuring a TCP Forward Tunnel 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for TCP Forward Tunnels is available in DO v1.14 and later
+
+In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class introduced in DO 1.14. 
+
+Currently, **tcp_forward** is the only profile (**tunnelType**) Declarative Onboarding supports.  The tcp_forward profile specifies a tunnel used for forward proxy connections.
+
+See |tunnel| in the Schema Reference for DO usage and options. 
+
+
+.. literalinclude:: ../examples/tcpForwardTunnel.json
+   :language: json
 
 :ref:`Back to top<bigipexamples>`
 
@@ -604,3 +623,7 @@ For detailed information about the DNS Resolver, see |dnsdoc| on AskF5.
 .. |dnsdoc| raw:: html
 
    <a href="https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20DNS" target="_blank">BIG-IP DNS documentation</a>
+
+.. |tunnel| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#tunnel" target="_blank">Tunnel</a>
