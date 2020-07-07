@@ -464,7 +464,28 @@ See |cmpref| in the Schema Reference for DO usage and options.
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
+.. _example23:
+
+23: Configuring a DNS Resolver 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for DNS Resolvers is available in DO v1.14 and later
+
+In this example, we show how you create a DNS Resolver in a Declarative Onboarding declaration using the |dnsresolver| class introduced in DO 1.14. The DNS Resolver is the internal DNS resolver the BIG-IP system uses to fetch the internal proxy response. 
+
+See |dnsresolver| in the Schema Reference for DO usage and options. 
+
+For detailed information about the DNS Resolver, see |dnsdoc| on AskF5.
+
+
+.. literalinclude:: ../examples/dnsResolver.json
+   :language: json
+
+
+:ref:`Back to top<bigipexamples>`
 
 .. |br| raw:: html
 
@@ -574,3 +595,12 @@ See |cmpref| in the Schema Reference for DO usage and options.
 .. |vlanfs| raw:: html
 
    <a href="https://support.f5.com/csp/article/K13297" target="_blank">K13297: Overview of VLAN failsafe</a>
+
+.. |dnsresolver| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#dns-resolver" target="_blank">DNS_Resolver</a>
+
+
+.. |dnsdoc| raw:: html
+
+   <a href="https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20DNS" target="_blank">BIG-IP DNS documentation</a>
