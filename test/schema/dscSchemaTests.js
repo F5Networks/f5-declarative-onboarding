@@ -332,6 +332,113 @@ describe('dsc.schema.json', () => {
             });
         });
     });
+
+    describe('TrafficGroup', () => {
+        describe('valid', () => {
+            it('should work fine with minimal amounts', () => {
+                const data = {
+                    class: 'TrafficGroup'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should pass if failoverMethod is "ha-score", and monitor is provided', () => {
+                const data = {
+                    class: 'TrafficGroup',
+                    failoverMethod: 'ha-score',
+                    autoFailbackEnabled: false,
+                    monitor: 'testMonitor'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should pass when failoverMethod is "ha-order"', () => {
+                const data = {
+                    class: 'TrafficGroup',
+                    failoverMethod: 'ha-order'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should fail if failoverMethod is "ha-score", but no monitor is provided', () => {
+                const data = {
+                    class: 'TrafficGroup',
+                    failoverMethod: 'ha-score'
+                };
+                assert.strictEqual(validate(data), false, 'monitor is required if failoverMethod is ha-score');
+                assert.notStrictEqual(getErrorString().indexOf('"message": "should have required property \'.monitor\'"'), -1);
+            });
+
+            it('should fail if failoverMethod is "ha-score", but autoFailbackEnabled is true', () => {
+                const data = {
+                    class: 'TrafficGroup',
+                    failoverMethod: 'ha-score',
+                    autoFailbackEnabled: true,
+                    monitor: 'testMonitor'
+                };
+                assert.strictEqual(validate(data), false, 'failoverMethod of "ha-score" is incompatible with autoFailbackEnabled of false');
+                assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".autoFailbackEnabled"'), -1);
+                assert.notStrictEqual(getErrorString().indexOf('"allowedValue": false'), -1);
+                assert.notStrictEqual(getErrorString().indexOf('"message": "should be equal to constant"'), -1);
+            });
+        });
+    });
+
+    describe('MAC_Masquerade', () => {
+        describe('valid', () => {
+            it('should validate minimal data', () => {
+                const data = {
+                    class: 'MAC_Masquerade'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate masquerade data', () => {
+                const data = {
+                    class: 'MAC_Masquerade',
+                    source: {
+                        interface: '1.1'
+                    },
+                    trafficGroup: 'traffic-group-1'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional properties', () => {
+                const data = {
+                    class: 'MAC_Masquerade',
+                    rogueProperty: true
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
+            });
+
+            it('should invalidate additional source properties', () => {
+                const data = {
+                    class: 'MAC_Masquerade',
+                    source: {
+                        interface: '1.1',
+                        rogueProperty: true
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
+            });
+
+            it('should invalidate unexpected traffic group', () => {
+                const data = {
+                    class: 'MAC_Masquerade',
+                    trafficGroup: 'traffic-jam'
+                };
+                assert.strictEqual(validate(data), false, 'non-enum traffic group should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {

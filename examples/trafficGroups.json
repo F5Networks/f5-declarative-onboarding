@@ -1,0 +1,34 @@
+{
+    "schemaVersion": "1.13.0",
+    "class": "Device",
+    "label": "Configuring System",
+    "async": false,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "do.example.com",
+        "failoverGroup": {
+            "class": "DeviceGroup",
+            "type": "sync-failover",
+            "members": [
+                "do.example.com"
+            ],
+            "owner": "do.example.com",
+            "autoSync": true,
+            "saveOnAutoSync": false,
+            "networkFailover": true,
+            "fullLoadOnSync": false,
+            "asmSync": false
+        },
+        "testTrafficGroup": {
+            "class": "TrafficGroup",
+            "autoFailbackEnabled": false,
+            "autoFailbackTime": 50,
+            "failoverMethod": "ha-order",
+            "haLoadFactor": 1,
+            "haOrder": [
+                "do.example.com"
+            ],
+            "monitor": "testGroupTenant"
+        }
+    }
+}

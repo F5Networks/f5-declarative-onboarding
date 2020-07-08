@@ -144,59 +144,6 @@ describe('network.schema.json', () => {
             });
         });
     });
-    describe('MAC_Masquerade', () => {
-        describe('valid', () => {
-            it('should validate minimal data', () => {
-                const data = {
-                    class: 'MAC_Masquerade'
-                };
-                assert.ok(validate(data), getErrorString(validate));
-            });
-
-            it('should validate masquerade data', () => {
-                const data = {
-                    class: 'MAC_Masquerade',
-                    source: {
-                        interface: '1.1'
-                    },
-                    trafficGroup: 'traffic-group-1'
-                };
-                assert.ok(validate(data), getErrorString(validate));
-            });
-        });
-
-        describe('invalid', () => {
-            it('should invalidate additional properties', () => {
-                const data = {
-                    class: 'MAC_Masquerade',
-                    rogueProperty: true
-                };
-                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
-            });
-
-            it('should invalidate additional source properties', () => {
-                const data = {
-                    class: 'MAC_Masquerade',
-                    source: {
-                        interface: '1.1',
-                        rogueProperty: true
-                    }
-                };
-                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
-            });
-
-            it('should invalidate unexpected traffic group', () => {
-                const data = {
-                    class: 'MAC_Masquerade',
-                    trafficGroup: 'traffic-jam'
-                };
-                assert.strictEqual(validate(data), false, 'non-enum traffic group should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
-            });
-        });
-    });
 
     describe('Trunk', () => {
         describe('valid', () => {

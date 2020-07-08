@@ -7,45 +7,6 @@
         {
             "if": {
                 "required": ["class"],
-                "properties": { "class": { "const": "MAC_Masquerade" } }
-            },
-            "then": {
-                "required": ["class"],
-                "properties": {
-                    "class": {
-                        "description": "Indicates that this property contains MAC masquerade configuration.",
-                        "type": "string",
-                        "const": "MAC_Masquerade"
-                    },
-                    "source": {
-                        "description": "MAC address source to use for masquerading.",
-                        "oneOf": [
-                            {
-                                "type": "object",
-                                "properties": {
-                                    "interface": {
-                                        "description": "Generate a MAC address from an interface",
-                                        "type": "string"
-                                    }
-                                },
-                                "required": ["interface"],
-                                "additionalProperties": false
-                            }
-                        ]
-                    },
-                    "trafficGroup": {
-                        "description": "Traffic group to apply the MAC masquerade to.",
-                        "type": "string",
-                        "enum": ["traffic-group-local-only", "traffic-group-1"],
-                        "default": "traffic-group-1"
-                    }
-                },
-                "additionalProperties": false
-            }
-        },
-        {
-            "if": {
-                "required": ["class"],
                 "properties": { "class": { "const": "Trunk" } }
             },
             "then": {
