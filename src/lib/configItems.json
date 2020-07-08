@@ -193,7 +193,21 @@
         "ignore": [
             { "name": "^datasync-.+-dg$" },
             { "name": "^device_trust_group$" },
+            { "name": "^dos-global-dg$" },
             { "name": "^gtm$" }
+        ],
+        "declaration": false
+    },
+    {
+        "path": "/tm/cm/traffic-group",
+        "schemaClass": "TrafficGroup",
+        "properties": [
+            { "id": "class" },
+            { "id": "autoFailbackEnabled" },
+            { "id": "autoFailbackTime" },
+            { "id": "failoverMethod" },
+            { "id": "haLoadFactor" },
+            { "id": "haOrder" }
         ],
         "declaration": false
     },

@@ -168,7 +168,8 @@
                             "Trunk",
                             "Tunnel",
                             "User",
-                            "VLAN"
+                            "VLAN",
+                            "TrafficGroup"
                         ]
                     }
                 },

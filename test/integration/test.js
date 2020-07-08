@@ -166,6 +166,31 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         it('should match configsync ip address', () => {
             assert.ok(testConfigSyncIp(body.Common, currentState));
         });
+
+        it('should have created the DeviceGroup', () => assert.deepStrictEqual(
+            currentState.DeviceGroup.myFailoverGroup,
+            {
+                name: 'myFailoverGroup',
+                asmSync: 'disabled',
+                autoSync: 'enabled',
+                fullLoadOnSync: 'false',
+                networkFailover: 'enabled',
+                saveOnAutoSync: 'false',
+                type: 'sync-failover'
+            }
+        ));
+
+        it('should have created the TrafficGroup', () => assert.deepStrictEqual(
+            currentState.TrafficGroup.myTrafficGroup,
+            {
+                name: 'myTrafficGroup',
+                autoFailbackEnabled: 'false',
+                autoFailbackTime: 50,
+                failoverMethod: 'ha-order',
+                haLoadFactor: 1,
+                haOrder: ['/Common/f5.example.com']
+            }
+        ));
     });
 
     describe('Test Networking', function testNetworking() {

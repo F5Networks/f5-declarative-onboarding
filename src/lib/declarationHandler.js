@@ -67,7 +67,8 @@ const CLASSES_OF_TRUTH = [
     'TrafficControl',
     'HTTPD',
     'SSHD',
-    'Tunnel'
+    'Tunnel',
+    'TrafficGroup'
 ];
 
 /**

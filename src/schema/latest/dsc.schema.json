@@ -188,6 +188,113 @@
                     }
                 }
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "TrafficGroup" } }
+            },
+            "then" : {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Traffic Group configuration.",
+                        "type": "string",
+                        "const": "TrafficGroup"
+                    },
+                    "autoFailbackEnabled": {
+                        "type": "boolean",
+                        "description": "Specifies whether the traffic group fails back to the default device.",
+                        "default": false
+                    },
+                    "autoFailbackTime": {
+                        "type": "integer",
+                        "description": "Specifies the time required to fail back.",
+                        "default": 60,
+                        "minimum": 0,
+                        "maximum": 300
+                    },
+                    "failoverMethod": {
+                        "type": "string",
+                        "description": "Specifies the method used to decide if the current device needs to failover the traffic-group to another device. If the failover- method is set to ha-score, a score is calculated for each device in the monitoring HA group; and the highest score is the current active device while the next highest score will be the device that takes over if the current one fails. If the failover-method is set to ha-order, a list of devices and their respective HA load is used to decide the next one to take over if the current devices fails.",
+                        "enum": [
+                            "ha-score",
+                            "ha-order"
+                        ],
+                        "default": "ha-order"
+                    },
+                    "haLoadFactor": {
+                        "type": "integer",
+                        "description": "Specifies a number for this traffic group that represents the load this traffic group presents to the system relative to other traffic groups. This allows the failover daemon to load balance the active traffic groups amongst the devices.",
+                        "default": 1,
+                        "minimum": 1,
+                        "maximum": 1000
+                    },
+                    "haOrder": {
+                        "type": "array",
+                        "description": "This list of devices specifies the order in which the devices will become active for the traffic group when a failure occurs. This list may contain zero, one, or more entries up to the number of devices in the failover device group. If autoFailbackEnabled is set to true, this list must contain at least one entry for the auto failback device.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "monitor": {
+                        "type": "string",
+                        "description": "This specifies a ha-group monitor for the traffic group to decide the active device within the traffic group. The HA group must exist first. Note: This attribute is only specific to the local device i.e. not sync'ed to its peers in the traffic group."
+                    }
+                },
+                "additionalProperties": false,
+                "allOf": [
+                    {
+                        "if": {
+                            "required": ["failoverMethod"],
+                            "properties": { "failoverMethod": { "const": "ha-score" } }
+                        },
+                        "then": {
+                            "required": ["autoFailbackEnabled", "monitor"],
+                            "properties": { "autoFailbackEnabled": { "const": false } }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "MAC_Masquerade" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains MAC masquerade configuration.",
+                        "type": "string",
+                        "const": "MAC_Masquerade"
+                    },
+                    "source": {
+                        "description": "MAC address source to use for masquerading.",
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "interface": {
+                                        "description": "Generate a MAC address from an interface",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": ["interface"],
+                                "additionalProperties": false
+                            }
+                        ]
+                    },
+                    "trafficGroup": {
+                        "description": "Traffic group to apply the MAC masquerade to.",
+                        "type": "string",
+                        "enum": ["traffic-group-local-only", "traffic-group-1"],
+                        "default": "traffic-group-1"
+                    }
+                },
+                "additionalProperties": false
+            }
         }
     ]
 }
