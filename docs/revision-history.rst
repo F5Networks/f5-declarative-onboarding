@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.1
-        - Updated the documentation for Declarative Onboarding v1.14.0.  This release contains the following changes: |br| * Added support for VLAN Failsafe (see :ref:`VLAN Failsafe<example22>`) |br| * Added support for creating DNS Resolvers (see :ref:`DNS Resolver<example23>`) |br| * Added support for creating a TCP Forward Network Tunnel (see :ref:`Tunnel<example24>`) |br| * Added support for Traffic Groups (see :ref:`Traffic Groups<example25>`)
+        - Updated the documentation for Declarative Onboarding v1.14.0.  This release contains the following changes: |br| * Added support for VLAN Failsafe (see :ref:`VLAN Failsafe<example22>`) |br| * Added support for creating DNS Resolvers (see :ref:`DNS Resolver<example23>`) |br| * Added support for creating a TCP Forward Network Tunnel (see :ref:`Tunnel<example24>`) |br| * Added support for Traffic Groups (see :ref:`Traffic Groups<example25>`) |br| |br| Issues Resolved: |br| * Bad class values do not fail schema validation |br| * MAC_Masquerade fails to roll back properly
         - 07-21-20
 
       * - 3.0
