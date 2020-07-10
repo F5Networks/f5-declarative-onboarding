@@ -506,6 +506,32 @@ See |tunnel| in the Schema Reference for DO usage and options.
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
+.. _example25:
+
+25: Configuring Traffic Groups 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for Traffic Groups is available in DO v1.14 and later
+
+In this example, we show how you create Traffic Groups in a Declarative Onboarding declaration using the |tg| class introduced in DO 1.14. 
+
+.. NOTE:: The HA Score failover method is not currently supported. DO uses the HA Order failover method.
+
+A traffic group is a collection of related configuration objects (such as a virtual IP address and a self IP address) that run on a BIG-IP and process a particular type of application traffic. When a BIG-IP becomes unavailable, a traffic group can float to another device in a device group to ensure that application traffic continues to be processed with little to no interruption in service. For detailed information about Traffic Groups and clustering on the BIG-IP, see |tgdoc|.
+
+See |tg| in the Schema Reference for DO usage and options.
+
+.. IMPORTANT:: Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
+
+
+.. literalinclude:: ../examples/trafficGroups.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
 .. |br| raw:: html
 
    <br />
@@ -627,3 +653,16 @@ See |tunnel| in the Schema Reference for DO usage and options.
 .. |tunnel| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#tunnel" target="_blank">Tunnel</a>
+
+.. |tg| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trafficgroup" target="_blank">TrafficGroup</a>
+
+.. |tgdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigip-14-1-0/big-ip-device-service-clustering-administration-14-1-0.html" target="_blank">BIG-IP Device Service Clustering: Administration</a>
+
+.. |hagroup| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-maintain-high-availability-through-resource-monitoring-13-0-0/1.html" target="_blank">BIG-IP documentation</a>
+
