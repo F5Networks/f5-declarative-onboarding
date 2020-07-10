@@ -335,53 +335,22 @@ describe('dsc.schema.json', () => {
 
     describe('TrafficGroup', () => {
         describe('valid', () => {
-            it('should work fine with minimal amounts', () => {
+            it('should work fine with minimal properties', () => {
                 const data = {
                     class: 'TrafficGroup'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
-            it('should pass if failoverMethod is "ha-score", and monitor is provided', () => {
+            it('should pass trafficGroup is filled with non-defaults', () => {
                 const data = {
                     class: 'TrafficGroup',
-                    failoverMethod: 'ha-score',
-                    autoFailbackEnabled: false,
-                    monitor: 'testMonitor'
-                };
-                assert.ok(validate(data), getErrorString(validate));
-            });
-
-            it('should pass when failoverMethod is "ha-order"', () => {
-                const data = {
-                    class: 'TrafficGroup',
-                    failoverMethod: 'ha-order'
-                };
-                assert.ok(validate(data), getErrorString(validate));
-            });
-        });
-
-        describe('invalid', () => {
-            it('should fail if failoverMethod is "ha-score", but no monitor is provided', () => {
-                const data = {
-                    class: 'TrafficGroup',
-                    failoverMethod: 'ha-score'
-                };
-                assert.strictEqual(validate(data), false, 'monitor is required if failoverMethod is ha-score');
-                assert.notStrictEqual(getErrorString().indexOf('"message": "should have required property \'.monitor\'"'), -1);
-            });
-
-            it('should fail if failoverMethod is "ha-score", but autoFailbackEnabled is true', () => {
-                const data = {
-                    class: 'TrafficGroup',
-                    failoverMethod: 'ha-score',
+                    failoverMethod: 'ha-order',
                     autoFailbackEnabled: true,
-                    monitor: 'testMonitor'
+                    autoFailbackTime: 100,
+                    haLoadFactor: 2
                 };
-                assert.strictEqual(validate(data), false, 'failoverMethod of "ha-score" is incompatible with autoFailbackEnabled of false');
-                assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".autoFailbackEnabled"'), -1);
-                assert.notStrictEqual(getErrorString().indexOf('"allowedValue": false'), -1);
-                assert.notStrictEqual(getErrorString().indexOf('"message": "should be equal to constant"'), -1);
+                assert.ok(validate(data), getErrorString(validate));
             });
         });
     });

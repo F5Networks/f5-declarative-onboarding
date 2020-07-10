@@ -549,11 +549,6 @@ function handleTrafficGroup() {
         if (trafficGroup && trafficGroup.name) {
             const tGBody = JSON.parse(JSON.stringify(trafficGroup));
             tGBody.partition = tenant;
-            if (tGBody.monitor) {
-                tGBody.monitor = {
-                    haGroup: tGBody.monitor
-                };
-            }
 
             promises.push(
                 this.bigIp.createOrModify(PATHS.TrafficGroup, tGBody, null, cloudUtil.MEDIUM_RETRY)
