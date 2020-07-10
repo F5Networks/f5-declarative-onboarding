@@ -516,7 +516,7 @@ See |tunnel| in the Schema Reference for DO usage and options.
 
    Support for Traffic Groups is available in DO v1.14 and later
 
-In this example, we show how you create Traffic Groups in a Declarative Onboarding declaration using the |tg| class introduced in DO 1.14. 
+This example shows how to create :ref:`Traffic Groups<tg>` using Declarative Onboarding 1.14 and later. 
 
 .. NOTE:: The HA Score failover method is not currently supported. DO uses the HA Order failover method.
 
