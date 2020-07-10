@@ -216,9 +216,8 @@
                     },
                     "failoverMethod": {
                         "type": "string",
-                        "description": "Specifies the method used to decide if the current device needs to failover the traffic-group to another device. If the failover- method is set to ha-score, a score is calculated for each device in the monitoring HA group; and the highest score is the current active device while the next highest score will be the device that takes over if the current one fails. If the failover-method is set to ha-order, a list of devices and their respective HA load is used to decide the next one to take over if the current devices fails.",
+                        "description": "Specifies the method used to decide if the current device needs to failover the traffic-group to another device. If the failover-method is set to ha-order, a list of devices and their respective HA load is used to decide the next one to take over if the current devices fails.",
                         "enum": [
-                            "ha-score",
                             "ha-order"
                         ],
                         "default": "ha-order"
@@ -236,25 +235,9 @@
                         "items": {
                             "type": "string"
                         }
-                    },
-                    "monitor": {
-                        "type": "string",
-                        "description": "This specifies a ha-group monitor for the traffic group to decide the active device within the traffic group. The HA group must exist first. Note: This attribute is only specific to the local device i.e. not sync'ed to its peers in the traffic group."
                     }
                 },
-                "additionalProperties": false,
-                "allOf": [
-                    {
-                        "if": {
-                            "required": ["failoverMethod"],
-                            "properties": { "failoverMethod": { "const": "ha-score" } }
-                        },
-                        "then": {
-                            "required": ["autoFailbackEnabled", "monitor"],
-                            "properties": { "autoFailbackEnabled": { "const": false } }
-                        }
-                    }
-                ]
+                "additionalProperties": false
             }
         },
         {

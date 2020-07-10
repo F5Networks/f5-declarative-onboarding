@@ -1001,6 +1001,7 @@ describe('dscHandler', () => {
                 }
             };
         });
+
         it('should set a traffic group with defaults', () => {
             const declaration = {
                 Common: {
@@ -1039,9 +1040,8 @@ describe('dscHandler', () => {
                             name: 'testTrafficGroup',
                             autoFailbackEnabled: false,
                             autoFailbackTime: 500,
-                            failoverMethod: 'ha-score',
-                            haLoadFactor: 2,
-                            monitor: 'thisDevice.com'
+                            failoverMethod: 'ha-order',
+                            haLoadFactor: 2
                         }
                     }
                 }
@@ -1056,11 +1056,8 @@ describe('dscHandler', () => {
                             partition: 'Common',
                             autoFailbackEnabled: false,
                             autoFailbackTime: 500,
-                            failoverMethod: 'ha-score',
-                            haLoadFactor: 2,
-                            monitor: {
-                                haGroup: 'thisDevice.com'
-                            }
+                            failoverMethod: 'ha-order',
+                            haLoadFactor: 2
                         });
                 });
         });

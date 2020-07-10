@@ -27,8 +27,7 @@
             "haLoadFactor": 1,
             "haOrder": [
                 "do.example.com"
-            ],
-            "monitor": "testGroupTenant"
+            ]
         }
     }
 }
