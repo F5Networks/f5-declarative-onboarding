@@ -46,6 +46,16 @@ The following declaration snippet could continue after the :ref:`route-class` in
         "fullLoadOnSync": false,
         "asmSync": false
     },
+    "trafGroup": {
+        "class": "TrafficGroup",
+        "autoFailbackEnabled": false,
+        "autoFailbackTime": 50,
+        "failoverMethod": "ha-order",
+        "haLoadFactor": 1,
+        "haOrder": [
+            "do.example.com"
+        ]
+    },
     "trust": {
         "class": "DeviceTrust",
         "localUsername": "admin",
@@ -187,6 +197,54 @@ For more information on Device Groups on the BIG-IP, see |group|.  In this examp
 \* The required column applies only if you are using this class.
 
 
+.. _trafficgroup:
+
+
+Traffic Group class
+```````````````````
+The next class specific to clustering is the traffic group class. A traffic group is a collection of related configuration objects (such as a virtual IP address and a self IP address) that run on a BIG-IP and process a particular type of application traffic. When a BIG-IP becomes unavailable, a traffic group can float to another device in a device group to ensure that application traffic continues to be processed with little to no interruption in service. 
+
+For detailed information about Traffic Groups and clustering on the BIG-IP, see |tgdoc|.  See :ref:`Traffic Groups<example25>` for an example declaration.
+
+.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br||br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the example, the declaration defines a Device Group with a host name.  
+
+
+.. code-block:: javascript
+   :linenos:
+  
+    "trafGroup": {
+        "class": "TrafficGroup",
+        "autoFailbackEnabled": false,
+        "autoFailbackTime": 50,
+        "failoverMethod": "ha-order",
+        "haLoadFactor": 1,
+        "haOrder": [
+            "do.example.com"
+        ]
+    },
+
+
+|
+
++---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter           | Options           | Required*?  |  Description/Notes                                                                                                                                                                                                                                                                                                             |
++=====================+===================+=============+================================================================================================================================================================================================================================================================================================================================+
+| class               | TrafficGroup      |   Yes       |  Indicates that this property contains Traffic Group configuration.                                                                                                                                                                                                                                                            |
++---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| autoFailbackEnabled | true, **false**   |   No        |  Specifies whether the traffic group fails back to the default device.                                                                                                                                                                                                                                                         |
++---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| autoFailbackTime    | integer           |   No        |  Specifies the time required to fail back.                                                                                                                                                                                                                                                                                     |
++---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| failoverMethod      | ha-order          |   No        |  Specifies the method to failover the traffic-group to another device. Currently only ha-order is supported, where a list of devices and their respective HA load is used to decide the next one to take over if the current devices fails.                                                                                    |
++---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| haLoadFactor        | integer           |   No        |  Specifies a number for this traffic group that represents the load this traffic group presents to the system relative to other traffic groups. This allows the failover daemon to load balance the active traffic groups amongst the devices.                                                                                 |
++---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| haOrder             | array             |   No        |  List of devices that specifies the order in which the devices will become active for the traffic group when a failure occurs. May contain from zero up to the number of devices in the failover device group. If autoFailbackEnabled is set to true, this list must contain at least one entry for the auto failback device.  |
++---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+\* The required column applies only if you are using this class.
+
+
 .. _devicetrust:
 
 
@@ -248,5 +306,7 @@ The final class specific to clustering is the device trust class. Device trust e
 
    <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-device-service-clustering-administration-13-1-0/3.html" target="_blank">Device Trust documentation</a>
 
+.. |tgdoc| raw:: html
 
+   <a href="https://techdocs.f5.com/en-us/bigip-14-1-0/big-ip-device-service-clustering-administration-14-1-0.html" target="_blank">BIG-IP Device Service Clustering: Administration</a>
 
