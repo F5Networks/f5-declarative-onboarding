@@ -206,7 +206,7 @@ The next class specific to clustering is the traffic group class. A traffic grou
 
 For detailed information about Traffic Groups and clustering on the BIG-IP, see |tgdoc|.  See :ref:`Traffic Groups<example25>` for an example declaration.
 
-.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br||br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the example, the declaration defines a Device Group with a host name.  
+.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br| |br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the example, the declaration defines a Device Group with a host name.  
 
 
 .. code-block:: javascript
@@ -310,3 +310,6 @@ The final class specific to clustering is the device trust class. Device trust e
 
    <a href="https://techdocs.f5.com/en-us/bigip-14-1-0/big-ip-device-service-clustering-administration-14-1-0.html" target="_blank">BIG-IP Device Service Clustering: Administration</a>
 
+.. |br| raw:: html
+
+   <br />
