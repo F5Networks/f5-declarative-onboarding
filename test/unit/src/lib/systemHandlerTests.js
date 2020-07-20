@@ -1940,6 +1940,10 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     SSHD: {
+                        allow: [
+                            '192.168.*.*',
+                            '1.2.3.4/32'
+                        ],
                         banner: 'Text for banner',
                         inactivityTimeout: 12345,
                         ciphers: [
@@ -1969,10 +1973,66 @@ describe('systemHandler', () => {
                     const sshdData = dataSent[PATHS.SSHD][0];
                     assert.deepStrictEqual(sshdData,
                         {
+                            allow: [
+                                '192.168.*.*',
+                                '1.2.3.4/32'
+                            ],
                             banner: 'enabled',
                             bannerText: 'Text for banner',
                             inactivityTimeout: 12345,
                             include: 'Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,aes192-cbc,aes256-cbc\nLoginGraceTime 100\nMACs hmac-sha1,hmac-ripemd160,hmac-md5\nMaxAuthTries 10\nMaxStartups 3\nProtocol 2\n'
+                        });
+                });
+        });
+
+        it('should handle allowing all source addresses', () => {
+            const declaration = {
+                Common: {
+                    SSHD: {
+                        allow: 'all',
+                        banner: 'Text for banner',
+                        inactivityTimeout: 12345
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    const sshdData = dataSent[PATHS.SSHD][0];
+                    assert.deepStrictEqual(sshdData,
+                        {
+                            allow: ['All'],
+                            banner: 'enabled',
+                            bannerText: 'Text for banner',
+                            inactivityTimeout: 12345,
+                            include: ''
+                        });
+                });
+        });
+
+        it('should handle disallowing all source addresses', () => {
+            const declaration = {
+                Common: {
+                    SSHD: {
+                        allow: 'none',
+                        banner: 'Text for banner',
+                        inactivityTimeout: 12345
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    const sshdData = dataSent[PATHS.SSHD][0];
+                    assert.deepStrictEqual(sshdData,
+                        {
+                            allow: 'none',
+                            banner: 'enabled',
+                            bannerText: 'Text for banner',
+                            inactivityTimeout: 12345,
+                            include: ''
                         });
                 });
         });

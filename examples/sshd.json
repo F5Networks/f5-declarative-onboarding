@@ -7,6 +7,11 @@
         "class": "Tenant",
         "sshSettings": {
             "class": "SSHD",
+            "allow": [
+                "10.0.0.1",
+                "10.0.1.0/28",
+                "192.168.1.*"
+            ],
             "banner": "Banner to display",
             "inactivityTimeout": 123,
             "ciphers": [

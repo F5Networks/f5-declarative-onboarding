@@ -880,6 +880,7 @@ describe('inspectHandler', () => {
                 sslProtocol: 'all -SSLv2 -SSLv3 -TLSv1'
             },
             '/tm/sys/sshd': {
+                allow: ['All'],
                 banner: 'enabled',
                 bannerText: 'This is the banner text',
                 inactivityTimeout: 10000,
@@ -1318,6 +1319,7 @@ describe('inspectHandler', () => {
                         },
                         currentSSHD: {
                             class: 'SSHD',
+                            allow: ['All'],
                             banner: 'This is the banner text',
                             inactivityTimeout: 10000,
                             ciphers: [

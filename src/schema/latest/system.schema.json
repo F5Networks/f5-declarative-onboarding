@@ -1063,6 +1063,24 @@
                         "type": "string",
                         "const": "SSHD"
                     },
+                    "allow": {
+                        "description": "Specifies the list of IP addresses that are allowed to log in to the system. Allow all addresses by using the 'all' value or disallow all addresses using the 'none' value.",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all",
+                                    "none"
+                                ]
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        ]
+                    },
                     "banner": {
                         "description": "Enables or disabled the display of the banner text field when a user logs in.",
                         "type": "string"

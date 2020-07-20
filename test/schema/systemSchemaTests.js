@@ -1070,6 +1070,7 @@ describe('system.schema.json', () => {
             it('should validate declaration with all properties', () => {
                 const data = {
                     "class": "SSHD",
+                    "allow": ["*.*.*.*"],
                     "banner": "Hello there",
                     "ciphers": [
                         "aes128-ctr",

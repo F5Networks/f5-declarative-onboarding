@@ -527,6 +527,7 @@
         "path": "/tm/sys/sshd",
         "schemaClass": "SSHD",
         "properties": [
+            { "id": "allow" },
             { "id": "bannerText", "newId": "banner" },
             { "id": "include" },
             { "id": "inactivityTimeout" }
