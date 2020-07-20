@@ -258,12 +258,12 @@
                         "description": "Specifies whether the resolver sends DNS queries to IPv6",
                         "type": "boolean",
                         "default": true
-                    }, 
+                    },
                     "useTcp": {
                         "description": "Specifies whether the resolver sends DNS queries over TCP",
                         "type": "boolean",
                         "default": true
-                    },    
+                    },
                     "useUdp": {
                         "description": "Specifies whether the resolver sends DNS queries over UDP",
                         "type": "boolean",

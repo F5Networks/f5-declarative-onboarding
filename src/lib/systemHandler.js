@@ -904,7 +904,11 @@ function handleSSHD() {
         includeString = includeString.concat(`Protocol ${sshd.protocol}\n`);
     }
 
+    // capitalize for consistency with HTTPD.allow; if array, capitalization is left to user
+    sshd.allow = sshd.allow === 'all' ? ['All'] : sshd.allow;
+
     const sshdObj = {
+        allow: sshd.allow,
         banner: sshd.banner ? 'enabled' : 'disabled',
         bannerText: sshd.banner,
         include: includeString,
