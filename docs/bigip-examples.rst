@@ -516,7 +516,7 @@ See |tunnel| in the Schema Reference for DO usage and options.
 
    Support for Traffic Groups is available in DO v1.14 and later
 
-This example shows how to create Traffic Groups using Declarative Onboarding 1.14 and later. A traffic group is a group of configuration objects on a BIG-IP which is able to float to another device in a device group in case of failure.  For more information, see :ref:`trafficgroups` on the Clustering page, and |tgdoc|.
+This example shows how to create Traffic Groups using Declarative Onboarding 1.14 and later. A traffic group is a group of configuration objects on a BIG-IP which is able to float to another device in a device group in case of failure.  For more information, see :ref:`trafficgroup` on the Clustering page, and |tgdoc|.
 
 See |tg| in the Schema Reference for DO usage and options.  
 
