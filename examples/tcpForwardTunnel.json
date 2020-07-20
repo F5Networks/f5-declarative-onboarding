@@ -1,0 +1,16 @@
+{
+    "class": "Device",
+    "schemaVersion": "1.14.0",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "newTcpForwardTunnel": {
+        	"class": "Tunnel",
+            "tunnelType": "tcp-forward",
+            "mtu": 2000,
+            "usePmtu": false,
+            "typeOfService": 123,
+            "autoLastHop": "default"
+        }
+    }
+}

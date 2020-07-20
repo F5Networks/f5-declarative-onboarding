@@ -375,4 +375,42 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.notStrictEqual(deletedPaths.indexOf('/tm/net/route-domain/~Common~rd99'), -1);
             });
     });
+
+    it('should skip tunnel socks-tunnel and http-tunnel on attempt to delete it', () => {
+        const declaration = {
+            Common: {
+                Tunnel: {
+                    'socks-tunnel': {},
+                    'http-tunnel': {},
+                    tunnel: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~socks-tunnel'), -1);
+                assert.strictEqual(deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~http-tunnel'), -1);
+                assert.notStrictEqual(deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~tunnel'), -1);
+            });
+    });
+
+    it('should skip dns resolver f5-aws-dns on attempt to delete it', () => {
+        const declaration = {
+            Common: {
+                DNS_Resolver: {
+                    'f5-aws-dns': {},
+                    resolver: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.indexOf('/tm/net/dns-resolver/~Common~f5-aws-dns'), -1);
+                assert.notStrictEqual(deletedPaths.indexOf('/tm/net/dns-resolver/~Common~resolver'), -1);
+            });
+    });
 });

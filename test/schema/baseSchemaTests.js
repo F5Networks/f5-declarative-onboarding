@@ -182,6 +182,36 @@ describe('base.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should accept a class-less hostname', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Common": {
+                        "class": "Tenant",
+                        "hostname": 'my.bigip.com'
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate bad class names', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Common": {
+                        "class": "Tenant",
+                        "provisioning": {
+                            "class": "Provisioning",
+                            "ltm": "nominal"
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'Bad classes should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
         });
     });
 });

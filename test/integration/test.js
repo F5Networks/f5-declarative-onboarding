@@ -166,6 +166,31 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         it('should match configsync ip address', () => {
             assert.ok(testConfigSyncIp(body.Common, currentState));
         });
+
+        it('should have created the DeviceGroup', () => assert.deepStrictEqual(
+            currentState.DeviceGroup.myFailoverGroup,
+            {
+                name: 'myFailoverGroup',
+                asmSync: 'disabled',
+                autoSync: 'enabled',
+                fullLoadOnSync: 'false',
+                networkFailover: 'enabled',
+                saveOnAutoSync: 'false',
+                type: 'sync-failover'
+            }
+        ));
+
+        it('should have created the TrafficGroup', () => assert.deepStrictEqual(
+            currentState.TrafficGroup.myTrafficGroup,
+            {
+                name: 'myTrafficGroup',
+                autoFailbackEnabled: 'false',
+                autoFailbackTime: 50,
+                failoverMethod: 'ha-order',
+                haLoadFactor: 1,
+                haOrder: ['/Common/f5.example.com']
+            }
+        ));
     });
 
     describe('Test Networking', function testNetworking() {
@@ -211,6 +236,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should match routing', () => {
             assert.ok(testRoute(body.Common.myRoute, currentState));
+        });
+
+        it('should match dns resolver', () => {
+            assert.ok(testDnsResolver(body.Common.myResolver, currentState));
         });
     });
 
@@ -900,6 +929,19 @@ function testVlan(target, response) {
 */
 function testRoute(target, response) {
     return compareSimple(target, response.Route.myRoute, ['gw', 'network', 'mtu']);
+}
+
+/**
+ * testDnsResolver - test a DNS resolver configuration pattern from a DO status call
+ *                   against a target object schemed on a declaration
+ * @target {Object} : object to be tested against
+ * @response {Object} : object from status response to compare with target
+ * Returns Promise true/false
+*/
+function testDnsResolver(target, response) {
+    const validName = target.forwardZones[0].name === 'forward.net';
+    const validNameserver = target.forwardZones[0].nameservers[0] === '10.10.10.10:53';
+    return validName && validNameserver && compareSimple(target, response.DNS_Resolver.myResolver, ['routeDomain']);
 }
 
 function testFailoverUnicast(target, response) {

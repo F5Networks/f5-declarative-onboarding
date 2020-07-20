@@ -42,6 +42,18 @@
         "mySystem": {
             "class": "System",
             "autoPhonehome": false
+        },
+        "myResolver": {
+            "class": "DNS_Resolver",
+            "routeDomain": "0",
+            "forwardZones": [
+                {
+                    "name": "forward.net",
+                    "nameservers": [
+                        "10.10.10.10:53"
+                    ]
+                }
+            ]
         }
     }
 }

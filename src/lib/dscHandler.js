@@ -65,6 +65,14 @@ class DscHandler {
                 logger.fine('Checking DeviceTrust and DeviceGroup.');
                 return handleDeviceTrustAndGroup.call(this);
             })
+            .then(() => {
+                logger.fine('Checking Traffic-Groups');
+                return handleTrafficGroup.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking MAC_Masquerades');
+                return handleMacMasquerade.call(this);
+            })
             .catch((err) => {
                 logger.severe(`Error processing DSC declaration: ${err.message}`);
                 return Promise.reject(err);
@@ -533,6 +541,73 @@ function pullDeviceGroup(Common) {
         });
     }
     return deviceGroups;
+}
+
+function handleTrafficGroup() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'TrafficGroup', (tenant, trafficGroup) => {
+        if (trafficGroup && trafficGroup.name) {
+            const tGBody = JSON.parse(JSON.stringify(trafficGroup));
+            tGBody.partition = tenant;
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.TrafficGroup, tGBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating traffic-groups: ${err.message}`);
+            return Promise.reject(err);
+        });
+}
+
+function handleMacMasquerade() {
+    if (this.declaration.Common && this.declaration.Common.MAC_Masquerade) {
+        const macMasquerade = this.declaration.Common.MAC_Masquerade;
+        return Promise.resolve()
+            .then(() => {
+                if (!Object.keys(macMasquerade).some(masquerade => macMasquerade[masquerade].source)) {
+                    return Promise.resolve();
+                }
+                return this.bigIp.list('/tm/sys/mac-address');
+            })
+            .then((macs) => {
+                Object.keys(macMasquerade).forEach((masquerade) => {
+                    const trafficGroup = macMasquerade[masquerade].trafficGroup;
+                    // Fetch existing mac on rollback or default to none
+                    let mac = macMasquerade[masquerade].mac || 'none';
+
+                    // Update mac with unique mac address if source is defined
+                    if (macMasquerade[masquerade].source) {
+                        const sourceInterface = macMasquerade[masquerade].source.interface;
+                        let sourceMac;
+                        Object.keys(macs.entries).forEach((property) => {
+                            if (macs.entries[property].nestedStats.entries.objectId.description === sourceInterface) {
+                                sourceMac = macs.entries[property].nestedStats.entries.macAddress.description;
+                            }
+                        });
+                        if (sourceMac) {
+                            // https://support.f5.com/csp/article/K3523
+                            mac = sourceMac.slice(0, 1)
+                                // eslint-disable-next-line no-bitwise
+                                + ((parseInt(sourceMac.charAt(1), 16) >>> 0) ^ 2).toString(16)
+                                + sourceMac.slice(2);
+                        } else {
+                            throw new Error('Cannot find MAC for given interface');
+                        }
+                    }
+
+                    this.bigIp.modify(`${PATHS.TrafficGroup}/~Common~${trafficGroup}`, { mac });
+                });
+            })
+            .catch((err) => {
+                logger.severe(`Error creating MAC Masquerade: ${err.message}`);
+                return Promise.reject(err);
+            });
+    }
+    return Promise.resolve();
 }
 
 

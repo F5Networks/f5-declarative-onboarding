@@ -441,6 +441,93 @@ See |macm| in the Schema Reference for DO usage and options.
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
+.. _example22:
+
+22: Configuring VLAN Failsafe 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for VLAN Failsafe is available in DO v1.14 and later
+
+In this example, we show how you can configure VLAN Failsafe settings in a Declarative Onboarding declaration.  This is a part of the |cmpref|, and includes the new properties **failsafeEnabled**, **failsafeAction**, and **failsafeTimeout**.
+
+For detailed information about VLAN Failsafe on the BIG-IP, see |vlanfs|.
+
+See |cmpref| in the Schema Reference for DO usage and options. 
+
+
+.. literalinclude:: ../examples/vlanFailsafe.json
+   :language: json
+
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example23:
+
+23: Configuring a DNS Resolver 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for DNS Resolvers is available in DO v1.14 and later
+
+In this example, we show how you create a DNS Resolver in a Declarative Onboarding declaration using the |dnsresolver| class introduced in DO 1.14. The DNS Resolver is the internal DNS resolver the BIG-IP system uses to fetch the internal proxy response. 
+
+See |dnsresolver| in the Schema Reference for DO usage and options. 
+
+For detailed information about the DNS Resolver, see |dnsdoc| on AskF5.
+
+
+.. literalinclude:: ../examples/dnsResolver.json
+   :language: json
+
+|
+
+.. _example24:
+
+24: Configuring a TCP Forward Tunnel 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for TCP Forward Tunnels is available in DO v1.14 and later
+
+In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class introduced in DO 1.14. 
+
+Currently, **tcp_forward** is the only profile (**tunnelType**) Declarative Onboarding supports.  The tcp_forward profile specifies a tunnel used for forward proxy connections.
+
+See |tunnel| in the Schema Reference for DO usage and options. 
+
+
+.. literalinclude:: ../examples/tcpForwardTunnel.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example25:
+
+25: Configuring Traffic Groups 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for Traffic Groups is available in DO v1.14 and later
+
+This example shows how to create Traffic Groups using Declarative Onboarding 1.14 and later. A traffic group is a group of configuration objects on a BIG-IP which is able to float to another device in a device group in case of failure.  For more information, see :ref:`trafficgroup` on the Clustering page, and |tgdoc|.
+
+See |tg| in the Schema Reference for DO usage and options.  
+
+.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br| |br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
+
+
+.. literalinclude:: ../examples/trafficGroups.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
 
 .. |br| raw:: html
 
@@ -546,3 +633,33 @@ See |macm| in the Schema Reference for DO usage and options.
 .. |mmkb| raw:: html
 
    <a href="https://support.f5.com/csp/article/K13502" target="_blank">K13502: Configuring MAC masquerade</a>
+
+.. |vlanfs| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K13297" target="_blank">K13297: Overview of VLAN failsafe</a>
+
+.. |dnsresolver| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#dns-resolver" target="_blank">DNS_Resolver</a>
+
+
+.. |dnsdoc| raw:: html
+
+   <a href="https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20DNS" target="_blank">BIG-IP DNS documentation</a>
+
+.. |tunnel| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#tunnel" target="_blank">Tunnel</a>
+
+.. |tg| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trafficgroup" target="_blank">TrafficGroup</a>
+
+.. |tgdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigip-14-1-0/big-ip-device-service-clustering-administration-14-1-0.html" target="_blank">BIG-IP Device Service Clustering: Administration</a>
+
+.. |hagroup| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-maintain-high-availability-through-resource-monitoring-13-0-0/1.html" target="_blank">BIG-IP documentation</a>
+

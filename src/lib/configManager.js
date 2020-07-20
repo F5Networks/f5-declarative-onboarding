@@ -236,6 +236,10 @@ class ConfigManager {
                                         patchedItem = null;
                                     }
 
+                                    if (schemaClass === 'MAC_Masquerade') {
+                                        patchedItem.trafficGroup = name;
+                                    }
+
                                     if (patchedItem) {
                                         if (!currentConfig[schemaClass]) {
                                             currentConfig[schemaClass] = {};

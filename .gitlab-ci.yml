@@ -34,7 +34,7 @@ test_node:4:
     image: node:4
     stage: test
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     script:
         - npm install --global npm@5.10.0
         - npm install
@@ -45,7 +45,7 @@ test_node:6:
     image: node:6
     stage: test
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     script:
         - npm install
         - npm install mocha@6.2.2
@@ -55,15 +55,16 @@ test_node:8:
     image: node:8
     stage: test
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     script:
         - npm ci
+        - npm install mocha@7
         - npm test
 
 test_node:latest:
     stage: test
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     script:
         - npm ci
         - npm test

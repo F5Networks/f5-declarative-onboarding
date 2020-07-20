@@ -38,6 +38,7 @@ module.exports = {
         SelfIp: '/tm/net/self',
         VLAN: '/tm/net/vlan',
         Trunk: '/tm/net/trunk',
+        DNS_Resolver: '/tm/net/dns-resolver',
         DeviceGroup: '/tm/cm/device-group',
         Analytics: '/tm/analytics/global-settings',
         ManagementRoute: '/tm/sys/management-route',
@@ -62,7 +63,8 @@ module.exports = {
         TrafficGroup: '/tm/cm/traffic-group',
         HTTPD: '/tm/sys/httpd',
         SSHD: '/tm/sys/sshd',
-        SoftwareUpdate: '/tm/sys/software/update'
+        SoftwareUpdate: '/tm/sys/software/update',
+        Tunnel: '/tm/net/tunnels/tunnel'
     },
     STATUS: {
         STATUS_OK: 'OK',

@@ -70,12 +70,130 @@ describe('networkHandler', () => {
         sinon.restore();
     });
 
+    describe('DNS_Resolver', () => {
+        it('should handle fully specified DNS_Resolver', () => {
+            const declaration = {
+                Common: {
+                    DNS_Resolver: {
+                        dnsResolver1: {
+                            name: 'dnsResolver1',
+                            answerDefaultZones: false,
+                            cacheSize: 5767168,
+                            forwardZones: [
+                                {
+                                    name: 'amazonaws.com',
+                                    nameservers: [
+                                        '8.8.8.8:53',
+                                        '8.8.8.7:53'
+                                    ]
+                                },
+                                {
+                                    name: 'idservice.net',
+                                    nameservers: [
+                                        '8.8.4.4:53',
+                                        '8.8.4.3:53'
+                                    ]
+                                }
+                            ],
+                            randomizeQueryNameCase: true,
+                            routeDomain: '0',
+                            useIpv4: true,
+                            useIpv6: false,
+                            useTcp: true,
+                            useUdp: false
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const resolverData = dataSent[PATHS.DNS_Resolver];
+                    assert.strictEqual(resolverData.length, 1);
+                    assert.strictEqual(resolverData[0].name, 'dnsResolver1');
+                    assert.strictEqual(resolverData[0].partition, 'Common');
+                    assert.strictEqual(resolverData[0].answerDefaultZones, 'no');
+                    assert.strictEqual(resolverData[0].cacheSize, 5767168);
+
+                    assert.strictEqual(resolverData[0].forwardZones.length, 2);
+                    assert.strictEqual(resolverData[0].forwardZones[0].name, 'amazonaws.com');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '8.8.8.8:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '8.8.8.7:53');
+
+                    assert.strictEqual(resolverData[0].forwardZones[1].name, 'idservice.net');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '8.8.4.4:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '8.8.4.3:53');
+
+                    assert.strictEqual(resolverData[0].randomizeQueryNameCase, 'yes');
+                    assert.strictEqual(resolverData[0].routeDomain, '0');
+                    assert.strictEqual(resolverData[0].useIpv4, 'yes');
+                    assert.strictEqual(resolverData[0].useIpv6, 'no');
+                    assert.strictEqual(resolverData[0].useTcp, 'yes');
+                    assert.strictEqual(resolverData[0].useUdp, 'no');
+                });
+        });
+
+        it('should handle fully specified DNS_Resolver on rollback', () => {
+            // nameservers look different on rollback but should produce same result
+            const declaration = {
+                Common: {
+                    DNS_Resolver: {
+                        dnsResolver1: {
+                            name: 'dnsResolver1',
+                            forwardZones: [
+                                {
+                                    name: 'amazonaws.com',
+                                    nameservers: [
+                                        {
+                                            name: '8.8.8.8:53'
+                                        },
+                                        {
+                                            name: '8.8.8.7:53'
+                                        }
+                                    ]
+                                },
+                                {
+                                    name: 'idservice.net',
+                                    nameservers: [
+                                        {
+                                            name: '8.8.4.4:53'
+                                        },
+                                        {
+                                            name: '8.8.4.3:53'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const resolverData = dataSent[PATHS.DNS_Resolver];
+                    assert.strictEqual(resolverData.length, 1);
+                    assert.strictEqual(resolverData[0].name, 'dnsResolver1');
+                    assert.strictEqual(resolverData[0].partition, 'Common');
+                    assert.strictEqual(resolverData[0].forwardZones.length, 2);
+                    assert.strictEqual(resolverData[0].forwardZones[0].name, 'amazonaws.com');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '8.8.8.8:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '8.8.8.7:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].name, 'idservice.net');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '8.8.4.4:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '8.8.4.3:53');
+                });
+        });
+    });
+
     describe('Trunk', () => {
         it('should handle fully specified Trunk', () => {
             const declaration = {
                 Common: {
                     Trunk: {
-                        myTrunk: {
+                        trunk1: {
                             name: 'trunk1',
                             distributionHash: 'dst-mac',
                             interfaces: [
@@ -131,7 +249,10 @@ describe('networkHandler', () => {
                                     tagged: false
                                 }
                             ],
-                            cmpHash: 'dst-ip'
+                            cmpHash: 'dst-ip',
+                            failsafeEnabled: true,
+                            failsafeAction: 'reboot',
+                            failsafeTimeout: 3600
                         },
                         vlan2: {
                             name: 'vlan2',
@@ -163,11 +284,14 @@ describe('networkHandler', () => {
                     assert.strictEqual(vlanData[0].interfaces[1].tagged, false);
                     assert.strictEqual(vlanData[0].partition, 'Common');
                     assert.strictEqual(vlanData[0].cmpHash, 'dst-ip');
+                    assert.strictEqual(vlanData[0].failsafe, 'enabled');
+                    assert.strictEqual(vlanData[0].failsafeAction, 'reboot');
                     assert.strictEqual(vlanData[1].name, 'vlan2');
                     assert.strictEqual(vlanData[1].tag, 4093);
                     assert.strictEqual(vlanData[1].mtu, 1400);
                     assert.strictEqual(vlanData[1].partition, 'Common');
                     assert.strictEqual(vlanData[1].cmpHash, 'src-ip');
+                    assert.strictEqual(vlanData[1].failsafe, 'disabled');
                 });
         });
 
@@ -560,6 +684,12 @@ describe('networkHandler', () => {
                             gw: '1.1.1.1',
                             network: '2.2.2.2',
                             mtu: 1400
+                        },
+                        route3: {
+                            name: 'route3',
+                            target: 'targetTunnel',
+                            network: '1.2.3.4',
+                            mtu: 100
                         }
                     }
                 }
@@ -585,6 +715,11 @@ describe('networkHandler', () => {
                     assert.strictEqual(routeData[1].network, '2.2.2.2/32');
                     assert.strictEqual(routeData[1].mtu, 1400);
                     assert.strictEqual(routeData[1].partition, 'Common');
+                    assert.strictEqual(routeData[2].name, 'route3');
+                    assert.strictEqual(routeData[2].interface, '/Common/targetTunnel');
+                    assert.strictEqual(routeData[2].network, '1.2.3.4/32');
+                    assert.strictEqual(routeData[2].mtu, 100);
+                    assert.strictEqual(routeData[2].partition, 'Common');
                 });
         });
 
@@ -721,85 +856,6 @@ describe('networkHandler', () => {
         });
     });
 
-    describe('MAC_Masquerade', () => {
-        it('should set masquerade to alogorithm when source specified', () => {
-            const declaration = {
-                Common: {
-                    MAC_Masquerade: {
-                        myMac: {
-                            source: {
-                                interface: '1.1'
-                            },
-                            trafficGroup: 'traffic-group-1'
-                        }
-                    }
-                }
-            };
-
-            bigIpMock.list = (path) => {
-                if (path === '/tm/sys/mac-address') {
-                    return Promise.resolve(
-                        {
-                            kind: 'tm:sys:mac-address:mac-addressstats',
-                            selfLink: 'https://localhost/mgmt/tm/sys/mac-address?ver=13.1.0',
-                            entries: {
-                                'https://localhost/mgmt/tm/sys/mac-address/fa:16:3e:4b:44:99': {
-                                    nestedStats: {
-                                        entries: {
-                                            macAddress: {
-                                                description: 'fa:16:3e:4b:44:99'
-                                            },
-                                            objectId: {
-                                                description: '1.1'
-                                            }
-                                        }
-                                    }
-                                },
-                                'https://localhost/mgmt/tm/sys/mac-address/fa:16:3e:c2:27:09': {
-                                    nestedStats: {
-                                        entries: {
-                                            macAddress: {
-                                                description: 'fa:16:3e:c2:27:09'
-                                            },
-                                            objectId: {
-                                                description: '1.2'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    );
-                }
-                return Promise.resolve();
-            };
-
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
-            return networkHandler.process()
-                .then(() => {
-                    assert.strictEqual(dataSent['/tm/cm/traffic-group/~Common~traffic-group-1'][0].mac, 'f8:16:3e:4b:44:99');
-                });
-        });
-
-        it('should set masquerade to none when source not specified', () => {
-            const declaration = {
-                Common: {
-                    MAC_Masquerade: {
-                        myMac: {
-                            trafficGroup: 'traffic-group-1'
-                        }
-                    }
-                }
-            };
-
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
-            return networkHandler.process()
-                .then(() => {
-                    assert.strictEqual(dataSent['/tm/cm/traffic-group/~Common~traffic-group-1'][0].mac, 'none');
-                });
-        });
-    });
-
     describe('DagGlobals', () => {
         it('should handle fully specified DagGlobals', () => {
             const declaration = {
@@ -819,6 +875,51 @@ describe('networkHandler', () => {
                     assert.strictEqual(dagGlobalsData[0].dagIpv6PrefixLen, 120);
                     assert.strictEqual(dagGlobalsData[0].icmpHash, 'ipicmp');
                     assert.strictEqual(dagGlobalsData[0].roundRobinMode, 'local');
+                });
+        });
+    });
+
+    describe('Tunnel', () => {
+        it('should handle fully specified Tunnel', () => {
+            const declaration = {
+                Common: {
+                    Tunnel: {
+                        tunnel1: {
+                            name: 'tunnel1',
+                            tunnelType: 'tcp-forward',
+                            mtu: 0,
+                            usePmtu: true,
+                            typeOfService: 'preserve',
+                            autoLastHop: 'default'
+                        },
+                        tunnel2: {
+                            name: 'tunnel2',
+                            tunnelType: 'tcp-forward',
+                            mtu: 1000,
+                            usePmtu: false,
+                            typeOfService: 12,
+                            autoLastHop: 'enabled'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const tunnels = dataSent[PATHS.Tunnel];
+                    assert.strictEqual(tunnels[0].name, 'tunnel1');
+                    assert.strictEqual(tunnels[0].profile, '/Common/tcp-forward');
+                    assert.strictEqual(tunnels[0].mtu, 0);
+                    assert.strictEqual(tunnels[0].usePmtu, 'enabled');
+                    assert.strictEqual(tunnels[0].tos, 'preserve');
+                    assert.strictEqual(tunnels[0].autoLasthop, 'default');
+                    assert.strictEqual(tunnels[1].name, 'tunnel2');
+                    assert.strictEqual(tunnels[1].profile, '/Common/tcp-forward');
+                    assert.strictEqual(tunnels[1].mtu, 1000);
+                    assert.strictEqual(tunnels[1].usePmtu, 'disabled');
+                    assert.strictEqual(tunnels[1].tos, 12);
+                    assert.strictEqual(tunnels[1].autoLasthop, 'enabled');
                 });
         });
     });

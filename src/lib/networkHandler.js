@@ -56,16 +56,20 @@ class NetworkHandler {
         logger.fine('Checking Trunks.');
         return handleTrunk.call(this)
             .then(() => {
-                logger.fine('Checking MAC_Masquerades');
-                return handleMacMasquerade.call(this);
-            })
-            .then(() => {
                 logger.fine('Checking VLANs.');
                 return handleVlan.call(this);
             })
             .then(() => {
                 logger.fine('Checking RouteDomains.');
                 return handleRouteDomain.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking DNS_Resolvers');
+                return handleDnsResolver.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking Tunnels');
+                return handleTunnel.call(this);
             })
             .then(() => {
                 logger.fine('Checking SelfIps.');
@@ -88,48 +92,6 @@ class NetworkHandler {
                 return Promise.reject(err);
             });
     }
-}
-
-function handleMacMasquerade() {
-    if (this.declaration.Common && this.declaration.Common.MAC_Masquerade) {
-        const macMasquerade = this.declaration.Common.MAC_Masquerade;
-        return Promise.resolve()
-            .then(() => {
-                if (!Object.keys(macMasquerade).some(masquerade => macMasquerade[masquerade].source)) {
-                    return Promise.resolve();
-                }
-                return this.bigIp.list('/tm/sys/mac-address');
-            })
-            .then((macs) => {
-                Object.keys(macMasquerade).forEach((masquerade) => {
-                    const trafficGroup = macMasquerade[masquerade].trafficGroup;
-                    if (macMasquerade[masquerade].source) {
-                        const sourceInterface = macMasquerade[masquerade].source.interface;
-                        let mac;
-                        Object.keys(macs.entries).forEach((property) => {
-                            if (macs.entries[property].nestedStats.entries.objectId.description === sourceInterface) {
-                                mac = macs.entries[property].nestedStats.entries.macAddress.description;
-                            }
-                        });
-                        if (mac) {
-                            // eslint-disable-next-line no-bitwise
-                            const newMac = mac.slice(0, 1) + ((parseInt(mac.charAt(1), 16) >>> 0) ^ 2).toString(16)
-                                + mac.slice(2); // https://support.f5.com/csp/article/K3523
-                            this.bigIp.modify(`${PATHS.TrafficGroup}/~Common~${trafficGroup}`, { mac: newMac });
-                        } else {
-                            throw new Error('Cannot find MAC for given interface');
-                        }
-                    } else {
-                        this.bigIp.modify(`${PATHS.TrafficGroup}/~Common~${trafficGroup}`, { mac: 'none' });
-                    }
-                });
-            })
-            .catch((err) => {
-                logger.severe(`Error creating MAC Masquerade: ${err.message}`);
-                throw err;
-            });
-    }
-    return Promise.resolve();
 }
 
 function handleVlan() {
@@ -160,7 +122,10 @@ function handleVlan() {
                     interfaces,
                     name: vlan.name,
                     partition: tenant,
-                    cmpHash: vlan.cmpHash
+                    cmpHash: vlan.cmpHash,
+                    failsafe: vlan.failsafeEnabled ? 'enabled' : 'disabled',
+                    failsafeAction: vlan.failsafeAction,
+                    failsafeTimeout: vlan.failsafeTimeout
                 };
 
                 if (vlan.mtu) {
@@ -323,10 +288,19 @@ function handleRoute() {
             const routeBody = {
                 name: route.name,
                 partition: tenant,
-                gw: route.gw,
                 network: route.network,
                 mtu: route.mtu
             };
+
+            if (route.target) {
+                if (route.target.startsWith('/')) {
+                    routeBody.interface = route.target;
+                } else {
+                    routeBody.interface = `/${tenant}/${route.target}`;
+                }
+            } else {
+                routeBody.gw = route.gw;
+            }
 
             promise = promise.then(() => this.bigIp.createOrModify(
                 PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY
@@ -339,6 +313,44 @@ function handleRoute() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating routes: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleDnsResolver() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'DNS_Resolver', (tenant, resolver) => {
+        if (resolver && resolver.name) {
+            let forwardZones;
+            if (resolver.forwardZones) {
+                forwardZones = resolver.forwardZones.map(zone => ({
+                    name: zone.name,
+                    nameservers: zone.nameservers.map(nameserver => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })))
+                }));
+            }
+            const resolverBody = {
+                name: resolver.name,
+                partition: tenant,
+                answerDefaultZones: resolver.answerDefaultZones ? 'yes' : 'no',
+                cacheSize: resolver.cacheSize,
+                forwardZones: forwardZones || 'none',
+                randomizeQueryNameCase: resolver.randomizeQueryNameCase ? 'yes' : 'no',
+                routeDomain: resolver.routeDomain,
+                useIpv4: resolver.useIpv4 ? 'yes' : 'no',
+                useIpv6: resolver.useIpv6 ? 'yes' : 'no',
+                useTcp: resolver.useTcp ? 'yes' : 'no',
+                useUdp: resolver.useUdp ? 'yes' : 'no'
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.DNS_Resolver, resolverBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating DNS_Resolvers: ${err.message}`);
             throw err;
         });
 }
@@ -415,6 +427,33 @@ function handleDagGlobals() {
         this.bigIp.modify(PATHS.DagGlobals, body);
     }
     return Promise.resolve();
+}
+
+function handleTunnel() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'Tunnel', (tenant, tunnel) => {
+        if (tunnel && tunnel.name && tunnel.tunnelType) {
+            const tunnelBody = {
+                name: tunnel.name,
+                partition: tenant,
+                autoLasthop: tunnel.autoLastHop,
+                mtu: tunnel.mtu,
+                profile: `/Common/${tunnel.tunnelType}`,
+                tos: tunnel.typeOfService,
+                usePmtu: tunnel.usePmtu ? 'enabled' : 'disabled'
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.Tunnel, tunnelBody, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Tunnels: ${err.message}`);
+            throw err;
+        });
 }
 
 /**

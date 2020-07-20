@@ -77,6 +77,26 @@
         ]
     },
     {
+        "path": "/tm/net/dns-resolver",
+        "schemaClass": "DNS_Resolver",
+        "properties": [
+            { "id": "answerDefaultZones", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
+            { "id": "cacheSize" },
+            { "id": "forwardZones" },
+            { "id": "randomizeQueryNameCase", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
+            { "id": "routeDomain" },
+            { "id": "useIpv4", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
+            { "id": "useIpv6", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
+            { "id": "useTcp", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
+            { "id": "useUdp", "truth": "yes", "falsehoold": "no", "skipWhenOmitted": true }
+        ],
+        "declaration": {
+            "customFunctions": [
+                { "id": "remapNamservers" }
+            ]
+        }
+    },
+    {
         "path": "/tm/net/trunk",
         "schemaClass": "Trunk",
         "properties": [
@@ -97,7 +117,10 @@
             { "id": "mtu" },
             { "id": "tag" },
             { "id": "interfacesReference" },
-            { "id": "cmpHash" }
+            { "id": "cmpHash" },
+            { "id": "failsafe", "newId": "failsafeEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "failsafeAction" },
+            { "id": "failsafeTimeout" }
         ],
         "references": {
             "interfacesReference": [
@@ -121,7 +144,8 @@
         "properties": [
             { "id": "gw" },
             { "id": "network" },
-            { "id": "mtu" }
+            { "id": "mtu" },
+            { "id": "interface", "newId": "target" }
         ]
     },
     {
@@ -169,7 +193,21 @@
         "ignore": [
             { "name": "^datasync-.+-dg$" },
             { "name": "^device_trust_group$" },
+            { "name": "^dos-global-dg$" },
             { "name": "^gtm$" }
+        ],
+        "declaration": false
+    },
+    {
+        "path": "/tm/cm/traffic-group",
+        "schemaClass": "TrafficGroup",
+        "properties": [
+            { "id": "class" },
+            { "id": "autoFailbackEnabled" },
+            { "id": "autoFailbackTime" },
+            { "id": "failoverMethod" },
+            { "id": "haLoadFactor" },
+            { "id": "haOrder" }
         ],
         "declaration": false
     },
@@ -494,5 +532,16 @@
             { "id": "inactivityTimeout" }
         ],
         "nameless": true
+    },
+    {
+        "path": "/tm/net/tunnels/tunnel",
+        "schemaClass": "Tunnel",
+        "properties": [
+            { "id": "autoLasthop", "newId": "autoLastHop" },
+            { "id": "mtu" },
+            { "id": "profile", "newId": "tunnelType" },
+            { "id": "tos", "newId": "typeOfService" },
+            { "id": "usePmtu", "truth": "enabled", "falsehood": "disabled" }
+        ]
     }
 ]
