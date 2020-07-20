@@ -520,7 +520,7 @@ This example shows how to create Traffic Groups using Declarative Onboarding 1.1
 
 See |tg| in the Schema Reference for DO usage and options.  
 
-.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br||br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
+.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br| |br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
 
 
 .. literalinclude:: ../examples/trafficGroups.json
