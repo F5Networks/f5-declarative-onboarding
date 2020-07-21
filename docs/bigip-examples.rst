@@ -516,21 +516,18 @@ See |tunnel| in the Schema Reference for DO usage and options.
 
    Support for Traffic Groups is available in DO v1.14 and later
 
-This example shows how to create :ref:`Traffic Groups<tg>` using Declarative Onboarding 1.14 and later. 
+This example shows how to create Traffic Groups using Declarative Onboarding 1.14 and later. A traffic group is a group of configuration objects on a BIG-IP which is able to float to another device in a device group in case of failure.  For more information, see :ref:`trafficgroup` on the Clustering page, and |tgdoc|.
 
-.. NOTE:: The HA Score failover method is not currently supported. DO uses the HA Order failover method.
+See |tg| in the Schema Reference for DO usage and options.  
 
-A traffic group is a collection of related configuration objects (such as a virtual IP address and a self IP address) that run on a BIG-IP and process a particular type of application traffic. When a BIG-IP becomes unavailable, a traffic group can float to another device in a device group to ensure that application traffic continues to be processed with little to no interruption in service. For detailed information about Traffic Groups and clustering on the BIG-IP, see |tgdoc|.
-
-See |tg| in the Schema Reference for DO usage and options.
-
-.. IMPORTANT:: Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
+.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br| |br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
 
 
 .. literalinclude:: ../examples/trafficGroups.json
    :language: json
 
 :ref:`Back to top<bigipexamples>`
+
 
 .. |br| raw:: html
 
