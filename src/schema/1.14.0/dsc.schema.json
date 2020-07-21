@@ -231,7 +231,7 @@
                     },
                     "haOrder": {
                         "type": "array",
-                        "description": "This list of devices specifies the order in which the devices will become active for the traffic group when a failure occurs. This list may contain zero, one, or more entries up to the number of devices in the failover device group. If autoFailbackEnabled is set to true, this list must contain at least one entry for the auto failback device.",
+                        "description": "This list of devices specifies the order in which the devices will become active for the traffic group when a failure occurs. This list may contain zero, one, or more entries up to the number of devices in the failover device group.",
                         "items": {
                             "type": "string"
                         }
