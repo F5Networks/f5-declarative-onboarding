@@ -273,7 +273,7 @@ In this example, we show how you can configure SSHD (SSH daemon) settings in a D
 In the following declaration, we show only the SSHD class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
 **New in DO 1.15** |br|
-Declarative Onboarding v1.15 and later includes the ability to set the source IP addresses that are allowed to log into the system, using the new **allowed** property. You can allow all addresses by using the **all** value, or disallow all addresses using the **none** value; otherwise, you can specify an array of IP address as shown in the updated example.
+Declarative Onboarding v1.15 and later includes the ability to set the source IP addresses that are allowed to log into the system, using the new **allow** property. You can allow all addresses by using the **all** value, or disallow all addresses using the **none** value; otherwise, you can specify an array of IP address as shown in the updated example.
 
 .. IMPORTANT:: If you attempt to use the following declaration on a version prior to 1.15, it will fail.  To use the example on a previous version, delete the **allow** property and IP addresses (the hightlighted lines)
 
