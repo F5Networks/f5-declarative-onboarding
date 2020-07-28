@@ -144,6 +144,7 @@ class DeclarationHandler {
             .then(() => {
                 applyDefaults(parsedNewDeclaration, state);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
+                applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
 
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
                 return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration);
@@ -269,6 +270,33 @@ function applyDefaults(declaration, state) {
 function applyRouteDomainFixes(declaration, currentConfig) {
     applyDefaultRouteDomainFix(declaration, currentConfig);
     applyRouteDomainVlansFix(declaration, currentConfig);
+}
+
+/**
+ * Convert FailoverUnicasts to use addressPorts immediately
+ *
+ * @param {Object} declaration - User provided declaration
+ */
+function applyFailoverUnicastFixes(declaration) {
+    if (declaration.Common.FailoverUnicast && declaration.Common.FailoverUnicast.address) {
+        if (declaration.Common.FailoverUnicast.addressPorts) {
+            // If there is both and address and addressPorts at this point
+            // then the user supplied two different Failover Unicast objects.
+            // DO cannot guarantee which to use, thus we need to throw an error.
+            const message = 'Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort.';
+            logger.severe(message);
+            throw new Error(message);
+        }
+
+        declaration.Common.FailoverUnicast.addressPorts = [
+            {
+                address: declaration.Common.FailoverUnicast.address,
+                port: declaration.Common.FailoverUnicast.port
+            }
+        ];
+        delete declaration.Common.FailoverUnicast.address;
+        delete declaration.Common.FailoverUnicast.port;
+    }
 }
 
 /**

@@ -37,7 +37,7 @@
                 "properties": { "class": { "const": "FailoverUnicast" } }
             },
             "then": {
-                "required": ["class", "address"],
+                "required": ["class"],
                 "properties": {
                     "class": {
                         "description": "Indicates that this property contains failover unicast address configuration.",
@@ -54,14 +54,61 @@
                         ]
                     },
                     "port": {
-                        "description": "Port to listen on for failover heartbeats",
+                        "description": "Port to listen on for failover heartbeats. The default is 1026.",
                         "type": "number",
                         "minimum": 0,
-                        "maximum": 65535,
-                        "default": 1026
+                        "maximum": 65535
+                    },
+                    "addressPorts": {
+                        "description": "An array of address and port objects, that will create multiple failover unicast objects in the BIG-IP device. This array is mutually exclusive from using the other address and port features.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["address"],
+                            "properties": {
+                                "address": {
+                                    "description": "IP address to listen on for failover heartbeats",
+                                    "type": "string",
+                                    "anyOf": [
+                                        { "format": "ipv4" },
+                                        { "format": "ipv6" },
+                                        { "format": "json-pointer" }
+                                    ]
+                                },
+                                "port": {
+                                    "description": "Port to listen on for failover heartbeats",
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 65535,
+                                    "default": 1026
+                                }
+                            }
+                        }
                     }
                 },
-                "additionalProperties": false
+                "additionalProperties": false,
+                "dependencies": {
+                    "address": {
+                        "properties": {
+                            "port": {
+                                "default": 1026
+                            }
+                        }
+                    }
+                },
+                "oneOf": [
+                    {
+                        "required": ["address"],
+                        "not": { "required": ["addressPorts"] }
+                    },
+                    {
+                        "required": ["addressPorts"],
+                        "allOf": [
+                            { "not": { "required": ["address"] } },
+                            { "not": { "required": ["port"] } }
+                        ]
+                    }
+                ]
             }
         },
         {

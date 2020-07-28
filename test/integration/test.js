@@ -159,9 +159,21 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             assert.ok(testRoute(body.Common.myRoute, currentState));
         });
 
-        it('should match failover unicast address', () => {
-            assert.ok(testFailoverUnicast(body.Common, currentState));
-        });
+        it('should match failover unicast address', () => assert.deepStrictEqual(
+            currentState.FailoverUnicast,
+            {
+                addressPorts: [
+                    {
+                        address: '10.148.75.46',
+                        port: 1026
+                    },
+                    {
+                        address: '10.148.75.46',
+                        port: 126
+                    }
+                ]
+            }
+        ));
 
         it('should match configsync ip address', () => {
             assert.ok(testConfigSyncIp(body.Common, currentState));
@@ -942,12 +954,6 @@ function testDnsResolver(target, response) {
     const validName = target.forwardZones[0].name === 'forward.net';
     const validNameserver = target.forwardZones[0].nameservers[0] === '10.10.10.10:53';
     return validName && validNameserver && compareSimple(target, response.DNS_Resolver.myResolver, ['routeDomain']);
-}
-
-function testFailoverUnicast(target, response) {
-    const validRef = target.myFailoverUnicast.address === '/Common/mySelfIp/address';
-    const validAddr = target.mySelfIp.address.indexOf(response.FailoverUnicast.address) === 0;
-    return validRef && validAddr;
 }
 
 function testConfigSyncIp(target, response) {

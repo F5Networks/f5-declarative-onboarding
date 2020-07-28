@@ -14,6 +14,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1610: Add support for VLAN failsafe settings
 - AUTOTOOL-1358: ([GitHub Issue 123](https://github.com/F5Networks/f5-declarative-onboarding/issues/123)): TCP Forward Tunnel Support
 - AUTOTOOL-1609: Add support for creating and configuring traffic groups
+- AUTOTOOL-1675: ([GitHub Issue 152](https://github.com/F5Networks/f5-declarative-onboarding/issues/152)): Add support for creating and configuring multiple failover unicasts
 ### Fixed
 - AUTOTOOL-1091: Bad class values do not fail schema validation
 - AUTOTOOL-1659: MAC_Masquerade fails to roll back properly
