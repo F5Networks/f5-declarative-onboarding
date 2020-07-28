@@ -1043,8 +1043,12 @@ describe('inspectHandler', () => {
                             class: 'ConfigSync'
                         },
                         currentFailoverUnicast: {
-                            address: '10.0.0.2',
-                            port: 1026,
+                            addressPorts: [
+                                {
+                                    address: '10.0.0.2',
+                                    port: 1026
+                                }
+                            ],
                             class: 'FailoverUnicast'
                         },
                         currentAnalytics: {

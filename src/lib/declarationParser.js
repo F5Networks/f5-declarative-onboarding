@@ -264,7 +264,8 @@ function assignDefaults(propertyClass, property, modules) {
 }
 
 function dereference(property) {
-    const dereferenced = {};
+    // If the property is an array, we need to keep it an array
+    const dereferenced = (Array.isArray(property)) ? [] : {};
     Object.assign(dereferenced, property);
 
     Object.keys(dereferenced).forEach((key) => {
@@ -280,6 +281,9 @@ function dereference(property) {
             if (typeof value === 'string') {
                 dereferenced[key] = value;
             }
+        } else if (typeof dereferenced[key] === 'object') {
+            // This recursively handles subobjects and arrays
+            dereferenced[key] = dereference.call(this, dereferenced[key]);
         }
     });
 

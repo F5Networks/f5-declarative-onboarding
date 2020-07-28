@@ -366,7 +366,13 @@ const customFunctions = {
         return [configKey, configObject];
     },
     // FailoverUnicast item
-    removeIfUnicastAddrNone: (configKey, configObject) => [configKey, (configObject.unicastAddress === 'none' ? undefined : configObject)],
+    formatFailoverUnicast: (configKey, configObject) => {
+        if (configObject.addressPorts === 'none') {
+            return [configKey, undefined];
+        }
+
+        return [configKey, configObject];
+    },
     // Authentication item
     removeIncompleteAuthMethods: (configKey, configObject) => {
         const radius = configObject.radius;

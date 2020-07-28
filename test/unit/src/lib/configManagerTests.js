@@ -25,6 +25,7 @@ const assert = chai.assert;
 const URL = require('url');
 
 const ConfigManager = require('../../../../src/lib/configManager');
+const ConfigItems = require('../../../../src/lib/configItems.json');
 
 describe('configManager', () => {
     const hostname = 'myhost.bigip.com';
@@ -34,6 +35,17 @@ describe('configManager', () => {
     let bigIpMock;
     let state;
     let doState;
+
+    const getConfigItems = function (schemaClass) {
+        if (typeof schemaClass === 'undefined' || schemaClass === '') {
+            return undefined;
+        }
+
+        // Return a copy of the configItem
+        return JSON.parse(JSON.stringify(
+            [ConfigItems.find(configItem => configItem.schemaClass === schemaClass)]
+        ));
+    };
 
     beforeEach(() => {
         listResponses = {
@@ -358,56 +370,55 @@ describe('configManager', () => {
         // iControl omits the property altogether in some cases
         // Adding this defaultWhenOmitted attr makes the manager recognize that a default value is actually there
         // and that the prop needs to be set back to this value if it's not specified
-        const configItems = [
-            {
-                path: '/tm/cm/device/~Common~{{deviceName}}',
-                schemaClass: 'FailoverUnicast',
-                properties: [
-                    {
-                        id: 'unicastAddress',
-                        defaultWhenOmitted: 'none',
-                        transform: [
-                            { id: 'ip', newId: 'address' },
-                            { id: 'port' }
-                        ]
-                    }
-                ],
-                nameless: true
-            }
-        ];
+        const configItems = getConfigItems('FailoverUnicast');
 
         it('should include a default value when missing and defaultWhenOmitted is defined', () => {
             listResponses[`/tm/cm/device/~Common~${deviceName}`] = { name: deviceName };
             const configManager = new ConfigManager(configItems, bigIpMock);
             return configManager.get({}, state, doState)
                 .then(() => {
-                    assert.deepEqual(
-                        state.currentConfig.Common.FailoverUnicast.unicastAddress,
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.FailoverUnicast.addressPorts,
                         'none'
                     );
                 });
         });
 
-        it('should map correct value with new prop Id when present', () => {
+        it('should map to the correct value when using addressPorts', () => {
             listResponses[`/tm/cm/device/~Common~${deviceName}`] = {
                 name: deviceName,
                 unicastAddress: [
                     {
+                        effectiveIp: '1.1.1.106',
+                        effectivePort: 1026,
                         ip: '1.1.1.106',
                         port: 1026
+                    },
+                    {
+                        effectiveIp: '1.1.1.2',
+                        effectivePort: 777,
+                        ip: '1.1.1.2',
+                        port: 777
                     }
                 ]
             };
             const configManager = new ConfigManager(configItems, bigIpMock);
             return configManager.get({}, state, doState)
                 .then(() => {
-                    assert.deepEqual(
-                        state.currentConfig.Common.FailoverUnicast.address,
-                        '1.1.1.106'
-                    );
-                    assert.deepEqual(
-                        state.currentConfig.Common.FailoverUnicast.port,
-                        1026
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.FailoverUnicast,
+                        {
+                            addressPorts: [
+                                {
+                                    address: '1.1.1.106',
+                                    port: 1026
+                                },
+                                {
+                                    address: '1.1.1.2',
+                                    port: 777
+                                }
+                            ]
+                        }
                     );
                 });
         });

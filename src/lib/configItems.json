@@ -162,6 +162,7 @@
         "properties": [
             {
                 "id": "unicastAddress",
+                "newId": "addressPorts",
                 "defaultWhenOmitted": "none",
                 "transform": [
                     { "id": "ip", "newId": "address" },
@@ -173,7 +174,7 @@
         "declaration": {
             "$comment": "Should remove entire object if unicastAddress is 'none' (not configured)",
             "customFunctions": [
-                { "id": "removeIfUnicastAddrNone" }
+                { "id": "formatFailoverUnicast" }
             ]
         }
     },

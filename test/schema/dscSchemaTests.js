@@ -112,6 +112,11 @@ describe('dsc.schema.json', () => {
                     "address": "/foo/bar"
                 };
                 assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data, {
+                    class: 'FailoverUnicast',
+                    address: '/foo/bar',
+                    port: 1026
+                });
             });
 
             it('should validate full unicast address', () => {
@@ -121,6 +126,24 @@ describe('dsc.schema.json', () => {
                     "port": 8888
                 };
                 assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate if an addressPorts object is provided', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "addressPorts": [
+                        { "address": "2.3.4.5", "port": 876 },
+                        { "address": "1.2.3.4" }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data, {
+                    class: 'FailoverUnicast',
+                    addressPorts: [
+                        { address: '2.3.4.5', port: 876 },
+                        { address: '1.2.3.4', port: 1026 }
+                    ]
+                });
             });
         });
 
@@ -134,13 +157,17 @@ describe('dsc.schema.json', () => {
                 assert.notStrictEqual(getErrorString().indexOf("should match format"), -1);
             });
 
-            it('should invalidate missing address', () => {
+            it('should invalidate missing address and addressPorts', () => {
                 const data = {
                     "class": "FailoverUnicast"
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
                 assert.notStrictEqual(
-                    getErrorString().indexOf("should have required property 'address'"),
+                    getErrorString().indexOf("should have required property '.address'"),
+                    -1
+                );
+                assert.notStrictEqual(
+                    getErrorString().indexOf("should have required property '.addressPorts'"),
                     -1
                 );
             });
@@ -153,6 +180,83 @@ describe('dsc.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf("should be <= 65535"), -1);
+            });
+
+            it('should invalidate if \'none\' is provided as an addressPorts address', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "addressPorts": [
+                        {
+                            "address": "none"
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'addressPorts.Address should be an ipv4, ipv6, or json-pointer');
+                assert.notStrictEqual(getErrorString().indexOf("should match format \\\"ipv4\\\""), -1);
+                assert.notStrictEqual(getErrorString().indexOf("should match format \\\"ipv6\\\""), -1);
+                assert.notStrictEqual(getErrorString().indexOf("should match format \\\"json-pointer\\\""), -1);
+            });
+
+            it('should invalidate if an addressPorts is provided as well as address', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "address": "1.2.3.4",
+                    "addressPorts": [
+                        {
+                            "address": "1.2.3.4"
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'Cannot have both address and addressPorts');
+                // test that the oneOf is failing (as intended)
+                // Note: I do not like how coupled this is to the schema semantics
+                assert.notStrictEqual(getErrorString().indexOf("should match exactly one schema in oneOf"), -1);
+            });
+
+            it('should invalidate if an addressPorts is provided as well as port', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "port": 59,
+                    "addressPorts": [
+                        {
+                            "address": "1.2.3.4"
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'Cannot have both port and addressPorts');
+                // test that the oneOf is failing (as intended)
+                // Note: I do not like how coupled this is to the schema semantics
+                assert.notStrictEqual(getErrorString().indexOf("should match exactly one schema in oneOf"), -1);
+            });
+
+            it('should invalidate if an addressPorts has a bad port', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "addressPorts": [
+                        {
+                            "address": "1.2.3.4",
+                            "port": 65536
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'Must use a valid port number (0-65535)');
+                assert.notStrictEqual(getErrorString().indexOf("should be <= 65535"), -1);
+            });
+
+            it('should invalidate if an addressPorts has a bad address', () => {
+                const data = {
+                    "class": "FailoverUnicast",
+                    "addressPorts": [
+                        {
+                            "address": "1.2.3.400"
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'Addresses must be valid IPv4, IPv6, or JSON pointer');
+                assert.notStrictEqual(getErrorString().indexOf("\"schemaPath\": \"#/allOf/1/then/properties/addressPorts"), -1);
+                assert.notStrictEqual(getErrorString().indexOf("should match format \\\"ipv4\\\""), -1);
+                assert.notStrictEqual(getErrorString().indexOf("should match format \\\"ipv6\\\""), -1);
+                assert.notStrictEqual(getErrorString().indexOf("should match format \\\"json-pointer\\\""), -1);
             });
         });
     });

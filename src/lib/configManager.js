@@ -63,7 +63,8 @@ class ConfigManager {
      *                 id: <property_name>,
      *                 newId: <property_name_to_map_to_in_parsed_declaration>
      *                 truth: <mcp_truth_value_if_this_is_boolean>,
-     *                 falsehood: <mcp_false_value_if_this_is_boolean>
+     *                 falsehood: <mcp_false_value_if_this_is_boolean>,
+     *                 transform: [<id_newId_to_apply_to_arrays_and_subobjects>]
      *             }
      *         ]
      *         references: {
@@ -464,16 +465,26 @@ function mapProperties(item, index) {
             }
 
             if (property.transform) {
-                const orig = Object.assign({}, mappedItem[property.id]);
-                delete mappedItem[property.id];
-                property.transform.forEach((trans) => {
-                    const propertyVal = orig[trans.id] || orig[0][trans.id];
-                    if (trans.newId) {
-                        mappedItem[trans.newId] = propertyVal;
-                    } else {
-                        mappedItem[trans.id] = propertyVal;
+                const transformProperty = function (currentProperty) {
+                    if (Array.isArray(currentProperty)) {
+                        // Iterate through currentProperty to convert subobjects
+                        const output = currentProperty.map(prop => transformProperty(prop));
+                        return output;
                     }
-                });
+
+                    const newProperty = {};
+                    property.transform.forEach((trans) => {
+                        // Attempt to convert values
+                        if (trans.newId) {
+                            newProperty[trans.newId] = currentProperty[trans.id];
+                        } else {
+                            newProperty[trans.id] = currentProperty[trans.id];
+                        }
+                    });
+                    return newProperty;
+                };
+
+                mappedItem[property.id] = transformProperty(mappedItem[property.id]);
             }
             hasVal = true;
         } else if (property.defaultWhenOmitted !== undefined) {

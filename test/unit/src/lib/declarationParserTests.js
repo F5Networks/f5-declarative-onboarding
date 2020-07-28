@@ -247,6 +247,14 @@ describe('declarationParser', () => {
                     "bigIpUsername": "/Credentials/0/username",
                     "bigIqUsername": "/Credentials/1/username",
                     "notAPointer": "/foo/bar"
+                },
+                "myFailoverUnicast": {
+                    "class": "FailoverUnicast",
+                    "addressPorts": [
+                        {
+                            "address": "/Common/mySelfIp/address"
+                        }
+                    ]
                 }
             }
         };
@@ -256,10 +264,40 @@ describe('declarationParser', () => {
         assert.strictEqual(parsedDeclaration.Common.ConfigSync.configsyncIp, '1.2.3.4');
         assert.strictEqual(parsedDeclaration.Common.License.bigIpUsername, 'myUser');
         assert.strictEqual(parsedDeclaration.Common.License.bigIqUsername, 'myOtherUser');
+        assert.strictEqual(parsedDeclaration.Common.FailoverUnicast.addressPorts[0].address, '1.2.3.4');
 
         // If we get a pointer that does not de-reference, we should just get back the
         // original pointer
         assert.strictEqual(parsedDeclaration.Common.License.notAPointer, '/foo/bar');
+    });
+
+    it('should not change an array to an object when parsing and dereferencing', () => {
+        const declaration = {
+            "Common": {
+                "class": "Tenant",
+                "myNtp": {
+                    "class": "NTP",
+                    "servers": [
+                        "0.pool.ntp.org",
+                        "1.pool.ntp.org"
+                    ],
+                    "timezone": "UTC"
+                }
+            }
+        };
+        const declarationParser = new DeclarationParser(declaration);
+        const parsedDeclaration = declarationParser.parse().parsedDeclaration;
+
+        assert.deepStrictEqual(
+            parsedDeclaration.Common.NTP,
+            {
+                servers: [
+                    '0.pool.ntp.org',
+                    '1.pool.ntp.org'
+                ],
+                timezone: 'UTC'
+            }
+        );
     });
 
     it('should return default modules and user modules', () => {

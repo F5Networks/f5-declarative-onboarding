@@ -71,7 +71,15 @@
         },
         "myFailoverUnicast": {
             "class": "FailoverUnicast",
-            "address": "/Common/mySelfIp/address"
+            "addressPorts": [
+                {
+                    "address": "/Common/mySelfIp/address"
+                },
+                {
+                    "address": "/Common/mySelfIp/address",
+                    "port": 126
+                }
+            ]
         },
         "mySystem": {
             "class": "System",
