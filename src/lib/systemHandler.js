@@ -605,7 +605,8 @@ function handleLicensePool(license) {
                         unitOfMeasure: license.unitOfMeasure,
                         noUnreachable: !!license.reachable,
                         overwrite: !!license.overwrite,
-                        autoApiType: true
+                        autoApiType: true,
+                        tenant: license.tenant
                     }
                 );
             }

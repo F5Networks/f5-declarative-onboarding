@@ -17,7 +17,8 @@
             "skuKeyword2": "key2",
             "unitOfMeasure": "hourly",
             "reachable": false,
-            "hypervisor": "vmware"
+            "hypervisor": "vmware",
+            "tenant": "Optional custom descriptor"
         },
         "myDns": {
             "class": "DNS",

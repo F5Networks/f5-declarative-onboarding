@@ -1025,7 +1025,8 @@ describe('systemHandler', () => {
                     skuKeyword2: 'my skukeyword2',
                     reachable: false,
                     hypervisor: 'vmware',
-                    overwrite: true
+                    overwrite: true,
+                    tenant: 'Test tenant value'
                 }
             }
         };
@@ -1066,6 +1067,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(optionsSent.overwrite, true);
                 assert.strictEqual(optionsSent.autoApiType, true);
                 assert.strictEqual(activeCalled, true);
+                assert.strictEqual(optionsSent.tenant, 'Test tenant value');
             });
     });
 
@@ -1132,7 +1134,8 @@ describe('systemHandler', () => {
             Common: {
                 License: {
                     licenseType: 'licensePool',
-                    licensePool: 'clpv2'
+                    licensePool: 'clpv2',
+                    tenant: 'Test tenant description'
                 }
             }
         };
@@ -1160,6 +1163,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(bigIqHostSent, 'localhost');
                 assert.strictEqual(optionsSent.bigIpMgmtAddress, '11.12.13.14');
                 assert.strictEqual(optionsSent.bigIqMgmtPort, 8100);
+                assert.strictEqual(optionsSent.tenant, 'Test tenant description');
             });
     });
 

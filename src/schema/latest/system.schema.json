@@ -1243,6 +1243,7 @@
                 }
             },
             "else": {
+                "not": { "required": ["tenant"] },
                 "if": {
                     "required": ["licensePool"]
                 },
@@ -1321,6 +1322,10 @@
                             ]
                         }
                     ]
+                },
+                "tenant": {
+                    "description": "An optional description for the license. Can be useful in a clustered environment. Requires that reachable is set to false.",
+                    "type": "string"
                 }
             },
             "allOf": [

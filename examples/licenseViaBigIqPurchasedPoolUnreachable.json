@@ -14,7 +14,8 @@
             "bigIqPassword": "myPassword1",
             "licensePool": "myPurchasedPool",
             "reachable": false,
-            "hypervisor": "vmware"
+            "hypervisor": "vmware",
+            "tenant": "Optional custom descriptor"
         },
         "myDns": {
             "class": "DNS",
