@@ -244,9 +244,6 @@ create docs:
         - tags
         - schedules
     script:
-        - node scripts/build/schema-build.js
-        - node scripts/build/schema-check.js
-        - node scripts/build/schema-to-rst.js
         - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
         -   rm -rf docs/_templates
         - fi
