@@ -27,7 +27,6 @@ const ajv = new Ajv(
         extendRefs: 'fail'
     }
 );
-const definitionsSchema = require('../../src/schema/latest/definitions.schema.json');
 const systemSchema = require('../../src/schema/latest/system.schema.json');
 const customFormats = require('../../src/schema/latest/formats.js');
 
@@ -36,7 +35,6 @@ Object.keys(customFormats).forEach((customFormat) => {
 });
 
 const validate = ajv
-    .addSchema(definitionsSchema)
     .compile(systemSchema);
 
 /* eslint-disable quotes, quote-props */

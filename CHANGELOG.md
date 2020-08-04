@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1635: ([GitHub Issue 72](https://github.com/F5Networks/f5-declarative-onboarding/issues/72)): Support tenant property when licensing
 - AUTOTOOL-1675: ([GitHub Issue 152](https://github.com/F5Networks/f5-declarative-onboarding/issues/152)): Add support for creating and configuring multiple failover unicasts
 ### Fixed
+- Improve schema for use with BIG-IQ 7.1
 ### Changed
 ### Removed
 
