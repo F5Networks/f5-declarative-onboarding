@@ -171,7 +171,7 @@ Relicensing a BIG-IP (no route)
 ```````````````````````````````
 If you want to relicense a BIG-IP VE that is **unreachable** from the BIG-IQ device, in your *unreachable* declaration you must also use the **overwrite** property (``"overwrite": true``) in addition to the **revokeFrom** property with name of the license pool you want to revoke the license from (for example ``"revokeFrom": "myPool"``). In the licensePool property, use the new license pool from which you want to give the BIG-IP a license.
 
-**New in DO 1.15** 
+**New in DO 1.15** |br| 
 DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the DO property, it becomes *DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
 
 .. IMPORTANT:: The following declaration snippet has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom.
