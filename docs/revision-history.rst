@@ -13,7 +13,7 @@ Document Revision History
              
       * - 3.2
         - Updated the documentation for Declarative Onboarding v1.15.0.  This release contains the following changes: |br| * Added support for allowed source IP addresses for SSHD  (see the updated :ref:`SSHD example<sshex>`) |br| *  |br| |br| Issues Resolved: |br| * 
-        - 07-21-20
+        - 09-01-20
 
       * - 3.1
         - Updated the documentation for Declarative Onboarding v1.14.0.  This release contains the following changes: |br| * Added support for VLAN Failsafe (see :ref:`VLAN Failsafe<example22>`) |br| * Added support for creating DNS Resolvers (see :ref:`DNS Resolver<example23>`) |br| * Added support for creating a TCP Forward Network Tunnel (see :ref:`Tunnel<example24>`) |br| * Added support for Traffic Groups (see :ref:`trafficgroup` and :ref:`Traffic Groups<example25>`) |br| |br| Issues Resolved: |br| * Bad class values do not fail schema validation |br| * MAC_Masquerade fails to roll back properly
