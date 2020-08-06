@@ -117,7 +117,7 @@ Revoking a license without relicensing
 --------------------------------------
 If you want to revoke a license from a BIG-IP and not supply a new license, you simply add the **revokeFrom** property with name of the license pool to the license class.  For example ``"revokeFrom": "myPool"``.
 
-So the entire license class might look like the following:
+So the entire license class might look like the following, which revokes the license from the BIG-IP VE, and leaves it in an unlicensed state.
 
 .. code-block:: javascript
    :emphasize-lines: 7
@@ -132,7 +132,6 @@ So the entire license class might look like the following:
             "reachable": false
         },
 
-This revokes the license from the BIG-IP VE, and leaves it in an unlicensed state.
 
 Revoking a license and relicensing a BIG-IP from a different license pool
 -------------------------------------------------------------------------
@@ -143,7 +142,7 @@ Relicensing a BIG-IP (with route)
 If you want to relicense a BIG-IP VE that is reachable from the BIG-IQ device, in your *reachable* declaration you simply add the **revokeFrom** property with name of the license pool you want to revoke the license from (for example ``"revokeFrom": "myPool"``). In the licensePool property, use the new license pool from which you want to give the BIG-IP a license.
 
 
-So the entire license class might look like the following:
+So the entire license class might look like the following, which revokes the license from the BIG-IP VE from the **myPool** license pool and relicenses it using the **myOtherPool** license pool:
 
 .. code-block:: javascript
    :emphasize-lines: 7-8
@@ -164,7 +163,7 @@ So the entire license class might look like the following:
         "bigIpPassword": "barbar"
     },
 
-This revokes the license from the BIG-IP VE from the **myPool** license pool and relicenses it using the **myOtherPool** license pool.
+
 
 
 Relicensing a BIG-IP (no route)
@@ -177,7 +176,7 @@ DO 1.15 adds the **tenant** property to the License class. This property allows 
 .. IMPORTANT:: The following declaration snippet has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom.
 
 
-So the entire license class might look like the following:
+So the entire license class might look like the following, which revokes the license from the BIG-IP VE from the **myPool** license pool and relicenses it using the **myOtherPool** license pool (while telling the BIG-IP VE to overwrite the existing license).
 
 .. code-block:: javascript
    :emphasize-lines: 6-7, 14
@@ -199,7 +198,6 @@ So the entire license class might look like the following:
             "tenant": "Optional custom descriptor"
         },
 
-This revokes the license from the BIG-IP VE from the **myPool** license pool and relicenses it using the **myOtherPool** license pool (while telling the BIG-IP VE to overwrite the existing license).
 
 
 Relicensing a BIG-IP (no route) using a different BIG-IQ device
