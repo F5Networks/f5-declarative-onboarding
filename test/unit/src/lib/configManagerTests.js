@@ -1293,4 +1293,32 @@ describe('configManager', () => {
                 assert.deepStrictEqual(state.currentConfig.Common, expectedConfig, 'Should match expected config');
             });
     });
+
+    describe('capture plus transform', () => {
+        const configItems = getConfigItems('Disk');
+
+        it('should get current config for Disk', () => {
+            listResponses['/tm/sys/disk/directory'] = {
+                apiRawValues: {
+                    apiAnonymous: '\nDirectory Name                  Current Size    New Size        \n--------------                  ------------    --------        \n/config                         3321856         -               \n/shared                         20971520        -               \n/var                            3145728         -               \n/var/log                        3072000         -               \n/appdata                        26128384       -               \n\n'
+                }
+            };
+
+            const expectedConfig = {
+                Disk: {
+                    applicationData: 26128384
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                const pathname = URL.parse(path, 'https://foo').pathname;
+                return Promise.resolve(listResponses[pathname] || {});
+            };
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common, expectedConfig);
+                });
+        });
+    });
 });

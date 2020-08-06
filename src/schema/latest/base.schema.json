@@ -143,6 +143,7 @@
                             "DeviceCertificate",
                             "DeviceGroup",
                             "DeviceTrust",
+                            "Disk",
                             "DNS",
                             "DNS_Resolver",
                             "FailoverUnicast",

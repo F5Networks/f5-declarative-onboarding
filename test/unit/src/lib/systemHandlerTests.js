@@ -2041,4 +2041,49 @@ describe('systemHandler', () => {
                 });
         });
     });
+
+    describe('Disk', () => {
+        let eventEmitter;
+        let eventCalled;
+
+        beforeEach(() => {
+            eventCalled = false;
+            eventEmitter = new EventEmitter();
+            eventEmitter.on(EVENTS.REBOOT_NOW, () => {
+                eventCalled = true;
+            });
+            sinon.stub(doUtilMock, 'waitForReboot').resolves();
+            bigIpMock.save = () => Promise.resolve();
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it('should handle Disk', () => {
+            const declaration = {
+                Common: {
+                    Disk: {
+                        applicationData: 130985984
+                    }
+                }
+            };
+            const state = {
+                id: 'stateId',
+                originalConfig: {
+                    Common: {
+                        Disk: {
+                            applicationData: 26128384
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.equal(eventCalled, true);
+                });
+        });
+    });
 });
