@@ -104,8 +104,9 @@ class RestWorker {
             doUtil.getCurrentPlatform()
                 .then((platform) => {
                     if (platform === PRODUCTS.BIGIP) {
-                        logger.debug('Prepping for revoke');
-                        return prepForRevoke.call(this, taskId, bigIpPassword, bigIqPassword);
+                        logger.debug('Prepping for reboot and resume');
+                        return prepForRebootResumeOrRevoke.call(this, taskId, STATUS.STATUS_REVOKING,
+                            bigIpPassword, bigIqPassword);
                     }
                     return Promise.resolve();
                 })
@@ -117,6 +118,16 @@ class RestWorker {
                 })
                 .catch((err) => {
                     logger.warning(`Error handling onStartCompleted: ${err.message}`);
+                });
+        });
+
+        this.eventEmitter.on(EVENTS.REBOOT_NOW, (taskId) => {
+            this.state.doState.setRebootRequired(taskId, true);
+            return save.call(this)
+                .then(() => prepForRebootResumeOrRevoke.call(this, taskId, STATUS.STATUS_REBOOTING_AND_RESUMING))
+                .then(() => rebootIfRequired.call(this, this.bigIps[taskId], taskId))
+                .catch((err) => {
+                    logger.warning(`Error handling REBOOT_NOW: ${err.message}`);
                 });
         });
 
@@ -711,6 +722,7 @@ function handleStartupState(success, error) {
                 updateStateAfterReboot.call(this, currentTaskId, success, error);
                 break;
             case STATUS.STATUS_REVOKING:
+            case STATUS.STATUS_REBOOTING_AND_RESUMING:
                 // If our status is REVOKING, restnoded was just restarted
                 // and we need to finish processing the declaration.
                 // This should only be the case when we are running on a BIG-IP.
@@ -1257,14 +1269,16 @@ function getPathInfo(uri) {
     return pathInfo;
 }
 
-function prepForRevoke(taskId, bigIpPassword, bigIqPassword) {
+function prepForRebootResumeOrRevoke(taskId, status, bigIpPassword, bigIqPassword) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
     const encryptPromises = [];
     // if we need to relicense after we restart, so store passwords
-    encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIpPassword, BIG_IP_ENCRYPTION_ID));
-    encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID));
+    if (bigIpPassword && bigIqPassword) {
+        encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIpPassword, BIG_IP_ENCRYPTION_ID));
+        encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID));
+    }
 
     return Promise.all(encryptPromises)
         // We have to save sys config here to save the enrypted data in case
@@ -1274,8 +1288,8 @@ function prepForRevoke(taskId, bigIpPassword, bigIqPassword) {
             this.state.doState.updateResult(
                 taskId,
                 202,
-                STATUS.STATUS_REVOKING,
-                'revoking license'
+                status,
+                status === STATUS.STATUS_REVOKING ? 'revoking license' : 'rebooting and resuming'
             );
             return save.call(this);
         });

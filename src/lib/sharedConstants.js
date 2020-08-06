@@ -72,11 +72,13 @@ module.exports = {
         STATUS_ROLLING_BACK: 'ROLLING_BACK',
         STATUS_RUNNING: 'RUNNING',
         STATUS_REBOOTING: 'REBOOTING',
-        STATUS_REVOKING: 'REVOKING'
+        STATUS_REVOKING: 'REVOKING',
+        STATUS_REBOOTING_AND_RESUMING: 'REBOOTING_AND_RESUMING'
     },
     EVENTS: {
         LICENSE_WILL_BE_REVOKED: 'DO_LICENSE_WILL_BE_REVOKED',
-        READY_FOR_REVOKE: 'DO_READY_FOR_REVOKE'
+        READY_FOR_REVOKE: 'DO_READY_FOR_REVOKE',
+        REBOOT_NOW: 'DO_REBOOT_NOW'
     },
     NAMELESS_CLASSES: [
         'DbVariables',
@@ -96,7 +98,8 @@ module.exports = {
         'System',
         'TrafficControl',
         'HTTPD',
-        'SSHD'
+        'SSHD',
+        'Disk'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

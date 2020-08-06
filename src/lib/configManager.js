@@ -64,7 +64,9 @@ class ConfigManager {
      *                 newId: <property_name_to_map_to_in_parsed_declaration>
      *                 truth: <mcp_truth_value_if_this_is_boolean>,
      *                 falsehood: <mcp_false_value_if_this_is_boolean>,
-     *                 transform: [<id_newId_to_apply_to_arrays_and_subobjects>]
+     *                 transform: [<id_newId_to_apply_to_arrays_and_subobjects>],
+     *                 capture: <regex_to_capture>,
+     *                 captureProperty: <property_to_capture_from>
      *             }
      *         ]
      *         references: {
@@ -305,6 +307,12 @@ class ConfigManager {
                                 );
                             }
                         }
+                        if (schemaClass === 'Disk' && patchedItem.apiRawValues) {
+                            patchedItem = patchedItem.apiRawValues;
+                            Object.keys(patchedItem).forEach((item) => {
+                                patchedItem[item] = parseInt(patchedItem[item], 10);
+                            });
+                        }
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
                     }
@@ -474,11 +482,19 @@ function mapProperties(item, index) {
 
                     const newProperty = {};
                     property.transform.forEach((trans) => {
+                        let value = currentProperty[trans.id];
+
+                        if (trans.capture) {
+                            // The capture property is a regex that is grouping in a way that puts
+                            // the desired value at the end of the match.
+                            value = currentProperty[trans.captureProperty].match(trans.capture).pop();
+                        }
+
                         // Attempt to convert values
                         if (trans.newId) {
-                            newProperty[trans.newId] = currentProperty[trans.id];
+                            newProperty[trans.newId] = value;
                         } else {
-                            newProperty[trans.id] = currentProperty[trans.id];
+                            newProperty[trans.id] = value;
                         }
                     });
                     return newProperty;
@@ -496,6 +512,7 @@ function mapProperties(item, index) {
             mapNewId(mappedItem, property.id, property.newId);
         }
     });
+
     return mappedItem;
 }
 

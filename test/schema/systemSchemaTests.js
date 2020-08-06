@@ -1129,6 +1129,47 @@ describe('system.schema.json', () => {
             });
         });
     });
+
+    describe('Disk', () => {
+        describe('valid', () => {
+            it('should validate with minimal properties', () => {
+                const data = {
+                    "class": "Disk"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate with all properties', () => {
+                const data = {
+                    "class": "Disk",
+                    "applicationData": 12345
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "class": "Disk",
+                    "newData": "12345"
+                };
+                assert.strictEqual(validate(data), false, 'there should not be additional properties');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate invalid applicationData', () => {
+                const data = {
+                    "class": "Disk",
+                    "applicationData": {
+                        "data": "hello"
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'should be type integer');
+                assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {

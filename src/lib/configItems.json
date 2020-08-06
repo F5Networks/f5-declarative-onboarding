@@ -545,5 +545,22 @@
             { "id": "tos", "newId": "typeOfService" },
             { "id": "usePmtu", "truth": "enabled", "falsehood": "disabled" }
         ]
+    },
+    {
+        "path": "/tm/sys/disk/directory",
+        "schemaClass": "Disk",
+        "properties": [
+            {
+                "id": "apiRawValues",
+                "transform": [
+                    {
+                        "id": "applicationData",
+                        "capture": "appdata\\s+([0-9]+)",
+                        "captureProperty": "apiAnonymous"
+                    }
+                ]
+            }
+        ],
+        "nameless": true
     }
 ]

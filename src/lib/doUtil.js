@@ -26,6 +26,7 @@ const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const Logger = require('./logger');
 const ipF5 = require('../schema/latest/formats').f5ip;
+const promiseUtil = require('./promiseUtil');
 
 const logger = new Logger(module);
 
@@ -414,5 +415,22 @@ module.exports = {
                 }
             });
         });
+    },
+
+    /**
+     * Wait for Big-IP to reboot.
+     *
+     * @param {Object} bigIp - Big-IP object.
+     */
+    waitForReboot(bigIp) {
+        return this.getCurrentPlatform()
+            .then((platform) => {
+                if (platform !== PRODUCTS.BIGIP) {
+                    // Wait for BIG-IP to be ready if not running on BIG-IP
+                    return promiseUtil.delay(10000).then(() => bigIp.ready());
+                }
+                // Block with Promise that never resolves and wait for BIG-IP to restart
+                return new Promise(() => {});
+            });
     }
 };

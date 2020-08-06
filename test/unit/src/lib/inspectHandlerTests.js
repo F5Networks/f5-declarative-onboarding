@@ -895,7 +895,12 @@ describe('inspectHandler', () => {
                     usePmtu: 'enabled',
                     autoLasthop: 'default'
                 }
-            ]
+            ],
+            '/tm/sys/disk/directory': {
+                apiRawValues: {
+                    apiAnonymous: '\nDirectory Name                  Current Size    New Size        \n--------------                  ------------    --------        \n/config                         3321856         -               \n/shared                         20971520        -               \n/var                            3145728         -               \n/var/log                        3072000         -               \n/appdata                        130985984       -               \n\n'
+                }
+            }
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1345,6 +1350,10 @@ describe('inspectHandler', () => {
                             usePmtu: true,
                             typeOfService: 'preserve',
                             autoLastHop: 'default'
+                        },
+                        currentDisk: {
+                            class: 'Disk',
+                            applicationData: 130985984
                         }
                     }
                 }
@@ -1602,6 +1611,9 @@ describe('inspectHandler', () => {
                             },
                             currentSSHD: {
                                 class: 'SSHD'
+                            },
+                            currentDisk: {
+                                class: 'Disk'
                             }
                         }
                     }

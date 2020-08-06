@@ -1164,6 +1164,27 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Disk" } }
+            },
+            "then": {
+                "properties": {
+                    "class": {
+                        "description": "Indicates this contains Disk configuration.",
+                        "type": "string",
+                        "const": "Disk"
+                    },
+                    "applicationData": {
+                        "description": "Specifies the size in kilobytes for the application data. This size should be less than the current size.",
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "additionalProperties": false
+            }
         }
     ],
     "definitions": {

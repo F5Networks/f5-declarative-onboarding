@@ -394,4 +394,54 @@ describe('doUtil', () => {
                 'This test should have errored only once and then succeeded returning true');
         });
     });
+
+    describe('waitForReboot', () => {
+        let bigIpMock;
+
+        beforeEach(() => {
+            bigIpMock = new BigIpMock();
+            bigIpMock.ready = () => Promise.resolve();
+        });
+
+        it('should not resolve when running on BIG-IP', () => {
+            sinon.stub(doUtil, 'getCurrentPlatform').resolves('BIG-IP');
+            const clock = sinon.useFakeTimers();
+
+            return new Promise((resolve, reject) => {
+                doUtil.waitForReboot(bigIpMock)
+                    .then(() => {
+                        reject(assert.fail());
+                    });
+                return Promise.resolve()
+                    .then(() => {
+                        clock.tick(10000);
+                        clock.restore();
+                        resolve();
+                    });
+            });
+        });
+
+        it('should resolve when running on BIG-IQ', () => {
+            const clock = sinon.useFakeTimers();
+            sinon.stub(doUtil, 'getCurrentPlatform').resolves('BIG-IQ');
+            let promiseResolved = false;
+
+            doUtil.waitForReboot(bigIpMock)
+                .then(() => {
+                    promiseResolved = true;
+                });
+
+            return Promise.resolve()
+                .then(() => {
+                    clock.tick(10000);
+                    clock.restore();
+                })
+                .then(() => new Promise((resolve) => {
+                    setImmediate(() => {
+                        assert.strictEqual(promiseResolved, true);
+                        resolve();
+                    });
+                }));
+        });
+    });
 });
