@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.2
-        - Updated the documentation for Declarative Onboarding v1.15.0.  This release contains the following changes: |br| * Added support for allowed source IP addresses for SSHD  (see the updated :ref:`SSHD example<sshex>`) |br| *  |br| |br| Issues Resolved: |br| * 
+        - Updated the documentation for Declarative Onboarding v1.15.0.  This release contains the following changes: |br| * Added support for allowed source IP addresses for SSHD  (see the updated :ref:`SSHD example<sshex>`) |br| * Added support for the **tenant** property in the License class allowing an optional description of the license (see the *No Route* examples in :doc:`big-iq-licensing` and `bigiq-examples`) |br| |br| Issues Resolved: |br| * 
         - 09-01-20
 
       * - 3.1
