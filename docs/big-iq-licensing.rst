@@ -204,6 +204,11 @@ Relicensing a BIG-IP (no route) using a different BIG-IQ device
 ```````````````````````````````````````````````````````````````
 This section shows how to relicense a BIG-IP VE that is **unreachable**, AND you are using a different BIG-IQ device than the one you used to initially license the BIG-IP device. In this case, you also use the **revokeFrom** property, but you supply information about the BIG-IQ device you used to license the BIG-IP.  You must also use the **overwrite** property (``"overwrite": true``) in addition to the **revokeFrom** property. 
 
+**New in DO 1.15** |br| 
+DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the DO property, it becomes *DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
+
+.. IMPORTANT:: The following declaration snippet has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom.
+
 For example, to revoke a license issued from the BIG-IQ at 10.0.2.200 and re-license with a license from the BIG-IQ at 10.0.1.200, the entire license class might look like the following:
 
 .. code-block:: javascript
@@ -228,7 +233,8 @@ For example, to revoke a license issued from the BIG-IQ at 10.0.2.200 and re-lic
             "unitOfMeasure": "hourly",
             "reachable": false,
             "hypervisor": "vmware",
-            "overwrite": true
+            "overwrite": true,
+            "tenant": "Optional custom descriptor"
         },
 
 This revokes the license from the BIG-IP VE from the **myPool** license pool from the initial BIG-IQ device, and relicenses it using the **myPool** license pool on the new BIG-IQ device on which you are composing this declaration (while telling the BIG-IP VE to overwrite the existing license).
