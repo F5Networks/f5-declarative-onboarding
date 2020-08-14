@@ -533,6 +533,32 @@ See |tg| in the Schema Reference for DO usage and options.
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
+.. _example26:
+
+26: Configuring multiple failover unicast addresses 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for multiple failover unicast addresses is available in DO v1.15 and later
+
+This example shows how to specify multiple failover unicast addresses using Declarative Onboarding 1.15 and later. The unicast addresses you specify are the main address that other devices in the device group use to communicate continually with the local device to assess the health of that device. For more information on failover on the BIG-IP, see |failover|. 
+
+For additional information, see :ref:`failover-uni-class` on the Clustering page. See |unicast| in the Schema Reference for DO usage and options.  
+
+To use this feature:
+
+- The failover unicast addresses must be pointing at IP addresses on the BIG-IP system (Self IP addresses)
+- Self IPs require a VLAN.  Some systems, such as 1 NIC BIG-IP systems, are not able to have multiple VLANs.  Check the device on which you are deploying a declaration using this feature.
+
+In the following example, the declaration creates a VLAN, that is then used by 2 external Self IP addresses, and then updates the device with two Failover Unicast addresses. 
+
+.. literalinclude:: ../examples/multipleFailoverUnicasts.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
 
 .. |br| raw:: html
 
@@ -667,4 +693,12 @@ See |tg| in the Schema Reference for DO usage and options.
 .. |hagroup| raw:: html
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-maintain-high-availability-through-resource-monitoring-13-0-0/1.html" target="_blank">BIG-IP documentation</a>
+
+.. |failover| raw:: html
+
+   <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-device-service-clustering-administration-13-1-0/6.html" target="_blank">Failover documentation</a>
+
+.. |unicast| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#failoverunicast" target="_blank">FailoverUnicast</a>
 
