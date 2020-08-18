@@ -1320,5 +1320,27 @@ describe('configManager', () => {
                     assert.deepStrictEqual(state.currentConfig.Common, expectedConfig);
                 });
         });
+
+        it('should get empty current config for Disk without target directory', () => {
+            listResponses['/tm/sys/disk/directory'] = {
+                apiRawValues: {
+                    apiAnonymous: '\nDirectory Name                  Current Size    New Size        \n--------------                  ------------    --------        \n/config                         3321856         -               \n/shared                         20971520        -               \n/var                            3145728         -               \n/var/log                        3072000         -               \n\n'
+                }
+            };
+
+            const expectedConfig = {
+                Disk: {}
+            };
+
+            bigIpMock.list = (path) => {
+                const pathname = URL.parse(path, 'https://foo').pathname;
+                return Promise.resolve(listResponses[pathname] || {});
+            };
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common, expectedConfig);
+                });
+        });
     });
 });
