@@ -487,7 +487,13 @@ function mapProperties(item, index) {
                         if (trans.capture) {
                             // The capture property is a regex that is grouping in a way that puts
                             // the desired value at the end of the match.
-                            value = currentProperty[trans.captureProperty].match(trans.capture).pop();
+                            const match = currentProperty[trans.captureProperty].match(trans.capture);
+
+                            if (match === null) {
+                                return;
+                            }
+
+                            value = match.pop();
                         }
 
                         // Attempt to convert values

@@ -6,7 +6,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1307: ([GitHub Issue 111](https://github.com/F5Networks/f5-declarative-onboarding/issues/111)): Add support for SSHD allowed source IP's
 - AUTOTOOL-1635: ([GitHub Issue 72](https://github.com/F5Networks/f5-declarative-onboarding/issues/72)): Support tenant property when licensing
 - AUTOTOOL-1675: ([GitHub Issue 152](https://github.com/F5Networks/f5-declarative-onboarding/issues/152)): Add support for creating and configuring multiple failover unicasts
-- AUTOTOOL-1206: Add support for resizing appdata
+- AUTOTOOL-1206: Add experimental support for resizing appdata
 ### Fixed
 - Improve schema for use with BIG-IQ 7.1
 ### Changed
