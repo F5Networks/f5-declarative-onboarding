@@ -65,7 +65,30 @@ In DO 1.9.0 and later, there is a new query parameter (**statusCodes**) that all
 
 See :ref:`GET on the HTTP Methods page <getquery>` for more information and usage options.
 
+|
 
+.. _restjavad:
+
+Why is my BIG-IP experiencing occasional high CPU usage and slower performance?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If your BIG-IP system seems to be using a relatively high amount of CPU and degraded performance, you may be experiencing a known issue with the **restjavad** daemon. This is an issue with the underlying BIG-IP framework, and not an issue with DO.
+
+**More information** |br|
+Restjavad may become unstable if the amount of memory required by the daemon exceeds the value allocated for its use. The memory required by the restjavad daemon may grow significantly in system configurations with either a high volume of device statistics collection (AVR provisioning), or a with relatively large number of LTM objects managed by the REST framework (SSL Orchestrator provisioning). The overall system performance is degraded during the continuous restart of the restjavad daemon due to high CPU usage. 
+
+See `Bug ID 894593 <https://cdn.f5.com/product/bugtracker/ID894593.html>`_ and `Bug ID 776393 <https://cdn.f5.com/product/bugtracker/ID776393.html>`_.
+
+**Workaround** |br|
+Increase the memory allocated for the restjavad daemon (e.g. 2 GB), by running the following commands in a BIG-IP terminal.
+ 
+``tmsh modify sys db restjavad.useextramb value true`` |br|
+``tmsh modify sys db provision.extramb value 2048`` |br|
+``bigstart restart restjavad``
+
+
+.. |br| raw:: html
+
+   <br />
 
 .. |github54| raw:: html
 
