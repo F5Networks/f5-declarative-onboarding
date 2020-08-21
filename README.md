@@ -16,7 +16,9 @@ For the documentation on Declarative Onboarding, including download, installatio
 The Declarative Onboarding documentation contains example declarations you can modify to suit your needs.  See the [Examples](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/examples.html) page.
 
 ## Filing Issues and Getting Help
-If you come across a bug or other issue when using Declarative Onboarding, use [GitHub Issues](https://github.com/F5Networks/f5-declarative-onboarding/issues) to submit an issue for our team.  You can also see the current known issues on that page, which are tagged with a purple Known Issue label.  **Important**: Github Issues are consistently monitored by F5 staff, but should be considered as best effort only and you should not expect to receive the same level of response as provided by F5 Support. Please open a case as described below with F5 if this is a critical issue.
+If you come across a bug or other issue when using Declarative Onboarding, use [GitHub Issues](https://github.com/F5Networks/f5-declarative-onboarding/issues) to submit an issue for our team.  You can also see the current known issues on that page, which are tagged with a purple Known Issue label.  
+
+**Important**: Github Issues are consistently monitored by F5 staff, but should be considered as best effort only and you should not expect to receive the same level of response as provided by F5 Support. Please open a case as described below with F5 if this is a critical issue.
 
 Because Declarative Onboarding v1.1.0 and later has been created and fully tested by F5 Networks, it is fully supported by F5. This means you can get assistance if necessary from [F5 Technical Support](https://support.f5.com/csp/article/K25327565).  
 
