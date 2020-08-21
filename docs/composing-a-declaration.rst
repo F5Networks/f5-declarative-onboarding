@@ -85,6 +85,37 @@ For more information, see |deviceclass| in the Schema Reference.
 
 |
 
+**Example of the request sent to the webhook**
+
+.. code-block:: json
+
+    POST / HTTP/1.1
+    Content-Type: application/json
+
+    {
+        "id": "a54b479c-9233-4ac3-b7bd-42f9e6d6e8e7",
+        "selfLink": "https://localhost/mgmt/shared/declarative-onboarding/task/a54b479c-9233-4ac3-b7bd-42f9e6d6e8e7",
+        "result": {
+            "class": "Result",
+            "code": 200,
+            "status": "OK",
+            "message": "success"
+        },
+        "declaration": {
+            "schemaVersion": "1.0.0",
+            "class": "Device",
+            "webhook": "https://example.com/myHook",
+            "async": false,
+            "Common": {
+                "class": "Tenant",
+                "hostname": "bigip.example.com"
+            }
+        }
+    }
+
+
+|
+
 .. _common-class:
 
 Common class
