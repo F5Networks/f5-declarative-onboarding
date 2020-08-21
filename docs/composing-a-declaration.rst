@@ -83,6 +83,7 @@ For more information, see |deviceclass| in the Schema Reference.
 | label              | string                         |   No       |  Optional friendly label for this declaration.                                                                                                                                                                                                                                       |
 +--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
+|
 
 .. _common-class:
 
@@ -119,6 +120,8 @@ For more information, see |devicecommon| in the Schema Reference.
 +--------------------+--------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
+
+|
 
 .. _system-class:
 
@@ -173,6 +176,8 @@ This snippet includes the **autoCheck** property which is not in the full declar
 
 \* The required column applies only if you are using this class.
 
+|
+
 .. _license-class:
 
 License class
@@ -213,6 +218,7 @@ The name *myLicense* we use in this example is arbitrary; it is not used anywher
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _dns-class:
 
@@ -255,6 +261,8 @@ The name *myDNS* we use in this example is arbitrary; it is not used anywhere in
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
+
+|
 
 .. _ntp-class:
 
@@ -299,6 +307,7 @@ For instructions on how to get a current list of timezones on the BIG-IP, see ht
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _user-class:
 
@@ -432,6 +441,8 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 \* The required column applies only if you are using this class.
 
+|
+
 .. _vlan-class:
 
 VLAN class
@@ -492,6 +503,8 @@ Declarative Onboarding v1.7.0 and later includes the **cmp-hash** property, whic
 
 \* The required column applies only if you are using this class.
 
+|
+
 .. _selfip-class:
 
 Self IP class
@@ -538,6 +551,7 @@ For more information, see |ntpclass| in the Schema Reference.
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _route-class:
 
@@ -576,6 +590,8 @@ In this example, we use the name **default**, which sets the default route on th
 
 
 \* The required column applies only if you are using this class.
+
+|
 
 .. _mgmtroute-class:
 
@@ -617,6 +633,7 @@ For more information, see |mgmtrouteclass| in the Schema Reference.
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _routedomain-class:
 
@@ -685,6 +702,7 @@ With Route Domains, the **id** is required, and you use the id as an identifier 
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _dbvars-class:
 

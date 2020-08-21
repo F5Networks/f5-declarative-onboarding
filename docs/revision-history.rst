@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.2
-        - Updated the documentation for Declarative Onboarding v1.15.0.  This release contains the following changes: |br| * Added support for allowed source IP addresses for SSHD  (see the updated :ref:`SSHD example<sshex>`) |br| * Added support for the **tenant** property in the License class allowing an optional description of the license (see the *No Route* examples in :doc:`big-iq-licensing` and `bigiq-examples`) |br| * Added support for mulitple failover unicast addresses (see :ref:`example26`) |br| * |br| |br| Issues Resolved: |br| * Improve schema for use with BIG-IQ 7.1
+        - Updated the documentation for Declarative Onboarding v1.15.0.  This release contains the following changes: |br| * Added support for allowed source IP addresses for SSHD  (see the updated :ref:`SSHD example<sshex>`) |br| * Added support for the **tenant** property in the License class allowing an optional description of the license (see the *No Route* examples in :doc:`big-iq-licensing` and `bigiq-examples`) |br| * Added support for mulitple failover unicast addresses (see :ref:`example26`) |br| * Added more information about the Webhook property in :ref:`base-comps`.  |br| |br| Issues Resolved: |br| * Improve schema for use with BIG-IQ 7.1
         - 09-01-20
 
       * - 3.1
