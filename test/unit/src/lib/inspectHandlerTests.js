@@ -608,19 +608,22 @@ describe('inspectHandler', () => {
                     name: 'testRoute1',
                     gw: '10.0.0.11',
                     network: '20.0.0.0/24',
-                    mtu: 0
+                    mtu: 0,
+                    partition: 'Common'
                 },
                 {
                     name: 'testRoute2',
                     gw: '11.0.0.11',
                     network: '30.0.0.0/24',
-                    mtu: 0
+                    mtu: 0,
+                    partition: 'Common'
                 },
                 {
                     name: 'testRoute3',
                     interface: '/Common/tunnel',
                     network: '1.2.3.4/32',
-                    mtu: 0
+                    mtu: 0,
+                    partition: 'LOCAL_ONLY'
                 }
             ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
@@ -1041,7 +1044,8 @@ describe('inspectHandler', () => {
                             target: 'tunnel',
                             network: '1.2.3.4/32',
                             mtu: 0,
-                            class: 'Route'
+                            class: 'Route',
+                            localOnly: true
                         },
                         currentConfigSync: {
                             configsyncIp: '10.0.0.2',
@@ -1461,7 +1465,8 @@ describe('inspectHandler', () => {
                 name: sharedName,
                 gw: '10.0.0.2',
                 network: '255.255.255.254/32',
-                mtu: 0
+                mtu: 0,
+                partition: 'Common'
             });
             return inspectHandler.process()
                 .then((data) => {

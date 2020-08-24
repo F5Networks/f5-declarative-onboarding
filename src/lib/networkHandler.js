@@ -266,54 +266,82 @@ function handleSelfIp() {
 }
 
 function handleRoute() {
-    const promises = [];
-    doUtil.forEach(this.declaration, 'Route', (tenant, route) => {
-        let promise = Promise.resolve();
-        if (route && route.name) {
-            const mask = route.network.includes(':') ? 128 : 32;
-            route.network = route.network !== 'default' && route.network !== 'default-inet6'
-                && !route.network.includes('/') ? `${route.network}/${mask}` : route.network;
-            // Need to do a delete if the network property is updated
-            if (this.state.currentConfig.Common.Route
-                && this.state.currentConfig.Common.Route[route.name]
-                && this.state.currentConfig.Common.Route[route.name].network !== route.network) {
-                promise = promise.then(() => this.bigIp.delete(
-                    `${PATHS.Route}/~Common~${route.name}`,
-                    null,
-                    null,
-                    cloudUtil.NO_RETRY
-                ));
-            }
+    if (!this.declaration.Common.Route) {
+        return Promise.resolve();
+    }
 
-            const routeBody = {
-                name: route.name,
-                partition: tenant,
-                network: route.network,
-                mtu: route.mtu
-            };
+    return Promise.resolve()
+        .then(() => {
+            let createLocalOnly = false;
 
-            if (route.target) {
-                if (route.target.startsWith('/')) {
-                    routeBody.interface = route.target;
-                } else {
-                    routeBody.interface = `/${tenant}/${route.target}`;
+            // Must check if the declaration requires LOCAL_ONLY before creating different routes
+            doUtil.forEach(this.declaration, 'Route', (tenant, route) => {
+                if (!createLocalOnly) {
+                    createLocalOnly = route.localOnly;
                 }
-            } else {
-                routeBody.gw = route.gw;
+            });
+
+            if (createLocalOnly) {
+                return this.bigIp.createFolder('LOCAL_ONLY', { subPath: '/' });
             }
+            return Promise.resolve();
+        })
+        .then(() => {
+            const promises = [];
+            doUtil.forEach(this.declaration, 'Route', (tenant, route) => {
+                let promise = Promise.resolve();
+                if (route && route.name) {
+                    const mask = route.network.includes(':') ? 128 : 32;
+                    route.network = route.network !== 'default' && route.network !== 'default-inet6'
+                        && !route.network.includes('/') ? `${route.network}/${mask}` : route.network;
 
-            promise = promise.then(() => this.bigIp.createOrModify(
-                PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY
-            ));
-        }
+                    let targetPartition = tenant;
+                    if (route.localOnly) {
+                        targetPartition = 'LOCAL_ONLY';
+                    }
 
-        promises.push(promise);
-    });
+                    // Need to do a delete if the network property is updated
+                    if (this.state.currentConfig.Common.Route
+                        && this.state.currentConfig.Common.Route[route.name]
+                        && this.state.currentConfig.Common.Route[route.name].network !== route.network) {
+                        promise = promise.then(() => this.bigIp.delete(
+                            `${PATHS.Route}/~${targetPartition}~${route.name}`,
+                            null,
+                            null,
+                            cloudUtil.NO_RETRY
+                        ));
+                    }
 
-    return Promise.all(promises)
-        .catch((err) => {
-            logger.severe(`Error creating routes: ${err.message}`);
-            throw err;
+                    const routeBody = {
+                        name: route.name,
+                        partition: targetPartition,
+                        network: route.network,
+                        mtu: route.mtu
+                    };
+
+                    if (route.target) {
+                        if (route.target.startsWith('/')) {
+                            routeBody.interface = route.target;
+                        } else {
+                            routeBody.interface = `/${tenant}/${route.target}`;
+                        }
+                    } else {
+                        routeBody.gw = route.gw;
+                    }
+
+                    promise = promise.then(() => this.bigIp.createOrModify(
+                        PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY
+                    ));
+                }
+
+                promises.push(promise);
+            });
+
+            return Promise.all(promises)
+                .catch((err) => {
+                    logger.severe(`Error creating routes: ${err.message}`);
+                    throw err;
+                });
         });
 }
 
