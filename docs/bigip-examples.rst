@@ -569,27 +569,28 @@ Enabling traces in DO responses
 
    Support for **trace** and **traceResponse** is available in DO v1.15 and later. 
 
-In this example, we show how you can use the **traceResponse** property to enable more visibility into what DO is configuring.  This property can be used in the |control| or |adccontrol| classes (links go to the Schema Reference).
+In this example, we show how you can use the **trace** and **traceResponse** properties to enable more visibility into what DO is configuring.  These properties are included in the |controls| class.
 
-AS3 3.20 adds support for using **traceResponse** in *async* mode.
+.. WARNING:: Trace files may contain sensitive configuration data.
 
-This example shows both the declaration and the response from AS3.  Note that in the **ADC** class, we set traceResponse to **false**, and only set it to **true** on the tenant.  This limits the trace to the tenant only; if you set traceResponse to true at the ADC class level, you would get traces for all tenants in the declaration.  You could also get it to true at the ADC level, and then to false for each tenant you do not want to trace.
+When **trace** is set to **true**, DO creates a detailed trace of the configuration process for subsequent analysis (default false). 
 
-This declaration creates the following objects on the BIG-IP:
-
-- Partition (tenant) named **trace_tenant**.
-- An Application named **SampleApp**.
-- A virtual server named **Sample_service**.
+When **traceResponse** is set to **true**, the response contains the trace files.
 
 
-.. literalinclude:: ../../examples/declarations/example-trace-response.json
+This example shows both the declaration and the response from DO.  
+
+.. literalinclude:: ../examples/debugTrace.json
    :language: json
+
+|
 
 **Example Response**
-Here is the response returned by AS3 from the declaration, showing the trace for the tenant.
+Here is the response returned by DO from the declaration, showing the trace for the tenant (your output will vary based on the configuration of your device)
 
-.. literalinclude:: ../../examples/results/example-traceresponse-output.json
+.. literalinclude:: ../examples/debugTraceOutput.json
    :language: json
+   
 
 :ref:`Back to top<bigipexamples>`
 
@@ -735,4 +736,8 @@ Here is the response returned by AS3 from the declaration, showing the trace for
 .. |unicast| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#failoverunicast" target="_blank">FailoverUnicast</a>
+
+.. |unicast| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#device-controls" target="_blank">Device_controls</a>
 
