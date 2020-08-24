@@ -588,7 +588,7 @@ This example shows both the declaration and the response from DO.
 **Example Response**
 Here is the response returned by DO from the declaration, showing the trace for the tenant (your output will vary based on the configuration of your device)
 
-.. literalinclude:: ../examples/debugTraceOutput.json
+.. literalinclude:: ../examples/results/debugTraceOutput.json
    :language: json
    
 
