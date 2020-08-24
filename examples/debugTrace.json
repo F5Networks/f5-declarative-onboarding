@@ -1,0 +1,21 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "webhook": "https://example.com/myHook",
+    "label": "my BIG-IP declaration for declarative onboarding",
+    "controls": {
+        "trace": true,
+        "traceResponse": true
+    },
+    "Common": {
+        "class": "Tenant",
+        "mySystem": {
+            "class": "System",
+            "hostname": "bigip.example.com",
+            "cliInactivityTimeout": 1200,
+            "consoleInactivityTimeout": 1200,
+            "autoPhonehome": false
+        }
+    }
+}
