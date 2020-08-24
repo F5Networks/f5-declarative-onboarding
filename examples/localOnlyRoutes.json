@@ -19,7 +19,7 @@
             "class": "Route",
             "target": "newVlan",
             "network": "10.1.0.244/32",
-            "localOnly": false
+            "localOnly": true
         },
         "newSelfIp": {
             "class": "SelfIp",
