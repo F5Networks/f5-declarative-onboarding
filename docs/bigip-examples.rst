@@ -563,8 +563,8 @@ In the following example, the declaration creates a VLAN, that is then used by 2
 
 .. _example27:
 
-Enabling traces in DO responses 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+27: Enabling traces in DO responses 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for **trace** and **traceResponse** is available in DO v1.15 and later. 
@@ -1282,6 +1282,30 @@ Here is the response returned by DO from the declaration, showing the trace for 
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
+.. _example28:
+
+28: Creating Routes in the LOCAL_ONLY partition 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for creating routes in the LOCAL_ONLY partition is available in DO v1.15 and later
+
+This example shows how to create a route in a special LOCAL_ONLY partition/tenant using the new **localOnly** property in the Route class. When using this feature, if this partition doesn't exist, Delclarative Onboarding creates it. 
+
+This is useful in environments such as Amazon Web Services (AWS) when configuring an *Across Network* cluster of devices, which require this partition.
+
+See |route| in the Schema Reference for DO usage and options.  
+
+**Important notes:**
+ - While DO can create the LOCAL_ONLY partition if it does not exist, it cannot currently delete it, and the partition will remain even if you delete the DO configuration.
+ - A Route cannot be directly swapped from one partition to another. If you attempt to swap value of **localOnly**, the declaration will fail. As a workaround, change the network of the Route to another IP and set localOnly to what you want it to be. Submit that using DO. Once that is complete, you can change the network to the desired value. 
+
+.. literalinclude:: ../examples/localOnlyRoutes.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
 
 .. |br| raw:: html
 
@@ -1428,3 +1452,7 @@ Here is the response returned by DO from the declaration, showing the trace for 
 .. |controls| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#device-controls" target="_blank">Device_controls</a>
+
+.. |route| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#route" target="_blank">Route</a>
