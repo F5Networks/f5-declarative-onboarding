@@ -40,6 +40,15 @@ state.tasks = {
         originalConfig: {
             hello: 'original config for 1234'
         },
+        traceCurrent: {
+            current: 'config for 1234'
+        },
+        traceDesired: {
+            desired: 'config for 1234'
+        },
+        traceDiff: {
+            diff: 'for 1234'
+        },
         lastUpdate: 'last update 1234'
     },
     5678: {
@@ -57,6 +66,15 @@ state.tasks = {
         },
         originalConfig: {
             hello: 'original config for 5678'
+        },
+        traceCurrent: {
+            current: 'config for 5678'
+        },
+        traceDesired: {
+            desired: 'config for 5678'
+        },
+        traceDiff: {
+            diff: 'for 5678'
         },
         lastUpdate: 'last update 5678'
     }
@@ -112,6 +130,11 @@ describe('taskResponse', () => {
             declaration: {
                 hello: 'declaration for 1234'
             },
+            traces: {
+                current: { current: 'config for 1234' },
+                desired: { desired: 'config for 1234' },
+                diff: { diff: 'for 1234' }
+            },
             httpStatus: 200
         });
     });
@@ -124,6 +147,11 @@ describe('taskResponse', () => {
                 currentConfig: { foo: 'config for 1234' },
                 declaration: { hello: 'declaration for 1234' },
                 lastUpdate: 'last update 1234',
+                traces: {
+                    current: { current: 'config for 1234' },
+                    desired: { desired: 'config for 1234' },
+                    diff: { diff: 'for 1234' }
+                },
                 httpStatus: 200
             }
         );

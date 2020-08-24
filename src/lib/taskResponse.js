@@ -65,6 +65,14 @@ class TaskResponse {
             declaration: this.state.getDeclaration(id)
         };
 
+        if (this.state.hasTrace(id)) {
+            data.traces = {
+                desired: this.state.getTraceDesired(id),
+                current: this.state.getTraceCurrent(id),
+                diff: this.state.getTraceDiff(id)
+            };
+        }
+
         if (HTTP.METHODS[HTTP.METHODS.indexOf('GET')] === this.method) {
             data.httpStatus = 200;
         }

@@ -192,8 +192,18 @@
                     "type": "string",
                     "const": "Controls"
                 },
+                "trace": {
+                    "description": "If true, create a detailed trace of the configuration process for subsequent analysis (default false).  Warning:  trace files may contain sensitive configuration data.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "traceResponse": {
+                    "description": "If true, the response will contain the trace files.",
+                    "type": "boolean",
+                    "default": false
+                },
                 "userAgent": {
-                    "description": "User Agent information to include in TEEM report",
+                    "description": "User Agent information to include in TEEM report.",
                     "type": "string"
                 }
             }

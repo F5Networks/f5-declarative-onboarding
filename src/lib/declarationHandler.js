@@ -29,6 +29,7 @@ const DeleteHandler = require('./deleteHandler');
 const ProvisionHandler = require('./provisionHandler');
 const DeprovisionHandler = require('./deprovisionHandler');
 const AuthHandler = require('./authHandler');
+const TraceManager = require('./traceManager');
 const doUtil = require('./doUtil');
 
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
@@ -146,15 +147,17 @@ class DeclarationHandler {
                 applyDefaults(parsedNewDeclaration, state);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
-
-                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
-                return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration);
+                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
+                return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration, declaration);
             })
             .then((declarationDiffs) => {
                 updateDeclaration = declarationDiffs.toUpdate;
                 deleteDeclaration = declarationDiffs.toDelete;
-                return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
+
+                const traceManager = new TraceManager(declaration, this.eventEmitter, state);
+                return traceManager.traceConfigs(parsedOldDeclaration, parsedNewDeclaration);
             })
+            .then(() => this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
             .then(() => {
                 const handlers = [
                     [SystemHandler, updateDeclaration],

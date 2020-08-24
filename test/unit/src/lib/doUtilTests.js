@@ -346,6 +346,36 @@ describe('doUtil', () => {
         });
     });
 
+    describe('mask', () => {
+        it('should mask passwords', () => {
+            const data = {
+                foo: {
+                    bar: {
+                        hello: 'world',
+                        password: '1234'
+                    }
+                },
+                fooArray: [
+                    {
+                        okie: 'dokie',
+                        password: '5678'
+                    }
+                ]
+            };
+
+            const masked = doUtil.mask(data);
+
+            assert.strictEqual(masked.foo.bar.hello, 'world');
+            assert.strictEqual(masked.foo.bar.password, undefined);
+            assert.strictEqual(masked.fooArray[0].okie, 'dokie');
+            assert.strictEqual(masked.fooArray[0].password, undefined);
+
+            // make sure we are not altering the passed in data
+            assert.notStrictEqual(data.fooArray[0].password, undefined);
+            assert.notStrictEqual(data.foo.bar.password, undefined);
+        });
+    });
+
     describe('checkDnsResolution', () => {
         beforeEach(() => {
             sinon.stub(dns, 'lookup').callsArg(1);
