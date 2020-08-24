@@ -460,6 +460,17 @@ describe('network.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate route data to LOCAL_ONLY', () => {
+                const data = {
+                    class: 'Route',
+                    gw: '1.2.3.4',
+                    network: 'default',
+                    mtu: 1234,
+                    localOnly: true
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {

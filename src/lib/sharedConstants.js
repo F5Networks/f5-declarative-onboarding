@@ -32,6 +32,7 @@ module.exports = {
         TASK: 'task'
     },
     PATHS: {
+        AuthPartition: '/tm/auth/partition',
         DNS: '/tm/sys/dns',
         NTP: '/tm/sys/ntp',
         Route: '/tm/net/route',

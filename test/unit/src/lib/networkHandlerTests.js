@@ -29,9 +29,11 @@ const NetworkHandler = require('../../../../src/lib/networkHandler');
 describe('networkHandler', () => {
     let bigIpMock;
     let dataSent;
+    let createdFolder;
 
     beforeEach(() => {
         dataSent = {};
+        createdFolder = undefined;
         bigIpMock = {
             createOrModify(path, data) {
                 if (!dataSent[path]) {
@@ -45,6 +47,13 @@ describe('networkHandler', () => {
                     dataSent[path] = [];
                 }
                 dataSent[path].push(data);
+                return Promise.resolve();
+            },
+            createFolder(name, options) {
+                createdFolder = {
+                    name,
+                    options
+                };
                 return Promise.resolve();
             },
             list() {
@@ -661,16 +670,60 @@ describe('networkHandler', () => {
 
     describe('Route', () => {
         const deletedPaths = [];
+        let declaration = {};
+        let state = {};
+
         beforeEach(() => {
             deletedPaths.length = 0;
             bigIpMock.delete = (path) => {
                 deletedPaths.push(path);
                 return Promise.resolve();
             };
+
+            declaration = {
+                Common: {
+                    Route: {
+                        theRoute: {
+                            name: 'theRoute',
+                            gw: '10.11.12.13',
+                            network: '50.60.70.80',
+                            mtu: 1000
+                        },
+                        localRoute: {
+                            name: 'localRoute',
+                            target: 'targetVLAN',
+                            network: '50.60.70.81',
+                            mtu: 1120,
+                            localOnly: true
+                        }
+                    }
+                }
+            };
+            state = {
+                currentConfig: {
+                    Common: {
+                        Route: {
+                            theRoute: {
+                                name: 'theRoute',
+                                gw: '10.11.12.13',
+                                network: '51.62.73.84/32',
+                                mtu: 1000
+                            },
+                            localRoute: {
+                                name: 'localRoute',
+                                gw: '10.11.12.13',
+                                network: '51.62.73.85/32',
+                                mtu: 1005,
+                                localOnly: true
+                            }
+                        }
+                    }
+                }
+            };
         });
 
         it('should handle fully specified Routes', () => {
-            const declaration = {
+            declaration = {
                 Common: {
                     Route: {
                         route1: {
@@ -689,12 +742,21 @@ describe('networkHandler', () => {
                             name: 'route3',
                             target: 'targetTunnel',
                             network: '1.2.3.4',
-                            mtu: 100
+                            mtu: 100,
+                            localOnly: false
+                        },
+                        routeLocalOnly: {
+                            name: 'routeLocalOnly',
+                            target: 'targetVLAN',
+                            network: 'default-inet6',
+                            mtu: 1120,
+                            localOnly: true
                         }
                     }
                 }
             };
-            const state = {
+
+            state = {
                 currentConfig: {
                     Common: {}
                 }
@@ -720,78 +782,121 @@ describe('networkHandler', () => {
                     assert.strictEqual(routeData[2].network, '1.2.3.4/32');
                     assert.strictEqual(routeData[2].mtu, 100);
                     assert.strictEqual(routeData[2].partition, 'Common');
+                    assert.deepStrictEqual(routeData[3], {
+                        interface: '/Common/targetVLAN',
+                        mtu: 1120,
+                        name: 'routeLocalOnly',
+                        network: 'default-inet6',
+                        partition: 'LOCAL_ONLY'
+                    });
+                    assert.deepStrictEqual(createdFolder,
+                        {
+                            name: 'LOCAL_ONLY',
+                            options: { subPath: '/' }
+                        });
                 });
         });
 
-        const declaration = {
-            Common: {
-                Route: {
-                    theRoute: {
-                        name: 'theRoute',
-                        gw: '10.11.12.13',
-                        network: '50.60.70.80',
-                        mtu: 1000
-                    }
-                }
-            }
-        };
-        const state = {
-            currentConfig: {
-                Common: {
-                    Route: {
-                        theRoute: {
-                            name: 'theRoute',
-                            gw: '10.11.12.13',
-                            network: '51.62.73.84',
-                            mtu: 1000
-                        }
-                    }
-                }
-            }
-        };
-
-        it('should delete and recreate Route if network updated', () => {
+        it('should delete and recreate both Routes if network updated', () => {
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const routeData = dataSent[PATHS.Route];
-                    assert.deepEqual(deletedPaths, ['/tm/net/route/~Common~theRoute']);
-                    assert.strictEqual(routeData[0].name, 'theRoute');
-                    assert.strictEqual(routeData[0].gw, '10.11.12.13');
-                    assert.strictEqual(routeData[0].network, '50.60.70.80/32');
-                    assert.strictEqual(routeData[0].mtu, 1000);
-                    assert.strictEqual(routeData[0].partition, 'Common');
+                    assert.deepEqual(deletedPaths, [
+                        '/tm/net/route/~Common~theRoute',
+                        '/tm/net/route/~LOCAL_ONLY~localRoute'
+                    ]);
+                    assert.deepStrictEqual(routeData[0], {
+                        gw: '10.11.12.13',
+                        mtu: 1000,
+                        name: 'theRoute',
+                        network: '50.60.70.80/32',
+                        partition: 'Common'
+                    });
+                    assert.deepStrictEqual(routeData[1], {
+                        interface: '/Common/targetVLAN',
+                        mtu: 1120,
+                        name: 'localRoute',
+                        network: '50.60.70.81/32',
+                        partition: 'LOCAL_ONLY'
+                    });
                 });
         });
 
-        it('should not delete the existing Route if network not updated', () => {
+        it('should delete only Routes that have their network updated', () => {
             state.currentConfig.Common.Route.theRoute.network = '50.60.70.80/32';
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const routeData = dataSent[PATHS.Route];
+                    assert.deepEqual(deletedPaths, ['/tm/net/route/~LOCAL_ONLY~localRoute']);
+                    assert.deepStrictEqual(routeData, [
+                        {
+                            gw: '10.11.12.13',
+                            mtu: 1000,
+                            name: 'theRoute',
+                            network: '50.60.70.80/32',
+                            partition: 'Common'
+                        }, {
+                            interface: '/Common/targetVLAN',
+                            mtu: 1120,
+                            name: 'localRoute',
+                            network: '50.60.70.81/32',
+                            partition: 'LOCAL_ONLY'
+                        }
+                    ]);
+                });
+        });
+
+        it('should not delete the existing Route if network not updated', () => {
+            state.currentConfig.Common.Route.theRoute.network = '50.60.70.80/32';
+            state.currentConfig.Common.Route.localRoute.network = '50.60.70.81/32';
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const routeData = dataSent[PATHS.Route];
                     assert.deepEqual(deletedPaths, []);
-                    assert.strictEqual(routeData[0].name, 'theRoute');
-                    assert.strictEqual(routeData[0].partition, 'Common');
-                    assert.strictEqual(routeData[0].gw, '10.11.12.13');
-                    assert.strictEqual(routeData[0].network, '50.60.70.80/32');
-                    assert.strictEqual(routeData[0].mtu, 1000);
+                    assert.deepStrictEqual(routeData, [
+                        {
+                            gw: '10.11.12.13',
+                            mtu: 1000,
+                            name: 'theRoute',
+                            network: '50.60.70.80/32',
+                            partition: 'Common'
+                        }, {
+                            interface: '/Common/targetVLAN',
+                            mtu: 1120,
+                            name: 'localRoute',
+                            network: '50.60.70.81/32',
+                            partition: 'LOCAL_ONLY'
+                        }
+                    ]);
                 });
         });
 
         it('should not do anything with an empty Route', () => {
-            const theDeclaration = {
+            declaration = {
                 Common: {
                     Route: {
                         theRoute: {}
                     }
                 }
             };
-            const networkHandler = new NetworkHandler(theDeclaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
             return networkHandler.process()
                 .then(() => {
                     assert.deepEqual(deletedPaths, []);
                     assert.deepEqual(dataSent[PATHS.Route], undefined);
+                });
+        });
+
+        it('should not create LOCAL_ONLY if none of the Routes need it', () => {
+            declaration.Common.Route.localRoute.localOnly = false;
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(createdFolder, undefined);
                 });
         });
     });

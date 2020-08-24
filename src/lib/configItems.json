@@ -146,7 +146,8 @@
             { "id": "network" },
             { "id": "mtu" },
             { "id": "interface", "newId": "target" }
-        ]
+        ],
+        "partitions": ["Common", "LOCAL_ONLY"]
     },
     {
         "path": "/tm/cm/device/~Common~{{deviceName}}",
