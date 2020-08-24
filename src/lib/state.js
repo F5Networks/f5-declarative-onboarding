@@ -17,8 +17,7 @@
 'use strict';
 
 const uuidv4 = require('uuid/v4');
-
-const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
+const doUtil = require('./doUtil');
 
 const TASK_RETENTION_DAYS = 7;
 
@@ -293,7 +292,7 @@ class State {
      */
     setDeclaration(taskId, declaration) {
         if (this.tasks[taskId]) {
-            this.tasks[taskId].internalDeclaration = mask(declaration);
+            this.tasks[taskId].internalDeclaration = doUtil.mask(declaration);
         } else {
             throw new Error('taskId does not exist');
         }
@@ -377,6 +376,85 @@ class State {
             return this.tasks[taskId].rollbackInfo;
         }
         throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets trace for the current config
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} currentConfig - Trace info for current config.
+     */
+    setTraceCurrent(taskId, currentConfig) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].traceCurrent = JSON.parse(JSON.stringify(currentConfig));
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets trace info for current config
+     * @param {string} taskId - The id of the task.
+     */
+    getTraceCurrent(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].traceCurrent;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets trace for the desired config
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} currentConfig - Trace info for desired config.
+     */
+    setTraceDesired(taskId, desiredConfig) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].traceDesired = JSON.parse(JSON.stringify(desiredConfig));
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets trace info for desired config
+     * @param {string} taskId - The id of the task.
+     */
+    getTraceDesired(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].traceDesired;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets trace for the diff of config
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} diff - Trace info for diff of config.
+     */
+    setTraceDiff(taskId, diff) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].traceDiff = JSON.parse(JSON.stringify(diff));
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets trace info for diff of config
+     * @param {string} taskId - The id of the task.
+     */
+    getTraceDiff(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].traceDiff;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    hasTrace(taskId) {
+        return this.getTraceCurrent(taskId) || this.getTraceDesired(taskId) || this.getTraceDiff(taskId);
     }
 
     /**
@@ -468,28 +546,6 @@ function copyAndUpgradeState(existingState) {
         existingState.originalConfig = {};
     }
     return JSON.parse(JSON.stringify(existingState));
-}
-
-function mask(declaration) {
-    const masked = JSON.parse(JSON.stringify(declaration));
-
-    Object.keys(masked).forEach((key) => {
-        if (MASK_REGEX.test(key)) {
-            delete masked[key];
-        } else if (!Array.isArray(masked[key]) && typeof masked[key] === 'object') {
-            masked[key] = mask(masked[key]);
-        } else if (Array.isArray(masked[key])) {
-            masked[key].forEach((item, index) => {
-                if (!Array.isArray(item) && typeof item === 'object') {
-                    masked[key][index] = mask(item);
-                }
-            });
-        } else if (MASK_REGEX.test(key)) {
-            delete masked[key];
-        }
-    });
-
-    return masked;
 }
 
 function cleanupOldTasks(tasks) {

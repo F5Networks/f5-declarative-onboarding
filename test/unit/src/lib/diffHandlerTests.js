@@ -58,7 +58,7 @@ describe('diffHandler', () => {
         };
 
         const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
-        return diffHandler.process(toDeclaration, fromDeclaration)
+        return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
                 assert.deepEqual(diff.toUpdate.Common.class1,
                     { myString: 'foo', myObj: { foo: 'bar' }, myArray: [1, 2, 3] });
@@ -91,7 +91,7 @@ describe('diffHandler', () => {
         };
 
         const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
-        return diffHandler.process(toDeclaration, fromDeclaration)
+        return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
                 assert.deepEqual(diff.toUpdate.Common.class3,
                     { myString: 'foo', myObj: { foo: 'bar' }, myArray: [1, 2, 3] });
@@ -142,7 +142,7 @@ describe('diffHandler', () => {
         };
 
         const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
-        return diffHandler.process(toDeclaration, fromDeclaration)
+        return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
                 assert.deepEqual(diff.toUpdate.Common.class4.myUpdatedObject,
                     { myString: 'foo', myObj: { foo: 'bar' }, myArray: [1, 2, 3] });
@@ -165,7 +165,7 @@ describe('diffHandler', () => {
         };
 
         const diffHandler = new DiffHandler(['hostname'], []);
-        return diffHandler.process(toDeclaration, fromDeclaration)
+        return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
                 assert.deepEqual(diff.toUpdate.Common.hostname, 'bigip1.example.com');
             });

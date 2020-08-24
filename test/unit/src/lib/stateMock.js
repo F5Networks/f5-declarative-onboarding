@@ -58,5 +58,17 @@ module.exports = {
     },
     getOriginalConfigIds() {
         return Object.keys(this.originalConfig);
+    },
+    getTraceCurrent(taskId) {
+        return this.tasks[taskId].traceCurrent;
+    },
+    getTraceDesired(taskId) {
+        return this.tasks[taskId].traceDesired;
+    },
+    getTraceDiff(taskId) {
+        return this.tasks[taskId].traceDiff;
+    },
+    hasTrace() {
+        return true;
     }
 };

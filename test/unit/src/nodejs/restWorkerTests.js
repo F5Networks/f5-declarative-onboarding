@@ -258,6 +258,57 @@ describe('restWorker', () => {
             }
         }));
 
+        describe('traces', () => {
+            it('should handle config traces', () => new Promise((resolve, reject) => {
+                const restWorker = new RestWorker();
+                const currentConfig = {
+                    this: 'is current config'
+                };
+                const desiredConfig = {
+                    that: 'is desired config'
+                };
+                const taskId = 1234;
+                const doState = new State();
+
+                doState.tasks[taskId] = {};
+                RestWorker.prototype.loadState = (foo, callback) => {
+                    const state = { doState };
+                    callback(null, state);
+                };
+
+                const success = () => {
+                    restWorker.eventEmitter.emit(
+                        EVENTS.TRACE_CONFIG,
+                        1234,
+                        currentConfig,
+                        desiredConfig
+                    );
+                    assert.deepEqual(
+                        restWorker.state.doState.tasks[1234].traceCurrent,
+                        {
+                            this: 'is current config'
+                        }
+                    );
+                    assert.deepEqual(
+                        restWorker.state.doState.tasks[1234].traceDesired,
+                        {
+                            that: 'is desired config'
+                        }
+                    );
+                    resolve();
+                };
+                const error = () => {
+                    reject(new Error('should have called success'));
+                };
+
+                try {
+                    restWorker.onStartCompleted(success, error);
+                } catch (err) {
+                    reject(err);
+                }
+            }));
+        });
+
         describe('revoking', () => {
             const bigIpPassword = 'myBigIpPassword';
             const bigIqPassword = 'myBigIqPassword';

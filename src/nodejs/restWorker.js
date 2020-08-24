@@ -131,6 +131,15 @@ class RestWorker {
                 });
         });
 
+        this.eventEmitter.on(EVENTS.TRACE_CONFIG, (taskId, currentConfig, desiredConfig) => {
+            this.state.doState.setTraceCurrent(taskId, currentConfig);
+            this.state.doState.setTraceDesired(taskId, desiredConfig);
+        });
+
+        this.eventEmitter.on(EVENTS.TRACE_DIFF, (taskId, diff) => {
+            this.state.doState.setTraceDiff(taskId, diff);
+        });
+
         // The framework is supposed to pass in our state, but does not.
         load.call(this)
             .then(() => handleStartupState.call(this, success, error))

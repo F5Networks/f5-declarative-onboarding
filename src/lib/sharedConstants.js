@@ -78,7 +78,9 @@ module.exports = {
     EVENTS: {
         LICENSE_WILL_BE_REVOKED: 'DO_LICENSE_WILL_BE_REVOKED',
         READY_FOR_REVOKE: 'DO_READY_FOR_REVOKE',
-        REBOOT_NOW: 'DO_REBOOT_NOW'
+        REBOOT_NOW: 'DO_REBOOT_NOW',
+        TRACE_CONFIG: 'TRACE_CONFIG',
+        TRACE_DIFF: 'TRACE_DIFF'
     },
     NAMELESS_CLASSES: [
         'DbVariables',

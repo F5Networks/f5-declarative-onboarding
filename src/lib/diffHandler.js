@@ -19,17 +19,23 @@
 const observableDiff = require('deep-diff').observableDiff;
 const applyChange = require('deep-diff').applyChange;
 
+const TraceManager = require('./traceManager');
+
 class DiffHandler {
     /**
      * Constructor
-     * @param {String[]} classesOfTruth - Array of classes that we are the source of truth for. All
-     *                                    other classes will be left alone.
-     * @param {String[]} namelessClasses - Array of classes which do not have a name property
-     *                                     (DNS, for example)
+     * @param {String[]} classesOfTruth   - Array of classes that we are the source of truth for. All
+     *                                      other classes will be left alone.
+     * @param {String[]} namelessClasses  - Array of classes which do not have a name property
+     *                                      (DNS, for example)
+     * @param {EventEmitter} eventEmitter - DO event emitter.
+     * @param {State}        state        - The doState.
      */
-    constructor(classesOfTruth, namelessClasses) {
+    constructor(classesOfTruth, namelessClasses, eventEmitter, state) {
         this.classesOfTruth = classesOfTruth.slice();
         this.namelessClasses = namelessClasses.slice();
+        this.eventEmitter = eventEmitter;
+        this.state = state;
 
         // Although we may be the source of truth for 'hostname', we do not want
         // to diff it because hostname is set in 2 different places. Better
@@ -44,8 +50,9 @@ class DiffHandler {
     /**
      * Calculates updates and deletions in declarations
      *
-     * @param {Object} toDeclaration - The declaration we are updating to
-     * @param {Object} fromDeclaration - The declaration we are updating from
+     * @param {Object} toDeclaration - The parsed declaration we are updating to
+     * @param {Object} fromDeclaration - The parsed declaration we are updating from
+     * @param {Object} originalDeclaration - The original declaration
      *
      * @param {Promise} A promise which is resolved with the declarations to delete
      *                  and update.
@@ -54,7 +61,7 @@ class DiffHandler {
      *         toUpdate: <update_declaration>
      *     }
      */
-    process(toDeclaration, fromDeclaration) {
+    process(toDeclaration, fromDeclaration, originalDeclaration) {
         // Clone these to make sure we do not modify them via observableDiff
         const to = JSON.parse(JSON.stringify(toDeclaration));
         const from = JSON.parse(JSON.stringify(fromDeclaration));
@@ -71,12 +78,16 @@ class DiffHandler {
             Common: {}
         };
 
+        const accumulatedDiffs = [];
+
         // let deep-diff update the from declaration so we don't have to figure out how
         // to apply the changes. Collect updated paths on the way so we can copy just
         // the changed data
         observableDiff(from, to, (diff) => {
             // diff.path looks like ['Common', 'VLAN', 'myVlan'], for example
             if (this.classesOfTruth.indexOf(diff.path[1]) !== -1) {
+                accumulatedDiffs.push(diff);
+
                 applyChange(from, to, diff);
 
                 // the item at index 1 is the name of the class in the schema
@@ -150,12 +161,14 @@ class DiffHandler {
             }
         });
 
-        return Promise.resolve(
-            {
-                toDelete,
-                toUpdate: final
-            }
-        );
+        const traceManager = new TraceManager(originalDeclaration, this.eventEmitter, this.state);
+        return traceManager.traceDiff(accumulatedDiffs)
+            .then(() => Promise.resolve(
+                {
+                    toDelete,
+                    toUpdate: final
+                }
+            ));
     }
 }
 
