@@ -573,9 +573,9 @@ In this example, we show how you can use the **trace** and **traceResponse** pro
 
 .. WARNING:: Trace files may contain sensitive configuration data.
 
-When **trace** is set to **true**, DO creates a detailed trace of the configuration process for subsequent analysis (default false). 
+When **trace** is set to **true**, DO creates a detailed trace of the configuration process for subsequent analysis (default is false). 
 
-When **traceResponse** is set to **true**, the response contains the trace files.
+When **traceResponse** is set to **true**, the response contains the trace files (default is false).
 
 
 This example shows both the declaration and the response from DO.  
@@ -586,7 +586,7 @@ This example shows both the declaration and the response from DO.
 |
 
 **Example Response** |br|
-Here is the response returned by DO from the declaration, showing the trace for the tenant (your output will vary based on the configuration of your device)
+Here is the response returned by DO from the declaration, showing the trace for the tenant (your output will vary based on the configuration of your device).
 
 .. code-block:: json
 
