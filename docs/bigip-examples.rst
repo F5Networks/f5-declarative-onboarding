@@ -559,6 +559,40 @@ In the following example, the declaration creates a VLAN, that is then used by 2
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
+.. _example27:
+
+Enabling traces in DO responses 
+```````````````````````````````
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for **trace** and **traceResponse** is available in DO v1.15 and later. 
+
+In this example, we show how you can use the **traceResponse** property to enable more visibility into what DO is configuring.  This property can be used in the |control| or |adccontrol| classes (links go to the Schema Reference).
+
+AS3 3.20 adds support for using **traceResponse** in *async* mode.
+
+This example shows both the declaration and the response from AS3.  Note that in the **ADC** class, we set traceResponse to **false**, and only set it to **true** on the tenant.  This limits the trace to the tenant only; if you set traceResponse to true at the ADC class level, you would get traces for all tenants in the declaration.  You could also get it to true at the ADC level, and then to false for each tenant you do not want to trace.
+
+This declaration creates the following objects on the BIG-IP:
+
+- Partition (tenant) named **trace_tenant**.
+- An Application named **SampleApp**.
+- A virtual server named **Sample_service**.
+
+
+.. literalinclude:: ../../examples/declarations/example-trace-response.json
+   :language: json
+
+**Example Response**
+Here is the response returned by AS3 from the declaration, showing the trace for the tenant.
+
+.. literalinclude:: ../../examples/results/example-traceresponse-output.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
 
 .. |br| raw:: html
 
