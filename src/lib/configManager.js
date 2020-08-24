@@ -78,11 +78,12 @@ class ConfigManager {
      *         ignore: [
      *             { <key_to_possibly_ignore>: <regex_for_value_to_ignore> }
      *         ],
-     *        schemaMerge: {
+     *         schemaMerge: {
      *           path: <array_containing_property_path>,
      *           action: <override_if_not_direct_assign_of_value>
      *           skipWhenOmitted: <do_not_add_to_parent_when_missing>
-     *        }
+     *         }
+     *         partitions: ['partition(s)', 'to', 'check']
      *     }
      * ]
      *
@@ -167,6 +168,11 @@ class ConfigManager {
                         if (selectProperties.length > 0) {
                             query.$select = selectProperties.join(',');
                         }
+                        if (configItem.partitions) {
+                            // If partitions are expected we do the filtering manually
+                            delete query.$filter;
+                            query.$select = `${query.$select},partition`;
+                        }
                         const encodedQuery = querystring.stringify(query);
                         const options = {};
                         let path = `${configItem.path}?${encodedQuery}`;
@@ -201,7 +207,14 @@ class ConfigManager {
                             currentConfig[schemaClass] = {};
                         } else {
                             currentItem.forEach((item) => {
-                                if (!shouldIgnore(item, this.configItems[index].ignore)) {
+                                if (!shouldIgnore(item, this.configItems[index].ignore)
+                                    && inPartitions(item, this.configItems[index].partitions)) {
+                                    if (this.configItems[index].schemaClass === 'Route'
+                                        && item.partition === 'LOCAL_ONLY') {
+                                        item.localOnly = true;
+                                    }
+                                    delete item.partition; // Must be removed for the diffs
+
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties.call(this, patchedItem, index);
 
@@ -846,6 +859,15 @@ function shouldIgnore(item, ignoreList) {
     });
 
     return !!match;
+}
+
+function inPartitions(item, partitionList) {
+    // If the configItem has no partitionList, then it was filtered by the query so just continue
+    if (!partitionList || partitionList.indexOf(item.partition) > -1) {
+        return true;
+    }
+
+    return false;
 }
 
 module.exports = ConfigManager;

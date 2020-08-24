@@ -109,7 +109,6 @@ class DeclarationHandler {
         const newDeclaration = JSON.parse(JSON.stringify(declaration));
         const oldDeclaration = {};
         Object.assign(oldDeclaration, state.currentConfig);
-
         let updateDeclaration;
         let deleteDeclaration;
 

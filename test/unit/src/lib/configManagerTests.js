@@ -75,6 +75,59 @@ describe('configManager', () => {
         };
     });
 
+    it('should handle pulling multiple partitions', () => {
+        const configItem = getConfigItems('Route');
+        const declaration = {
+        };
+
+        listResponses['/tm/net/route'] = [
+            {
+                name: 'default',
+                partition: 'Common',
+                gw: '1.2.3.4',
+                network: 'default',
+                mtu: 0
+            },
+            {
+                name: 'route1',
+                partition: 'LOCAL_ONLY',
+                gw: '5.6.7.8',
+                network: '5.5.5.5',
+                mtu: 1500
+            },
+            {
+                name: 'outsideDoRoute',
+                partition: 'otherPartition',
+                gw: '3.3.3.5',
+                netowrk: 'default',
+                mtu: 12
+            }
+        ];
+
+        const configManager = new ConfigManager(configItem, bigIpMock);
+        return configManager.get(declaration, state, doState)
+            .then(() => {
+                assert.deepStrictEqual(
+                    state.currentConfig.Common.Route,
+                    {
+                        default: {
+                            gw: '1.2.3.4',
+                            mtu: 0,
+                            name: 'default',
+                            network: 'default'
+                        },
+                        route1: {
+                            gw: '5.6.7.8',
+                            mtu: 1500,
+                            name: 'route1',
+                            network: '5.5.5.5',
+                            localOnly: true
+                        }
+                    }
+                );
+            });
+    });
+
     it('should handle simple string values', () => {
         const configItems = [
             {
