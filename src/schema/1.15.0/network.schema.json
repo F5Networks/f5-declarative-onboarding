@@ -312,6 +312,11 @@
                         "description": "The VLAN or Tunnel for the Route.",
                         "type": "string",
                         "minLength": 0
+                    },
+                    "localOnly": {
+                        "description": "A boolean to indicate if the Route should be added to the LOCAL_ONLY partition. 'Across Network' clusters in AWS require this partition to be configured.",
+                        "type": "boolean",
+                        "default": false
                     }
                 },
                 "additionalProperties": false,
