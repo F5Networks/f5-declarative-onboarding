@@ -573,10 +573,15 @@ In this example, we show how you can use the **trace** and **traceResponse** pro
 
 .. WARNING:: Trace files may contain sensitive configuration data.
 
-When **trace** is set to **true**, DO creates a detailed trace of the configuration process for subsequent analysis (default is false). 
+When **trace** is set to **true** (the default is false), DO creates a detailed trace of the configuration process for subsequent analysis. This information is written to files in the **/tmp** directory where DO is running. |br|
+The files are:
 
-When **traceResponse** is set to **true**, the response contains the trace files (default is false).
+- /tmp/DO_current.json
+- /tmp/DO_desired.json
+- /tmp/DO_diff.json
 
+
+When **traceResponse** is set to **true** (the default is false), the response (or response to a subsequent GET request in the case of asynchronous requests) contains the same information that would be found in the trace files.
 
 This example shows both the declaration and the response from DO.  
 
@@ -1448,10 +1453,6 @@ See |route| in the Schema Reference for DO usage and options.
 .. |unicast| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#failoverunicast" target="_blank">FailoverUnicast</a>
-
-.. |controls| raw:: html
-
-   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#device-controls" target="_blank">Device_controls</a>
 
 .. |route| raw:: html
 
