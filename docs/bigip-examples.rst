@@ -1299,7 +1299,7 @@ Here is the response returned by DO from the declaration, showing the trace for 
 
 This example shows how to create a route in a special LOCAL_ONLY partition/tenant using the new **localOnly** property in the Route class. When using this feature, if this partition doesn't exist, Delclarative Onboarding creates it. 
 
-This is useful in environments such as Amazon Web Services (AWS) when configuring an *Across Network* cluster of devices, which require this partition.
+This partition is required to configure an Amazon Web Services (AWS) *Across Network* cluster.
 
 See |route| in the Schema Reference for DO usage and options.  
 
