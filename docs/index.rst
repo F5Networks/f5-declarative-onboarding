@@ -27,7 +27,7 @@ To provide feedback on this documentation, you can file a GitHub Issue or email 
 Use the following links, the navigation on the left, and/or the Next and Previous buttons to explore the documentation.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :includehidden:
    :glob:
 
