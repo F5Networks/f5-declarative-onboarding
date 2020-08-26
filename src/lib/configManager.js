@@ -209,7 +209,7 @@ class ConfigManager {
                             currentItem.forEach((item) => {
                                 if (!shouldIgnore(item, this.configItems[index].ignore)
                                     && inPartitions(item, this.configItems[index].partitions)) {
-                                    if (this.configItems[index].schemaClass === 'Route'
+                                    if (schemaClass === 'Route'
                                         && item.partition === 'LOCAL_ONLY') {
                                         item.localOnly = true;
                                     }

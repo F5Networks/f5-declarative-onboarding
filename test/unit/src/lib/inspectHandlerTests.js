@@ -620,7 +620,7 @@ describe('inspectHandler', () => {
                 },
                 {
                     name: 'testRoute3',
-                    interface: '/Common/tunnel',
+                    tmInterface: '/Common/tunnel',
                     network: '1.2.3.4/32',
                     mtu: 0,
                     partition: 'LOCAL_ONLY'

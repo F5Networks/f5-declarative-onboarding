@@ -145,7 +145,7 @@
             { "id": "gw" },
             { "id": "network" },
             { "id": "mtu" },
-            { "id": "interface", "newId": "target" }
+            { "id": "tmInterface", "newId": "target" }
         ],
         "partitions": ["Common", "LOCAL_ONLY"]
     },

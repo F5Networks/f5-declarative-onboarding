@@ -39,6 +39,12 @@
             "network": "10.20.30.0/24",
             "mtu": 1500
         },
+        "myLocalOnlyRoute": {
+            "class": "Route",
+            "target": "myVlan",
+            "network": "default",
+            "localOnly": true
+        },
         "mySystem": {
             "class": "System",
             "autoPhonehome": false
