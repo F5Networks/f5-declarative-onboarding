@@ -1,6 +1,13 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.16.0
+### Added
+### Fixed
+- Target VLAN errors from the inspect endpoint
+### Changed
+### Removed
+
 ## 1.15.0
 ### Added
 - AUTOTOOL-530: Add Trace files for debug printing

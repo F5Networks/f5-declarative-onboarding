@@ -250,6 +250,19 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             assert.ok(testRoute(body.Common.myRoute, currentState));
         });
 
+        it('should match localOnly routing', () => {
+            assert.deepStrictEqual(
+                currentState.Route.myLocalOnlyRoute,
+                {
+                    name: 'myLocalOnlyRoute',
+                    mtu: 0,
+                    network: 'default',
+                    localOnly: true,
+                    target: 'myVlan'
+                }
+            );
+        });
+
         it('should match dns resolver', () => {
             assert.ok(testDnsResolver(body.Common.myResolver, currentState));
         });
@@ -637,7 +650,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should match routing', () => {
             logTestTitle(this.ctx.test.title);
-            assert.ok(testRoute(body.Route.myRoute, currentState));
+            assert.deepStrictEqual(body.Route.myRoute, currentState.Route.myRoute);
         });
     });
 

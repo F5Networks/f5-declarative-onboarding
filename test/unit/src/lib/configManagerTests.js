@@ -91,7 +91,7 @@ describe('configManager', () => {
             {
                 name: 'route1',
                 partition: 'LOCAL_ONLY',
-                gw: '5.6.7.8',
+                tmInterface: '/Common/myVlan',
                 network: '5.5.5.5',
                 mtu: 1500
             },
@@ -99,7 +99,7 @@ describe('configManager', () => {
                 name: 'outsideDoRoute',
                 partition: 'otherPartition',
                 gw: '3.3.3.5',
-                netowrk: 'default',
+                network: 'default',
                 mtu: 12
             }
         ];
@@ -117,7 +117,7 @@ describe('configManager', () => {
                             network: 'default'
                         },
                         route1: {
-                            gw: '5.6.7.8',
+                            target: 'myVlan',
                             mtu: 1500,
                             name: 'route1',
                             network: '5.5.5.5',
