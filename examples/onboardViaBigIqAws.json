@@ -18,7 +18,7 @@
             "myNtp": {
                 "class": "NTP",
                 "servers": [
-                        "time.nist.gov"
+                    "time.nist.gov"
                 ],
                 "timezone": "UTC"
             },
@@ -27,7 +27,7 @@
                 "userType": "regular",
                 "partitionAccess": {
                     "all-partitions": {
-                            "role": "admin"
+                        "role": "admin"
                     }
                 },
                 "shell": "tmsh",

@@ -60,6 +60,11 @@
                     ]
                 }
             ]
+        },
+        "myMirror": {
+            "class": "MirrorIp",
+            "primaryIp": "10.148.75.46",
+            "secondaryIp": "any6"
         }
     }
 }

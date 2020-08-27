@@ -70,7 +70,8 @@ const CLASSES_OF_TRUTH = [
     'SSHD',
     'Tunnel',
     'TrafficGroup',
-    'Disk'
+    'Disk',
+    'MirrorIp'
 ];
 
 /**

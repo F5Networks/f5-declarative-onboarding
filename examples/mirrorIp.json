@@ -1,0 +1,29 @@
+{
+    "schemaVersion": "1.16.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "newVlan": {
+            "class": "VLAN",
+            "tag": 100,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ]
+        },
+        "newSelfIp": {
+            "class": "SelfIp",
+            "address": "10.1.0.20/0",
+            "vlan": "newVlan"
+        },
+        "myMirror": {
+            "class": "MirrorIp",
+            "primaryIp": "10.1.0.20",
+            "secondaryIp": "any6"
+        }
+    }
+}

@@ -180,6 +180,15 @@
         }
     },
     {
+        "path": "/tm/cm/device/~Common~{{deviceName}}",
+        "schemaClass": "MirrorIp",
+        "properties": [
+            { "id": "mirrorIp", "newId": "primaryIp" },
+            { "id": "mirrorSecondaryIp", "newId": "secondaryIp" }
+        ],
+        "nameless": true
+    },
+    {
         "path": "/tm/cm/device-group",
         "schemaClass": "DeviceGroup",
         "properties": [

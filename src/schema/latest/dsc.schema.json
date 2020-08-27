@@ -325,6 +325,41 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": {
+                "required": [
+                    "class"
+                ],
+                "properties": {
+                    "class": {
+                        "const": "MirrorIp"
+                    }
+                }
+            },
+            "then": {
+                "required": [
+                    "class"
+                ],
+                "properties": {
+                    "class": {
+                        "description": "Indicates IP addresses to use for connection and persistence mirroring.",
+                        "type": "string",
+                        "const": "MirrorIp"
+                    },
+                    "primaryIp": {
+                        "description": "IP of primary mirror. Specify 'any6' to disable.",
+                        "type": "string",
+                        "default": "any6"
+                    },
+                    "secondaryIp": {
+                        "description": "IP of secondary mirror. Specify 'any6' to disable.",
+                        "type": "string",
+                        "default": "any6"
+                    }
+                },
+                "additionalProperties": false
+            }
         }
     ]
 }
