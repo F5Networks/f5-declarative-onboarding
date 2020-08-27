@@ -145,10 +145,10 @@
             ]
         },
         "dbvars": {
-        	"class": "DbVariables",
-        	"ui.advisory.enabled": true,
-        	"ui.advisory.color": "green",
-        	"ui.advisory.text": "/Common/hostname"
+            "class": "DbVariables",
+            "ui.advisory.enabled": true,
+            "ui.advisory.color": "green",
+            "ui.advisory.text": "/Common/hostname"
         }
     }
 }

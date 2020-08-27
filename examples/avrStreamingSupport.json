@@ -10,7 +10,7 @@
             "class": "License",
             "licenseType": "regKey",
             "regKey": "AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE"
-        },  
+        },
         "myProvisioning": {
             "class": "Provision",
             "ltm": "nominal",

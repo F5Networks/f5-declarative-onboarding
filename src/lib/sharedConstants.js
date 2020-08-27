@@ -102,7 +102,8 @@ module.exports = {
         'TrafficControl',
         'HTTPD',
         'SSHD',
-        'Disk'
+        'Disk',
+        'MirrorIp'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

@@ -629,6 +629,8 @@ describe('inspectHandler', () => {
             '/tm/cm/device': [{ name: deviceName, hostname }],
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
+                mirrorIp: '10.0.0.2',
+                mirrorSecondaryIp: '11.0.0.2',
                 unicastAddress: [{ ip: '10.0.0.2', port: 1026 }]
             },
             '/tm/analytics/global-settings': {
@@ -1358,6 +1360,11 @@ describe('inspectHandler', () => {
                         currentDisk: {
                             class: 'Disk',
                             applicationData: 130985984
+                        },
+                        currentMirrorIp: {
+                            class: 'MirrorIp',
+                            primaryIp: '10.0.0.2',
+                            secondaryIp: '11.0.0.2'
                         }
                     }
                 }
@@ -1619,6 +1626,9 @@ describe('inspectHandler', () => {
                             },
                             currentDisk: {
                                 class: 'Disk'
+                            },
+                            currentMirrorIp: {
+                                class: 'MirrorIp'
                             }
                         }
                     }

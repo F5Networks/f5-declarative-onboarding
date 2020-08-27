@@ -266,6 +266,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         it('should match dns resolver', () => {
             assert.ok(testDnsResolver(body.Common.myResolver, currentState));
         });
+
+        it('should match ip mirroring', () => {
+            assert.strictEqual(currentState.MirrorIp.primaryIp, body.Common.myMirror.primaryIp);
+            assert.strictEqual(currentState.MirrorIp.secondaryIp, body.Common.myMirror.secondaryIp);
+        });
     });
 
     describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {

@@ -1,10 +1,10 @@
 {
     "schemaVersion": "1.7.0",
-    "async" : true,
+    "async": true,
     "class": "Device",
     "label": "LDAP, RADIUS, and TACACS auth",
     "Common": {
-      "class": "Tenant",
+        "class": "Tenant",
         "myAuth": {
             "class": "Authentication",
             "enabledSourceType": "radius",
