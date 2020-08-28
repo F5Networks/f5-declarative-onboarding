@@ -223,17 +223,17 @@ publish to artifactory:
         - POSTMAN_NAME=$(basename $POSTMAN_FILE)
         - >-
             UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${RPM_NAME})
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding-rpm/${RPM_NAME})
         - echo $UPLOAD_RESULT
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload; exit 1; fi
         - >-
             UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${HASH_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${HASH_NAME})
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding-rpm/${HASH_NAME})
         - echo $UPLOAD_RESULT
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during hash upload; exit 1; fi
         - >-
             UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${POSTMAN_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${POSTMAN_NAME})
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding-rpm/${POSTMAN_NAME})
         - echo $UPLOAD_RESULT
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload; exit 1; fi
 
