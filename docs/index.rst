@@ -7,7 +7,7 @@ F5 Declarative onboarding uses a |declare| model to initially configure a BIG-IP
 
 A declarative model means you provide a JSON declaration rather than a set of imperative commands. The declaration represents the configuration which Declarative Onboarding is responsible for creating on a BIG-IP system.  You send a declaration file using a single Rest API call.
 
-.. NOTE:: The DO RPM, Postman collection, and checksum files can be found on the |release|, as **Assets**. |br| For information on supported versions of DO, see |supportmd|
+.. NOTE:: The DO RPM, Postman collection, and checksum files can be found on the |release|, as **Assets**. |br| For information on supported versions of DO, see |supportmd|.
 
 You can use Microsoft Visual Studio Code to validate your declarations, see :doc:`validate` for information.
 
