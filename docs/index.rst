@@ -23,12 +23,9 @@ You can also see our Declarative Onboarding overview video:
 
 To provide feedback on this documentation, you can file a GitHub Issue or email us at solutionsfeedback@f5.com.
 
-
-Use the following links, the navigation on the left, and/or the Next and Previous buttons to explore the documentation.
-
 .. toctree::
    :maxdepth: 1
-   :includehidden:
+   :hidden:
    :glob:
 
    prereqs
