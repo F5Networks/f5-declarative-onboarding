@@ -7,7 +7,7 @@
   * Postman collection of examples
   * ASG Docker container
 * RPM is built in every pipeline run, and is kept in GitLab for one week
-* On a Git tag, RPM is published to Artifactory (f5-automation-toolchain-generic/f5-declarative-onboarding-rpm)
+* On a Git tag, RPM is published to Artifactory (f5-automation-toolchain-generic/f5-declarative-onboarding)
 
 ## Release Notes
 * Release notes are tracked during development in RELEASE_NOTES.md

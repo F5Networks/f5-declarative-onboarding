@@ -349,7 +349,7 @@ Build/publish makes heavy use of GitLab and [.gitlab-ci.yml](../.gitlab-ci.yml).
     - .json and.js files in /schema should be copied into latest.
     - A new directory should be added for the new release version.
 - RPMs are generated for every push to GitLab.
-- RPMs are pushed to Artifactory at f5-automation-toolchain-generic/f5-declarative-onboarding-rpm for every tag pushed to GitLab.
+- RPMs are pushed to Artifactory at f5-automation-toolchain-generic/f5-declarative-onboarding for every tag pushed to GitLab.
 - When ready for release:
     - RPM should be manually copied into dist and pushed back up to GitLab. Please let's stop doing this.
     - RPM should be manually added to the F5 CDN. Please let's automate this.
