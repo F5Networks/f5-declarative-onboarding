@@ -1,4 +1,4 @@
-image: node:12
+image: node:latest
 
 stages:
     - lint
@@ -215,6 +215,7 @@ publish to artifactory:
     tags:
         - cm-official-docker-executor
     script:
+        - VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
         - RPM_FILE=$(ls dist/*.rpm)
         - RPM_NAME=$(basename $RPM_FILE)
         - HASH_FILE=${RPM_FILE}.sha256
@@ -222,18 +223,18 @@ publish to artifactory:
         - POSTMAN_FILE=$(ls dist/*.collection.json)
         - POSTMAN_NAME=$(basename $POSTMAN_FILE)
         - >-
-            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding-rpm/${RPM_NAME})
+            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${RPM_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${RPM_NAME})
         - echo $UPLOAD_RESULT
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload; exit 1; fi
         - >-
-            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${HASH_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding-rpm/${HASH_NAME})
+            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${HASH_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${HASH_NAME})
         - echo $UPLOAD_RESULT
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during hash upload; exit 1; fi
         - >-
-            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${POSTMAN_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding-rpm/${POSTMAN_NAME})
+            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${POSTMAN_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${POSTMAN_NAME})
         - echo $UPLOAD_RESULT
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload; exit 1; fi
 
