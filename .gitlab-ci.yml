@@ -308,23 +308,6 @@ pages:
         - develop
         - doc-release-branch
 
-Publish docs to staging:
-  image: ${CONTAINTHEDOCS_IMAGE}
-  stage: docs
-  environment:
-    name: staging
-    url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-  tags:
-    - cm-official-docker-executor
-  only:
-    - docs-staging@automation-toolchain/f5-declarative-onboarding
-  dependencies:
-    - create docs
-  script:
-    - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-    # create invalidation to clear cloudfront cache
-    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest
-
 publish docs to production:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: docs
