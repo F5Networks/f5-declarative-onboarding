@@ -77,7 +77,7 @@ In this example, we are adding public SSH keys to the root user and a guestUser.
 
 **Important notes about using the keys property**
 
-- Only the root user's master key (noted by the ``Host Processor Superuser``), in authorized_keys will be preserved. All other keys configured prior to running this declaration, WILL BE DELETED.
+- Only the root user's primary key (noted by the ``Host Processor Superuser``), in authorized_keys will be preserved. All other keys configured prior to running this declaration, WILL BE DELETED.
 - If the **keys** field is left empty it will default to an empty array. This means leaving it empty will clear the authorized_keys file, except for the root's master key.
 - For non-root users, the path to the authorized_keys is **/home/{username}/.ssh/authorized_keys**.
 - For root, the path is **/root/.ssh/authorized_keys**.
