@@ -29,6 +29,7 @@ const DeleteHandler = require('./deleteHandler');
 const ProvisionHandler = require('./provisionHandler');
 const DeprovisionHandler = require('./deprovisionHandler');
 const AuthHandler = require('./authHandler');
+const TraceManager = require('./traceManager');
 const doUtil = require('./doUtil');
 
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
@@ -45,6 +46,7 @@ const CLASSES_OF_TRUTH = [
     'NTP',
     'Provision',
     'VLAN',
+    'DNS_Resolver',
     'Trunk',
     'SelfIp',
     'Route',
@@ -65,7 +67,10 @@ const CLASSES_OF_TRUTH = [
     'System',
     'TrafficControl',
     'HTTPD',
-    'SSHD'
+    'SSHD',
+    'Tunnel',
+    'TrafficGroup',
+    'Disk'
 ];
 
 /**
@@ -104,7 +109,6 @@ class DeclarationHandler {
         const newDeclaration = JSON.parse(JSON.stringify(declaration));
         const oldDeclaration = {};
         Object.assign(oldDeclaration, state.currentConfig);
-
         let updateDeclaration;
         let deleteDeclaration;
 
@@ -141,15 +145,18 @@ class DeclarationHandler {
             .then(() => {
                 applyDefaults(parsedNewDeclaration, state);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
-
-                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
-                return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration);
+                applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
+                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
+                return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration, declaration);
             })
             .then((declarationDiffs) => {
                 updateDeclaration = declarationDiffs.toUpdate;
                 deleteDeclaration = declarationDiffs.toDelete;
-                return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
+
+                const traceManager = new TraceManager(declaration, this.eventEmitter, state);
+                return traceManager.traceConfigs(parsedOldDeclaration, parsedNewDeclaration);
             })
+            .then(() => this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
             .then(() => {
                 const handlers = [
                     [SystemHandler, updateDeclaration],
@@ -266,6 +273,33 @@ function applyDefaults(declaration, state) {
 function applyRouteDomainFixes(declaration, currentConfig) {
     applyDefaultRouteDomainFix(declaration, currentConfig);
     applyRouteDomainVlansFix(declaration, currentConfig);
+}
+
+/**
+ * Convert FailoverUnicasts to use addressPorts immediately
+ *
+ * @param {Object} declaration - User provided declaration
+ */
+function applyFailoverUnicastFixes(declaration) {
+    if (declaration.Common.FailoverUnicast && declaration.Common.FailoverUnicast.address) {
+        if (declaration.Common.FailoverUnicast.addressPorts) {
+            // If there is both and address and addressPorts at this point
+            // then the user supplied two different Failover Unicast objects.
+            // DO cannot guarantee which to use, thus we need to throw an error.
+            const message = 'Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort.';
+            logger.severe(message);
+            throw new Error(message);
+        }
+
+        declaration.Common.FailoverUnicast.addressPorts = [
+            {
+                address: declaration.Common.FailoverUnicast.address,
+                port: declaration.Common.FailoverUnicast.port
+            }
+        ];
+        delete declaration.Common.FailoverUnicast.address;
+        delete declaration.Common.FailoverUnicast.port;
+    }
 }
 
 /**

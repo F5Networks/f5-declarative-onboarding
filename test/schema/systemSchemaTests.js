@@ -27,7 +27,6 @@ const ajv = new Ajv(
         extendRefs: 'fail'
     }
 );
-const definitionsSchema = require('../../src/schema/latest/definitions.schema.json');
 const systemSchema = require('../../src/schema/latest/system.schema.json');
 const customFormats = require('../../src/schema/latest/formats.js');
 
@@ -36,23 +35,11 @@ Object.keys(customFormats).forEach((customFormat) => {
 });
 
 const validate = ajv
-    .addSchema(definitionsSchema)
     .compile(systemSchema);
 
 /* eslint-disable quotes, quote-props */
 
 describe('system.schema.json', () => {
-    describe('hostname', () => {
-        describe('valid', () => {
-            it('should accept a class-less hostname', () => {
-                const data = {
-                    "hostname": 'my.bigip.com'
-                };
-                assert.ok(validate(data), getErrorString(validate));
-            });
-        });
-    });
-
     describe('DNS', () => {
         describe('valid', () => {
             it('should validate dns data', () => {
@@ -1081,6 +1068,7 @@ describe('system.schema.json', () => {
             it('should validate declaration with all properties', () => {
                 const data = {
                     "class": "SSHD",
+                    "allow": ["*.*.*.*"],
                     "banner": "Hello there",
                     "ciphers": [
                         "aes128-ctr",
@@ -1138,6 +1126,47 @@ describe('system.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'there should not be additional properties');
                 assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+        });
+    });
+
+    describe('Disk', () => {
+        describe('valid', () => {
+            it('should validate with minimal properties', () => {
+                const data = {
+                    "class": "Disk"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate with all properties', () => {
+                const data = {
+                    "class": "Disk",
+                    "applicationData": 12345
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional properties', () => {
+                const data = {
+                    "class": "Disk",
+                    "newData": "12345"
+                };
+                assert.strictEqual(validate(data), false, 'there should not be additional properties');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate invalid applicationData', () => {
+                const data = {
+                    "class": "Disk",
+                    "applicationData": {
+                        "data": "hello"
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'should be type integer');
+                assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
             });
         });
     });

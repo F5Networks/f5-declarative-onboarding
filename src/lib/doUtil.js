@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2020 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
+const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 const Logger = require('./logger');
 const ipF5 = require('../schema/latest/formats').f5ip;
+const promiseUtil = require('./promiseUtil');
 
 const logger = new Logger(module);
 
@@ -334,6 +336,33 @@ module.exports = {
     },
 
     /**
+     * Masks sensitive data in a JSON object
+     *
+     * @param {Object} data - JSON object to mask
+     */
+    mask(data) {
+        const masked = JSON.parse(JSON.stringify(data));
+
+        Object.keys(masked).forEach((key) => {
+            if (MASK_REGEX.test(key)) {
+                delete masked[key];
+            } else if (!Array.isArray(masked[key]) && typeof masked[key] === 'object') {
+                masked[key] = this.mask(masked[key]);
+            } else if (Array.isArray(masked[key])) {
+                masked[key].forEach((item, index) => {
+                    if (!Array.isArray(item) && typeof item === 'object') {
+                        masked[key][index] = this.mask(item);
+                    }
+                });
+            } else if (MASK_REGEX.test(key)) {
+                delete masked[key];
+            }
+        });
+
+        return masked;
+    },
+
+    /**
      * Removes the CIDR from an IP address
      *
      * @param {String} address - IP address with CIDR.
@@ -414,5 +443,22 @@ module.exports = {
                 }
             });
         });
+    },
+
+    /**
+     * Wait for Big-IP to reboot.
+     *
+     * @param {Object} bigIp - Big-IP object.
+     */
+    waitForReboot(bigIp) {
+        return this.getCurrentPlatform()
+            .then((platform) => {
+                if (platform !== PRODUCTS.BIGIP) {
+                    // Wait for BIG-IP to be ready if not running on BIG-IP
+                    return promiseUtil.delay(10000).then(() => bigIp.ready());
+                }
+                // Block with Promise that never resolves and wait for BIG-IP to restart
+                return new Promise(() => {});
+            });
     }
 };

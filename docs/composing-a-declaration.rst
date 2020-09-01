@@ -61,27 +61,60 @@ For more information, see |deviceclass| in the Schema Reference.
         "schemaVersion": "1.0.0",
         "class": "Device",
         "async": true,
-        "label": "Basic onboarding",
+        "webhook": "https://example.com/myHook",
+        "label": "my BIG-IP declaration for declarative onboarding",
         
         
         
         
 |
 
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| Parameter          | Options                        | Required?  |  Description/Notes                                                                                                                 |
-+====================+================================+============+====================================================================================================================================+
-| schemaVersion      | string for version number      |   Yes      |  Version of Declarative Onboarding schema this declaration uses.                                                                   |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| class              | Device                         |   Yes      |  Indicates this JSON document is a Device declaration.                                                                             |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| async              | true, **false**                |   No       |  If true, async tells the API to return a 202 HTTP status before processing is complete. You can then poll for status using GET.   |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| webhook            | string (URL)                   |   No       |  DO v1.6.0 and later. You can optionally specify the URL for a webhook, to which DO sends the final response from the declaration. |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
-| label              | string                         |   No       |  Optional friendly label for this declaration.                                                                                     |
-+--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter          | Options                        | Required?  |  Description/Notes                                                                                                                                                                                                                                                                   |
++====================+================================+============+======================================================================================================================================================================================================================================================================================+
+| schemaVersion      | string for version number      |   Yes      |  Version of Declarative Onboarding schema this declaration uses.                                                                                                                                                                                                                     |
++--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| class              | Device                         |   Yes      |  Indicates this JSON document is a Device declaration.                                                                                                                                                                                                                               |
++--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| async              | true, **false**                |   No       |  If true, async tells the API to return a 202 HTTP status before processing is complete. You can then poll for status using GET.                                                                                                                                                     |
++--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| webhook            | string (URL)                   |   No       |  DO v1.6.0 and later. You can optionally specify the URL for a webhook. Once the declaration is finished processing, DO POSTs the response message to the specified endpoint. This feature works both on declarations that require and do not require a reboot to finish processing. |
++--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| label              | string                         |   No       |  Optional friendly label for this declaration.                                                                                                                                                                                                                                       |
++--------------------+--------------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
+|
+
+**Example of the request sent to the webhook**
+
+.. code-block:: json
+
+    POST / HTTP/1.1
+    Content-Type: application/json
+
+    {
+        "id": "a54b479c-9233-4ac3-b7bd-42f9e6d6e8e7",
+        "selfLink": "https://localhost/mgmt/shared/declarative-onboarding/task/a54b479c-9233-4ac3-b7bd-42f9e6d6e8e7",
+        "result": {
+            "class": "Result",
+            "code": 200,
+            "status": "OK",
+            "message": "success"
+        },
+        "declaration": {
+            "schemaVersion": "1.0.0",
+            "class": "Device",
+            "webhook": "https://example.com/myHook",
+            "async": false,
+            "Common": {
+                "class": "Tenant",
+                "hostname": "bigip.example.com"
+            }
+        }
+    }
+
+
+|
 
 .. _common-class:
 
@@ -118,6 +151,8 @@ For more information, see |devicecommon| in the Schema Reference.
 +--------------------+--------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
+
+|
 
 .. _system-class:
 
@@ -172,6 +207,8 @@ This snippet includes the **autoCheck** property which is not in the full declar
 
 \* The required column applies only if you are using this class.
 
+|
+
 .. _license-class:
 
 License class
@@ -212,6 +249,7 @@ The name *myLicense* we use in this example is arbitrary; it is not used anywher
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _dns-class:
 
@@ -254,6 +292,8 @@ The name *myDNS* we use in this example is arbitrary; it is not used anywhere in
 +--------------------+--------------------------------+------------+------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
+
+|
 
 .. _ntp-class:
 
@@ -298,6 +338,7 @@ For instructions on how to get a current list of timezones on the BIG-IP, see ht
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _user-class:
 
@@ -384,7 +425,7 @@ Note that the **keys** property is not included in the example at the top of thi
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | shell              | **tmsh**, bash, none   (non-root only)                                                                                                     | No         | The shell you want the user to be able to use. The default is tmsh. In Declarative Onboarding 1.1.0 and later, you can use **none** when creating non-root users.                                                                               |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| keys               | array of strings                                                                                                                           | No         | DO 1.5.0+ only: An array of public keys for the user. The authorized_keys file will be overwritten with this value (note default of []). If the user is root, the master key will be preserved.  See :ref:`Keys example <keys>`                 |
+| keys               | array of strings                                                                                                                           | No         | DO 1.5.0+ only: An array of public keys for the user. The authorized_keys file will be overwritten with this value (note default of []). If the user is root, the primary key will be preserved.  See :ref:`Keys example <keys>`                |
 +--------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
  
 
@@ -430,6 +471,8 @@ The name *myProvisioning* we use in this example is arbitrary; it is not used an
 
 
 \* The required column applies only if you are using this class.
+
+|
 
 .. _vlan-class:
 
@@ -491,6 +534,8 @@ Declarative Onboarding v1.7.0 and later includes the **cmp-hash** property, whic
 
 \* The required column applies only if you are using this class.
 
+|
+
 .. _selfip-class:
 
 Self IP class
@@ -537,6 +582,7 @@ For more information, see |ntpclass| in the Schema Reference.
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _route-class:
 
@@ -575,6 +621,8 @@ In this example, we use the name **default**, which sets the default route on th
 
 
 \* The required column applies only if you are using this class.
+
+|
 
 .. _mgmtroute-class:
 
@@ -616,6 +664,7 @@ For more information, see |mgmtrouteclass| in the Schema Reference.
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _routedomain-class:
 
@@ -684,6 +733,7 @@ With Route Domains, the **id** is required, and you use the id as an identifier 
 
 \* The required column applies only if you are using this class.
 
+|
 
 .. _dbvars-class:
 

@@ -63,7 +63,10 @@ class ConfigManager {
      *                 id: <property_name>,
      *                 newId: <property_name_to_map_to_in_parsed_declaration>
      *                 truth: <mcp_truth_value_if_this_is_boolean>,
-     *                 falsehood: <mcp_false_value_if_this_is_boolean>
+     *                 falsehood: <mcp_false_value_if_this_is_boolean>,
+     *                 transform: [<id_newId_to_apply_to_arrays_and_subobjects>],
+     *                 capture: <regex_to_capture>,
+     *                 captureProperty: <property_to_capture_from>
      *             }
      *         ]
      *         references: {
@@ -75,11 +78,12 @@ class ConfigManager {
      *         ignore: [
      *             { <key_to_possibly_ignore>: <regex_for_value_to_ignore> }
      *         ],
-     *        schemaMerge: {
+     *         schemaMerge: {
      *           path: <array_containing_property_path>,
      *           action: <override_if_not_direct_assign_of_value>
      *           skipWhenOmitted: <do_not_add_to_parent_when_missing>
-     *        }
+     *         }
+     *         partitions: ['partition(s)', 'to', 'check']
      *     }
      * ]
      *
@@ -164,6 +168,11 @@ class ConfigManager {
                         if (selectProperties.length > 0) {
                             query.$select = selectProperties.join(',');
                         }
+                        if (configItem.partitions) {
+                            // If partitions are expected we do the filtering manually
+                            delete query.$filter;
+                            query.$select = `${query.$select},partition`;
+                        }
                         const encodedQuery = querystring.stringify(query);
                         const options = {};
                         let path = `${configItem.path}?${encodedQuery}`;
@@ -198,7 +207,14 @@ class ConfigManager {
                             currentConfig[schemaClass] = {};
                         } else {
                             currentItem.forEach((item) => {
-                                if (!shouldIgnore(item, this.configItems[index].ignore)) {
+                                if (!shouldIgnore(item, this.configItems[index].ignore)
+                                    && inPartitions(item, this.configItems[index].partitions)) {
+                                    if (this.configItems[index].schemaClass === 'Route'
+                                        && item.partition === 'LOCAL_ONLY') {
+                                        item.localOnly = true;
+                                    }
+                                    delete item.partition; // Must be removed for the diffs
+
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties.call(this, patchedItem, index);
 
@@ -234,6 +250,10 @@ class ConfigManager {
                                             this, schemaMerge, currentConfig[schemaClass], patchedItem
                                         );
                                         patchedItem = null;
+                                    }
+
+                                    if (schemaClass === 'MAC_Masquerade') {
+                                        patchedItem.trafficGroup = name;
                                     }
 
                                     if (patchedItem) {
@@ -299,6 +319,12 @@ class ConfigManager {
                                     patchedItem
                                 );
                             }
+                        }
+                        if (schemaClass === 'Disk' && patchedItem.apiRawValues) {
+                            patchedItem = patchedItem.apiRawValues;
+                            Object.keys(patchedItem).forEach((item) => {
+                                patchedItem[item] = parseInt(patchedItem[item], 10);
+                            });
                         }
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
@@ -460,16 +486,40 @@ function mapProperties(item, index) {
             }
 
             if (property.transform) {
-                const orig = Object.assign({}, mappedItem[property.id]);
-                delete mappedItem[property.id];
-                property.transform.forEach((trans) => {
-                    const propertyVal = orig[trans.id] || orig[0][trans.id];
-                    if (trans.newId) {
-                        mappedItem[trans.newId] = propertyVal;
-                    } else {
-                        mappedItem[trans.id] = propertyVal;
+                const transformProperty = function (currentProperty) {
+                    if (Array.isArray(currentProperty)) {
+                        // Iterate through currentProperty to convert subobjects
+                        const output = currentProperty.map(prop => transformProperty(prop));
+                        return output;
                     }
-                });
+
+                    const newProperty = {};
+                    property.transform.forEach((trans) => {
+                        let value = currentProperty[trans.id];
+
+                        if (trans.capture) {
+                            // The capture property is a regex that is grouping in a way that puts
+                            // the desired value at the end of the match.
+                            const match = currentProperty[trans.captureProperty].match(trans.capture);
+
+                            if (match === null) {
+                                return;
+                            }
+
+                            value = match.pop();
+                        }
+
+                        // Attempt to convert values
+                        if (trans.newId) {
+                            newProperty[trans.newId] = value;
+                        } else {
+                            newProperty[trans.id] = value;
+                        }
+                    });
+                    return newProperty;
+                };
+
+                mappedItem[property.id] = transformProperty(mappedItem[property.id]);
             }
             hasVal = true;
         } else if (property.defaultWhenOmitted !== undefined) {
@@ -481,6 +531,7 @@ function mapProperties(item, index) {
             mapNewId(mappedItem, property.id, property.newId);
         }
     });
+
     return mappedItem;
 }
 
@@ -808,6 +859,15 @@ function shouldIgnore(item, ignoreList) {
     });
 
     return !!match;
+}
+
+function inPartitions(item, partitionList) {
+    // If the configItem has no partitionList, then it was filtered by the query so just continue
+    if (!partitionList || partitionList.indexOf(item.partition) > -1) {
+        return true;
+    }
+
+    return false;
 }
 
 module.exports = ConfigManager;

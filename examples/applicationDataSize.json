@@ -1,0 +1,12 @@
+{
+    "schemaVersion": "1.14.0",
+    "class": "Device",
+    "async": "true",
+    "Common": {
+        "class": "Tenant",
+        "disk": {
+            "class": "Disk",
+            "applicationData": "130985984"
+        }
+    }
+}

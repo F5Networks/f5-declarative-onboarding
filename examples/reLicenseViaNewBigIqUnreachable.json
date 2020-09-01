@@ -24,7 +24,8 @@
             "unitOfMeasure": "hourly",
             "reachable": false,
             "hypervisor": "vmware",
-            "overwrite": true
+            "overwrite": true,
+            "tenant": "Optional custom descriptor"
         },
         "myDns": {
             "class": "DNS",

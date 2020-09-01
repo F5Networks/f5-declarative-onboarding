@@ -11,3 +11,4 @@ docs/do.schema.json
 dist/
 test/logs
 test_harness.json
+*.swp

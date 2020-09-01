@@ -31,8 +31,6 @@ The following is an example declaration that onboards a clustered BIG-IP system.
 
 |
 
-
-
 .. _example6:
 
 3: Using JSON Pointers
@@ -65,8 +63,9 @@ In this example, we are licensing a new BIG-IP, provisioning AVR, and creating a
 
 :ref:`Back to top<bigipexamples>`
 
-.. _keys:
+|
 
+.. _keys:
 
 5: Adding public SSH keys to a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -78,7 +77,7 @@ In this example, we are adding public SSH keys to the root user and a guestUser.
 
 **Important notes about using the keys property**
 
-- Only the root user's master key (noted by the ``Host Processor Superuser``), in authorized_keys will be preserved. All other keys configured prior to running this declaration, WILL BE DELETED.
+- Only the root user's primary key (noted by the ``Host Processor Superuser``), in authorized_keys will be preserved. All other keys configured prior to running this declaration, WILL BE DELETED.
 - If the **keys** field is left empty it will default to an empty array. This means leaving it empty will clear the authorized_keys file, except for the root's master key.
 - For non-root users, the path to the authorized_keys is **/home/{username}/.ssh/authorized_keys**.
 - For root, the path is **/root/.ssh/authorized_keys**.
@@ -90,6 +89,8 @@ In this example, we are adding public SSH keys to the root user and a guestUser.
 
 
 :ref:`Back to top<bigipexamples>`
+
+|
 
 .. _rdomain:
 
@@ -112,6 +113,7 @@ In the following declaration, we include a VLAN to show how to reference a VLAN 
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
 .. _dag:
 
@@ -134,6 +136,8 @@ In the following declaration snippet, we show only the DagGlobals class.  You ca
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
 .. _snmp:
 
 8: Configuring SNMP in a declaration
@@ -150,6 +154,8 @@ In the following declaration snippet we show only the classes related to SNMP.  
    :language: json
 
 :ref:`Back to top<bigipexamples>`
+
+|
 
 .. _authmethods:
 
@@ -172,6 +178,8 @@ In the following declaration snippet we show only the classes related to authent
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
 .. _remoterole:
 
 10: Configuring Remote Roles for authentication
@@ -191,6 +199,8 @@ In the following declaration snippet we show only the classes related to remote 
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
 .. _trafcontrol:
 
 11: Configuring Traffic Control properties
@@ -207,6 +217,8 @@ In the following declaration snippet we show only the classes related to Traffic
    :language: json
 
 :ref:`Back to top<bigipexamples>`
+
+|
 
 .. _syslogdest:
 
@@ -227,6 +239,7 @@ In the following declaration snippet we show only the SyslogRemoteServer class. 
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
 .. _cmphash:
 
@@ -245,7 +258,7 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 
 :ref:`Back to top<bigipexamples>`
 
-
+|
 
 .. _sshex:
 
@@ -253,17 +266,24 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for configuring SSHD settings is available in DO v1.8.0 and later. 
+   Support for configuring the allowed source IP addresses for SSHD is available in DO v1.15 and later. 
 
 In this example, we show how you can configure SSHD (SSH daemon) settings in a Declarative Onboarding declaration. For usage and options, see |sshd| in the Schema Reference.
 
 In the following declaration, we show only the SSHD class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
+**New in DO 1.15** |br|
+Declarative Onboarding v1.15 and later includes the ability to set the source IP addresses that are allowed to log into the system, using the new **allow** property. You can allow all addresses by using the **all** value, or disallow all addresses using the **none** value; otherwise, you can specify an array of IP address as shown in the updated example.
+
+.. IMPORTANT:: If you attempt to use the following declaration on a version prior to 1.15, it will fail.  To use the example on a previous version, delete the **allow** property and IP addresses (the hightlighted lines)
 
 .. literalinclude:: ../examples/sshd.json
    :language: json
+   :emphasize-lines: 10-14
 
 :ref:`Back to top<bigipexamples>`
+
+|
 
 .. _httpdex:
 
@@ -271,7 +291,7 @@ In the following declaration, we show only the SSHD class.  You can use this cla
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for configuring HTTPD settings is available in DO v1.8.0 and later. 
+   Support for configuring HTTPD settings is available in DO v1.8 and later. 
 
 In this example, we show how you can configure HTTPD (HTTP daemon) settings in a Declarative Onboarding declaration. For usage and options, see |httpd| in the Schema Reference.
 
@@ -284,6 +304,8 @@ In the following declaration, we show only the HTTPD class.  You can use this cl
    :language: json
 
 :ref:`Back to top<bigipexamples>`
+
+|
 
 .. _systemex:
 
@@ -303,12 +325,15 @@ DO 1.13 introduced the ability to disable the automatic update check feature.  T
 
 In the following declaration, we show only the System class (including autoCheck introduced in 1.13).  You can use this class as a part of a larger Declarative Onboarding declaration. 
 
+**Important**: If you try to use this declaration with a DO version prior to 1.13, it will fail.  Either upgrade to 1.13, or remove the autoCheck line.
+
 
 .. literalinclude:: ../examples/system.json
    :language: json
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
 .. _example17:
 
@@ -316,7 +341,7 @@ In the following declaration, we show only the System class (including autoCheck
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for using IP addresses for Device Group owners and members is available in DO v1.11.0 and later. 
+   Support for using IP addresses for Device Group owners and members is available in DO v1.11 and later. 
 
 The following is an example declaration that onboards a clustered BIG-IP system, but shows how you can use an IP address for the Device Group members and owner.  
 
@@ -335,7 +360,7 @@ See :ref:`devicegroup` for more information.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for including a TLS/SSL device certificate and key is available in DO v1.12.0 and later. 
+   Support for including a TLS/SSL device certificate and key is available in DO v1.12 and later. 
 
 This example declaration shows how you can create/upload a device certificate in a Declarative Onboarding declaration. The BIG-IP system uses the device certificate to authenticate access to the Configuration utility and to accommodate device-to-device communication processes, such as configuration synchronization. 
 
@@ -363,7 +388,7 @@ See |certclass| in the schema reference for more information and usage.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for **userAgent** is available in DO v1.13.0 and later
+   Support for **userAgent** is available in DO v1.13 and later
 
 In this example, we show how you can use the **userAgent** property in the new **Controls** class. The userAgent property allows you to set a unique identifier in usage data.
 
@@ -377,6 +402,915 @@ See |controls| in the Schema Reference for more information.
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
+.. _example20:
+
+20: Configuring Audit Logging in a declaration  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring audit logging is available in DO v1.13 and later
+
+In this example, we show how you can configure audit logging in the System class of a Declarative Onboarding declaration.  This allows audit logging to start as early as possible.
+
+See |sysclass| in the Schema Reference for DO usage and options. For detailed information about audit logging on the BIG-IP, see the |auditlog|.
+
+.. IMPORTANT:: **guiAuditLog** is only available on TMOS v14.0 and later
+
+
+.. literalinclude:: ../examples/auditLogging.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example21:
+
+21: Configuring MAC Masquerading on Traffic Groups 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for MAC Masquerade on Traffic Groups is available in DO v1.13 and later
+
+In this example, we show how you can configure MAC Masquerading on Traffic Groups.  This is a part of the new **MAC_Masquerade** class.  
+
+For detailed information about Mac Masquerade on the BIG-IP, see |mmkb|.
+
+See |macm| in the Schema Reference for DO usage and options. 
+
+
+.. literalinclude:: ../examples/macMasquerade.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example22:
+
+22: Configuring VLAN Failsafe 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for VLAN Failsafe is available in DO v1.14 and later
+
+In this example, we show how you can configure VLAN Failsafe settings in a Declarative Onboarding declaration.  This is a part of the |cmpref|, and includes the new properties **failsafeEnabled**, **failsafeAction**, and **failsafeTimeout**.
+
+For detailed information about VLAN Failsafe on the BIG-IP, see |vlanfs|.
+
+See |cmpref| in the Schema Reference for DO usage and options. 
+
+
+.. literalinclude:: ../examples/vlanFailsafe.json
+   :language: json
+
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example23:
+
+23: Configuring a DNS Resolver 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for DNS Resolvers is available in DO v1.14 and later
+
+In this example, we show how you create a DNS Resolver in a Declarative Onboarding declaration using the |dnsresolver| class introduced in DO 1.14. The DNS Resolver is the internal DNS resolver the BIG-IP system uses to fetch the internal proxy response. 
+
+See |dnsresolver| in the Schema Reference for DO usage and options. 
+
+For detailed information about the DNS Resolver, see |dnsdoc| on AskF5.
+
+
+.. literalinclude:: ../examples/dnsResolver.json
+   :language: json
+
+|
+
+.. _example24:
+
+24: Configuring a TCP Forward Tunnel 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for TCP Forward Tunnels is available in DO v1.14 and later
+
+In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class introduced in DO 1.14. 
+
+Currently, **tcp_forward** is the only profile (**tunnelType**) Declarative Onboarding supports.  The tcp_forward profile specifies a tunnel used for forward proxy connections.
+
+See |tunnel| in the Schema Reference for DO usage and options. 
+
+
+.. literalinclude:: ../examples/tcpForwardTunnel.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example25:
+
+25: Configuring Traffic Groups 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for Traffic Groups is available in DO v1.14 and later
+
+This example shows how to create Traffic Groups using Declarative Onboarding 1.14 and later. A traffic group is a group of configuration objects on a BIG-IP which is able to float to another device in a device group in case of failure.  For more information, see :ref:`trafficgroup` on the Clustering page, and |tgdoc|.
+
+See |tg| in the Schema Reference for DO usage and options.  
+
+.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br| |br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
+
+
+.. literalinclude:: ../examples/trafficGroups.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example26:
+
+26: Configuring multiple failover unicast addresses 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for multiple failover unicast addresses is available in DO v1.15 and later
+
+This example shows how to specify multiple failover unicast addresses using Declarative Onboarding 1.15 and later. The unicast addresses you specify are the main address that other devices in the device group use to communicate continually with the local device to assess the health of that device. For more information on failover on the BIG-IP, see |failover|. 
+
+For additional information, see :ref:`failover-uni-class` on the Clustering page. See |unicast| in the Schema Reference for DO usage and options.  
+
+To use this feature:
+
+- The failover unicast addresses must be pointing at IP addresses on the BIG-IP system (Self IP addresses)
+- Self IPs require a VLAN.  Some systems, such as 1 NIC BIG-IP systems, are not able to have multiple VLANs.  Check the device on which you are deploying a declaration using this feature.
+
+In the following example, the declaration creates a VLAN, that is then used by 2 external Self IP addresses, and then updates the device with two Failover Unicast addresses. 
+
+.. literalinclude:: ../examples/multipleFailoverUnicasts.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example27:
+
+27: Enabling traces in DO responses 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for **trace** and **traceResponse** is available in DO v1.15 and later. 
+
+In this example, we show how you can use the **trace** and **traceResponse** properties to enable more visibility into what DO is configuring.  These properties are included in the |controls| class.
+
+.. WARNING:: Trace files may contain sensitive configuration data.
+
+When **trace** is set to **true** (the default is false), DO creates a detailed trace of the configuration process for subsequent analysis. This information is written to files in the **/tmp** directory where DO is running. |br|
+The files are:
+
+- /tmp/DO_current.json
+- /tmp/DO_desired.json
+- /tmp/DO_diff.json
+
+
+When **traceResponse** is set to **true** (the default is false), the response (or response to a subsequent GET request in the case of asynchronous requests) contains the same information that would be found in the trace files.
+
+This example shows both the declaration and the response from DO.  
+
+.. literalinclude:: ../examples/debugTrace.json
+   :language: json
+
+|
+
+**Example Response** |br|
+Here is the response returned by DO from the declaration, showing the trace for the tenant (your output will vary based on the configuration of your device).
+
+.. code-block:: json
+
+   {
+      "id": "e34cd96e-a1dc-4432-9efa-ff687e09117f",
+      "selfLink": "https://localhost/mgmt/shared/declarative-onboarding/task/e34cd96e-a1dc-4432-9efa-ff687e09117f",
+      "result": {
+         "class": "Result",
+         "code": 200,
+         "status": "OK",
+         "message": "success"
+      },
+      "declaration": {
+         "schemaVersion": "1.15.0",
+         "class": "Device",
+         "async": true,
+         "webhook": "https://example.com/myHook",
+         "label": "my BIG-IP declaration for declarative onboarding",
+         "controls": {
+               "trace": true,
+               "traceResponse": true
+         },
+         "Common": {
+               "class": "Tenant",
+               "mySystem": {
+                  "class": "System",
+                  "hostname": "bigip.example.com",
+                  "cliInactivityTimeout": 1200,
+                  "consoleInactivityTimeout": 1200,
+                  "autoPhonehome": false
+               }
+         }
+      },
+      "traces": {
+         "desired": {
+               "Common": {
+                  "System": {
+                     "hostname": "bigip.example.com",
+                     "cliInactivityTimeout": 1200,
+                     "consoleInactivityTimeout": 1200,
+                     "autoPhonehome": false
+                  },
+                  "DNS": {
+                     "nameServers": [
+                           "172.27.1.1"
+                     ],
+                     "search": [
+                           "localhost"
+                     ]
+                  },
+                  "NTP": {
+                     "timezone": "America/Los_Angeles"
+                  },
+                  "Provision": {
+                     "afm": "none",
+                     "am": "none",
+                     "apm": "none",
+                     "asm": "none",
+                     "avr": "none",
+                     "cgnat": "none",
+                     "dos": "none",
+                     "fps": "none",
+                     "gtm": "none",
+                     "ilx": "none",
+                     "lc": "none",
+                     "ltm": "nominal",
+                     "pem": "none",
+                     "sslo": "none",
+                     "swg": "none",
+                     "urldb": "none"
+                  },
+                  "VLAN": {},
+                  "DNS_Resolver": {
+                     "f5-aws-dns": {
+                           "name": "f5-aws-dns",
+                           "answerDefaultZones": false,
+                           "cacheSize": 5767168,
+                           "randomizeQueryNameCase": true,
+                           "routeDomain": "0",
+                           "useIpv4": true,
+                           "useIpv6": true,
+                           "useTcp": true,
+                           "useUdp": true,
+                           "forwardZones": [
+                              {
+                                 "name": "amazonaws.com",
+                                 "nameservers": [
+                                       {
+                                          "name": "8.8.8.8:53"
+                                       }
+                                 ]
+                              },
+                              {
+                                 "name": "idservice.net",
+                                 "nameservers": [
+                                       {
+                                          "name": "8.8.8.8:53"
+                                       }
+                                 ]
+                              }
+                           ]
+                     }
+                  },
+                  "Trunk": {},
+                  "SelfIp": {},
+                  "Route": {},
+                  "ConfigSync": {
+                     "configsyncIp": "none"
+                  },
+                  "FailoverUnicast": {
+                     "unicastAddress": "none"
+                  },
+                  "ManagementRoute": {
+                     "default": {
+                           "name": "default",
+                           "mtu": 0,
+                           "network": "default",
+                           "gw": "10.145.127.254"
+                     }
+                  },
+                  "RouteDomain": {
+                     "0": {
+                           "name": "0",
+                           "connectionLimit": 0,
+                           "id": 0,
+                           "strict": true,
+                           "vlans": [
+                              "/Common/http-tunnel",
+                              "/Common/socks-tunnel",
+                              "/Common/external",
+                              "/Common/internal"
+                           ]
+                     }
+                  },
+                  "Authentication": {
+                     "fallback": false,
+                     "enabledSourceType": "local",
+                     "remoteUsersDefaults": {
+                           "role": "no-access",
+                           "partitionAccess": "all",
+                           "terminalAccess": "disabled"
+                     }
+                  },
+                  "RemoteAuthRole": {},
+                  "SnmpAgent": {
+                     "contact": "Customer Name <admin@customer.com>",
+                     "location": "Network Closet 1",
+                     "allowList": [
+                           "127.0.0.0/8"
+                     ]
+                  },
+                  "SnmpTrapEvents": {
+                     "device": true,
+                     "authentication": false,
+                     "agentStartStop": true
+                  },
+                  "SnmpUser": {},
+                  "SnmpCommunity": {
+                     "comm-public": {
+                           "name": "public",
+                           "access": "ro",
+                           "ipv6": false,
+                           "source": "default"
+                     }
+                  },
+                  "SnmpTrapDestination": {},
+                  "DagGlobals": {
+                     "icmpHash": "icmp",
+                     "roundRobinMode": "global",
+                     "ipv6PrefixLength": 128
+                  },
+                  "TrafficControl": {
+                     "acceptIpOptions": false,
+                     "acceptIpSourceRoute": false,
+                     "allowIpSourceRoute": false,
+                     "continueMatching": false,
+                     "maxIcmpRate": 100,
+                     "maxRejectRate": 250,
+                     "maxRejectRateTimeout": 30,
+                     "minPathMtu": 296,
+                     "pathMtuDiscovery": true,
+                     "portFindThresholdTimeout": 30,
+                     "portFindThresholdTrigger": 8,
+                     "portFindThresholdWarning": true,
+                     "rejectUnmatched": true,
+                     "maxPortFindLinear": 16,
+                     "maxPortFindRandom": 16
+                  },
+                  "HTTPD": {
+                     "allow": [
+                           "All"
+                     ],
+                     "authPamIdleTimeout": 1200,
+                     "maxClients": 10,
+                     "sslCiphersuite": [
+                           "ECDHE-RSA-AES128-GCM-SHA256",
+                           "ECDHE-RSA-AES256-GCM-SHA384",
+                           "ECDHE-RSA-AES128-SHA",
+                           "ECDHE-RSA-AES256-SHA",
+                           "ECDHE-RSA-AES128-SHA256",
+                           "ECDHE-RSA-AES256-SHA384",
+                           "ECDHE-ECDSA-AES128-GCM-SHA256",
+                           "ECDHE-ECDSA-AES256-GCM-SHA384",
+                           "ECDHE-ECDSA-AES128-SHA",
+                           "ECDHE-ECDSA-AES256-SHA",
+                           "ECDHE-ECDSA-AES128-SHA256",
+                           "ECDHE-ECDSA-AES256-SHA384",
+                           "AES128-GCM-SHA256",
+                           "AES256-GCM-SHA384",
+                           "AES128-SHA",
+                           "AES256-SHA",
+                           "AES128-SHA256",
+                           "AES256-SHA256"
+                     ],
+                     "sslProtocol": "all -SSLv2 -SSLv3 -TLSv1"
+                  },
+                  "SSHD": {
+                     "inactivityTimeout": 0
+                  },
+                  "Tunnel": {
+                     "http-tunnel": {
+                           "name": "http-tunnel",
+                           "mtu": 0,
+                           "usePmtu": true,
+                           "autoLastHop": "default",
+                           "tunnelType": "tcp-forward",
+                           "typeOfService": "preserve"
+                     },
+                     "socks-tunnel": {
+                           "name": "socks-tunnel",
+                           "mtu": 0,
+                           "usePmtu": true,
+                           "autoLastHop": "default",
+                           "tunnelType": "tcp-forward",
+                           "typeOfService": "preserve"
+                     }
+                  },
+                  "TrafficGroup": {
+                     "traffic-group-1": {
+                           "name": "traffic-group-1",
+                           "autoFailbackEnabled": "false",
+                           "autoFailbackTime": 60,
+                           "failoverMethod": "ha-order",
+                           "haLoadFactor": 1
+                     },
+                     "traffic-group-local-only": {
+                           "name": "traffic-group-local-only",
+                           "autoFailbackEnabled": "false",
+                           "autoFailbackTime": 60,
+                           "failoverMethod": "ha-order",
+                           "haLoadFactor": 1
+                     }
+                  }
+               },
+               "parsed": true
+         },
+         "current": {
+               "parsed": true,
+               "Common": {
+                  "System": {
+                     "consoleInactivityTimeout": 1200,
+                     "hostname": "bigip.example.com",
+                     "guiAuditLog": false,
+                     "cliInactivityTimeout": 1200,
+                     "tmshAuditLog": true,
+                     "autoCheck": true,
+                     "autoPhonehome": false
+                  },
+                  "Provision": {
+                     "afm": "none",
+                     "am": "none",
+                     "apm": "none",
+                     "asm": "none",
+                     "avr": "none",
+                     "cgnat": "none",
+                     "dos": "none",
+                     "fps": "none",
+                     "gtm": "none",
+                     "ilx": "none",
+                     "lc": "none",
+                     "ltm": "nominal",
+                     "pem": "none",
+                     "sslo": "none",
+                     "swg": "none",
+                     "urldb": "none"
+                  },
+                  "NTP": {
+                     "timezone": "America/Los_Angeles"
+                  },
+                  "DNS": {
+                     "nameServers": [
+                           "172.27.1.1"
+                     ],
+                     "search": [
+                           "localhost"
+                     ]
+                  },
+                  "DNS_Resolver": {
+                     "f5-aws-dns": {
+                           "name": "f5-aws-dns",
+                           "answerDefaultZones": false,
+                           "cacheSize": 5767168,
+                           "randomizeQueryNameCase": true,
+                           "routeDomain": "0",
+                           "useIpv4": true,
+                           "useIpv6": true,
+                           "useTcp": true,
+                           "useUdp": true,
+                           "forwardZones": [
+                              {
+                                 "name": "amazonaws.com",
+                                 "nameservers": [
+                                       {
+                                          "name": "8.8.8.8:53"
+                                       }
+                                 ]
+                              },
+                              {
+                                 "name": "idservice.net",
+                                 "nameservers": [
+                                       {
+                                          "name": "8.8.8.8:53"
+                                       }
+                                 ]
+                              }
+                           ]
+                     }
+                  },
+                  "Trunk": {},
+                  "VLAN": {
+                     "external": {
+                           "name": "external",
+                           "cmpHash": "default",
+                           "failsafeAction": "failover-restart-tm",
+                           "failsafeTimeout": 90,
+                           "mtu": 1500,
+                           "tag": 4094,
+                           "failsafeEnabled": false,
+                           "interfaces": [
+                              {
+                                 "name": "1.1",
+                                 "tagged": false
+                              }
+                           ]
+                     },
+                     "internal": {
+                           "name": "internal",
+                           "cmpHash": "default",
+                           "failsafeAction": "failover-restart-tm",
+                           "failsafeTimeout": 90,
+                           "mtu": 1500,
+                           "tag": 4093,
+                           "failsafeEnabled": false,
+                           "interfaces": [
+                              {
+                                 "name": "1.2",
+                                 "tagged": false
+                              }
+                           ]
+                     }
+                  },
+                  "SelfIp": {
+                     "external-self": {
+                           "name": "external-self",
+                           "address": "10.20.0.100/24",
+                           "trafficGroup": "traffic-group-local-only",
+                           "vlan": "external",
+                           "allowService": "none"
+                     },
+                     "internal-self": {
+                           "name": "internal-self",
+                           "address": "10.10.0.100/24",
+                           "trafficGroup": "traffic-group-local-only",
+                           "vlan": "internal",
+                           "allowService": "default"
+                     }
+                  },
+                  "Route": {},
+                  "ConfigSync": {
+                     "configsyncIp": "none"
+                  },
+                  "FailoverUnicast": {
+                     "addressPorts": "none"
+                  },
+                  "TrafficGroup": {
+                     "traffic-group-1": {
+                           "name": "traffic-group-1",
+                           "autoFailbackEnabled": "false",
+                           "autoFailbackTime": 60,
+                           "failoverMethod": "ha-order",
+                           "haLoadFactor": 1
+                     },
+                     "traffic-group-local-only": {
+                           "name": "traffic-group-local-only",
+                           "autoFailbackEnabled": "false",
+                           "autoFailbackTime": 60,
+                           "failoverMethod": "ha-order",
+                           "haLoadFactor": 1
+                     }
+                  },
+                  "MAC_Masquerade": {
+                     "traffic-group-1": {
+                           "mac": "none",
+                           "trafficGroup": "traffic-group-1"
+                     },
+                     "traffic-group-local-only": {
+                           "mac": "none",
+                           "trafficGroup": "traffic-group-local-only"
+                     }
+                  },
+                  "ManagementRoute": {
+                     "default": {
+                           "name": "default",
+                           "mtu": 0,
+                           "network": "default",
+                           "gw": "10.145.127.254"
+                     }
+                  },
+                  "SyslogRemoteServer": {},
+                  "Authentication": {
+                     "fallback": false,
+                     "enabledSourceType": "local",
+                     "remoteUsersDefaults": {
+                           "role": "no-access",
+                           "partitionAccess": "all",
+                           "terminalAccess": "disabled"
+                     }
+                  },
+                  "RouteDomain": {
+                     "0": {
+                           "name": "0",
+                           "connectionLimit": 0,
+                           "id": 0,
+                           "strict": true,
+                           "vlans": [
+                              "/Common/http-tunnel",
+                              "/Common/socks-tunnel",
+                              "/Common/external",
+                              "/Common/internal"
+                           ]
+                     }
+                  },
+                  "RemoteAuthRole": {},
+                  "SnmpTrapEvents": {
+                     "device": true,
+                     "authentication": false,
+                     "agentStartStop": true
+                  },
+                  "SnmpTrapDestination": {},
+                  "SnmpAgent": {
+                     "contact": "Customer Name <admin@customer.com>",
+                     "location": "Network Closet 1",
+                     "allowList": [
+                           "127.0.0.0/8"
+                     ]
+                  },
+                  "SnmpUser": {},
+                  "SnmpCommunity": {
+                     "comm-public": {
+                           "name": "public",
+                           "access": "ro",
+                           "ipv6": false,
+                           "source": "default"
+                     }
+                  },
+                  "DagGlobals": {
+                     "icmpHash": "icmp",
+                     "roundRobinMode": "global",
+                     "ipv6PrefixLength": 128
+                  },
+                  "HTTPD": {
+                     "allow": [
+                           "All"
+                     ],
+                     "authPamIdleTimeout": 1200,
+                     "maxClients": 10,
+                     "sslCiphersuite": [
+                           "ECDHE-RSA-AES128-GCM-SHA256",
+                           "ECDHE-RSA-AES256-GCM-SHA384",
+                           "ECDHE-RSA-AES128-SHA",
+                           "ECDHE-RSA-AES256-SHA",
+                           "ECDHE-RSA-AES128-SHA256",
+                           "ECDHE-RSA-AES256-SHA384",
+                           "ECDHE-ECDSA-AES128-GCM-SHA256",
+                           "ECDHE-ECDSA-AES256-GCM-SHA384",
+                           "ECDHE-ECDSA-AES128-SHA",
+                           "ECDHE-ECDSA-AES256-SHA",
+                           "ECDHE-ECDSA-AES128-SHA256",
+                           "ECDHE-ECDSA-AES256-SHA384",
+                           "AES128-GCM-SHA256",
+                           "AES256-GCM-SHA384",
+                           "AES128-SHA",
+                           "AES256-SHA",
+                           "AES128-SHA256",
+                           "AES256-SHA256"
+                     ],
+                     "sslProtocol": "all -SSLv2 -SSLv3 -TLSv1"
+                  },
+                  "TrafficControl": {
+                     "acceptIpOptions": false,
+                     "acceptIpSourceRoute": false,
+                     "allowIpSourceRoute": false,
+                     "continueMatching": false,
+                     "maxIcmpRate": 100,
+                     "maxRejectRate": 250,
+                     "maxRejectRateTimeout": 30,
+                     "minPathMtu": 296,
+                     "pathMtuDiscovery": true,
+                     "portFindThresholdTimeout": 30,
+                     "portFindThresholdTrigger": 8,
+                     "portFindThresholdWarning": true,
+                     "rejectUnmatched": true,
+                     "maxPortFindLinear": 16,
+                     "maxPortFindRandom": 16
+                  },
+                  "SSHD": {
+                     "allow": [
+                           "ALL"
+                     ],
+                     "inactivityTimeout": 0
+                  },
+                  "Tunnel": {
+                     "http-tunnel": {
+                           "name": "http-tunnel",
+                           "mtu": 0,
+                           "usePmtu": true,
+                           "autoLastHop": "default",
+                           "tunnelType": "tcp-forward",
+                           "typeOfService": "preserve"
+                     },
+                     "socks-tunnel": {
+                           "name": "socks-tunnel",
+                           "mtu": 0,
+                           "usePmtu": true,
+                           "autoLastHop": "default",
+                           "tunnelType": "tcp-forward",
+                           "typeOfService": "preserve"
+                     }
+                  },
+                  "Disk": {
+                     "applicationData": 26128384
+                  }
+               }
+         },
+         "diff": [
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "System",
+                     "guiAuditLog"
+                  ],
+                  "lhs": false
+               },
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "System",
+                     "tmshAuditLog"
+                  ],
+                  "lhs": true
+               },
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "System",
+                     "autoCheck"
+                  ],
+                  "lhs": true
+               },
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "VLAN",
+                     "external"
+                  ],
+                  "lhs": {
+                     "name": "external",
+                     "cmpHash": "default",
+                     "failsafeAction": "failover-restart-tm",
+                     "failsafeTimeout": 90,
+                     "mtu": 1500,
+                     "tag": 4094,
+                     "failsafeEnabled": false,
+                     "interfaces": [
+                           {
+                              "name": "1.1",
+                              "tagged": false
+                           }
+                     ]
+                  }
+               },
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "VLAN",
+                     "internal"
+                  ],
+                  "lhs": {
+                     "name": "internal",
+                     "cmpHash": "default",
+                     "failsafeAction": "failover-restart-tm",
+                     "failsafeTimeout": 90,
+                     "mtu": 1500,
+                     "tag": 4093,
+                     "failsafeEnabled": false,
+                     "interfaces": [
+                           {
+                              "name": "1.2",
+                              "tagged": false
+                           }
+                     ]
+                  }
+               },
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "SelfIp",
+                     "external-self"
+                  ],
+                  "lhs": {
+                     "name": "external-self",
+                     "address": "10.20.0.100/24",
+                     "trafficGroup": "traffic-group-local-only",
+                     "vlan": "external",
+                     "allowService": "none"
+                  }
+               },
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "SelfIp",
+                     "internal-self"
+                  ],
+                  "lhs": {
+                     "name": "internal-self",
+                     "address": "10.10.0.100/24",
+                     "trafficGroup": "traffic-group-local-only",
+                     "vlan": "internal",
+                     "allowService": "default"
+                  }
+               },
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "FailoverUnicast",
+                     "addressPorts"
+                  ],
+                  "lhs": "none"
+               },
+               {
+                  "kind": "N",
+                  "path": [
+                     "Common",
+                     "FailoverUnicast",
+                     "unicastAddress"
+                  ],
+                  "rhs": "none"
+               },
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "SSHD",
+                     "allow"
+                  ],
+                  "lhs": [
+                     "ALL"
+                  ]
+               },
+               {
+                  "kind": "D",
+                  "path": [
+                     "Common",
+                     "Disk"
+                  ],
+                  "lhs": {
+                     "applicationData": 26128384
+                  }
+               }
+         ]
+      },
+      "lastUpdate": "2020-08-24T16:44:41.140Z"
+   }
+   
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example28:
+
+28: Creating Routes in the LOCAL_ONLY partition 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for creating routes in the LOCAL_ONLY partition is available in DO v1.15 and later
+
+This example shows how to create a route in a special LOCAL_ONLY partition/tenant using the new **localOnly** property in the Route class. When using this feature, if this partition doesn't exist, Delclarative Onboarding creates it. 
+
+This partition is required to configure an Amazon Web Services (AWS) *Across Network* cluster.
+
+See |route| in the Schema Reference for DO usage and options.  
+
+**Important notes:**
+ - While DO can create the LOCAL_ONLY partition if it does not exist, it cannot currently delete it, and the partition will remain even if you delete the DO configuration.
+ - A Route cannot be directly swapped from one partition to another. If you attempt to swap value of **localOnly**, the declaration will fail. As a workaround, change the network of the Route to another IP and set localOnly to what you want it to be. Submit that using DO. Once that is complete, you can change the network to the desired value. 
+
+.. literalinclude:: ../examples/localOnlyRoutes.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
 
 .. |br| raw:: html
 
@@ -471,4 +1405,55 @@ See |controls| in the Schema Reference for more information.
 
    <a href="https://support.f5.com/csp/article/K15000" target="_blank">K15000</a>
 
+.. |auditlog| raw:: html
 
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-user-account-administration-13-1-0/6.html" target="_blank">Audit Logging documentation</a>
+
+.. |macm| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mac-masquerade" target="_blank">Mac_Masquerade</a>
+
+.. |mmkb| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K13502" target="_blank">K13502: Configuring MAC masquerade</a>
+
+.. |vlanfs| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K13297" target="_blank">K13297: Overview of VLAN failsafe</a>
+
+.. |dnsresolver| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#dns-resolver" target="_blank">DNS_Resolver</a>
+
+
+.. |dnsdoc| raw:: html
+
+   <a href="https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20DNS" target="_blank">BIG-IP DNS documentation</a>
+
+.. |tunnel| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#tunnel" target="_blank">Tunnel</a>
+
+.. |tg| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trafficgroup" target="_blank">TrafficGroup</a>
+
+.. |tgdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigip-14-1-0/big-ip-device-service-clustering-administration-14-1-0.html" target="_blank">BIG-IP Device Service Clustering: Administration</a>
+
+.. |hagroup| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-maintain-high-availability-through-resource-monitoring-13-0-0/1.html" target="_blank">BIG-IP documentation</a>
+
+.. |failover| raw:: html
+
+   <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-device-service-clustering-administration-13-1-0/6.html" target="_blank">Failover documentation</a>
+
+.. |unicast| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#failoverunicast" target="_blank">FailoverUnicast</a>
+
+.. |route| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#route" target="_blank">Route</a>

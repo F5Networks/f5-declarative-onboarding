@@ -346,6 +346,36 @@ describe('doUtil', () => {
         });
     });
 
+    describe('mask', () => {
+        it('should mask passwords', () => {
+            const data = {
+                foo: {
+                    bar: {
+                        hello: 'world',
+                        password: '1234'
+                    }
+                },
+                fooArray: [
+                    {
+                        okie: 'dokie',
+                        password: '5678'
+                    }
+                ]
+            };
+
+            const masked = doUtil.mask(data);
+
+            assert.strictEqual(masked.foo.bar.hello, 'world');
+            assert.strictEqual(masked.foo.bar.password, undefined);
+            assert.strictEqual(masked.fooArray[0].okie, 'dokie');
+            assert.strictEqual(masked.fooArray[0].password, undefined);
+
+            // make sure we are not altering the passed in data
+            assert.notStrictEqual(data.fooArray[0].password, undefined);
+            assert.notStrictEqual(data.foo.bar.password, undefined);
+        });
+    });
+
     describe('checkDnsResolution', () => {
         beforeEach(() => {
             sinon.stub(dns, 'lookup').callsArg(1);
@@ -392,6 +422,56 @@ describe('doUtil', () => {
 
             return assert.becomes(doUtil.checkDnsResolution('test'), true,
                 'This test should have errored only once and then succeeded returning true');
+        });
+    });
+
+    describe('waitForReboot', () => {
+        let bigIpMock;
+
+        beforeEach(() => {
+            bigIpMock = new BigIpMock();
+            bigIpMock.ready = () => Promise.resolve();
+        });
+
+        it('should not resolve when running on BIG-IP', () => {
+            sinon.stub(doUtil, 'getCurrentPlatform').resolves('BIG-IP');
+            const clock = sinon.useFakeTimers();
+
+            return new Promise((resolve, reject) => {
+                doUtil.waitForReboot(bigIpMock)
+                    .then(() => {
+                        reject(assert.fail());
+                    });
+                return Promise.resolve()
+                    .then(() => {
+                        clock.tick(10000);
+                        clock.restore();
+                        resolve();
+                    });
+            });
+        });
+
+        it('should resolve when running on BIG-IQ', () => {
+            const clock = sinon.useFakeTimers();
+            sinon.stub(doUtil, 'getCurrentPlatform').resolves('BIG-IQ');
+            let promiseResolved = false;
+
+            doUtil.waitForReboot(bigIpMock)
+                .then(() => {
+                    promiseResolved = true;
+                });
+
+            return Promise.resolve()
+                .then(() => {
+                    clock.tick(10000);
+                    clock.restore();
+                })
+                .then(() => new Promise((resolve) => {
+                    setImmediate(() => {
+                        assert.strictEqual(promiseResolved, true);
+                        resolve();
+                    });
+                }));
         });
     });
 });

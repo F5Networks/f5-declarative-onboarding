@@ -388,7 +388,34 @@ describe('inspectHandler', () => {
 
     describe('declaration verification', () => {
         let listResponses;
-        let failWhenNoPropertyinResponse;
+        let failWhenNoPropertyInResponse;
+        let missedProperties;
+
+        const addMissedProperty = function (uri, property) {
+            missedProperties[uri] = missedProperties[uri] || {};
+            if (missedProperties[uri][property] !== false) {
+                missedProperties[uri][property] = true;
+            }
+        };
+        const removeMissedProperty = function (uri, property) {
+            missedProperties[uri] = missedProperties[uri] || {};
+            missedProperties[uri][property] = false;
+        };
+        const verifyMissedProperties = function () {
+            const missed = [];
+            Object.keys(missedProperties).forEach((uri) => {
+                const props = missedProperties[uri];
+                Object.keys(props).forEach((prop) => {
+                    if (props[prop]) {
+                        missed.push(`${uri}::${prop}`);
+                    }
+                });
+            });
+
+            if (missed.length > 0) {
+                throw new Error(`These properties have no response data: ${JSON.stringify(missed)}`);
+            }
+        };
 
         const pathsToIgnore = configItems.filter(item => item.declaration === false).map(item => item.path);
         const deviceName = 'device1';
@@ -420,8 +447,12 @@ describe('inspectHandler', () => {
                         ret.name = data.name;
                     }
                     $select.forEach((key) => {
-                        if (key !== 'name' && failWhenNoPropertyinResponse) {
-                            assert.notStrictEqual(data[key], undefined, `Should have '${key}' in response data for '${parsedURL.pathname}' in listResponses`);
+                        if (key !== 'name' && failWhenNoPropertyInResponse) {
+                            if (typeof data[key] === 'undefined') {
+                                addMissedProperty(parsedURL.pathname, key);
+                            } else {
+                                removeMissedProperty(parsedURL.pathname, key);
+                            }
                         }
                         ret[key] = data[key];
                     });
@@ -472,6 +503,43 @@ describe('inspectHandler', () => {
                 nameServers: ['172.27.1.1'],
                 search: ['localhost']
             },
+            '/tm/net/dns-resolver': [
+                {
+                    name: 'testDnsResolver',
+                    answerDefaultZones: 'no',
+                    cacheSize: 5767168,
+                    forwardZones: [
+                        {
+                            name: 'amazonaws.com',
+                            nameservers: [
+                                {
+                                    name: '8.8.8.8:53'
+                                },
+                                {
+                                    name: '8.8.8.7:53'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'idservice.net',
+                            nameservers: [
+                                {
+                                    name: '8.8.4.4:53'
+                                },
+                                {
+                                    name: '8.8.4.3:53'
+                                }
+                            ]
+                        }
+                    ],
+                    randomizeQueryNameCase: 'yes',
+                    routeDomain: 0,
+                    useIpv4: 'yes',
+                    useIpv6: 'yes',
+                    useTcp: 'yes',
+                    useUdp: 'yes'
+                }
+            ],
             '/tm/net/trunk': [
                 {
                     name: 'testTrunk',
@@ -493,7 +561,10 @@ describe('inspectHandler', () => {
                     interfacesReference: {
                         link: 'https://localhost/mgmt/tm/net/vlan/~Common~internalVlan/interfaces'
                     },
-                    cmpHash: 'default'
+                    cmpHash: 'default',
+                    failsafe: 'enabled',
+                    failsafeAction: 'reboot',
+                    failsafeTimeout: 3600
                 },
                 {
                     name: 'externalVlan',
@@ -502,7 +573,10 @@ describe('inspectHandler', () => {
                     interfacesReference: {
                         link: 'https://localhost/mgmt/tm/net/vlan/~Common~externalVlan/interfaces'
                     },
-                    cmpHash: 'src-ip'
+                    cmpHash: 'src-ip',
+                    failsafe: 'disabled',
+                    failsafeAction: 'failover-restart-tm',
+                    failsafeTimeout: 90
                 }
             ],
             '/tm/net/vlan/~Common~externalVlan/interfaces': [
@@ -534,13 +608,22 @@ describe('inspectHandler', () => {
                     name: 'testRoute1',
                     gw: '10.0.0.11',
                     network: '20.0.0.0/24',
-                    mtu: 0
+                    mtu: 0,
+                    partition: 'Common'
                 },
                 {
                     name: 'testRoute2',
                     gw: '11.0.0.11',
                     network: '30.0.0.0/24',
-                    mtu: 0
+                    mtu: 0,
+                    partition: 'Common'
+                },
+                {
+                    name: 'testRoute3',
+                    interface: '/Common/tunnel',
+                    network: '1.2.3.4/32',
+                    mtu: 0,
+                    partition: 'LOCAL_ONLY'
                 }
             ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
@@ -800,10 +883,26 @@ describe('inspectHandler', () => {
                 sslProtocol: 'all -SSLv2 -SSLv3 -TLSv1'
             },
             '/tm/sys/sshd': {
+                allow: ['All'],
                 banner: 'enabled',
                 bannerText: 'This is the banner text',
                 inactivityTimeout: 10000,
                 include: 'Ciphers aes128-ctr,aes256-ctr\nLoginGraceTime 10\nMACs hmac-sha1\nMaxAuthTries 5\nMaxStartups 3\nProtocol 1\n'
+            },
+            '/tm/net/tunnels/tunnel': [
+                {
+                    name: 'tunnel',
+                    mtu: 0,
+                    profile: '/Common/tcp-forward',
+                    tos: 'preserve',
+                    usePmtu: 'enabled',
+                    autoLasthop: 'default'
+                }
+            ],
+            '/tm/sys/disk/directory': {
+                apiRawValues: {
+                    apiAnonymous: '\nDirectory Name                  Current Size    New Size        \n--------------                  ------------    --------        \n/config                         3321856         -               \n/shared                         20971520        -               \n/var                            3145728         -               \n/var/log                        3072000         -               \n/appdata                        130985984       -               \n\n'
+                }
             }
         });
 
@@ -851,6 +950,33 @@ describe('inspectHandler', () => {
                             search: ['localhost'],
                             class: 'DNS'
                         },
+                        testDnsResolver: {
+                            answerDefaultZones: false,
+                            cacheSize: 5767168,
+                            forwardZones: [
+                                {
+                                    name: 'amazonaws.com',
+                                    nameservers: [
+                                        '8.8.8.8:53',
+                                        '8.8.8.7:53'
+                                    ]
+                                },
+                                {
+                                    name: 'idservice.net',
+                                    nameservers: [
+                                        '8.8.4.4:53',
+                                        '8.8.4.3:53'
+                                    ]
+                                }
+                            ],
+                            randomizeQueryNameCase: true,
+                            routeDomain: 0,
+                            useIpv4: true,
+                            useIpv6: true,
+                            useTcp: true,
+                            useUdp: true,
+                            class: 'DNS_Resolver'
+                        },
                         testTrunk: {
                             distributionHash: 'dst-mac',
                             interfaces: [],
@@ -870,7 +996,10 @@ describe('inspectHandler', () => {
                                 { name: '2.2', tagged: false }
                             ],
                             class: 'VLAN',
-                            cmpHash: 'default'
+                            cmpHash: 'default',
+                            failsafeEnabled: true,
+                            failsafeAction: 'reboot',
+                            failsafeTimeout: 3600
                         },
                         externalVlan: {
                             mtu: 1500,
@@ -880,7 +1009,10 @@ describe('inspectHandler', () => {
                                 { name: '1.2', tagged: false }
                             ],
                             class: 'VLAN',
-                            cmpHash: 'src-ip'
+                            cmpHash: 'src-ip',
+                            failsafeEnabled: false,
+                            failsafeAction: 'failover-restart-tm',
+                            failsafeTimeout: 90
                         },
                         internalSelfIp: {
                             address: '10.0.0.2/24',
@@ -908,13 +1040,24 @@ describe('inspectHandler', () => {
                             mtu: 0,
                             class: 'Route'
                         },
+                        testRoute3: {
+                            target: 'tunnel',
+                            network: '1.2.3.4/32',
+                            mtu: 0,
+                            class: 'Route',
+                            localOnly: true
+                        },
                         currentConfigSync: {
                             configsyncIp: '10.0.0.2',
                             class: 'ConfigSync'
                         },
                         currentFailoverUnicast: {
-                            address: '10.0.0.2',
-                            port: 1026,
+                            addressPorts: [
+                                {
+                                    address: '10.0.0.2',
+                                    port: 1026
+                                }
+                            ],
                             class: 'FailoverUnicast'
                         },
                         currentAnalytics: {
@@ -1189,6 +1332,7 @@ describe('inspectHandler', () => {
                         },
                         currentSSHD: {
                             class: 'SSHD',
+                            allow: ['All'],
                             banner: 'This is the banner text',
                             inactivityTimeout: 10000,
                             ciphers: [
@@ -1202,6 +1346,18 @@ describe('inspectHandler', () => {
                             maxAuthTries: 5,
                             maxStartups: '3',
                             protocol: 1
+                        },
+                        tunnel: {
+                            class: 'Tunnel',
+                            tunnelType: 'tcp-forward',
+                            mtu: 0,
+                            usePmtu: true,
+                            typeOfService: 'preserve',
+                            autoLastHop: 'default'
+                        },
+                        currentDisk: {
+                            class: 'Disk',
+                            applicationData: 130985984
                         }
                     }
                 }
@@ -1215,14 +1371,19 @@ describe('inspectHandler', () => {
 
         beforeEach(() => {
             // skip data asserts
+            missedProperties = {};
             expectedDeclaration = undefined;
-            failWhenNoPropertyinResponse = false;
+            failWhenNoPropertyInResponse = false;
             inspectHandler = new InspectHandler();
             listResponses = defaultResponses();
         });
 
         after(() => {
             sinon.restore();
+        });
+
+        afterEach(() => {
+            verifyMissedProperties();
         });
 
         it('should verify that all items from configItems.json are covered', () => {
@@ -1283,7 +1444,7 @@ describe('inspectHandler', () => {
         });
 
         it('should verify declaration from response', () => {
-            failWhenNoPropertyinResponse = true;
+            failWhenNoPropertyInResponse = true;
             return inspectHandler.process()
                 .then((data) => {
                     expectedDeclaration = referenceDeclaration;
@@ -1304,7 +1465,8 @@ describe('inspectHandler', () => {
                 name: sharedName,
                 gw: '10.0.0.2',
                 network: '255.255.255.254/32',
-                mtu: 0
+                mtu: 0,
+                partition: 'Common'
             });
             return inspectHandler.process()
                 .then((data) => {
@@ -1454,6 +1616,9 @@ describe('inspectHandler', () => {
                             },
                             currentSSHD: {
                                 class: 'SSHD'
+                            },
+                            currentDisk: {
+                                class: 'Disk'
                             }
                         }
                     }

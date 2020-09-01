@@ -20,7 +20,6 @@ const assert = require('assert');
 const Ajv = require('ajv');
 
 const baseSchema = require('../../src/schema/latest/base.schema.json');
-const definitionsSchema = require('../../src/schema/latest/definitions.schema.json');
 const systemSchema = require('../../src/schema/latest/system.schema.json');
 const networkSchema = require('../../src/schema/latest/network.schema.json');
 const dscSchema = require('../../src/schema/latest/dsc.schema.json');
@@ -42,7 +41,6 @@ Object.keys(customFormats).forEach((customFormat) => {
 });
 
 const validate = ajv
-    .addSchema(definitionsSchema)
     .addSchema(systemSchema)
     .addSchema(networkSchema)
     .addSchema(dscSchema)
@@ -181,6 +179,36 @@ describe('base.schema.json', () => {
                     }
                 };
                 assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should accept a class-less hostname', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Common": {
+                        "class": "Tenant",
+                        "hostname": 'my.bigip.com'
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate bad class names', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Common": {
+                        "class": "Tenant",
+                        "provisioning": {
+                            "class": "Provisioning",
+                            "ltm": "nominal"
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'Bad classes should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
             });
         });
     });

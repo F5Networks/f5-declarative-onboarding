@@ -32,12 +32,14 @@ module.exports = {
         TASK: 'task'
     },
     PATHS: {
+        AuthPartition: '/tm/auth/partition',
         DNS: '/tm/sys/dns',
         NTP: '/tm/sys/ntp',
         Route: '/tm/net/route',
         SelfIp: '/tm/net/self',
         VLAN: '/tm/net/vlan',
         Trunk: '/tm/net/trunk',
+        DNS_Resolver: '/tm/net/dns-resolver',
         DeviceGroup: '/tm/cm/device-group',
         Analytics: '/tm/analytics/global-settings',
         ManagementRoute: '/tm/sys/management-route',
@@ -62,7 +64,8 @@ module.exports = {
         TrafficGroup: '/tm/cm/traffic-group',
         HTTPD: '/tm/sys/httpd',
         SSHD: '/tm/sys/sshd',
-        SoftwareUpdate: '/tm/sys/software/update'
+        SoftwareUpdate: '/tm/sys/software/update',
+        Tunnel: '/tm/net/tunnels/tunnel'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -70,11 +73,15 @@ module.exports = {
         STATUS_ROLLING_BACK: 'ROLLING_BACK',
         STATUS_RUNNING: 'RUNNING',
         STATUS_REBOOTING: 'REBOOTING',
-        STATUS_REVOKING: 'REVOKING'
+        STATUS_REVOKING: 'REVOKING',
+        STATUS_REBOOTING_AND_RESUMING: 'REBOOTING_AND_RESUMING'
     },
     EVENTS: {
         LICENSE_WILL_BE_REVOKED: 'DO_LICENSE_WILL_BE_REVOKED',
-        READY_FOR_REVOKE: 'DO_READY_FOR_REVOKE'
+        READY_FOR_REVOKE: 'DO_READY_FOR_REVOKE',
+        REBOOT_NOW: 'DO_REBOOT_NOW',
+        TRACE_CONFIG: 'TRACE_CONFIG',
+        TRACE_DIFF: 'TRACE_DIFF'
     },
     NAMELESS_CLASSES: [
         'DbVariables',
@@ -94,7 +101,8 @@ module.exports = {
         'System',
         'TrafficControl',
         'HTTPD',
-        'SSHD'
+        'SSHD',
+        'Disk'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

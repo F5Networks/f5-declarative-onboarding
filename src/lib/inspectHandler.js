@@ -356,8 +356,23 @@ function processItemProperty(property, configObject) {
  *                               should be removed from declaration.
  */
 const customFunctions = {
+    // DNS_Resolver item
+    remapNamservers: (configKey, configObject) => {
+        if (configObject.forwardZones) {
+            configObject.forwardZones.forEach((zone) => {
+                zone.nameservers = zone.nameservers.map(nameserver => nameserver.name);
+            });
+        }
+        return [configKey, configObject];
+    },
     // FailoverUnicast item
-    removeIfUnicastAddrNone: (configKey, configObject) => [configKey, (configObject.unicastAddress === 'none' ? undefined : configObject)],
+    formatFailoverUnicast: (configKey, configObject) => {
+        if (configObject.addressPorts === 'none') {
+            return [configKey, undefined];
+        }
+
+        return [configKey, configObject];
+    },
     // Authentication item
     removeIncompleteAuthMethods: (configKey, configObject) => {
         const radius = configObject.radius;

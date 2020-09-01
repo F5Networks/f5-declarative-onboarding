@@ -11,8 +11,16 @@ Document Revision History
         - Description
         - Date
              
+      * - 3.2
+        - Updated the documentation for Declarative Onboarding v1.15.0.  This release contains the following changes: |br| * Added support for allowed source IP addresses for SSHD  (see the updated :ref:`SSHD example<sshex>`) |br| * Added support for the **tenant** property in the License class allowing an optional description of the license (see the *No Route* examples in :doc:`big-iq-licensing` and `bigiq-examples`) |br| * Added support for multiple failover unicast addresses (see :ref:`example26`) |br| * Added support for traces in DO responses (see :ref:`example27`) |br| * Added support for creating routes in the LOCAL_ONLY partition (see :ref:`example28`) |br| * Added more information about the Webhook property in :ref:`base-comps`, and an example of the request sent to the webhook. |br| * Updated the support notice for the community-supported :ref:`DO Container<container>` to remove mention of the container being fully supported in the future  |br| * Added a troubleshooting entry for a restjavad issue (see :ref:`restjavad`) |br| * Added support for BIG-IP 16.0  |br| |br| Issues Resolved: |br| * Improve schema for use with BIG-IQ 7.1
+        - 09-01-20
+
+      * - 3.1
+        - Updated the documentation for Declarative Onboarding v1.14.0.  This release contains the following changes: |br| * Added support for VLAN Failsafe (see :ref:`VLAN Failsafe<example22>`) |br| * Added support for creating DNS Resolvers (see :ref:`DNS Resolver<example23>`) |br| * Added support for creating a TCP Forward Network Tunnel (see :ref:`Tunnel<example24>`) |br| * Added support for Traffic Groups (see :ref:`trafficgroup` and :ref:`Traffic Groups<example25>`) |br| |br| Issues Resolved: |br| * Bad class values do not fail schema validation |br| * MAC_Masquerade fails to roll back properly
+        - 07-21-20
+
       * - 3.0
-        - Updated the documentation for Declarative Onboarding v1.13.0.  This release contains the following changes: |br| * Added support for SSL in LDAP configurations (see the :ref:`Auth methods example <authmethods>`  |br| |br| Issues Resolved: |br| * 
+        - Updated the documentation for Declarative Onboarding v1.13.0.  This release contains the following changes: |br| * Added support for SSL in LDAP configurations (see the :ref:`authmethods`) |br| * Added support for the userAgent property in the new Controls class (see :ref:`example19`) |br| * Added support for disabling the update auto-check in a declaration - `GitHub Issue 107 <https://github.com/F5Networks/f5-declarative-onboarding/issues/107>`_ (see :ref:`systemex`) |br| * Added support for Audit Logging - `GitHub Issue 120 <https://github.com/F5Networks/f5-declarative-onboarding/issues/120>`_  (see :ref:`example20`) |br| * Added support for Mac Masquerade - `GitHub Issue 96 <https://github.com/F5Networks/f5-declarative-onboarding/issues/96>`_  (see :ref:`example21`) |br| |br| Issues Resolved: |br| * Cannot create a device group with AFM provisioned  (`GitHub Issue 138 <https://github.com/F5Networks/f5-declarative-onboarding/issues/138>`_)  |br| * Problems with latest Azure image  |br| * charset not allowed in Content-Type header (`GitHub Issue 79 <https://github.com/F5Networks/f5-declarative-onboarding/issues/79>`_)
         - 06-02-20
 
       * - 2.9

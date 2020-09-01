@@ -29,9 +29,11 @@ const NetworkHandler = require('../../../../src/lib/networkHandler');
 describe('networkHandler', () => {
     let bigIpMock;
     let dataSent;
+    let createdFolder;
 
     beforeEach(() => {
         dataSent = {};
+        createdFolder = undefined;
         bigIpMock = {
             createOrModify(path, data) {
                 if (!dataSent[path]) {
@@ -45,6 +47,13 @@ describe('networkHandler', () => {
                     dataSent[path] = [];
                 }
                 dataSent[path].push(data);
+                return Promise.resolve();
+            },
+            createFolder(name, options) {
+                createdFolder = {
+                    name,
+                    options
+                };
                 return Promise.resolve();
             },
             list() {
@@ -70,12 +79,130 @@ describe('networkHandler', () => {
         sinon.restore();
     });
 
+    describe('DNS_Resolver', () => {
+        it('should handle fully specified DNS_Resolver', () => {
+            const declaration = {
+                Common: {
+                    DNS_Resolver: {
+                        dnsResolver1: {
+                            name: 'dnsResolver1',
+                            answerDefaultZones: false,
+                            cacheSize: 5767168,
+                            forwardZones: [
+                                {
+                                    name: 'amazonaws.com',
+                                    nameservers: [
+                                        '8.8.8.8:53',
+                                        '8.8.8.7:53'
+                                    ]
+                                },
+                                {
+                                    name: 'idservice.net',
+                                    nameservers: [
+                                        '8.8.4.4:53',
+                                        '8.8.4.3:53'
+                                    ]
+                                }
+                            ],
+                            randomizeQueryNameCase: true,
+                            routeDomain: '0',
+                            useIpv4: true,
+                            useIpv6: false,
+                            useTcp: true,
+                            useUdp: false
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const resolverData = dataSent[PATHS.DNS_Resolver];
+                    assert.strictEqual(resolverData.length, 1);
+                    assert.strictEqual(resolverData[0].name, 'dnsResolver1');
+                    assert.strictEqual(resolverData[0].partition, 'Common');
+                    assert.strictEqual(resolverData[0].answerDefaultZones, 'no');
+                    assert.strictEqual(resolverData[0].cacheSize, 5767168);
+
+                    assert.strictEqual(resolverData[0].forwardZones.length, 2);
+                    assert.strictEqual(resolverData[0].forwardZones[0].name, 'amazonaws.com');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '8.8.8.8:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '8.8.8.7:53');
+
+                    assert.strictEqual(resolverData[0].forwardZones[1].name, 'idservice.net');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '8.8.4.4:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '8.8.4.3:53');
+
+                    assert.strictEqual(resolverData[0].randomizeQueryNameCase, 'yes');
+                    assert.strictEqual(resolverData[0].routeDomain, '0');
+                    assert.strictEqual(resolverData[0].useIpv4, 'yes');
+                    assert.strictEqual(resolverData[0].useIpv6, 'no');
+                    assert.strictEqual(resolverData[0].useTcp, 'yes');
+                    assert.strictEqual(resolverData[0].useUdp, 'no');
+                });
+        });
+
+        it('should handle fully specified DNS_Resolver on rollback', () => {
+            // nameservers look different on rollback but should produce same result
+            const declaration = {
+                Common: {
+                    DNS_Resolver: {
+                        dnsResolver1: {
+                            name: 'dnsResolver1',
+                            forwardZones: [
+                                {
+                                    name: 'amazonaws.com',
+                                    nameservers: [
+                                        {
+                                            name: '8.8.8.8:53'
+                                        },
+                                        {
+                                            name: '8.8.8.7:53'
+                                        }
+                                    ]
+                                },
+                                {
+                                    name: 'idservice.net',
+                                    nameservers: [
+                                        {
+                                            name: '8.8.4.4:53'
+                                        },
+                                        {
+                                            name: '8.8.4.3:53'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const resolverData = dataSent[PATHS.DNS_Resolver];
+                    assert.strictEqual(resolverData.length, 1);
+                    assert.strictEqual(resolverData[0].name, 'dnsResolver1');
+                    assert.strictEqual(resolverData[0].partition, 'Common');
+                    assert.strictEqual(resolverData[0].forwardZones.length, 2);
+                    assert.strictEqual(resolverData[0].forwardZones[0].name, 'amazonaws.com');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '8.8.8.8:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '8.8.8.7:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].name, 'idservice.net');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '8.8.4.4:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '8.8.4.3:53');
+                });
+        });
+    });
+
     describe('Trunk', () => {
         it('should handle fully specified Trunk', () => {
             const declaration = {
                 Common: {
                     Trunk: {
-                        myTrunk: {
+                        trunk1: {
                             name: 'trunk1',
                             distributionHash: 'dst-mac',
                             interfaces: [
@@ -131,7 +258,10 @@ describe('networkHandler', () => {
                                     tagged: false
                                 }
                             ],
-                            cmpHash: 'dst-ip'
+                            cmpHash: 'dst-ip',
+                            failsafeEnabled: true,
+                            failsafeAction: 'reboot',
+                            failsafeTimeout: 3600
                         },
                         vlan2: {
                             name: 'vlan2',
@@ -163,11 +293,14 @@ describe('networkHandler', () => {
                     assert.strictEqual(vlanData[0].interfaces[1].tagged, false);
                     assert.strictEqual(vlanData[0].partition, 'Common');
                     assert.strictEqual(vlanData[0].cmpHash, 'dst-ip');
+                    assert.strictEqual(vlanData[0].failsafe, 'enabled');
+                    assert.strictEqual(vlanData[0].failsafeAction, 'reboot');
                     assert.strictEqual(vlanData[1].name, 'vlan2');
                     assert.strictEqual(vlanData[1].tag, 4093);
                     assert.strictEqual(vlanData[1].mtu, 1400);
                     assert.strictEqual(vlanData[1].partition, 'Common');
                     assert.strictEqual(vlanData[1].cmpHash, 'src-ip');
+                    assert.strictEqual(vlanData[1].failsafe, 'disabled');
                 });
         });
 
@@ -537,16 +670,60 @@ describe('networkHandler', () => {
 
     describe('Route', () => {
         const deletedPaths = [];
+        let declaration = {};
+        let state = {};
+
         beforeEach(() => {
             deletedPaths.length = 0;
             bigIpMock.delete = (path) => {
                 deletedPaths.push(path);
                 return Promise.resolve();
             };
+
+            declaration = {
+                Common: {
+                    Route: {
+                        theRoute: {
+                            name: 'theRoute',
+                            gw: '10.11.12.13',
+                            network: '50.60.70.80',
+                            mtu: 1000
+                        },
+                        localRoute: {
+                            name: 'localRoute',
+                            target: 'targetVLAN',
+                            network: '50.60.70.81',
+                            mtu: 1120,
+                            localOnly: true
+                        }
+                    }
+                }
+            };
+            state = {
+                currentConfig: {
+                    Common: {
+                        Route: {
+                            theRoute: {
+                                name: 'theRoute',
+                                gw: '10.11.12.13',
+                                network: '51.62.73.84/32',
+                                mtu: 1000
+                            },
+                            localRoute: {
+                                name: 'localRoute',
+                                gw: '10.11.12.13',
+                                network: '51.62.73.85/32',
+                                mtu: 1005,
+                                localOnly: true
+                            }
+                        }
+                    }
+                }
+            };
         });
 
         it('should handle fully specified Routes', () => {
-            const declaration = {
+            declaration = {
                 Common: {
                     Route: {
                         route1: {
@@ -560,11 +737,26 @@ describe('networkHandler', () => {
                             gw: '1.1.1.1',
                             network: '2.2.2.2',
                             mtu: 1400
+                        },
+                        route3: {
+                            name: 'route3',
+                            target: 'targetTunnel',
+                            network: '1.2.3.4',
+                            mtu: 100,
+                            localOnly: false
+                        },
+                        routeLocalOnly: {
+                            name: 'routeLocalOnly',
+                            target: 'targetVLAN',
+                            network: 'default-inet6',
+                            mtu: 1120,
+                            localOnly: true
                         }
                     }
                 }
             };
-            const state = {
+
+            state = {
                 currentConfig: {
                     Common: {}
                 }
@@ -585,78 +777,126 @@ describe('networkHandler', () => {
                     assert.strictEqual(routeData[1].network, '2.2.2.2/32');
                     assert.strictEqual(routeData[1].mtu, 1400);
                     assert.strictEqual(routeData[1].partition, 'Common');
+                    assert.strictEqual(routeData[2].name, 'route3');
+                    assert.strictEqual(routeData[2].interface, '/Common/targetTunnel');
+                    assert.strictEqual(routeData[2].network, '1.2.3.4/32');
+                    assert.strictEqual(routeData[2].mtu, 100);
+                    assert.strictEqual(routeData[2].partition, 'Common');
+                    assert.deepStrictEqual(routeData[3], {
+                        interface: '/Common/targetVLAN',
+                        mtu: 1120,
+                        name: 'routeLocalOnly',
+                        network: 'default-inet6',
+                        partition: 'LOCAL_ONLY'
+                    });
+                    assert.deepStrictEqual(createdFolder,
+                        {
+                            name: 'LOCAL_ONLY',
+                            options: { subPath: '/' }
+                        });
                 });
         });
 
-        const declaration = {
-            Common: {
-                Route: {
-                    theRoute: {
-                        name: 'theRoute',
-                        gw: '10.11.12.13',
-                        network: '50.60.70.80',
-                        mtu: 1000
-                    }
-                }
-            }
-        };
-        const state = {
-            currentConfig: {
-                Common: {
-                    Route: {
-                        theRoute: {
-                            name: 'theRoute',
-                            gw: '10.11.12.13',
-                            network: '51.62.73.84',
-                            mtu: 1000
-                        }
-                    }
-                }
-            }
-        };
-
-        it('should delete and recreate Route if network updated', () => {
+        it('should delete and recreate both Routes if network updated', () => {
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const routeData = dataSent[PATHS.Route];
-                    assert.deepEqual(deletedPaths, ['/tm/net/route/~Common~theRoute']);
-                    assert.strictEqual(routeData[0].name, 'theRoute');
-                    assert.strictEqual(routeData[0].gw, '10.11.12.13');
-                    assert.strictEqual(routeData[0].network, '50.60.70.80/32');
-                    assert.strictEqual(routeData[0].mtu, 1000);
-                    assert.strictEqual(routeData[0].partition, 'Common');
+                    assert.deepEqual(deletedPaths, [
+                        '/tm/net/route/~Common~theRoute',
+                        '/tm/net/route/~LOCAL_ONLY~localRoute'
+                    ]);
+                    assert.deepStrictEqual(routeData[0], {
+                        gw: '10.11.12.13',
+                        mtu: 1000,
+                        name: 'theRoute',
+                        network: '50.60.70.80/32',
+                        partition: 'Common'
+                    });
+                    assert.deepStrictEqual(routeData[1], {
+                        interface: '/Common/targetVLAN',
+                        mtu: 1120,
+                        name: 'localRoute',
+                        network: '50.60.70.81/32',
+                        partition: 'LOCAL_ONLY'
+                    });
                 });
         });
 
-        it('should not delete the existing Route if network not updated', () => {
+        it('should delete only Routes that have their network updated', () => {
             state.currentConfig.Common.Route.theRoute.network = '50.60.70.80/32';
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const routeData = dataSent[PATHS.Route];
+                    assert.deepEqual(deletedPaths, ['/tm/net/route/~LOCAL_ONLY~localRoute']);
+                    assert.deepStrictEqual(routeData, [
+                        {
+                            gw: '10.11.12.13',
+                            mtu: 1000,
+                            name: 'theRoute',
+                            network: '50.60.70.80/32',
+                            partition: 'Common'
+                        }, {
+                            interface: '/Common/targetVLAN',
+                            mtu: 1120,
+                            name: 'localRoute',
+                            network: '50.60.70.81/32',
+                            partition: 'LOCAL_ONLY'
+                        }
+                    ]);
+                });
+        });
+
+        it('should not delete the existing Route if network not updated', () => {
+            state.currentConfig.Common.Route.theRoute.network = '50.60.70.80/32';
+            state.currentConfig.Common.Route.localRoute.network = '50.60.70.81/32';
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const routeData = dataSent[PATHS.Route];
                     assert.deepEqual(deletedPaths, []);
-                    assert.strictEqual(routeData[0].name, 'theRoute');
-                    assert.strictEqual(routeData[0].partition, 'Common');
-                    assert.strictEqual(routeData[0].gw, '10.11.12.13');
-                    assert.strictEqual(routeData[0].network, '50.60.70.80/32');
-                    assert.strictEqual(routeData[0].mtu, 1000);
+                    assert.deepStrictEqual(routeData, [
+                        {
+                            gw: '10.11.12.13',
+                            mtu: 1000,
+                            name: 'theRoute',
+                            network: '50.60.70.80/32',
+                            partition: 'Common'
+                        }, {
+                            interface: '/Common/targetVLAN',
+                            mtu: 1120,
+                            name: 'localRoute',
+                            network: '50.60.70.81/32',
+                            partition: 'LOCAL_ONLY'
+                        }
+                    ]);
                 });
         });
 
         it('should not do anything with an empty Route', () => {
-            const theDeclaration = {
+            declaration = {
                 Common: {
                     Route: {
                         theRoute: {}
                     }
                 }
             };
-            const networkHandler = new NetworkHandler(theDeclaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
             return networkHandler.process()
                 .then(() => {
                     assert.deepEqual(deletedPaths, []);
                     assert.deepEqual(dataSent[PATHS.Route], undefined);
+                });
+        });
+
+        it('should not create LOCAL_ONLY if none of the Routes need it', () => {
+            declaration.Common.Route.localRoute.localOnly = false;
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(createdFolder, undefined);
                 });
         });
     });
@@ -721,85 +961,6 @@ describe('networkHandler', () => {
         });
     });
 
-    describe('MAC_Masquerade', () => {
-        it('should set masquerade to alogorithm when source specified', () => {
-            const declaration = {
-                Common: {
-                    MAC_Masquerade: {
-                        myMac: {
-                            source: {
-                                interface: '1.1'
-                            },
-                            trafficGroup: 'traffic-group-1'
-                        }
-                    }
-                }
-            };
-
-            bigIpMock.list = (path) => {
-                if (path === '/tm/sys/mac-address') {
-                    return Promise.resolve(
-                        {
-                            kind: 'tm:sys:mac-address:mac-addressstats',
-                            selfLink: 'https://localhost/mgmt/tm/sys/mac-address?ver=13.1.0',
-                            entries: {
-                                'https://localhost/mgmt/tm/sys/mac-address/fa:16:3e:4b:44:99': {
-                                    nestedStats: {
-                                        entries: {
-                                            macAddress: {
-                                                description: 'fa:16:3e:4b:44:99'
-                                            },
-                                            objectId: {
-                                                description: '1.1'
-                                            }
-                                        }
-                                    }
-                                },
-                                'https://localhost/mgmt/tm/sys/mac-address/fa:16:3e:c2:27:09': {
-                                    nestedStats: {
-                                        entries: {
-                                            macAddress: {
-                                                description: 'fa:16:3e:c2:27:09'
-                                            },
-                                            objectId: {
-                                                description: '1.2'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    );
-                }
-                return Promise.resolve();
-            };
-
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
-            return networkHandler.process()
-                .then(() => {
-                    assert.strictEqual(dataSent['/tm/cm/traffic-group/~Common~traffic-group-1'][0].mac, 'f8:16:3e:4b:44:99');
-                });
-        });
-
-        it('should set masquerade to none when source not specified', () => {
-            const declaration = {
-                Common: {
-                    MAC_Masquerade: {
-                        myMac: {
-                            trafficGroup: 'traffic-group-1'
-                        }
-                    }
-                }
-            };
-
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
-            return networkHandler.process()
-                .then(() => {
-                    assert.strictEqual(dataSent['/tm/cm/traffic-group/~Common~traffic-group-1'][0].mac, 'none');
-                });
-        });
-    });
-
     describe('DagGlobals', () => {
         it('should handle fully specified DagGlobals', () => {
             const declaration = {
@@ -819,6 +980,51 @@ describe('networkHandler', () => {
                     assert.strictEqual(dagGlobalsData[0].dagIpv6PrefixLen, 120);
                     assert.strictEqual(dagGlobalsData[0].icmpHash, 'ipicmp');
                     assert.strictEqual(dagGlobalsData[0].roundRobinMode, 'local');
+                });
+        });
+    });
+
+    describe('Tunnel', () => {
+        it('should handle fully specified Tunnel', () => {
+            const declaration = {
+                Common: {
+                    Tunnel: {
+                        tunnel1: {
+                            name: 'tunnel1',
+                            tunnelType: 'tcp-forward',
+                            mtu: 0,
+                            usePmtu: true,
+                            typeOfService: 'preserve',
+                            autoLastHop: 'default'
+                        },
+                        tunnel2: {
+                            name: 'tunnel2',
+                            tunnelType: 'tcp-forward',
+                            mtu: 1000,
+                            usePmtu: false,
+                            typeOfService: 12,
+                            autoLastHop: 'enabled'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const tunnels = dataSent[PATHS.Tunnel];
+                    assert.strictEqual(tunnels[0].name, 'tunnel1');
+                    assert.strictEqual(tunnels[0].profile, '/Common/tcp-forward');
+                    assert.strictEqual(tunnels[0].mtu, 0);
+                    assert.strictEqual(tunnels[0].usePmtu, 'enabled');
+                    assert.strictEqual(tunnels[0].tos, 'preserve');
+                    assert.strictEqual(tunnels[0].autoLasthop, 'default');
+                    assert.strictEqual(tunnels[1].name, 'tunnel2');
+                    assert.strictEqual(tunnels[1].profile, '/Common/tcp-forward');
+                    assert.strictEqual(tunnels[1].mtu, 1000);
+                    assert.strictEqual(tunnels[1].usePmtu, 'disabled');
+                    assert.strictEqual(tunnels[1].tos, 12);
+                    assert.strictEqual(tunnels[1].autoLasthop, 'enabled');
                 });
         });
     });

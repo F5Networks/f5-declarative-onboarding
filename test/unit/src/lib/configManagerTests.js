@@ -25,6 +25,7 @@ const assert = chai.assert;
 const URL = require('url');
 
 const ConfigManager = require('../../../../src/lib/configManager');
+const ConfigItems = require('../../../../src/lib/configItems.json');
 
 describe('configManager', () => {
     const hostname = 'myhost.bigip.com';
@@ -34,6 +35,17 @@ describe('configManager', () => {
     let bigIpMock;
     let state;
     let doState;
+
+    const getConfigItems = function (schemaClass) {
+        if (typeof schemaClass === 'undefined' || schemaClass === '') {
+            return undefined;
+        }
+
+        // Return a copy of the configItem
+        return JSON.parse(JSON.stringify(
+            [ConfigItems.find(configItem => configItem.schemaClass === schemaClass)]
+        ));
+    };
 
     beforeEach(() => {
         listResponses = {
@@ -61,6 +73,59 @@ describe('configManager', () => {
                 return Promise.resolve(listResponses[pathname] || {});
             }
         };
+    });
+
+    it('should handle pulling multiple partitions', () => {
+        const configItem = getConfigItems('Route');
+        const declaration = {
+        };
+
+        listResponses['/tm/net/route'] = [
+            {
+                name: 'default',
+                partition: 'Common',
+                gw: '1.2.3.4',
+                network: 'default',
+                mtu: 0
+            },
+            {
+                name: 'route1',
+                partition: 'LOCAL_ONLY',
+                gw: '5.6.7.8',
+                network: '5.5.5.5',
+                mtu: 1500
+            },
+            {
+                name: 'outsideDoRoute',
+                partition: 'otherPartition',
+                gw: '3.3.3.5',
+                netowrk: 'default',
+                mtu: 12
+            }
+        ];
+
+        const configManager = new ConfigManager(configItem, bigIpMock);
+        return configManager.get(declaration, state, doState)
+            .then(() => {
+                assert.deepStrictEqual(
+                    state.currentConfig.Common.Route,
+                    {
+                        default: {
+                            gw: '1.2.3.4',
+                            mtu: 0,
+                            name: 'default',
+                            network: 'default'
+                        },
+                        route1: {
+                            gw: '5.6.7.8',
+                            mtu: 1500,
+                            name: 'route1',
+                            network: '5.5.5.5',
+                            localOnly: true
+                        }
+                    }
+                );
+            });
     });
 
     it('should handle simple string values', () => {
@@ -358,56 +423,55 @@ describe('configManager', () => {
         // iControl omits the property altogether in some cases
         // Adding this defaultWhenOmitted attr makes the manager recognize that a default value is actually there
         // and that the prop needs to be set back to this value if it's not specified
-        const configItems = [
-            {
-                path: '/tm/cm/device/~Common~{{deviceName}}',
-                schemaClass: 'FailoverUnicast',
-                properties: [
-                    {
-                        id: 'unicastAddress',
-                        defaultWhenOmitted: 'none',
-                        transform: [
-                            { id: 'ip', newId: 'address' },
-                            { id: 'port' }
-                        ]
-                    }
-                ],
-                nameless: true
-            }
-        ];
+        const configItems = getConfigItems('FailoverUnicast');
 
         it('should include a default value when missing and defaultWhenOmitted is defined', () => {
             listResponses[`/tm/cm/device/~Common~${deviceName}`] = { name: deviceName };
             const configManager = new ConfigManager(configItems, bigIpMock);
             return configManager.get({}, state, doState)
                 .then(() => {
-                    assert.deepEqual(
-                        state.currentConfig.Common.FailoverUnicast.unicastAddress,
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.FailoverUnicast.addressPorts,
                         'none'
                     );
                 });
         });
 
-        it('should map correct value with new prop Id when present', () => {
+        it('should map to the correct value when using addressPorts', () => {
             listResponses[`/tm/cm/device/~Common~${deviceName}`] = {
                 name: deviceName,
                 unicastAddress: [
                     {
+                        effectiveIp: '1.1.1.106',
+                        effectivePort: 1026,
                         ip: '1.1.1.106',
                         port: 1026
+                    },
+                    {
+                        effectiveIp: '1.1.1.2',
+                        effectivePort: 777,
+                        ip: '1.1.1.2',
+                        port: 777
                     }
                 ]
             };
             const configManager = new ConfigManager(configItems, bigIpMock);
             return configManager.get({}, state, doState)
                 .then(() => {
-                    assert.deepEqual(
-                        state.currentConfig.Common.FailoverUnicast.address,
-                        '1.1.1.106'
-                    );
-                    assert.deepEqual(
-                        state.currentConfig.Common.FailoverUnicast.port,
-                        1026
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.FailoverUnicast,
+                        {
+                            addressPorts: [
+                                {
+                                    address: '1.1.1.106',
+                                    port: 1026
+                                },
+                                {
+                                    address: '1.1.1.2',
+                                    port: 777
+                                }
+                            ]
+                        }
                     );
                 });
         });
@@ -1281,5 +1345,55 @@ describe('configManager', () => {
             .then(() => {
                 assert.deepStrictEqual(state.currentConfig.Common, expectedConfig, 'Should match expected config');
             });
+    });
+
+    describe('capture plus transform', () => {
+        const configItems = getConfigItems('Disk');
+
+        it('should get current config for Disk', () => {
+            listResponses['/tm/sys/disk/directory'] = {
+                apiRawValues: {
+                    apiAnonymous: '\nDirectory Name                  Current Size    New Size        \n--------------                  ------------    --------        \n/config                         3321856         -               \n/shared                         20971520        -               \n/var                            3145728         -               \n/var/log                        3072000         -               \n/appdata                        26128384       -               \n\n'
+                }
+            };
+
+            const expectedConfig = {
+                Disk: {
+                    applicationData: 26128384
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                const pathname = URL.parse(path, 'https://foo').pathname;
+                return Promise.resolve(listResponses[pathname] || {});
+            };
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common, expectedConfig);
+                });
+        });
+
+        it('should get empty current config for Disk without target directory', () => {
+            listResponses['/tm/sys/disk/directory'] = {
+                apiRawValues: {
+                    apiAnonymous: '\nDirectory Name                  Current Size    New Size        \n--------------                  ------------    --------        \n/config                         3321856         -               \n/shared                         20971520        -               \n/var                            3145728         -               \n/var/log                        3072000         -               \n\n'
+                }
+            };
+
+            const expectedConfig = {
+                Disk: {}
+            };
+
+            bigIpMock.list = (path) => {
+                const pathname = URL.parse(path, 'https://foo').pathname;
+                return Promise.resolve(listResponses[pathname] || {});
+            };
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common, expectedConfig);
+                });
+        });
     });
 });

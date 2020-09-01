@@ -139,12 +139,14 @@ describe('dscHandler', () => {
             };
         });
 
-        it('should send unicast data to device name', () => {
+        it('should process a FailoverUnicast with addressPorts', () => {
             const declaration = {
                 Common: {
                     FailoverUnicast: {
-                        address,
-                        port
+                        addressPorts: [
+                            { address: `${address}/24`, port },
+                            { address: '5.6.7.8', port: 3456 }
+                        ]
                     }
                 }
             };
@@ -153,17 +155,24 @@ describe('dscHandler', () => {
             return dscHandler.process()
                 .then(() => {
                     assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
-                    assert.strictEqual(bodySent.unicastAddress[0].ip, '1.2.3.4');
-                    assert.strictEqual(bodySent.unicastAddress[0].port, 1234);
+                    assert.deepStrictEqual(bodySent.unicastAddress,
+                        [
+                            { ip: '1.2.3.4', port: 1234 },
+                            { ip: '5.6.7.8', port: 3456 }
+                        ]);
                 });
         });
 
-        it('should strip CIDR from address', () => {
+        it('should strip CIDR from addressPorts.address', () => {
             const declaration = {
                 Common: {
                     FailoverUnicast: {
-                        address: `${address}/24`,
-                        port
+                        addressPorts: [
+                            {
+                                address: `${address}/24`,
+                                port
+                            }
+                        ]
                     }
                 }
             };
@@ -172,6 +181,22 @@ describe('dscHandler', () => {
             return dscHandler.process()
                 .then(() => {
                     assert.strictEqual(bodySent.unicastAddress[0].ip, '1.2.3.4');
+                });
+        });
+
+
+        it('should return none if no address is provided', () => {
+            const declaration = {
+                Common: {
+                    FailoverUnicast: {
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(bodySent.unicastAddress, 'none');
                 });
         });
     });
@@ -825,6 +850,240 @@ describe('dscHandler', () => {
                         'Should remove old device from device group');
                     assert.deepStrictEqual(joinClusterMembers,
                         [['do.test.1', 'do.test.2', 'bigip1.example.com'], ['do.test.2', 'do.test.3'], []]);
+                });
+        });
+    });
+
+    describe('MAC_Masquerade', () => {
+        let dataSent = {};
+        beforeEach(() => {
+            dataSent = {};
+            bigIpMock = {
+                createOrModify(path, data) {
+                    if (!dataSent[path]) {
+                        dataSent[path] = [];
+                    }
+                    dataSent[path].push(data);
+                    return Promise.resolve();
+                },
+                create(path, data) {
+                    if (!dataSent[path]) {
+                        dataSent[path] = [];
+                    }
+                    dataSent[path].push(data);
+                    return Promise.resolve();
+                },
+                list() {
+                    return Promise.resolve();
+                },
+                delete() {
+                    return Promise.resolve();
+                },
+                modify(path, data) {
+                    if (!dataSent) {
+                        dataSent = {};
+                    }
+                    if (!dataSent[path]) {
+                        dataSent[path] = [];
+                    }
+                    dataSent[path].push(data);
+                    return Promise.resolve();
+                }
+            };
+        });
+
+        it('should set masquerade to algorithm when source specified', () => {
+            const declaration = {
+                Common: {
+                    MAC_Masquerade: {
+                        myMac: {
+                            source: {
+                                interface: '1.1'
+                            },
+                            trafficGroup: 'traffic-group-1'
+                        }
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === '/tm/sys/mac-address') {
+                    return Promise.resolve(
+                        {
+                            kind: 'tm:sys:mac-address:mac-addressstats',
+                            selfLink: 'https://localhost/mgmt/tm/sys/mac-address?ver=13.1.0',
+                            entries: {
+                                'https://localhost/mgmt/tm/sys/mac-address/fa:16:3e:4b:44:99': {
+                                    nestedStats: {
+                                        entries: {
+                                            macAddress: {
+                                                description: 'fa:16:3e:4b:44:99'
+                                            },
+                                            objectId: {
+                                                description: '1.1'
+                                            }
+                                        }
+                                    }
+                                },
+                                'https://localhost/mgmt/tm/sys/mac-address/fa:16:3e:c2:27:09': {
+                                    nestedStats: {
+                                        entries: {
+                                            macAddress: {
+                                                description: 'fa:16:3e:c2:27:09'
+                                            },
+                                            objectId: {
+                                                description: '1.2'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    );
+                }
+                return Promise.resolve();
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(dataSent['/tm/cm/traffic-group/~Common~traffic-group-1'][0].mac, 'f8:16:3e:4b:44:99');
+                });
+        });
+
+        it('should set masquerade to none when source not specified', () => {
+            const declaration = {
+                Common: {
+                    MAC_Masquerade: {
+                        myMac: {
+                            trafficGroup: 'traffic-group-1'
+                        }
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(dataSent['/tm/cm/traffic-group/~Common~traffic-group-1'][0].mac, 'none');
+                });
+        });
+
+        it('should reuse masquerade on rollback when source not specified', () => {
+            const declaration = {
+                Common: {
+                    MAC_Masquerade: {
+                        myMac: {
+                            trafficGroup: 'traffic-group-1',
+                            mac: '0f:a0:98:f1:5f:55'
+                        }
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(dataSent['/tm/cm/traffic-group/~Common~traffic-group-1'][0].mac, '0f:a0:98:f1:5f:55');
+                });
+        });
+    });
+
+    describe('TrafficGroup', () => {
+        let dataSent = {};
+        beforeEach(() => {
+            dataSent = {};
+            bigIpMock = {
+                createOrModify(path, data) {
+                    if (!dataSent[path]) {
+                        dataSent[path] = [];
+                    }
+                    dataSent[path].push(data);
+                    return Promise.resolve();
+                },
+                create(path, data) {
+                    if (!dataSent[path]) {
+                        dataSent[path] = [];
+                    }
+                    dataSent[path].push(data);
+                    return Promise.resolve();
+                },
+                list() {
+                    return Promise.resolve();
+                },
+                delete() {
+                    return Promise.resolve();
+                },
+                modify(path, data) {
+                    if (!dataSent) {
+                        dataSent = {};
+                    }
+                    if (!dataSent[path]) {
+                        dataSent[path] = [];
+                    }
+                    dataSent[path].push(data);
+                    return Promise.resolve();
+                }
+            };
+        });
+
+        it('should set a traffic group with defaults', () => {
+            const declaration = {
+                Common: {
+                    TrafficGroup: {
+                        testTrafficGroup: {
+                            name: 'testTrafficGroup',
+                            autoFailbackEnabled: false,
+                            autoFailbackTime: 60,
+                            failoverMethod: 'ha-order',
+                            haLoadFactor: 1
+                        }
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent['/tm/cm/traffic-group'][0],
+                        {
+                            name: 'testTrafficGroup',
+                            partition: 'Common',
+                            autoFailbackEnabled: false,
+                            autoFailbackTime: 60,
+                            failoverMethod: 'ha-order',
+                            haLoadFactor: 1
+                        });
+                });
+        });
+
+        it('should set a traffic group with provided values', () => {
+            const declaration = {
+                Common: {
+                    TrafficGroup: {
+                        testTrafficGroup: {
+                            name: 'testTrafficGroup',
+                            autoFailbackEnabled: false,
+                            autoFailbackTime: 500,
+                            failoverMethod: 'ha-order',
+                            haLoadFactor: 2
+                        }
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent['/tm/cm/traffic-group'][0],
+                        {
+                            name: 'testTrafficGroup',
+                            partition: 'Common',
+                            autoFailbackEnabled: false,
+                            autoFailbackTime: 500,
+                            failoverMethod: 'ha-order',
+                            haLoadFactor: 2
+                        });
                 });
         });
     });

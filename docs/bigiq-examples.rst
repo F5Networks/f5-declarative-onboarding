@@ -54,6 +54,11 @@ The following is another example of using a BIG-IQ to license your BIG-IP system
 
 For unreachable devices (with no route to BIG-IP), BIG-IP credentials are not required. Instead, you must explicitly indicate the platform on which the device runs (the **hypervisor** field) as Declarative Onboarding cannot automatically detect the value at this time. This is required for the BIG-IQ license activation API request (see :ref:`license-pool` for hypervisor options).  
 
+**New in DO 1.15** |br| 
+DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the DO property, it becomes *DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
+
+.. IMPORTANT:: The following declaration has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom of the **License** class.
+
 In this example, we've highlighted the lines that are specific to this utility and No Route example (reachable=false).  See :doc:`big-iq-licensing` for specific details on this example.
 
 .. literalinclude:: ../examples/licenseViaBigIqUtilityUnreachable.json
@@ -87,6 +92,11 @@ Because the BIG-IP VE is reachable (has a route to the BIG-IQ), we also specify 
 This example also uses a Purchased pool, but without a route to the BIG-IP.
 
 For unreachable devices (with no route to BIG-IP), BIG-IP credentials are not required. Instead, you must explicitly indicate the platform on which the device runs (the **hypervisor** field) as Declarative Onboarding cannot automatically detect the value at this time. This is required for the BIG-IQ license activation API request (see :ref:`license-pool` for hypervisor options). 
+
+**New in DO 1.15** |br| 
+DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the DO property, it becomes *DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
+
+.. IMPORTANT:: The following declaration has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom of the **License** class.
 
 .. literalinclude:: ../examples/licenseViaBigIqPurchasedPoolUnreachable.json
    :language: json
@@ -140,6 +150,11 @@ The following is an example of using BIG-IQ to revoke a license and then relicen
 
 For unreachable devices (with no route to BIG-IP), BIG-IP credentials are not required. Instead, you must explicitly indicate the platform on which the device runs (the **hypervisor** field) as Declarative Onboarding cannot automatically detect the value at this time. This is required for the BIG-IQ license activation API request (see :ref:`license-pool` for hypervisor options). 
 
+**New in DO 1.15** |br| 
+DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the DO property, it becomes *DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
+
+.. IMPORTANT:: The following declaration has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom of the **License** class.
+
 We have highlighted the new licensing pool, the revoke line, the hypervisor, and the overwrite line.    See :ref:`Revoking a license using BIG-IQ<revoke-main>` for specific details on this example.
 
 .. literalinclude:: ../examples/reLicenseViaBigIqUnreachable.json
@@ -157,6 +172,11 @@ We have highlighted the new licensing pool, the revoke line, the hypervisor, and
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This example is similar to example 9, however in this case, we are using a different BIG-IQ device to revoke and relicense the BIG-IP VE from an unreachable BIG-IP VE. In this case, we specify additional information in the *revokeFrom* property to reference the BIG-IQ that initially licensed the BIG-IP VE.  Again, specifying the appropriate hypervisor is required. See :ref:`Revoking a license using BIG-IQ<revoke-main>` for specific details on this example.
+
+**New in DO 1.15** |br| 
+DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the DO property, it becomes *DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
+
+.. IMPORTANT:: The following declaration has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom of the **License** class.
 
 .. literalinclude:: ../examples/reLicenseViaNewBigIqUnreachable.json
    :language: json

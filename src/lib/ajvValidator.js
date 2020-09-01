@@ -18,7 +18,6 @@
 
 const Ajv = require('ajv');
 
-const definitionsSchema = require('../schema/latest/definitions.schema.json');
 const remoteSchema = require('../schema/latest/remote.schema.json');
 const baseSchema = require('../schema/latest/base.schema.json');
 const systemSchema = require('../schema/latest/system.schema.json');
@@ -45,7 +44,6 @@ class AjvValidator {
         });
 
         this.validator = ajv
-            .addSchema(definitionsSchema)
             .addSchema(systemSchema)
             .addSchema(networkSchema)
             .addSchema(dscSchema)

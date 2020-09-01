@@ -883,6 +883,86 @@ describe('declarationHandler', () => {
             const handler = new DeclarationHandler(bigIpMock);
             return assert.isRejected(handler.process(declaration, state), /This is an error/);
         });
+
+        it('should convert the declaration to an array of addressPorts', () => {
+            const declaration = {
+                parsed: true,
+                Common: {
+                    FailoverUnicast: {
+                        address: '10.1.1.8',
+                        port: 12
+                    }
+                }
+            };
+            const state = {
+                originalConfig: {
+                    Common: { }
+                },
+                currentConfig: {
+                    name: 'current',
+                    parsed: true,
+                    Common: {
+                        myFailoverUnicast: {
+                            class: 'FailoverUnicast',
+                            addressPorts: [
+                                {
+                                    address: '10.0.0.2',
+                                    port: 1026
+                                },
+                                {
+                                    address: '10.1.1.8',
+                                    port: 12
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+            const handler = new DeclarationHandler(bigIpMock);
+            return handler.process(declaration, state)
+                .then(() => {
+                    assert.deepStrictEqual(declarationWithDefaults.Common.FailoverUnicast, {
+                        addressPorts: [
+                            {
+                                address: '10.1.1.8',
+                                port: 12
+                            }
+                        ]
+                    });
+                });
+        });
+
+        it('should error if the declaration has both address and addressPorts', () => {
+            const declaration = {
+                parsed: true,
+                Common: {
+                    FailoverUnicast: {
+                        addressPorts: [
+                            {
+                                address: '10.0.0.2',
+                                port: 1026
+                            }
+                        ],
+                        address: '10.1.1.8',
+                        port: 12
+                    }
+                }
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {
+                        System: {
+                            hostname: 'my.old.hostname'
+                        }
+                    }
+                }
+            };
+            const handler = new DeclarationHandler(bigIpMock);
+            return assert.isRejected(handler.process(declaration, state), /Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort./);
+        });
     });
 
     describe('AVR dependencies', () => {

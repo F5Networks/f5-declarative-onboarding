@@ -34,7 +34,7 @@ test_node:4:
     image: node:4
     stage: test
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     script:
         - npm install --global npm@5.10.0
         - npm install
@@ -45,7 +45,7 @@ test_node:6:
     image: node:6
     stage: test
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     script:
         - npm install
         - npm install mocha@6.2.2
@@ -55,15 +55,16 @@ test_node:8:
     image: node:8
     stage: test
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     script:
         - npm ci
+        - npm install mocha@7
         - npm test
 
 test_node:latest:
     stage: test
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     script:
         - npm ci
         - npm test
@@ -243,9 +244,6 @@ create docs:
         - tags
         - schedules
     script:
-        - node scripts/build/schema-build.js
-        - node scripts/build/schema-check.js
-        - node scripts/build/schema-to-rst.js
         - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
         -   rm -rf docs/_templates
         - fi
@@ -309,23 +307,6 @@ pages:
     only:
         - develop
         - doc-release-branch
-
-Publish docs to staging:
-  image: ${CONTAINTHEDOCS_IMAGE}
-  stage: docs
-  environment:
-    name: staging
-    url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-  tags:
-    - cm-official-docker-executor
-  only:
-    - docs-staging@automation-toolchain/f5-declarative-onboarding
-  dependencies:
-    - create docs
-  script:
-    - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-    # create invalidation to clear cloudfront cache
-    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest
 
 publish docs to production:
     image: ${CONTAINTHEDOCS_IMAGE}

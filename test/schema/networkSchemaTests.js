@@ -37,22 +37,35 @@ Object.keys(customFormats).forEach((customFormat) => {
 const validate = ajv.compile(networkSchema);
 
 describe('network.schema.json', () => {
-    describe('MAC_Masquerade', () => {
+    describe('DNS_Resolver', () => {
         describe('valid', () => {
             it('should validate minimal data', () => {
                 const data = {
-                    class: 'MAC_Masquerade'
+                    class: 'DNS_Resolver'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
 
-            it('should validate masquerade data', () => {
+            it('should validate dns resolver data', () => {
                 const data = {
-                    class: 'MAC_Masquerade',
-                    source: {
-                        interface: '1.1'
-                    },
-                    trafficGroup: 'traffic-group-1'
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            name: 'google.public-dns',
+                            nameservers: [
+                                '8.8.8.8:53',
+                                '8.8.4.4:53'
+                            ]
+                        }
+                    ],
+                    routeDomain: 0,
+                    cacheSize: 9437184,
+                    answerDefaultZones: false,
+                    randomizeQueryNameCase: true,
+                    useIpv4: true,
+                    useIpv6: true,
+                    useUdp: true,
+                    useTcp: true
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -61,32 +74,73 @@ describe('network.schema.json', () => {
         describe('invalid', () => {
             it('should invalidate additional properties', () => {
                 const data = {
-                    class: 'MAC_Masquerade',
+                    class: 'DNS_Resolver',
                     rogueProperty: true
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
             });
 
-            it('should invalidate additional source properties', () => {
+            it('should invalidate additional forward zones properties', () => {
                 const data = {
-                    class: 'MAC_Masquerade',
-                    source: {
-                        interface: '1.1',
-                        rogueProperty: true
-                    }
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            name: 'google.public.dns',
+                            nameservers: [
+                                '8.8.8.8:53',
+                                '8.8.4.4:53'
+                            ],
+                            rogueProperty: true
+                        }
+                    ]
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "rogueProperty"'), -1);
             });
 
-            it('should invalidate unexpected traffic group', () => {
+            it('should invalidate missing forward zone name', () => {
                 const data = {
-                    class: 'MAC_Masquerade',
-                    trafficGroup: 'traffic-jam'
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            nameservers: [
+                                '8.8.8.8:53',
+                                '8.8.4.4:53'
+                            ]
+                        }
+                    ]
                 };
-                assert.strictEqual(validate(data), false, 'non-enum traffic group should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert.strictEqual(validate(data), false, 'missing nameserver name should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'name\''), -1);
+            });
+
+            it('should invalidate bad nameserver name', () => {
+                const data = {
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            name: 'google.public_dns'
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'invalid hostname should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"hostname\\"'), -1);
+            });
+
+            it('should invalidate service:port that is not in an array', () => {
+                const data = {
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            name: 'google.public.dns',
+                            nameservers: '8.8.8.8:53'
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'nameservers should be in an array');
+                assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".forwardZones[0].nameservers"'), -1);
+                assert.notStrictEqual(getErrorString().indexOf('should be array'), -1);
             });
         });
     });
@@ -174,7 +228,10 @@ describe('network.schema.json', () => {
                     ],
                     mtu: 1500,
                     tag: 1234,
-                    cmpHash: 'dst-ip'
+                    cmpHash: 'dst-ip',
+                    failsafeEnabled: true,
+                    failsafeAction: 'reboot',
+                    failsafeTimeout: 3600
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -221,6 +278,36 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "foo"'), -1);
+            });
+
+            it('should invalidate unexpected failsafe action', () => {
+                const data = {
+                    class: 'VLAN',
+                    interfaces: [
+                        {
+                            name: 'myInterface',
+                            tagged: false
+                        }
+                    ],
+                    failsafeAction: 'do-nothing'
+                };
+                assert.strictEqual(validate(data), false, 'non-enum failsafe action should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate out of range failsafe timeout', () => {
+                const data = {
+                    class: 'VLAN',
+                    interfaces: [
+                        {
+                            name: 'myInterface',
+                            tagged: false
+                        }
+                    ],
+                    failsafeTimeout: 3601
+                };
+                assert.strictEqual(validate(data), false, 'out of range failsafe timeout should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 3600'), -1);
             });
         });
     });
@@ -373,6 +460,17 @@ describe('network.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate route data to LOCAL_ONLY', () => {
+                const data = {
+                    class: 'Route',
+                    gw: '1.2.3.4',
+                    network: 'default',
+                    mtu: 1234,
+                    localOnly: true
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
@@ -385,12 +483,12 @@ describe('network.schema.json', () => {
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
             });
 
-            it('should invalidate missing gateway', () => {
+            it('should invalidate missing gateway and vlanOrTunnel', () => {
                 const data = {
                     class: 'Route'
                 };
                 assert.strictEqual(validate(data), false, 'missing gateway should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "gw"'), -1);
+                assert.notStrictEqual(getErrorString().indexOf('should match exactly one schema in oneOf'), -1);
             });
 
             it('should invalidate route data with bad gateway IP address', () => {
@@ -567,6 +665,101 @@ describe('network.schema.json', () => {
                     roundRobinMode: 'newRRMode'
                 };
                 assert.strictEqual(validate(data), false, 'roundRobinMode should only match values in enum');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+        });
+    });
+
+    describe('Tunnel', () => {
+        describe('valid', () => {
+            it('should validate minimal schema', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate with all properties', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    mtu: 5,
+                    usePmtu: false,
+                    typeOfService: 10,
+                    autoLastHop: 'enabled'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate invalid tunnelType', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'InvalidTunnelType'
+                };
+                assert.strictEqual(validate(data), false, 'tunnelType should match one of the enum values');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate additional properties', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    newProperty: 'helloThere'
+                };
+                assert.strictEqual(validate(data), false, 'can\'t have additional properties');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate invalid mtu value', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    mtu: 70000
+                };
+                assert.strictEqual(validate(data), false, 'mtu is out of range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+            });
+
+            it('should invalidate invalid usePmtu value', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    usePmtu: 'yes'
+                };
+                assert.strictEqual(validate(data), false, 'usePmtu should be a boolean');
+                assert.notStrictEqual(getErrorString().indexOf('should be boolean'), -1);
+            });
+
+            it('should invalidate invalid enum value for typeOfService', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    typeOfService: 'newType'
+                };
+                assert.strictEqual(validate(data), false, 'typeOfService should match one of the enum values');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate invalid integer value for typeOfService', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    typeOfService: 300
+                };
+                assert.strictEqual(validate(data), false, 'typeOfService should be in the 0-255 range');
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 255'), -1);
+            });
+
+            it('should invalidate invalid enum value for autoLastHop', () => {
+                const data = {
+                    class: 'Tunnel',
+                    tunnelType: 'tcp-forward',
+                    autoLastHop: 'auto'
+                };
+                assert.strictEqual(validate(data), false, 'autoLastHop should match one of the enum values');
                 assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
             });
         });

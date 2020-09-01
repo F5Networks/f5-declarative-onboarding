@@ -97,18 +97,29 @@ describe('declarationParser', () => {
                         "tagged": true
                     }
                 },
-                "myMac": {
+                "commonMac": {
                     "class": "MAC_Masquerade",
                     "source": {
                         "interface": "1.1"
                     }
                 },
-                "myMac2": {
+                "commonMac2": {
                     "class": "MAC_Masquerade",
                     "source": {
                         "interface": "1.2"
                     },
                     "trafficGroup": "traffic-group-local-only"
+                },
+                "commonDNS": {
+                    "class": "DNS_Resolver",
+                    "forwardZones": [
+                        {
+                            "name": "google.public.dns",
+                            "nameservers": [
+                                "8.8.8.8:53"
+                            ]
+                        }
+                    ]
                 }
             },
             "Tenant1": {
@@ -165,6 +176,14 @@ describe('declarationParser', () => {
         // network
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, 'commonVlan');
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.tag, 1111);
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac.name, 'commonMac');
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac.source.interface, '1.1');
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac2.name, 'commonMac2');
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac2.source.interface, '1.2');
+        assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac2.trafficGroup, 'traffic-group-local-only');
+        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.name, 'commonDNS');
+        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.forwardZones[0].name, 'google.public.dns');
+        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.forwardZones[0].nameservers[0], '8.8.8.8:53');
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.name, 'app1Vlan');
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.tag, 1234);
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app2Vlan.tag, 3456);
@@ -228,6 +247,14 @@ describe('declarationParser', () => {
                     "bigIpUsername": "/Credentials/0/username",
                     "bigIqUsername": "/Credentials/1/username",
                     "notAPointer": "/foo/bar"
+                },
+                "myFailoverUnicast": {
+                    "class": "FailoverUnicast",
+                    "addressPorts": [
+                        {
+                            "address": "/Common/mySelfIp/address"
+                        }
+                    ]
                 }
             }
         };
@@ -237,10 +264,40 @@ describe('declarationParser', () => {
         assert.strictEqual(parsedDeclaration.Common.ConfigSync.configsyncIp, '1.2.3.4');
         assert.strictEqual(parsedDeclaration.Common.License.bigIpUsername, 'myUser');
         assert.strictEqual(parsedDeclaration.Common.License.bigIqUsername, 'myOtherUser');
+        assert.strictEqual(parsedDeclaration.Common.FailoverUnicast.addressPorts[0].address, '1.2.3.4');
 
         // If we get a pointer that does not de-reference, we should just get back the
         // original pointer
         assert.strictEqual(parsedDeclaration.Common.License.notAPointer, '/foo/bar');
+    });
+
+    it('should not change an array to an object when parsing and dereferencing', () => {
+        const declaration = {
+            "Common": {
+                "class": "Tenant",
+                "myNtp": {
+                    "class": "NTP",
+                    "servers": [
+                        "0.pool.ntp.org",
+                        "1.pool.ntp.org"
+                    ],
+                    "timezone": "UTC"
+                }
+            }
+        };
+        const declarationParser = new DeclarationParser(declaration);
+        const parsedDeclaration = declarationParser.parse().parsedDeclaration;
+
+        assert.deepStrictEqual(
+            parsedDeclaration.Common.NTP,
+            {
+                servers: [
+                    '0.pool.ntp.org',
+                    '1.pool.ntp.org'
+                ],
+                timezone: 'UTC'
+            }
+        );
     });
 
     it('should return default modules and user modules', () => {

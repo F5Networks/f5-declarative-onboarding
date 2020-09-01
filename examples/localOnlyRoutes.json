@@ -1,0 +1,30 @@
+{
+    "schemaVersion": "1.15.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "newVlan": {
+            "class": "VLAN",
+            "tag": 100,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ]
+        },
+        "localRoute": {
+            "class": "Route",
+            "target": "newVlan",
+            "network": "10.1.0.244/32",
+            "localOnly": true
+        },
+        "newSelfIp": {
+            "class": "SelfIp",
+            "address": "10.1.0.20/32",
+            "vlan": "newVlan"
+        }
+    }
+}

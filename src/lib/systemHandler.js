@@ -133,6 +133,10 @@ class SystemHandler {
                 return handleSSHD.call(this);
             })
             .then(() => {
+                logger.fine('Checking Disk');
+                return handleDisk.call(this);
+            })
+            .then(() => {
                 logger.fine('Done processing system declaration.');
                 return Promise.resolve({
                     rebootRequired: this.rebootRequired,
@@ -605,7 +609,8 @@ function handleLicensePool(license) {
                         unitOfMeasure: license.unitOfMeasure,
                         noUnreachable: !!license.reachable,
                         overwrite: !!license.overwrite,
-                        autoApiType: true
+                        autoApiType: true,
+                        tenant: license.tenant
                     }
                 );
             }
@@ -904,7 +909,11 @@ function handleSSHD() {
         includeString = includeString.concat(`Protocol ${sshd.protocol}\n`);
     }
 
+    // capitalize for consistency with HTTPD.allow; if array, capitalization is left to user
+    sshd.allow = sshd.allow === 'all' ? ['All'] : sshd.allow;
+
     const sshdObj = {
+        allow: sshd.allow,
         banner: sshd.banner ? 'enabled' : 'disabled',
         bannerText: sshd.banner,
         include: includeString,
@@ -916,6 +925,40 @@ function handleSSHD() {
             const errorSSHD = `Error modifying SSHD settings: ${err.message}`;
             logger.severe(errorSSHD);
             err.message = errorSSHD;
+            return Promise.reject(err);
+        });
+}
+
+function handleDisk() {
+    if (!this.declaration.Common || !this.declaration.Common.Disk) {
+        return Promise.resolve();
+    }
+
+    let promise = Promise.resolve();
+
+    Object.keys(this.declaration.Common.Disk).forEach((directory) => {
+        if (this.declaration.Common.Disk[directory] <= this.state.originalConfig.Common.Disk[directory]) {
+            throw new Error('Disk size must be larger than current size.');
+        }
+
+        if (directory === 'applicationData') {
+            promise = promise.then(doUtil.executeBashCommandIControl(this.bigIp,
+                `tmsh modify /sys disk directory /appdata new-size ${this.declaration.Common.Disk[directory]}`));
+        }
+    });
+
+    return promise.then(() => this.bigIp.save())
+        .then(() => {
+            this.eventEmitter.emit(
+                EVENTS.REBOOT_NOW,
+                this.state.id
+            );
+            return doUtil.waitForReboot(this.bigIp);
+        })
+        .catch((err) => {
+            const errorDisk = `Error modifying Disk: ${err.message}`;
+            logger.severe(errorDisk);
+            err.message = errorDisk;
             return Promise.reject(err);
         });
 }

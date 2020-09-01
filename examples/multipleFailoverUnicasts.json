@@ -1,0 +1,46 @@
+{
+    "schemaVersion": "1.15.0",
+    "class": "Device",
+    "label": "Configuring System",
+    "Common": {
+        "class": "Tenant",
+        "failoverUnicastMgmt": {
+            "class": "FailoverUnicast",
+            "addressPorts": [
+                {
+                    "address": "10.0.0.0",
+                    "port": 356
+                },
+                {
+                    "address": "10.1.1.0"
+                }
+            ]
+        },
+        "external": {
+            "class": "VLAN",
+            "tag": 4094,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ],
+            "cmpHash": "src-ip"
+        },
+        "external-self": {
+            "class": "SelfIp",
+            "address": "10.0.0.0/24",
+            "vlan": "external",
+            "allowService": "none",
+            "trafficGroup": "traffic-group-local-only"
+        },
+        "external-self2": {
+            "class": "SelfIp",
+            "address": "10.1.1.0/24",
+            "vlan": "external",
+            "allowService": "none",
+            "trafficGroup": "traffic-group-local-only"
+        }
+    }
+}

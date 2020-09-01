@@ -71,7 +71,15 @@
         },
         "myFailoverUnicast": {
             "class": "FailoverUnicast",
-            "address": "/Common/mySelfIp/address"
+            "addressPorts": [
+                {
+                    "address": "/Common/mySelfIp/address"
+                },
+                {
+                    "address": "/Common/mySelfIp/address",
+                    "port": 126
+                }
+            ]
         },
         "mySystem": {
             "class": "System",
@@ -80,6 +88,29 @@
             "tmshAuditLog": false,
             "guiAuditLog": true,
             "mcpAuditLog": "verbose"
+        },
+        "myFailoverGroup": {
+            "class": "DeviceGroup",
+            "type": "sync-failover",
+            "members": [
+                "f5.example.com"
+            ],
+            "owner": "f5.example.com",
+            "autoSync": true,
+            "saveOnAutoSync": false,
+            "networkFailover": true,
+            "fullLoadOnSync": false,
+            "asmSync": false
+        },
+        "myTrafficGroup": {
+            "class": "TrafficGroup",
+            "autoFailbackEnabled": false,
+            "autoFailbackTime": 50,
+            "failoverMethod": "ha-order",
+            "haLoadFactor": 1,
+            "haOrder": [
+                "f5.example.com"
+            ]
         }
     }
 }
