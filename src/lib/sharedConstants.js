@@ -65,7 +65,8 @@ module.exports = {
         HTTPD: '/tm/sys/httpd',
         SSHD: '/tm/sys/sshd',
         SoftwareUpdate: '/tm/sys/software/update',
-        Tunnel: '/tm/net/tunnels/tunnel'
+        Tunnel: '/tm/net/tunnels/tunnel',
+        RoutingAsPath: '/tm/net/routing/as-path'
     },
     STATUS: {
         STATUS_OK: 'OK',

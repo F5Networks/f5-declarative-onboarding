@@ -508,6 +508,43 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RoutingAsPath" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains routing AS path configuration.",
+                        "type": "string",
+                        "const": "RoutingAsPath"
+                    },
+                    "entries": {
+                        "description": "An array that holds action and regex objects",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "integer",
+                                    "description": "Name of the entity"
+                                },
+                                "regex": {
+                                    "type": "string",
+                                    "description": "A regex string"
+                                }
+                            },
+                            "required": ["name", "regex"],
+                            "additionalProperties": false
+                        }
+                    }
+                },
+                "required": ["class"],
+                "additionalProperties": false
+            }
         }
     ]
 }

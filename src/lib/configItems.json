@@ -150,6 +150,20 @@
         "partitions": ["Common", "LOCAL_ONLY"]
     },
     {
+        "path": "/tm/net/routing/as-path",
+        "schemaClass": "RoutingAsPath",
+        "properties": [
+            { "id": "name" },
+            { "id": "entriesReference" }
+        ],
+        "references": {
+            "entriesReference": [
+                { "id": "name", "stringToInt": true },
+                { "id": "regex" }
+            ]
+        }
+    },
+    {
         "path": "/tm/cm/device/~Common~{{deviceName}}",
         "schemaClass": "ConfigSync",
         "properties": [

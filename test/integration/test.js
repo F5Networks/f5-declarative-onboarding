@@ -271,6 +271,34 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             assert.strictEqual(currentState.MirrorIp.primaryIp, body.Common.myMirror.primaryIp);
             assert.strictEqual(currentState.MirrorIp.secondaryIp, body.Common.myMirror.secondaryIp);
         });
+
+        it('should match RoutingAsPath', () => assert.deepStrictEqual(
+            currentState.RoutingAsPath,
+            {
+                testRoutingAsPath1: {
+                    name: 'testRoutingAsPath1',
+                    entries: [
+                        {
+                            name: 10,
+                            regex: '^65001 *'
+                        }
+                    ]
+                },
+                testRoutingAsPath2: {
+                    name: 'testRoutingAsPath2',
+                    entries: [
+                        {
+                            name: 10,
+                            regex: '^$'
+                        },
+                        {
+                            name: 20,
+                            regex: '^65005$'
+                        }
+                    ]
+                }
+            }
+        ));
     });
 
     describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {

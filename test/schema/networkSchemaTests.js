@@ -764,6 +764,53 @@ describe('network.schema.json', () => {
             });
         });
     });
+
+    describe('RoutingAsPath', () => {
+        describe('valid', () => {
+            it('should validate a full entries declaration', () => {
+                const data = {
+                    class: 'RoutingAsPath',
+                    entries: [
+                        {
+                            name: 10,
+                            regex: '^$'
+                        },
+                        {
+                            name: 20,
+                            regex: '^65005$'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+        describe('invalid', () => {
+            it('should fail if no regex is provided', () => {
+                const data = {
+                    class: 'RoutingAsPath',
+                    entries: [{ name: 30 }]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if regex is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'regex\''), -1,
+                    `Errored but not because of the missing regex:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if no name is provided', () => {
+                const data = {
+                    class: 'RoutingAsPath',
+                    entries: [{ regex: '^$' }]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if name is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'name\''), -1,
+                    `Errored but not because of the missing name:\n${getErrorString()}`
+                );
+            });
+        });
+    });
 });
 
 function getErrorString() {

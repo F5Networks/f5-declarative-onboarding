@@ -159,6 +159,7 @@
                             "RemoteAuthRole",
                             "Route",
                             "RouteDomain",
+                            "RoutingAsPath",
                             "SelfIp",
                             "SnmpAgent",
                             "SnmpCommunity",

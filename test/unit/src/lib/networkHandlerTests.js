@@ -63,9 +63,6 @@ describe('networkHandler', () => {
                 return Promise.resolve();
             },
             modify(path, data) {
-                if (!dataSent) {
-                    dataSent = {};
-                }
                 if (!dataSent[path]) {
                     dataSent[path] = [];
                 }
@@ -1025,6 +1022,122 @@ describe('networkHandler', () => {
                     assert.strictEqual(tunnels[1].usePmtu, 'disabled');
                     assert.strictEqual(tunnels[1].tos, 12);
                     assert.strictEqual(tunnels[1].autoLasthop, 'enabled');
+                });
+        });
+    });
+
+    describe('RoutingAsPath', () => {
+        it('should handle a fully specified Routing As Path', () => {
+            const declaration = {
+                Common: {
+                    RoutingAsPath: {
+                        RoutingAsPath1: {
+                            name: 'RoutingAsPath1',
+                            entries: [
+                                {
+                                    name: 10,
+                                    regex: '^$'
+                                }
+                            ]
+                        },
+                        RoutingAsPath2: {
+                            name: 'RoutingAsPath2',
+                            entries: [
+                                {
+                                    name: 15,
+                                    regex: 'funky$'
+                                },
+                                {
+                                    name: 20,
+                                    regex: '^$'
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RoutingAsPath];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RoutingAsPath1',
+                        partition: 'Common',
+                        entries: {
+                            10: {
+                                action: 'permit',
+                                regex: '^$'
+                            }
+                        }
+                    });
+                    assert.deepStrictEqual(data[1], {
+                        name: 'RoutingAsPath2',
+                        partition: 'Common',
+                        entries: {
+                            15: {
+                                action: 'permit',
+                                regex: 'funky$'
+                            },
+                            20: {
+                                action: 'permit',
+                                regex: '^$'
+                            }
+                        }
+                    });
+                });
+        });
+
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath', () => {
+            const declaration = {
+                Common: {
+                    RoutingAsPath: {
+                        RoutingAsPath1: {
+                            name: 'RoutingAsPath1',
+                            entries: [
+                                {
+                                    name: 10,
+                                    regex: '^$'
+                                }
+                            ]
+                        },
+                        RoutingAsPath2: {
+                            name: 'RoutingAsPath2',
+                            entries: [
+                                {
+                                    name: 15,
+                                    regex: 'funky$'
+                                },
+                                {
+                                    name: 20,
+                                    regex: '^$'
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
+                    assert.deepStrictEqual(data, [{ value: 'enable' }]);
+                });
+        });
+
+        it('should not send out an enable value to the sys/db/...routing endpoint if a declaration lacks RoutingAsPath', () => {
+            const declaration = {
+                Common: {
+                    RoutingAsPath: {}
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
+                    assert.deepStrictEqual(data, undefined);
                 });
         });
     });
