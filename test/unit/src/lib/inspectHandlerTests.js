@@ -626,6 +626,26 @@ describe('inspectHandler', () => {
                     partition: 'LOCAL_ONLY'
                 }
             ],
+            '/tm/net/routing/as-path': [
+                {
+                    name: 'exampleAsPath',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/as-path/~Common~exampleAsPath/entries?ver=14.1.2.7'
+                    }
+                }
+            ],
+            '/tm/net/routing/as-path/~Common~exampleAsPath/entries': [
+                {
+                    name: '10',
+                    action: 'permit',
+                    regex: '^$'
+                },
+                {
+                    name: '15',
+                    action: 'permit',
+                    regex: '^123'
+                }
+            ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
@@ -1048,6 +1068,19 @@ describe('inspectHandler', () => {
                             mtu: 0,
                             class: 'Route',
                             localOnly: true
+                        },
+                        exampleAsPath: {
+                            class: 'RoutingAsPath',
+                            entries: [
+                                {
+                                    name: 10,
+                                    regex: '^$'
+                                },
+                                {
+                                    name: 15,
+                                    regex: '^123'
+                                }
+                            ]
                         },
                         currentConfigSync: {
                             configsyncIp: '10.0.0.2',

@@ -1396,4 +1396,53 @@ describe('configManager', () => {
                 });
         });
     });
+
+    describe('RoutingAsPath', () => {
+        it('should handle RoutingAsPath with references', () => {
+            const configItems = getConfigItems('RoutingAsPath');
+
+            listResponses['/tm/net/routing/as-path'] = [
+                {
+                    name: 'exampleAsPath',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/as-path/~Common~exampleAsPath/entries?ver=14.1.2.7'
+                    }
+                }
+            ];
+            listResponses['/tm/net/routing/as-path/~Common~exampleAsPath/entries'] = [
+                {
+                    name: '10',
+                    action: 'permit',
+                    regex: '^$'
+                },
+                {
+                    name: '15',
+                    action: 'permit',
+                    regex: '^123'
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common.RoutingAsPath, {
+                        exampleAsPath: {
+                            name: 'exampleAsPath',
+                            entries: [
+                                {
+                                    action: 'permit',
+                                    name: 10,
+                                    regex: '^$'
+                                },
+                                {
+                                    action: 'permit',
+                                    name: 15,
+                                    regex: '^123'
+                                }
+                            ]
+                        }
+                    });
+                });
+        });
+    });
 });

@@ -65,6 +65,28 @@
             "class": "MirrorIp",
             "primaryIp": "10.148.75.46",
             "secondaryIp": "any6"
+        },
+        "testRoutingAsPath1": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^65001 *"
+                }
+            ]
+        },
+        "testRoutingAsPath2": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^$"
+                },
+                {
+                    "name": 20,
+                    "regex": "^65005$"
+                }
+            ]
         }
     }
 }

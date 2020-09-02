@@ -1,0 +1,31 @@
+{
+    "schemaVersion": "1.16.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "exampleRoutingAsPath": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^165001 *"
+                }
+            ]
+        },
+        "exampleMultipleRoutingAsPath": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^1$"
+                },
+                {
+                    "name": 20,
+                    "regex": "^165005$"
+                }
+            ]
+        }
+    }
+}

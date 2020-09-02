@@ -84,6 +84,10 @@ class NetworkHandler {
                 return handleDagGlobals.call(this);
             })
             .then(() => {
+                logger.info('Checking RoutingAsPath');
+                return handleRoutingAsPath.call(this);
+            })
+            .then(() => {
                 logger.info('Done processing network declartion.');
                 return Promise.resolve();
             })
@@ -480,6 +484,51 @@ function handleTunnel() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating Tunnels: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleRoutingAsPath() {
+    const promises = [];
+    let enabledRouting = false;
+    doUtil.forEach(this.declaration, 'RoutingAsPath', (tenant, routing) => {
+        if (routing && routing.entries) {
+            const entries = {};
+
+            if (!enabledRouting) {
+                // Enable routing on the BIG-IP
+                enabledRouting = true;
+
+                this.bigIp.modify(
+                    '/tm/sys/db/tmrouted.tmos.routing',
+                    { value: 'enable' },
+                    null,
+                    cloudUtil.SHORT_RETRY
+                );
+            }
+
+            routing.entries.forEach((entry) => {
+                entries[entry.name] = {
+                    action: 'permit',
+                    regex: entry.regex
+                };
+            });
+
+            const body = {
+                name: routing.name,
+                partition: tenant,
+                entries
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.RoutingAsPath, body, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating RoutingAsPath: ${err.message}`);
             throw err;
         });
 }

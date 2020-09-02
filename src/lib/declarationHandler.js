@@ -71,7 +71,8 @@ const CLASSES_OF_TRUTH = [
     'Tunnel',
     'TrafficGroup',
     'Disk',
-    'MirrorIp'
+    'MirrorIp',
+    'RoutingAsPath'
 ];
 
 /**
