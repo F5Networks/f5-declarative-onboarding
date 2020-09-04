@@ -613,8 +613,8 @@ function handleMacMasquerade() {
 function handleMirrorIp() {
     if (this.declaration.Common && this.declaration.Common.MirrorIp) {
         const body = {
-            mirrorIp: this.declaration.Common.MirrorIp.primaryIp,
-            mirrorSecondaryIp: this.declaration.Common.MirrorIp.secondaryIp
+            mirrorIp: this.declaration.Common.MirrorIp.primaryIp || 'any6',
+            mirrorSecondaryIp: this.declaration.Common.MirrorIp.secondaryIp || 'any6'
         };
 
         return this.bigIp.deviceInfo()

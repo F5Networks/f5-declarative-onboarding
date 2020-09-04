@@ -286,6 +286,22 @@ describe('dscHandler', () => {
                     assert.strictEqual(bodySent.mirrorSecondaryIp, '2.0.0.0');
                 });
         });
+
+        it('should send "any6" when undefined', () => {
+            const declaration = {
+                Common: {
+                    MirrorIp: {}
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
+                    assert.strictEqual(bodySent.mirrorIp, 'any6');
+                    assert.strictEqual(bodySent.mirrorSecondaryIp, 'any6');
+                });
+        });
     });
 
     describe('deviceTrust', () => {
