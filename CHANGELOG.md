@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1374: ([GitHub Issue 112](https://github.com/F5Networks/f5-declarative-onboarding/issues/112)): Add support for MirrorIp class
 ### Fixed
 - Target VLAN errors from the inspect endpoint
+- AUTOTOOL-1899: Fix minor schema issues. No type for minPathMtu and use const for Tunnel class
 ### Changed
 ### Removed
 
