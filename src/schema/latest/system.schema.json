@@ -992,6 +992,7 @@
                     },
                     "minPathMtu": {
                         "description": "Specifies the minimum packet size that can traverse the path without suffering fragmentation",
+                        "type": "integer",
                         "minimum": 68,
                         "maximum": 1500,
                         "default": 296

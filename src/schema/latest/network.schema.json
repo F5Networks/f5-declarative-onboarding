@@ -461,7 +461,7 @@
                     "class": {
                         "description": "Indicates that this property contains Tunnel configuration.",
                         "type": "string",
-                        "enum": ["Tunnel"]
+                        "const": "Tunnel"
                     },
                     "tunnelType": {
                         "description": "Specifies the profile that you want to associate with the Tunnel.",
