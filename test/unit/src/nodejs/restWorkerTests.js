@@ -831,6 +831,8 @@ describe('restWorker', () => {
         let saveCalled;
         let saveStateCalled;
 
+        let getBigIpStub;
+
         beforeEach(() => {
             restOperationMock.getMethod = () => 'Post';
             ConfigManagerMock.prototype.get = () => Promise.resolve();
@@ -848,7 +850,7 @@ describe('restWorker', () => {
                 reboot() {}
             };
 
-            sinon.stub(doUtilMock, 'getBigIp').callsFake((logger, bigIpOptions) => {
+            getBigIpStub = sinon.stub(doUtilMock, 'getBigIp').callsFake((logger, bigIpOptions) => {
                 bigIpOptionsCalled = bigIpOptions;
                 return Promise.resolve(bigIpMock);
             });
@@ -991,6 +993,27 @@ describe('restWorker', () => {
 
             restOperationMock.getContentType = () => {};
             restOperationMock.getBody = () => 'foobar';
+
+            try {
+                restWorker.onPost(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
+        it('should handle failure to get/initialize a device', () => new Promise((resolve, reject) => {
+            getBigIpStub.restore();
+            sinon.stub(doUtilMock, 'getBigIp').callsFake(() => {
+                const error = new Error('failed to initialize');
+                error.code = 503;
+                return Promise.reject(error);
+            });
+            restOperationMock.complete = () => {
+                assert.strictEqual(responseBody.result.code, 503);
+                assert.strictEqual(responseBody.result.status, 'ERROR');
+                assert.notStrictEqual(responseBody.result.errors.indexOf('failed to initialize'), -1);
+                resolve();
+            };
 
             try {
                 restWorker.onPost(restOperationMock);
