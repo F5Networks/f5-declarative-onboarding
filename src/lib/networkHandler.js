@@ -291,9 +291,9 @@ function handleRoute() {
             return Promise.resolve();
         })
         .then(() => {
-            const promises = [];
+            const commands = [];
+            const deleteCommands = [];
             doUtil.forEach(this.declaration, 'Route', (tenant, route) => {
-                let promise = Promise.resolve();
                 if (route && route.name) {
                     const mask = route.network.includes(':') ? 128 : 32;
                     route.network = route.network !== 'default' && route.network !== 'default-inet6'
@@ -305,15 +305,15 @@ function handleRoute() {
                     }
 
                     // Need to do a delete if the network property is updated
+                    let deleteRoute = false;
                     if (this.state.currentConfig.Common.Route
                         && this.state.currentConfig.Common.Route[route.name]
                         && this.state.currentConfig.Common.Route[route.name].network !== route.network) {
-                        promise = promise.then(() => this.bigIp.delete(
-                            `${PATHS.Route}/~${targetPartition}~${route.name}`,
-                            null,
-                            null,
-                            cloudUtil.NO_RETRY
-                        ));
+                        deleteCommands.push({
+                            method: 'delete',
+                            path: `${PATHS.Route}/~${targetPartition}~${route.name}`
+                        });
+                        deleteRoute = true;
                     }
 
                     const routeBody = {
@@ -333,15 +333,29 @@ function handleRoute() {
                         routeBody.gw = route.gw;
                     }
 
-                    promise = promise.then(() => this.bigIp.createOrModify(
-                        PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY
-                    ));
-                }
+                    if (Object.keys(this.state.currentConfig.Common.Route)
+                        .find(routeName => routeName === route.name) && !deleteRoute) {
+                        commands.push({
+                            method: 'delete',
+                            path: `${PATHS.Route}/~${targetPartition}~${route.name}`
+                        });
+                    }
 
-                promises.push(promise);
+                    commands.push({
+                        method: 'create',
+                        path: PATHS.Route,
+                        body: routeBody
+                    });
+                }
             });
 
-            return Promise.all(promises)
+            let promise = Promise.resolve();
+            if (deleteCommands.length > 0) {
+                promise = promise.then(() => this.bigIp.transaction(deleteCommands));
+            }
+
+            return promise
+                .then(() => this.bigIp.transaction(commands))
                 .catch((err) => {
                     logger.severe(`Error creating routes: ${err.message}`);
                     throw err;
