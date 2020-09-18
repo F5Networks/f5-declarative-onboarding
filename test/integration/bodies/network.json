@@ -45,6 +45,25 @@
             "network": "default",
             "localOnly": true
         },
+        "internal-self": {
+            "class": "SelfIp",
+            "address": "10.1.20.31/32",
+            "vlan": "internal",
+            "allowService": "default",
+            "trafficGroup": "traffic-group-local-only"
+        },
+        "int_rt": {
+            "class": "Route",
+            "gw": "10.1.20.1",
+            "network": "10.1.20.0/24",
+            "mtu": 1460
+        },
+        "int_gw_interface": {
+            "class": "Route",
+            "target": "internal",
+            "network": "10.1.20.1/32",
+            "mtu": 1460
+        },
         "mySystem": {
             "class": "System",
             "autoPhonehome": false

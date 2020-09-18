@@ -156,7 +156,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match routing', () => {
-            assert.ok(testRoute(body.Common.myRoute, currentState));
+            assert.ok(testRoute(body.Common.myRoute, currentState, 'myRoute'));
         });
 
         it('should match failover unicast address', () => assert.deepStrictEqual(
@@ -247,7 +247,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match routing', () => {
-            assert.ok(testRoute(body.Common.myRoute, currentState));
+            assert.ok(testRoute(body.Common.myRoute, currentState, 'myRoute'));
+        });
+
+        it('should match routing that needs created in order', () => {
+            assert.ok(testRoute(body.Common.int_rt, currentState, 'int_rt'));
+            assert.ok(testRoute(body.Common.int_gw_interface, currentState, 'int_gw_interface'));
         });
 
         it('should match localOnly routing', () => {
@@ -983,10 +988,11 @@ function testVlan(target, response) {
  *             against a target object schemed on a declaration
  * @target {Object} : object to be tested against
  * @response {Object} : object from status response to compare with target
+ * @targetName {string} : name of the route to get in response
  * Returns Promise true/false
 */
-function testRoute(target, response) {
-    return compareSimple(target, response.Route.myRoute, ['gw', 'network', 'mtu']);
+function testRoute(target, response, targetName) {
+    return compareSimple(target, response.Route[targetName], ['gw', 'network', 'mtu']);
 }
 
 /**

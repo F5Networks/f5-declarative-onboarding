@@ -8,6 +8,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 - Target VLAN errors from the inspect endpoint
 - AUTOTOOL-1899: Fix minor schema issues. No type for minPathMtu and use const for Tunnel class
+- AUTOTOOL-1845: ([GitHub Issue 147](https://github.com/F5Networks/f5-declarative-onboarding/issues/147)): Route creation order can be incorrect
 ### Changed
 ### Removed
 
