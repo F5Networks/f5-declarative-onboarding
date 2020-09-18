@@ -1,6 +1,6 @@
 {
   "name": "f5-declarative-onboarding",
-  "version": "1.16.0-1",
+  "version": "1.16.0-2",
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
   "repository": {
@@ -19,7 +19,7 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
-    "@f5devcentral/f5-cloud-libs": "^4.22.0",
+    "@f5devcentral/f5-cloud-libs": "4.23.0-beta.2",
     "@f5devcentral/f5-teem": "^1.4.6",
     "ajv": "^6.12.4",
     "deep-diff": "^1.0.2",
