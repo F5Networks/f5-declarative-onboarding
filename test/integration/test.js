@@ -67,7 +67,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
     describe('Test Configuration Scope', () => {
         it('should not overlap with config items in the AS3 project', () => {
             logTestTitle(this.ctx.test.title);
-            const path = '/orchestration-as3-generic/as3-properties-latest.json';
+            const path = '/f5-automation-toolchain-generic/f5-appsvcs/latest/as3-properties-latest.json';
             const options = common.buildBody(process.env.ARTIFACTORY_BASE_URL + path, null, null, 'GET');
             options.rejectUnauthorized = false;
             const retryOptions = {
