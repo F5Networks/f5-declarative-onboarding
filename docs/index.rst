@@ -34,8 +34,9 @@ To provide feedback on this documentation, you can file a GitHub Issue or email 
    using-do
    troubleshooting
    examples
-   revision-history
    schema-reference
+   revision-history
+
 
 
 .. |declare| raw:: html
