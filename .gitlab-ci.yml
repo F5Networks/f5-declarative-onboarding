@@ -322,7 +322,7 @@ pages:
         paths:
             - public
     only:
-        # - develop
+        - develop
         - doc-release-branch
 
 publish docs to production:
