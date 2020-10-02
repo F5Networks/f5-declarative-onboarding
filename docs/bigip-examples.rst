@@ -1325,7 +1325,7 @@ This example shows how you can include connection and persistence mirroring info
 
 The connection and persistence mirroring feature allows you to configure BIG-IP systems in a high availability (HA) configuration to duplicate connection and persistence information to peer members of the BIG-IP device group. This feature provides higher reliability but may affect system performance.   For more information, see the |mirrorkb| article on AskF5.
 
-See |mirrorref| in the Schema Reference for DO usage and options.  
+See |mirrorref| in the Schema Reference for DO usage and options.  Also see :ref:`mirrorip` on the Clustering page.
 
 .. literalinclude:: ../examples/mirrorIp.json
    :language: json
