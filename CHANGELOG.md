@@ -1,6 +1,12 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.17.0
+### Added
+### Fixed
+### Changed
+### Removed
+
 ## 1.16.0
 ### Added
 - AUTOTOOL-1652: Add support for routing as-path
