@@ -23,7 +23,7 @@
 * git tag -m 'Release candidate <fullVersion>' v\<fullVersion\>
 * git push origin
 * git push origin --tags
-* Update package.json and package-lock.json with next version (for example: X.Y+1.0, or X.Y.Z-#+1)
+* Update base.schema.json, package.json and package-lock.json with next version (for example: X.Y+1.0, or X.Y.Z-#+1)
 * git add and commit
 * git push origin
 
