@@ -1333,6 +1333,18 @@ See |mirrorref| in the Schema Reference for DO usage and options.  Also see :ref
 :ref:`Back to top<bigipexamples>`
 
 
+.. _example30:
+
+30: Warning users the BIG-IP is under AS3 automation  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This example shows how you can use Delclarative Onboarding to discourage unintended configuration changes to a device that is managed by AS3. This example configures an advisory banner using the **DbVariables** class.
+
+.. literalinclude:: ../examples/banner.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+
 
 
 
