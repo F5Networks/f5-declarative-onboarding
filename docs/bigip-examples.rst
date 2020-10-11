@@ -1312,6 +1312,7 @@ See |route| in the Schema Reference for DO usage and options.
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
 .. _example29:
 
@@ -1332,6 +1333,7 @@ See |mirrorref| in the Schema Reference for DO usage and options.  Also see :ref
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
 .. _example30:
 
@@ -1344,7 +1346,20 @@ This example shows how you can use Delclarative Onboarding to discourage uninten
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
+.. _example31:
+
+31: Increasing the memory allocated to the restjavad daemon  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This example shows how you can use Delclarative Onboarding to increase the amount of memory allocated to restjavad, using the **DbVariables** class.
+  
+See (see :ref:`restjavad`) for reasons you may want to increase this memory allocation.
+
+.. literalinclude:: ../examples/restjavad.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
 
 
 
