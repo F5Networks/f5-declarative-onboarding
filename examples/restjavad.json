@@ -1,0 +1,13 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": "true",
+    "Common": {
+        "class": "Tenant",
+        "dbvars": {
+            "class": "DbVariables",
+            "provision.extramb": 1000,
+            "restjavad.useextramb": true
+        }
+    }
+}

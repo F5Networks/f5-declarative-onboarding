@@ -1312,6 +1312,7 @@ See |route| in the Schema Reference for DO usage and options.
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
 .. _example29:
 
@@ -1332,7 +1333,33 @@ See |mirrorref| in the Schema Reference for DO usage and options.  Also see :ref
 
 :ref:`Back to top<bigipexamples>`
 
+|
 
+.. _example30:
+
+30: Warning users the BIG-IP is under AS3 automation  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This example shows how you can use Delclarative Onboarding to discourage unintended configuration changes to a device that is managed by AS3. This example configures an advisory banner using the **DbVariables** class.
+
+.. literalinclude:: ../examples/banner.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example31:
+
+31: Increasing the memory allocated to the restjavad daemon  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This example shows how you can use Delclarative Onboarding to increase the amount of memory allocated to restjavad, using the **DbVariables** class.
+  
+See (see :ref:`restjavad`) for reasons you may want to increase this memory allocation.
+
+.. literalinclude:: ../examples/restjavad.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
 
 
 

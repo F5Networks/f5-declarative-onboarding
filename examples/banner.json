@@ -1,0 +1,17 @@
+{
+    "class": "DO",
+    "declaration": {
+        "schemaVersion": "1.11.0",
+        "class": "Device",
+        "async": true,
+        "Common": {
+            "class": "Tenant",
+            "myDbVariables": {
+                "class": "DbVariables",
+                "ui.advisory.enabled": "true",
+                "ui.advisory.color": "red",
+                "ui.advisory.text": "Configuration deployed with AS3. Do not make any change directly on the BIG-IP or those changes may be lost."
+            }
+        }
+    }
+}
