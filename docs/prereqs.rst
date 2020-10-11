@@ -15,7 +15,7 @@ The following are prerequisites for using F5 Declarative Onboarding:
 
 - You must have an existing user account with the Administrator role. If you are using 13.1.x, the BIG-IP contains an admin user by default. If you are using 14.x, you **must** reset the admin password before installing Declarative Onboarding. See :ref:`14andlater` for instructions.  
 
-- While Declarative onboarding is supported on F5 vCMP systems, network stitching to vCMP Guests or Hosts is not supported.
+- While Declarative onboarding is supported on F5 vCMP systems, network stitching to vCMP Guests or Hosts is not supported. Furthermore, creating vCMP guests with a DO declaration is not supported.
 
 - If you are using an F5 BYOL license, you must have a valid F5 Networks License Registration Key to include in your declaration.  If you do not have one, contact your F5 sales representative. If you do not use a valid F5 license key, your declaration will fail.  This is not a requirement if you are using a BIG-IP with pay-as-you-go licensing. 
 
