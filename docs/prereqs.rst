@@ -30,7 +30,8 @@ Notes and tips
 
 - Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
 
-- **IMPORTANT**: The Community-Supported solution for DO running in a Docker container is being archived as of DO 1.16.  F5 will no longer provide new versions of DO running in a container.
+- Archival of community supported container solution
+   .. IMPORTANT:: The Community-Supported solution for DO running in a Docker container is being archived as of DO 1.16.  F5 will no longer provide new versions of DO running in a container.
 
 - Declarative Onboarding gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system's phone home feature as described in |phone|
 
