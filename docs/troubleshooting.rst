@@ -79,7 +79,7 @@ Restjavad may become unstable if the amount of memory required by the daemon exc
 See `Bug ID 894593 <https://cdn.f5.com/product/bugtracker/ID894593.html>`_ and `Bug ID 776393 <https://cdn.f5.com/product/bugtracker/ID776393.html>`_.
 
 **Workaround** |br|
-Increase the memory allocated for the restjavad daemon (e.g. 2 GB), by running the following commands in a BIG-IP terminal.
+Increase the memory allocated for the restjavad daemon (e.g. 2 GB), you can either use the declaration shown in :ref:`example31`, OR by running the following commands in a BIG-IP terminal.
  
 ``tmsh modify sys db restjavad.useextramb value true`` |br|
 ``tmsh modify sys db provision.extramb value 2048`` |br|

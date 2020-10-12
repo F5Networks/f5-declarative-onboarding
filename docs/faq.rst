@@ -1,5 +1,5 @@
-Declarative Onboarding FAQ
---------------------------
+Frequently Asked Questions (FAQ)
+--------------------------------
 The following are frequently asked questions for Declarative Onboarding.
 
 
