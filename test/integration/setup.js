@@ -5,7 +5,7 @@
 'use strict';
 
 const path = require('path');
-const NodeSSH = require('node-ssh');
+const NodeSSH = require('node-ssh').NodeSSH;
 const constants = require('./constants.js');
 const common = require('./common.js');
 // directory on the BIG-IPs to copy rpm package to

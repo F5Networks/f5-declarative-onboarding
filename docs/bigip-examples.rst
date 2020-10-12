@@ -1312,6 +1312,58 @@ See |route| in the Schema Reference for DO usage and options.
 
 :ref:`Back to top<bigipexamples>`
 
+|
+
+.. _example29:
+
+29: Configuring connection and persistence mirroring  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for connection and persistence mirroring is available in DO v1.16 and later
+
+This example shows how you can include connection and persistence mirroring information in a Declarative Onboarding declaration. 
+
+The connection and persistence mirroring feature allows you to configure BIG-IP systems in a high availability (HA) configuration to duplicate connection and persistence information to peer members of the BIG-IP device group. This feature provides higher reliability but may affect system performance.   For more information, see the |mirrorkb| article on AskF5.
+
+See |mirrorref| in the Schema Reference for DO usage and options.  Also see :ref:`mirrorip` on the Clustering page.
+
+.. literalinclude:: ../examples/mirrorIp.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example30:
+
+30: Warning users the BIG-IP is under AS3 automation  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This example shows how you can use Delclarative Onboarding to discourage unintended configuration changes to a device that is managed by AS3. This example configures an advisory banner using the **DbVariables** class.
+
+.. literalinclude:: ../examples/banner.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+|
+
+.. _example31:
+
+31: Increasing the memory allocated to the restjavad daemon  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This example shows how you can use Delclarative Onboarding to increase the amount of memory allocated to restjavad, using the **DbVariables** class.
+  
+See (see :ref:`restjavad`) for reasons you may want to increase this memory allocation.
+
+.. literalinclude:: ../examples/restjavad.json
+   :language: json
+
+:ref:`Back to top<bigipexamples>`
+
+
+
+
 .. |br| raw:: html
 
    <br />
@@ -1457,3 +1509,13 @@ See |route| in the Schema Reference for DO usage and options.
 .. |route| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#route" target="_blank">Route</a>
+
+.. |mirrorkb| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K84303332" target="_blank">Overview of connection and persistence mirroring</a>
+
+.. |mirrorref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mirrorip" target="_blank">MirrorIp</a>
+
+   

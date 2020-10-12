@@ -39,6 +39,31 @@
             "network": "10.20.30.0/24",
             "mtu": 1500
         },
+        "myLocalOnlyRoute": {
+            "class": "Route",
+            "target": "myVlan",
+            "network": "default",
+            "localOnly": true
+        },
+        "internal-self": {
+            "class": "SelfIp",
+            "address": "10.1.20.31/32",
+            "vlan": "internal",
+            "allowService": "default",
+            "trafficGroup": "traffic-group-local-only"
+        },
+        "int_rt": {
+            "class": "Route",
+            "gw": "10.1.20.1",
+            "network": "10.1.20.0/24",
+            "mtu": 1460
+        },
+        "int_gw_interface": {
+            "class": "Route",
+            "target": "internal",
+            "network": "10.1.20.1/32",
+            "mtu": 1460
+        },
         "mySystem": {
             "class": "System",
             "autoPhonehome": false
@@ -52,6 +77,33 @@
                     "nameservers": [
                         "10.10.10.10:53"
                     ]
+                }
+            ]
+        },
+        "myMirror": {
+            "class": "MirrorIp",
+            "primaryIp": "10.148.75.46",
+            "secondaryIp": "any6"
+        },
+        "testRoutingAsPath1": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^65001 *"
+                }
+            ]
+        },
+        "testRoutingAsPath2": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^$"
+                },
+                {
+                    "name": 20,
+                    "regex": "^65005$"
                 }
             ]
         }

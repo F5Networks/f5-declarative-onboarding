@@ -18,6 +18,8 @@ Declaration classes for a cluster of BIG-IPs
 
 In this example, we include the classes that are specific to clustering.  For a complete declaration, you could add the classes shown in :doc:`composing-a-declaration` to configure DNS, NTP, VLANs, Routes and more.  For the full clustering example declaration, see :ref:`example2`.
 
+.. NOTE:: Some classes are only available in certain versions of Declarative Onboarding.  See the individual class sections for any version notices.
+
 For some of the clustering components, like ConfigSync and failoverAddress, you can use JSON pointers to reference objects/properties in declarations.
 
 .. NOTE:: The DeviceTrust and DeviceGroup sections in both declarations should be identical. For DeviceTrust, if the remoteHost matches the management IP or one of the self IPs of the host on which it is running, that DeviceTrust section is ignored. If it does not match, then the device processing the declaration will send a request to the remote host to be added to trust. There is similar logic regarding the DeviceGroup owner. The owning device just creates the group, the other device requests to be added to the group.
@@ -63,6 +65,11 @@ The following declaration snippet could continue after the :ref:`route-class` in
         "remoteHost": "/Common/failoverGroup/members/0",
         "remoteUsername": "admin",
         "remotePassword": "pass2word"
+    },
+    "myMirror": {
+        "class": "MirrorIp",
+        "primaryIp": "10.1.0.20",
+        "secondaryIp": "any6"
     }
 
 
@@ -250,7 +257,7 @@ For detailed information about Traffic Groups and clustering on the BIG-IP, see 
 
 Device Trust class
 ``````````````````
-The final class specific to clustering is the device trust class. Device trust establishes trust relationships between BIG-IP devices on the network, through mutual certificate-based authentication. For more information on Device Trust on the BIG-IP, see |trust|. 
+The next class specific to clustering is the device trust class. Device trust establishes trust relationships between BIG-IP devices on the network, through mutual certificate-based authentication. For more information on Device Trust on the BIG-IP, see |trust|. 
 
 .. code-block:: javascript
    :linenos:
@@ -285,6 +292,44 @@ The final class specific to clustering is the device trust class. Device trust e
 \* The required column applies only if you are using this class.
 
 
+.. _mirrorip:
+
+MirrorIp class
+``````````````
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for the MirrorIp class is available in DO v1.16 and later
+
+The next class specific to clustering is the MirrorIP class, introduced in DO v1.16. The MirrorIP class allows you to configure connection and persistence mirroring information in a Declarative Onboarding declaration.  This allows you to configure clustered BIG-IPs to duplicate connection and persistence information to peer members of the BIG-IP device group, providing higher reliability but may affect system performance.  
+
+For more information and DO usage, see |mirrorref|.  See :ref:`example29` for an example declaration.
+
+
+.. code-block:: javascript
+   :linenos:
+  
+    "myMirror": {
+        "class": "MirrorIp",
+        "primaryIp": "10.1.0.20",
+        "secondaryIp": "any6"
+    }
+
+
+|
+
++---------------------+-------------------+-------------+------------------------------------------------------------------------------------------------+
+| Parameter           | Options           | Required*?  |  Description/Notes                                                                             |
++=====================+===================+=============+================================================================================================+
+| class               | MirrorIp          |   Yes       |  Indicates that this property contains connection and persistence mirroring information.       |
++---------------------+-------------------+-------------+------------------------------------------------------------------------------------------------+
+| primaryIp           | string            |   No        |  IP address of the primary mirror. Specify **any6** to disable (the default is **any6**).      |
++---------------------+-------------------+-------------+------------------------------------------------------------------------------------------------+
+| secondaryIp         | string            |   No        |  IP address of the secondary mirror. Specify **any6** to disable (the default is **any6**).    |
++---------------------+-------------------+-------------+------------------------------------------------------------------------------------------------+
+
+\* The required column applies only if you are using this class.
+
+
 .. |cs| raw:: html
 
    <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-device-service-clustering-administration-13-1-0/5.html" target="_blank">Configsync documentation</a>
@@ -313,3 +358,7 @@ The final class specific to clustering is the device trust class. Device trust e
 .. |br| raw:: html
 
    <br />
+
+.. |mirrorref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mirrorip" target="_blank">MirrorIp</a>

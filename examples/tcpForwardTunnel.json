@@ -5,7 +5,7 @@
     "Common": {
         "class": "Tenant",
         "newTcpForwardTunnel": {
-        	"class": "Tunnel",
+            "class": "Tunnel",
             "tunnelType": "tcp-forward",
             "mtu": 2000,
             "usePmtu": false,

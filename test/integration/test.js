@@ -67,7 +67,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
     describe('Test Configuration Scope', () => {
         it('should not overlap with config items in the AS3 project', () => {
             logTestTitle(this.ctx.test.title);
-            const path = '/orchestration-as3-generic/as3-properties-latest.json';
+            const path = '/f5-automation-toolchain-generic/f5-appsvcs/latest/as3-properties-latest.json';
             const options = common.buildBody(process.env.ARTIFACTORY_BASE_URL + path, null, null, 'GET');
             options.rejectUnauthorized = false;
             const retryOptions = {
@@ -156,7 +156,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match routing', () => {
-            assert.ok(testRoute(body.Common.myRoute, currentState));
+            assert.ok(testRoute(body.Common.myRoute, currentState, 'myRoute'));
         });
 
         it('should match failover unicast address', () => assert.deepStrictEqual(
@@ -247,12 +247,63 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match routing', () => {
-            assert.ok(testRoute(body.Common.myRoute, currentState));
+            assert.ok(testRoute(body.Common.myRoute, currentState, 'myRoute'));
+        });
+
+        it('should match routing that needs created in order', () => {
+            assert.ok(testRoute(body.Common.int_rt, currentState, 'int_rt'));
+            assert.ok(testRoute(body.Common.int_gw_interface, currentState, 'int_gw_interface'));
+        });
+
+        it('should match localOnly routing', () => {
+            assert.deepStrictEqual(
+                currentState.Route.myLocalOnlyRoute,
+                {
+                    name: 'myLocalOnlyRoute',
+                    mtu: 0,
+                    network: 'default',
+                    localOnly: true,
+                    target: 'myVlan'
+                }
+            );
         });
 
         it('should match dns resolver', () => {
             assert.ok(testDnsResolver(body.Common.myResolver, currentState));
         });
+
+        it('should match ip mirroring', () => {
+            assert.strictEqual(currentState.MirrorIp.primaryIp, body.Common.myMirror.primaryIp);
+            assert.strictEqual(currentState.MirrorIp.secondaryIp, body.Common.myMirror.secondaryIp);
+        });
+
+        it('should match RoutingAsPath', () => assert.deepStrictEqual(
+            currentState.RoutingAsPath,
+            {
+                testRoutingAsPath1: {
+                    name: 'testRoutingAsPath1',
+                    entries: [
+                        {
+                            name: 10,
+                            regex: '^65001 *'
+                        }
+                    ]
+                },
+                testRoutingAsPath2: {
+                    name: 'testRoutingAsPath2',
+                    entries: [
+                        {
+                            name: 10,
+                            regex: '^$'
+                        },
+                        {
+                            name: 20,
+                            regex: '^65005$'
+                        }
+                    ]
+                }
+            }
+        ));
     });
 
     describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {
@@ -637,7 +688,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should match routing', () => {
             logTestTitle(this.ctx.test.title);
-            assert.ok(testRoute(body.Route.myRoute, currentState));
+            assert.deepStrictEqual(body.Route.myRoute, currentState.Route.myRoute);
         });
     });
 
@@ -937,10 +988,11 @@ function testVlan(target, response) {
  *             against a target object schemed on a declaration
  * @target {Object} : object to be tested against
  * @response {Object} : object from status response to compare with target
+ * @targetName {string} : name of the route to get in response
  * Returns Promise true/false
 */
-function testRoute(target, response) {
-    return compareSimple(target, response.Route.myRoute, ['gw', 'network', 'mtu']);
+function testRoute(target, response, targetName) {
+    return compareSimple(target, response.Route[targetName], ['gw', 'network', 'mtu']);
 }
 
 /**

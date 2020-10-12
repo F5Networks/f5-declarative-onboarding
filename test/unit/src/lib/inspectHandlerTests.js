@@ -620,15 +620,37 @@ describe('inspectHandler', () => {
                 },
                 {
                     name: 'testRoute3',
-                    interface: '/Common/tunnel',
+                    tmInterface: '/Common/tunnel',
                     network: '1.2.3.4/32',
                     mtu: 0,
                     partition: 'LOCAL_ONLY'
                 }
             ],
+            '/tm/net/routing/as-path': [
+                {
+                    name: 'exampleAsPath',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/as-path/~Common~exampleAsPath/entries?ver=14.1.2.7'
+                    }
+                }
+            ],
+            '/tm/net/routing/as-path/~Common~exampleAsPath/entries': [
+                {
+                    name: '10',
+                    action: 'permit',
+                    regex: '^$'
+                },
+                {
+                    name: '15',
+                    action: 'permit',
+                    regex: '^123'
+                }
+            ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
+                mirrorIp: '10.0.0.2',
+                mirrorSecondaryIp: '11.0.0.2',
                 unicastAddress: [{ ip: '10.0.0.2', port: 1026 }]
             },
             '/tm/analytics/global-settings': {
@@ -1047,6 +1069,19 @@ describe('inspectHandler', () => {
                             class: 'Route',
                             localOnly: true
                         },
+                        exampleAsPath: {
+                            class: 'RoutingAsPath',
+                            entries: [
+                                {
+                                    name: 10,
+                                    regex: '^$'
+                                },
+                                {
+                                    name: 15,
+                                    regex: '^123'
+                                }
+                            ]
+                        },
                         currentConfigSync: {
                             configsyncIp: '10.0.0.2',
                             class: 'ConfigSync'
@@ -1358,6 +1393,11 @@ describe('inspectHandler', () => {
                         currentDisk: {
                             class: 'Disk',
                             applicationData: 130985984
+                        },
+                        currentMirrorIp: {
+                            class: 'MirrorIp',
+                            primaryIp: '10.0.0.2',
+                            secondaryIp: '11.0.0.2'
                         }
                     }
                 }
@@ -1619,6 +1659,9 @@ describe('inspectHandler', () => {
                             },
                             currentDisk: {
                                 class: 'Disk'
+                            },
+                            currentMirrorIp: {
+                                class: 'MirrorIp'
                             }
                         }
                     }

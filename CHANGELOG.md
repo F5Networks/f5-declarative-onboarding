@@ -1,6 +1,18 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.16.0
+### Added
+- AUTOTOOL-1652: Add support for routing as-path
+- AUTOTOOL-1374: ([GitHub Issue 112](https://github.com/F5Networks/f5-declarative-onboarding/issues/112)): Add support for MirrorIp class
+### Fixed
+- AUTOTOOL-1990: Retry license install if we get a connection reset
+- Target VLAN errors from the inspect endpoint
+- AUTOTOOL-1899: Fix minor schema issues. No type for minPathMtu and use const for Tunnel class
+- AUTOTOOL-1845: ([GitHub Issue 147](https://github.com/F5Networks/f5-declarative-onboarding/issues/147)): Route creation order can be incorrect
+### Changed
+### Removed
+
 ## 1.15.0
 ### Added
 - AUTOTOOL-530: Add Trace files for debug printing

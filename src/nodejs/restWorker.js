@@ -324,8 +324,12 @@ class RestWorker {
 
                                 onboard.call(this, declaration, bigIpOptions, taskId, originalDoId)
                                     .then(() => {
-                                        logger.fine('Onboard configuration complete. Saving sys config.');
-                                        return this.bigIps[taskId].save();
+                                        if (this.bigIps[taskId]) {
+                                            logger.fine('Onboard configuration complete. Saving sys config.');
+                                            return this.bigIps[taskId].save();
+                                        }
+                                        logger.fine('No device.');
+                                        return undefined;
                                     })
                                     .then(() => setPostOnboardStatus.call(
                                         this,
@@ -417,9 +421,11 @@ class RestWorker {
 
 function onboard(declaration, bigIpOptions, taskId, originalDoId) {
     let declarationHandler;
+    let bigIpInitialized = false;
 
     return doUtil.getBigIp(logger, bigIpOptions)
         .then((bigIp) => {
+            bigIpInitialized = true;
             this.bigIps[taskId] = bigIp;
 
             // We store the bigIp object under the original ID so the polling
@@ -447,6 +453,22 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
         })
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
+
+            // If we failed to initialize the bigIp (sometimes it just never becomes available)
+            // then there's not much we can do. Perhaps a reboot would work but for now, just
+            // report the error
+            if (!bigIpInitialized) {
+                logger.info('Failed to initialize BIG-IP');
+                this.state.doState.updateResult(
+                    taskId,
+                    err && err.code ? err.code : 500,
+                    STATUS.STATUS_ERROR,
+                    'failed to initialze device',
+                    err.message
+                );
+                return undefined;
+            }
+
             logger.info('Rolling back configuration');
             this.state.doState.updateResult(
                 taskId,
@@ -498,6 +520,10 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
+    if (!bigIp) {
+        return undefined;
+    }
+
     let promise = Promise.resolve();
 
     promise = promise.then(() => {
@@ -530,6 +556,10 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
 }
 
 function rebootIfRequired(bigIp, taskId) {
+    if (!bigIp) {
+        return undefined;
+    }
+
     return new Promise((resolve, reject) => {
         doUtil.rebootRequired(bigIp, this.state.doState, taskId)
             .then((rebootRequired) => {
@@ -800,8 +830,12 @@ function handleStartupState(success, error) {
                         })
                         .then(() => onboard.call(this, declaration, {}, currentTaskId))
                         .then(() => {
-                            logger.fine('Onboard configuration complete. Saving sys config.');
-                            return this.bigIps[currentTaskId].save();
+                            if (this.bigIps[currentTaskId]) {
+                                logger.fine('Onboard configuration complete. Saving sys config.');
+                                return this.bigIps[currentTaskId].save();
+                            }
+                            logger.fine('No device.');
+                            return undefined;
                         })
                         .then(() => setPostOnboardStatus.call(
                             this,

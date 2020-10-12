@@ -145,9 +145,23 @@
             { "id": "gw" },
             { "id": "network" },
             { "id": "mtu" },
-            { "id": "interface", "newId": "target" }
+            { "id": "tmInterface", "newId": "target" }
         ],
         "partitions": ["Common", "LOCAL_ONLY"]
+    },
+    {
+        "path": "/tm/net/routing/as-path",
+        "schemaClass": "RoutingAsPath",
+        "properties": [
+            { "id": "name" },
+            { "id": "entriesReference" }
+        ],
+        "references": {
+            "entriesReference": [
+                { "id": "name", "stringToInt": true },
+                { "id": "regex" }
+            ]
+        }
     },
     {
         "path": "/tm/cm/device/~Common~{{deviceName}}",
@@ -178,6 +192,15 @@
                 { "id": "formatFailoverUnicast" }
             ]
         }
+    },
+    {
+        "path": "/tm/cm/device/~Common~{{deviceName}}",
+        "schemaClass": "MirrorIp",
+        "properties": [
+            { "id": "mirrorIp", "newId": "primaryIp" },
+            { "id": "mirrorSecondaryIp", "newId": "secondaryIp" }
+        ],
+        "nameless": true
     },
     {
         "path": "/tm/cm/device-group",

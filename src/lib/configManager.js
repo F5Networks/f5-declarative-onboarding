@@ -66,7 +66,8 @@ class ConfigManager {
      *                 falsehood: <mcp_false_value_if_this_is_boolean>,
      *                 transform: [<id_newId_to_apply_to_arrays_and_subobjects>],
      *                 capture: <regex_to_capture>,
-     *                 captureProperty: <property_to_capture_from>
+     *                 captureProperty: <property_to_capture_from>,
+     *                 stringToInt: <boolean_to_convert_int_to_string>
      *             }
      *         ]
      *         references: {
@@ -209,7 +210,7 @@ class ConfigManager {
                             currentItem.forEach((item) => {
                                 if (!shouldIgnore(item, this.configItems[index].ignore)
                                     && inPartitions(item, this.configItems[index].partitions)) {
-                                    if (this.configItems[index].schemaClass === 'Route'
+                                    if (schemaClass === 'Route'
                                         && item.partition === 'LOCAL_ONLY') {
                                         item.localOnly = true;
                                     }
@@ -350,6 +351,9 @@ class ConfigManager {
                             if (refProperty.truth !== undefined) {
                                 patchedItem[refProperty.id] = mapTruth(patchedItem, refProperty);
                             }
+                            if (refProperty.stringToInt) {
+                                patchedItem[refProperty.id] = parseInt(patchedItem[refProperty.id], 10);
+                            }
                         });
                         configItem[property].push(patchedItem);
                     });
@@ -453,7 +457,7 @@ function getPropertiesOfInterest(initialProperties) {
  *
  * For example, map 'enabled' to true
  *
- * @param {Object} item - The item whose properties to map
+ * @param {Object} item - The item (typically the item is coming from bigip) whose properties to map
  * @param {Object} index - The index into configItems for this property
  */
 function mapProperties(item, index) {
@@ -525,6 +529,10 @@ function mapProperties(item, index) {
         } else if (property.defaultWhenOmitted !== undefined) {
             mappedItem[property.id] = property.defaultWhenOmitted;
             hasVal = true;
+        }
+
+        if (hasVal && property.stringToInt) {
+            mappedItem[property.id] = parseInt(mappedItem[property.id], 10);
         }
 
         if (hasVal && property.newId !== undefined) {

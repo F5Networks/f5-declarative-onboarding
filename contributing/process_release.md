@@ -7,7 +7,7 @@
   * Postman collection of examples
   * ASG Docker container
 * RPM is built in every pipeline run, and is kept in GitLab for one week
-* On a Git tag, RPM is published to Artifactory (f5-declarative-onboarding-rpm)
+* On a Git tag, RPM is published to Artifactory (f5-automation-toolchain-generic/f5-declarative-onboarding)
 
 ## Release Notes
 * Release notes are tracked during development in RELEASE_NOTES.md
@@ -23,7 +23,7 @@
 * git tag -m 'Release candidate <fullVersion>' v\<fullVersion\>
 * git push origin
 * git push origin --tags
-* Update package.json and package-lock.json with next version (for example: X.Y+1.0, or X.Y.Z-#+1)
+* Update base.schema.json, package.json and package-lock.json with next version (for example: X.Y+1.0, or X.Y.Z-#+1)
 * git add and commit
 * git push origin
 

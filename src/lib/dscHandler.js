@@ -73,6 +73,10 @@ class DscHandler {
                 logger.fine('Checking MAC_Masquerades');
                 return handleMacMasquerade.call(this);
             })
+            .then(() => {
+                logger.fine('Checking MirrorIp');
+                return handleMirrorIp.call(this);
+            })
             .catch((err) => {
                 logger.severe(`Error processing DSC declaration: ${err.message}`);
                 return Promise.reject(err);
@@ -606,5 +610,24 @@ function handleMacMasquerade() {
     return Promise.resolve();
 }
 
+function handleMirrorIp() {
+    if (this.declaration.Common && this.declaration.Common.MirrorIp) {
+        const body = {
+            mirrorIp: this.declaration.Common.MirrorIp.primaryIp || 'any6',
+            mirrorSecondaryIp: this.declaration.Common.MirrorIp.secondaryIp || 'any6'
+        };
+
+        return this.bigIp.deviceInfo()
+            .then(deviceInfo => this.bigIp.modify(
+                `/tm/cm/device/~Common~${deviceInfo.hostname}`,
+                body
+            ))
+            .catch((err) => {
+                logger.severe(`Error setting mirror ip address: ${err.message}`);
+                return Promise.reject(err);
+            });
+    }
+    return Promise.resolve();
+}
 
 module.exports = DscHandler;

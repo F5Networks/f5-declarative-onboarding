@@ -468,4 +468,38 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 ]);
             });
     });
+
+    it('should delete a RoutingAsPath', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    RoutingAsPath: {
+                        routingAsPathTest: {
+                            name: 'routingAsPathTest',
+                            entries: [
+                                {
+                                    name: 36,
+                                    regex: 'bar'
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                RoutingAsPath: {
+                    routingAsPathTest: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/routing/as-path/~Common~routingAsPathTest']);
+            });
+    });
 });

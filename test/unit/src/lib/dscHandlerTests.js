@@ -201,6 +201,109 @@ describe('dscHandler', () => {
         });
     });
 
+    describe('MirrorIp', () => {
+        let pathSent;
+        let bodySent;
+        beforeEach(() => {
+            bigIpMock.modify = (path, body) => {
+                bodySent = body;
+                pathSent = path;
+            };
+        });
+
+        it('should set mirror ip with defaults', () => {
+            const declaration = {
+                Common: {
+                    MirrorIp: {
+                        primaryIp: 'any6',
+                        secondaryIp: 'any6'
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
+                    assert.strictEqual(bodySent.mirrorIp, 'any6');
+                    assert.strictEqual(bodySent.mirrorSecondaryIp, 'any6');
+                });
+        });
+
+        it('should set a primary mirror ip', () => {
+            const declaration = {
+                Common: {
+                    MirrorIp: {
+                        primaryIp: '1.0.0.0',
+                        secondaryIp: 'any6'
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
+                    assert.strictEqual(bodySent.mirrorIp, '1.0.0.0');
+                    assert.strictEqual(bodySent.mirrorSecondaryIp, 'any6');
+                });
+        });
+
+        it('should set a secondary mirror ip', () => {
+            const declaration = {
+                Common: {
+                    MirrorIp: {
+                        primaryIp: 'any6',
+                        secondaryIp: '1.0.0.0'
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
+                    assert.strictEqual(bodySent.mirrorIp, 'any6');
+                    assert.strictEqual(bodySent.mirrorSecondaryIp, '1.0.0.0');
+                });
+        });
+
+        it('should set both primary and secondary ip', () => {
+            const declaration = {
+                Common: {
+                    MirrorIp: {
+                        primaryIp: '1.0.0.0',
+                        secondaryIp: '2.0.0.0'
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
+                    assert.strictEqual(bodySent.mirrorIp, '1.0.0.0');
+                    assert.strictEqual(bodySent.mirrorSecondaryIp, '2.0.0.0');
+                });
+        });
+
+        it('should send "any6" when undefined', () => {
+            const declaration = {
+                Common: {
+                    MirrorIp: {}
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
+                    assert.strictEqual(bodySent.mirrorIp, 'any6');
+                    assert.strictEqual(bodySent.mirrorSecondaryIp, 'any6');
+                });
+        });
+    });
+
     describe('deviceTrust', () => {
         let getBigIpOptions;
         let addToTrustHost;

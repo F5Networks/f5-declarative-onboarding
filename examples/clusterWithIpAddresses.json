@@ -15,7 +15,7 @@
             "address": "10.0.0.1"
         },
         "trust": {
-        	"class": "DeviceTrust",
+            "class": "DeviceTrust",
             "localUsername": "exampleUsername",
             "localPassword": "examplePassword",
             "remoteHost": "10.0.0.1",
