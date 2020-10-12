@@ -16,6 +16,7 @@ Using Declarative Onboarding Index
    :glob:
 
    http-methods
+   components
    authentication
    installation
    composing-a-declaration
