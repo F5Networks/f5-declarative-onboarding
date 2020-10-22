@@ -387,7 +387,7 @@
         "path": "/tm/auth/remote-role/role-info",
         "schemaClass": "RemoteAuthRole",
         "properties": [
-            { "id": "deny", "newId": "remoteAccess", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "deny", "newId": "remoteAccess", "truth": "disabled", "falsehood": "enabled" },
             { "id": "attribute" },
             { "id": "console" },
             { "id": "lineOrder" },

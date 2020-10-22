@@ -1237,7 +1237,7 @@ describe('inspectHandler', () => {
                             class: 'RemoteAuthRole',
                             attribute: 'testAttrString',
                             console: 'tmsh',
-                            remoteAccess: false,
+                            remoteAccess: true,
                             lineOrder: 999,
                             role: 'operator',
                             userPartition: 'all'

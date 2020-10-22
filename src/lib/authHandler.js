@@ -77,7 +77,8 @@ function handleRemoteAuthRoles() {
         const rr = {};
         rr.attribute = decl.attribute;
         rr.console = decl.console;
-        rr.deny = (decl.remoteAccess) ? 'enabled' : 'disabled';
+        // deny is equivalent to denyRemoteAccess, thus remoteAccess === true is equivalent to deny === false
+        rr.deny = (decl.remoteAccess) ? 'disabled' : 'enabled';
         rr.lineOrder = decl.lineOrder;
         rr.role = decl.role;
         rr.userPartition = decl.userPartition;
