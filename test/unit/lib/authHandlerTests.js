@@ -465,9 +465,9 @@ describe('authHandler', () => {
             return authHandler.process()
                 .then(() => {
                     assert.strictEqual(dataSent[0].name, 'exampleGroupName');
-                    assert.strictEqual(dataSent[0].deny, 'enabled');
+                    assert.strictEqual(dataSent[0].deny, 'disabled');
                     assert.strictEqual(dataSent[1].name, 'anotherGroupName');
-                    assert.strictEqual(dataSent[1].deny, 'disabled');
+                    assert.strictEqual(dataSent[1].deny, 'enabled');
                 });
         });
     });

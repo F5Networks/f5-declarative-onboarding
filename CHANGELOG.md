@@ -4,6 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.17.0
 ### Added
 ### Fixed
+- AUTOTOOL-1942: RemoteAuthRole remoteAccess property logic is backwards
 ### Changed
 ### Removed
 
