@@ -9,34 +9,44 @@
 * On a Git tag, RPM is published to Artifactory (f5-automation-toolchain-generic/f5-declarative-onboarding)
 
 ## Release Notes
-* Release notes are tracked during development in RELEASE_NOTES.md
+* Release notes are tracked during development in `CHANGELOG.md`
 
-## Release candidate process
-* Determine version
-  * \<fullVersion\> should be value found in package.json (e.g. 1.13.0-1)
-  * \<version\> is \<fullVersion\> but only the major, minor, and patch numbers (e.g. 1.13.0)
-* git checkout develop (or whichever branch you want to make a tag of)
-* mkdir src/schema/\<version\>
-* cp src/schema/latest/* src/schema/\<version\>
-* git add and commit
-* git tag -m 'Release candidate <fullVersion>' v\<fullVersion\>
-* git push origin
-* git push origin --tags
-* Update base.schema.json, package.json and package-lock.json with next version (for example: X.Y+1.0, or X.Y.Z-#+1)
-* git add and commit
-* git push origin
+## Release branches
+At some point in the sprint we create a release branch. This should happen when we need to work on a task for the release after the one we are currently working on. This is generally in the second half of the third sprint of a release.
+* Create a new release branch using the major, minor, and patch version as the name. For example, 1.13.0
+* Create the branch from the `develop` branch.
+* Create the branch using the GUI to avoid any issues with an out-of-date local repository.
 
-## Release process
-* git checkout X.Y.Z (the release branch)
+## Process for release candidates
+* Determine `<version>` by looking in `package.json`. `<version>` is the full version without the the `-#`.
+* If we already have a release branch
+  * git checkout `<version>`
+* If we don't already have a release branch
+  * git checkout develop
 * git pull
-* git tag -m 'Release X.Y.Z' vX.Y.Z
-* git push --tags
-* git checkout master
-* git merge <release_branch>
+* mkdir -p src/schema/`<version>`
+* cp src/schema/latest/* src/schema/`<version>`
+* git add and commit
+* git push origin
+* Go to the DO schedule in the `atg-build` project.
+  * Make sure the `gitBranch` CI/CD variable is set to the branch you want to build.
+  * Run the schedule. This will:
+    * Update and commit the build number in `package.json` and `package-lock.json` and commit those changes.
+    * Tag the appropriate branch with the updated version (e.g. v1.13.0-4). The tag will kick off a DO pipeline with integration tests.
+    * Send you a release email.
+* If the DO pipleline is successful, that pipeline will upload the build artifacts to Artifactory. Once this happens, forward the release email to the `f5-declarative-onboarding` distribution list.
+
+## Process for release
+* Using the GUI, create an MR to merge the release branch to `master`. You can self-approve and merge this MR.
+* Using the GUI, create an MR to merge the release branch to `develop`. You can self-approve and merge this MR.
 * git checkout develop
-* git merge <release_branch>
-* git push origin develop
-* git push origin master
+* git pull
+* Create and checkout a branch off of develop.
+* Update the minor release number to the next version and reset the build number to 0. For example if you just released 1.13.0-4, update to 1.14.0-0
+  * Update package.json and package-lock.json
+  * Add the next version (without the build number) to the `schemaVersion` array in `base.schema.json`
+  * git add and commit
+* Submit an MR for these changes and wait for approval.
 
 ### GitHub Publishing (actions performed by release manager)
 * Download the artifacts
