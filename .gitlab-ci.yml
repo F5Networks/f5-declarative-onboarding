@@ -257,6 +257,7 @@ publish to artifactory:
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build
+    allow_failure: true
     except:
         - tags
         - schedules
