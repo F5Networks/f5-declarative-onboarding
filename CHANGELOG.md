@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.17.0
 ### Added
+- AUTOTOOL-1923: ([GitHub Issue 164](https://github.com/F5Networks/f5-declarative-onboarding/issues/164)) Rudimentary DeviceCertificate validation
 ### Fixed
 - AUTOTOOL-1942: RemoteAuthRole remoteAccess property logic is backwards
 ### Changed
