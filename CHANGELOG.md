@@ -6,6 +6,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 - AUTOTOOL-1942: RemoteAuthRole remoteAccess property logic is backwards
 ### Changed
+- AUTOTOOL-1924: ([GitHub Issue 163](https://github.com/F5Networks/f5-declarative-onboarding/issues/163)): Accept 'all' as a single word for HTTPD allow value
 ### Removed
 
 ## 1.16.0

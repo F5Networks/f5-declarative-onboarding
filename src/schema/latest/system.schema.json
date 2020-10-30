@@ -213,7 +213,10 @@
                         "oneOf": [
                             {
                                 "type": "string",
-                                "const": "none"
+                                "enum": [
+                                    "all",
+                                    "none"
+                                ]
                             },
                             {
                                 "type": "array",

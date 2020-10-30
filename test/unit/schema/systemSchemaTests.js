@@ -1040,6 +1040,24 @@ describe('system.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate allow all in array', () => {
+                const data = {
+                    class: 'HTTPD',
+                    allow: [
+                        'all'
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate allow all as single word', () => {
+                const data = {
+                    class: 'HTTPD',
+                    allow: 'all'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {

@@ -1937,6 +1937,21 @@ describe('systemHandler', () => {
                     assert.deepEqual(dataSent[PATHS.HTTPD][0].sslProtocol, 'all -TLSv1');
                 });
         });
+
+        it('should set allow value to an array', () => {
+            const declaration = {
+                Common: {
+                    HTTPD: {
+                        allow: 'all'
+                    }
+                }
+            };
+            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent[PATHS.HTTPD][0].allow, ['All']);
+                });
+        });
     });
 
     describe('SSHD', () => {

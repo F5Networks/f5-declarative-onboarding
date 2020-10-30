@@ -1652,7 +1652,8 @@ describe('inspectHandler', () => {
                                 hostname: 'myhost.bigip.com'
                             },
                             currentHTTPD: {
-                                class: 'HTTPD'
+                                class: 'HTTPD',
+                                allow: 'none'
                             },
                             currentSSHD: {
                                 class: 'SSHD'
