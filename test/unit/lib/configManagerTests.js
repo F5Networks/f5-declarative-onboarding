@@ -1445,4 +1445,72 @@ describe('configManager', () => {
                 });
         });
     });
+
+    describe('Disk', () => {
+        const configItems = getConfigItems('Disk');
+
+        beforeEach(() => {
+            doState.getOriginalConfigByConfigId = () => state.originalConfig;
+            bigIpMock.list = (path) => {
+                const pathname = URL.parse(path, 'https://foo').pathname;
+                return Promise.resolve(listResponses[pathname] || {});
+            };
+        });
+
+        it('should update original disk size to match current when current is greater', () => {
+            listResponses['/tm/sys/disk/directory'] = {
+                apiRawValues: {
+                    apiAnonymous: '\nDirectory Name                  Current Size    New Size        \n--------------                  ------------    --------        \n/config                         3321856         -               \n/shared                         20971520        -               \n/var                            3145728         -               \n/var/log                        3072000         -               \n/appdata                        26128384       -               \n\n'
+                }
+            };
+
+            const expectedConfig = {
+                Disk: {
+                    applicationData: 26128384
+                }
+            };
+
+            state.originalConfig = {
+                Common: {
+                    Disk: {
+                        applicationData: 12345
+                    }
+                }
+            };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.originalConfig.Common, expectedConfig);
+                });
+        });
+
+        it('should not update original disk size to match current when original is greater', () => {
+            listResponses['/tm/sys/disk/directory'] = {
+                apiRawValues: {
+                    apiAnonymous: '\nDirectory Name                  Current Size    New Size        \n--------------                  ------------    --------        \n/config                         3321856         -               \n/shared                         20971520        -               \n/var                            3145728         -               \n/var/log                        3072000         -               \n/appdata                        12345       -               \n\n'
+                }
+            };
+
+            const expectedConfig = {
+                Disk: {
+                    applicationData: 26128384
+                }
+            };
+
+            state.originalConfig = {
+                Common: {
+                    Disk: {
+                        applicationData: 26128384
+                    }
+                }
+            };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.originalConfig.Common, expectedConfig);
+                });
+        });
+    });
 });

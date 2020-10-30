@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 ### Fixed
 - AUTOTOOL-1942: RemoteAuthRole remoteAccess property logic is backwards
+- AUTOTOOL-1955: Disk size must be larger than current size
 ### Changed
 ### Removed
 
