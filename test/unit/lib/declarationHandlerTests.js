@@ -855,6 +855,62 @@ describe('declarationHandler', () => {
                 });
         });
 
+        describe('should apply fix for HTTPD allow value', () => {
+            it('should convert single word all to array', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        HTTPD: {
+                            allow: 'all'
+                        }
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current',
+                        parsed: true,
+                        Common: {}
+                    },
+                    originalConfig: {
+                        Common: {}
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        const httpd = declarationWithDefaults.Common.HTTPD;
+                        assert.deepStrictEqual(httpd, { allow: ['all'] });
+                    });
+            });
+
+            it('should not convert single word none to array', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        HTTPD: {
+                            allow: 'none'
+                        }
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current',
+                        parsed: true,
+                        Common: {}
+                    },
+                    originalConfig: {
+                        Common: {}
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        const httpd = declarationWithDefaults.Common.HTTPD;
+                        assert.deepStrictEqual(httpd, { allow: 'none' });
+                    });
+            });
+        });
+
         it('should error if list returns a failure', () => {
             bigIpMock.list = () => { throw new Error('This is an error'); };
 

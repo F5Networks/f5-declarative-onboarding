@@ -1053,6 +1053,68 @@ describe('configManager', () => {
         });
     });
 
+    describe('HTTPD patches', () => {
+        it('Should set allow value of All to lower case', () => {
+            const configItems = [
+                {
+                    path: '/tm/sys/httpd',
+                    schemaClass: 'HTTPD',
+                    properties: [
+                        { id: 'allow' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/sys/httpd'] = {
+                allow: ['All']
+            };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(state.originalConfig,
+                        {
+                            parsed: true,
+                            Common: {
+                                HTTPD: {
+                                    allow: ['all']
+                                }
+                            }
+                        });
+                });
+        });
+
+        it('Should set missing allow value to none', () => {
+            const configItems = [
+                {
+                    path: '/tm/sys/httpd',
+                    schemaClass: 'HTTPD',
+                    properties: [
+                        { id: 'allow' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/sys/httpd'] = {};
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepEqual(state.originalConfig,
+                        {
+                            parsed: true,
+                            Common: {
+                                HTTPD: {
+                                    allow: 'none'
+                                }
+                            }
+                        });
+                });
+        });
+    });
+
     it('should set original config if missing', () => {
         const configItems = [
             {

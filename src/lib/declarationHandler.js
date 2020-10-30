@@ -148,6 +148,7 @@ class DeclarationHandler {
                 applyDefaults(parsedNewDeclaration, state);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
+                applyHttpdFixes(parsedNewDeclaration);
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
                 return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration, declaration);
             })
@@ -473,6 +474,22 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
             rd.vlans.push(vlanName);
         }
     });
+}
+
+/**
+ * Normalizes the HTTPD section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyHttpdFixes(declaration) {
+    const httpdDeclaration = declaration.Common.HTTPD;
+    if (httpdDeclaration && httpdDeclaration.allow) {
+        // Schema can handle 'all' as either a single word or in an array. Normalize
+        // to an array since that's what BIG-IP uses
+        if (httpdDeclaration.allow === 'all') {
+            httpdDeclaration.allow = [httpdDeclaration.allow];
+        }
+    }
 }
 
 function processHandler(Handler, declaration, bigIp, eventEmitter, state) {

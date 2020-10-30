@@ -314,12 +314,10 @@ class ConfigManager {
                             }
                         }
                         if (schemaClass === 'HTTPD') {
-                            if (patchedItem.sslCiphersuite) {
-                                patchHTTPD.call(
-                                    this,
-                                    patchedItem
-                                );
-                            }
+                            patchHTTPD.call(
+                                this,
+                                patchedItem
+                            );
                         }
                         if (schemaClass === 'Disk' && patchedItem.apiRawValues) {
                             patchedItem = patchedItem.apiRawValues;
@@ -849,7 +847,17 @@ function patchSSHD(patchedItem) {
 }
 
 function patchHTTPD(patchedItem) {
-    patchedItem.sslCiphersuite = patchedItem.sslCiphersuite.split(':');
+    if (patchedItem.sslCiphersuite) {
+        patchedItem.sslCiphersuite = patchedItem.sslCiphersuite.split(':');
+    }
+    if (patchedItem.allow) {
+        if (Array.isArray(patchedItem.allow)) {
+            // Allow can use 'all' or 'All'. Normalize to 'all'.
+            patchedItem.allow = patchedItem.allow.map(item => (item === 'All' ? 'all' : item));
+        }
+    } else {
+        patchedItem.allow = 'none';
+    }
 }
 
 function shouldIgnore(item, ignoreList) {
