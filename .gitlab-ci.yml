@@ -283,6 +283,7 @@ create docs:
 # Docs are staged on this projects pages site
 pages:
     stage: docs
+    allow_failure: true
     except:
         - tags
         - schedules
