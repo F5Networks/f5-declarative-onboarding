@@ -386,6 +386,15 @@ class ConfigManager {
                     });
                 }
 
+                const currentDisk = state.currentConfig.Common.Disk;
+                if (currentDisk && currentDisk.applicationData
+                    && currentDisk.applicationData > originalConfig.Common.Disk.applicationData) {
+                    if (!originalConfig.Common.Disk) {
+                        originalConfig.Common.Disk = {};
+                    }
+                    originalConfig.Common.Disk.applicationData = currentDisk.applicationData;
+                }
+
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
                 state.originalConfig = originalConfig;
 
