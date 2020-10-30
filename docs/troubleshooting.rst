@@ -76,7 +76,7 @@ If your BIG-IP system seems to be using a relatively high amount of CPU and degr
 **More information** |br|
 Restjavad may become unstable if the amount of memory required by the daemon exceeds the value allocated for its use. The memory required by the restjavad daemon may grow significantly in system configurations with either a high volume of device statistics collection (AVR provisioning), or a with relatively large number of LTM objects managed by the REST framework (SSL Orchestrator provisioning). The overall system performance is degraded during the continuous restart of the restjavad daemon due to high CPU usage. 
 
-See `Bug ID 894593 <https://cdn.f5.com/product/bugtracker/ID894593.html>`_ and `Bug ID 776393 <https://cdn.f5.com/product/bugtracker/ID776393.html>`_.
+See `Bug ID 894593 <https://cdn.f5.com/product/bugtracker/ID894593.html>`_ and Bug ID 776393.
 
 **Workaround** |br|
 Increase the memory allocated for the restjavad daemon (e.g. 2 GB), you can either use the declaration shown in :ref:`example31`, OR by running the following commands in a BIG-IP terminal.
