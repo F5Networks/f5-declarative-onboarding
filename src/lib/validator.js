@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2018-2020 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 const AjvValidator = require('./ajvValidator');
 const BigIqSettingsValidator = require('./bigIqSettingsValidator');
 const BusinessLogicValidator = require('./businessLogicValidator');
+const DeviceCertificateValidator = require('./deviceCertificateValidator');
 const LicensePoolValidator = require('./licensePoolValidator');
 const UserValidator = require('./userValidator');
 
@@ -29,7 +30,8 @@ class Validator {
             new BusinessLogicValidator(),
             new BigIqSettingsValidator(),
             new LicensePoolValidator(),
-            new UserValidator()
+            new UserValidator(),
+            new DeviceCertificateValidator()
         ];
     }
 
