@@ -358,10 +358,6 @@ See :ref:`devicegroup` for more information.
 
 18: Updating the TLS/SSL Device Certificate in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for including a TLS/SSL device certificate and key is available in DO v1.12 and later. 
-
 This example declaration shows how you can create/upload a device certificate in a Declarative Onboarding declaration. The BIG-IP system uses the device certificate to authenticate access to the Configuration utility and to accommodate device-to-device communication processes, such as configuration synchronization. 
 
 For more information and how this process works manually, see the KB article |certdoc|.

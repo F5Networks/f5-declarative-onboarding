@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 3.4
+        - Updated the documentation for Declarative Onboarding v1.17.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * RemoteAuthRole remoteAccess property logic is backwards |br| * Disk size must be larger than current size
+        - 11-20-20
+
       * - 3.3
         - Updated the documentation for Declarative Onboarding v1.16.0.  This release contains the following changes: |br| * Added support for connection and persistence mirroring using the new MirrorIp class, `GitHub Issue 112 <https://github.com/F5Networks/f5-declarative-onboarding/issues/112>`_  (see :ref:`example29`) |br| * Added an example showing how to add an advisory banner in a declaration (see :ref:`example30`) |br| * Added an example declaration for increasing the memory for restjavad (see :ref:`example31` and :ref:`restjavad`) |br| * Updated the note for vCMP systems on the :doc:`prereqs` page stating that creating vCMP guests with a DO declaration is not supported |br| * Added a note on the :doc:`do-container` and :ref:`Warnings<warnings>` pages stating that F5 is archiving the community-supported DO in a container solution |br| * Updated the note in :doc:`prereqs` to include BIG-IP 13.1.3.x as incompatible with Declarative Onboarding |br| |br| Issues Resolved: |br| * Retry license install if DO receives a connection reset |br| * Target VLAN errors from the inspect endpoint |br| * Fix minor schema issues: No type for minPathMtu and use const for Tunnel class |br| * Route creation order can be incorrect (`GitHub Issue 147 <https://github.com/F5Networks/f5-declarative-onboarding/issues/147>`_) 
         - 10-13-20
