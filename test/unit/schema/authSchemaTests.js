@@ -253,12 +253,33 @@ describe('auth.schema.json', () => {
                     assert.ok(dataCopy, getErrorString(validate));
                 });
             });
+
+            it('should allow variables', () => {
+                const dataCopy = JSON.parse(JSON.stringify(data));
+                dataCopy.role = '%F5-LTM-User-Role';
+                dataCopy.console = '%F5-LTM-User-Shell';
+                dataCopy.userPartition = '%F5-LTM-User-Partition';
+                assert.ok(dataCopy, getErrorString(validate));
+            });
         });
+
         describe('invalid', () => {
-            it(`should invalidate incorrect remote role`, () => {
+            it(`should invalidate RemoteAuthRole when invalid role value`, () => {
                 const dataCopy = JSON.parse(JSON.stringify(data));
                 dataCopy.role = 'root';
-                assert.strictEqual(validate(dataCopy), false, 'incorrect remote roles should fail');
+                assert.strictEqual(validate(dataCopy), false, 'incorrect RemoteAuthRole role should fail');
+            });
+
+            it(`should invalidate RemoteAuthRole when invalid console value`, () => {
+                const dataCopy = JSON.parse(JSON.stringify(data));
+                dataCopy.console = 'enabled';
+                assert.strictEqual(validate(dataCopy), false, 'incorrect RemoteAuthRole console should fail');
+            });
+
+            it(`should invalidate RemoteAuthRole when invalid userPartition value`, () => {
+                const dataCopy = JSON.parse(JSON.stringify(data));
+                dataCopy.userPartition = 'partition1';
+                assert.strictEqual(validate(dataCopy), false, 'incorrect RemoteAuthRole userPartition should fail');
             });
         });
     });

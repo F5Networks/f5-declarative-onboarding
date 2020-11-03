@@ -110,6 +110,12 @@ function getValues(property, type) {
         }
         return value;
     }
+    if (property.oneOf) {
+        return property.oneOf
+            .map((item) => getValues(item, item.type))
+            .filter((value) => value !== '-')
+            .join(', ');
+    }
     if (type === 'string') {
         if (property.const) return `"${property.const}"`;
         if (property.enum) return property.enum.map(s => `"${s}"`).join(', ');
