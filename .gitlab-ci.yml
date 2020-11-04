@@ -1,4 +1,4 @@
-image: node:latest
+image: $DOCKER_URL/node:latest
 
 stages:
     - lint
@@ -34,7 +34,7 @@ lint:
         - npm run lint
 
 test_node:4:
-    image: node:4
+    image: $DOCKER_URL/node:4
     stage: test
     tags:
         - do-test-docker-executor
@@ -45,7 +45,7 @@ test_node:4:
         - npm test
 
 test_node:6:
-    image: node:6
+    image: $DOCKER_URL/node:6
     stage: test
     tags:
         - do-test-docker-executor
@@ -55,7 +55,7 @@ test_node:6:
         - npm test
 
 test_node:8:
-    image: node:8
+    image: $DOCKER_URL/node:8
     stage: test
     tags:
         - do-test-docker-executor
@@ -167,7 +167,7 @@ teardown:
     stage: teardown
 
 build rpm:
-    image: f5devcentral/containthedocs:rpmbuild
+    image: $DOCKER_URL/f5devcentral/containthedocs:rpmbuild
     stage: build
     tags:
         - cm-official-docker-executor
@@ -182,7 +182,7 @@ build rpm:
         expire_in: 1 week
 
 build asg:
-    image: docker:latest
+    image: $DOCKER_URL/docker:latest
     stage: post build
     except:
         - schedules
