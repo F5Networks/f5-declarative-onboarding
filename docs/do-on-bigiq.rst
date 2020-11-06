@@ -57,7 +57,7 @@ The request to send a Declarative Onboarding declaration to BIG-IQ is the same a
 The JSON in the body of the POST request can includes the following parameters. See :ref:`bigiqdo1` an example declaration for using DO on BIG-IQ.
 
 .. list-table::
-   :widths: 20 20 20 40
+   :widths: 20 10 20 50
    :header-rows: 1
 
    * - Name
@@ -72,67 +72,75 @@ The JSON in the body of the POST request can includes the following parameters. 
      - object
      - True 
      - Settings for the BIG-IQ performing onboarding
-   * -      *accessModuleProperties*
+   * - *accessModuleProperties*
      - string
      - Yes if an APM module is being imported 
-     - Additional access module properties provided for the import.  
-   * -      *clusterName*
+     - Additional access module properties provided for the import.
+   * - cm:access:access-group
+     - string
+     - Yes if an APM module is being imported 
+     - The access group name of the access module provided for the import.  
+   * - cm:access:import-shared
+     - string
+     - Yes if an APM module is being imported 
+     - True if this is the first device in the access group. Otherwise this value can be false.  
+   * - *clusterName*
      - string
      - True if the BIG-IP is to be managed as part of a cluster 
      - Cluster display name of the BIG-IP Device Service Clustering (DSC) group. `clusterName` must be the same for all the BIG-IPs in a DSC group.   	 
-   * -      *conflictPolicy*
+   * - *conflictPolicy*
      - string
      - True if `failImportOnConflict` is false. 
-     - Conflict policy for the onboarding. Possible values: “NONE”, “USE_BIGIP”, “USE_BIGIQ”, “KEEP_VERSION”
-   * -      *deployWhenDscChangesPending*
+     - Conflict policy for the onboarding. Possible values: "NONE", "USE_BIGIP", "USE_BIGIQ", "KEEP_VERSION"
+   * - *deployWhenDscChangesPending*
      - string
      - boolean 
      - Deploy when there are pending DSC changes on BIG-IP.
-   * -      *deviceConflictPolicy*
+   * - *deviceConflictPolicy*
      - string
      - False 
-     - Conflict policy for device-specific objects. For Access, a device-specific import can accept “USE_BIGIP” for all device-specific objects. Default is the same value as `conflictPolicy`. Possible values: “NONE”, “USE_BIGIP”, “USE_BIGIQ”, “KEEP_VERSION”
-   * -      *failImportOnConflict*
+     - Conflict policy for device-specific objects. For Access, a device-specific import can accept "USE_BIGIP" for all device-specific objects. Default is the same value as `conflictPolicy`. Possible values: "NONE", "USE_BIGIP", "USE_BIGIQ", "KEEP_VERSION"
+   * - *failImportOnConflict*
      - boolean
      - False 
      - True specifies to fail import task if there are conflicts. This can true if you want to resolve the conflicts manually. Default is false.   	 	 
-   * -      *snapshotWorkingConfig*
+   * - *snapshotWorkingConfig*
      - boolean
      - False 
      - True specifies a snapshot of the working configuration for current BIG-IPs before the import. Default is false.  	 
-   * -      *statsConfig*
+   * - *statsConfig*
      - object
      - False 
      - Stats configuration details for the BIG-IP   	 
-   * -           *enabled*
+   * - *enabled*
      - boolean
      - True `statsConfig` if is defined 
      - True enables collecting statistics for the BIG-IP 	 
-   * -           *zone*
+   * - *zone*
      - string
      - False 
-     - User-defined names that associate BIG-IPs with one or more data collection device (DCD) systems to provide optimal routing for statistics traffic. This value can be “default”.
-   * -      *useBigiqSync*
+     - User-defined names that associate BIG-IPs with one or more data collection device (DCD) systems to provide optimal routing for statistics traffic. This value can be "default".
+   * - *useBigiqSync*
      - boolean
      - False 
      - True to use BIG-IQ to push changes to cluster BIG-IPs instead of using the BIG-IP cluster sync to synchronize configuration. 	 
-   * -      *versionedConflictPolicy*
+   * - *versionedConflictPolicy*
      - string
      - False 
-     - Conflict policy for version-specific objects. For Access, a device-specific import can accept “USE_BIGIP” for all device-specific objects. Default is the same value as `conflictPolicy`.  Possible values: “NONE”, “USE_BIGIP”, “USE_BIGIQ”, “KEEP_VERSION”
+     - Conflict policy for version-specific objects. For Access, a device-specific import can accept "USE_BIGIP" for all device-specific objects. Default is the same value as `conflictPolicy`.  Possible values: "NONE", "USE_BIGIP", "USE_BIGIQ", "KEEP_VERSION"
    * - declaration
      - object
      - True 
      - The Declarative Onboarding declaration that you want to transmit. The DO declaration includes the BIG-IP objects you want the system to configure. 
-   * -      *async*
+   * - *async*
      - boolean
      - True 
      - The `async` field must be true to use DO on BIG-IQ.
-   * -      *Common*
+   * - *Common*
      - object
      - True 
      - Sections of the DO declaration.
-   * -           *admin*
+   * - *admin*
      - object
      - True 
      - The `admin` section of `Common` in the DO declaration is required if making an AWS initial declaration using the `targetSshKey`.		 
@@ -148,7 +156,7 @@ The JSON in the body of the POST request can includes the following parameters. 
      - object
      - False 
      - Required for initial onboarding of a new BIG-IP VE in an AWS cloud. Use `targetPassphrase` for any subsequent onboarding of the same BIG-IP VE on AWS. `targetSshKey` is not used in Azure and VMware environments, those environments alway use `targetUsername` and `targetPassphrase`. 
-   * -      *path*
+   * - *path*
      - string
      - False 
      - Path to ssh key.	 	 
@@ -175,5 +183,7 @@ The JSON in the body of the POST request can includes the following parameters. 
    <a href="https://clouddocs.f5.com/products/big-iq/mgmt-api/v7.0.0/ApiReferences/bigiq_public_api_ref/r_do_onboarding.html" target="_blank">BIG-IQ API documentation</a>
 
 
+.. |sp| raw:: html
 
+   &nbsp
 
