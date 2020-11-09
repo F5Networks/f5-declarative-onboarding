@@ -79,6 +79,6 @@ See :ref:`bigiqdo1` an example declaration for using DO on BIG-IQ.
 
 .. |bigiqapi| raw:: html
 
-   <a href="https://clouddocs.f5.com/products/big-iq/mgmt-api/v0.0/ApiReferences/bigiq_public_api_ref/r_do_onboarding.html#post-mgmt-shared-declarative-onboarding" target="_blank">DO/BIG-IQ parameter table</a>
+   <a href="https://clouddocs.f5.com/products/big-iq/mgmt-api/latest/ApiReferences/bigiq_public_api_ref/r_do_onboarding.html#post-mgmt-shared-declarative-onboarding" target="_blank">DO/BIG-IQ parameter table</a>
 
 
