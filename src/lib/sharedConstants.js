@@ -92,6 +92,7 @@ module.exports = {
         'Provision',
         'ConfigSync',
         'FailoverUnicast',
+        'FailoverMulticast',
         'DeviceTrust',
         'Analytics',
         'Authentication',

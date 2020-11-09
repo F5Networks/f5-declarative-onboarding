@@ -125,7 +125,7 @@ describe('dscHandler', () => {
         });
     });
 
-    describe('failoverUnicast', () => {
+    describe('FailoverUnicast', () => {
         const address = '1.2.3.4';
         const port = 1234;
 
@@ -197,6 +197,41 @@ describe('dscHandler', () => {
             return dscHandler.process()
                 .then(() => {
                     assert.strictEqual(bodySent.unicastAddress, 'none');
+                });
+        });
+    });
+
+    describe('FailoverMulticast', () => {
+        let pathSent;
+        let bodySent;
+
+        beforeEach(() => {
+            bigIpMock.modify = (path, body) => {
+                pathSent = path;
+                bodySent = body;
+            };
+        });
+
+        it('should handle a FailoverMulticast', () => {
+            const declaration = {
+                Common: {
+                    FailoverMulticast: {
+                        interface: 'exampleInterface',
+                        address: '1.2.3.4',
+                        port: 765
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(bodySent, {
+                        multicastInterface: 'exampleInterface',
+                        multicastIp: '1.2.3.4',
+                        multicastPort: 765
+                    });
+                    assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
                 });
         });
     });

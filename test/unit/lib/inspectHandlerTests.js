@@ -651,7 +651,10 @@ describe('inspectHandler', () => {
                 configsyncIp: '10.0.0.2',
                 mirrorIp: '10.0.0.2',
                 mirrorSecondaryIp: '11.0.0.2',
-                unicastAddress: [{ ip: '10.0.0.2', port: 1026 }]
+                unicastAddress: [{ ip: '10.0.0.2', port: 1026 }],
+                multicastInterface: 'exampleInterface',
+                multicastIp: '1.2.3.4',
+                multicastPort: 12
             },
             '/tm/analytics/global-settings': {
                 avrdDebugMode: 'disabled',
@@ -1094,6 +1097,12 @@ describe('inspectHandler', () => {
                                 }
                             ],
                             class: 'FailoverUnicast'
+                        },
+                        currentFailoverMulticast: {
+                            interface: 'exampleInterface',
+                            address: '1.2.3.4',
+                            port: 12,
+                            class: 'FailoverMulticast'
                         },
                         currentAnalytics: {
                             offboxProtocol: 'tcp',
@@ -1663,6 +1672,12 @@ describe('inspectHandler', () => {
                             },
                             currentMirrorIp: {
                                 class: 'MirrorIp'
+                            },
+                            currentFailoverMulticast: {
+                                class: 'FailoverMulticast',
+                                address: 'any6',
+                                interface: 'none',
+                                port: 0
                             }
                         }
                     }
