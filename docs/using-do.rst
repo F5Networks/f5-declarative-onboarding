@@ -25,6 +25,5 @@ Using Declarative Onboarding Index
    clustering-managing-devices
    big-iq-licensing
    do-on-bigiq
-   do-container
    json-pointers
    troubleshooting
