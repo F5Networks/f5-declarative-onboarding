@@ -542,7 +542,6 @@
                         }
                     }
                 },
-                "required": ["class"],
                 "additionalProperties": false
             }
         }
