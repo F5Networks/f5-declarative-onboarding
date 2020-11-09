@@ -137,7 +137,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock);
         return deleteHandler.process()
             .then(() => {
-                assert.strictEqual(fetchedPaths.length, 4);
+                assert.strictEqual(fetchedPaths.length, 6);
                 assert.strictEqual(fetchedPaths[0], '/tm/auth/radius');
                 assert.strictEqual(fetchedPaths[1], '/tm/auth/tacacs');
                 assert.strictEqual(fetchedPaths[2], '/tm/auth/ldap');
@@ -232,12 +232,59 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock);
         return deleteHandler.process()
             .then(() => {
-                assert.strictEqual(fetchedPaths.length, 4);
+                assert.strictEqual(fetchedPaths.length, 6);
                 assert.strictEqual(fetchedPaths[0], '/tm/auth/radius');
                 assert.strictEqual(fetchedPaths[1], '/tm/auth/tacacs');
                 assert.strictEqual(fetchedPaths[2], '/tm/auth/ldap');
                 assert.strictEqual(fetchedPaths[3], '/tm/auth/radius-server');
                 assert.strictEqual(deletedPaths.length, 0);
+            });
+    });
+
+    it('should issue deletes for Authentication LDAP certificates', () => {
+        bigIpMock.delete = path => new Promise((resolve) => {
+            deletedPaths.push(path);
+            resolve();
+        });
+
+        bigIpMock.list = path => new Promise((resolve) => {
+            fetchedPaths.push(path);
+            if (path === '/tm/sys/file/ssl-cert') {
+                resolve([
+                    { fullPath: '/Common/do_ldapCaCert.crt' },
+                    { fullPath: '/Common/do_ldapClientCert.crt' }
+                ]);
+            } else if (path === '/tm/sys/file/ssl-key') {
+                resolve([
+                    { fullPath: '/Common/do_ldapClientCert.key' }
+                ]);
+            } else {
+                resolve([
+                    { fullPath: '/Common/system-auth' }
+                ]);
+            }
+        });
+
+        const declaration = {
+            Common: {
+                Authentication: {
+                    ldap: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(fetchedPaths.length, 3);
+                assert.strictEqual(fetchedPaths[0], '/tm/auth/ldap');
+                assert.strictEqual(fetchedPaths[1], '/tm/sys/file/ssl-cert');
+                assert.strictEqual(fetchedPaths[2], '/tm/sys/file/ssl-key');
+                assert.strictEqual(deletedPaths.length, 4);
+                assert.strictEqual(deletedPaths[0], '/tm/auth/ldap/system-auth');
+                assert.strictEqual(deletedPaths[1], '/tm/sys/file/ssl-cert/~Common~do_ldapCaCert.crt');
+                assert.strictEqual(deletedPaths[2], '/tm/sys/file/ssl-cert/~Common~do_ldapClientCert.crt');
+                assert.strictEqual(deletedPaths[3], '/tm/sys/file/ssl-key/~Common~do_ldapClientCert.key');
             });
     });
 
@@ -265,7 +312,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock);
         return deleteHandler.process()
             .then(() => {
-                assert.strictEqual(fetchedPaths.length, 4);
+                assert.strictEqual(fetchedPaths.length, 6);
                 assert.strictEqual(fetchedPaths[0], '/tm/auth/radius');
                 assert.strictEqual(fetchedPaths[1], '/tm/auth/tacacs');
                 assert.strictEqual(fetchedPaths[2], '/tm/auth/ldap');

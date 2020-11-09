@@ -853,14 +853,41 @@ describe('inspectHandler', () => {
                     '127.0.0.1'
                 ],
                 ssl: 'enabled',
+                sslCaCertFile: '/Common/do_ldapCaCert.crt',
+                sslCaCertFileReference: {
+                    link: 'https://localhost/mgmt/tm/sys/file/ssl-cert/~Common~do_ldapCaCert.crt'
+                },
                 sslCheckPeer: true,
                 sslCiphers: [
                     'ECDHE-RSA-AES128-GCM-SHA256',
                     'ECDHE-RSA-AES128-CBC-SHA',
                     'ECDHE-RSA-AES128-SHA256'
                 ],
+                sslClientCert: '/Common/do_ldapClientCert.crt',
+                sslClientCertReference: {
+                    link: 'https://localhost/mgmt/tm/sys/file/ssl-cert/~Common~do_ldapClientCert.crt'
+                },
+                sslClientKey: '/Common/do_ldapClientCert.crt',
+                sslClientKeyReference: {
+                    link: 'https://localhost/mgmt/tm/sys/file/ssl-cert/~Common~do_ldapClientCert.key'
+                },
                 userTemplate: '%s',
                 version: 3
+            },
+            '/tm/sys/file/ssl-cert/~Common~externalVlan/~Common~do_ldapCaCert.crt': {
+                name: 'do_ldapCaCert.crt',
+                partition: 'Common',
+                checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10'
+            },
+            '/tm/sys/file/ssl-cert/~Common~externalVlan/~Common~do_ldapClientCert.crt': {
+                name: 'do_ldapClientCert.crt',
+                partition: 'Common',
+                checksum: 'SHA1:1912:794e6068c6ef2c289ff33c694d1dae29a2c762df'
+            },
+            '/tm/sys/file/ssl-cert/~Common~externalVlan/~Common~do_ldapClientCert.key': {
+                name: 'do_ldapClientCert.key',
+                partition: 'Common',
+                checksum: 'SHA1:1338:476e9a0bb565da46935a96d26e02ee13ca99c455'
             },
             '/tm/auth/tacacs': [
                 {

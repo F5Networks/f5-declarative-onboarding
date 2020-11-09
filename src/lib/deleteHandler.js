@@ -20,6 +20,7 @@ const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const RADIUS = require('./sharedConstants').RADIUS;
+const LDAP = require('./sharedConstants').LDAP;
 const AUTH = require('./sharedConstants').AUTH;
 
 const logger = new Logger(module);
@@ -148,6 +149,22 @@ function getAuthClassPromises() {
     const authPromises = [];
     if (auth) {
         const authToDelete = ['radius', 'ldap', 'tacacs'];
+        const deleteAuthItems = (path, names) => this.bigIp.list(path, null, null, cloudUtil.NO_RETRY)
+            .then((authItems) => {
+                const items = authItems && Array.isArray(authItems) ? authItems : [];
+                return Promise.all(names.map((name) => {
+                    const shouldDelete = items.some(item => item.fullPath === `/Common/${name}`);
+
+                    if (shouldDelete) {
+                        return this.bigIp.delete(
+                            `${path}/~Common~${name}`,
+                            null, null, cloudUtil.NO_RETRY
+                        );
+                    }
+                    return Promise.resolve();
+                }));
+            });
+
         Object.keys(auth).forEach((authItem) => {
             if (authToDelete.indexOf(authItem) === -1) {
                 return;
@@ -191,6 +208,16 @@ function getAuthClassPromises() {
                         );
                     });
             }
+
+            if (authItem === 'ldap') {
+                // quirk with ldap SSL certificates and keys:
+                // 1) needing separate DELETEs and they also have name constants
+                // 2) should be deleted only when /tm/auth/ldap/system-auth object was deleted
+                promise = promise
+                    .then(() => deleteAuthItems(PATHS.SSLCert, [LDAP.CA_CERT, LDAP.CLIENT_CERT]))
+                    .then(() => deleteAuthItems(PATHS.SSLKey, [LDAP.CLIENT_KEY]));
+            }
+
             authPromises.push(promise);
         });
     }

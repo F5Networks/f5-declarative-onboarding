@@ -308,7 +308,8 @@
         "declaration": {
             "$comment": "Kind like parent object because all auth config will be under 'Authentication' key",
             "customFunctions": [
-                { "id": "removeIncompleteAuthMethods" }
+                { "id": "removeIncompleteAuthMethods" },
+                { "id": "removeLdapCertAndKey" }
             ]
         }
     },
@@ -436,11 +437,28 @@
             { "id": "searchTimeout" },
             { "id": "servers" },
             { "id": "ssl" },
+            { "id": "sslCaCertFile", "newId": "sslCaCert" },
             { "id": "sslCheckPeer", "truth": "enabled", "falsehood": "disabled" },
             { "id": "sslCiphers" },
+            { "id": "sslClientCert" },
+            { "id": "sslClientKey" },
             { "id": "userTemplate" },
             { "id": "version" }
         ],
+        "references": {
+            "sslCaCertFileReference": [
+                { "id": "checksum" },
+                { "id": "partition" }
+            ],
+            "sslClientCertReference": [
+                { "id": "checksum" },
+                { "id": "partition" }
+            ],
+            "sslClientKeyReference": [
+                { "id": "checksum" },
+                { "id": "partition" }
+            ]
+        },
         "nameless": true
     },
     {

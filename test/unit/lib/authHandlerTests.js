@@ -45,6 +45,11 @@ describe('authHandler', () => {
                 dataSent = data;
                 return Promise.resolve();
             },
+            create(path, data) {
+                pathsSent.push(path);
+                dataSent.push(data);
+                return Promise.resolve();
+            },
             createOrModify(path, data) {
                 pathsSent.push(path);
                 dataSent.push(data);
@@ -344,8 +349,11 @@ describe('authHandler', () => {
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'disabled',
+                            sslCaCertFile: 'none',
                             sslCheckPeer: 'disabled',
                             sslCiphers: '',
+                            sslClientCert: 'none',
+                            sslClientKey: 'none',
                             userTemplate: 'none',
                             version: 3
                         }
@@ -382,12 +390,30 @@ describe('authHandler', () => {
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'tls-start',
+                            sslCaCert: {
+                                name: 'do_ldapCaCert.crt',
+                                partition: 'Common',
+                                checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10',
+                                base64: 'ZjVmYWtlY2VydA=='
+                            },
                             sslCheckPeer: true,
                             sslCiphers: [
                                 'ECDHE-RSA-AES128-GCM-SHA256',
                                 'ECDHE-RSA-AES128-CBC-SHA',
                                 'ECDHE-RSA-AES128-SHA256'
                             ],
+                            sslClientCert: {
+                                name: 'do_ldapClientCert.crt',
+                                partition: 'Common',
+                                checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10',
+                                base64: 'ZjVmYWtlY2VydA=='
+                            },
+                            sslClientKey: {
+                                name: 'do_ldapClientCert.key',
+                                partition: 'Common',
+                                checksum: 'SHA1:1703:a432012676a43bd8fc85496c9ed442f08e02d6a0',
+                                base64: 'ZjVmYWtla2V5'
+                            },
                             userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
                             version: 2
                         }
@@ -398,9 +424,72 @@ describe('authHandler', () => {
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
-                    assert.strictEqual(pathsSent[0], '/tm/auth/ldap');
+                    assert.strictEqual(
+                        pathsSent[0],
+                        '/shared/file-transfer/uploads/do_ldapCaCert.crt'
+                    );
+                    assert.strictEqual(dataSent[0], 'f5fakecert');
+                    assert.strictEqual(
+                        pathsSent[1],
+                        '/shared/file-transfer/uploads/do_ldapClientCert.crt'
+                    );
+                    assert.strictEqual(dataSent[1], 'f5fakecert');
+                    assert.strictEqual(
+                        pathsSent[2],
+                        '/shared/file-transfer/uploads/do_ldapClientCert.key'
+                    );
+                    assert.strictEqual(dataSent[2], 'f5fakekey');
+                    assert.strictEqual(pathsSent[3], '/tm/sys/file/ssl-cert');
                     assert.deepStrictEqual(
-                        dataSent[0],
+                        dataSent[3],
+                        {
+                            name: 'do_ldapCaCert.crt',
+                            sourcePath: 'file:/var/config/rest/downloads/do_ldapCaCert.crt'
+                        }
+                    );
+                    assert.strictEqual(pathsSent[4], '/tm/sys/file/ssl-cert');
+                    assert.deepStrictEqual(
+                        dataSent[4],
+                        {
+                            name: 'do_ldapClientCert.crt',
+                            sourcePath: 'file:/var/config/rest/downloads/do_ldapClientCert.crt'
+                        }
+                    );
+                    assert.strictEqual(pathsSent[5], '/tm/sys/file/ssl-key');
+                    assert.deepStrictEqual(
+                        dataSent[5],
+                        {
+                            name: 'do_ldapClientCert.key',
+                            sourcePath: 'file:/var/config/rest/downloads/do_ldapClientCert.key'
+                        }
+                    );
+                    assert.strictEqual(pathsSent[6], '/tm/util/unix-rm');
+                    assert.deepStrictEqual(
+                        dataSent[6],
+                        {
+                            command: 'run',
+                            utilCmdArgs: '/var/config/rest/downloads/do_ldapCaCert.crt'
+                        }
+                    );
+                    assert.strictEqual(pathsSent[7], '/tm/util/unix-rm');
+                    assert.deepStrictEqual(
+                        dataSent[7],
+                        {
+                            command: 'run',
+                            utilCmdArgs: '/var/config/rest/downloads/do_ldapClientCert.crt'
+                        }
+                    );
+                    assert.strictEqual(pathsSent[8], '/tm/util/unix-rm');
+                    assert.deepStrictEqual(
+                        dataSent[8],
+                        {
+                            command: 'run',
+                            utilCmdArgs: '/var/config/rest/downloads/do_ldapClientCert.key'
+                        }
+                    );
+                    assert.strictEqual(pathsSent[9], '/tm/auth/ldap');
+                    assert.deepStrictEqual(
+                        dataSent[9],
                         {
                             name: 'system-auth',
                             partition: 'Common',
@@ -426,10 +515,100 @@ describe('authHandler', () => {
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'tls-start',
+                            sslCaCertFile: '/Common/do_ldapCaCert.crt',
                             sslCheckPeer: 'enabled',
                             sslCiphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-CBC-SHA:ECDHE-RSA-AES128-SHA256',
+                            sslClientCert: '/Common/do_ldapClientCert.crt',
+                            sslClientKey: '/Common/do_ldapClientCert.key',
                             userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
                             version: 2
+                        }
+                    );
+                });
+        });
+
+        it('should skip creating ldap certs with missing base64 data', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'local',
+                        fallback: true,
+                        ldap: {
+                            bindTimeout: 30,
+                            checkHostAttr: false,
+                            checkRolesGroup: false,
+                            idleTimeout: 3600,
+                            ignoreAuthInfoUnavailable: false,
+                            ignoreUnknownUser: false,
+                            port: 389,
+                            searchScope: 'sub',
+                            searchTimeout: 30,
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            ssl: 'disabled',
+                            sslCaCert: {
+                                name: 'do_ldapCaCert.crt',
+                                partition: 'Common',
+                                checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10'
+                            },
+                            sslCheckPeer: false,
+                            sslClientCert: {
+                                name: 'do_ldapClientCert.crt',
+                                partition: 'Common',
+                                checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10'
+                            },
+                            sslClientKey: {
+                                name: 'do_ldapClientCert.key',
+                                partition: 'Common',
+                                checksum: 'SHA1:1703:a432012676a43bd8fc85496c9ed442f08e02d6a0'
+                            },
+                            version: 3
+                        }
+                    }
+                }
+            };
+
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathsSent[0], '/tm/auth/ldap');
+                    assert.deepStrictEqual(
+                        dataSent[0],
+                        {
+                            name: 'system-auth',
+                            partition: 'Common',
+                            bindDn: 'none',
+                            bindPw: 'none',
+                            bindTimeout: 30,
+                            checkHostAttr: 'disabled',
+                            checkRolesGroup: 'disabled',
+                            filter: 'none',
+                            groupDn: 'none',
+                            groupMemberAttribute: 'none',
+                            idleTimeout: 3600,
+                            ignoreAuthInfoUnavail: 'no',
+                            ignoreUnknownUser: 'disabled',
+                            loginAttribute: 'none',
+                            port: 389,
+                            scope: 'sub',
+                            searchBaseDn: 'none',
+                            searchTimeout: 30,
+                            servers: [
+                                'my.host.com',
+                                '1.2.3.4',
+                                'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                            ],
+                            ssl: 'disabled',
+                            sslCaCertFile: '/Common/do_ldapCaCert.crt',
+                            sslCheckPeer: 'disabled',
+                            sslCiphers: '',
+                            sslClientCert: '/Common/do_ldapClientCert.crt',
+                            sslClientKey: '/Common/do_ldapClientCert.key',
+                            userTemplate: 'none',
+                            version: 3
                         }
                     );
                 });

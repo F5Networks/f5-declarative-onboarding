@@ -477,6 +477,13 @@
                     "enum": [ "enabled", "disabled", "start-tls" ],
                     "default": "disabled"
                 },
+                "sslCaCert": {
+                    "description": "SSL certificate issued by a certificate authority",
+                    "allOf": [
+                        { "$ref": "definitions.schema.json#/definitions/pkiCertificate" },
+                        { "not": { "required": ["privateKey"] } }
+                    ]
+                },
                 "sslCheckPeer": {
                     "description": "Specifies whether the system checks an SSL peer",
                     "type": "boolean",
