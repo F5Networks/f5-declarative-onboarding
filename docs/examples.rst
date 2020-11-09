@@ -1,44 +1,83 @@
-.. _examples:
-
-Example declarations
+Example Declarations
 ====================
 
-The following examples show you some Declarative Onboarding declarations.  
+This section contains a number of additional example declarations you can use. Use the following index, or the links on the right to go to a specific category of declaration.
+
+The following categories were introduced with the release of DO 1.17
 
 .. IMPORTANT:: The following examples include passwords that may not be valid for BIG-IP v14.0 and later.  See |pass| for specific requirements.
 
-
-BIG-IP and general example declarations
----------------------------------------
-
-.. toctree::
-   :maxdepth: 2
-   :includehidden:
-   :glob:
-
-   bigip-examples
-
-
-BIG-IQ and general example declarations
----------------------------------------
+Basic Examples
+--------------
 
 .. toctree::
    :maxdepth: 2
    :includehidden:
    :glob:
 
-   bigiq-examples
+   declarations/basic
 
-
-Container example declarations
-------------------------------
+Network Objects
+---------------
 
 .. toctree::
    :maxdepth: 2
    :includehidden:
    :glob:
 
-   container-examples
+   declarations/network-objects
+
+Clustering
+----------
+
+.. toctree::
+   :maxdepth: 2
+   :includehidden:
+   :glob:
+
+   declarations/clustering
+
+Authentication
+--------------
+
+.. toctree::
+   :maxdepth: 2
+   :includehidden:
+   :glob:
+
+   declarations/authentication
+
+Observability
+-------------
+
+.. toctree::
+   :maxdepth: 2
+   :includehidden:
+   :glob:
+
+   declarations/observability 
+
+BIG-IQ Examples 
+---------------
+
+.. toctree::
+   :maxdepth: 2
+   :includehidden:
+   :glob:
+
+   declarations/bigiq-examples 
+
+Miscellaneous 
+-------------
+
+.. toctree::
+   :maxdepth: 2
+   :includehidden:
+   :glob:
+
+   declarations/miscellaneous 
+
+
 
 
 .. |pass| raw:: html
