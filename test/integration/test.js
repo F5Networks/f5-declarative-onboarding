@@ -175,6 +175,15 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             }
         ));
 
+        it('should match failover multicast', () => assert.deepStrictEqual(
+            currentState.FailoverMulticast,
+            {
+                interface: 'eth0',
+                address: '224.0.0.100',
+                port: 123
+            }
+        ));
+
         it('should match configsync ip address', () => {
             assert.ok(testConfigSyncIp(body.Common, currentState));
         });

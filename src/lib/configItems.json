@@ -195,6 +195,16 @@
     },
     {
         "path": "/tm/cm/device/~Common~{{deviceName}}",
+        "schemaClass": "FailoverMulticast",
+        "properties": [
+            { "id": "multicastInterface", "newId": "interface", "defaultWhenOmitted": "none" },
+            { "id": "multicastIp", "newId": "address", "defaultWhenOmitted": "any6" },
+            { "id": "multicastPort", "newId": "port", "defaultWhenOmitted": 0 }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/cm/device/~Common~{{deviceName}}",
         "schemaClass": "MirrorIp",
         "properties": [
             { "id": "mirrorIp", "newId": "primaryIp" },

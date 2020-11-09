@@ -81,6 +81,12 @@
                 }
             ]
         },
+        "myFailoverMulticast": {
+            "class": "FailoverMulticast",
+            "interface": "eth0",
+            "address": "224.0.0.100",
+            "port": 123
+        },
         "mySystem": {
             "class": "System",
             "autoCheck": false,

@@ -150,6 +150,7 @@
                             "DNS",
                             "DNS_Resolver",
                             "FailoverUnicast",
+                            "FailoverMulticast",
                             "HTTPD",
                             "License",
                             "MAC_Masquerade",

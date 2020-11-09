@@ -53,6 +53,7 @@ const CLASSES_OF_TRUTH = [
     'ConfigSync',
     'DeviceGroup',
     'FailoverUnicast',
+    'FailoverMulticast',
     'Analytics',
     'ManagementRoute',
     'RouteDomain',
