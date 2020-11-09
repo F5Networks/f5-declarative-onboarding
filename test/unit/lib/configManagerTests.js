@@ -370,6 +370,91 @@ describe('configManager', () => {
             });
     });
 
+    it('should handle references with schemaMerge, newId, and non-array responses', () => {
+        const configItems = [
+            {
+                path: '/tm/auth/ldap',
+                schemaClass: 'Authentication',
+                schemaMerge: {
+                    path: ['ldap'],
+                    skipWhenOmitted: true
+                },
+                properties: [
+                    { id: 'sslCaCertFile', newId: 'sslCaCert' },
+                    { id: 'sslClientCert' },
+                    { id: 'sslClientKey' }
+                ],
+                references: {
+                    sslCaCertFileReference: [
+                        { id: 'checksum' },
+                        { id: 'partition' }
+                    ],
+                    sslClientCertReference: [
+                        { id: 'checksum' },
+                        { id: 'partition' }
+                    ],
+                    sslClientKeyReference: [
+                        { id: 'checksum' },
+                        { id: 'partition' }
+                    ]
+                }
+            }
+        ];
+
+        listResponses['/tm/auth/ldap'] = [
+            {
+                name: 'system-auth',
+                sslCaCertFileReference: {
+                    link: 'https://localhost/mgmt/tm/sys/file/ssl-cert/~Common~do_ldapClientCert.crt?=13.1.1'
+                },
+                sslClientCertReference: {
+                    link: 'https://localhost/mgmt/tm/sys/file/ssl-cert/~Common~do_ldapClientCert.crt?=13.1.1'
+                },
+                sslClientKeyReference: {
+                    link: 'https://localhost/mgmt/tm/sys/file/ssl-key/~Common~do_ldapClientCert.key?=13.1.1'
+                }
+            }
+        ];
+        listResponses['/tm/sys/file/ssl-cert/~Common~do_ldapClientCert.crt'] = {
+            name: 'do_ldapClientCert.crt',
+            checksum: 'SHA1:1431:ad6c15a66e4386a2fd82bc1e156f3b1650eb9762',
+            partition: 'Common'
+        };
+        listResponses['/tm/sys/file/ssl-key/~Common~do_ldapClientCert.key'] = {
+            name: 'do_ldapClientCert.key',
+            checksum: 'SHA1:1703:a432012676a43bd8fc85496c9ed442f08e02d6a0',
+            partition: 'Common'
+        };
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.deepStrictEqual(
+                    state.currentConfig.Common.Authentication,
+                    {
+                        ldap: {
+                            name: 'system-auth',
+                            sslCaCert: {
+                                name: 'do_ldapClientCert.crt',
+                                checksum: 'SHA1:1431:ad6c15a66e4386a2fd82bc1e156f3b1650eb9762',
+                                partition: 'Common'
+                            },
+                            sslClientCert: {
+                                name: 'do_ldapClientCert.crt',
+                                checksum: 'SHA1:1431:ad6c15a66e4386a2fd82bc1e156f3b1650eb9762',
+                                partition: 'Common'
+                            },
+                            sslClientKey: {
+                                name: 'do_ldapClientCert.key',
+                                checksum: 'SHA1:1703:a432012676a43bd8fc85496c9ed442f08e02d6a0',
+                                partition: 'Common'
+                            }
+                        }
+                    }
+                );
+            });
+    });
+
     it('should handle newId property mapping', () => {
         const configItems = [
             {

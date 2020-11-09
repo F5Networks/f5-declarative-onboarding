@@ -26,6 +26,7 @@ const dscSchema = require('../../../src/schema/latest/dsc.schema.json');
 const analyticsSchema = require('../../../src/schema/latest/analytics.schema.json');
 const authSchema = require('../../../src/schema/latest/auth.schema.json');
 const customFormats = require('../../../src/schema/latest/formats.js');
+const defSchema = require('../../../src/schema/latest/definitions.schema.json');
 
 const ajv = new Ajv(
     {
@@ -41,6 +42,7 @@ Object.keys(customFormats).forEach((customFormat) => {
 });
 
 const validate = ajv
+    .addSchema(defSchema)
     .addSchema(systemSchema)
     .addSchema(networkSchema)
     .addSchema(dscSchema)

@@ -27,6 +27,7 @@ const ajv = new Ajv(
         extendRefs: 'fail'
     }
 );
+const defSchema = require('../../../src/schema/latest/definitions.schema.json');
 const authSchema = require('../../../src/schema/latest/auth.schema.json');
 const customFormats = require('../../../src/schema/latest/formats.js');
 
@@ -34,7 +35,9 @@ Object.keys(customFormats).forEach((customFormat) => {
     ajv.addFormat(customFormat, customFormats[customFormat]);
 });
 
-const validate = ajv.compile(authSchema);
+const validate = ajv
+    .addSchema(defSchema)
+    .compile(authSchema);
 
 /* eslint-disable quotes, quote-props */
 

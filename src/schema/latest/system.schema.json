@@ -12,30 +12,18 @@
             "then": {
                 "description": "PKI certificate with optional chain",
                 "required": ["class", "certificate"],
-                "properties": {
-                    "class": {
-                        "description": "Indicates that this property contains device certificate information",
-                        "type": "string",
-                        "const": "DeviceCertificate"
+                "allOf": [
+                    {
+                        "properties": {
+                            "class": {
+                                "description": "Indicates that this property contains device certificate information",
+                                "type": "string",
+                                "const": "DeviceCertificate"
+                            }
+                        }
                     },
-                    "certificate": {
-                        "description": "X.509 public-key certificate",
-                        "if": true,
-                        "then": {
-                            "$ref": "#/definitions/F5string"
-                        },
-                        "f5fetch": "pki-cert"
-                    },
-                    "privateKey": {
-                        "description": "Private key matching certificate's public key (optional)",
-                        "if": true,
-                        "then": {
-                            "$ref": "#/definitions/F5string"
-                        },
-                        "f5fetch": "pki-key"
-                    }
-                },
-                "additionalProperties": false
+                    { "$ref": "definitions.schema.json#/definitions/pkiCertificate" }
+                ]
             }
         },
         {
@@ -1192,17 +1180,6 @@
         }
     ],
     "definitions": {
-        "F5string": {
-            "description": "String value in base64",
-            "type": "object",
-            "properties": {
-                "base64": {
-                    "description": "Base64-encoded value (in JSON string)",
-                    "type": "string",
-                    "format": "f5base64"
-                }
-            }
-        },
         "partitionAccess": {
             "description": "The partition - either 'Common' or 'all-partitions'.",
             "type": "object",

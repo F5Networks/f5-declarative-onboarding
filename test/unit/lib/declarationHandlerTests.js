@@ -110,8 +110,8 @@ describe('declarationHandler', () => {
                 declarationWithDefaults = declaration;
                 return Promise.resolve(
                     {
-                        toUpdate: {},
-                        toDelete: {}
+                        toUpdate: { Common: {} },
+                        toDelete: { Common: {} }
                     }
                 );
             });
@@ -909,6 +909,67 @@ describe('declarationHandler', () => {
                         assert.deepStrictEqual(httpd, { allow: 'none' });
                     });
             });
+        });
+
+        it('should apply LDAP Cert fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    Authentication: {
+                        ldap: {
+                            sslCaCert: {
+                                certificate: {
+                                    base64: 'ZjVmYWtlY2VydA=='
+                                }
+                            },
+                            sslClientCert: {
+                                certificate: {
+                                    base64: 'ZjVmYWtlY2VydA=='
+                                },
+                                privateKey: {
+                                    base64: 'ZjVmYWtla2V5'
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const ldap = declarationWithDefaults.Common.Authentication.ldap;
+                    assert.deepStrictEqual(
+                        ldap,
+                        {
+                            sslCaCert: {
+                                name: 'do_ldapCaCert.crt',
+                                checksum: 'SHA1:10:aeddad55dd9aac6894c94e2abf1f4d8e38cf9b77',
+                                partition: 'Common'
+                            },
+                            sslClientCert: {
+                                name: 'do_ldapClientCert.crt',
+                                checksum: 'SHA1:10:aeddad55dd9aac6894c94e2abf1f4d8e38cf9b77',
+                                partition: 'Common'
+                            },
+                            sslClientKey: {
+                                name: 'do_ldapClientCert.key',
+                                checksum: 'SHA1:9:00d57ac7d86af67480852dc1604c8118afc21afc',
+                                partition: 'Common'
+                            }
+                        }
+                    );
+                });
         });
 
         it('should error if list returns a failure', () => {

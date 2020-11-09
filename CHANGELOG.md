@@ -16,6 +16,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 - AUTOTOOL-1652: Add support for routing as-path
 - AUTOTOOL-1374: ([GitHub Issue 112](https://github.com/F5Networks/f5-declarative-onboarding/issues/112)): Add support for MirrorIp class
+- AUTOTOOL-1577: Add support for LDAPS certificate settings
 ### Fixed
 - AUTOTOOL-1990: Retry license install if we get a connection reset
 - Target VLAN errors from the inspect endpoint
