@@ -2,9 +2,7 @@
 
 Observability Examples
 -----------------------
-This section contains relatively simple examples of declarations that create HTTP and/or HTTP services.  
-
-Use the index on the right to locate specific examples.
+This section contains examples concerning observability (such as logging).
 
 .. _avrstream:
 
