@@ -82,6 +82,31 @@ See |mirrorref| in the Schema Reference for DO usage and options.  Also see :ref
 
 :ref:`Back to top<cluster-examples>`
 
+|
+
+.. _multicast:
+
+Configuring Failover Multicast settings  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for Failover Multicast is available in DO v1.17 and later
+
+This example shows how you can configure Failover Multicast settings in a Declarative Onboarding declaration using the **FailoverMulticast** class introduced in DO 1.17.  When you use this class, the system sends multicast messages associated with failover on the interface, address, and port you specify. For more information on Failover options on the BIG-IP, see |multicastdoc| in the product documentation.
+
+When configuring Failover Multicast, all three fields (**interface**, **address**, and **port**) are required. The address cannot have a CIDR.
+
+If you do not specify an available interface name, the system will show an error which includes a list of available interfaces. If you specify a value **none** for the interface, DO disables Failover Multicast on the BIG-IP.
+
+See |multi| in the Schema Reference for DO usage and options.  
+
+.. NOTE:: The following example only includes the FailoverMulticast class, which can be used as a part of a larger declaration.
+
+.. literalinclude:: ../../examples/failoverMulticast.json
+   :language: json
+
+:ref:`Back to top<cluster-examples>`
+
 
 .. |mirrorkb| raw:: html
 
@@ -98,3 +123,13 @@ See |mirrorref| in the Schema Reference for DO usage and options.  Also see :ref
 .. |unicast| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#failoverunicast" target="_blank">FailoverUnicast</a>
+
+.. |multicastdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigip-14-1-0/big-ip-device-service-clustering-administration-14-1-0/managing-failover.html" target="_blank">Managing Failover</a>
+
+
+.. |multi| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#failovermulticast" target="_blank">FailoverMulticast</a>
+
