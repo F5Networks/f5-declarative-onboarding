@@ -126,17 +126,20 @@
                     },
                     "interface": {
                         "description": "Specifies the interface name used for the failover multicast IP address",
-                        "type": "string"
+                        "type": "string",
+                        "default": "none"
                     },
                     "address": {
                         "description": "IP address to listen on for multicast failover",
-                        "type": "string"
+                        "type": "string",
+                        "default": "any6"
                     },
                     "port": {
                         "description": "Port to listen on for failover heartbeats.",
                         "type": "number",
                         "minimum": 0,
-                        "maximum": 65535
+                        "maximum": 65535,
+                        "default": 0
                     }
                 }
             }

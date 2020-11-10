@@ -272,41 +272,13 @@ describe('dsc.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
-        });
 
-        describe('invalid', () => {
-            it('should invalidate if addresses is missing', () => {
+            it('should validate with defaults', () => {
                 const data = {
                     "class": "FailoverMulticast"
                 };
-                assert.strictEqual(validate(data), false, 'should have required property \'addresses\'');
-            });
 
-            it('should invalidate when if the interface is missing', () => {
-                const data = {
-                    "class": "FailoverMulticast",
-                    "address": "1.2.3.4",
-                    "port": 123
-                };
-                assert.strictEqual(validate(data), false, 'should have required property \'interface\'');
-            });
-
-            it('should invalidate when if the address is missing', () => {
-                const data = {
-                    "class": "FailoverMulticast",
-                    "interface": "exampleInterface",
-                    "port": 123
-                };
-                assert.strictEqual(validate(data), false, 'should have required property \'address\'');
-            });
-
-            it('should invalidate when if the port is missing', () => {
-                const data = {
-                    "class": "FailoverMulticast",
-                    "interface": "exampleInterface",
-                    "address": "1.2.3.4"
-                };
-                assert.strictEqual(validate(data), false, 'should have required property \'port\'');
+                assert.ok(validate(data), getErrorString(validate));
             });
         });
     });
