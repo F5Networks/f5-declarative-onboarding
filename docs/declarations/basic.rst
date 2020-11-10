@@ -10,7 +10,7 @@ Use the index on the right to locate specific examples.
 
 Standalone declaration
 ^^^^^^^^^^^^^^^^^^^^^^
-The following is an example declaration that onboards a standalone BIG-IP system. See :doc:`composing-a-declaration` for specific details on this example.
+The following is an example declaration that onboards a standalone BIG-IP system. See :ref:`Composing a Declaration<composing>` for specific details on this example.
 
 .. literalinclude:: ../../examples/onboard.json
    :language: json
@@ -24,7 +24,7 @@ The following is an example declaration that onboards a standalone BIG-IP system
 
 Clustered declaration
 ^^^^^^^^^^^^^^^^^^^^^
-The following is an example declaration that onboards a clustered BIG-IP system.  See :doc:`clustering` for specific details on this example.
+The following is an example declaration that onboards a clustered BIG-IP system.  See :ref:`Clustering<clustering>` for specific details on this example.
 
 .. literalinclude:: ../../examples/onboardFailover.json
    :language: json
