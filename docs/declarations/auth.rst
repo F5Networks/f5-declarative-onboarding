@@ -140,3 +140,7 @@ See |certclass| in the schema reference for more information and usage.
 .. |auth| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#authentication" target="_blank">Authentication</a>
+
+.. |br| raw:: html
+   
+   <br />

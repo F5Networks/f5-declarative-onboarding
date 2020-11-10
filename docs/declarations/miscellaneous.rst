@@ -20,7 +20,7 @@ In the following declaration, we show only the HTTPD class.  You can use this cl
 .. literalinclude:: ../../examples/httpd.json
    :language: json
 
-:ref:`Back to top<bigipexamples>`
+:ref:`Back to top<misc-examples>`
 
 |
 
@@ -44,7 +44,7 @@ In the following declaration, we show only the System class (including autoCheck
 .. literalinclude:: ../../examples/system.json
    :language: json
 
-:ref:`Back to top<bigipexamples>`
+:ref:`Back to top<misc-examples>`
 
 |
 
@@ -66,7 +66,7 @@ See |controls| in the Schema Reference for more information.
 .. literalinclude:: ../../examples/userAgent.json
    :language: json
 
-:ref:`Back to top<bigipexamples>`
+:ref:`Back to top<misc-examples>`
 
 |
 
@@ -130,7 +130,7 @@ See |route| in the Schema Reference for DO usage and options.
 .. literalinclude:: ../../examples/localOnlyRoutes.json
    :language: json
 
-:ref:`Back to top<bigipexamples>`
+:ref:`Back to top<misc-examples>`
 
 |
 
@@ -144,7 +144,7 @@ This example shows how you can use Delclarative Onboarding to discourage uninten
 .. literalinclude:: ../../examples/banner.json
    :language: json
 
-:ref:`Back to top<bigipexamples>`
+:ref:`Back to top<misc-examples>`
 
 |
 
@@ -159,7 +159,7 @@ See (see :ref:`restjavad`) for reasons you may want to increase this memory allo
 .. literalinclude:: ../../examples/restjavad.json
    :language: json
 
-:ref:`Back to top<bigipexamples>`
+:ref:`Back to top<misc-examples>`
 
 
 

@@ -45,7 +45,7 @@ Authentication
    :includehidden:
    :glob:
 
-   declarations/authentication
+   declarations/auth
 
 Observability
 -------------
