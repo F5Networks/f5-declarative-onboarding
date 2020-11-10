@@ -15,7 +15,7 @@ Use the following procedure to validate a declaration.
 2.  Go to the |schema| directory of the Declarative Onboarding repo on GitHub.
 
     - Click either **latest** or the specific Declarative Onboarding version you are using.
-    - Click the **base.schema.json** file (or the remote.schema.json if you are using the Container or BIG-IQ), and then click the **Raw** tab.
+    - Click the **base.schema.json** file (or the remote.schema.json if you are using BIG-IQ), and then click the **Raw** tab.
     - Copy the URL of the raw schema file.
 
 3. Open Visual Studio Code, and use **File > New File** start a new JSON file. In our example, we name our file **myDeclaration.json**.  You must save the file in order for Visual Studio Code to recognize it as a JSON file.
