@@ -288,10 +288,7 @@
                     "gw": {
                         "description": "Gateway for the route.",
                         "type": "string",
-                        "anyOf": [
-                            { "format": "ipv4" },
-                            { "format": "ipv6" }
-                        ]
+                        "format": "f5ip"
                     },
                     "network": {
                         "description": "IP address/netmask for route",

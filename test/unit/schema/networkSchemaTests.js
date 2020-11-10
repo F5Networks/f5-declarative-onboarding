@@ -461,6 +461,16 @@ describe('network.schema.json', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
 
+            it('should allow route domains', () => {
+                const data = {
+                    class: 'Route',
+                    gw: '1.2.3.4%10/24',
+                    network: 'default',
+                    mtu: 1234
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
             it('should validate route data to LOCAL_ONLY', () => {
                 const data = {
                     class: 'Route',
@@ -497,7 +507,7 @@ describe('network.schema.json', () => {
                     gw: 'foo'
                 };
                 assert.strictEqual(validate(data), false, 'bad gateway IP address should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should match format \\"ipv4\\"'), -1);
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
             });
 
             it('should invalidate route data with bad network', () => {
