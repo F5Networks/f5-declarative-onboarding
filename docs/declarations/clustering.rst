@@ -9,7 +9,7 @@ Use the index on the right to locate specific examples.
 
 Clustered declaration
 ^^^^^^^^^^^^^^^^^^^^^
-The following is an example declaration that onboards a clustered BIG-IP system.  See :doc:`clustering` for specific details on this example.
+The following is an example declaration that onboards a clustered BIG-IP system.  See :ref:`Clustering<clustering>` for specific details on this example.
 
 .. literalinclude:: ../../examples/onboardFailover.json
    :language: json
