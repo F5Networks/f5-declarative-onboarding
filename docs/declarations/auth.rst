@@ -2,9 +2,7 @@
 
 Authentication Examples
 -----------------------
-This section contains relatively simple examples of declarations that create HTTP and/or HTTP services.  
-
-Use the index on the right to locate specific examples.
+This section contains example declarations concerning authentication.
 
 .. _keys:
 
