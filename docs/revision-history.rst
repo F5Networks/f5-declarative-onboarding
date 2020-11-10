@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.4
-        - Updated the documentation for Declarative Onboarding v1.17.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * RemoteAuthRole remoteAccess property logic is backwards |br| * Disk size must be larger than current size
+        - Updated the documentation for Declarative Onboarding v1.17.0.  This release contains the following changes: |br| * Added support for Failover Multicast (see :ref:`Failover Multicast<multicast>`) |br| * Removed the DO in a container page as that community supported solution has been deprecated  |br| |br| Issues Resolved: |br| * RemoteAuthRole remoteAccess property logic is backwards |br| * Disk size must be larger than current size
         - 11-20-20
 
       * - 3.3
