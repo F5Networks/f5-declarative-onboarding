@@ -4,7 +4,7 @@ HTTP Services
 -------------
 This section contains relatively simple examples of declarations that create HTTP and/or HTTP services.  
 
-Use the index on the right to locate specific examples.
+
 
 .. _example1:
 
