@@ -2,7 +2,7 @@
 
 Network Objects
 ---------------
-The following are example declarations for BIG-IP, with some general examples that could also be used with BIG-IQ and the container.
+The following are example declarations that contain networking objects.
 
 
 .. _rdomain:
