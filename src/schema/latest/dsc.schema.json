@@ -125,12 +125,14 @@
                         "const": "FailoverMulticast"
                     },
                     "interface": {
-                        "description": "Specifies the interface name used for the failover multicast IP address. Specifying 'none' here disables Failover Multicast on the BIG-IP.",
-                        "type": "string"
+                        "description": "Specifies the interface name used for the failover multicast IP address. Specifying 'none' (the default) here disables Failover Multicast on the BIG-IP.",
+                        "type": "string",
+                        "default": "none"
                     },
                     "address": {
                         "description": "IP address to listen on for multicast failover. This address cannot have a CIDR.",
-                        "type": "string"
+                        "type": "string",
+                        "default": "any6"
                     },
                     "port": {
                         "description": "Port to listen on for failover heartbeats.",
