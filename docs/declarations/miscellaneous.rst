@@ -2,7 +2,7 @@
 
 Miscellaneous Examples
 ----------------------
-The following are example declarations for BIG-IP, with some general examples that could also be used with BIG-IQ and the container.
+The following are miscellaneous example declarations for BIG-IP.
 
 
 
