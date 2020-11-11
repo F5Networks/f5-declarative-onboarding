@@ -7,7 +7,7 @@ The following are example declarations for licensing with BIG-IQ.  See :ref:`Com
 
 See the |bigiq| documentation for more detailed information on License pool types.  See |compat| for information on BIG-IQ and Declarative Onboarding compatibility
 
-
+.. NOTE:: In DO 1.17, we updated the example declarations so the BIG-IP password in the License class matches the one set in the User class, as required by DO. 
 
 
 .. _bigiq1:
