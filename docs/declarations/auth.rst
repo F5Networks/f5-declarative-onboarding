@@ -41,6 +41,8 @@ This example declaration contains all three authentication methods with the **en
 
 For more information on options and DO usage, see |auth| and the subsequent entries in the Schema Reference.
 
+.. NOTE:: We updated this example in DO 1.17 to include a CA certificate for LDAP using the new **sslCaCert** property in the |authldap| class.
+
 In the following declaration snippet we show only the classes related to authentication.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
 .. literalinclude:: ../../examples/authMethods.json
@@ -142,3 +144,7 @@ See |certclass| in the schema reference for more information and usage.
 .. |br| raw:: html
    
    <br />
+
+.. |authldap| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#authentication-ldap" target="_blank">Authentication_ldap</a>
