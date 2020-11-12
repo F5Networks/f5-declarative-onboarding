@@ -117,6 +117,15 @@
             "haOrder": [
                 "f5.example.com"
             ]
+        },
+        "myGSLBGlobals": {
+            "class": "GSLBGlobals",
+            "general": {
+                "synchronizationEnabled": true,
+                "synchronizationGroupName": "newGroup",
+                "synchronizationTimeTolerance": 123,
+                "synchronizationTimeout": 12345
+            }
         }
     }
 }

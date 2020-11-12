@@ -27,6 +27,7 @@ const analyticsSchema = require('../../../src/schema/latest/analytics.schema.jso
 const authSchema = require('../../../src/schema/latest/auth.schema.json');
 const customFormats = require('../../../src/schema/latest/formats.js');
 const defSchema = require('../../../src/schema/latest/definitions.schema.json');
+const gslbSchema = require('../../../src/schema/latest/gslb.schema.json');
 
 const ajv = new Ajv(
     {
@@ -48,6 +49,7 @@ const validate = ajv
     .addSchema(dscSchema)
     .addSchema(analyticsSchema)
     .addSchema(authSchema)
+    .addSchema(gslbSchema)
     .compile(baseSchema);
 
 /* eslint-disable quotes, quote-props */

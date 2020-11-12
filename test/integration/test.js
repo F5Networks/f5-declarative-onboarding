@@ -212,6 +212,18 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 haOrder: ['/Common/f5.example.com']
             }
         ));
+
+        it('should have updated GSLB global-settings', () => assert.deepStrictEqual(
+            currentState.GSLBGlobals,
+            {
+                general: {
+                    synchronizationEnabled: true,
+                    synchronizationGroupName: 'newGroup',
+                    synchronizationTimeTolerance: 123,
+                    synchronizationTimeout: 12345
+                }
+            }
+        ));
     });
 
     describe('Test Networking', function testNetworking() {

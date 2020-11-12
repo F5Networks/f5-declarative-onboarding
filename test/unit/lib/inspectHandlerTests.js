@@ -955,6 +955,12 @@ describe('inspectHandler', () => {
                 apiRawValues: {
                     apiAnonymous: '\nDirectory Name                  Current Size    New Size        \n--------------                  ------------    --------        \n/config                         3321856         -               \n/shared                         20971520        -               \n/var                            3145728         -               \n/var/log                        3072000         -               \n/appdata                        130985984       -               \n\n'
                 }
+            },
+            '/tm/gtm/global-settings/general': {
+                synchronization: 'no',
+                synchronizationGroupName: 'newGroup',
+                synchronizationTimeTolerance: 123,
+                synchronizationTimeout: 12345
             }
         });
 
@@ -1434,6 +1440,15 @@ describe('inspectHandler', () => {
                             class: 'MirrorIp',
                             primaryIp: '10.0.0.2',
                             secondaryIp: '11.0.0.2'
+                        },
+                        currentGSLBGlobals: {
+                            class: 'GSLBGlobals',
+                            general: {
+                                synchronizationEnabled: false,
+                                synchronizationGroupName: 'newGroup',
+                                synchronizationTimeTolerance: 123,
+                                synchronizationTimeout: 12345
+                            }
                         }
                     }
                 }
