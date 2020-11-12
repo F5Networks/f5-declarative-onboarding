@@ -326,6 +326,12 @@ class ConfigManager {
                                 patchedItem[item] = parseInt(patchedItem[item], 10);
                             });
                         }
+                        if (schemaClass === 'GSLBGlobals') {
+                            patchedItem = patchGSLBGlobals.call(
+                                this,
+                                patchedItem
+                            );
+                        }
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(
                             this,
@@ -889,6 +895,14 @@ function patchHTTPD(patchedItem) {
     } else {
         patchedItem.allow = 'none';
     }
+}
+
+function patchGSLBGlobals(patchedItem) {
+    // Will eventually want schemaMerge for global-settings not in /general.
+    const patchedClass = {};
+    patchedClass.general = {};
+    Object.assign(patchedClass.general, patchedItem);
+    return patchedClass;
 }
 
 function shouldIgnore(item, ignoreList) {

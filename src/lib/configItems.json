@@ -614,5 +614,17 @@
             }
         ],
         "nameless": true
+    },
+    {
+        "path": "/tm/gtm/global-settings/general",
+        "schemaClass": "GSLBGlobals",
+        "requiredModule": "gtm",
+        "properties": [
+            { "id": "synchronization", "truth": "yes", "falsehood": "no", "newId": "synchronizationEnabled" },
+            { "id": "synchronizationGroupName" },
+            { "id": "synchronizationTimeTolerance" },
+            { "id": "synchronizationTimeout" }
+        ],
+        "nameless": true
     }
 ]

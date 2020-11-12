@@ -48,8 +48,8 @@ function combineSchemas() {
             base.definitions = Object.assign(base.definitions, tmp);
         } else if (content.allOf) {
             content.allOf.forEach((subContent) => {
-                // Authentication class specific override
-                if (definition.includes('auth')) {
+                // Authentication and GSLB class specific override
+                if (definition.includes('auth') || definition.includes('gslb')) {
                     const ref = subContent.then.oneOf[0].$ref.split('#/definitions/').join('');
                     const defs = content.definitions;
                     const def = defs[ref];

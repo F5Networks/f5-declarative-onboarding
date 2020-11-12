@@ -176,7 +176,8 @@
                             "Tunnel",
                             "User",
                             "VLAN",
-                            "TrafficGroup"
+                            "TrafficGroup",
+                            "GSLBGlobals"
                         ]
                     }
                 },
@@ -185,7 +186,8 @@
                     { "$ref": "network.schema.json#" },
                     { "$ref": "dsc.schema.json#" },
                     { "$ref": "analytics.schema.json#" },
-                    { "$ref": "auth.schema.json#" }
+                    { "$ref": "auth.schema.json#" },
+                    { "$ref": "gslb.schema.json#" }
                 ]
             }
         },
