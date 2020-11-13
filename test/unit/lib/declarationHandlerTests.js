@@ -732,6 +732,70 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should apply Route Domain parent fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    RouteDomain: {
+                        rd1: {
+                            id: 1
+                        },
+                        rd2: {
+                            id: 2,
+                            parent: 'rd1'
+                        },
+                        rd3: {
+                            id: 3,
+                            parent: '/Common/rd2'
+                        }
+                    }
+                }
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current',
+                    parsed: true,
+                    Common: {
+                        RouteDomain: {
+                            0: {
+                                id: 0
+                            },
+                            rd1: {
+                                id: 1,
+                                parent: '/Common/rd1'
+                            },
+                            rd2: {
+                                id: 2,
+                                parent: '/Common/rd2'
+                            }
+                        }
+                    }
+                },
+                originalConfig: {
+                    Common: {
+                        RouteDomain: {
+                            0: {
+                                id: 0
+                            }
+                        }
+                    }
+                }
+            };
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                    assert.strictEqual(routeDomain['0'].id, 0);
+                    assert.isUndefined(routeDomain['0'].parent);
+                    assert.strictEqual(routeDomain.rd1.id, 1);
+                    assert.isUndefined(routeDomain.rd1.parent);
+                    assert.strictEqual(routeDomain.rd2.id, 2);
+                    assert.strictEqual(routeDomain.rd2.parent, '/Common/rd1');
+                    assert.strictEqual(routeDomain.rd3.id, 3);
+                    assert.strictEqual(routeDomain.rd3.parent, '/Common/rd2');
+                });
+        });
+
         it('should apply Route Domain VLANs fix', () => {
             /**
              * ideas of the test are:

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 F5 Networks, Inc.
+ * Copyright 2019-2020 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -701,6 +701,7 @@ describe('inspectHandler', () => {
                 {
                     name: 'rd1',
                     id: 1,
+                    parent: '/Common/rd0',
                     bwcPolicy: 'bwcPolicy',
                     connectionLimit: 0,
                     flowEvictionPolicy: 'flowEvictionPolicy',
@@ -1184,6 +1185,7 @@ describe('inspectHandler', () => {
                             enforcedFirewallPolicy: 'fwEnforcedPolicy',
                             flowEvictionPolicy: 'flowEvictionPolicy',
                             id: 1,
+                            parent: 'rd0',
                             ipIntelligencePolicy: 'ipIntelligencePolicy',
                             routingProtocols: ['BFD'],
                             securityNatPolicy: 'securityNatPolicy',

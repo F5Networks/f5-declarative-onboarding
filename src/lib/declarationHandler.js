@@ -285,6 +285,7 @@ function applyDefaults(declaration, state) {
 function applyRouteDomainFixes(declaration, currentConfig) {
     applyDefaultRouteDomainFix(declaration, currentConfig);
     applyRouteDomainVlansFix(declaration, currentConfig);
+    applyRouteDomainParentFix(declaration);
 }
 
 /**
@@ -359,6 +360,26 @@ function applyDefaultRouteDomainFix(declaration, currentConfig) {
     if (Object.keys(routeDomains).length > 0) {
         declaration.Common.RouteDomain = routeDomains;
     }
+}
+
+/**
+ *  Prepend the tenant to the parent property if it is missing.
+ *
+ * @param {*} declaration - declaration to fix
+ */
+function applyRouteDomainParentFix(declaration) {
+    const decalrationRDs = (declaration.Common && declaration.Common.RouteDomain) || {};
+    // nothing to fix if no Route Domains in declaration
+    if (Object.keys(decalrationRDs).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RouteDomain', (tenant, routeDomain) => {
+        // If the parent does not start with '/', assume it is in this tenant
+        if (routeDomain.parent && !routeDomain.parent.startsWith('/')) {
+            routeDomain.parent = `/${tenant}/${routeDomain.parent}`;
+        }
+    });
 }
 
 /**

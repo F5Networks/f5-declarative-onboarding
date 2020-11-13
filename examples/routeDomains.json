@@ -43,6 +43,11 @@
             "vlans": [
                 "newVlan"
             ]
+        },
+        "AnotherRouteDomain": {
+            "class": "RouteDomain",
+            "id": 101,
+            "parent": "theRouteDomain"
         }
     }
 }

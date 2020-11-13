@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2020 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,8 @@ describe('networkHandler', () => {
                 commands.forEach((command) => {
                     if (command.method === 'create') {
                         promise = promise.then(() => this.create(command.path, command.body));
+                    } else if (command.method === 'modify') {
+                        promise = promise.then(() => this.modify(command.path, command.body));
                     } else if (command.method === 'delete') {
                         promise = promise.then(() => this.delete(command.path));
                     } else {
@@ -684,6 +686,7 @@ describe('networkHandler', () => {
         const deletedPaths = [];
         let declaration = {};
         let state = {};
+        let bigIpMockSpy;
 
         beforeEach(() => {
             deletedPaths.length = 0;
@@ -691,6 +694,7 @@ describe('networkHandler', () => {
                 deletedPaths.push(path);
                 return Promise.resolve();
             };
+            bigIpMockSpy = sinon.spy(bigIpMock);
 
             declaration = {
                 Common: {
@@ -836,11 +840,6 @@ describe('networkHandler', () => {
                 });
         });
 
-        let bigIpMockSpy;
-        beforeEach(() => {
-            bigIpMockSpy = sinon.spy(bigIpMock);
-        });
-
         it('should have correct transaction command for creating new Route', () => {
             state.currentConfig.Common.Route = {};
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
@@ -883,8 +882,13 @@ describe('networkHandler', () => {
     });
 
     describe('RouteDomain', () => {
-        it('should handle fully specified RouteDomains', () => {
-            const declaration = {
+        let declaration = {};
+        let state = {};
+        let bigIpMockSpy;
+
+        beforeEach(() => {
+            bigIpMockSpy = sinon.spy(bigIpMock);
+            declaration = {
                 Common: {
                     RouteDomain: {
                         rd1: {
@@ -910,13 +914,21 @@ describe('networkHandler', () => {
                         rd2: {
                             name: 'rd2',
                             id: 1234,
+                            parent: '/Common/rd1',
                             strict: true
                         }
                     }
                 }
             };
+            state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+        });
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+        it('should handle fully specified RouteDomains', () => {
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const routeDomainData = dataSent[PATHS.RouteDomain];
@@ -936,8 +948,45 @@ describe('networkHandler', () => {
                     assert.strictEqual(routeDomainData[0].connectionLimit, 1000000);
                     assert.strictEqual(routeDomainData[1].name, 'rd2');
                     assert.strictEqual(routeDomainData[1].id, 1234);
+                    assert.strictEqual(routeDomainData[1].parent, '/Common/rd1');
                     assert.strictEqual(routeDomainData[1].partition, 'Common');
                     assert.strictEqual(routeDomainData[1].strict, 'enabled');
+                });
+        });
+
+        it('should have transaction command use create for creating RouteDomains', () => {
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIpMockSpy.transaction.callCount, 1);
+                    assert.strictEqual(bigIpMockSpy.create.callCount, 2);
+                    assert.strictEqual(bigIpMockSpy.modify.callCount, 0);
+                });
+        });
+
+        it('should have transaction command use modify for modifying RouteDomains', () => {
+            state = {
+                currentConfig: {
+                    Common: {
+                        RouteDomain: {
+                            rd1: {
+                                name: 'rd1',
+                                id: 123
+                            },
+                            rd2: {
+                                name: 'rd2',
+                                id: 1234
+                            }
+                        }
+                    }
+                }
+            };
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIpMockSpy.transaction.callCount, 1);
+                    assert.strictEqual(bigIpMockSpy.create.callCount, 0);
+                    assert.strictEqual(bigIpMockSpy.modify.callCount, 2);
                 });
         });
     });
