@@ -95,6 +95,7 @@ deploy:
         - tags
         - triggers
     stage: deploy
+    timeout: 2 hours
     variables:
         DEFAULT_RETRY_DELAY: 20
         DEFAULT_RETRIES: 60
@@ -133,6 +134,7 @@ integration-test:
         - tags
         - triggers
     stage: integration-test
+    timeout: 2 hours
     script:
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
