@@ -70,6 +70,16 @@ BIG-IQ Examples
 
    declarations/bigiq-examples 
 
+GSLB Examples 
+-------------
+
+.. toctree::
+   :maxdepth: 2
+   :includehidden:
+   :glob:
+
+   declarations/gslb 
+
 Miscellaneous 
 -------------
 

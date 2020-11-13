@@ -20,10 +20,6 @@ The following is an example declaration that onboards a clustered BIG-IP system.
 
 Clustered declaration with IP addresses for Device Group owner and members
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for using IP addresses for Device Group owners and members is available in DO v1.11 and later. 
-
 The following is an example declaration that onboards a clustered BIG-IP system, but shows how you can use an IP address for the Device Group members and owner.  
 
 See :ref:`devicegroup` for more information.
