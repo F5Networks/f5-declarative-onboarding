@@ -6,6 +6,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1373: ([GitHub Issue 128](https://github.com/F5Networks/f5-declarative-onboarding/issues/128)) Support Failover Multicast on the BIG-IPs default device.
 - AUTOTOOL-1923: ([GitHub Issue 164](https://github.com/F5Networks/f5-declarative-onboarding/issues/164)) Rudimentary DeviceCertificate validation
 - AUTOTOOL-1943: Allow variable expressions in some RemoteAuthRole fields
+- AUTOTOOL-1532: ([GitHub Issue 143](https://github.com/F5Networks/f5-declarative-onboarding/issues/143)) Parent property to RouteDomain
 - AUTOTOOL-2003: Configure global GSLB settings
 ### Fixed
 - AUTOTOOL-1942: RemoteAuthRole remoteAccess property logic is backwards

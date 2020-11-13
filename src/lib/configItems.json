@@ -376,6 +376,7 @@
         "schemaClass": "RouteDomain",
         "properties": [
             { "id": "id" },
+            { "id": "parent" },
             { "id": "bwcPolicy", "newId": "bandWidthControllerPolicy" },
             { "id": "connectionLimit" },
             { "id": "flowEvictionPolicy" },

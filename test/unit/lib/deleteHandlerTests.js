@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2020 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ const chaiAsPromised = require('chai-as-promised');
 
 chai.use(chaiAsPromised);
 const assert = chai.assert;
-
+const sinon = require('sinon');
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 
 
@@ -33,6 +33,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
     this.timeout(10 * 1000);
     let bigIpMock;
     const deletedPaths = [];
+    const transactionDeletedPaths = [];
     const fetchedPaths = [];
     const deletedDeviceGroups = [];
 
@@ -48,6 +49,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
         };
     });
 
+    let bigIpMockSpy;
     beforeEach(() => {
         bigIpMock.delete = (path) => {
             deletedPaths.push(path);
@@ -59,10 +61,25 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 { fullPath: '/Common/system-auth' }
             ]);
         });
+        bigIpMock.transaction = (transactions) => {
+            if (Array.isArray(transactions)) {
+                transactions.forEach((transaction) => {
+                    deletedPaths.push(transaction.path);
+                    transactionDeletedPaths.push(transaction.path);
+                });
+            }
+            return Promise.resolve();
+        };
 
+        bigIpMockSpy = sinon.spy(bigIpMock);
         deletedPaths.length = 0;
+        transactionDeletedPaths.length = 0;
         deletedDeviceGroups.length = 0;
         fetchedPaths.length = 0;
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     it('should issue deletes for Routes, SelfIps, and VLANs in that order', () => {
@@ -417,6 +434,56 @@ describe(('deleteHandler'), function testDeleteHandler() {
         return deleteHandler.process()
             .then(() => {
                 assert.strictEqual(deletedPaths[0], '/tm/auth/remote-role/role-info/test');
+            });
+    });
+
+    it('should delete route domains separately with a transaction', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    Route: {
+                        deleteThisRoute: {
+                            name: 'deleteThisRoute',
+                            mtu: 0,
+                            network: '1.2.3.5'
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                VLAN: {
+                    deleteThisVLAN: {}
+                },
+                Route: {
+                    deleteThisRoute: {}
+                },
+                SelfIp: {
+                    deleteThisSelfIp: {}
+                },
+                RouteDomain: {
+                    deleteThisRouteDomain1: {},
+                    deleteThisRouteDomain2: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(bigIpMockSpy.delete.callCount, 3);
+                assert.strictEqual(bigIpMockSpy.transaction.callCount, 1);
+                assert.strictEqual(deletedPaths.length, 5);
+                assert.strictEqual(deletedPaths[0], '/tm/net/route/~Common~deleteThisRoute');
+                assert.strictEqual(deletedPaths[1], '/tm/net/self/~Common~deleteThisSelfIp');
+                assert.strictEqual(deletedPaths[2], '/tm/net/vlan/~Common~deleteThisVLAN');
+                assert.strictEqual(deletedPaths[3], '/tm/net/route-domain/~Common~deleteThisRouteDomain1');
+                assert.strictEqual(deletedPaths[4], '/tm/net/route-domain/~Common~deleteThisRouteDomain2');
+                assert.strictEqual(transactionDeletedPaths.length, 2);
+                assert.strictEqual(transactionDeletedPaths[0], '/tm/net/route-domain/~Common~deleteThisRouteDomain1');
+                assert.strictEqual(transactionDeletedPaths[1], '/tm/net/route-domain/~Common~deleteThisRouteDomain2');
             });
     });
 

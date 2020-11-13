@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2018-2020 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -528,6 +528,7 @@ describe('network.schema.json', () => {
                 const data = {
                     class: 'RouteDomain',
                     id: 2000,
+                    parent: 'rd1000',
                     bandWidthControllerPolicy: 'bwcPolicy',
                     connectionLimit: 1234567,
                     flowEvictionPolicy: 'flowPolicy',

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2018-2020 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,7 @@ class DeleteHandler {
         DELETABLE_CLASSES.forEach((deleteableClass) => {
             if (this.declaration.Common[deleteableClass]) {
                 const classPromises = [];
+                const transactionCommands = [];
                 Object.keys(this.declaration.Common[deleteableClass]).forEach((itemToDelete) => {
                     // Special case for device groups
                     if (deleteableClass === 'DeviceGroup') {
@@ -108,14 +109,19 @@ class DeleteHandler {
                     } else if (!isRetainedItem(deleteableClass, itemToDelete)) {
                         const commonPrefix = deleteableClass === 'Trunk' ? '' : '~Common~';
                         const path = `${PATHS[deleteableClass]}/${commonPrefix}${itemToDelete}`;
-                        let retry = cloudUtil.NO_RETRY;
-                        if (deleteableClass === 'RouteDomain') { // DNS_Resolver deletes first but can be too slow
-                            retry = cloudUtil.SHORT_RETRY;
-                            retry.continueOnError = true;
+                        if (deleteableClass === 'RouteDomain') {
+                            transactionCommands.push({
+                                method: 'delete',
+                                path
+                            });
+                        } else {
+                            classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
                         }
-                        classPromises.push(this.bigIp.delete(path, null, null, retry));
                     }
                 });
+                if (transactionCommands.length > 0) {
+                    classPromises.push(this.bigIp.transaction(transactionCommands));
+                }
                 if (classPromises.length > 0) {
                     promises.push(classPromises);
                 }
