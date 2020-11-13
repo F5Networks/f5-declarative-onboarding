@@ -10,7 +10,7 @@ Configuring global GSLB settings in a declaration
 
    Support for configuring global GSLB settings in a declaration is available in DO v1.17 and later. 
 
-In this example, we show how how you can configure global GSLB settings in DO 1.17 and later using the **GSLBGlobals** class. This class uses the **GSLBGlobals_general** properties (synchronizationEnabled synchronizationGroupName, synchronizationTimeout, and synchronizationTimeTolerance) to configure GSLB global settings on the BIG-IP. You must have the BIG-IP DNS (GTM) module licensed and provisioned to use this feature.
+In this example, we show how you can configure global GSLB settings in DO 1.17 and later using the **GSLBGlobals** class. This class uses the **GSLBGlobals_general** properties (synchronizationEnabled synchronizationGroupName, synchronizationTimeout, and synchronizationTimeTolerance) to configure GSLB global settings on the BIG-IP. You must have the BIG-IP DNS (GTM) module licensed and provisioned to use this feature.
 
 For more details on the properties and DO usage, see |gslbglobal| and |gslbgen| in the Schema Reference.  
 
