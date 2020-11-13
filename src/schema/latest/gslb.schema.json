@@ -1,0 +1,72 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/gslb.schema.json",
+    "title": "F5 Declarative Onboarding GSLB declaration",
+    "description": "GSLB properties for onboarding a BIG-IP.",
+    "allOf": [
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "GSLBGlobals" } }
+            },
+            "then": {
+                "oneOf": [
+                    { "$ref": "#/definitions/gslbGlobals" }
+                ]
+            }
+        }
+    ],
+    "definitions": {
+        "gslbGlobals": {
+            "required": ["class"],
+            "type": "object",
+            "description": "GSLB global settings.",
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains gslb global settings configuration.",
+                    "type": "string",
+                    "const": "GSLBGlobals"
+                },
+                "general": {
+                    "$ref": "#/definitions/generalGlobals"
+                }
+            },
+            "additionalProperties": false
+        },
+        "generalGlobals": {
+            "type":"object",
+            "description": "GSLB general global settings.",
+            "properties": {
+                "synchronizationEnabled": {
+                    "description": "Specifies if the system is a member of a synchronization group.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "synchronizationGroupName": {
+                    "description": "Specifies the name of the synchronization group that the system belongs to.",
+                    "type": "string",
+                    "default": "default"
+                },
+                "synchronizationTimeTolerance": {
+                    "description": "Specifies the number of seconds that one system can be out of sync with another in the synchronization group. A value of 0 turns time synchronization off. The values 1-4 are not allowed.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 600,
+                    "default": 10,
+                    "not": {
+                        "enum": [1, 2, 3, 4]
+                    }
+                },
+                "synchronizationTimeout": {
+                    "description": "Specifies the number of seconds that the system attempts to sync with the GSLB configuration with a sync group member.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295,
+                    "default": 180
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

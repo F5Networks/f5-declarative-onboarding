@@ -70,7 +70,8 @@ module.exports = {
         Uploads: '/shared/file-transfer/uploads',
         SSLCert: '/tm/sys/file/ssl-cert',
         SSLKey: '/tm/sys/file/ssl-key',
-        UnixRm: '/tm/util/unix-rm'
+        UnixRm: '/tm/util/unix-rm',
+        GSLBGeneral: '/tm/gtm/global-settings/general'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -109,7 +110,8 @@ module.exports = {
         'HTTPD',
         'SSHD',
         'Disk',
-        'MirrorIp'
+        'MirrorIp',
+        'GSLBGlobals'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

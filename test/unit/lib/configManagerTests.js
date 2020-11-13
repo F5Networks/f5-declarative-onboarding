@@ -1660,4 +1660,36 @@ describe('configManager', () => {
                 });
         });
     });
+
+    describe('GSLBGlobals', () => {
+        it('should handle GSLBGlobals', () => {
+            const configItems = getConfigItems('GSLBGlobals');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/global-settings/general'] = {
+                synchronization: 'yes',
+                synchronizationGroupName: 'syncGroup',
+                synchronizationTimeTolerance: 123,
+                synchronizationTimeout: 100
+            };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBGlobals,
+                        {
+                            general: {
+                                synchronizationEnabled: true,
+                                synchronizationGroupName: 'syncGroup',
+                                synchronizationTimeTolerance: 123,
+                                synchronizationTimeout: 100
+                            }
+                        }
+                    );
+                });
+        });
+    });
 });

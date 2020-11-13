@@ -30,6 +30,7 @@ const DeleteHandler = require('./deleteHandler');
 const ProvisionHandler = require('./provisionHandler');
 const DeprovisionHandler = require('./deprovisionHandler');
 const AuthHandler = require('./authHandler');
+const GSLBHandler = require('./gslbHandler');
 const TraceManager = require('./traceManager');
 const doUtil = require('./doUtil');
 
@@ -175,6 +176,7 @@ class DeclarationHandler {
                     [NetworkHandler, updateDeclaration],
                     [DscHandler, updateDeclaration],
                     [AnalyticsHandler, updateDeclaration],
+                    [GSLBHandler, updateDeclaration],
                     [DeleteHandler, deleteDeclaration],
                     [DeprovisionHandler, updateDeclaration]
                 ];
