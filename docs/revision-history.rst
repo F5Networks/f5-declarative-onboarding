@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.4
-        - Updated the documentation for Declarative Onboarding v1.17.0.  This release contains the following changes: |br| * Added support for Failover Multicast (see :ref:`Failover Multicast<multicast>`) |br| * Updated the :ref:`Auth Methods<authmethods>` example declaration to include the new sslCaCert property (see :ref:`Auth Methods<authmethods>`) |br| * Removed the DO in a container page as that community supported solution has been deprecated |br| * Updated the BIG-IQ examples to change the bigIpPassword to match the password being set in the User Class (for example, see :ref:`Licensing with BIG-IQ<bigiq1>`) |br| |br| Issues Resolved: |br| * RemoteAuthRole remoteAccess property logic is backwards |br| * Disk size must be larger than current size
+        - Updated the documentation for Declarative Onboarding v1.17.0.  This release contains the following changes: |br| * Added support for Failover Multicast (see :ref:`Failover Multicast<multicast>`) |br| * Updated the :ref:`Auth Methods<authmethods>` example declaration to include the new sslCaCert property (see :ref:`Auth Methods<authmethods>`) |br| * Added support for using variables in some RemoteAuthRole properties (see the :ref:`Remote Auth role variable example<rolevar>`) |br| * Removed the DO in a container page as that community supported solution has been deprecated |br| * Updated the BIG-IQ examples to change the bigIpPassword to match the password being set in the User Class (for example, see :ref:`Licensing with BIG-IQ<bigiq1>`) |br| |br| Issues Resolved: |br| * RemoteAuthRole remoteAccess property logic is backwards |br| * Disk size must be larger than current size
         - 11-20-20
 
       * - 3.3
