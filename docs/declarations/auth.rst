@@ -116,6 +116,26 @@ See |certclass| in the schema reference for more information and usage.
 
 :ref:`Back to top<auth-examples>`
 
+|
+
+.. _rolevar:
+
+Using variables in some remote role properties
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for using variables in remote role properties is available in DO v1.17 and later. 
+
+This example shows how you can use variable expressions for some of the properties in the RemoteAuthRole class (see :ref:`remoterole` for the example without variables). This allows you to reference variables that you defined in your AAA system in a Declarative Onboarding declaration. 
+
+See |loref| in the schema reference for more information and usage for RemoteAuthRole.
+
+.. literalinclude:: ../../examples/remoteRoleVariableFields.json
+   :language: json
+
+:ref:`Back to top<auth-examples>`
+
+
 
 .. |certclass| raw:: html
 
@@ -148,3 +168,6 @@ See |certclass| in the schema reference for more information and usage.
 .. |authldap| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#authentication-ldap" target="_blank">Authentication_ldap</a>
+
+
+
