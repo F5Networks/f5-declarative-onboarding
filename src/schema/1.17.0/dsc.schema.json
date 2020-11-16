@@ -114,6 +114,39 @@
         {
             "if": {
                 "required": ["class"],
+                "properties": { "class": { "const": "FailoverMulticast" } }
+            },
+            "then": {
+                "required": ["class", "interface", "address", "port"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains multicast failover configuration.",
+                        "type": "string",
+                        "const": "FailoverMulticast"
+                    },
+                    "interface": {
+                        "description": "Specifies the interface name used for the failover multicast IP address. Specifying 'none' (the default) here disables Failover Multicast on the BIG-IP.",
+                        "type": "string",
+                        "default": "none"
+                    },
+                    "address": {
+                        "description": "IP address to listen on for multicast failover. This address cannot have a CIDR.",
+                        "type": "string",
+                        "default": "any6"
+                    },
+                    "port": {
+                        "description": "Port to listen on for failover heartbeats.",
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 65535,
+                        "default": 0
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
                 "properties": { "class": { "const": "DeviceGroup" } }
             },
             "then": {
