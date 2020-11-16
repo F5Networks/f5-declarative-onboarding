@@ -126,7 +126,12 @@ Using variables in some remote role properties
 
    Support for using variables in remote role properties is available in DO v1.17 and later. 
 
-This example shows how you can use variable expressions for some of the properties in the RemoteAuthRole class (see :ref:`remoterole` for the example without variables). This allows you to reference variables that you defined in your AAA system in a Declarative Onboarding declaration. 
+This example shows how you can use variable expressions for some of the properties in the RemoteAuthRole class (see :ref:`remoterole` for the example without variables). This allows you to reference variables that you defined in your AAA system in a Declarative Onboarding declaration.
+
+There are two important notes for using this feature:
+
+- When you use variables, they MUST start with **%**. 
+- You can currently use variables with the **console**, **role**, and **userPartition** properties. 
 
 See |loref| in the schema reference for more information and usage for RemoteAuthRole.
 

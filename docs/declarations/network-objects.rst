@@ -11,11 +11,16 @@ Adding Route Domains to a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The **routeDomain** class is available in DO v1.6.0 and later.
+   Support for the **parent** property in the **routeDomain** class is available in DO v1.17.0 and later.
 
 In this example, we show how to use a Route Domain in a declaration.  A route domain is a configuration object that isolates network traffic for a particular application on the network.  For more information on Route Domains, see |rddoc|.
 
 In the following declaration, we include a VLAN to show how to reference a VLAN that is being created.  The SelfIp and the Route both show using the RouteDomain with **%100**, which is the **id** of the RouteDomain.
+
+**New in DO 1.17** |br|
+Declarative Onboarding 1.17 added support for specifying a parent route domain.  This is the route domain the system searches when it cannot find a route in the configured domain.
+
+.. IMPORTANT:: The following declaration has been updated to include the **parent** property introduced in DO 1.17. If you attempt to use this declaration on a prior version, it will fail unless you remove the **parent** property.
 
 
 .. literalinclude:: ../../examples/routeDomains.json
