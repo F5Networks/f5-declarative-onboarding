@@ -25,7 +25,7 @@ Declarative Onboarding 1.17 added support for specifying a parent route domain. 
 
 .. literalinclude:: ../../examples/routeDomains.json
    :language: json
-   :emphasize-lines: 21, 25, 28-46
+   :emphasize-lines: 21, 25, 28-46, 50
 
 
 :ref:`Back to top<networkexamples>`
