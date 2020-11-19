@@ -226,6 +226,25 @@ publish to artifactory:
             ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${POSTMAN_NAME})
         - echo $UPLOAD_RESULT
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload; exit 1; fi
+        # Upload release to 'latest' directory on artifactory
+        - >-
+            curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X DELETE
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest
+        - >-
+            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${RPM_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${RPM_NAME})
+        - echo $UPLOAD_RESULT
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload to latest directory; exit 1; fi
+        - >-
+            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${HASH_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${HASH_NAME})
+        - echo $UPLOAD_RESULT
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during hash upload to latest directory; exit 1; fi
+        - >-
+            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${POSTMAN_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${POSTMAN_NAME})
+        - echo $UPLOAD_RESULT
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload to latest directory; exit 1; fi
 
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
