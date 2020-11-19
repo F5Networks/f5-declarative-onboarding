@@ -16,6 +16,7 @@
             "description": "Version of Declarative Onboarding schema this declaration uses.",
             "type": "string",
             "enum": [
+                "1.17.0",
                 "1.16.0",
                 "1.15.0",
                 "1.14.0",
@@ -149,6 +150,7 @@
                             "DNS",
                             "DNS_Resolver",
                             "FailoverUnicast",
+                            "FailoverMulticast",
                             "HTTPD",
                             "License",
                             "MAC_Masquerade",
@@ -174,7 +176,8 @@
                             "Tunnel",
                             "User",
                             "VLAN",
-                            "TrafficGroup"
+                            "TrafficGroup",
+                            "GSLBGlobals"
                         ]
                     }
                 },
@@ -183,7 +186,8 @@
                     { "$ref": "network.schema.json#" },
                     { "$ref": "dsc.schema.json#" },
                     { "$ref": "analytics.schema.json#" },
-                    { "$ref": "auth.schema.json#" }
+                    { "$ref": "auth.schema.json#" },
+                    { "$ref": "gslb.schema.json#" }
                 ]
             }
         },

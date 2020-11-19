@@ -132,6 +132,11 @@
             ],
             "additionalProperties": false
         },
+        "variableString": {
+            "description": "Variable string value. Should always start with %.",
+            "type": "string",
+            "pattern": "^%.+"
+        },
         "remoteAuthRole": {
             "description": "Creates a file used by LDAP, Active Directory(r), RADIUS, or TACAS+ server to determine specific access rights.",
             "type": "object",
@@ -148,10 +153,17 @@
                 },
                 "console": {
                     "description": "Specifes if the remotely-authenticated users have tmsh console access or not. Accepted values are 'disabled' and 'tmsh'.",
-                    "type": "string",
-                    "enum": [
-                        "disabled",
-                        "tmsh"
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "disabled",
+                                "tmsh"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/variableString"
+                        }
                     ],
                     "default": "disabled"
                 },
@@ -168,34 +180,48 @@
                 },
                 "role": {
                     "description": "Specifies the role that you want to grant to the specified group of remotely-authenticated users.",
-                    "type": "string",
-                    "enum": [
-                        "admin",
-                        "application-editor",
-                        "auditor",
-                        "certificate-manager",
-                        "firewall-manager",
-                        "fraud-protection-manager",
-                        "guest",
-                        "irule-manager",
-                        "manager",
-                        "no-access",
-                        "operator",
-                        "resource-admin",
-                        "user-manager",
-                        "web-application-security-administrator",
-                        "web-application-security-editor"
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "admin",
+                                "application-editor",
+                                "auditor",
+                                "certificate-manager",
+                                "firewall-manager",
+                                "fraud-protection-manager",
+                                "guest",
+                                "irule-manager",
+                                "manager",
+                                "no-access",
+                                "operator",
+                                "resource-admin",
+                                "user-manager",
+                                "web-application-security-administrator",
+                                "web-application-security-editor"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/variableString"
+                        }
                     ],
                     "default": "no-access"
                 },
                 "userPartition": {
                     "description": "Specifies the BIG-IP partition to which you are assigning access to the specified group of remotely-authenticated users. The default value is Common. This option is required.",
-                    "type": "string",
-                    "default": "Common",
-                    "enum": [
-                        "all",
-                        "Common"
-                    ]
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all",
+                                "Common"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/variableString"
+                        }
+                    ],
+                    "default": "Common"
                 }
             },
             "additionalProperties": false
@@ -450,6 +476,13 @@
                     "type": "string",
                     "enum": [ "enabled", "disabled", "start-tls" ],
                     "default": "disabled"
+                },
+                "sslCaCert": {
+                    "description": "SSL certificate issued by a certificate authority",
+                    "allOf": [
+                        { "$ref": "definitions.schema.json#/definitions/pkiCertificate" },
+                        { "not": { "required": ["privateKey"] } }
+                    ]
                 },
                 "sslCheckPeer": {
                     "description": "Specifies whether the system checks an SSL peer",

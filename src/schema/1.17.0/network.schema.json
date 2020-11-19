@@ -288,10 +288,7 @@
                     "gw": {
                         "description": "Gateway for the route.",
                         "type": "string",
-                        "anyOf": [
-                            { "format": "ipv4" },
-                            { "format": "ipv6" }
-                        ]
+                        "format": "f5ip"
                     },
                     "network": {
                         "description": "IP address/netmask for route",
@@ -354,6 +351,10 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 65534
+                    },
+                    "parent": {
+                        "description": "Specifies the route domain the system searches when it cannot find a route in the configured domain.",
+                        "type": "string"
                     },
                     "bandWidthControllerPolicy": {
                         "description": "Specifies the bandwidth controller policy for the route domain.",
@@ -542,7 +543,6 @@
                         }
                     }
                 },
-                "required": ["class"],
                 "additionalProperties": false
             }
         }
