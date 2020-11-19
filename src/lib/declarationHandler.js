@@ -16,6 +16,7 @@
 
 'use strict';
 
+const crypto = require('crypto');
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
 const TeemRecord = require('@f5devcentral/f5-teem').Record;
 const DeclarationParser = require('./declarationParser');
@@ -29,6 +30,7 @@ const DeleteHandler = require('./deleteHandler');
 const ProvisionHandler = require('./provisionHandler');
 const DeprovisionHandler = require('./deprovisionHandler');
 const AuthHandler = require('./authHandler');
+const GSLBHandler = require('./gslbHandler');
 const TraceManager = require('./traceManager');
 const doUtil = require('./doUtil');
 
@@ -53,6 +55,7 @@ const CLASSES_OF_TRUTH = [
     'ConfigSync',
     'DeviceGroup',
     'FailoverUnicast',
+    'FailoverMulticast',
     'Analytics',
     'ManagementRoute',
     'RouteDomain',
@@ -107,6 +110,7 @@ class DeclarationHandler {
         logger.fine('Processing declaration.');
         let parsedNewDeclaration;
         let parsedOldDeclaration;
+        let origLdapCertData;
 
         const newDeclaration = JSON.parse(JSON.stringify(declaration));
         const oldDeclaration = {};
@@ -148,12 +152,17 @@ class DeclarationHandler {
                 applyDefaults(parsedNewDeclaration, state);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
+                applyHttpdFixes(parsedNewDeclaration);
+                origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
+
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
                 return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration, declaration);
             })
             .then((declarationDiffs) => {
                 updateDeclaration = declarationDiffs.toUpdate;
                 deleteDeclaration = declarationDiffs.toDelete;
+
+                applyLdapCertOrigData(updateDeclaration, origLdapCertData);
 
                 const traceManager = new TraceManager(declaration, this.eventEmitter, state);
                 return traceManager.traceConfigs(parsedOldDeclaration, parsedNewDeclaration);
@@ -167,6 +176,7 @@ class DeclarationHandler {
                     [NetworkHandler, updateDeclaration],
                     [DscHandler, updateDeclaration],
                     [AnalyticsHandler, updateDeclaration],
+                    [GSLBHandler, updateDeclaration],
                     [DeleteHandler, deleteDeclaration],
                     [DeprovisionHandler, updateDeclaration]
                 ];
@@ -275,6 +285,7 @@ function applyDefaults(declaration, state) {
 function applyRouteDomainFixes(declaration, currentConfig) {
     applyDefaultRouteDomainFix(declaration, currentConfig);
     applyRouteDomainVlansFix(declaration, currentConfig);
+    applyRouteDomainParentFix(declaration);
 }
 
 /**
@@ -349,6 +360,26 @@ function applyDefaultRouteDomainFix(declaration, currentConfig) {
     if (Object.keys(routeDomains).length > 0) {
         declaration.Common.RouteDomain = routeDomains;
     }
+}
+
+/**
+ *  Prepend the tenant to the parent property if it is missing.
+ *
+ * @param {*} declaration - declaration to fix
+ */
+function applyRouteDomainParentFix(declaration) {
+    const decalrationRDs = (declaration.Common && declaration.Common.RouteDomain) || {};
+    // nothing to fix if no Route Domains in declaration
+    if (Object.keys(decalrationRDs).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RouteDomain', (tenant, routeDomain) => {
+        // If the parent does not start with '/', assume it is in this tenant
+        if (routeDomain.parent && !routeDomain.parent.startsWith('/')) {
+            routeDomain.parent = `/${tenant}/${routeDomain.parent}`;
+        }
+    });
 }
 
 /**
@@ -473,6 +504,78 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
             rd.vlans.push(vlanName);
         }
     });
+}
+
+/**
+ * Normalizes the HTTPD section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyHttpdFixes(declaration) {
+    const httpdDeclaration = declaration.Common.HTTPD;
+    if (httpdDeclaration && httpdDeclaration.allow) {
+        // Schema can handle 'all' as either a single word or in an array. Normalize
+        // to an array since that's what BIG-IP uses
+        if (httpdDeclaration.allow === 'all') {
+            httpdDeclaration.allow = [httpdDeclaration.allow];
+        }
+    }
+}
+
+/**
+ * Convert LDAP SSL cert data to SHA1 checksum, name, and partition.
+ *
+ * @param {Object} declaration - User provided declaration
+ *
+ * @returns {Object} - Original LDAP SSL cert data
+ */
+function applyLdapCertFixes(declaration) {
+    const origData = {};
+    const auth = declaration.Common.Authentication;
+
+    const patchItem = (key, subKey, targetKey, ext) => {
+        let data = (auth.ldap[key][subKey] || {}).base64;
+
+        if (typeof data === 'undefined') { return; }
+
+        const hash = crypto.createHash('sha1');
+
+        origData[targetKey] = { base64: data };
+        data = Buffer.from(data, 'base64').toString().trim();
+        hash.update(data);
+        auth.ldap[targetKey] = {
+            name: `${key.replace(/^ssl/, 'do_ldap')}.${ext}`,
+            partition: 'Common',
+            checksum: `SHA1:${data.length}:${hash.digest('hex')}`
+        };
+    };
+
+    if (auth && auth.ldap) {
+        ['sslCaCert', 'sslClientCert'].forEach((key) => {
+            if (!auth.ldap[key]) { return; }
+
+            // privateKey needs to be patched before certificate to avoid overwriting orig data
+            patchItem(key, 'privateKey', key.replace(/Cert$/, 'Key'), 'key');
+            patchItem(key, 'certificate', key, 'crt');
+        });
+    }
+    return origData;
+}
+
+/**
+ * Combine new LDAP SSL cert properties with original data from user declaration.
+ *
+ * @param {Object} declaration - Update declaration
+ * @param {Object} origData - LDAP SSL cert data
+ */
+function applyLdapCertOrigData(declaration, origData) {
+    const auth = declaration.Common.Authentication;
+
+    if (auth && auth.ldap) {
+        Object.keys(origData).forEach((key) => {
+            Object.assign(auth.ldap[key], origData[key]);
+        });
+    }
 }
 
 function processHandler(Handler, declaration, bigIp, eventEmitter, state) {

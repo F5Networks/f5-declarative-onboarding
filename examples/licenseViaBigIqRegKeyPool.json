@@ -14,7 +14,7 @@
             "bigIqPassword": "foofoo",
             "licensePool": "myRegKeyPool",
             "bigIpUsername": "admin",
-            "bigIpPassword": "barbar"
+            "bigIpPassword": "asdfjkl"
         },
         "myDns": {
             "class": "DNS",

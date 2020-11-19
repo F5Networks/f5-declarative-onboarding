@@ -77,7 +77,8 @@ function handleRemoteAuthRoles() {
         const rr = {};
         rr.attribute = decl.attribute;
         rr.console = decl.console;
-        rr.deny = (decl.remoteAccess) ? 'enabled' : 'disabled';
+        // deny is equivalent to denyRemoteAccess, thus remoteAccess === true is equivalent to deny === false
+        rr.deny = (decl.remoteAccess) ? 'disabled' : 'enabled';
         rr.lineOrder = decl.lineOrder;
         rr.role = decl.role;
         rr.userPartition = decl.userPartition;
@@ -166,6 +167,9 @@ function handleLdap() {
         return Promise.resolve();
     }
 
+    const getCertPath = certObj => `/${certObj.partition}/${certObj.name}`;
+    const certPromises = [];
+
     const ldapObj = {
         name: AUTH.SUBCLASSES_NAME,
         partition: 'Common',
@@ -187,15 +191,35 @@ function handleLdap() {
         searchTimeout: ldap.searchTimeout,
         servers: ldap.servers,
         ssl: ldap.ssl,
+        sslCaCertFile: ldap.sslCaCert ? getCertPath(ldap.sslCaCert) : 'none',
         sslCheckPeer: ldap.sslCheckPeer ? 'enabled' : 'disabled',
         sslCiphers: ldap.sslCiphers ? ldap.sslCiphers.join(':') : '',
+        sslClientCert: ldap.sslClientCert ? getCertPath(ldap.sslClientCert) : 'none',
+        sslClientKey: ldap.sslClientKey ? getCertPath(ldap.sslClientKey) : 'none',
         userTemplate: ldap.userTemplate || 'none',
         version: ldap.version
     };
 
     const options = ldapObj.bindPw ? { silent: true } : {};
 
-    return this.bigIp.createOrModify(PATHS.AuthLdap, ldapObj, undefined, undefined, options)
+    if (ldap.sslCaCert && ldap.sslCaCert.base64) {
+        certPromises.push(
+            handleCert.call(this, 'do_ldapCaCert.crt', ldap.sslCaCert, PATHS.SSLCert)
+        );
+    }
+    if (ldap.sslClientCert && ldap.sslClientCert.base64) {
+        certPromises.push(
+            handleCert.call(this, 'do_ldapClientCert.crt', ldap.sslClientCert, PATHS.SSLCert)
+        );
+    }
+    if (ldap.sslClientKey && ldap.sslClientKey.base64) {
+        certPromises.push(
+            handleCert.call(this, 'do_ldapClientCert.key', ldap.sslClientKey, PATHS.SSLKey)
+        );
+    }
+
+    return Promise.all(certPromises)
+        .then(() => this.bigIp.createOrModify(PATHS.AuthLdap, ldapObj, undefined, undefined, options))
         .catch((err) => {
             logger.severe(`Error configuring remote LDAP auth: ${err.message}`);
             return Promise.reject(err);
@@ -236,6 +260,46 @@ function handleRemoteUsersDefaults() {
             remoteConsoleAccess: authDefaults.terminalAccess
         }
     );
+}
+
+function handleCert(certName, certObj, certPath) {
+    const uploadCert = (name, data) => {
+        const path = `${PATHS.Uploads}/${name}`;
+        const dataStr = Buffer.from(data, 'base64').toString().trim();
+        const dataSize = Buffer.byteLength(dataStr);
+        const reqOpts = {
+            headers: {
+                'Content-Type': 'application/octet-stream',
+                'Content-Length': dataSize.toString(),
+                'Content-Range': `0-${dataSize - 1}/${dataSize}`
+            }
+        };
+        const opts = {
+            silent: path.endsWith('.key')
+        };
+
+        return this.bigIp.create(path, dataStr, reqOpts, undefined, opts);
+    };
+
+    const createCert = (name, path) => {
+        const data = {
+            name,
+            sourcePath: `file:/var/config/rest/downloads/${name}`
+        };
+        return this.bigIp.createOrModify(path, data);
+    };
+
+    const deleteCert = (name) => {
+        const data = {
+            command: 'run',
+            utilCmdArgs: `/var/config/rest/downloads/${name}`
+        };
+        return this.bigIp.create(PATHS.UnixRm, data);
+    };
+
+    return uploadCert(certName, certObj.base64)
+        .then(() => createCert(certName, certPath))
+        .then(() => deleteCert(certName));
 }
 
 module.exports = AuthHandler;

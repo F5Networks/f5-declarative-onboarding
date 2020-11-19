@@ -1,0 +1,17 @@
+{
+    "schemaVersion": "1.17.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "remoteAuthRole": {
+            "class": "RemoteAuthRole",
+            "attribute": "F5-LTM-User-Info-1=rad-admins",
+            "console": "%F5-LTM-User-Shell",
+            "lineOrder": 1001,
+            "remoteAccess": true,
+            "role": "%F5-LTM-User-Role",
+            "userPartition": "%F5-LTM-User-Partition"
+        }
+    }
+}

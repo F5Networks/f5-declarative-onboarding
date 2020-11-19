@@ -1,0 +1,17 @@
+{
+    "schemaVersion": "1.17.0",
+    "class": "Device",
+    "controls": {
+        "traceResponse": true
+    },
+    "label": "Configuring System",
+    "Common": {
+        "class": "Tenant",
+        "failoverMulticastTest": {
+            "class": "FailoverMulticast",
+            "interface": "eth0",
+            "address": "10.2.3.4",
+            "port": 1029
+        }
+    }
+}

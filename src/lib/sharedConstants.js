@@ -66,7 +66,12 @@ module.exports = {
         SSHD: '/tm/sys/sshd',
         SoftwareUpdate: '/tm/sys/software/update',
         Tunnel: '/tm/net/tunnels/tunnel',
-        RoutingAsPath: '/tm/net/routing/as-path'
+        RoutingAsPath: '/tm/net/routing/as-path',
+        Uploads: '/shared/file-transfer/uploads',
+        SSLCert: '/tm/sys/file/ssl-cert',
+        SSLKey: '/tm/sys/file/ssl-key',
+        UnixRm: '/tm/util/unix-rm',
+        GSLBGeneral: '/tm/gtm/global-settings/general'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -92,6 +97,7 @@ module.exports = {
         'Provision',
         'ConfigSync',
         'FailoverUnicast',
+        'FailoverMulticast',
         'DeviceTrust',
         'Analytics',
         'Authentication',
@@ -104,7 +110,8 @@ module.exports = {
         'HTTPD',
         'SSHD',
         'Disk',
-        'MirrorIp'
+        'MirrorIp',
+        'GSLBGlobals'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'
@@ -113,5 +120,10 @@ module.exports = {
         SERVER_PREFIX: 'system_auth_name',
         PRIMARY_SERVER: 'system_auth_name1',
         SECONDARY_SERVER: 'system_auth_name2'
+    },
+    LDAP: {
+        CA_CERT: 'do_ldapCaCert.crt',
+        CLIENT_CERT: 'do_ldapClientCert.crt',
+        CLIENT_KEY: 'do_ldapClientCert.key'
     }
 };

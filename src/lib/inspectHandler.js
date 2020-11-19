@@ -388,6 +388,15 @@ const customFunctions = {
         }
         return [configKey, configObject];
     },
+    // LDAP item
+    removeLdapCertAndKey: (configKey, configObject) => {
+        if (configObject.ldap) {
+            delete configObject.ldap.sslCaCert;
+            delete configObject.ldap.sslClientCert;
+            delete configObject.ldap.sslClientKey;
+        }
+        return [configKey, configObject];
+    },
     // RouteDomain item
     renameDefaultRouteDomain: (configKey, configObject) => {
         if (typeof configObject.id !== 'undefined' && configObject.id.toString() === '0') {

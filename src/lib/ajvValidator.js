@@ -25,6 +25,8 @@ const networkSchema = require('../schema/latest/network.schema.json');
 const dscSchema = require('../schema/latest/dsc.schema.json');
 const analyticsSchema = require('../schema/latest/analytics.schema.json');
 const authSchema = require('../schema/latest/auth.schema.json');
+const definitionsSchema = require('../schema/latest/definitions.schema.json');
+const gslbSchema = require('../schema/latest/gslb.schema.json');
 
 const customFormats = require('../schema/latest/formats.js');
 
@@ -44,11 +46,13 @@ class AjvValidator {
         });
 
         this.validator = ajv
+            .addSchema(definitionsSchema)
             .addSchema(systemSchema)
             .addSchema(networkSchema)
             .addSchema(dscSchema)
             .addSchema(analyticsSchema)
             .addSchema(authSchema)
+            .addSchema(gslbSchema)
             .addSchema(baseSchema)
             .compile(remoteSchema);
     }

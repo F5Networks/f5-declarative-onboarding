@@ -856,6 +856,10 @@ function handleHTTPD() {
         // and BIGIP's default let's always use 'all' with the user and 'All' with BIGIP.
         if (Array.isArray(httpd.allow)) {
             httpd.allow = httpd.allow.map(item => (item === 'all' ? 'All' : item));
+        } else if (httpd.allow === 'all') {
+            // This should already be an array by the time it gets here, but let's
+            // just make sure
+            httpd.allow = ['All'];
         }
 
         let cipherString = '';
