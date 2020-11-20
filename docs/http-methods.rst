@@ -16,7 +16,7 @@ The first time you POST a Declarative Onboarding declaration, the system records
 
 .. _postnote:
 
-**NOTE**: When using Declarative Onboarding 1.4.0 and later, the response to a POST includes additional fields that help handle onboarding multiple BIG-IP devices using the Container without waiting for previous declarations to finish onboarding.  These fields are **id** and **selfLink**.  For example, a POST using 1.4.0 returns the following:
+**NOTE**: When using Declarative Onboarding 1.4.0 and later, the response to a POST includes additional fields that help identify asynchronous Declarative Onboarding tasks.  These fields are **id** and **selfLink**.  For example, a POST using 1.4.0 returns the following:
 
 .. code-block:: bash
    :emphasize-lines: 2-3
