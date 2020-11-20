@@ -36,7 +36,6 @@
             "stagedFirewallPolicy": "stagedPolicy",
             "securityNatPolicy": "securityPolicy",
             "servicePolicy": "servicePolicy",
-            "strict": false,
             "routingProtocols": [
                 "BGP"
             ],
