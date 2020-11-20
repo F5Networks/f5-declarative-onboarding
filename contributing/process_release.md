@@ -47,3 +47,4 @@ At some point in the sprint we create a release branch. This should happen when 
 ## Process for release
 * Using the GUI, create an MR to merge the release branch to `master`. You can self-approve and merge this MR.
 * Using the GUI, create an MR to merge the release branch to `develop`. You can self-approve and merge this MR.
+* Add a `released` property with a value of `true` to the released RPM in Artifactory.
