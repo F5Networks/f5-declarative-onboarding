@@ -15,7 +15,7 @@
             "licensePool": "myPurchasedPool",
             "reachable": true,
             "bigIpUsername": "admin",
-            "bigIpPassword": "barbar"
+            "bigIpPassword": "asdfjkl"
         },
         "myDns": {
             "class": "DNS",

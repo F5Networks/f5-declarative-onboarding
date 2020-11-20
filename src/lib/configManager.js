@@ -210,6 +210,8 @@ class ConfigManager {
                             currentItem.forEach((item) => {
                                 if (!shouldIgnore(item, this.configItems[index].ignore)
                                     && inPartitions(item, this.configItems[index].partitions)) {
+                                    const schemaMerge = this.configItems[index].schemaMerge;
+
                                     if (schemaClass === 'Route'
                                         && item.partition === 'LOCAL_ONLY') {
                                         item.localOnly = true;
@@ -246,7 +248,6 @@ class ConfigManager {
                                     }
 
                                     if (schemaClass === 'Authentication') {
-                                        const schemaMerge = this.configItems[index].schemaMerge;
                                         currentConfig[schemaClass] = patchAuth.call(
                                             this, schemaMerge, currentConfig[schemaClass], patchedItem
                                         );
@@ -275,6 +276,8 @@ class ConfigManager {
                             });
                         }
                     } else if (!shouldIgnore(currentItem, this.configItems[index].ignore)) {
+                        const schemaMerge = this.configItems[index].schemaMerge;
+
                         patchedItem = removeUnusedKeys.call(
                             this,
                             currentItem,
@@ -282,13 +285,11 @@ class ConfigManager {
                         );
                         patchedItem = mapProperties.call(this, patchedItem, index);
                         if (schemaClass === 'Authentication') {
-                            const schemaMerge = this.configItems[index].schemaMerge;
                             patchedItem = patchAuth.call(
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
                             );
                         }
                         if (schemaClass === 'System') {
-                            const schemaMerge = this.configItems[index].schemaMerge;
                             patchedItem = patchSys.call(
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
                             );
@@ -314,12 +315,10 @@ class ConfigManager {
                             }
                         }
                         if (schemaClass === 'HTTPD') {
-                            if (patchedItem.sslCiphersuite) {
-                                patchHTTPD.call(
-                                    this,
-                                    patchedItem
-                                );
-                            }
+                            patchHTTPD.call(
+                                this,
+                                patchedItem
+                            );
                         }
                         if (schemaClass === 'Disk' && patchedItem.apiRawValues) {
                             patchedItem = patchedItem.apiRawValues;
@@ -327,8 +326,20 @@ class ConfigManager {
                                 patchedItem[item] = parseInt(patchedItem[item], 10);
                             });
                         }
+                        if (schemaClass === 'GSLBGlobals') {
+                            patchedItem = patchGSLBGlobals.call(
+                                this,
+                                patchedItem
+                            );
+                        }
                         currentConfig[schemaClass] = patchedItem;
-                        getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
+                        getReferencedPaths.call(
+                            this,
+                            currentItem,
+                            index,
+                            referencePromises,
+                            referenceInfo
+                        );
                     }
                 });
 
@@ -340,13 +351,20 @@ class ConfigManager {
                     const property = referenceInfo[index].property;
                     const schemaClass = referenceInfo[index].schemaClass;
                     const name = referenceInfo[index].name;
-                    const configItem = currentConfig[schemaClass][name];
+                    const mergePath = referenceInfo[index].mergePath;
 
-                    configItem[property] = [];
-                    let patchedItem;
-                    // references refer to arrays, so each referenceResult should be an array
-                    referenceResult.forEach((reference) => {
-                        patchedItem = removeUnusedKeys.call(this, reference);
+                    let configItem;
+                    if (mergePath) {
+                        configItem = mergePath.reduce(
+                            (item, key) => item[key],
+                            currentConfig[schemaClass]
+                        );
+                    } else {
+                        configItem = currentConfig[schemaClass][name];
+                    }
+
+                    const patchReferences = (reference) => {
+                        const patchedItem = removeUnusedKeys.call(this, reference);
                         referenceInfo[index].properties.forEach((refProperty) => {
                             if (refProperty.truth !== undefined) {
                                 patchedItem[refProperty.id] = mapTruth(patchedItem, refProperty);
@@ -355,8 +373,17 @@ class ConfigManager {
                                 patchedItem[refProperty.id] = parseInt(patchedItem[refProperty.id], 10);
                             }
                         });
-                        configItem[property].push(patchedItem);
-                    });
+                        return patchedItem;
+                    };
+
+                    if (Array.isArray(referenceResult)) {
+                        configItem[property] = [];
+                        referenceResult.forEach((reference) => {
+                            configItem[property].push(patchReferences(reference));
+                        });
+                    } else {
+                        configItem[property] = patchReferences(referenceResult);
+                    }
                 });
 
                 state.currentConfig = {
@@ -386,6 +413,15 @@ class ConfigManager {
                             originalConfig.Common.DbVariables[dbVar] = currentDbVariables[dbVar];
                         }
                     });
+                }
+
+                const currentDisk = state.currentConfig.Common.Disk;
+                if (currentDisk && currentDisk.applicationData
+                    && currentDisk.applicationData > originalConfig.Common.Disk.applicationData) {
+                    if (!originalConfig.Common.Disk) {
+                        originalConfig.Common.Disk = {};
+                    }
+                    originalConfig.Common.Disk.applicationData = currentDisk.applicationData;
                 }
 
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
@@ -655,14 +691,11 @@ function mapSchemaMerge(obj, value, opts) {
 // and on the link given to us in the reference in the iControl REST object
 function getReferencedPaths(item, index, referencePromises, referenceInfo) {
     Object.keys(item).forEach((property) => {
-        if (this.configItems[index].references
-            && this.configItems[index].references[property]
-            && item[property].link) {
+        const configItem = this.configItems[index];
+        if (configItem.references && configItem.references[property] && item[property].link) {
             const parsed = url.parse(item[property].link);
             const query = querystring.parse(parsed.query);
-            const selectProperties = getPropertiesOfInterest(
-                this.configItems[index].references[property]
-            );
+            const selectProperties = getPropertiesOfInterest(configItem.references[property]);
             if (selectProperties.length > 0) {
                 query.$select = selectProperties.join(',');
             }
@@ -675,13 +708,15 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
             // trim off 'Reference' from the property name to get the name for the unreferenced property
             const regex = /^(.+)Reference$/;
             const trimmedPropertyName = regex.exec(property)[1];
+            const newId = (configItem.properties.find(obj => obj.id === trimmedPropertyName) || {}).newId;
             referencePromises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
             referenceInfo.push(
                 {
-                    property: trimmedPropertyName,
-                    schemaClass: this.configItems[index].schemaClass,
+                    property: newId || trimmedPropertyName,
+                    schemaClass: configItem.schemaClass,
                     name: item.name,
-                    properties: this.configItems[index].references[property]
+                    properties: configItem.references[property],
+                    mergePath: (configItem.schemaMerge || {}).path
                 }
             );
         }
@@ -849,7 +884,25 @@ function patchSSHD(patchedItem) {
 }
 
 function patchHTTPD(patchedItem) {
-    patchedItem.sslCiphersuite = patchedItem.sslCiphersuite.split(':');
+    if (patchedItem.sslCiphersuite) {
+        patchedItem.sslCiphersuite = patchedItem.sslCiphersuite.split(':');
+    }
+    if (patchedItem.allow) {
+        if (Array.isArray(patchedItem.allow)) {
+            // Allow can use 'all' or 'All'. Normalize to 'all'.
+            patchedItem.allow = patchedItem.allow.map(item => (item === 'All' ? 'all' : item));
+        }
+    } else {
+        patchedItem.allow = 'none';
+    }
+}
+
+function patchGSLBGlobals(patchedItem) {
+    // Will eventually want schemaMerge for global-settings not in /general.
+    const patchedClass = {};
+    patchedClass.general = {};
+    Object.assign(patchedClass.general, patchedItem);
+    return patchedClass;
 }
 
 function shouldIgnore(item, ignoreList) {

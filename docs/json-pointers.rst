@@ -1,3 +1,4 @@
+.. _pointers: 
 
 JSON Pointers
 -------------
@@ -45,7 +46,7 @@ And then call the credentials later in the declaration, for example
     "bigIpUsername": "/Credentials/0/username",
     "bigIpPassword": "/Credentials/0/password",
 
-You can see a full example of Credentials in action in :ref:`example6`.
+You can see a full example of Credentials in action in :ref:`example3`.
 
 Referencing other objects in a declaration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

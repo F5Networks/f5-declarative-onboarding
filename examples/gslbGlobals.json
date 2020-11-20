@@ -1,0 +1,21 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "provisioning": {
+            "class": "Provision",
+            "gtm": "nominal"
+        },
+        "gslbGlobals": {
+            "class": "GSLBGlobals",
+            "general": {
+                "synchronizationEnabled": true,
+                "synchronizationGroupName": "newGroup",
+                "synchronizationTimeTolerance": 123,
+                "synchronizationTimeout": 1234
+            }
+        }
+    }
+}

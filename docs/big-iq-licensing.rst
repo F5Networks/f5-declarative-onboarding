@@ -41,7 +41,7 @@ In the following snippet, we set *reachable* to **true** (reachable means the BI
         "unitOfMeasure": "hourly",
         "reachable": true,
         "bigIpUsername": "admin",
-        "bigIpPassword": "barbar"
+        "bigIpPassword": "asdfjkl"
     },
 
 
@@ -160,7 +160,7 @@ So the entire license class might look like the following, which revokes the lic
         "unitOfMeasure": "hourly",
         "reachable": true,
         "bigIpUsername": "admin",
-        "bigIpPassword": "barbar"
+        "bigIpPassword": "asdfjkl"
     },
 
 
@@ -224,7 +224,7 @@ For example, to revoke a license issued from the BIG-IQ at 10.0.2.200 and re-lic
             "revokeFrom": {
                 "bigIqHost": "10.0.2.200",
                 "bigIqUsername": "admin",
-                "bigIqPassword": "barbar",
+                "bigIqPassword": "asdfjkl",
                 "licensePool": "myPool",
                 "reachable": false
             },

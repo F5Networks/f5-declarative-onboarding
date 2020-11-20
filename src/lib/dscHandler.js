@@ -62,6 +62,10 @@ class DscHandler {
                 return handleFailoverUnicast.call(this);
             })
             .then(() => {
+                logger.fine('Checking FailoverMulticast.');
+                return handleFailoverMulticast.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking DeviceTrust and DeviceGroup.');
                 return handleDeviceTrustAndGroup.call(this);
             })
@@ -139,6 +143,30 @@ function handleFailoverUnicast() {
             ))
             .catch((err) => {
                 logger.severe(`Error setting failover unicast address: ${err.message}`);
+                return Promise.reject(err);
+            });
+    }
+    return Promise.resolve();
+}
+
+/**
+ * Handles setting the network failover multicast address
+ */
+function handleFailoverMulticast() {
+    if (this.declaration.Common.FailoverMulticast) {
+        const multicast = this.declaration.Common.FailoverMulticast;
+        const body = {};
+        body.multicastInterface = multicast.interface;
+        body.multicastIp = multicast.address;
+        body.multicastPort = multicast.port;
+
+        return this.bigIp.deviceInfo()
+            .then(deviceInfo => this.bigIp.modify(
+                `/tm/cm/device/~Common~${deviceInfo.hostname}`,
+                body
+            ))
+            .catch((err) => {
+                logger.severe(`Error setting failover multicast address: ${err.message}`);
                 return Promise.reject(err);
             });
     }

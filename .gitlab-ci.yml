@@ -1,4 +1,4 @@
-image: node:latest
+image: $DOCKER_URL/node:latest
 
 stages:
     - lint
@@ -34,7 +34,7 @@ lint:
         - npm run lint
 
 test_node:4:
-    image: node:4
+    image: $DOCKER_URL/node:4
     stage: test
     tags:
         - do-test-docker-executor
@@ -45,7 +45,7 @@ test_node:4:
         - npm test
 
 test_node:6:
-    image: node:6
+    image: $DOCKER_URL/node:6
     stage: test
     tags:
         - do-test-docker-executor
@@ -55,7 +55,7 @@ test_node:6:
         - npm test
 
 test_node:8:
-    image: node:8
+    image: $DOCKER_URL/node:8
     stage: test
     tags:
         - do-test-docker-executor
@@ -95,6 +95,7 @@ deploy:
         - tags
         - triggers
     stage: deploy
+    timeout: 2 hours
     variables:
         DEFAULT_RETRY_DELAY: 20
         DEFAULT_RETRIES: 60
@@ -133,6 +134,7 @@ integration-test:
         - tags
         - triggers
     stage: integration-test
+    timeout: 2 hours
     script:
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
@@ -167,7 +169,7 @@ teardown:
     stage: teardown
 
 build rpm:
-    image: f5devcentral/containthedocs:rpmbuild
+    image: $DOCKER_URL/f5devcentral/containthedocs:rpmbuild
     stage: build
     tags:
         - cm-official-docker-executor
@@ -175,35 +177,6 @@ build rpm:
         # setup node environment
         - npm install --global npm@5.10.0
         - scripts/build/buildRpm.sh
-    artifacts:
-        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
-        paths:
-            - dist/
-        expire_in: 1 week
-
-build asg:
-    image: docker:latest
-    stage: post build
-    except:
-        - schedules
-    tags:
-        - cm-official-docker-executor
-    dependencies:
-        - build rpm
-    script:
-        - IMAGE_NAME=f5-do-container
-        - ORGANIZATION_NAME=f5devcentral
-        - TARGET=$(ls dist/*.rpm)
-        # TAG is VERSION-RELEASE. Use awk to remove everything else
-        - IMAGE_TAG=$(echo $(basename $TARGET) | awk -F- -v PROJECT_NAME=${CI_PROJECT_NAME}- '{sub(PROJECT_NAME, ""); sub(".noarch.rpm", ""); print}')
-        - if [[ ${CI_COMMIT_REF_NAME} == 'master' ]]; then
-        -     IMAGE_TAG=$(echo $IMAGE_TAG | grep -o "^[^-]\+")
-        - elif [[ ${CI_COMMIT_REF_NAME} != 'develop' ]]; then
-        -     IMAGE_TAG=$CI_COMMIT_REF_NAME
-        - fi
-        - echo ${TARGET} ${IMAGE_TAG}
-        - docker build -f scripts/build/Dockerfile.asg -t ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
-        - docker save ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${ORGANIZATION_NAME}-${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
@@ -257,6 +230,7 @@ publish to artifactory:
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build
+    allow_failure: true
     except:
         - tags
         - schedules
@@ -282,6 +256,7 @@ create docs:
 # Docs are staged on this projects pages site
 pages:
     stage: docs
+    allow_failure: true
     except:
         - tags
         - schedules

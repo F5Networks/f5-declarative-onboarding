@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2018-2020 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -430,13 +430,14 @@ function handleTrunk() {
         });
 }
 function handleRouteDomain() {
-    const promises = [];
+    const commands = [];
     doUtil.forEach(this.declaration, 'RouteDomain', (tenant, routeDomain) => {
         if (routeDomain && routeDomain.name) {
             const routeDomainBody = {
                 name: routeDomain.name,
                 partition: tenant,
                 id: routeDomain.id,
+                parent: routeDomain.parent || 'none',
                 connectionLimit: routeDomain.connectionLimit,
                 bwcPolicy: routeDomain.bandwidthControllerPolicy,
                 flowEvictionPolicy: routeDomain.flowEvictionPolicy,
@@ -449,14 +450,21 @@ function handleRouteDomain() {
                 routingProtocol: routeDomain.routingProtocols,
                 vlans: routeDomain.vlans
             };
-
-            promises.push(
-                this.bigIp.createOrModify(PATHS.RouteDomain, routeDomainBody, null, cloudUtil.MEDIUM_RETRY)
-            );
+            let method = 'create';
+            if (this.state.currentConfig.Common.RouteDomain
+                && this.state.currentConfig.Common.RouteDomain[routeDomain.name]) {
+                method = 'modify';
+            }
+            commands.push({
+                method,
+                path: method === 'create' ? PATHS.RouteDomain : `${PATHS.RouteDomain}/~${tenant}~${routeDomain.name}`,
+                body: routeDomainBody
+            });
         }
     });
 
-    return Promise.all(promises)
+    return Promise.resolve()
+        .then(() => this.bigIp.transaction(commands))
         .catch((err) => {
             logger.severe(`Error creating RouteDomains: ${err.message}`);
             throw err;

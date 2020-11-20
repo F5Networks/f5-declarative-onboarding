@@ -195,6 +195,16 @@
     },
     {
         "path": "/tm/cm/device/~Common~{{deviceName}}",
+        "schemaClass": "FailoverMulticast",
+        "properties": [
+            { "id": "multicastInterface", "newId": "interface", "defaultWhenOmitted": "none" },
+            { "id": "multicastIp", "newId": "address", "defaultWhenOmitted": "any6" },
+            { "id": "multicastPort", "newId": "port", "defaultWhenOmitted": 0 }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/cm/device/~Common~{{deviceName}}",
         "schemaClass": "MirrorIp",
         "properties": [
             { "id": "mirrorIp", "newId": "primaryIp" },
@@ -298,7 +308,8 @@
         "declaration": {
             "$comment": "Kind like parent object because all auth config will be under 'Authentication' key",
             "customFunctions": [
-                { "id": "removeIncompleteAuthMethods" }
+                { "id": "removeIncompleteAuthMethods" },
+                { "id": "removeLdapCertAndKey" }
             ]
         }
     },
@@ -365,6 +376,7 @@
         "schemaClass": "RouteDomain",
         "properties": [
             { "id": "id" },
+            { "id": "parent" },
             { "id": "bwcPolicy", "newId": "bandWidthControllerPolicy" },
             { "id": "connectionLimit" },
             { "id": "flowEvictionPolicy" },
@@ -387,7 +399,7 @@
         "path": "/tm/auth/remote-role/role-info",
         "schemaClass": "RemoteAuthRole",
         "properties": [
-            { "id": "deny", "newId": "remoteAccess", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "deny", "newId": "remoteAccess", "truth": "disabled", "falsehood": "enabled" },
             { "id": "attribute" },
             { "id": "console" },
             { "id": "lineOrder" },
@@ -426,11 +438,28 @@
             { "id": "searchTimeout" },
             { "id": "servers" },
             { "id": "ssl" },
+            { "id": "sslCaCertFile", "newId": "sslCaCert" },
             { "id": "sslCheckPeer", "truth": "enabled", "falsehood": "disabled" },
             { "id": "sslCiphers" },
+            { "id": "sslClientCert" },
+            { "id": "sslClientKey" },
             { "id": "userTemplate" },
             { "id": "version" }
         ],
+        "references": {
+            "sslCaCertFileReference": [
+                { "id": "checksum" },
+                { "id": "partition" }
+            ],
+            "sslClientCertReference": [
+                { "id": "checksum" },
+                { "id": "partition" }
+            ],
+            "sslClientKeyReference": [
+                { "id": "checksum" },
+                { "id": "partition" }
+            ]
+        },
         "nameless": true
     },
     {
@@ -584,6 +613,18 @@
                     }
                 ]
             }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/gtm/global-settings/general",
+        "schemaClass": "GSLBGlobals",
+        "requiredModule": "gtm",
+        "properties": [
+            { "id": "synchronization", "truth": "yes", "falsehood": "no", "newId": "synchronizationEnabled" },
+            { "id": "synchronizationGroupName" },
+            { "id": "synchronizationTimeTolerance" },
+            { "id": "synchronizationTimeout" }
         ],
         "nameless": true
     }

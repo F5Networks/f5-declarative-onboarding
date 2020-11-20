@@ -62,22 +62,36 @@ If `npx` is available on your system, you can run the locally installed version 
 [
     {
         "admin_ip": "10.1.1.10",
-        "admin_username": "admin",
-        "admin_password": "admin_password",
-        "root_username": "root",
-        "root_password": "root_password"
-    }, {
+        "f5_rest_user": {
+            "username": "admin",
+            "password": "admin_password"
+        },
+        "ssh_user": {
+            "username": "root",
+            "password": "root_password"
+        }
+    },
+    {
         "admin_ip": "10.1.2.3",
-        "admin_username": "admin",
-        "admin_password": "admin_password",
-        "root_username": "root",
-        "root_password": "root_password"
-    }, {
+        "f5_rest_user": {
+            "username": "admin",
+            "password": "admin_password"
+        },
+        "ssh_user": {
+            "username": "root",
+            "password": "root_password"
+        }
+    },
+    {
         "admin_ip": "10.123.45.67",
-        "admin_username": "admin",
-        "admin_password": "admin_password",
-        "root_username": "root",
-        "root_password": "root_password"
+        "f5_rest_user": {
+            "username": "admin",
+            "password": "admin_password"
+        },
+        "ssh_user": {
+            "username": "root",
+            "password": "root_password"
+        }
     }
 ]
 ```

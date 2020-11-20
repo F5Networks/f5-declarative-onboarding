@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2018-2020 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const RADIUS = require('./sharedConstants').RADIUS;
+const LDAP = require('./sharedConstants').LDAP;
 const AUTH = require('./sharedConstants').AUTH;
 
 const logger = new Logger(module);
@@ -90,6 +91,7 @@ class DeleteHandler {
         DELETABLE_CLASSES.forEach((deleteableClass) => {
             if (this.declaration.Common[deleteableClass]) {
                 const classPromises = [];
+                const transactionCommands = [];
                 Object.keys(this.declaration.Common[deleteableClass]).forEach((itemToDelete) => {
                     // Special case for device groups
                     if (deleteableClass === 'DeviceGroup') {
@@ -107,14 +109,19 @@ class DeleteHandler {
                     } else if (!isRetainedItem(deleteableClass, itemToDelete)) {
                         const commonPrefix = deleteableClass === 'Trunk' ? '' : '~Common~';
                         const path = `${PATHS[deleteableClass]}/${commonPrefix}${itemToDelete}`;
-                        let retry = cloudUtil.NO_RETRY;
-                        if (deleteableClass === 'RouteDomain') { // DNS_Resolver deletes first but can be too slow
-                            retry = cloudUtil.SHORT_RETRY;
-                            retry.continueOnError = true;
+                        if (deleteableClass === 'RouteDomain') {
+                            transactionCommands.push({
+                                method: 'delete',
+                                path
+                            });
+                        } else {
+                            classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
                         }
-                        classPromises.push(this.bigIp.delete(path, null, null, retry));
                     }
                 });
+                if (transactionCommands.length > 0) {
+                    classPromises.push(this.bigIp.transaction(transactionCommands));
+                }
                 if (classPromises.length > 0) {
                     promises.push(classPromises);
                 }
@@ -148,6 +155,22 @@ function getAuthClassPromises() {
     const authPromises = [];
     if (auth) {
         const authToDelete = ['radius', 'ldap', 'tacacs'];
+        const deleteAuthItems = (path, names) => this.bigIp.list(path, null, null, cloudUtil.NO_RETRY)
+            .then((authItems) => {
+                const items = authItems && Array.isArray(authItems) ? authItems : [];
+                return Promise.all(names.map((name) => {
+                    const shouldDelete = items.some(item => item.fullPath === `/Common/${name}`);
+
+                    if (shouldDelete) {
+                        return this.bigIp.delete(
+                            `${path}/~Common~${name}`,
+                            null, null, cloudUtil.NO_RETRY
+                        );
+                    }
+                    return Promise.resolve();
+                }));
+            });
+
         Object.keys(auth).forEach((authItem) => {
             if (authToDelete.indexOf(authItem) === -1) {
                 return;
@@ -191,6 +214,16 @@ function getAuthClassPromises() {
                         );
                     });
             }
+
+            if (authItem === 'ldap') {
+                // quirk with ldap SSL certificates and keys:
+                // 1) needing separate DELETEs and they also have name constants
+                // 2) should be deleted only when /tm/auth/ldap/system-auth object was deleted
+                promise = promise
+                    .then(() => deleteAuthItems(PATHS.SSLCert, [LDAP.CA_CERT, LDAP.CLIENT_CERT]))
+                    .then(() => deleteAuthItems(PATHS.SSLKey, [LDAP.CLIENT_KEY]));
+            }
+
             authPromises.push(promise);
         });
     }

@@ -15,7 +15,6 @@ For more information, return to :doc:`index`
 
 The DO Extension is available |dl|.  See :doc:`installation` for instructions.
 
-The DO Container is available on |docker|. 
 
 |
 
@@ -27,16 +26,7 @@ Yes.  See the |support| to see the versions of DO that are currently supported.
 
 **What is the "DO Container"? Is it Supported?** 
 
-- This is a Docker container form-factor for DO 1.2+ for off-box deployments. 
-- Provides flexibility to deploy DO via any container management platform 
-- Ongoing container optimization for DO; separate from F5 API Services Gateway:
-
-  - The DO Container is specifically for DO use cases, 
-  - F5 API Services Gateway is specifically for custom iControl LX extension use cases (and is community-supported) 
-
-The DO container is currently Community Supported and in the F5Devcentral organization on Docker Hub. Once it is fully supported by F5, it will move to **f5networks** on Docker Hub.
-
-See :doc:`do-container` for more information.
+The DO Container was a community-supported solution, and was deprecated in DO 1.16. F5 will no longer provide new versions of DO running in a container.
 
 |
 
@@ -131,9 +121,6 @@ As of January 2020, no breaking changes have been made to AS3, Declarative Onboa
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/releases" target="_blank">Release Asset on GitHub</a>
 
-.. |docker| raw:: html
-
-   <a href="https://hub.docker.com/r/f5devcentral/f5-do-container" target="_blank">Docker Hub</a>
 
 .. |support| raw:: html
 

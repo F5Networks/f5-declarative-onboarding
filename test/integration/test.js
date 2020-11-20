@@ -175,6 +175,15 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             }
         ));
 
+        it('should match failover multicast', () => assert.deepStrictEqual(
+            currentState.FailoverMulticast,
+            {
+                interface: 'eth0',
+                address: '224.0.0.100',
+                port: 123
+            }
+        ));
+
         it('should match configsync ip address', () => {
             assert.ok(testConfigSyncIp(body.Common, currentState));
         });
@@ -201,6 +210,18 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 failoverMethod: 'ha-order',
                 haLoadFactor: 1,
                 haOrder: ['/Common/f5.example.com']
+            }
+        ));
+
+        it('should have updated GSLB global-settings', () => assert.deepStrictEqual(
+            currentState.GSLBGlobals,
+            {
+                general: {
+                    synchronizationEnabled: true,
+                    synchronizationGroupName: 'newGroup',
+                    synchronizationTimeTolerance: 123,
+                    synchronizationTimeout: 12345
+                }
             }
         ));
     });
@@ -397,6 +418,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should configure tacacs', () => {
             assert.ok(testTacacsAuth(body.Common.myAuth.tacacs, currentState));
+        });
+
+        it('should configure remoteAuthRole', () => {
+            assert.ok(testRemoteAuthRole(body.Common.remoteAuthRole, currentState));
         });
     });
 
@@ -1061,6 +1086,17 @@ function testTacacsAuth(target, response) {
         [
             'accounting', 'authentication', 'debug', 'encryption', 'protocol',
             'servers', 'service'
+        ]
+    );
+}
+
+function testRemoteAuthRole(target, response) {
+    const remoteAuthRoleResp = response.RemoteAuthRole.remoteAuthRole;
+    return compareSimple(
+        target,
+        remoteAuthRoleResp,
+        [
+            'attribute', 'console', 'lineOrder', 'remoteAccess', 'role', 'userPartition'
         ]
     );
 }
