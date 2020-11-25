@@ -23,6 +23,7 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 const GSLBHandler = require('../../../src/lib/gslbHandler');
+const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 
 describe('gslbHandler', () => {
     let bigIpMock;
@@ -36,6 +37,13 @@ describe('gslbHandler', () => {
             modify(path, data) {
                 pathsSent.push(path);
                 dataSent.push(data);
+                return Promise.resolve();
+            },
+            createOrModify(path, data) {
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
                 return Promise.resolve();
             }
         };
@@ -66,6 +74,65 @@ describe('gslbHandler', () => {
                             synchronizationGroupName: 'newGroupName',
                             synchronizationTimeTolerance: 123,
                             synchronizationTimeout: 100
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('GSLBDataCenter', () => {
+        it('should handle GSLBDataCenter', () => {
+            const declaration = {
+                Common: {
+                    GSLBDataCenter: {
+                        dataCenter0: {
+                            name: 'dataCenter0',
+                            contact: 'contact0',
+                            enabled: true,
+                            location: 'location0',
+                            proberFallback: 'pool',
+                            proberPool: '/Common/proberPool',
+                            proberPreferred: 'pool'
+                        },
+                        dataCenter1: {
+                            name: 'dataCenter1',
+                            contact: 'contact1',
+                            enabled: false,
+                            location: 'location1',
+                            proberFallback: 'outside-datacenter',
+                            proberPreferred: 'any-available'
+                        }
+                    }
+                }
+            };
+
+            const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+            return gslbHandler.process()
+                .then(() => {
+                    const dataCenter = dataSent[PATHS.GSLBDataCenter];
+                    assert.deepStrictEqual(
+                        dataCenter[0],
+                        {
+                            name: 'dataCenter0',
+                            partition: 'Common',
+                            contact: 'contact0',
+                            enabled: true,
+                            location: 'location0',
+                            proberFallback: 'pool',
+                            proberPool: '/Common/proberPool',
+                            proberPreference: 'pool'
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        dataCenter[1],
+                        {
+                            name: 'dataCenter1',
+                            partition: 'Common',
+                            contact: 'contact1',
+                            enabled: false,
+                            location: 'location1',
+                            proberFallback: 'outside-datacenter',
+                            proberPreference: 'any-available'
                         }
                     );
                 });

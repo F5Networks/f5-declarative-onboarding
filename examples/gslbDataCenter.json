@@ -1,0 +1,21 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "provisioning": {
+            "class": "Provision",
+            "gtm": "nominal"
+        },
+        "newDataCenter": {
+            "class": "GSLBDataCenter",
+            "enabled": true,
+            "contact": "dataCenterContact",
+            "location": "dataCenterLocation",
+            "proberFallback": "outside-datacenter",
+            "proberPreferred": "pool",
+            "proberPool": "/Common/proberPool"
+        }
+    }
+}

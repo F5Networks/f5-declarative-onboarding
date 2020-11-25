@@ -97,6 +97,61 @@ describe('gslb.schema.json', () => {
             });
         });
     });
+
+    describe('GSLBDataCenter class', () => {
+        describe('valid', () => {
+            it('should validate minimal properties', () => {
+                const data = {
+                    class: 'GSLBDataCenter'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all properties', () => {
+                const data = {
+                    class: 'GSLBDataCenter',
+                    enabled: false,
+                    location: 'dataCenterLocation',
+                    contact: 'dataCenterContact',
+                    proberPreferred: 'pool',
+                    proberFallback: 'any-available',
+                    proberPool: '/Common/proberPool'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate invalid proberPreferred value', () => {
+                const data = {
+                    class: 'GSLBDataCenter',
+                    proberPreferred: 'invalid'
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf(''), -1);
+            });
+
+            it('should invalidate invalid proberFallback value', () => {
+                const data = {
+                    class: 'GSLBDataCenter',
+                    proberFallback: 'invalid'
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf(''), -1);
+            });
+
+            it('should invalidate use of proberPool when proberPreferred or proberFallback are not pool', () => {
+                const data = {
+                    class: 'GSLBDataCenter',
+                    proberFallback: 'outside-datacenter',
+                    proberPreferred: 'inside-datacenter',
+                    proberPool: '/Common/proberPool'
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf(''), -1);
+            });
+        });
+    });
 });
 
 function getErrorString() {

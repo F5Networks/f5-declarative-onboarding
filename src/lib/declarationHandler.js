@@ -75,7 +75,9 @@ const CLASSES_OF_TRUTH = [
     'TrafficGroup',
     'Disk',
     'MirrorIp',
-    'RoutingAsPath'
+    'RoutingAsPath',
+    'GSLBGlobals',
+    'GSLBDataCenter'
 ];
 
 /**
