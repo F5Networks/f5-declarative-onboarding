@@ -126,6 +126,14 @@
                 "synchronizationTimeTolerance": 123,
                 "synchronizationTimeout": 12345
             }
+        },
+        "myDataCenter": {
+            "class": "GSLBDataCenter",
+            "enabled": true,
+            "contact": "dataCenterContact",
+            "location": "dataCenterLocation",
+            "proberFallback": "outside-datacenter",
+            "proberPreferred": "inside-datacenter"
         }
     }
 }

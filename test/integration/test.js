@@ -28,8 +28,6 @@ const constants = require('./constants.js');
 const common = require('./common.js');
 const logger = require('./logger').getInstance();
 
-const configItems = require('../../src/lib/configItems.json');
-
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 /* eslint-disable no-console */
@@ -62,36 +60,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 return Promise.resolve();
             })
             .catch(error => Promise.reject(error));
-    });
-
-    describe('Test Configuration Scope', () => {
-        it('should not overlap with config items in the AS3 project', () => {
-            logTestTitle(this.ctx.test.title);
-            const path = '/f5-automation-toolchain-generic/f5-appsvcs/latest/as3-properties-latest.json';
-            const options = common.buildBody(process.env.ARTIFACTORY_BASE_URL + path, null, null, 'GET');
-            options.rejectUnauthorized = false;
-            const retryOptions = {
-                trials: 10,
-                timeInterval: 1000
-            };
-            return common.sendRequest(options, retryOptions)
-                .then((res) => {
-                    const as3Properties = JSON.parse(res.response.body.replace(/\\n/g, ''));
-                    const keyCount = Object.keys(as3Properties).length;
-                    if (keyCount === 0) {
-                        assert.fail('No properties in AS3 properties.json');
-                    }
-                    configItems.forEach((item) => {
-                        const prop = item.path.replace(/\/tm\//, '').replace(/\//g, ' ');
-                        assert.ok(as3Properties[prop] === undefined);
-                    });
-                })
-                .catch((err) => {
-                    console.log(JSON.stringify(options));
-                    logger.info(err);
-                    assert.fail(err);
-                });
-        });
     });
 
     describe('Test Onboard', function testOnboard() {
@@ -222,6 +190,18 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     synchronizationTimeTolerance: 123,
                     synchronizationTimeout: 12345
                 }
+            }
+        ));
+
+        it('should have created GSLB data center', () => assert.deepStrictEqual(
+            currentState.GSLBDataCenter.myDataCenter,
+            {
+                name: 'myDataCenter',
+                enabled: true,
+                contact: 'dataCenterContact',
+                location: 'dataCenterLocation',
+                proberFallback: 'outside-datacenter',
+                proberPreferred: 'inside-datacenter'
             }
         ));
     });

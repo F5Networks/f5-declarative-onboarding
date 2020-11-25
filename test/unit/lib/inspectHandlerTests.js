@@ -962,7 +962,18 @@ describe('inspectHandler', () => {
                 synchronizationGroupName: 'newGroup',
                 synchronizationTimeTolerance: 123,
                 synchronizationTimeout: 12345
-            }
+            },
+            '/tm/gtm/datacenter': [
+                {
+                    name: 'currentDataCenter',
+                    contact: 'contact',
+                    enabled: true,
+                    location: 'location',
+                    proberFallback: 'any-available',
+                    proberPool: '/Common/proberPool',
+                    proberPreference: 'pool'
+                }
+            ]
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1451,6 +1462,15 @@ describe('inspectHandler', () => {
                                 synchronizationTimeTolerance: 123,
                                 synchronizationTimeout: 12345
                             }
+                        },
+                        currentDataCenter: {
+                            class: 'GSLBDataCenter',
+                            contact: 'contact',
+                            enabled: true,
+                            location: 'location',
+                            proberFallback: 'any-available',
+                            proberPool: 'proberPool',
+                            proberPreferred: 'pool'
                         }
                     }
                 }
