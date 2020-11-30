@@ -15,6 +15,18 @@
                     { "$ref": "#/definitions/gslbGlobals" }
                 ]
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "GSLBDataCenter" } }
+            },
+            "then": {
+                "oneOf": [
+                    { "$ref": "#/definitions/gslbDataCenter" }
+                ]
+            }
         }
     ],
     "definitions": {
@@ -64,6 +76,60 @@
                     "minimum": 0,
                     "maximum": 4294967295,
                     "default": 180
+                }
+            },
+            "additionalProperties": false
+        },
+        "gslbDataCenter": {
+            "required": ["class"],
+            "description": "Declares a GSLB Data Center configuration",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "enum": ["GSLBDataCenter"]
+                },
+                "enabled": {
+                    "description": "Specifies whether the data center is enabled or disabled",
+                    "type": "boolean",
+                    "default": true
+                },
+                "location": {
+                    "description": "Specifies the location of the data center",
+                    "type": "string"
+                },
+                "contact": {
+                    "description": "Specifies the name of the administrator or the name of the department that manages the data center",
+                    "type": "string"
+                },
+                "proberPreferred": {
+                    "description": "Specifies the type of prober to use to monitor servers defined in this data center. The default value is inside-data-center. Note: Prober pools are not used by the bigip monitor",
+                    "type": "string",
+                    "enum": [
+                        "inside-datacenter", "outside-datacenter", "pool"
+                    ],
+                    "default": "inside-datacenter"
+                },
+                "proberFallback": {
+                    "description": "Specifies the type of prober to use to monitor servers defined in this data center when the preferred type is not available. The default value is any-available",
+                    "type": "string",
+                    "enum": [
+                       "any-available", "inside-datacenter", "none", "outside-datacenter", "pool"
+                    ],
+                    "default": "any-available"
+                },
+                "proberPool": {
+                    "description": "Specifies a prober pool to monitor servers defined in the data center when proberPreferred or proberFallback are a value of pool.",
+                    "type": "string"
+                }
+            },
+
+            "dependencies": {
+                "proberPool": {
+                    "oneOf": [
+                        { "properties": { "proberPreferred": { "const": "pool" } } },
+                        { "properties": { "proberFallback": { "const": "pool" } } }
+                    ]
                 }
             },
             "additionalProperties": false

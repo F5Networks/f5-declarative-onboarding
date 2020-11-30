@@ -627,5 +627,18 @@
             { "id": "synchronizationTimeout" }
         ],
         "nameless": true
+    },
+    {
+        "path": "/tm/gtm/datacenter",
+        "schemaClass": "GSLBDataCenter",
+        "requiredModule": "gtm",
+        "properties": [
+            { "id": "contact" },
+            { "id": "enabled" },
+            { "id": "location" },
+            { "id": "proberFallback" },
+            { "id": "proberPool" },
+            { "id": "proberPreference", "newId": "proberPreferred" }
+        ]
     }
 ]
