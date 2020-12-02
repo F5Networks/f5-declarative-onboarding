@@ -1,0 +1,25 @@
+{
+    "schemaVersion": "1.18.0",
+    "class": "Device",
+    "async": true,
+    "label": "License BIG-IP via BIG-IQ using an external auth provider",
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "myLicense": {
+            "class": "License",
+            "licenseType": "licensePool",
+            "bigIqHost": "10.0.1.200",
+            "bigIqUsername": "myLdapUser",
+            "bigIqPassword": "myLdapPassword",
+            "bigIqAuthProvider": "myLdapAuthProvider",
+            "licensePool": "myUtilityLicense",
+            "skuKeyword1": "key1",
+            "skuKeyword2": "key2",
+            "unitOfMeasure": "hourly",
+            "reachable": true,
+            "bigIpUsername": "admin",
+            "bigIpPassword": "asdfjkl"
+        }
+    }
+}

@@ -1408,6 +1408,10 @@
                     "type": "string",
                     "format": "uri"
                 },
+                "bigIqAuthProvider": {
+                    "description": "Name of auth provider on BIG-IQ. Default is to use TMOS.",
+                    "type": "string"
+                },
                 "reachable": {
                     "description": "Whether or not BIG-IQ has a route to the BIG-IP device.",
                     "type": "boolean",
