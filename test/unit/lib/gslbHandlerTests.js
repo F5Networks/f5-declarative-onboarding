@@ -138,4 +138,163 @@ describe('gslbHandler', () => {
                 });
         });
     });
+
+    describe('GSLBServer', () => {
+        it('should handle GSLBServer', () => {
+            const declaration = {
+                Common: {
+                    GSLBServer: {
+                        gslbServer1: {
+                            name: 'gslbServer1',
+                            enabled: true,
+                            serverType: 'bigip',
+                            proberPreferred: 'inherit',
+                            proberFallback: 'inherit',
+                            bpsLimit: 0,
+                            bpsLimitEnabled: false,
+                            ppsLimit: 0,
+                            ppsLimitEnabled: false,
+                            connectionsLimit: 0,
+                            connectionsLimitEnabled: false,
+                            cpuUsageLimit: 0,
+                            cpuUsageLimitEnabled: false,
+                            memoryLimit: 0,
+                            memoryLimitEnabled: false,
+                            serviceCheckProbeEnabled: true,
+                            pathProbeEnabled: true,
+                            snmpProbeEnabled: true,
+                            dataCenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ],
+                            exposeRouteDomainsEnabled: false,
+                            virtualServerDiscoveryMode: 'disabled'
+                        },
+                        gslbServer2: {
+                            name: 'gslbServer2',
+                            remark: 'test description',
+                            enabled: false,
+                            serverType: 'generic-host',
+                            proberPreferred: 'inside-datacenter',
+                            proberFallback: 'any-available',
+                            bpsLimit: 50,
+                            bpsLimitEnabled: true,
+                            ppsLimit: 60,
+                            ppsLimitEnabled: true,
+                            connectionsLimit: 70,
+                            connectionsLimitEnabled: true,
+                            cpuUsageLimit: 10,
+                            cpuUsageLimitEnabled: true,
+                            memoryLimit: 12,
+                            memoryLimitEnabled: true,
+                            serviceCheckProbeEnabled: false,
+                            pathProbeEnabled: false,
+                            snmpProbeEnabled: false,
+                            dataCenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    remark: 'test device description',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: '192.0.2.12'
+                                    }]
+                                }
+                            ],
+                            exposeRouteDomainsEnabled: true,
+                            virtualServerDiscoveryMode: 'enabled'
+                        }
+                    }
+                }
+            };
+
+            const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+            return gslbHandler.process()
+                .then(() => {
+                    const gslbServer = dataSent[PATHS.GSLBServer];
+                    assert.deepStrictEqual(
+                        gslbServer[0],
+                        {
+                            name: 'gslbServer1',
+                            description: 'none',
+                            enabled: true,
+                            disabled: false,
+                            product: 'bigip',
+                            proberPreference: 'inherit',
+                            proberFallback: 'inherit',
+                            limitMaxBps: 0,
+                            limitMaxBpsStatus: 'disabled',
+                            limitMaxPps: 0,
+                            limitMaxPpsStatus: 'disabled',
+                            limitMaxConnections: 0,
+                            limitMaxConnectionsStatus: 'disabled',
+                            limitCpuUsage: 0,
+                            limitCpuUsageStatus: 'disabled',
+                            limitMemAvail: 0,
+                            limitMemAvailStatus: 'disabled',
+                            iqAllowServiceCheck: 'yes',
+                            iqAllowPath: 'yes',
+                            iqAllowSnmp: 'yes',
+                            datacenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    description: 'none',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ],
+                            exposeRouteDomains: 'no',
+                            virtualServerDiscovery: 'disabled'
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        gslbServer[1],
+                        {
+                            name: 'gslbServer2',
+                            description: 'test description',
+                            enabled: false,
+                            disabled: true,
+                            product: 'generic-host',
+                            proberPreference: 'inside-datacenter',
+                            proberFallback: 'any-available',
+                            limitMaxBps: 50,
+                            limitMaxBpsStatus: 'enabled',
+                            limitMaxPps: 60,
+                            limitMaxPpsStatus: 'enabled',
+                            limitMaxConnections: 70,
+                            limitMaxConnectionsStatus: 'enabled',
+                            limitCpuUsage: 10,
+                            limitCpuUsageStatus: 'enabled',
+                            limitMemAvail: 12,
+                            limitMemAvailStatus: 'enabled',
+                            iqAllowServiceCheck: 'no',
+                            iqAllowPath: 'no',
+                            iqAllowSnmp: 'no',
+                            datacenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    description: 'test device description',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: '192.0.2.12'
+                                    }]
+                                }
+                            ],
+                            exposeRouteDomains: 'yes',
+                            virtualServerDiscovery: 'enabled'
+                        }
+                    );
+                });
+        });
+    });
 });

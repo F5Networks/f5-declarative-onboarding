@@ -27,6 +27,7 @@ const ajv = new Ajv(
         extendRefs: 'fail'
     }
 );
+const defSchema = require('../../../src/schema/latest/definitions.schema.json');
 const gslbSchema = require('../../../src/schema/latest/gslb.schema.json');
 const customFormats = require('../../../src/schema/latest/formats.js');
 
@@ -34,7 +35,9 @@ Object.keys(customFormats).forEach((customFormat) => {
     ajv.addFormat(customFormat, customFormats[customFormat]);
 });
 
-const validate = ajv.compile(gslbSchema);
+const validate = ajv
+    .addSchema(defSchema)
+    .compile(gslbSchema);
 
 /* eslint-disable quotes, quote-props */
 
@@ -149,6 +152,146 @@ describe('gslb.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, '');
                 assert.notStrictEqual(getErrorString().indexOf(''), -1);
+            });
+        });
+    });
+
+    describe('GSLBServer class', () => {
+        describe('valid', () => {
+            it('should validate minimal properties', () => {
+                const data = {
+                    class: 'GSLBServer',
+                    dataCenter: '/Common/gslbDataCenter',
+                    devices: [
+                        {
+                            address: '10.0.0.1'
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all properties', () => {
+                const data = {
+                    class: 'GSLBServer',
+                    label: 'this is a test',
+                    remark: 'description',
+                    devices: [
+                        {
+                            address: '10.0.0.1',
+                            addressTranslation: '192.0.2.12',
+                            remark: 'deviceDescription'
+                        },
+                        {
+                            address: '10.0.0.2',
+                            addressTranslation: '192.0.2.13',
+                            remark: 'deviceDescription1'
+                        }
+                    ],
+                    dataCenter: '/Common/gslbDataCenter',
+                    enabled: false,
+                    proberPreferred: 'inside-datacenter',
+                    proberFallback: 'any-available',
+                    bpsLimit: 50,
+                    bpsLimitEnabled: true,
+                    ppsLimit: 60,
+                    ppsLimitEnabled: true,
+                    connectionsLimit: 70,
+                    connectionsLimitEnabled: true,
+                    serviceCheckProbeEnabled: false,
+                    pathProbeEnabled: false,
+                    snmpProbeEnabled: false,
+                    virtualServerDiscoveryMode: 'enabled',
+                    exposeRouteDomainsEnabled: true,
+                    cpuUsageLimit: 10,
+                    cpuUsageLimitEnabled: true,
+                    memoryLimit: 12,
+                    memoryLimitEnabled: true,
+                    serverType: 'generic-host'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            let data;
+
+            beforeEach(() => {
+                data = {
+                    class: 'GSLBServer',
+                    dataCenter: '/Common/gslbDataCenter',
+                    devices: [
+                        {
+                            address: '10.0.0.1'
+                        }
+                    ]
+                };
+            });
+
+            it('should invalidate invalid proberPreferred value', () => {
+                data.proberPreferred = 'badValue';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate invalid proberFallback value', () => {
+                data.proberFallback = 'badValue';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate GSLBServer with no devices', () => {
+                data.devices = [];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have fewer than 1 items'), -1);
+            });
+
+            it('should invalidate GSLBServer with invalid device address value', () => {
+                data.devices[0].address = 'badIP';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate GSLBServer with invalid device addressTranslation value', () => {
+                data.devices[0].addressTranslation = 'badIP';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate invalid virtualServerDiscoveryMode value', () => {
+                data.virtualServerDiscoveryMode = 'badValue';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate invalid bpsLimit value of less than 0', () => {
+                data.bpsLimit = -1;
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+
+            it('should invalidate invalid ppsLimit value of less than 0', () => {
+                data.ppsLimit = -1;
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+
+            it('should invalidate invalid connectionsLimit value of less than 0', () => {
+                data.connectionsLimit = -1;
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+
+            it('should invalidate invalid cpuUsageLimit value of less than 0', () => {
+                data.cpuUsageLimit = -1;
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+
+            it('should invalidate invalid memoryLimit value of less than 0', () => {
+                data.memoryLimit = -1;
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
             });
         });
     });

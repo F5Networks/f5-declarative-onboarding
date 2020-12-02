@@ -403,6 +403,15 @@ const customFunctions = {
             configKey = 'rd0';
         }
         return [configKey, configObject];
+    },
+    // GSLB Server item
+    formatGSLBServer: (configKey, configObject) => {
+        configObject.devices = configObject.devices.map(device => ({
+            address: device.addresses[0].name,
+            addressTranslation: device.addresses[0].translation === 'none' ? undefined : device.addresses[0].translation,
+            remark: device.remark
+        }));
+        return [configKey, configObject];
     }
 };
 

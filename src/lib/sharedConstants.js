@@ -73,7 +73,8 @@ module.exports = {
         SSLKey: '/tm/sys/file/ssl-key',
         UnixRm: '/tm/util/unix-rm',
         GSLBGeneral: '/tm/gtm/global-settings/general',
-        GSLBDataCenter: '/tm/gtm/datacenter'
+        GSLBDataCenter: '/tm/gtm/datacenter',
+        GSLBServer: '/tm/gtm/server'
     },
     STATUS: {
         STATUS_OK: 'OK',

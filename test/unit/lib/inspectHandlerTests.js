@@ -995,6 +995,58 @@ describe('inspectHandler', () => {
                     proberPool: '/Common/proberPool',
                     proberPreference: 'pool'
                 }
+            ],
+            '/tm/gtm/server': [
+                {
+                    name: 'currentGSLBServer',
+                    description: 'description',
+                    disabled: true,
+                    enabled: false,
+                    product: 'generic-host',
+                    proberPreference: 'inside-datacenter',
+                    proberFallback: 'outside-datacenter',
+                    limitMaxBps: 1,
+                    limitMaxBpsStatus: 'enabled',
+                    limitMaxPps: 10,
+                    limitMaxPpsStatus: 'enabled',
+                    limitMaxConnections: 100,
+                    limitMaxConnectionsStatus: 'enabled',
+                    limitCpuUsage: 1000,
+                    limitCpuUsageStatus: 'enabled',
+                    limitMemAvail: 10000,
+                    limitMemAvailStatus: 'enabled',
+                    iqAllowServiceCheck: 'no',
+                    iqAllowPath: 'no',
+                    iqAllowSnmp: 'no',
+                    datacenter: '/Common/testDataCenter',
+                    devicesReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/server/~Common~currentGSLBServer/devices'
+                    },
+                    exposeRouteDomains: 'yes',
+                    virtualServerDiscovery: 'enabled'
+                }
+            ],
+            '/tm/gtm/server/~Common~currentGSLBServer/devices': [
+                {
+                    name: '0',
+                    description: 'deviceDescription1',
+                    addresses: [
+                        {
+                            name: '10.0.0.1',
+                            translation: '192.0.2.12'
+                        }
+                    ]
+                },
+                {
+                    name: '1',
+                    description: 'deviceDescription2',
+                    addresses: [
+                        {
+                            name: '10.0.0.2',
+                            translation: '192.0.2.13'
+                        }
+                    ]
+                }
             ]
         });
 
@@ -1510,6 +1562,42 @@ describe('inspectHandler', () => {
                             proberFallback: 'any-available',
                             proberPool: 'proberPool',
                             proberPreferred: 'pool'
+                        },
+                        currentGSLBServer: {
+                            class: 'GSLBServer',
+                            remark: 'description',
+                            enabled: false,
+                            serverType: 'generic-host',
+                            proberPreferred: 'inside-datacenter',
+                            proberFallback: 'outside-datacenter',
+                            bpsLimit: 1,
+                            bpsLimitEnabled: true,
+                            ppsLimit: 10,
+                            ppsLimitEnabled: true,
+                            connectionsLimit: 100,
+                            connectionsLimitEnabled: true,
+                            cpuUsageLimit: 1000,
+                            cpuUsageLimitEnabled: true,
+                            memoryLimit: 10000,
+                            memoryLimitEnabled: true,
+                            serviceCheckProbeEnabled: false,
+                            pathProbeEnabled: false,
+                            snmpProbeEnabled: false,
+                            dataCenter: 'testDataCenter',
+                            devices: [
+                                {
+                                    address: '10.0.0.1',
+                                    addressTranslation: '192.0.2.12',
+                                    remark: 'deviceDescription1'
+                                },
+                                {
+                                    address: '10.0.0.2',
+                                    addressTranslation: '192.0.2.13',
+                                    remark: 'deviceDescription2'
+                                }
+                            ],
+                            exposeRouteDomainsEnabled: true,
+                            virtualServerDiscoveryMode: 'enabled'
                         }
                     }
                 }

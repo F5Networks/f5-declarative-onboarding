@@ -77,7 +77,8 @@ const CLASSES_OF_TRUTH = [
     'RoutingAsPath',
     'RoutingPrefixList',
     'GSLBGlobals',
-    'GSLBDataCenter'
+    'GSLBDataCenter',
+    'GSLBServer'
 ];
 
 /**
@@ -155,6 +156,7 @@ class DeclarationHandler {
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
+                applyGSLBServerFixes(parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
@@ -522,6 +524,31 @@ function applyHttpdFixes(declaration) {
             httpdDeclaration.allow = [httpdDeclaration.allow];
         }
     }
+}
+
+/**
+ * Normalizes the GSLB Server section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyGSLBServerFixes(declaration) {
+    const gslbServers = declaration.Common.GSLBServer || {};
+
+    Object.keys(gslbServers).forEach((name) => {
+        const server = gslbServers[name];
+        if (server.dataCenter.startsWith('/Common/')) {
+            server.dataCenter = server.dataCenter.split('/Common/')[1];
+        }
+        server.devices = server.devices.map((device, i) => ({
+            name: `${i}`,
+            remark: device.remark,
+            addresses: [{
+                name: device.address,
+                translation: device.addressTranslation || 'none'
+            }]
+        }));
+        delete server.label;
+    });
 }
 
 /**

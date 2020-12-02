@@ -27,6 +27,18 @@
                     { "$ref": "#/definitions/gslbDataCenter" }
                 ]
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "GSLBServer" } }
+            },
+            "then": {
+                "oneOf": [
+                    { "$ref": "#/definitions/gslbServer" }
+                ]
+            }
         }
     ],
     "definitions": {
@@ -130,6 +142,173 @@
                         { "properties": { "proberPreferred": { "const": "pool" } } },
                         { "properties": { "proberFallback": { "const": "pool" } } }
                     ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "gslbServer": {
+            "required": [ "class", "dataCenter", "devices" ],
+            "description": "Declares a GSLB server object which contains configuration for a load balancer or a host server",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains GSLB server configuration",
+                    "type": "string",
+                    "const": "GSLBServer"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "enabled": {
+                    "description": "Specifies whether the server is enabled or disabled",
+                    "type": "boolean",
+                    "default": true
+                },
+                "serverType": {
+                    "description": "Specifies the server type. The server type determines the metrics that the system can collect from the server",
+                    "type": "string",
+                    "enum":[
+                        "bigip", "generic-host"
+                    ],
+                    "default": "bigip"
+                },
+                "proberPreferred": {
+                    "description": "Specifies the type of prober to use to monitor servers defined in this data center. The default value is inherit. Note: Prober pools are not used by the bigip monitor",
+                    "type": "string",
+                    "enum": [
+                        "inherit", "inside-datacenter", "outside-datacenter"
+                    ],
+                    "default": "inherit"
+                },
+                "proberFallback": {
+                    "description": "Specifies the type of prober to use to monitor servers defined in this data center when the preferred type is not available. The default value is inherit",
+                    "type": "string",
+                    "enum": [
+                       "inherit", "any-available", "inside-datacenter", "none", "outside-datacenter"
+                    ],
+                    "default": "inherit"
+                },
+                "dataCenter": {
+                    "description": "Specifies the GSLB data center to which the server belongs",
+                    "type": "string"
+                },
+                "devices": {
+                    "description": "Specifies the actual device(s) that are represented by this server object",
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/gslbServerDevice" },
+                    "minItems": 1
+                },
+                "virtualServerDiscoveryMode": {
+                    "description": "Specifies virtual server auto-discovery settings. Use 'enabled' (add, modify, delete), 'enabled-no-delete' (add, modify) or the default 'disabled' (manual configuration)",
+                    "type": "string",
+                    "enum": [
+                        "disabled",
+                        "enabled",
+                        "enabled-no-delete"
+                    ],
+                    "default": "disabled"
+                },
+                "exposeRouteDomainsEnabled": {
+                    "description": "Allows virtual servers from all route domains to be auto-discovered. The default setting is false",
+                    "type": "boolean",
+                    "default": false
+                },
+                "bpsLimit": {
+                    "description": "Specifies the maximum allowable data throughput rate, in bits per second, for the virtual servers on the server. If the network traffic volume exceeds this limit, the system marks the server as unavailable",
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0
+                },
+                "bpsLimitEnabled": {
+                    "description": "Enables or disables the maximum Bits Per Second (BPS) option for the virtual servers on the server. The default value is false (disabled)",
+                    "type": "boolean",
+                    "default": false
+                },
+                "ppsLimit": {
+                    "description": "Specifies the maximum allowable data transfer rate, in packets per second, for the virtual servers on the server. If the network traffic volume exceeds this value, the system marks the server as unavailable",
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0
+                },
+                "ppsLimitEnabled": {
+                    "description": "Enables or disables the maximum Packets Per Second (PPS) option for the virtual servers on the server. The default value is false (disabled)",
+                    "type": "boolean",
+                    "default": false
+                },
+                "connectionsLimit": {
+                    "description": "Specifies the number of current connections allowed for the virtual servers on the server. If the current connections exceed this value, the system marks the server as unavailable",
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0
+                },
+                "connectionsLimitEnabled": {
+                    "description": "Enables or disables the maximum current connections option for the virtual servers on the server. The default value is false (disabled)",
+                    "type": "boolean",
+                    "default": false
+                },
+                "cpuUsageLimit": {
+                    "description": "Specifies the percent of CPU usage. If percent of CPU usage goes above the limit, the system marks the server as unavailable",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "cpuUsageLimitEnabled": {
+                    "description": "Enables or disables the CPU Usage limit option for this pool. The default value is false (disabled)",
+                    "type": "boolean",
+                    "default": false
+                },
+                "memoryLimit": {
+                    "description": "Specifies the available memory in kilobytes required by the virtual servers on the server. If available memory falls below this limit, the system marks the server as unavailable",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "memoryLimitEnabled": {
+                    "description": "Enables or disables the maximum Bits Per Second (BPS) option for this pool. The default value is false (disabled)",
+                    "type": "boolean",
+                    "default": false
+                },
+                "serviceCheckProbeEnabled": {
+                    "description": "Specifies whether this BIG-IP device will be used to conduct a service check probe before traffic will be delegated to it. The default value is (true) enabled ",
+                    "type": "boolean",
+                    "default": true
+                },
+                "pathProbeEnabled": {
+                    "description": "Specifies whether this BIG-IP device will be used to conduct a path probe before traffic will be delegated to it. The default value is (true) enabled ",
+                    "type": "boolean",
+                    "default": true
+                },
+                "snmpProbeEnabled": {
+                    "description": "Specifies whether this BIG-IP device will be used to conduct a SNMP probe before traffic will be delegated to it. The default value is (true) enabled ",
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "additionalProperties": false
+        },
+        "gslbServerDevice": {
+            "description": "Configures a device for the GSLB server",
+            "type": "object",
+            "required": [ "address" ],
+            "properties": {
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "address": {
+                    "type": "string",
+                    "description": " Specifies an external (public) address for the device. If BIG-IP DNS configuration synchronization is enabled and all existing addresses for a device are being replaced, new addresses should be added and synchronized before old addresses are removed, otherwise the changes may fail to synchronize. Alternatively, the address configuration changes can be performed on each BIG-IP DNS system",
+                    "format": "f5ip"
+                },
+                "addressTranslation": {
+                    "type": "string",
+                    "description": "Specifies the internal (private) address that corresponds to the external address",
+                    "format": "f5ip"
                 }
             },
             "additionalProperties": false
