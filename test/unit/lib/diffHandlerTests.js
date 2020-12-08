@@ -170,4 +170,24 @@ describe('diffHandler', () => {
                 assert.deepEqual(diff.toUpdate.Common.hostname, 'bigip1.example.com');
             });
     });
+
+    it('should report diffs for non-classes of truth', () => {
+        const toDeclaration = {
+            Common: {
+                DeviceGroup: {
+                    ex1: { name: 'ex1' },
+                    ex2: { name: 'ex2' }
+                }
+            }
+        };
+
+        const fromDeclaration = { Common: {} };
+
+        const diffHandler = new DiffHandler([], []);
+        return diffHandler.process(toDeclaration, fromDeclaration, {})
+            .then((diff) => {
+                assert.deepEqual(diff.toUpdate.Common.DeviceGroup.ex1.name, 'ex1');
+                assert.deepEqual(diff.toUpdate.Common.DeviceGroup.ex2.name, 'ex2');
+            });
+    });
 });
