@@ -219,7 +219,7 @@ class ConfigManager {
                                     delete item.partition; // Must be removed for the diffs
 
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
-                                    patchedItem = mapProperties.call(this, patchedItem, index);
+                                    patchedItem = mapProperties(patchedItem, this.configItems[index]);
 
                                     let name = item.name;
 
@@ -283,7 +283,7 @@ class ConfigManager {
                             currentItem,
                             this.configItems[index].nameless
                         );
-                        patchedItem = mapProperties.call(this, patchedItem, index);
+                        patchedItem = mapProperties(patchedItem, this.configItems[index]);
                         if (schemaClass === 'Authentication') {
                             patchedItem = patchAuth.call(
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
@@ -352,6 +352,7 @@ class ConfigManager {
                     const schemaClass = referenceInfo[index].schemaClass;
                     const name = referenceInfo[index].name;
                     const mergePath = referenceInfo[index].mergePath;
+                    const refConfigItem = { properties: referenceInfo[index].properties };
 
                     let configItem;
                     if (mergePath) {
@@ -364,15 +365,8 @@ class ConfigManager {
                     }
 
                     const patchReferences = (reference) => {
-                        const patchedItem = removeUnusedKeys.call(this, reference);
-                        referenceInfo[index].properties.forEach((refProperty) => {
-                            if (refProperty.truth !== undefined) {
-                                patchedItem[refProperty.id] = mapTruth(patchedItem, refProperty);
-                            }
-                            if (refProperty.stringToInt) {
-                                patchedItem[refProperty.id] = parseInt(patchedItem[refProperty.id], 10);
-                            }
-                        });
+                        let patchedItem = removeUnusedKeys.call(this, reference);
+                        patchedItem = mapProperties(patchedItem, refConfigItem);
                         return patchedItem;
                     };
 
@@ -494,18 +488,18 @@ function getPropertiesOfInterest(initialProperties) {
  * For example, map 'enabled' to true
  *
  * @param {Object} item - The item (typically the item is coming from bigip) whose properties to map
- * @param {Object} index - The index into configItems for this property
+ * @param {Object} configItem - The configItem object that contains the properties to map
  */
-function mapProperties(item, index) {
+function mapProperties(item, configItem) {
     const mappedItem = {};
     Object.assign(mappedItem, item);
 
     // If we're just interested in one value, return that (Provision values, for example)
-    if (this.configItems[index].singleValue) {
-        return mappedItem[this.configItems[index].properties[0].id];
+    if (configItem.singleValue) {
+        return mappedItem[configItem.properties[0].id];
     }
 
-    this.configItems[index].properties.forEach((property) => {
+    configItem.properties.forEach((property) => {
         let hasVal = false;
         // map truth/falsehood (enabled/disabled, for example) to booleans
         if (property.truth !== undefined) {
