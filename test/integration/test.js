@@ -305,6 +305,34 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }
             }
         ));
+
+        it('should match RoutingPrefixList', () => assert.deepStrictEqual(
+            currentState.RoutingPrefixList,
+            {
+                testRoutingPrefixList1: {
+                    name: 'testRoutingPrefixList1',
+                    entries: [
+                        {
+                            name: 10,
+                            action: 'permit',
+                            prefix: '1111:2222::/127',
+                            prefixLengthRange: 128
+                        }
+                    ]
+                },
+                testRoutingPrefixList2: {
+                    name: 'testRoutingPrefixList2',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '10.3.3.0/24',
+                            prefixLengthRange: 32
+                        }
+                    ]
+                }
+            }
+        ));
     });
 
     describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {

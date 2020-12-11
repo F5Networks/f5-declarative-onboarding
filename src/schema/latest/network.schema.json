@@ -545,6 +545,60 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RoutingPrefixList" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains routing prefix list configuration.",
+                        "type": "string",
+                        "const": "RoutingPrefixList"
+                    },
+                    "entries": {
+                        "description": "An array that holds action, prefix, and prefixLengthRange.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "integer",
+                                    "description": "Name of the entity"
+                                },
+                                "action": {
+                                    "type": "string",
+                                    "description": "An action to take",
+                                    "enum": [
+                                        "permit",
+                                        "deny"
+                                    ]
+                                },
+                                "prefix": {
+                                    "type": "string",
+                                    "description": "Address with prefix length [address/prefix length]",
+                                    "format": "ipWithRequiredPrefix",
+                                    "default": "::/0"
+                                },
+                                "prefixLengthRange": {
+                                    "type": "integer",
+                                    "description": "Prefix length range start.  Must be 0 or greater than the length on the prefix property.",
+                                    "minimum": 0,
+                                    "maximum": 128,
+                                    "default": 0
+                                }
+                            },
+                            "required": ["name", "action"],
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    }
+                },
+                "additionalProperties": false
+            }
         }
     ]
 }

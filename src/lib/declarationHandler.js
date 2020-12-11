@@ -75,6 +75,7 @@ const CLASSES_OF_TRUTH = [
     'Disk',
     'MirrorIp',
     'RoutingAsPath',
+    'RoutingPrefixList',
     'GSLBGlobals',
     'GSLBDataCenter'
 ];

@@ -646,6 +646,28 @@ describe('inspectHandler', () => {
                     regex: '^123'
                 }
             ],
+            '/tm/net/routing/prefix-list': [
+                {
+                    name: 'examplePrefixList',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                    }
+                }
+            ],
+            '/tm/net/routing/prefix-list/~Common~examplePrefixList/entries': [
+                {
+                    name: '20',
+                    action: 'permit',
+                    prefix: '10.3.3.0/24',
+                    prefixLenRange: '32'
+                },
+                {
+                    name: '30',
+                    action: 'deny',
+                    prefix: '1111:2222:3333:4444::/64',
+                    prefixLenRange: '24'
+                }
+            ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
@@ -1127,6 +1149,23 @@ describe('inspectHandler', () => {
                                 {
                                     name: 15,
                                     regex: '^123'
+                                }
+                            ]
+                        },
+                        examplePrefixList: {
+                            class: 'RoutingPrefixList',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                },
+                                {
+                                    name: 30,
+                                    action: 'deny',
+                                    prefix: '1111:2222:3333:4444::/64',
+                                    prefixLengthRange: 24
                                 }
                             ]
                         },
