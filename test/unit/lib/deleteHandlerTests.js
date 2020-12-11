@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2020 F5 Networks, Inc.
+ * Copyright 2018-2019 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -614,6 +614,42 @@ describe(('deleteHandler'), function testDeleteHandler() {
         return deleteHandler.process()
             .then(() => {
                 assert.deepStrictEqual(deletedPaths, ['/tm/net/routing/as-path/~Common~routingAsPathTest']);
+            });
+    });
+
+    it('should delete a RoutingPrefixList', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    RoutingPrefixList: {
+                        routingPrefixListTest: {
+                            name: 'routingPrefixListTest',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                RoutingPrefixList: {
+                    routingPrefixListTest: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/routing/prefix-list/~Common~routingPrefixListTest']);
             });
     });
 });

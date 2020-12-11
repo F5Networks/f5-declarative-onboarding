@@ -163,7 +163,6 @@
                             "Route",
                             "RouteDomain",
                             "RoutingAsPath",
-                            "RoutingPrefixList",
                             "SelfIp",
                             "SnmpAgent",
                             "SnmpCommunity",

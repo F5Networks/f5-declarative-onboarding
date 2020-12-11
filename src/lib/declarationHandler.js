@@ -53,7 +53,6 @@ const CLASSES_OF_TRUTH = [
     'SelfIp',
     'Route',
     'ConfigSync',
-    'DeviceGroup',
     'FailoverUnicast',
     'FailoverMulticast',
     'Analytics',
@@ -76,6 +75,7 @@ const CLASSES_OF_TRUTH = [
     'Disk',
     'MirrorIp',
     'RoutingAsPath',
+    'RoutingPrefixList',
     'GSLBGlobals',
     'GSLBDataCenter'
 ];

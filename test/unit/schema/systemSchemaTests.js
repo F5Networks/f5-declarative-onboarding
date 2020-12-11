@@ -215,6 +215,26 @@ describe('system.schema.json', () => {
                     assert.ok(validate(data), getErrorString(validate));
                 });
 
+                it('should validate with bigIqAuthProvider', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "licensePool": "myPool",
+                        "bigIpUsername": "admin",
+                        "bigIpPassword": "barbar",
+                        "bigIqAuthProvider": "myAuthProvider"
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                    assert.strictEqual(
+                        data.unitOfMeasure,
+                        'monthly',
+                        'unitOfMeasure should default to monthly when licenseType licensePool'
+                    );
+                });
+
                 it('should validate full unreachable data', () => {
                     const data = {
                         "class": "License",

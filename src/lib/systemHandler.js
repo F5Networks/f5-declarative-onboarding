@@ -568,6 +568,7 @@ function handleLicensePool(license) {
                         {
                             bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, licenseInfo),
                             passwordIsUri: !!options.bigIqPasswordUri,
+                            authProvider: license.bigIqAuthProvider,
                             noUnreachable: !!license.reachable
                         }
                     ))
@@ -604,6 +605,7 @@ function handleLicensePool(license) {
                         bigIpMgmtAddress,
                         bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, license),
                         passwordIsUri: !!license.bigIqPasswordUri,
+                        authProvider: license.bigIqAuthProvider,
                         skuKeyword1: license.skuKeyword1,
                         skuKeyword2: license.skuKeyword2,
                         unitOfMeasure: license.unitOfMeasure,

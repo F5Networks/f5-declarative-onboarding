@@ -1019,6 +1019,7 @@ describe('systemHandler', () => {
                     bigIqHost: '10.145.112.44',
                     bigIqUsername: 'admin',
                     bigIqPassword: 'foofoo',
+                    bigIqAuthProvider: 'myAuthProvider',
                     licensePool: 'clpv2',
                     unitOfMeasure: 'daily',
                     skuKeyword1: 'my skukeyword1',
@@ -1059,6 +1060,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(bigIqPasswordSent, 'foofoo');
                 assert.strictEqual(licensePoolSent, 'clpv2');
                 assert.strictEqual(hypervisorSent, 'vmware');
+                assert.strictEqual(optionsSent.authProvider, 'myAuthProvider');
                 assert.strictEqual(optionsSent.bigIpMgmtAddress, undefined);
                 assert.strictEqual(optionsSent.skuKeyword1, 'my skukeyword1');
                 assert.strictEqual(optionsSent.skuKeyword2, 'my skukeyword2');
@@ -1225,6 +1227,7 @@ describe('systemHandler', () => {
                         bigIqHost: '10.145.112.44',
                         bigIqUsername: 'admin',
                         bigIqPassword: 'foofoo',
+                        bigIqAuthProvider: 'myAuthProvider',
                         reachable: false,
                         revokeFrom: 'clpv2'
                     }
@@ -1253,6 +1256,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(bigIqUsernameSent, 'admin');
                     assert.strictEqual(bigIqPasswordSent, 'foofoo');
                     assert.strictEqual(licensePoolSent, 'clpv2');
+                    assert.strictEqual(optionsSent.authProvider, 'myAuthProvider');
                     assert.strictEqual(optionsSent.noUnreachable, false);
                     assert.strictEqual(activeCalled, false);
                     assert.strictEqual(willBeRevokedCalled, false);

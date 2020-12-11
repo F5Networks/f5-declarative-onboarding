@@ -30,19 +30,19 @@ describe('formats', () => {
                 assert.strictEqual(formats.f5ip('256.2.3.4'), false);
             });
 
-            it('should validate addresses with valid CIDRs', () => {
-                assert.strictEqual(formats.f5ip('1.2.3.4/32'), true, 'CIDR 32 should be valid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/24'), true, 'CIDR 24 should be valid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/16'), true, 'CIDR 16 should be valid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/8'), true, 'CIDR 8 should be valid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/0'), true, 'CIDR 0 should be valid');
+            it('should validate addresses with valid prefixes', () => {
+                assert.strictEqual(formats.f5ip('1.2.3.4/32'), true, 'prefix 32 should be valid');
+                assert.strictEqual(formats.f5ip('1.2.3.4/24'), true, 'prefix 24 should be valid');
+                assert.strictEqual(formats.f5ip('1.2.3.4/16'), true, 'prefix 16 should be valid');
+                assert.strictEqual(formats.f5ip('1.2.3.4/8'), true, 'prefix 8 should be valid');
+                assert.strictEqual(formats.f5ip('1.2.3.4/0'), true, 'prefix 0 should be valid');
             });
 
-            it('should invalidate addresses with invalid CIDRs', () => {
-                assert.strictEqual(formats.f5ip('1.2.3.4/40'), false, 'CIDR 40 should be invalid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/33'), false, 'CIDR 33 should be invalid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/321'), false, 'CIDR 321 should be invalid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/200'), false, 'CIDR 200 should be invalid');
+            it('should invalidate addresses with invalid prefixes', () => {
+                assert.strictEqual(formats.f5ip('1.2.3.4/40'), false, 'prefix 40 should be invalid');
+                assert.strictEqual(formats.f5ip('1.2.3.4/33'), false, 'prefix 33 should be invalid');
+                assert.strictEqual(formats.f5ip('1.2.3.4/321'), false, 'prefix 321 should be invalid');
+                assert.strictEqual(formats.f5ip('1.2.3.4/200'), false, 'prefix 200 should be invalid');
             });
 
             it('should validate addresses with valid route domain', () => {
@@ -56,7 +56,7 @@ describe('formats', () => {
                 );
             });
 
-            it('should validate address with valid CIDR and route domain', () => {
+            it('should validate address with valid prefix and route domain', () => {
                 assert.strictEqual(formats.f5ip('1.2.3.4%1/24'), true);
             });
         });
@@ -70,34 +70,34 @@ describe('formats', () => {
                 assert.strictEqual(formats.f5ip('X:0000:AB00:1234:0000:2552:7777:1313'), false);
             });
 
-            it('should validate addresses with valid CIDRs', () => {
+            it('should validate addresses with valid prefixes', () => {
                 assert.strictEqual(
                     formats.f5ip('1200:0000:AB00:1234:0000:2552:7777:1313/119'),
                     true,
-                    'CIDR 119 should be valid'
+                    'prefix 119 should be valid'
                 );
                 assert.strictEqual(
                     formats.f5ip('1200:0000:AB00:1234:0000:2552:7777:1313/128'),
                     true,
-                    'CIDR 128 should be valid'
+                    'prefix 128 should be valid'
                 );
                 assert.strictEqual(
                     formats.f5ip('1200:0000:AB00:1234:0000:2552:7777:1313/99'),
                     true,
-                    'CIDR 99 should be valid'
+                    'prefix 99 should be valid'
                 );
                 assert.strictEqual(
                     formats.f5ip('1200:0000:AB00:1234:0000:2552:7777:1313/9'),
                     true,
-                    'CIDR 9 should be valid'
+                    'prefix 9 should be valid'
                 );
             });
 
-            it('should invalidate addresses with invalid CIDRs', () => {
+            it('should invalidate addresses with invalid prefixes', () => {
                 assert.strictEqual(
                     formats.f5ip('1200:0000:AB00:1234:0000:2552:7777:1313/130'),
                     false,
-                    'CIDR 130 should be invalid'
+                    'prefix 130 should be invalid'
                 );
             });
 
@@ -122,7 +122,7 @@ describe('formats', () => {
                 );
             });
 
-            it('should validate address with valid CIDR and route domain', () => {
+            it('should validate address with valid prefix and route domain', () => {
                 assert.strictEqual(
                     formats.f5ip('1200:0000:AB00:1234:0000:2552:7777:1313%1/32'),
                     true
@@ -131,97 +131,298 @@ describe('formats', () => {
         });
     });
 
-    describe('ipWithCidr', () => {
-        describe('IPv4rexWithoutRouteDomain', () => {
+    describe('ipWithOptionalPrefix', () => {
+        describe('IPv4optionalPrefixNoRouteDomainRex', () => {
+            function testValid(expression, errorMessage) {
+                assert.strictEqual(
+                    formats.IPv4optionalPrefixNoRouteDomainRex.exec(expression)[0],
+                    expression,
+                    errorMessage || 'should be valid'
+                );
+                assert.strictEqual(
+                    formats.ipWithOptionalPrefix(expression),
+                    true,
+                    errorMessage || 'should be valid'
+                );
+            }
+
+            function testInvalid(expression, errorMessage) {
+                assert.strictEqual(
+                    formats.IPv4optionalPrefixNoRouteDomainRex.exec(expression),
+                    null,
+                    errorMessage
+                );
+                assert.strictEqual(
+                    formats.ipWithOptionalPrefix(expression),
+                    false,
+                    errorMessage
+                );
+            }
+
             it('should validate standalone address', () => {
-                assert.strictEqual(formats.f5ip('1.2.3.4'), true);
+                testValid('1.2.3.4');
             });
 
             it('should invalidate invalid address', () => {
-                assert.strictEqual(formats.f5ip('256.2.3.4'), false);
+                testInvalid('256.2.3.4', 'address must be valid');
             });
 
-            it('should validate addresses with valid CIDRs', () => {
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4/32'), true, 'CIDR 32 should be valid');
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4/24'), true, 'CIDR 24 should be valid');
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4/16'), true, 'CIDR 16 should be valid');
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4/8'), true, 'CIDR 8 should be valid');
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4/0'), true, 'CIDR 0 should be valid');
+            it('should validate addresses with valid prefixes', () => {
+                testValid('1.2.3.4/32', 'prefix 32 should be valid');
+                testValid('1.2.3.4/24', 'prefix 24 should be valid');
+                testValid('1.2.3.4/16', 'prefix 16 should be valid');
+                testValid('1.2.3.4/8', 'prefix 8 should be valid');
+                testValid('1.2.3.4/0', 'prefix 0 should be valid');
             });
 
-            it('should invalidate addresses with invalid CIDRs', () => {
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4/40'), false, 'CIDR 40 should be invalid');
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4/33'), false, 'CIDR 33 should be invalid');
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4/321'), false, 'CIDR 321 should be invalid');
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4/200'), false, 'CIDR 200 should be invalid');
+            it('should invalidate addresses with invalid prefix', () => {
+                testInvalid('1.2.3.4/40', 'prefix 40 should be invalid');
+                testInvalid('1.2.3.4/33', 'prefix 33 should be invalid');
+                testInvalid('1.2.3.4/321', 'prefix 321 should be invalid');
+                testInvalid('1.2.3.4/200', 'prefix 200 should be invalid');
             });
 
             it('should invalidate addresses with route domain', () => {
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4%0'), false);
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4%65535'), false);
+                testInvalid('1.2.3.4%0', 'should not specify a route domain');
+                testInvalid('1.2.3.4%65535', 'should not specify a route domain');
             });
 
-            it('should invalidate address with CIDR and route domain', () => {
-                assert.strictEqual(formats.ipWithCidr('1.2.3.4%1/24'), false);
+            it('should invalidate address with prefix and route domain', () => {
+                testInvalid('1.2.3.4%1/24', 'should not specify a route domain');
             });
         });
 
-        describe('IPv6rexWithoutRouteDomain', () => {
+        describe('IPv6optionalPrefixNoRouteDomainRex', () => {
+            function testValid(expression, errorMessage) {
+                let lowerCaseExpression;
+                if (typeof expression === 'string') {
+                    lowerCaseExpression = expression.toLowerCase();
+                }
+                assert.strictEqual(
+                    formats.IPv6optionalPrefixNoRouteDomainRex.exec(lowerCaseExpression)[0],
+                    lowerCaseExpression,
+                    errorMessage || 'should be valid'
+                );
+                assert.strictEqual(
+                    formats.ipWithOptionalPrefix(expression),
+                    true,
+                    errorMessage || 'should be valid'
+                );
+            }
+
+            function testInvalid(expression, errorMessage) {
+                let lowerCaseExpression;
+                if (typeof expression === 'string') {
+                    lowerCaseExpression = expression.toLowerCase();
+                }
+                assert.strictEqual(
+                    formats.IPv6optionalPrefixNoRouteDomainRex.exec(lowerCaseExpression),
+                    null,
+                    errorMessage
+                );
+                assert.strictEqual(
+                    formats.ipWithOptionalPrefix(expression),
+                    false,
+                    errorMessage
+                );
+            }
+
             it('should validate standalone address', () => {
-                assert.strictEqual(formats.ipWithCidr('1200:0000:AB00:1234:0000:2552:7777:1313'), true);
+                testValid('1200:0000:AB00:1234:0000:2552:7777:1313');
             });
 
             it('should invalidate invalid address', () => {
-                assert.strictEqual(formats.ipWithCidr('X:0000:AB00:1234:0000:2552:7777:1313'), false);
+                testInvalid('X:0000:AB00:1234:0000:2552:7777:1313');
             });
 
-            it('should validate addresses with valid CIDRs', () => {
-                assert.strictEqual(
-                    formats.ipWithCidr('1200:0000:AB00:1234:0000:2552:7777:1313/119'),
-                    true,
-                    'CIDR 119 should be valid'
-                );
-                assert.strictEqual(
-                    formats.ipWithCidr('1200:0000:AB00:1234:0000:2552:7777:1313/128'),
-                    true,
-                    'CIDR 128 should be valid'
-                );
-                assert.strictEqual(
-                    formats.ipWithCidr('1200:0000:AB00:1234:0000:2552:7777:1313/99'),
-                    true,
-                    'CIDR 99 should be valid'
-                );
-                assert.strictEqual(
-                    formats.ipWithCidr('1200:0000:AB00:1234:0000:2552:7777:1313/9'),
-                    true,
-                    'CIDR 9 should be valid'
-                );
+            it('should validate double colon addresses', () => { // revisit
+                testValid('::');
+                testValid('::/0');
+                testValid('::/128');
+                testValid('1111:2222:3333:4444:5555:6666:7777:8888');
+                testValid('1111:2222:3333:4444:5555:6666:7777:8888/128');
+                testValid('::2222:3333:4444:5555:6666:7777:8888');
+                testValid('::2222:3333:4444:5555:6666:7777:8888/128');
+                testValid('1111::3333:4444:5555:6666:7777:8888');
+                testValid('1111::3333:4444:5555:6666:7777:8888/128');
+                testValid('1111:2222:3333::6666:7777:8888');
+                testValid('1111:2222:3333::6666:7777:8888/128');
+                testValid('1111:2222:3333:4444:5555:6666::8888');
+                testValid('1111:2222:3333:4444:5555:6666::8888/128');
+                testValid('1111:2222:3333:4444:5555:6666:7777::');
+                testValid('1111:2222:3333:4444:5555:6666:7777::/128');
             });
 
-            it('should invalidate addresses with invalid CIDRs', () => {
-                assert.strictEqual(
-                    formats.ipWithCidr('1200:0000:AB00:1234:0000:2552:7777:1313/130'),
-                    false,
-                    'CIDR 130 should be invalid'
-                );
+            it('should validate addresses with valid prefixes', () => {
+                testValid('1200:0000:AB00:1234:0000:2552:7777:1313/119', 'prefix 119 should be valid');
+                testValid('1200:0000:ab00:1234:0000:2552:7777:1313/128', 'prefix 128 should be valid');
+                testValid('1200:0000:ab00:1234:0000:2552:7777:1313/99', 'prefix 99 should be valid');
+                testValid('1200:0000:ab00:1234:0000:2552:7777:1313/9', 'prefix 9 should be valid');
+                testValid('1200:0000:ab00:1234:0000:2552:7777:1313/0', 'prefix 0 should be valid');
+            });
+
+            it('should invalidate addresses with invalid prefixes', () => {
+                testInvalid('1200:0000:AB00:1234:0000:2552:7777:1313/129', 'prefix 129 should be invalid');
             });
 
             it('should invalidate addresses with route domain', () => {
-                assert.strictEqual(
-                    formats.ipWithCidr('1200:0000:AB00:1234:0000:2552:7777:1313%0'),
-                    false
-                );
-                assert.strictEqual(
-                    formats.ipWithCidr('1200:0000:AB00:1234:0000:2552:7777:1313%65535'),
-                    false
-                );
+                testInvalid('1200:0000:ab00:1234:0000:2552:7777:1313%0');
+                testInvalid('1200:0000:ab00:1234:0000:2552:7777:1313%65535');
             });
 
-            it('should invalidate address with CIDR and route domain', () => {
+            it('should invalidate address with prefix and route domain', () => {
+                testInvalid('1200:0000:AB00:1234:0000:2552:7777:1313%1/32');
+            });
+        });
+    });
+
+    describe('ipWithRequiredPrefix', () => {
+        describe('IPv4requiredPrefixNoRouteDomainRex', () => {
+            function testValid(expression, errorMessage) {
                 assert.strictEqual(
-                    formats.ipWithCidr('1200:0000:AB00:1234:0000:2552:7777:1313%1/32'),
-                    false
+                    formats.IPv4requiredPrefixNoRouteDomainRex.exec(expression)[0],
+                    expression,
+                    errorMessage || 'should be valid'
                 );
+                assert.strictEqual(
+                    formats.ipWithRequiredPrefix(expression),
+                    true,
+                    errorMessage || 'should be valid'
+                );
+            }
+
+            function testInvalid(expression, errorMessage) {
+                assert.strictEqual(
+                    formats.IPv4requiredPrefixNoRouteDomainRex.exec(expression),
+                    null,
+                    errorMessage
+                );
+                assert.strictEqual(
+                    formats.ipWithRequiredPrefix(expression),
+                    false,
+                    errorMessage
+                );
+            }
+
+            it('should validate address with prefix', () => {
+                testValid('10.10.0.0/24');
+            });
+
+            it('should invalidate invalid address with prefix', () => {
+                testInvalid('256.2.3.4/24', 'address must be valid');
+            });
+
+            it('should invalidate address without prefix', () => {
+                testInvalid('10.10.0.0', 'prefix must be present');
+            });
+
+            it('should validate addresses with valid prefixes', () => {
+                testValid('1.2.3.4/32', 'prefix 32 should be valid');
+                testValid('1.2.3.4/24', 'prefix 24 should be valid');
+                testValid('1.2.3.4/16', 'prefix 16 should be valid');
+                testValid('1.2.3.4/8', 'prefix 8 should be valid');
+                testValid('1.2.3.4/0', 'prefix 0 should be valid');
+            });
+
+            it('should invalidate addresses with invalid prefixes', () => {
+                testInvalid('1.2.3.4/40', 'prefix 40 should be invalid');
+                testInvalid('1.2.3.4/33', 'prefix 33 should be invalid');
+                testInvalid('1.2.3.4/321', 'prefix 321 should be invalid');
+                testInvalid('1.2.3.4/200', 'prefix 200 should be invalid');
+            });
+
+            it('should invalidate addresses with route domain', () => {
+                testInvalid('1.2.3.4%0', 'should not specify a route domain');
+                testInvalid('1.2.3.4%65535', 'should not specify a route domain');
+            });
+
+            it('should invalidate address with prefix and route domain', () => {
+                testInvalid('1.2.3.4%1/24', 'should not specify a route domain');
+            });
+        });
+
+        describe('IPv6requiredPrefixNoRouteDomainRex', () => {
+            function testValid(expression, errorMessage) {
+                let lowerCaseExpression;
+                if (typeof expression === 'string') {
+                    lowerCaseExpression = expression.toLowerCase();
+                }
+                assert.strictEqual(
+                    formats.IPv6requiredPrefixNoRouteDomainRex.exec(lowerCaseExpression)[0],
+                    lowerCaseExpression,
+                    errorMessage || 'should be valid'
+                );
+                assert.strictEqual(
+                    formats.ipWithRequiredPrefix(expression),
+                    true,
+                    errorMessage || 'should be valid'
+                );
+            }
+
+            function testInvalid(expression, errorMessage) {
+                let lowerCaseExpression;
+                if (typeof expression === 'string') {
+                    lowerCaseExpression = expression.toLowerCase();
+                }
+                assert.strictEqual(
+                    formats.IPv6requiredPrefixNoRouteDomainRex.exec(lowerCaseExpression),
+                    null,
+                    errorMessage
+                );
+                assert.strictEqual(
+                    formats.ipWithRequiredPrefix(expression),
+                    false,
+                    errorMessage
+                );
+            }
+
+            it('should validate address with prefix', () => {
+                testValid('1200:0000:AB00:1234:0000:2552:7777:1313/32');
+            });
+
+            it('should invalidate invalid address', () => {
+                testInvalid('X:0000:AB00:1234:0000:2552:7777:1313/32');
+            });
+
+            it('should validate double colon addresses with prefix', () => {
+                assert.strictEqual(formats.ipWithRequiredPrefix('::/24'), true);
+                testValid('::/0');
+                testValid('::/128');
+                testValid('::2222:3333:4444:5555:6666:7777:8888/128');
+                testValid('1111::3333:4444:5555:6666:7777:8888/128');
+                testValid('1111:2222:3333::6666:7777:8888/128');
+                testValid('1111:2222:3333:4444:5555:6666::8888/128');
+                testValid('1111:2222:3333:4444:5555:6666:7777::/128');
+            });
+
+            it('should invalidate double colon addresses missing prefix', () => {
+                testInvalid('::');
+                testInvalid('::2222:3333:4444:5555:6666:7777:8888');
+                testInvalid('1111::3333:4444:5555:6666:7777:8888');
+                testInvalid('1111:2222:3333::6666:7777:8888');
+                testInvalid('1111:2222:3333:4444:5555:6666::8888');
+                testInvalid('1111:2222:3333:4444:5555:6666:7777::');
+            });
+
+            it('should validate addresses with valid prefixes', () => {
+                testValid('1200:0000:AB00:1234:0000:2552:7777:1313/119', 'prefix 119 should be valid');
+                testValid('1200:0000:ab00:1234:0000:2552:7777:1313/128', 'prefix 128 should be valid');
+                testValid('1200:0000:ab00:1234:0000:2552:7777:1313/99', 'prefix 99 should be valid');
+                testValid('1200:0000:ab00:1234:0000:2552:7777:1313/9', 'prefix 9 should be valid');
+                testValid('1200:0000:ab00:1234:0000:2552:7777:1313/0', 'prefix 0 should be valid');
+            });
+
+            it('should invalidate addresses with invalid prefix', () => {
+                testInvalid('1200:0000:AB00:1234:0000:2552:7777:1313/129', 'prefix 129 should be invalid');
+            });
+
+            it('should invalidate addresses with route domain', () => {
+                testInvalid('1200:0000:ab00:1234:0000:2552:7777:1313%0');
+                testInvalid('1200:0000:ab00:1234:0000:2552:7777:1313%65535');
+            });
+
+            it('should invalidate address with prefix and route domain', () => {
+                testInvalid('1200:0000:AB00:1234:0000:2552:7777:1313%1/32');
             });
         });
     });
