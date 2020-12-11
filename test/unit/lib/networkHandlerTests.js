@@ -1059,6 +1059,174 @@ describe('networkHandler', () => {
         });
     });
 
+    describe('handleEnableRouting', () => {
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath', () => {
+            const declaration = {
+                Common: {
+                    RoutingAsPath: {
+                        RoutingAsPath1: {
+                            name: 'RoutingAsPath1',
+                            entries: [
+                                {
+                                    name: 10,
+                                    regex: '^$'
+                                }
+                            ]
+                        },
+                        RoutingAsPath2: {
+                            name: 'RoutingAsPath2',
+                            entries: [
+                                {
+                                    name: 15,
+                                    regex: 'funky$'
+                                },
+                                {
+                                    name: 20,
+                                    regex: '^$'
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
+                    assert.deepStrictEqual(data, [{ value: 'enable' }]);
+                });
+        });
+
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingPrefixList', () => {
+            const declaration = {
+                Common: {
+                    RoutingPrefixList: {
+                        RoutingPrefixList1: {
+                            name: 'RoutingPrefixList1',
+                            entries: [
+                                {
+                                    name: 10,
+                                    action: 'permit',
+                                    prefix: '10.2.2.0/24',
+                                    prefixLengthRange: 32
+                                }
+                            ]
+                        },
+                        RoutingPrefixList2: {
+                            name: 'RoutingPrefixList2',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                },
+                                {
+                                    name: 30,
+                                    action: 'deny',
+                                    prefix: '10.4.4.0/23',
+                                    prefixLengthRange: 24
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
+                    assert.deepStrictEqual(data, [{ value: 'enable' }]);
+                });
+        });
+
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath and RoutingPrefixList', () => {
+            const declaration = {
+                Common: {
+                    RoutingAsPath: {
+                        RoutingAsPath1: {
+                            name: 'RoutingAsPath1',
+                            entries: [
+                                {
+                                    name: 10,
+                                    regex: '^$'
+                                }
+                            ]
+                        },
+                        RoutingAsPath2: {
+                            name: 'RoutingAsPath2',
+                            entries: [
+                                {
+                                    name: 15,
+                                    regex: 'funky$'
+                                },
+                                {
+                                    name: 20,
+                                    regex: '^$'
+                                }
+                            ]
+                        }
+                    },
+                    RoutingPrefixList: {
+                        RoutingPrefixList1: {
+                            name: 'RoutingPrefixList1',
+                            entries: [
+                                {
+                                    name: 10,
+                                    action: 'permit',
+                                    prefix: '10.2.2.0/24',
+                                    prefixLengthRange: 32
+                                }
+                            ]
+                        },
+                        RoutingPrefixList2: {
+                            name: 'RoutingPrefixList2',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                },
+                                {
+                                    name: 30,
+                                    action: 'deny',
+                                    prefix: '10.4.4.0/23',
+                                    prefixLengthRange: 24
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
+                    assert.deepStrictEqual(data, [{ value: 'enable' }]);
+                });
+        });
+
+        it('should not send out an enable value to the sys/db/...routing endpoint if a declaration lacks RoutingAsPath and RoutingPrefixList', () => {
+            const declaration = {
+                Common: {
+                    RoutingAsPath: {},
+                    RoutingPrefixList: {}
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
+                    assert.deepStrictEqual(data, undefined);
+                });
+        });
+    });
+
     describe('RoutingAsPath', () => {
         it('should handle a fully specified Routing As Path', () => {
             const declaration = {
@@ -1120,30 +1288,38 @@ describe('networkHandler', () => {
                     });
                 });
         });
+    });
 
-        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath', () => {
+    describe('RoutingPrefixList', () => {
+        it('should handle a fully specified Routing Prefix List', () => {
             const declaration = {
                 Common: {
-                    RoutingAsPath: {
-                        RoutingAsPath1: {
-                            name: 'RoutingAsPath1',
+                    RoutingPrefixList: {
+                        RoutingPrefixList1: {
+                            name: 'RoutingPrefixList1',
                             entries: [
                                 {
                                     name: 10,
-                                    regex: '^$'
+                                    action: 'permit',
+                                    prefix: '10.2.2.0/24',
+                                    prefixLengthRange: 32
                                 }
                             ]
                         },
-                        RoutingAsPath2: {
-                            name: 'RoutingAsPath2',
+                        RoutingPrefixList2: {
+                            name: 'RoutingPrefixList2',
                             entries: [
                                 {
-                                    name: 15,
-                                    regex: 'funky$'
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
                                 },
                                 {
-                                    name: 20,
-                                    regex: '^$'
+                                    name: 30,
+                                    action: 'deny',
+                                    prefix: '10.4.4.0/23',
+                                    prefixLengthRange: 24
                                 }
                             ]
                         }
@@ -1154,23 +1330,58 @@ describe('networkHandler', () => {
             const networkHandler = new NetworkHandler(declaration, bigIpMock);
             return networkHandler.process()
                 .then(() => {
-                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
-                    assert.deepStrictEqual(data, [{ value: 'enable' }]);
+                    const data = dataSent[PATHS.RoutingPrefixList];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RoutingPrefixList1',
+                        partition: 'Common',
+                        entries: {
+                            10: {
+                                action: 'permit',
+                                prefix: '10.2.2.0/24',
+                                prefixLenRange: 32
+                            }
+                        }
+                    });
+                    assert.deepStrictEqual(data[1], {
+                        name: 'RoutingPrefixList2',
+                        partition: 'Common',
+                        entries: {
+                            20: {
+                                action: 'permit',
+                                prefix: '10.3.3.0/24',
+                                prefixLenRange: 32
+                            },
+                            30: {
+                                action: 'deny',
+                                prefix: '10.4.4.0/23',
+                                prefixLenRange: 24
+                            }
+                        }
+                    });
                 });
         });
 
-        it('should not send out an enable value to the sys/db/...routing endpoint if a declaration lacks RoutingAsPath', () => {
+        it('should handle empty entries property', () => {
             const declaration = {
                 Common: {
-                    RoutingAsPath: {}
+                    RoutingPrefixList: {
+                        RoutingPrefixList1: {
+                            name: 'RoutingPrefixList1',
+                            entries: []
+                        }
+                    }
                 }
             };
 
             const networkHandler = new NetworkHandler(declaration, bigIpMock);
             return networkHandler.process()
                 .then(() => {
-                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
-                    assert.deepStrictEqual(data, undefined);
+                    const data = dataSent[PATHS.RoutingPrefixList];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RoutingPrefixList1',
+                        partition: 'Common',
+                        entries: {}
+                    });
                 });
         });
     });

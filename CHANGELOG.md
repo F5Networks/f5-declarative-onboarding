@@ -4,6 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.18.0
 ### Added
 - AUTOTOOL-2002: GSLB Data Center
+- AUTOTOOL-1654: Routing Prefix List
 - AUTOTOOL-2058: ([GitHub Issue 179](https://github.com/F5Networks/f5-declarative-onboarding/issues/179)): Add support for specifying BIG-IQ auth provider for licensing.
 ### Fixed
 - AUTOTOOL-1799: ([GitHub Issue 149](https://github.com/F5Networks/f5-declarative-onboarding/issues/149)): Can only create one DeviceGroup

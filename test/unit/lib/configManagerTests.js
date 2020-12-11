@@ -504,6 +504,69 @@ describe('configManager', () => {
             });
     });
 
+    it('should handle references containing stringToInt and newId property mappings', () => {
+        const configItems = [
+            {
+                path: '/tm/net/routing/prefix-list',
+                schemaClass: 'RoutingPrefixList',
+                properties: [
+                    { id: 'name' },
+                    { id: 'entriesReference' }
+                ],
+                references: {
+                    entriesReference: [
+                        { id: 'name', stringToInt: true },
+                        { id: 'prefixLenRange', newId: 'prefixLengthRange', stringToInt: true },
+                        { id: 'myProp1', newId: 'myObject.prop1' },
+                        { id: 'myProp2', newId: 'myObject.prop2.prop' }
+                    ]
+                }
+            }
+        ];
+
+        listResponses['/tm/net/routing/prefix-list'] = [
+            {
+                name: 'examplePrefixList',
+                entriesReference: {
+                    link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                }
+            }
+        ];
+        listResponses['/tm/net/routing/prefix-list/~Common~examplePrefixList/entries'] = [
+            {
+                name: '20',
+                prefixLenRange: '16',
+                myProp1: 'my property 1',
+                myProp2: 'my property 2'
+            }
+        ];
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.deepStrictEqual(
+                    state.currentConfig.Common.RoutingPrefixList,
+                    {
+                        examplePrefixList: {
+                            name: 'examplePrefixList',
+                            entries: [
+                                {
+                                    name: 20,
+                                    prefixLengthRange: 16,
+                                    myObject: {
+                                        prop1: 'my property 1',
+                                        prop2: {
+                                            prop: 'my property 2'
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                );
+            });
+    });
+
     describe('FailoverUnicast oddities', () => {
         // iControl omits the property altogether in some cases
         // Adding this defaultWhenOmitted attr makes the manager recognize that a default value is actually there
@@ -1585,6 +1648,59 @@ describe('configManager', () => {
                                     action: 'permit',
                                     name: 15,
                                     regex: '^123'
+                                }
+                            ]
+                        }
+                    });
+                });
+        });
+    });
+
+    describe('RoutingPrefixList', () => {
+        it('should handle RoutingPrefixList with references', () => {
+            const configItems = getConfigItems('RoutingPrefixList');
+
+            listResponses['/tm/net/routing/prefix-list'] = [
+                {
+                    name: 'examplePrefixList',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                    }
+                }
+            ];
+            listResponses['/tm/net/routing/prefix-list/~Common~examplePrefixList/entries'] = [
+                {
+                    name: '20',
+                    action: 'permit',
+                    prefix: '10.3.3.0/24',
+                    prefixLenRange: '32'
+                },
+                {
+                    name: '30',
+                    action: 'deny',
+                    prefix: '1111:2222:3333:4444::/64',
+                    prefixLenRange: '24'
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common.RoutingPrefixList, {
+                        examplePrefixList: {
+                            name: 'examplePrefixList',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                },
+                                {
+                                    name: 30,
+                                    action: 'deny',
+                                    prefix: '1111:2222:3333:4444::/64',
+                                    prefixLengthRange: 24
                                 }
                             ]
                         }

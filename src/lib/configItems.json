@@ -164,6 +164,22 @@
         }
     },
     {
+        "path": "/tm/net/routing/prefix-list",
+        "schemaClass": "RoutingPrefixList",
+        "properties": [
+            { "id": "name" },
+            { "id": "entriesReference"}
+        ],
+        "references": {
+            "entriesReference": [
+                { "id": "name", "stringToInt": true },
+                { "id": "action" },
+                { "id": "prefix" },
+                { "id": "prefixLenRange", "newId": "prefixLengthRange", "stringToInt": true }
+            ]
+        }
+    },
+    {
         "path": "/tm/cm/device/~Common~{{deviceName}}",
         "schemaClass": "ConfigSync",
         "properties": [

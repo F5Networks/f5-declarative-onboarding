@@ -67,6 +67,7 @@ module.exports = {
         SoftwareUpdate: '/tm/sys/software/update',
         Tunnel: '/tm/net/tunnels/tunnel',
         RoutingAsPath: '/tm/net/routing/as-path',
+        RoutingPrefixList: '/tm/net/routing/prefix-list',
         Uploads: '/shared/file-transfer/uploads',
         SSLCert: '/tm/sys/file/ssl-cert',
         SSLKey: '/tm/sys/file/ssl-key',
