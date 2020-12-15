@@ -318,6 +318,7 @@ pages:
     only:
         - develop
         - doc-release-branch
+        - joes-do-wip
 
 publish docs to production:
     image: ${CONTAINTHEDOCS_IMAGE}
