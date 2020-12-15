@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 3.5
+        - Updated the documentation for Declarative Onboarding v1.18.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * 
+        - 1-12-21
+
       * - 3.4
         - Updated the documentation for Declarative Onboarding v1.17.0.  This release contains the following changes: |br| * Added support for Failover Multicast (see :ref:`Failover Multicast<multicast>`) |br| * Updated the :ref:`Auth Methods<authmethods>` example declaration to include the new sslCaCert property (see :ref:`Auth Methods<authmethods>`) |br| * Added support for configuring Global GSLB settings (see :ref:`Global GSLB settings<globalgslb>`) |br| * Added support for using variables in some RemoteAuthRole properties (see the :ref:`Remote Auth role variable example<rolevar>`) |br| * Added support for a parent Route Domain (see the updated :ref:`Route Domain<rdomain>` example) |br| * DO now accepts **all** as a single word for HTTPD allow value, `GitHub Issue 163 <https://github.com/F5Networks/f5-declarative-onboarding/issues/163>`_ |br| * Removed the DO in a container page as that community supported solution has been deprecated |br| * Updated the BIG-IQ examples to change the bigIpPassword to match the password being set in the User Class (for example, see :ref:`Licensing with BIG-IQ<bigiq1>`) |br| * Added more categories for example declarations (see :doc:`examples`) |br| * Added a note to :ref:`examples` stating all BIG-IP examples will work on BIG-IQ when adding the BIG-IQ section to the declaration |br| * Added notes to the :doc:`do-on-bigiq` page stating **dry-run** is not supported on BIG-IQ, and GET requests are supported |br| |br| Issues Resolved: |br| * RemoteAuthRole remoteAccess property logic is backwards |br| * Disk size must be larger than current size |br| * Unable to specify route domain in route gw address, `GitHub Issue 140 <https://github.com/F5Networks/f5-declarative-onboarding/issues/140>`_
         - 11-20-20
