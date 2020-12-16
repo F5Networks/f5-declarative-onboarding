@@ -215,7 +215,7 @@ Using an external authentication provider for BIG-IQ licensing
 
    Support for the **bigiqAuthProvider** property is available in DO v1.18 and later.  You must have the authentication provider defined on the BIG-IQ before submitting the declaration.
 
-In this example, we show how you can reference an external auth provider for BIG-IQ license calls using the **bigiqAuthProvider** property introduced in DO 1.18. This allows the DO to use token-based authentication for BIG-IQ license requests. The default is to use TMOS as the authentication provider. For more information on BIG-IQ authentication tokens, see |tokendoc| in the BIG-IQ API reference.
+In this example, we show how you can reference an external auth provider for BIG-IQ license calls using the **bigiqAuthProvider** property introduced in DO 1.18. The default is to use TMOS as the authentication provider. For more information on BIG-IQ authentication tokens, see |tokendoc| in the BIG-IQ API reference.
 
 To use this property in your declaration, you must have an existing authentication provider defined on your BIG-IQ.  For information on configuring authentication providers, see the BIG-IQ documentation (for example, the |authdoc| chapter gives information on configuring an LDAP authentication provider in BIG-IQ 7.0).
 
