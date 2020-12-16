@@ -201,16 +201,15 @@ See |tg| in the Schema Reference for DO usage and options.
 
 .. _example26:
 
-Configuring net routing prefix lists 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Configuring routing prefix lists 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for net routing prefix lists is available in DO v1.18 and later
+   Support for routing prefix lists is available in DO v1.18 and later
 
-This example shows how you can create net routing prefix lists using Declarative Onboarding 1.18 and later. These prefix lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for each prefix address.
+This example shows how you can create network routing prefix lists using Declarative Onboarding 1.18 and later. These prefix lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for each prefix address.
 
 See |prefix| and |prefixentry| in the Schema Reference for DO usage and options.  
-
 
 
 .. literalinclude:: ../../examples/routingPrefixList.json
