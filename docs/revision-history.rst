@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.5
-        - Updated the documentation for Declarative Onboarding v1.18.0.  This release contains the following changes: |br| * Added support for GSLB Data Centers in a declaration (see :ref:`GSLB Data Center<gslbdc>` |br| * Added support for routing prefix lists (see :ref:`Prefix list example<example26>`) |br| * Added support for using an external auth provider for BIG-IQ licensing (see :ref:`External Auth Provider<bigiqauth>` |br| |br| Issues Resolved: |br| * Can only create one DeviceGroup, `GitHub Issue 149 <https://github.com/F5Networks/f5-declarative-onboarding/issues/149>`_
+        - Updated the documentation for Declarative Onboarding v1.18.0.  This release contains the following changes: |br| * Added support for GSLB Data Centers in a declaration (see :ref:`GSLB Data Center<gslbdc>`) |br| * Added support for routing prefix lists (see :ref:`Prefix list example<example26>`) |br| * Added support for using an external auth provider for BIG-IQ licensing (see :ref:`External Auth Provider<bigiqauth>`) |br| |br| Issues Resolved: |br| * Can only create one DeviceGroup, `GitHub Issue 149 <https://github.com/F5Networks/f5-declarative-onboarding/issues/149>`_
         - 1-12-21
 
       * - 3.4
