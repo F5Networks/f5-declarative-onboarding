@@ -211,6 +211,8 @@ This example shows how you can create network routing prefix lists using Declara
 
 See |prefix| and |prefixentry| in the Schema Reference for DO usage and options.  
 
+The following example contains multiple prefix lists, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
+
 
 .. literalinclude:: ../../examples/routingPrefixList.json
    :language: json
