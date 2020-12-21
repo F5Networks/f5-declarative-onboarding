@@ -68,6 +68,8 @@ class RestWorker {
      */
     onStart(success, error) {
         try {
+            logger.info(`Running DO version: ${doUtil.getDoVersion().VERSION}`);
+
             const deviceInfo = this.restHelper.makeRestjavadUri(
                 '/shared/identified-devices/config/device-info'
             );
