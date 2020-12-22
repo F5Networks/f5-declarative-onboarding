@@ -10,11 +10,7 @@
                 "type": "object",
                 "properties": { "class": { "const": "GSLBGlobals" } }
             },
-            "then": {
-                "oneOf": [
-                    { "$ref": "#/definitions/gslbGlobals" }
-                ]
-            }
+            "then": { "$ref": "#/definitions/gslbGlobals" }
         },
         {
             "if": {
@@ -22,11 +18,7 @@
                 "type": "object",
                 "properties": { "class": { "const": "GSLBDataCenter" } }
             },
-            "then": {
-                "oneOf": [
-                    { "$ref": "#/definitions/gslbDataCenter" }
-                ]
-            }
+            "then": { "$ref": "#/definitions/gslbDataCenter" }
         },
         {
             "if": {
@@ -34,11 +26,7 @@
                 "type": "object",
                 "properties": { "class": { "const": "GSLBServer" } }
             },
-            "then": {
-                "oneOf": [
-                    { "$ref": "#/definitions/gslbServer" }
-                ]
-            }
+            "then": { "$ref": "#/definitions/gslbServer" }
         }
     ],
     "definitions": {
