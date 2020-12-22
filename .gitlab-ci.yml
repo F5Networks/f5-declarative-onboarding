@@ -106,7 +106,7 @@ deploy:
         SSH_AVAILABILITY_DELAY: 10
         SSH_AVAILABILITY_RETRIES: 100
         VIO_DEPLOYMENT_DELAY: 20
-        VIO_DEPLOYMENT_RETRIES: 100
+        VIO_DEPLOYMENT_RETRIES: 150
     script:
         - export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
         - cd /root/cicd-bigip-deploy && make configure && make printvars
@@ -128,7 +128,7 @@ deploy:
 
 integration-test:
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     only:
         - schedules
         - tags
