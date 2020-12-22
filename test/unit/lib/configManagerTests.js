@@ -1808,4 +1808,156 @@ describe('configManager', () => {
                 });
         });
     });
+
+    describe('GSLBServer', () => {
+        it('should handle GSLBServer', () => {
+            const configItems = getConfigItems('GSLBServer');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/server'] = [
+                {
+                    name: 'gslbServer',
+                    datacenter: '/Common/gslbDataCenter',
+                    description: 'description',
+                    disabled: true,
+                    exposeRouteDomains: 'yes',
+                    iqAllowPath: 'no',
+                    iqAllowServiceCheck: 'no',
+                    iqAllowSnmp: 'no',
+                    limitCpuUsage: 10,
+                    limitCpuUsageStatus: 'enabled',
+                    limitMaxBps: 50,
+                    limitMaxBpsStatus: 'enabled',
+                    limitMaxConnections: 70,
+                    limitMaxConnectionsStatus: 'enabled',
+                    limitMaxPps: 60,
+                    limitMaxPpsStatus: 'enabled',
+                    limitMemAvail: 12,
+                    limitMemAvailStatus: 'enabled',
+                    proberFallback: 'any-available',
+                    proberPreference: 'inside-datacenter',
+                    product: 'generic-host',
+                    virtualServerDiscovery: 'enabled',
+                    devicesReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/server/~Common~gslbServer/devices'
+                    }
+                }
+            ];
+            listResponses['/tm/gtm/server/~Common~gslbServer/devices'] = [
+                {
+                    name: '0',
+                    description: 'deviceDescription1',
+                    addresses: [{ name: '10.0.0.1', translation: '192.0.2.12' }]
+                },
+                {
+                    name: '1',
+                    description: 'deviceDescription2',
+                    addresses: [{ name: '10.0.0.2', translation: '192.0.2.13' }]
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBServer,
+                        {
+                            gslbServer: {
+                                name: 'gslbServer',
+                                remark: 'description',
+                                enabled: false,
+                                serverType: 'generic-host',
+                                proberPreferred: 'inside-datacenter',
+                                proberFallback: 'any-available',
+                                bpsLimit: 50,
+                                bpsLimitEnabled: true,
+                                ppsLimit: 60,
+                                ppsLimitEnabled: true,
+                                connectionsLimit: 70,
+                                connectionsLimitEnabled: true,
+                                cpuUsageLimit: 10,
+                                cpuUsageLimitEnabled: true,
+                                memoryLimit: 12,
+                                memoryLimitEnabled: true,
+                                serviceCheckProbeEnabled: false,
+                                pathProbeEnabled: false,
+                                snmpProbeEnabled: false,
+                                dataCenter: 'gslbDataCenter',
+                                devices: [
+                                    {
+                                        name: '0',
+                                        remark: 'deviceDescription1',
+                                        addresses: [{
+                                            name: '10.0.0.1',
+                                            translation: '192.0.2.12'
+                                        }]
+                                    },
+                                    {
+                                        name: '1',
+                                        remark: 'deviceDescription2',
+                                        addresses: [{
+                                            name: '10.0.0.2',
+                                            translation: '192.0.2.13'
+                                        }]
+                                    }
+                                ],
+                                exposeRouteDomainsEnabled: true,
+                                virtualServerDiscoveryMode: 'enabled'
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should handle alternative GSLBServer enable/disable values', () => {
+            const configItems = getConfigItems('GSLBServer');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/server'] = [
+                {
+                    name: 'serverEnabledStringVal',
+                    enabled: 'True'
+                },
+                {
+                    name: 'serverDisabledStringVal',
+                    disabled: 'False'
+                },
+                {
+                    name: 'serverNoVal'
+                }
+            ];
+
+            const getExpected = name => ({
+                name,
+                enabled: true,
+                bpsLimitEnabled: false,
+                connectionsLimitEnabled: false,
+                cpuUsageLimitEnabled: false,
+                exposeRouteDomainsEnabled: false,
+                memoryLimitEnabled: false,
+                pathProbeEnabled: false,
+                ppsLimitEnabled: false,
+                serviceCheckProbeEnabled: false,
+                snmpProbeEnabled: false
+
+            });
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBServer,
+                        {
+                            serverEnabledStringVal: getExpected('serverEnabledStringVal'),
+                            serverDisabledStringVal: getExpected('serverDisabledStringVal'),
+                            serverNoVal: getExpected('serverNoVal')
+                        }
+                    );
+                });
+        });
+    });
 });

@@ -60,6 +60,10 @@ class GSLBHandler {
                 logger.fine('Checking Data Centers');
                 return handleGSLBDataCenter.call(this);
             })
+            .then(() => {
+                logger.fine('Checking Servers');
+                return handleGSLBServer.call(this);
+            })
             .catch((err) => {
                 logger.severe(`Error processing GSLB declaration: ${err.message}`);
                 return Promise.reject(err);
@@ -120,6 +124,56 @@ function handleGSLBDataCenter() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating Data Centers: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleGSLBServer() {
+    const promises = [];
+
+    doUtil.forEach(this.declaration, 'GSLBServer', (tenant, server) => {
+        if (server && server.name) {
+            const body = {
+                name: server.name,
+                description: server.remark || 'none',
+                enabled: server.enabled,
+                disabled: !server.enabled,
+                product: server.serverType,
+                proberPreference: server.proberPreferred,
+                proberFallback: server.proberFallback,
+                limitMaxBps: server.bpsLimit,
+                limitMaxBpsStatus: server.bpsLimitEnabled ? 'enabled' : 'disabled',
+                limitMaxPps: server.ppsLimit,
+                limitMaxPpsStatus: server.ppsLimitEnabled ? 'enabled' : 'disabled',
+                limitMaxConnections: server.connectionsLimit,
+                limitMaxConnectionsStatus: server.connectionsLimitEnabled ? 'enabled' : 'disabled',
+                limitCpuUsage: server.cpuUsageLimit,
+                limitCpuUsageStatus: server.cpuUsageLimitEnabled ? 'enabled' : 'disabled',
+                limitMemAvail: server.memoryLimit,
+                limitMemAvailStatus: server.memoryLimitEnabled ? 'enabled' : 'disabled',
+                iqAllowServiceCheck: server.serviceCheckProbeEnabled ? 'yes' : 'no',
+                iqAllowPath: server.pathProbeEnabled ? 'yes' : 'no',
+                iqAllowSnmp: server.snmpProbeEnabled ? 'yes' : 'no',
+                datacenter: server.dataCenter,
+                devices: server.devices,
+                exposeRouteDomains: server.exposeRouteDomainsEnabled ? 'yes' : 'no',
+                virtualServerDiscovery: server.virtualServerDiscoveryMode
+            };
+
+            body.devices.forEach((device) => {
+                device.description = device.remark || 'none';
+                delete device.remark;
+            });
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.GSLBServer, body, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Servers: ${err.message}`);
             throw err;
         });
 }

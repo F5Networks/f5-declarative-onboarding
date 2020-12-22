@@ -919,6 +919,70 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should apply GSLB server fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    GSLBServer: {
+                        gslbServer: {
+                            label: 'testing gslb server',
+                            dataCenter: '/Common/gslbDataCenter',
+                            devices: [
+                                {
+                                    address: '10.0.0.1',
+                                    addressTranslation: '192.0.2.12',
+                                    remark: 'deviceDescription'
+                                },
+                                {
+                                    address: '10.0.0.2'
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const gslbServer = declarationWithDefaults.Common.GSLBServer.gslbServer;
+                    assert.deepStrictEqual(
+                        gslbServer,
+                        {
+                            dataCenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    remark: 'deviceDescription',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: '192.0.2.12'
+                                    }]
+                                },
+                                {
+                                    name: '1',
+                                    remark: undefined,
+                                    addresses: [{
+                                        name: '10.0.0.2',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ]
+                        }
+                    );
+                });
+        });
+
         describe('should apply fix for HTTPD allow value', () => {
             it('should convert single word all to array', () => {
                 const newDeclaration = {

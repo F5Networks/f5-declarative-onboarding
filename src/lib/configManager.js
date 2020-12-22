@@ -258,6 +258,10 @@ class ConfigManager {
                                         patchedItem.trafficGroup = name;
                                     }
 
+                                    if (schemaClass === 'GSLBServer') {
+                                        patchGSLBServer.call(this, patchedItem);
+                                    }
+
                                     if (patchedItem) {
                                         if (!currentConfig[schemaClass]) {
                                             currentConfig[schemaClass] = {};
@@ -897,6 +901,35 @@ function patchGSLBGlobals(patchedItem) {
     patchedClass.general = {};
     Object.assign(patchedClass.general, patchedItem);
     return patchedClass;
+}
+
+function patchGSLBServer(patchedItem) {
+    patchedItem.enabled = isEnabledGtmObject(patchedItem);
+    delete patchedItem.disabled;
+}
+
+/**
+ * GTM objects have both enabled and disabled properties
+ * instead of one prop with boolean value
+ * @public
+ * @param {object} obj - object that contains the enabled/disabled props
+ * @returns {boolean} - true if enabled, otherwise false
+ */
+function isEnabledGtmObject(obj) {
+    let isEnabled;
+
+    if (typeof obj.enabled === 'boolean') {
+        isEnabled = obj.enabled;
+    } else if (typeof obj.disabled === 'boolean') {
+        isEnabled = !obj.disabled;
+    } else if (typeof obj.enabled === 'string') {
+        isEnabled = obj.enabled.toLowerCase() === 'true';
+    } else if (typeof obj.disabled === 'string') {
+        isEnabled = obj.disabled.toLowerCase() === 'false';
+    } else {
+        isEnabled = true;
+    }
+    return isEnabled;
 }
 
 function shouldIgnore(item, ignoreList) {

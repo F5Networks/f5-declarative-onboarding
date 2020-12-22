@@ -204,6 +204,46 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 proberPreferred: 'inside-datacenter'
             }
         ));
+
+        it('should have created GSLB server', () => assert.deepStrictEqual(
+            currentState.GSLBServer.myGSLBServer,
+            {
+                name: 'myGSLBServer',
+                remark: 'GSLB server description',
+                devices: [
+                    {
+                        name: '0',
+                        remark: 'GSLB server device description',
+                        addresses: [
+                            {
+                                name: '10.10.10.10',
+                                translation: '192.0.2.12'
+                            }
+                        ]
+                    }
+                ],
+                dataCenter: 'myDataCenter',
+                serverType: 'generic-host',
+                enabled: false,
+                proberPreferred: 'inside-datacenter',
+                proberFallback: 'any-available',
+                bpsLimit: 10,
+                bpsLimitEnabled: true,
+                ppsLimit: 10,
+                ppsLimitEnabled: true,
+                connectionsLimit: 10,
+                connectionsLimitEnabled: true,
+                serviceCheckProbeEnabled: false,
+                pathProbeEnabled: false,
+                snmpProbeEnabled: false,
+                virtualServerDiscoveryMode: 'enabled',
+                exposeRouteDomainsEnabled: true,
+                cpuUsageLimit: 10,
+                cpuUsageLimitEnabled: true,
+                memoryLimit: 10,
+                memoryLimitEnabled: true
+            }
+        ));
     });
 
     describe('Test Networking', function testNetworking() {

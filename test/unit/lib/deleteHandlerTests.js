@@ -652,4 +652,46 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.deepStrictEqual(deletedPaths, ['/tm/net/routing/prefix-list/~Common~routingPrefixListTest']);
             });
     });
+
+    it('should delete a GSLBDataCenter and a GSLBServer in that order', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    GSLBServer: {
+                        gslbServer: {
+                            name: ' gslbServer',
+                            dataCenter: '/Common/gslbDataCenter',
+                            devices: [{
+                                address: '10.0.0.1'
+                            }]
+                        }
+                    },
+                    GSLBDataCenter: {
+                        gslbDataCenter: {
+                            name: 'gslbDataCenter'
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                GSLBServer: {
+                    gslbServer: {}
+                },
+                GSLBDataCenter: {
+                    gslbDataCenter: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 2);
+                assert.strictEqual(deletedPaths[0], '/tm/gtm/server/~Common~gslbServer');
+                assert.strictEqual(deletedPaths[1], '/tm/gtm/datacenter/~Common~gslbDataCenter');
+            });
+    });
 });
