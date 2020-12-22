@@ -10,6 +10,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1882: Log version on startup
 ### Fixed
 - AUTOTOOL-1799: ([GitHub Issue 149](https://github.com/F5Networks/f5-declarative-onboarding/issues/149)): Can only create one DeviceGroup
+- AUTOTOOL-2139: GSLB schema defaults are not applied in some cases
 ### Changed
 ### Removed
 
