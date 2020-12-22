@@ -89,7 +89,7 @@ test_node:latest:
 deploy:
     image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     only:
         - schedules
         - tags
