@@ -134,7 +134,7 @@ integration-test:
         - tags
         - triggers
     stage: integration-test
-    timeout: 2 hours
+    timeout: 3 hours
     script:
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
