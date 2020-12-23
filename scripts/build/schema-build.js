@@ -26,6 +26,20 @@ function writeSchema(name, data) {
     });
 }
 
+function derefDefinition(refString, content, subContent) {
+    const ref = refString.split('#/definitions/').join('');
+    const defs = content.definitions;
+    const def = defs[ref];
+    Object.keys(def.properties).forEach((defKey) => {
+        if (safeTraverse(['properties', defKey, '$ref'], def)) {
+            const addntlRef = def.properties[defKey].$ref.split('#/definitions/').join('');
+            const addntlDef = defs[addntlRef];
+            def.properties[defKey] = addntlDef;
+        }
+    });
+    subContent.then = def;
+}
+
 function combineSchemas() {
     const definitions = fs.readdirSync(`${SCHEMA_DIR}/`)
         .filter(name => !(name.includes('draft')) && name.endsWith('schema.json'))
@@ -49,18 +63,10 @@ function combineSchemas() {
         } else if (content.allOf) {
             content.allOf.forEach((subContent) => {
                 // Authentication and GSLB class specific override
-                if (definition.includes('auth') || definition.includes('gslb')) {
-                    const ref = subContent.then.oneOf[0].$ref.split('#/definitions/').join('');
-                    const defs = content.definitions;
-                    const def = defs[ref];
-                    Object.keys(def.properties).forEach((defKey) => {
-                        if (safeTraverse(['properties', defKey, '$ref'], def)) {
-                            const addntlRef = def.properties[defKey].$ref.split('#/definitions/').join('');
-                            const addntlDef = defs[addntlRef];
-                            def.properties[defKey] = addntlDef;
-                        }
-                    });
-                    subContent.then = def;
+                if (definition.includes('auth')) {
+                    derefDefinition(subContent.then.oneOf[0].$ref, content, subContent);
+                } else if (definition.includes('gslb')) {
+                    derefDefinition(subContent.then.$ref, content, subContent);
                 }
                 const tmp = {};
                 const subClass = safeTraverse(['if', 'properties', 'class', 'const'], subContent);
