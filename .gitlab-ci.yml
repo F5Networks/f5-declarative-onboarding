@@ -169,14 +169,16 @@ teardown:
     stage: teardown
 
 build rpm:
-    image: $DOCKER_URL/f5devcentral/containthedocs:rpmbuild
+    image: $DOCKER_URL/node:12
     stage: build
     tags:
         - cm-official-docker-executor
     script:
         # setup node environment
-        - npm install --global npm@5.10.0
+        - apt-get update && apt-get install -y rpm --no-install-recommends
         - scripts/build/buildRpm.sh
+        # ensure latest copyrights
+        - node scripts/dev/write-copyright.js "cicd"
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
