@@ -116,8 +116,11 @@ deploy:
         - cp ${PROJECT_DIR}/harness_facts_flat.json ${TEST_HARNESS_FILE}
         - cd ${CI_PROJECT_DIR}
         - if [[ $? != 0 ]]; then echo setup failed && exit 1; fi
-        - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
-        - yum install -y nodejs
+        - apt update
+        - apt install -y curl
+        - curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
+        - /bin/bash nodesource_setup.sh
+        - apt install -y nodejs
         - npm install
         - node test/integration/setup.js
     artifacts:
