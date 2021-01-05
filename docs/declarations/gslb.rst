@@ -63,7 +63,7 @@ A GSLB Server defines a physical system on the network. Servers contain the virt
 
 For details on the available properties and DO usage, see |gslbserver| in the Schema Reference.  
 
-This example only includes the GSLBServer class, which can be used as a part of a larger DO declaration.
+This example only includes the GSLBServer and GSLB Data Center classes, which can be used as a part of a larger DO declaration.
 
 .. literalinclude:: ../../examples/gslbServer.json
    :language: json
