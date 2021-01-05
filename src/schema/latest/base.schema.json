@@ -194,6 +194,9 @@
                     { "$ref": "auth.schema.json#" },
                     { "$ref": "gslb.schema.json#" }
                 ]
+            },
+            "default": {
+                "class": "Tenant"
             }
         },
         "controls": {
