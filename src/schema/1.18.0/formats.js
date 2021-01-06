@@ -70,5 +70,22 @@ module.exports = {
             && (lowerAddress.match(/[^0-9a-f:.%\x2f]/) === null)
             && (IPv4requiredPrefixNoRouteDomainRex.test(lowerAddress)
                 || IPv6requiredPrefixNoRouteDomainRex.test(lowerAddress))));
+    },
+    f5label: (string) => {
+        // 'f5label' allows 0-64 chars, excluding a few likely to
+        // cause trouble with string searching, JS, TCL, or HTML
+
+        // eslint-disable-next-line no-control-regex
+        const regex = /^[^\x00-\x1f\x22#&*<>?\x5b-\x5d`\x7f]{0,64}$/;
+        return regex.test(string);
+    },
+    f5remark: (string) => {
+        // 'f5remark' allows 0-64 chars, excluding only control-
+        // chars, double-quote, and backslash.  This is permissive
+        // enough that you should worry about XSS attacks
+
+        // eslint-disable-next-line no-control-regex
+        const regex = /^[^\x00-\x1f\x22\x5c\x7f]{0,64}$/;
+        return regex.test(string);
     }
 };
