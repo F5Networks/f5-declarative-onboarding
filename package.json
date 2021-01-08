@@ -47,7 +47,7 @@
     "winston": "2.4.4"
   },
   "scripts": {
-    "build": "scripts/build/buildRpm.sh",
+    "build": "scripts/build/build.sh",
     "test": "mocha --recursive test/unit",
     "integration": "mocha test/integration/test.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",

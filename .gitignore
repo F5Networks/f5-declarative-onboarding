@@ -2,7 +2,7 @@
 .nyc_output/
 out/
 node_modules/
-build/
+/build/
 docs/_build/
 coverage/
 npm-debug.log
