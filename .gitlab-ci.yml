@@ -78,6 +78,28 @@ test_node:latest:
         -   npm test
         - fi
 
+coverage:
+  image: $DOCKER_URL/node:lts
+  stage: test
+  tags:
+      - cm-official-docker-executor
+  script:
+        - PUBLIC_DIR='./public'
+        - mkdir -p ${PUBLIC_DIR}
+        - COVERAGE_DOCS=${PUBLIC_DIR}/coverage-docs
+        - mkdir -p ${COVERAGE_DOCS}
+        ## place code coverage docs under: /coverage-docs ##
+        - npm ci
+        - npm run coverage
+        - cp -R coverage/* ${COVERAGE_DOCS}
+  except:
+      # For develop, coverage is run in the pages job
+      - develop
+      - pipelines
+  artifacts:
+      paths:
+        - public
+
 # the following variables should be defined for deploy, integration-tests and teardown:
 # CICD_AUTH_OS_USERNAME - VIO user
 # CICD_AUTH_OS_PASSWORD - VIO password
@@ -276,7 +298,7 @@ pages:
         paths:
             - public
     only:
-        # - develop
+        - develop
         - doc-release-branch
         - joes-do-wip
 
