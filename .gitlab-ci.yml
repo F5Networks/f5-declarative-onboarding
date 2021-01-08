@@ -8,8 +8,6 @@ stages:
     - deploy
     - integration-test
     - teardown
-    - post build
-    - publish
 
 variables:
     PROJECT_NAME: ${BIGIP_VERSION}
@@ -86,14 +84,10 @@ test_node:latest:
 # CICD_AUTH_OS_PROJECT  - VIO project
 # BIGIP_VERSION         - BIG-IP Version (ex: 13.1.1.4)
 # BIGIP_BUILD           - BIG-IP Build (ex: 0.0.4)
-deploy:
+.deploy_common: &deploy_common
     image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
     tags:
         - do-test-docker-executor
-    only:
-        - schedules
-        - tags
-        - triggers
     stage: deploy
     timeout: 2 hours
     variables:
@@ -108,7 +102,13 @@ deploy:
         VIO_DEPLOYMENT_DELAY: 20
         VIO_DEPLOYMENT_RETRIES: 150
     script:
-        - export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
+        - if [[ $CI_PIPELINE_SOURCE == "pipeline" ]]; then
+        -     echo using RPM from cross-project pipeline
+        -     export RPM_PACKAGE=$(ls ${UPSTREAM_RPM_PATH}/*.rpm)
+        - else
+        -     echo using RPM from our pipeline
+        -     export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
+        - fi
         - cd /root/cicd-bigip-deploy && make configure && make printvars
         - ls -als "${PROJECT_DIR}"
         - cat "${PROJECT_DIR}/project-declaration-parsed"
@@ -129,13 +129,30 @@ deploy:
             - ${TEST_HARNESS_FILE}
         expire_in: 1 day
 
+deploy_for_this_project:
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    <<: *deploy_common
+    needs:
+        - job: build_rpm
+          artifacts: true
+
+deploy_for_other_project:
+    rules:
+        - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
+    <<: *deploy_common
+    needs:
+        - project: "$UPSTREAM_PROJECT_PATH"
+          job: "$UPSTREAM_JOB"
+          ref: "$UPSTREAM_REF"
+          artifacts: true
+
 integration-test:
     tags:
         - do-test-docker-executor
-    only:
-        - schedules
-        - tags
-        - triggers
+    rules:
+      - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
     stage: integration-test
     timeout: 3 hours
     script:
@@ -164,18 +181,19 @@ teardown:
         - cm-official-docker-executor
     script:
         - cd /root/cicd-bigip-deploy && make configure && make teardown
-    when: always
-    only:
-        - schedules
-        - tags
-        - triggers
+    rules:
+      - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
+        when: always
     stage: teardown
 
-build rpm:
+build_rpm:
     image: $DOCKER_URL/node:12
     stage: build
     tags:
         - cm-official-docker-executor
+    except:
+        - pipelines
     script:
         # setup node environment
         - apt-get update && apt-get install -y rpm --no-install-recommends
@@ -187,69 +205,6 @@ build rpm:
         paths:
             - dist/
         expire_in: 1 week
-
-create postman collection:
-    stage: post build
-    except:
-        - schedules
-    tags:
-        - cm-official-docker-executor
-    script:
-        - node scripts/build/generatePostmanCollection.js
-    artifacts:
-        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
-        paths:
-            - dist/
-        expire_in: 1 week
-
-publish to artifactory:
-    stage: publish
-    only:
-        - tags
-    tags:
-        - cm-official-docker-executor
-    script:
-        - VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
-        - RPM_FILE=$(ls dist/*.rpm)
-        - RPM_NAME=$(basename $RPM_FILE)
-        - HASH_FILE=${RPM_FILE}.sha256
-        - HASH_NAME=$(basename $HASH_FILE).txt
-        - POSTMAN_FILE=$(ls dist/*.collection.json)
-        - POSTMAN_NAME=$(basename $POSTMAN_FILE)
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${RPM_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${RPM_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${HASH_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${HASH_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during hash upload; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${POSTMAN_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${POSTMAN_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload; exit 1; fi
-        # Upload release to 'latest' directory on artifactory
-        - >-
-            curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X DELETE
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${RPM_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${RPM_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload to latest directory; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${HASH_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${HASH_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during hash upload to latest directory; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${POSTMAN_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${POSTMAN_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload to latest directory; exit 1; fi
 
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
