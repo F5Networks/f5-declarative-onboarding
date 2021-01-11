@@ -180,7 +180,8 @@
                             "VLAN",
                             "TrafficGroup",
                             "GSLBGlobals",
-                            "GSLBDataCenter"
+                            "GSLBDataCenter",
+                            "GSLBServer"
                         ]
                     }
                 },

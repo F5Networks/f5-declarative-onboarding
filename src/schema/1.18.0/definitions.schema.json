@@ -33,6 +33,18 @@
                     ]
                 }
             }
+        },
+        "Label": {
+          "title": "Label",
+          "description": "Optional friendly name for this object",
+          "type": "string",
+          "format": "f5label"
+        },
+        "Remark": {
+          "title": "Remark",
+          "description": "Arbitrary (brief) text pertaining to this object (optional)",
+          "type": "string",
+          "format": "f5remark"
         }
     }
 }
