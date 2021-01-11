@@ -1,16 +1,29 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.18.0
+### Added
+- AUTOTOOL-2002: GSLB Data Center
+- AUTOTOOL-2001: GSLB Server
+- AUTOTOOL-1654: Routing Prefix List
+- AUTOTOOL-2058: ([GitHub Issue 179](https://github.com/F5Networks/f5-declarative-onboarding/issues/179)): Add support for specifying BIG-IQ auth provider for licensing.
+- AUTOTOOL-1882: Log version on startup
+### Fixed
+- AUTOTOOL-1799: ([GitHub Issue 149](https://github.com/F5Networks/f5-declarative-onboarding/issues/149)): Can only create one DeviceGroup
+- AUTOTOOL-2139: GSLB schema defaults are not applied in some cases
+### Changed
+### Removed
+
 ## 1.17.0
 ### Added
-- AUTOTOOL-1373: ([GitHub Issue 128](https://github.com/F5Networks/f5-declarative-onboarding/issues/128)) Support Failover Multicast on the BIG-IPs default device.
-- AUTOTOOL-1923: ([GitHub Issue 164](https://github.com/F5Networks/f5-declarative-onboarding/issues/164)) Rudimentary DeviceCertificate validation
-- AUTOTOOL-1943: Allow variable expressions in some RemoteAuthRole fields
-- AUTOTOOL-1532: ([GitHub Issue 143](https://github.com/F5Networks/f5-declarative-onboarding/issues/143)) Parent property to RouteDomain
+- AUTOTOOL-1373: ([GitHub Issue 128](https://github.com/F5Networks/f5-declarative-onboarding/issues/128)): Support Failover Multicast on the BIG-IPs default device.
+- AUTOTOOL-1923: ([GitHub Issue 164](https://github.com/F5Networks/f5-declarative-onboarding/issues/164)): Rudimentary DeviceCertificate validation
+- AUTOTOOL-1943: ([GitHub Issue 156](https://github.com/F5Networks/f5-declarative-onboarding/issues/156)): Allow variable expressions in some RemoteAuthRole fields
+- AUTOTOOL-1532: ([GitHub Issue 143](https://github.com/F5Networks/f5-declarative-onboarding/issues/143)): Parent property to RouteDomain
 - AUTOTOOL-2003: Configure global GSLB settings
 ### Fixed
 - AUTOTOOL-1942: RemoteAuthRole remoteAccess property logic is backwards
-- AUTOTOOL-1955: Disk size must be larger than current size
+- AUTOTOOL-1955: ([GitHub Issue 177](https://github.com/F5Networks/f5-declarative-onboarding/issues/177)): Disk size must be larger than current size
 - AUTOTOOL-1798: ([GitHub Issue 140](https://github.com/F5Networks/f5-declarative-onboarding/issues/140)): Unable to specify route domain in route gw address
 ### Changed
 - AUTOTOOL-1924: ([GitHub Issue 163](https://github.com/F5Networks/f5-declarative-onboarding/issues/163)): Accept 'all' as a single word for HTTPD allow value

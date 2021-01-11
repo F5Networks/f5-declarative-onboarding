@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2020 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -818,6 +818,137 @@ describe('network.schema.json', () => {
                 assert.notStrictEqual(
                     getErrorString().indexOf('should have required property \'name\''), -1,
                     `Errored but not because of the missing name:\n${getErrorString()}`
+                );
+            });
+        });
+    });
+
+    describe('RoutingPrefixList', () => {
+        describe('valid', () => {
+            it('should validate minimal declaration', () => {
+                const data = {
+                    class: 'RoutingPrefixList'
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate a full entries declaration', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '10.3.3.0/24',
+                            prefixLengthRange: 32
+                        },
+                        {
+                            name: 30,
+                            action: 'deny',
+                            prefix: '1111:2222:3333:4444::/64',
+                            prefixLengthRange: 24
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate if prefix and prefixLengthRange are not provided', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'deny'
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate empty entries property', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: []
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+        describe('invalid', () => {
+            it('should fail if no name is provided', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            action: 'permit',
+                            prefix: '10.4.4.0/23',
+                            prefixLengthRange: 24
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if name is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'name\''), -1,
+                    `Errored but not because of the missing name:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if no action is provided', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            prefix: '10.4.4.0/23',
+                            prefixLengthRange: 24
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if action is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'action\''), -1,
+                    `Errored but not because of the missing action:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if ipv4 prefix is missing length', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '10.4.4.0',
+                            prefixLengthRange: 24
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if length is missing from prefix');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should match format \\"ipWithRequiredPrefix\\"'), -1,
+                    `Errored but not because of the missing prefix length:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if ipv6 prefix is missing length', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '1111:2222:3333:4444:5555:6666::8888',
+                            prefixLengthRange: 24
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if prefix is missing a length');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should match format \\"ipWithRequiredPrefix\\"'), -1,
+                    `Errored but not because prefix is missing length:\n${getErrorString()}`
                 );
             });
         });

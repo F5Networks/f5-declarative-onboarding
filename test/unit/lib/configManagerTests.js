@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -500,6 +500,69 @@ describe('configManager', () => {
                 assert.strictEqual(
                     state.currentConfig.Common.ManagementRoute.default.myObject.prop2.prop,
                     'my property 2'
+                );
+            });
+    });
+
+    it('should handle references containing stringToInt and newId property mappings', () => {
+        const configItems = [
+            {
+                path: '/tm/net/routing/prefix-list',
+                schemaClass: 'RoutingPrefixList',
+                properties: [
+                    { id: 'name' },
+                    { id: 'entriesReference' }
+                ],
+                references: {
+                    entriesReference: [
+                        { id: 'name', stringToInt: true },
+                        { id: 'prefixLenRange', newId: 'prefixLengthRange', stringToInt: true },
+                        { id: 'myProp1', newId: 'myObject.prop1' },
+                        { id: 'myProp2', newId: 'myObject.prop2.prop' }
+                    ]
+                }
+            }
+        ];
+
+        listResponses['/tm/net/routing/prefix-list'] = [
+            {
+                name: 'examplePrefixList',
+                entriesReference: {
+                    link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                }
+            }
+        ];
+        listResponses['/tm/net/routing/prefix-list/~Common~examplePrefixList/entries'] = [
+            {
+                name: '20',
+                prefixLenRange: '16',
+                myProp1: 'my property 1',
+                myProp2: 'my property 2'
+            }
+        ];
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.deepStrictEqual(
+                    state.currentConfig.Common.RoutingPrefixList,
+                    {
+                        examplePrefixList: {
+                            name: 'examplePrefixList',
+                            entries: [
+                                {
+                                    name: 20,
+                                    prefixLengthRange: 16,
+                                    myObject: {
+                                        prop1: 'my property 1',
+                                        prop2: {
+                                            prop: 'my property 2'
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
                 );
             });
     });
@@ -1593,6 +1656,59 @@ describe('configManager', () => {
         });
     });
 
+    describe('RoutingPrefixList', () => {
+        it('should handle RoutingPrefixList with references', () => {
+            const configItems = getConfigItems('RoutingPrefixList');
+
+            listResponses['/tm/net/routing/prefix-list'] = [
+                {
+                    name: 'examplePrefixList',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                    }
+                }
+            ];
+            listResponses['/tm/net/routing/prefix-list/~Common~examplePrefixList/entries'] = [
+                {
+                    name: '20',
+                    action: 'permit',
+                    prefix: '10.3.3.0/24',
+                    prefixLenRange: '32'
+                },
+                {
+                    name: '30',
+                    action: 'deny',
+                    prefix: '1111:2222:3333:4444::/64',
+                    prefixLenRange: '24'
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common.RoutingPrefixList, {
+                        examplePrefixList: {
+                            name: 'examplePrefixList',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                },
+                                {
+                                    name: 30,
+                                    action: 'deny',
+                                    prefix: '1111:2222:3333:4444::/64',
+                                    prefixLengthRange: 24
+                                }
+                            ]
+                        }
+                    });
+                });
+        });
+    });
+
     describe('Disk', () => {
         const configItems = getConfigItems('Disk');
 
@@ -1687,6 +1803,158 @@ describe('configManager', () => {
                                 synchronizationTimeTolerance: 123,
                                 synchronizationTimeout: 100
                             }
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('GSLBServer', () => {
+        it('should handle GSLBServer', () => {
+            const configItems = getConfigItems('GSLBServer');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/server'] = [
+                {
+                    name: 'gslbServer',
+                    datacenter: '/Common/gslbDataCenter',
+                    description: 'description',
+                    disabled: true,
+                    exposeRouteDomains: 'yes',
+                    iqAllowPath: 'no',
+                    iqAllowServiceCheck: 'no',
+                    iqAllowSnmp: 'no',
+                    limitCpuUsage: 10,
+                    limitCpuUsageStatus: 'enabled',
+                    limitMaxBps: 50,
+                    limitMaxBpsStatus: 'enabled',
+                    limitMaxConnections: 70,
+                    limitMaxConnectionsStatus: 'enabled',
+                    limitMaxPps: 60,
+                    limitMaxPpsStatus: 'enabled',
+                    limitMemAvail: 12,
+                    limitMemAvailStatus: 'enabled',
+                    proberFallback: 'any-available',
+                    proberPreference: 'inside-datacenter',
+                    product: 'generic-host',
+                    virtualServerDiscovery: 'enabled',
+                    devicesReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/server/~Common~gslbServer/devices'
+                    }
+                }
+            ];
+            listResponses['/tm/gtm/server/~Common~gslbServer/devices'] = [
+                {
+                    name: '0',
+                    description: 'deviceDescription1',
+                    addresses: [{ name: '10.0.0.1', translation: '192.0.2.12' }]
+                },
+                {
+                    name: '1',
+                    description: 'deviceDescription2',
+                    addresses: [{ name: '10.0.0.2', translation: '192.0.2.13' }]
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBServer,
+                        {
+                            gslbServer: {
+                                name: 'gslbServer',
+                                remark: 'description',
+                                enabled: false,
+                                serverType: 'generic-host',
+                                proberPreferred: 'inside-datacenter',
+                                proberFallback: 'any-available',
+                                bpsLimit: 50,
+                                bpsLimitEnabled: true,
+                                ppsLimit: 60,
+                                ppsLimitEnabled: true,
+                                connectionsLimit: 70,
+                                connectionsLimitEnabled: true,
+                                cpuUsageLimit: 10,
+                                cpuUsageLimitEnabled: true,
+                                memoryLimit: 12,
+                                memoryLimitEnabled: true,
+                                serviceCheckProbeEnabled: false,
+                                pathProbeEnabled: false,
+                                snmpProbeEnabled: false,
+                                dataCenter: 'gslbDataCenter',
+                                devices: [
+                                    {
+                                        name: '0',
+                                        remark: 'deviceDescription1',
+                                        addresses: [{
+                                            name: '10.0.0.1',
+                                            translation: '192.0.2.12'
+                                        }]
+                                    },
+                                    {
+                                        name: '1',
+                                        remark: 'deviceDescription2',
+                                        addresses: [{
+                                            name: '10.0.0.2',
+                                            translation: '192.0.2.13'
+                                        }]
+                                    }
+                                ],
+                                exposeRouteDomainsEnabled: true,
+                                virtualServerDiscoveryMode: 'enabled'
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should handle alternative GSLBServer enable/disable values', () => {
+            const configItems = getConfigItems('GSLBServer');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/server'] = [
+                {
+                    name: 'serverEnabledStringVal',
+                    enabled: 'True'
+                },
+                {
+                    name: 'serverDisabledStringVal',
+                    disabled: 'False'
+                },
+                {
+                    name: 'serverNoVal'
+                }
+            ];
+
+            const getExpected = name => ({
+                name,
+                enabled: true,
+                bpsLimitEnabled: false,
+                connectionsLimitEnabled: false,
+                cpuUsageLimitEnabled: false,
+                exposeRouteDomainsEnabled: false,
+                memoryLimitEnabled: false,
+                pathProbeEnabled: false,
+                ppsLimitEnabled: false,
+                serviceCheckProbeEnabled: false,
+                snmpProbeEnabled: false
+
+            });
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBServer,
+                        {
+                            serverEnabledStringVal: getExpected('serverEnabledStringVal'),
+                            serverDisabledStringVal: getExpected('serverDisabledStringVal'),
+                            serverNoVal: getExpected('serverNoVal')
                         }
                     );
                 });

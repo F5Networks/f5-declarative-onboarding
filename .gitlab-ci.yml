@@ -89,7 +89,7 @@ test_node:latest:
 deploy:
     image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     only:
         - schedules
         - tags
@@ -106,7 +106,7 @@ deploy:
         SSH_AVAILABILITY_DELAY: 10
         SSH_AVAILABILITY_RETRIES: 100
         VIO_DEPLOYMENT_DELAY: 20
-        VIO_DEPLOYMENT_RETRIES: 100
+        VIO_DEPLOYMENT_RETRIES: 150
     script:
         - export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
         - cd /root/cicd-bigip-deploy && make configure && make printvars
@@ -116,8 +116,11 @@ deploy:
         - cp ${PROJECT_DIR}/harness_facts_flat.json ${TEST_HARNESS_FILE}
         - cd ${CI_PROJECT_DIR}
         - if [[ $? != 0 ]]; then echo setup failed && exit 1; fi
-        - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
-        - yum install -y nodejs
+        - apt update
+        - apt install -y curl
+        - curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
+        - /bin/bash nodesource_setup.sh
+        - apt install -y nodejs
         - npm install
         - node test/integration/setup.js
     artifacts:
@@ -128,13 +131,13 @@ deploy:
 
 integration-test:
     tags:
-        - cm-official-docker-executor
+        - do-test-docker-executor
     only:
         - schedules
         - tags
         - triggers
     stage: integration-test
-    timeout: 2 hours
+    timeout: 3 hours
     script:
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
@@ -169,14 +172,16 @@ teardown:
     stage: teardown
 
 build rpm:
-    image: $DOCKER_URL/f5devcentral/containthedocs:rpmbuild
+    image: $DOCKER_URL/node:12
     stage: build
     tags:
         - cm-official-docker-executor
     script:
         # setup node environment
-        - npm install --global npm@5.10.0
+        - apt-get update && apt-get install -y rpm --no-install-recommends
         - scripts/build/buildRpm.sh
+        # ensure latest copyrights
+        - node scripts/dev/write-copyright.js "cicd"
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
@@ -226,6 +231,25 @@ publish to artifactory:
             ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${POSTMAN_NAME})
         - echo $UPLOAD_RESULT
         - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload; exit 1; fi
+        # Upload release to 'latest' directory on artifactory
+        - >-
+            curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X DELETE
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest
+        - >-
+            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${RPM_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${RPM_NAME})
+        - echo $UPLOAD_RESULT
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload to latest directory; exit 1; fi
+        - >-
+            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${HASH_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${HASH_NAME})
+        - echo $UPLOAD_RESULT
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during hash upload to latest directory; exit 1; fi
+        - >-
+            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${POSTMAN_FILE}
+            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${POSTMAN_NAME})
+        - echo $UPLOAD_RESULT
+        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload to latest directory; exit 1; fi
 
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
@@ -297,8 +321,9 @@ pages:
         paths:
             - public
     only:
-        - develop
+        # - develop
         - doc-release-branch
+        - joes-do-wip
 
 publish docs to production:
     image: ${CONTAINTHEDOCS_IMAGE}

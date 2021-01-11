@@ -106,6 +106,28 @@
                     "regex": "^65005$"
                 }
             ]
+        },
+        "testRoutingPrefixList1": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 10,
+                    "action": "permit",
+                    "prefix": "1111:2222::/127",
+                    "prefixLengthRange": 128
+                }
+            ]
+        },
+        "testRoutingPrefixList2": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 20,
+                    "action": "permit",
+                    "prefix": "10.3.3.0/24",
+                    "prefixLengthRange": 32
+                }
+            ]
         }
     }
 }

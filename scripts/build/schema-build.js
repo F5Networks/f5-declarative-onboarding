@@ -1,9 +1,17 @@
-/*
- * Copyright 2018. F5 Networks, Inc. See End User License Agreement ("EULA") for
- * license terms. Notwithstanding anything to the contrary in the EULA, Licensee
- * may copy and modify this software product for its internal business purposes.
- * Further, Licensee may upload, publish and distribute the modified version of
- * the software product on devcentral.f5.com.
+/**
+ * Copyright 2021 F5 Networks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 'use strict';
@@ -24,6 +32,20 @@ function writeSchema(name, data) {
             else resolve();
         });
     });
+}
+
+function derefDefinition(refString, content, subContent) {
+    const ref = refString.split('#/definitions/').join('');
+    const defs = content.definitions;
+    const def = defs[ref];
+    Object.keys(def.properties).forEach((defKey) => {
+        if (safeTraverse(['properties', defKey, '$ref'], def)) {
+            const addntlRef = def.properties[defKey].$ref.split('#/definitions/').join('');
+            const addntlDef = defs[addntlRef];
+            def.properties[defKey] = addntlDef;
+        }
+    });
+    subContent.then = def;
 }
 
 function combineSchemas() {
@@ -49,18 +71,10 @@ function combineSchemas() {
         } else if (content.allOf) {
             content.allOf.forEach((subContent) => {
                 // Authentication and GSLB class specific override
-                if (definition.includes('auth') || definition.includes('gslb')) {
-                    const ref = subContent.then.oneOf[0].$ref.split('#/definitions/').join('');
-                    const defs = content.definitions;
-                    const def = defs[ref];
-                    Object.keys(def.properties).forEach((defKey) => {
-                        if (safeTraverse(['properties', defKey, '$ref'], def)) {
-                            const addntlRef = def.properties[defKey].$ref.split('#/definitions/').join('');
-                            const addntlDef = defs[addntlRef];
-                            def.properties[defKey] = addntlDef;
-                        }
-                    });
-                    subContent.then = def;
+                if (definition.includes('auth')) {
+                    derefDefinition(subContent.then.oneOf[0].$ref, content, subContent);
+                } else if (definition.includes('gslb')) {
+                    derefDefinition(subContent.then.$ref, content, subContent);
                 }
                 const tmp = {};
                 const subClass = safeTraverse(['if', 'properties', 'class', 'const'], subContent);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -568,6 +568,7 @@ function handleLicensePool(license) {
                         {
                             bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, licenseInfo),
                             passwordIsUri: !!options.bigIqPasswordUri,
+                            authProvider: license.bigIqAuthProvider,
                             noUnreachable: !!license.reachable
                         }
                     ))
@@ -604,6 +605,7 @@ function handleLicensePool(license) {
                         bigIpMgmtAddress,
                         bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, license),
                         passwordIsUri: !!license.bigIqPasswordUri,
+                        authProvider: license.bigIqAuthProvider,
                         skuKeyword1: license.skuKeyword1,
                         skuKeyword2: license.skuKeyword2,
                         unitOfMeasure: license.unitOfMeasure,

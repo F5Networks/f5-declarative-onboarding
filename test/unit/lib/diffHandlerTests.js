@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,6 +168,26 @@ describe('diffHandler', () => {
         return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
                 assert.deepEqual(diff.toUpdate.Common.hostname, 'bigip1.example.com');
+            });
+    });
+
+    it('should report diffs for non-classes of truth', () => {
+        const toDeclaration = {
+            Common: {
+                DeviceGroup: {
+                    ex1: { name: 'ex1' },
+                    ex2: { name: 'ex2' }
+                }
+            }
+        };
+
+        const fromDeclaration = { Common: {} };
+
+        const diffHandler = new DiffHandler([], []);
+        return diffHandler.process(toDeclaration, fromDeclaration, {})
+            .then((diff) => {
+                assert.deepEqual(diff.toUpdate.Common.DeviceGroup.ex1.name, 'ex1');
+                assert.deepEqual(diff.toUpdate.Common.DeviceGroup.ex2.name, 'ex2');
             });
     });
 });

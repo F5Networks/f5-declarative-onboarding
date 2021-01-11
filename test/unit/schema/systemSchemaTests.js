@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -213,6 +213,26 @@ describe('system.schema.json', () => {
                         "bigIpPassword": "barbar"
                     };
                     assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate with bigIqAuthProvider', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "licensePool": "myPool",
+                        "bigIpUsername": "admin",
+                        "bigIpPassword": "barbar",
+                        "bigIqAuthProvider": "myAuthProvider"
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                    assert.strictEqual(
+                        data.unitOfMeasure,
+                        'monthly',
+                        'unitOfMeasure should default to monthly when licenseType licensePool'
+                    );
                 });
 
                 it('should validate full unreachable data', () => {
