@@ -1,7 +1,7 @@
 .. _gslb-examples:
 
 GSLB Examples
--------------------
+-------------
 This section contains examples for GSLB (Global Server Load Balancing), which requires the BIG-IP DNS (formerly GTM) module to be licensed and provisioned.
 
 
