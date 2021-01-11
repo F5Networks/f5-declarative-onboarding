@@ -126,6 +126,46 @@
                 "synchronizationTimeTolerance": 123,
                 "synchronizationTimeout": 12345
             }
+        },
+        "myDataCenter": {
+            "class": "GSLBDataCenter",
+            "enabled": true,
+            "contact": "dataCenterContact",
+            "location": "dataCenterLocation",
+            "proberFallback": "outside-datacenter",
+            "proberPreferred": "inside-datacenter"
+        },
+        "myGSLBServer": {
+            "class": "GSLBServer",
+            "label": "Example of all GSLB server properties",
+            "remark": "GSLB server description",
+            "devices": [
+                {
+                    "address": "10.10.10.10",
+                    "addressTranslation": "192.0.2.12",
+                    "remark": "GSLB server device description"
+                }
+            ],
+            "dataCenter": "/Common/myDataCenter",
+            "serverType": "generic-host",
+            "enabled": false,
+            "proberPreferred": "inside-datacenter",
+            "proberFallback": "any-available",
+            "bpsLimit": 10,
+            "bpsLimitEnabled": true,
+            "ppsLimit": 10,
+            "ppsLimitEnabled": true,
+            "connectionsLimit": 10,
+            "connectionsLimitEnabled": true,
+            "serviceCheckProbeEnabled": false,
+            "pathProbeEnabled": false,
+            "snmpProbeEnabled": false,
+            "virtualServerDiscoveryMode": "enabled",
+            "exposeRouteDomainsEnabled": true,
+            "cpuUsageLimit": 10,
+            "cpuUsageLimitEnabled": true,
+            "memoryLimit": 10,
+            "memoryLimitEnabled": true
         }
     }
 }

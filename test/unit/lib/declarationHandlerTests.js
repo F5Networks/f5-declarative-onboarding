@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -916,6 +916,70 @@ describe('declarationHandler', () => {
                     ].sort());
                     assert.deepStrictEqual(routeDomain.rd2.vlans, ['/Common/rd2Vlan']);
                     assert.strictEqual(routeDomain.rd3.vlans, undefined);
+                });
+        });
+
+        it('should apply GSLB server fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    GSLBServer: {
+                        gslbServer: {
+                            label: 'testing gslb server',
+                            dataCenter: '/Common/gslbDataCenter',
+                            devices: [
+                                {
+                                    address: '10.0.0.1',
+                                    addressTranslation: '192.0.2.12',
+                                    remark: 'deviceDescription'
+                                },
+                                {
+                                    address: '10.0.0.2'
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const gslbServer = declarationWithDefaults.Common.GSLBServer.gslbServer;
+                    assert.deepStrictEqual(
+                        gslbServer,
+                        {
+                            dataCenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    remark: 'deviceDescription',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: '192.0.2.12'
+                                    }]
+                                },
+                                {
+                                    name: '1',
+                                    remark: undefined,
+                                    addresses: [{
+                                        name: '10.0.0.2',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ]
+                        }
+                    );
                 });
         });
 

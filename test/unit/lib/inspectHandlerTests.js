@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -646,6 +646,28 @@ describe('inspectHandler', () => {
                     regex: '^123'
                 }
             ],
+            '/tm/net/routing/prefix-list': [
+                {
+                    name: 'examplePrefixList',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                    }
+                }
+            ],
+            '/tm/net/routing/prefix-list/~Common~examplePrefixList/entries': [
+                {
+                    name: '20',
+                    action: 'permit',
+                    prefix: '10.3.3.0/24',
+                    prefixLenRange: '32'
+                },
+                {
+                    name: '30',
+                    action: 'deny',
+                    prefix: '1111:2222:3333:4444::/64',
+                    prefixLenRange: '24'
+                }
+            ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
@@ -962,7 +984,70 @@ describe('inspectHandler', () => {
                 synchronizationGroupName: 'newGroup',
                 synchronizationTimeTolerance: 123,
                 synchronizationTimeout: 12345
-            }
+            },
+            '/tm/gtm/datacenter': [
+                {
+                    name: 'currentDataCenter',
+                    contact: 'contact',
+                    enabled: true,
+                    location: 'location',
+                    proberFallback: 'any-available',
+                    proberPool: '/Common/proberPool',
+                    proberPreference: 'pool'
+                }
+            ],
+            '/tm/gtm/server': [
+                {
+                    name: 'currentGSLBServer',
+                    description: 'description',
+                    disabled: true,
+                    enabled: false,
+                    product: 'generic-host',
+                    proberPreference: 'inside-datacenter',
+                    proberFallback: 'outside-datacenter',
+                    limitMaxBps: 1,
+                    limitMaxBpsStatus: 'enabled',
+                    limitMaxPps: 10,
+                    limitMaxPpsStatus: 'enabled',
+                    limitMaxConnections: 100,
+                    limitMaxConnectionsStatus: 'enabled',
+                    limitCpuUsage: 1000,
+                    limitCpuUsageStatus: 'enabled',
+                    limitMemAvail: 10000,
+                    limitMemAvailStatus: 'enabled',
+                    iqAllowServiceCheck: 'no',
+                    iqAllowPath: 'no',
+                    iqAllowSnmp: 'no',
+                    datacenter: '/Common/testDataCenter',
+                    devicesReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/server/~Common~currentGSLBServer/devices'
+                    },
+                    exposeRouteDomains: 'yes',
+                    virtualServerDiscovery: 'enabled'
+                }
+            ],
+            '/tm/gtm/server/~Common~currentGSLBServer/devices': [
+                {
+                    name: '0',
+                    description: 'deviceDescription1',
+                    addresses: [
+                        {
+                            name: '10.0.0.1',
+                            translation: '192.0.2.12'
+                        }
+                    ]
+                },
+                {
+                    name: '1',
+                    description: 'deviceDescription2',
+                    addresses: [
+                        {
+                            name: '10.0.0.2',
+                            translation: '192.0.2.13'
+                        }
+                    ]
+                }
+            ]
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1116,6 +1201,23 @@ describe('inspectHandler', () => {
                                 {
                                     name: 15,
                                     regex: '^123'
+                                }
+                            ]
+                        },
+                        examplePrefixList: {
+                            class: 'RoutingPrefixList',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                },
+                                {
+                                    name: 30,
+                                    action: 'deny',
+                                    prefix: '1111:2222:3333:4444::/64',
+                                    prefixLengthRange: 24
                                 }
                             ]
                         },
@@ -1451,6 +1553,51 @@ describe('inspectHandler', () => {
                                 synchronizationTimeTolerance: 123,
                                 synchronizationTimeout: 12345
                             }
+                        },
+                        currentDataCenter: {
+                            class: 'GSLBDataCenter',
+                            contact: 'contact',
+                            enabled: true,
+                            location: 'location',
+                            proberFallback: 'any-available',
+                            proberPool: 'proberPool',
+                            proberPreferred: 'pool'
+                        },
+                        currentGSLBServer: {
+                            class: 'GSLBServer',
+                            remark: 'description',
+                            enabled: false,
+                            serverType: 'generic-host',
+                            proberPreferred: 'inside-datacenter',
+                            proberFallback: 'outside-datacenter',
+                            bpsLimit: 1,
+                            bpsLimitEnabled: true,
+                            ppsLimit: 10,
+                            ppsLimitEnabled: true,
+                            connectionsLimit: 100,
+                            connectionsLimitEnabled: true,
+                            cpuUsageLimit: 1000,
+                            cpuUsageLimitEnabled: true,
+                            memoryLimit: 10000,
+                            memoryLimitEnabled: true,
+                            serviceCheckProbeEnabled: false,
+                            pathProbeEnabled: false,
+                            snmpProbeEnabled: false,
+                            dataCenter: 'testDataCenter',
+                            devices: [
+                                {
+                                    address: '10.0.0.1',
+                                    addressTranslation: '192.0.2.12',
+                                    remark: 'deviceDescription1'
+                                },
+                                {
+                                    address: '10.0.0.2',
+                                    addressTranslation: '192.0.2.13',
+                                    remark: 'deviceDescription2'
+                                }
+                            ],
+                            exposeRouteDomainsEnabled: true,
+                            virtualServerDiscoveryMode: 'enabled'
                         }
                     }
                 }

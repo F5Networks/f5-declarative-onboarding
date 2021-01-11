@@ -1,25 +1,26 @@
-/* Copyright 2016-2018 F5 Networks, Inc.
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+/**
+ * Copyright 2021 F5 Networks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-     http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-   Testing Environment for Declarative Onboarding
-   Author: @fonsecayarochewsky
-
+/*
    This is a module to be tested, each function being responsible for a set of tests
    such as Onboarding, Networking, licensing, etc. Functions act on a target BIG-IP in which
    the Declarative Onboarding rpm package has already been installed. Each function takes
    the same 3 parameters. Those are the target BIG-IP's ip address, admin username and admin
    password (last two are the username/password used to call the DO API)
-*/
+ */
 
 'use strict';
 
@@ -27,8 +28,6 @@ const assert = require('assert');
 const constants = require('./constants.js');
 const common = require('./common.js');
 const logger = require('./logger').getInstance();
-
-const configItems = require('../../src/lib/configItems.json');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -62,36 +61,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 return Promise.resolve();
             })
             .catch(error => Promise.reject(error));
-    });
-
-    describe('Test Configuration Scope', () => {
-        it('should not overlap with config items in the AS3 project', () => {
-            logTestTitle(this.ctx.test.title);
-            const path = '/f5-automation-toolchain-generic/f5-appsvcs/latest/as3-properties-latest.json';
-            const options = common.buildBody(process.env.ARTIFACTORY_BASE_URL + path, null, null, 'GET');
-            options.rejectUnauthorized = false;
-            const retryOptions = {
-                trials: 10,
-                timeInterval: 1000
-            };
-            return common.sendRequest(options, retryOptions)
-                .then((res) => {
-                    const as3Properties = JSON.parse(res.response.body.replace(/\\n/g, ''));
-                    const keyCount = Object.keys(as3Properties).length;
-                    if (keyCount === 0) {
-                        assert.fail('No properties in AS3 properties.json');
-                    }
-                    configItems.forEach((item) => {
-                        const prop = item.path.replace(/\/tm\//, '').replace(/\//g, ' ');
-                        assert.ok(as3Properties[prop] === undefined);
-                    });
-                })
-                .catch((err) => {
-                    console.log(JSON.stringify(options));
-                    logger.info(err);
-                    assert.fail(err);
-                });
-        });
     });
 
     describe('Test Onboard', function testOnboard() {
@@ -224,6 +193,58 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }
             }
         ));
+
+        it('should have created GSLB data center', () => assert.deepStrictEqual(
+            currentState.GSLBDataCenter.myDataCenter,
+            {
+                name: 'myDataCenter',
+                enabled: true,
+                contact: 'dataCenterContact',
+                location: 'dataCenterLocation',
+                proberFallback: 'outside-datacenter',
+                proberPreferred: 'inside-datacenter'
+            }
+        ));
+
+        it('should have created GSLB server', () => assert.deepStrictEqual(
+            currentState.GSLBServer.myGSLBServer,
+            {
+                name: 'myGSLBServer',
+                remark: 'GSLB server description',
+                devices: [
+                    {
+                        name: '0',
+                        remark: 'GSLB server device description',
+                        addresses: [
+                            {
+                                name: '10.10.10.10',
+                                translation: '192.0.2.12'
+                            }
+                        ]
+                    }
+                ],
+                dataCenter: 'myDataCenter',
+                serverType: 'generic-host',
+                enabled: false,
+                proberPreferred: 'inside-datacenter',
+                proberFallback: 'any-available',
+                bpsLimit: 10,
+                bpsLimitEnabled: true,
+                ppsLimit: 10,
+                ppsLimitEnabled: true,
+                connectionsLimit: 10,
+                connectionsLimitEnabled: true,
+                serviceCheckProbeEnabled: false,
+                pathProbeEnabled: false,
+                snmpProbeEnabled: false,
+                virtualServerDiscoveryMode: 'enabled',
+                exposeRouteDomainsEnabled: true,
+                cpuUsageLimit: 10,
+                cpuUsageLimitEnabled: true,
+                memoryLimit: 10,
+                memoryLimitEnabled: true
+            }
+        ));
     });
 
     describe('Test Networking', function testNetworking() {
@@ -320,6 +341,34 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         {
                             name: 20,
                             regex: '^65005$'
+                        }
+                    ]
+                }
+            }
+        ));
+
+        it('should match RoutingPrefixList', () => assert.deepStrictEqual(
+            currentState.RoutingPrefixList,
+            {
+                testRoutingPrefixList1: {
+                    name: 'testRoutingPrefixList1',
+                    entries: [
+                        {
+                            name: 10,
+                            action: 'permit',
+                            prefix: '1111:2222::/127',
+                            prefixLengthRange: 128
+                        }
+                    ]
+                },
+                testRoutingPrefixList2: {
+                    name: 'testRoutingPrefixList2',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '10.3.3.0/24',
+                            prefixLengthRange: 32
                         }
                     ]
                 }

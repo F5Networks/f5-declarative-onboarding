@@ -185,6 +185,7 @@ DO 1.15 adds the **tenant** property to the License class. This property allows 
 
 :ref:`Back to top<iqexamples>`
 
+|
 
 .. _bigiqdo1:
 
@@ -203,6 +204,30 @@ See the BIG-IQ API documentation for similar examples for |bigiqazure| and |bigi
 
 
 :ref:`Back to top<iqexamples>`
+
+|
+
+.. _bigiqauth:
+
+Using an external authentication provider for BIG-IQ licensing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for the **bigiqAuthProvider** property is available in DO v1.18 and later.  You must have the authentication provider defined on the BIG-IQ before submitting the declaration.
+
+In this example, we show how you can reference an external auth provider for BIG-IQ license calls using the **bigiqAuthProvider** property introduced in DO 1.18. The default is to use TMOS as the authentication provider. For more information on BIG-IQ authentication tokens, see |tokendoc| in the BIG-IQ API reference.
+
+To use this property in your declaration, you must have an existing authentication provider defined on your BIG-IQ.  For information on configuring authentication providers, see the BIG-IQ documentation (for example, the |authdoc| chapter gives information on configuring an LDAP authentication provider in BIG-IQ 7.0).
+
+
+.. literalinclude:: ../../examples/licenseViaBigIqPoolAuthProvider.json
+   :language: json
+   :emphasize-lines: 15
+
+
+:ref:`Back to top<iqexamples>`
+
+
 
 
 .. |br| raw:: html
@@ -225,3 +250,13 @@ See the BIG-IQ API documentation for similar examples for |bigiqazure| and |bigi
 .. |bigiqvmware| raw:: html
 
    <a href="https://clouddocs.f5.com/products/big-iq/mgmt-api/v7.0.0/ApiReferences/bigiq_public_api_ref/r_do_onboarding.html#post-to-onboard-a-big-ip-ve-in-vmware-cloud-environment" target="_blank">VMware Cloud</a>
+
+.. |tokendoc| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/big-iq/mgmt-api/v7.1.0/ApiReferences/bigiq_public_api_ref/r_auth_login.html" target="_blank">Auth Token by Login</a>
+
+.. |authdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigiq-7-0-0/authentication-roles-and-user-management/ldap-user-authentication.html" target="_blank">LDAP User Authentication</a>
+
+

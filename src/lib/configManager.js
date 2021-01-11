@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,7 +219,7 @@ class ConfigManager {
                                     delete item.partition; // Must be removed for the diffs
 
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
-                                    patchedItem = mapProperties.call(this, patchedItem, index);
+                                    patchedItem = mapProperties(patchedItem, this.configItems[index]);
 
                                     let name = item.name;
 
@@ -258,6 +258,10 @@ class ConfigManager {
                                         patchedItem.trafficGroup = name;
                                     }
 
+                                    if (schemaClass === 'GSLBServer') {
+                                        patchGSLBServer.call(this, patchedItem);
+                                    }
+
                                     if (patchedItem) {
                                         if (!currentConfig[schemaClass]) {
                                             currentConfig[schemaClass] = {};
@@ -283,7 +287,7 @@ class ConfigManager {
                             currentItem,
                             this.configItems[index].nameless
                         );
-                        patchedItem = mapProperties.call(this, patchedItem, index);
+                        patchedItem = mapProperties(patchedItem, this.configItems[index]);
                         if (schemaClass === 'Authentication') {
                             patchedItem = patchAuth.call(
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
@@ -352,6 +356,7 @@ class ConfigManager {
                     const schemaClass = referenceInfo[index].schemaClass;
                     const name = referenceInfo[index].name;
                     const mergePath = referenceInfo[index].mergePath;
+                    const refConfigItem = { properties: referenceInfo[index].properties };
 
                     let configItem;
                     if (mergePath) {
@@ -364,15 +369,8 @@ class ConfigManager {
                     }
 
                     const patchReferences = (reference) => {
-                        const patchedItem = removeUnusedKeys.call(this, reference);
-                        referenceInfo[index].properties.forEach((refProperty) => {
-                            if (refProperty.truth !== undefined) {
-                                patchedItem[refProperty.id] = mapTruth(patchedItem, refProperty);
-                            }
-                            if (refProperty.stringToInt) {
-                                patchedItem[refProperty.id] = parseInt(patchedItem[refProperty.id], 10);
-                            }
-                        });
+                        let patchedItem = removeUnusedKeys.call(this, reference);
+                        patchedItem = mapProperties(patchedItem, refConfigItem);
                         return patchedItem;
                     };
 
@@ -494,18 +492,18 @@ function getPropertiesOfInterest(initialProperties) {
  * For example, map 'enabled' to true
  *
  * @param {Object} item - The item (typically the item is coming from bigip) whose properties to map
- * @param {Object} index - The index into configItems for this property
+ * @param {Object} configItem - The configItem object that contains the properties to map
  */
-function mapProperties(item, index) {
+function mapProperties(item, configItem) {
     const mappedItem = {};
     Object.assign(mappedItem, item);
 
     // If we're just interested in one value, return that (Provision values, for example)
-    if (this.configItems[index].singleValue) {
-        return mappedItem[this.configItems[index].properties[0].id];
+    if (configItem.singleValue) {
+        return mappedItem[configItem.properties[0].id];
     }
 
-    this.configItems[index].properties.forEach((property) => {
+    configItem.properties.forEach((property) => {
         let hasVal = false;
         // map truth/falsehood (enabled/disabled, for example) to booleans
         if (property.truth !== undefined) {
@@ -903,6 +901,35 @@ function patchGSLBGlobals(patchedItem) {
     patchedClass.general = {};
     Object.assign(patchedClass.general, patchedItem);
     return patchedClass;
+}
+
+function patchGSLBServer(patchedItem) {
+    patchedItem.enabled = isEnabledGtmObject(patchedItem);
+    delete patchedItem.disabled;
+}
+
+/**
+ * GTM objects have both enabled and disabled properties
+ * instead of one prop with boolean value
+ * @public
+ * @param {object} obj - object that contains the enabled/disabled props
+ * @returns {boolean} - true if enabled, otherwise false
+ */
+function isEnabledGtmObject(obj) {
+    let isEnabled;
+
+    if (typeof obj.enabled === 'boolean') {
+        isEnabled = obj.enabled;
+    } else if (typeof obj.disabled === 'boolean') {
+        isEnabled = !obj.disabled;
+    } else if (typeof obj.enabled === 'string') {
+        isEnabled = obj.enabled.toLowerCase() === 'true';
+    } else if (typeof obj.disabled === 'string') {
+        isEnabled = obj.disabled.toLowerCase() === 'false';
+    } else {
+        isEnabled = true;
+    }
+    return isEnabled;
 }
 
 function shouldIgnore(item, ignoreList) {

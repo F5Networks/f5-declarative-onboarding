@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ const CLASSES_OF_TRUTH = [
     'SelfIp',
     'Route',
     'ConfigSync',
-    'DeviceGroup',
     'FailoverUnicast',
     'FailoverMulticast',
     'Analytics',
@@ -75,7 +74,11 @@ const CLASSES_OF_TRUTH = [
     'TrafficGroup',
     'Disk',
     'MirrorIp',
-    'RoutingAsPath'
+    'RoutingAsPath',
+    'RoutingPrefixList',
+    'GSLBGlobals',
+    'GSLBDataCenter',
+    'GSLBServer'
 ];
 
 /**
@@ -153,6 +156,7 @@ class DeclarationHandler {
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
+                applyGSLBServerFixes(parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
@@ -520,6 +524,31 @@ function applyHttpdFixes(declaration) {
             httpdDeclaration.allow = [httpdDeclaration.allow];
         }
     }
+}
+
+/**
+ * Normalizes the GSLB Server section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyGSLBServerFixes(declaration) {
+    const gslbServers = declaration.Common.GSLBServer || {};
+
+    Object.keys(gslbServers).forEach((name) => {
+        const server = gslbServers[name];
+        if (server.dataCenter.startsWith('/Common/')) {
+            server.dataCenter = server.dataCenter.split('/Common/')[1];
+        }
+        server.devices = server.devices.map((device, i) => ({
+            name: `${i}`,
+            remark: device.remark,
+            addresses: [{
+                name: device.address,
+                translation: device.addressTranslation || 'none'
+            }]
+        }));
+        delete server.label;
+    });
 }
 
 /**

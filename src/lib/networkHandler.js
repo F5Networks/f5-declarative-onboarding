@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2020 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,8 +84,16 @@ class NetworkHandler {
                 return handleDagGlobals.call(this);
             })
             .then(() => {
+                logger.info('Checking Enable Routing Module');
+                return handleEnableRouting.call(this);
+            })
+            .then(() => {
                 logger.info('Checking RoutingAsPath');
                 return handleRoutingAsPath.call(this);
+            })
+            .then(() => {
+                logger.info('Checking RoutingPrefixList');
+                return handleRoutingPrefixList.call(this);
             })
             .then(() => {
                 logger.info('Done processing network declartion.');
@@ -510,24 +518,33 @@ function handleTunnel() {
         });
 }
 
-function handleRoutingAsPath() {
+function handleEnableRouting() {
     const promises = [];
     let enabledRouting = false;
+    ['RoutingAsPath', 'RoutingPrefixList'].forEach((routingModuleClass) => {
+        doUtil.forEach(this.declaration, routingModuleClass, () => {
+            if (!enabledRouting) {
+                // Enable routing module on the BIG-IP
+                enabledRouting = true;
+                promises.push(
+                    this.bigIp.modify('/tm/sys/db/tmrouted.tmos.routing', { value: 'enable' }, null, cloudUtil.SHORT_RETRY)
+                );
+            }
+        });
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error enabling routing module: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleRoutingAsPath() {
+    const promises = [];
     doUtil.forEach(this.declaration, 'RoutingAsPath', (tenant, routing) => {
         if (routing && routing.entries) {
             const entries = {};
-
-            if (!enabledRouting) {
-                // Enable routing on the BIG-IP
-                enabledRouting = true;
-
-                this.bigIp.modify(
-                    '/tm/sys/db/tmrouted.tmos.routing',
-                    { value: 'enable' },
-                    null,
-                    cloudUtil.SHORT_RETRY
-                );
-            }
 
             routing.entries.forEach((entry) => {
                 entries[entry.name] = {
@@ -551,6 +568,40 @@ function handleRoutingAsPath() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating RoutingAsPath: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleRoutingPrefixList() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'RoutingPrefixList', (tenant, list) => {
+        if (list) {
+            const entries = {};
+            if (list.entries) {
+                list.entries.forEach((entry) => {
+                    entries[entry.name] = {
+                        action: entry.action,
+                        prefix: entry.prefix,
+                        prefixLenRange: entry.prefixLengthRange
+                    };
+                });
+            }
+
+            const body = {
+                name: list.name,
+                partition: tenant,
+                entries
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.RoutingPrefixList, body, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating RoutingPrefixList: ${err.message}`);
             throw err;
         });
 }

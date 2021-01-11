@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,11 +67,14 @@ module.exports = {
         SoftwareUpdate: '/tm/sys/software/update',
         Tunnel: '/tm/net/tunnels/tunnel',
         RoutingAsPath: '/tm/net/routing/as-path',
+        RoutingPrefixList: '/tm/net/routing/prefix-list',
         Uploads: '/shared/file-transfer/uploads',
         SSLCert: '/tm/sys/file/ssl-cert',
         SSLKey: '/tm/sys/file/ssl-key',
         UnixRm: '/tm/util/unix-rm',
-        GSLBGeneral: '/tm/gtm/global-settings/general'
+        GSLBGeneral: '/tm/gtm/global-settings/general',
+        GSLBDataCenter: '/tm/gtm/datacenter',
+        GSLBServer: '/tm/gtm/server'
     },
     STATUS: {
         STATUS_OK: 'OK',

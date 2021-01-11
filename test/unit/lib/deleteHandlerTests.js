@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2020 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -614,6 +614,84 @@ describe(('deleteHandler'), function testDeleteHandler() {
         return deleteHandler.process()
             .then(() => {
                 assert.deepStrictEqual(deletedPaths, ['/tm/net/routing/as-path/~Common~routingAsPathTest']);
+            });
+    });
+
+    it('should delete a RoutingPrefixList', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    RoutingPrefixList: {
+                        routingPrefixListTest: {
+                            name: 'routingPrefixListTest',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                RoutingPrefixList: {
+                    routingPrefixListTest: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/routing/prefix-list/~Common~routingPrefixListTest']);
+            });
+    });
+
+    it('should delete a GSLBDataCenter and a GSLBServer in that order', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    GSLBServer: {
+                        gslbServer: {
+                            name: ' gslbServer',
+                            dataCenter: '/Common/gslbDataCenter',
+                            devices: [{
+                                address: '10.0.0.1'
+                            }]
+                        }
+                    },
+                    GSLBDataCenter: {
+                        gslbDataCenter: {
+                            name: 'gslbDataCenter'
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                GSLBServer: {
+                    gslbServer: {}
+                },
+                GSLBDataCenter: {
+                    gslbDataCenter: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 2);
+                assert.strictEqual(deletedPaths[0], '/tm/gtm/server/~Common~gslbServer');
+                assert.strictEqual(deletedPaths[1], '/tm/gtm/datacenter/~Common~gslbDataCenter');
             });
     });
 });

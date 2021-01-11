@@ -24,7 +24,7 @@ cp %{main}/package.json %{_builddir}
 cp -r %{main}/src %{_builddir}
 cp -r %{main}/node_modules %{_builddir}
 cp -r %{main}/examples %{_builddir}
-echo -n %{version}-%{release} > %{_builddir}/version
+printf "%s" "%{version}-%{release}" > %{_builddir}/version
 
 %install
 rm -rf $RPM_BUILD_ROOT

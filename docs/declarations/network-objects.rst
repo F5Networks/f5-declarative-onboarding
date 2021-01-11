@@ -197,7 +197,27 @@ See |tg| in the Schema Reference for DO usage and options.
 
 :ref:`Back to top<networkexamples>`
 
+|
 
+.. _example26:
+
+Configuring routing prefix lists 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for routing prefix lists is available in DO v1.18 and later
+
+This example shows how you can create network routing prefix lists using Declarative Onboarding 1.18 and later. These prefix lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for each prefix address.
+
+See |prefix| and |prefixentry| in the Schema Reference for DO usage and options.  
+
+The following example contains multiple prefix lists, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
+
+
+.. literalinclude:: ../../examples/routingPrefixList.json
+   :language: json
+
+:ref:`Back to top<networkexamples>`
 
 
 .. |br| raw:: html
@@ -354,4 +374,13 @@ See |tg| in the Schema Reference for DO usage and options.
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mirrorip" target="_blank">MirrorIp</a>
 
-   
+.. |prefix| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingprefixlist" target="_blank">RoutingPrefixList</a>
+
+.. |prefixentry| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingprefixlist-entries" target="_blank">RoutingPrefixList-Entries</a>
+
+
+

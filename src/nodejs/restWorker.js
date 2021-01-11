@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2021 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,8 @@ class RestWorker {
      */
     onStart(success, error) {
         try {
+            logger.info(`Running DO version: ${doUtil.getDoVersion().VERSION}`);
+
             const deviceInfo = this.restHelper.makeRestjavadUri(
                 '/shared/identified-devices/config/device-info'
             );
