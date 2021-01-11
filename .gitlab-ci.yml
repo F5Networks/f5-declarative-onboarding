@@ -258,9 +258,6 @@ create docs:
 pages:
     stage: docs
     allow_failure: true
-    except:
-        - tags
-        - schedules
     environment:
         name: review
         url: https://${CI_PROJECT_NAMESPACE}.${PAGES_DOMAIN}/${CI_PROJECT_NAME}/
