@@ -50,4 +50,5 @@ At some point in the sprint we create a release branch. This should happen when 
   * One MR to merge the release branch to `develop`.
   * Do not squash commits.
   * You can self-approve and merge these MRs.
+* Using the GUI, create a tag on the `master` branch in the format `v<version>` (e.g. `v1.13.0`).
 * Add a `released` property with a value of `true` to the released RPM in Artifactory.
