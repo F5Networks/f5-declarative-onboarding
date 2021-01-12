@@ -232,9 +232,6 @@ create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build
     allow_failure: true
-    except:
-        - tags
-        - schedules
     script:
         - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
         -   rm -rf docs/_templates
