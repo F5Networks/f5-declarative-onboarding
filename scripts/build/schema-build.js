@@ -17,6 +17,8 @@
 'use strict';
 
 const fs = require('fs');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const refParser = require('json-schema-ref-parser');
 
 const base = require('../../src/schema/latest/base.schema.json');
 
@@ -34,18 +36,13 @@ function writeSchema(name, data) {
     });
 }
 
-function derefDefinition(refString, content, subContent) {
-    const ref = refString.split('#/definitions/').join('');
-    const defs = content.definitions;
-    const def = defs[ref];
-    Object.keys(def.properties).forEach((defKey) => {
-        if (safeTraverse(['properties', defKey, '$ref'], def)) {
-            const addntlRef = def.properties[defKey].$ref.split('#/definitions/').join('');
-            const addntlDef = defs[addntlRef];
-            def.properties[defKey] = addntlDef;
-        }
+function derefPromise(schemaPath) {
+    return new Promise((resolve, reject) => {
+        refParser.dereference(schemaPath, (error, schema) => {
+            if (error) reject(error);
+            else resolve(schema);
+        });
     });
-    subContent.then = def;
 }
 
 function combineSchemas() {
@@ -53,39 +50,35 @@ function combineSchemas() {
         .filter(name => !(name.includes('draft')) && name.endsWith('schema.json'))
         .map(fileName => `${SCHEMA_DIR}/${fileName}`);
 
-    definitions.forEach((definition) => {
-        const content = JSON.parse(fs.readFileSync(definition, 'utf8'));
-        if (!base.definitions) base.definitions = {};
+    return Promise.all(definitions.map(definition => derefPromise(definition)))
+        .then((schemas) => {
+            schemas.forEach((content) => {
+                if (!base.definitions) base.definitions = {};
 
-        const classType = safeTraverse(['if', 'properties', 'class', 'const'], content);
-        if (classType) {
-            const tmp = {};
-            tmp[classType] = content.then;
-            tmp[classType].description = content.description;
+                const classType = safeTraverse(['if', 'properties', 'class', 'const'], content);
+                if (classType) {
+                    const tmp = {};
+                    tmp[classType] = content.then;
+                    tmp[classType].description = content.description;
 
-            if (content.definitions) {
-                tmp[classType].properties = Object.assign(tmp[classType].properties || {}, content.definitions);
-            }
+                    if (content.definitions) {
+                        tmp[classType].properties = Object.assign(tmp[classType].properties || {}, content.definitions);
+                    }
 
-            base.definitions = Object.assign(base.definitions, tmp);
-        } else if (content.allOf) {
-            content.allOf.forEach((subContent) => {
-                // Authentication and GSLB class specific override
-                if (definition.includes('auth')) {
-                    derefDefinition(subContent.then.oneOf[0].$ref, content, subContent);
-                } else if (definition.includes('gslb')) {
-                    derefDefinition(subContent.then.$ref, content, subContent);
+                    base.definitions = Object.assign(base.definitions, tmp);
+                } else if (content.allOf) {
+                    content.allOf.forEach((subContent) => {
+                        const tmp = {};
+                        const subClass = safeTraverse(['if', 'properties', 'class', 'const'], subContent);
+                        tmp[subClass] = subContent.then;
+                        tmp[subClass].description = content.description;
+
+                        base.definitions = Object.assign(base.definitions, tmp);
+                    });
                 }
-                const tmp = {};
-                const subClass = safeTraverse(['if', 'properties', 'class', 'const'], subContent);
-                tmp[subClass] = subContent.then;
-                tmp[subClass].description = content.description;
-
-                base.definitions = Object.assign(base.definitions, tmp);
             });
-        }
-    });
-    return writeSchema(outputFile, base);
+        })
+        .then(() => writeSchema(outputFile, base));
 }
 
 module.exports = {
