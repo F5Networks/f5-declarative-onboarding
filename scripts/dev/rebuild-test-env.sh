@@ -1,6 +1,7 @@
 #!/bin/bash
 
-STACK_NAME=integration_test
+BIGIP_VERSION=$(echo $BIGIP_IMAGE | cut -d '-' -f 2)
+STACK_NAME=integration_test-${BIGIP_VERSION}
 
 delete_stack () {
     echo "Deleting stack"
@@ -9,18 +10,30 @@ delete_stack () {
 
 create_stack () {
     echo "Creating stack"
-    if STACK_INFO=$(openstack stack --insecure create \
-        -f json \
-        --template test/integration/env/bigip_stack_pipeline.yaml \
-        --timeout 100 \
-        --parameter admin_password="$INTEGRATION_ADMIN_PASSWORD" \
-        --parameter root_password="$INTEGRATION_ROOT_PASSWORD" \
-        --parameter bigip_image="$BIGIP_IMAGE" \
-        "$STACK_NAME")
-    then
-        STACK_ID=$(echo "$STACK_INFO" | jq -r .id)
-        echo "Stack is creating with ID $STACK_ID"
-    else
+
+    MAX_TRIES=5
+    STACK_ID=''
+
+    currentTry=0
+
+    while [[ -z $STACK_ID && $currentTry < $MAX_TRIES ]]; do
+        if STACK_INFO=$(openstack stack --insecure create \
+            -f json \
+            --template test/integration/env/bigip_stack_pipeline.yaml \
+            --timeout 100 \
+            --parameter admin_password="$INTEGRATION_ADMIN_PASSWORD" \
+            --parameter root_password="$INTEGRATION_ROOT_PASSWORD" \
+            --parameter bigip_image="$BIGIP_IMAGE" \
+            "$STACK_NAME")
+        then
+            STACK_ID=$(echo "$STACK_INFO" | jq -r .id)
+            echo "Stack is creating with ID $STACK_ID"
+        else
+            (( currentTry = currentTry + 1 ))
+        fi
+    done
+
+    if [[ -z $STACK_ID ]]; then
         echo "Stack create failed"
         exit 1
     fi
