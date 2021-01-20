@@ -10,15 +10,7 @@ stages:
     - teardown
 
 variables:
-    PROJECT_NAME: ${BIGIP_VERSION}
-    PROJECT_DIR: /root/deploy-projects/${CI_PROJECT_NAME}
-    NUMBER_OF_BIGIP: 3
-    DO_LICENSING: 'false'
-    DO_PROVISIONING: 'false'
-    DO_PHONING_HOME: 'false'
-    TEST_HARNESS_FILE: ${CI_PROJECT_DIR}/harness_facts_flat_${BIGIP_VERSION}.json
-    BIGIP_VERSION: ${DEFAULT_BIGIP_VERSION}
-    BIGIP_BUILD: ${DEFAULT_BIGIP_BUILD}
+    TEST_HARNESS_FILE: ${CI_PROJECT_DIR}/harness_facts.json
     ESR_PRODUCT: DO
     ESR_TEST_RUN_ID: ${CI_JOB_ID}
     ESR_TEST_RUN_WEB_URL: ${CI_JOB_URL}
@@ -101,28 +93,13 @@ coverage:
         - public
 
 # the following variables should be defined for deploy, integration-tests and teardown:
-# CICD_AUTH_OS_USERNAME - VIO user
-# CICD_AUTH_OS_PASSWORD - VIO password
-# CICD_AUTH_OS_PROJECT  - VIO project
-# BIGIP_VERSION         - BIG-IP Version (ex: 13.1.1.4)
-# BIGIP_BUILD           - BIG-IP Build (ex: 0.0.4)
+# BIGIP_IMAGE           - BIGIP VIO image name. (e.g. BIGIP-15.1.0.5-0.0.8)
 .deploy_common: &deploy_common
-    image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
+    image: $INTEGRATION_DEPLOY_IMAGE
     tags:
         - do-test-docker-executor
     stage: deploy
     timeout: 2 hours
-    variables:
-        DEFAULT_RETRY_DELAY: 20
-        DEFAULT_RETRIES: 60
-        DEVICE_ANSIBLE_CONNECTION_DELAY: 10
-        DEVICE_ANSIBLE_CONNECTION_RETRIES: 100
-        DEVICE_FAILOVER_LINKSUP_DELAY: 10
-        DEVICE_HTTPS_PORT_DELAY: 10
-        SSH_AVAILABILITY_DELAY: 10
-        SSH_AVAILABILITY_RETRIES: 100
-        VIO_DEPLOYMENT_DELAY: 20
-        VIO_DEPLOYMENT_RETRIES: 150
     script:
         - if [[ $CI_PIPELINE_SOURCE == "pipeline" ]]; then
         -     echo using RPM from cross-project pipeline
@@ -131,25 +108,18 @@ coverage:
         -     echo using RPM from our pipeline
         -     export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
         - fi
-        - cd /root/cicd-bigip-deploy && make configure && make printvars
-        - ls -als "${PROJECT_DIR}"
-        - cat "${PROJECT_DIR}/project-declaration-parsed"
-        - make setup
-        - cp ${PROJECT_DIR}/harness_facts_flat.json ${TEST_HARNESS_FILE}
-        - cd ${CI_PROJECT_DIR}
-        - if [[ $? != 0 ]]; then echo setup failed && exit 1; fi
         - apt update
-        - apt install -y curl
         - curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
         - /bin/bash nodesource_setup.sh
         - apt install -y nodejs
+        - apt install -y jq
+        - scripts/dev/rebuild-test-env.sh
         - npm install
         - node test/integration/setup.js
     artifacts:
-        name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
-        paths:
-            - ${TEST_HARNESS_FILE}
-        expire_in: 1 day
+      paths:
+        - ${TEST_HARNESS_FILE}
+      expire_in: 1 day
 
 deploy_for_this_project:
     rules:
@@ -180,11 +150,11 @@ integration-test:
     script:
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
-        - export ESR_BIG_IP_VERSION=${BIGIP_VERSION}
+        - export ESR_BIG_IP_VERSION=$(echo $BIGIP_IMAGE | cut -d '-' -f 2)
         - export GIT_SSL_NO_VERIFY=1
         - npm install
         - npm install git+https://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/automation-toolchain/atg-shared-utilities.git#develop
-        - echo BIGIP_VERSION $BIGIP_VERSION
+        - echo BIGIP_VERSION $ESR_BIG_IP_VERSION
         - npm run integration -- --reporter atg-shared-utilities/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
     after_script:
         - apt-get update
@@ -196,18 +166,21 @@ integration-test:
         when: always
         paths:
             - test/logs
+        expire_in: 1 day
 
 teardown:
-    image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
+    image: $INTEGRATION_DEPLOY_IMAGE
     tags:
-        - cm-official-docker-executor
-    script:
-        - cd /root/cicd-bigip-deploy && make configure && make teardown
+        - do-test-docker-executor
+    stage: teardown
     rules:
       - if: '$CI_PIPELINE_SOURCE == "schedule"'
+        when: always
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
         when: always
-    stage: teardown
+      - when: never
+    script:
+        - scripts/dev/teardown-test-env.sh
 
 build_rpm:
     image: $DOCKER_URL/node:12
