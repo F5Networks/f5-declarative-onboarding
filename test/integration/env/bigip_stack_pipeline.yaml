@@ -17,6 +17,9 @@ parameters:
     type: string
     description: Flavor of image to use
     default: F5-BIGIP-medium
+  artifactory_url:
+    type: string
+    description: URL of artifactory
 
 resources:
   configuration_bigip:
@@ -27,36 +30,11 @@ resources:
           params:
             __admin_password__: { get_param: admin_password }
             __root_password__: { get_param: root_password }
+            __artifactory_url__: { get_param: artifactory_url }
           template: |
             #!/bin/bash
-            echo 'Setting passwords'
-            /usr/bin/passwd admin '__admin_password__' >/dev/null 2>&1
-            /usr/bin/passwd root '__root_password__' >/dev/null 2>&1
-            echo 'Waiting for tmsh to be ready'
-            checks=0
-            while [ $checks -lt 120 ]; do echo 'checking mcpd'
-                if tmsh -a show sys mcp-state field-fmt | grep -q running; then
-                    echo mcpd ready
-                    break
-                fi
-                echo mcpd not ready yet
-                let checks=checks+1
-                sleep 10
-            done
-            echo 'Modifying settings'
-            # Enable admin login
-            tmsh modify auth user admin shell bash
-            tmsh modify sys software update auto-phonehome disabled
-            # Configure directory size
-            tmsh modify /sys disk directory /appdata new-size 130985984
-            tmsh save /sys config
-            echo 'Waiting for REST Framework'
-            # Wait for REST framework
-            until curl -u "admin:" --write-out "" --fail --silent "http://localhost:8100/mgmt/shared/iapp/package-management-tasks/available"; do
-                sleep 30
-            done
-            echo
-            echo Done
+            curl -vo initialConfig.sh 'https://__artifactory_url__/artifactory/list/f5-automation-toolchain-generic/f5-declarative-onboarding/test/integration/initialConfig.sh' > /tmp/do_curl_onboard.log 2>&1
+            sh ./initialConfig.sh '__root_password__' '__admin_password__' &
 
   device-1:
     type: OS::Nova::Server

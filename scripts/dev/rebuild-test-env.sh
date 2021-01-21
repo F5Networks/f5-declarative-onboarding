@@ -21,6 +21,7 @@ create_stack () {
             -f json \
             --template test/integration/env/bigip_stack_pipeline.yaml \
             --timeout 100 \
+            --parameter artifactory_url=$ARTIFACTORY_URL \
             --parameter admin_password="$INTEGRATION_ADMIN_PASSWORD" \
             --parameter root_password="$INTEGRATION_ROOT_PASSWORD" \
             --parameter bigip_image="$BIGIP_IMAGE" \
