@@ -87,7 +87,7 @@
             "properties": {
                 "class": {
                     "type": "string",
-                    "enum": ["GSLBDataCenter"]
+                    "const": "GSLBDataCenter"
                 },
                 "enabled": {
                     "description": "Specifies whether the data center is enabled or disabled",
