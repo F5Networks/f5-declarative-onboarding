@@ -44,7 +44,7 @@ resources:
       name:
         list_join: ['', ['integration_', { get_param: bigip_image }, '_1']]
       networks:
-        - network: 2bfdaa3a-b3c7-414a-934d-1d47751bef4d
+        - network: efbeecb3-042a-4587-a7c3-0b092bdf3ec6
         - network: e1396dda-27ba-406e-9c21-4d502a22c884
         - network: f5129f4f-2d9e-4bbd-93e9-dc56d22ab272
       config_drive: true
@@ -59,7 +59,7 @@ resources:
       name:
         list_join: ['', ['integration_', { get_param: bigip_image }, '_2']]
       networks:
-        - network: 2bfdaa3a-b3c7-414a-934d-1d47751bef4d
+        - network: efbeecb3-042a-4587-a7c3-0b092bdf3ec6
         - network: e1396dda-27ba-406e-9c21-4d502a22c884
         - network: f5129f4f-2d9e-4bbd-93e9-dc56d22ab272
       config_drive: true
@@ -74,7 +74,7 @@ resources:
       name:
         list_join: ['', ['integration_', { get_param: bigip_image }, '_3']]
       networks:
-        - network: 2bfdaa3a-b3c7-414a-934d-1d47751bef4d
+        - network: efbeecb3-042a-4587-a7c3-0b092bdf3ec6
         - network: e1396dda-27ba-406e-9c21-4d502a22c884
         - network: f5129f4f-2d9e-4bbd-93e9-dc56d22ab272
       config_drive: true

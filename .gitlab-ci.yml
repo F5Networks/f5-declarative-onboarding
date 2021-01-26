@@ -113,7 +113,7 @@ coverage:
         - /bin/bash nodesource_setup.sh
         - apt install -y nodejs
         - apt install -y jq
-        - scripts/dev/rebuild-test-env.sh
+        - scripts/dev/rebuild-test-env.sh CREATE
         - npm install
         - node test/integration/setup.js
     artifacts:
@@ -180,7 +180,7 @@ teardown:
         when: always
       - when: never
     script:
-        - scripts/dev/teardown-test-env.sh
+        - scripts/dev/rebuild-test-env.sh DELETE
 
 build_rpm:
     image: $DOCKER_URL/node:12
