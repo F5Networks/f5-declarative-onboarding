@@ -74,7 +74,8 @@ module.exports = {
         UnixRm: '/tm/util/unix-rm',
         GSLBGeneral: '/tm/gtm/global-settings/general',
         GSLBDataCenter: '/tm/gtm/datacenter',
-        GSLBServer: '/tm/gtm/server'
+        GSLBServer: '/tm/gtm/server',
+        GSLBMonitor: '/tm/gtm/monitor'
     },
     STATUS: {
         STATUS_OK: 'OK',

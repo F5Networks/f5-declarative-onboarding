@@ -218,6 +218,11 @@ class ConfigManager {
                                     }
                                     delete item.partition; // Must be removed for the diffs
 
+                                    if (schemaClass === 'GSLBMonitor') {
+                                        // Must pull the kind before it is removed in removeUnusedKeys()
+                                        patchGSLBMonitor.call(this, item);
+                                    }
+
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties(patchedItem, this.configItems[index]);
 
@@ -517,9 +522,12 @@ function mapProperties(item, configItem) {
             // If property is a reference, strip the /Common if it is there
             // Either the user specified it without /Commmon in their declaration
             // or we replaced the user value with just the last part because it looks
-            // like a json pointer
+            // like a json pointer.
+            // retainCommon is a configItems property that prevents the removal of Common from the
+            // id. This was used in GSLBServer.monitor so it would line up with the BIG-IP
             if (typeof mappedItem[property.id] === 'string'
-                && mappedItem[property.id].startsWith('/Common/')) {
+                && mappedItem[property.id].startsWith('/Common/')
+                && !property.retainCommon) {
                 mappedItem[property.id] = mappedItem[property.id].substring('/Common/'.length);
             }
 
@@ -906,6 +914,14 @@ function patchGSLBGlobals(patchedItem) {
 function patchGSLBServer(patchedItem) {
     patchedItem.enabled = isEnabledGtmObject(patchedItem);
     delete patchedItem.disabled;
+
+    // Convert monitors from BIG-IP string to declaration compatible array, for diffing
+    patchedItem.monitors = patchedItem.monitors ? patchedItem.monitors.split(' and ') : [];
+}
+
+function patchGSLBMonitor(item) {
+    // Pull the monitorType from kind before kind is deleted
+    item.monitorType = item.kind.split(':')[3];
 }
 
 /**

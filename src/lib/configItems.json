@@ -684,7 +684,8 @@
             { "id":"datacenter", "newId": "dataCenter" },
             { "id":"devicesReference" },
             { "id":"exposeRouteDomains", "newId": "exposeRouteDomainsEnabled", "truth": "yes", "falsehood": "no" },
-            { "id":"virtualServerDiscovery", "newId": "virtualServerDiscoveryMode" }
+            { "id":"virtualServerDiscovery", "newId": "virtualServerDiscoveryMode" },
+            { "id":"monitor", "newId": "monitors", "retainCommon": true }
         ],
         "references": {
             "devicesReference": [
@@ -703,5 +704,23 @@
                 { "id": "formatGSLBServer" }
             ]
         }
+    },
+    {
+        "path": "/tm/gtm/monitor/http",
+        "schemaClass": "GSLBMonitor",
+        "requiredModule": "gtm",
+        "properties": [
+            { "id":"kind" },
+            { "id":"description", "newId": "remark" },
+            { "id":"destination", "newId": "target" },
+            { "id":"interval" },
+            { "id":"timeout" },
+            { "id":"probeTimeout" },
+            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"send" },
+            { "id":"recv", "newId": "receive" }
+        ]
     }
 ]

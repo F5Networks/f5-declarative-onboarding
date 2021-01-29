@@ -182,7 +182,8 @@
                             "TrafficGroup",
                             "GSLBGlobals",
                             "GSLBDataCenter",
-                            "GSLBServer"
+                            "GSLBServer",
+                            "GSLBMonitor"
                         ]
                     }
                 },

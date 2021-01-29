@@ -61,6 +61,10 @@ class GSLBHandler {
                 return handleGSLBDataCenter.call(this);
             })
             .then(() => {
+                logger.fine('Checking Monitors');
+                return handleGSLBMonitor.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking Servers');
                 return handleGSLBServer.call(this);
             })
@@ -128,8 +132,47 @@ function handleGSLBDataCenter() {
         });
 }
 
+function handleGSLBMonitor() {
+    const promises = [];
+
+    doUtil.forEach(this.declaration, 'GSLBMonitor', (tenant, monitor) => {
+        if (monitor && monitor.name) {
+            const body = {
+                name: monitor.name,
+                description: monitor.remark || 'none',
+                destination: monitor.target,
+                interval: monitor.interval,
+                timeout: monitor.timeout,
+                probeTimeout: monitor.probeTimeout,
+                ignoreDownResponse: (monitor.ignoreDownResponseEnabled) ? 'enabled' : 'disabled',
+                transparent: (monitor.transparent) ? 'enabled' : 'disabled',
+                reverse: (monitor.reverseEnabled) ? 'enabled' : 'disabled',
+                send: monitor.send || 'none',
+                recv: monitor.receive || 'none'
+            };
+
+            const monPath = `${PATHS.GSLBMonitor}/${monitor.monitorType}`;
+            promises.push(this.bigIp.createOrModify(monPath, body, null, cloudUtil.MEDIUM_RETRY));
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Servers: ${err.message}`);
+            throw err;
+        });
+}
+
 function handleGSLBServer() {
     const promises = [];
+
+    function mapMonitors(server) {
+        if (server.monitors && server.monitors.length > 0) {
+            // The monitor property is a string with the monitors connected by ands, instead of an array
+            return server.monitors.join(' and ');
+        }
+        return '';
+    }
 
     doUtil.forEach(this.declaration, 'GSLBServer', (tenant, server) => {
         if (server && server.name) {
@@ -157,7 +200,8 @@ function handleGSLBServer() {
                 datacenter: server.dataCenter,
                 devices: server.devices,
                 exposeRouteDomains: server.exposeRouteDomainsEnabled ? 'yes' : 'no',
-                virtualServerDiscovery: server.virtualServerDiscoveryMode
+                virtualServerDiscovery: server.virtualServerDiscoveryMode,
+                monitor: mapMonitors(server)
             };
 
             body.devices.forEach((device) => {
