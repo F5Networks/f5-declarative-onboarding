@@ -207,7 +207,11 @@ describe('gslb.schema.json', () => {
                     cpuUsageLimitEnabled: true,
                     memoryLimit: 12,
                     memoryLimitEnabled: true,
-                    serverType: 'generic-host'
+                    serverType: 'generic-host',
+                    monitors: [
+                        '/Common/GSLBmonitor',
+                        '/Common/otherMonitor'
+                    ]
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -292,6 +296,74 @@ describe('gslb.schema.json', () => {
                 data.memoryLimit = -1;
                 assert.strictEqual(validate(data), false);
                 assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+        });
+    });
+
+    describe('GSLBMonitor class', () => {
+        describe('valid', () => {
+            it('should validate minimal properties and fill in defaults for monitorType http', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'http'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'http',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        reverseEnabled: false,
+                        send: 'HEAD / HTTP/1.0\\r\\n\\r\\n',
+                        receive: 'HTTP/1.'
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType http', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'http',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    reverseEnabled: true,
+                    send: 'example send string',
+                    receive: 'example receive string'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate if monitorType is improperly set', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'BAD_TYPE'
+                };
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should be equal to one of the allowed values'), -1
+                );
+            });
+
+            it('should invalidate if monitorType is missing', () => {
+                const data = {
+                    class: 'GSLBMonitor'
+                };
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'monitorType\''), -1
+                );
             });
         });
     });

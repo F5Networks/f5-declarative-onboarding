@@ -1,0 +1,47 @@
+{
+    "schemaVersion": "1.19.0",
+    "class": "Device",
+    "async": true,
+    "controls": {
+        "traceResponse": true
+    },
+    "Common": {
+        "class": "Tenant",
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal",
+            "gtm": "nominal"
+        },
+        "gslbDataCenter": {
+            "class": "GSLBDataCenter"
+        },
+        "gslbServer": {
+            "class": "GSLBServer",
+            "devices": [
+                {
+                    "address": "10.10.10.10",
+                    "addressTranslation": "192.0.2.12",
+                    "remark": "GSLB server device description"
+                }
+            ],
+            "dataCenter": "/Common/gslbDataCenter",
+            "monitors": [
+                "/Common/gslbMonitor"
+            ]
+        },
+        "gslbMonitor": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "http",
+            "target": "1.1.1.1:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "reverseEnabled": true,
+            "send": "HEAD / HTTP/1.0\\r\\n",
+            "receive": "HTTP"
+        }
+    }
+}

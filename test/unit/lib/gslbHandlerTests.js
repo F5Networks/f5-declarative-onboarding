@@ -174,7 +174,11 @@ describe('gslbHandler', () => {
                                 }
                             ],
                             exposeRouteDomainsEnabled: false,
-                            virtualServerDiscoveryMode: 'disabled'
+                            virtualServerDiscoveryMode: 'disabled',
+                            monitors: [
+                                '/Common/GSLBmonitor',
+                                '/Common/otherMonitor'
+                            ]
                         },
                         gslbServer2: {
                             name: 'gslbServer2',
@@ -208,7 +212,41 @@ describe('gslbHandler', () => {
                                 }
                             ],
                             exposeRouteDomainsEnabled: true,
-                            virtualServerDiscoveryMode: 'enabled'
+                            virtualServerDiscoveryMode: 'enabled',
+                            monitors: []
+                        },
+                        gslbServer3: {
+                            name: 'gslbServer3',
+                            enabled: true,
+                            serverType: 'bigip',
+                            proberPreferred: 'inherit',
+                            proberFallback: 'inherit',
+                            bpsLimit: 0,
+                            bpsLimitEnabled: false,
+                            ppsLimit: 0,
+                            ppsLimitEnabled: false,
+                            connectionsLimit: 0,
+                            connectionsLimitEnabled: false,
+                            cpuUsageLimit: 0,
+                            cpuUsageLimitEnabled: false,
+                            memoryLimit: 0,
+                            memoryLimitEnabled: false,
+                            serviceCheckProbeEnabled: true,
+                            pathProbeEnabled: true,
+                            snmpProbeEnabled: true,
+                            dataCenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ],
+                            exposeRouteDomainsEnabled: false,
+                            virtualServerDiscoveryMode: 'disabled',
+                            monitors: ['/Common/bigip']
                         }
                     }
                 }
@@ -253,7 +291,8 @@ describe('gslbHandler', () => {
                                 }
                             ],
                             exposeRouteDomains: 'no',
-                            virtualServerDiscovery: 'disabled'
+                            virtualServerDiscovery: 'disabled',
+                            monitor: '/Common/GSLBmonitor and /Common/otherMonitor'
                         }
                     );
                     assert.deepStrictEqual(
@@ -291,10 +330,125 @@ describe('gslbHandler', () => {
                                 }
                             ],
                             exposeRouteDomains: 'yes',
-                            virtualServerDiscovery: 'enabled'
+                            virtualServerDiscovery: 'enabled',
+                            monitor: ''
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        gslbServer[2],
+                        {
+                            name: 'gslbServer3',
+                            description: 'none',
+                            enabled: true,
+                            disabled: false,
+                            product: 'bigip',
+                            proberPreference: 'inherit',
+                            proberFallback: 'inherit',
+                            limitMaxBps: 0,
+                            limitMaxBpsStatus: 'disabled',
+                            limitMaxPps: 0,
+                            limitMaxPpsStatus: 'disabled',
+                            limitMaxConnections: 0,
+                            limitMaxConnectionsStatus: 'disabled',
+                            limitCpuUsage: 0,
+                            limitCpuUsageStatus: 'disabled',
+                            limitMemAvail: 0,
+                            limitMemAvailStatus: 'disabled',
+                            iqAllowServiceCheck: 'yes',
+                            iqAllowPath: 'yes',
+                            iqAllowSnmp: 'yes',
+                            datacenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    description: 'none',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ],
+                            exposeRouteDomains: 'no',
+                            virtualServerDiscovery: 'disabled',
+                            monitor: '/Common/bigip'
                         }
                     );
                 });
+        });
+    });
+
+    describe('GSLB monitor', () => {
+        describe('http', () => {
+            it('should handle GSLB monitor http', () => {
+                const declaration = {
+                    Common: {
+                        GSLBMonitor: {
+                            gslbMonitor1: {
+                                name: 'gslbMonitor1',
+                                remark: 'description',
+                                monitorType: 'http',
+                                target: '1.1.1.1:80',
+                                interval: 100,
+                                timeout: 1000,
+                                probeTimeout: 110,
+                                ignoreDownResponseEnabled: true,
+                                transparent: true,
+                                reverseEnabled: true,
+                                send: 'HEAD / HTTP/1.0\\r\\n',
+                                receive: 'HTTP'
+                            },
+                            gslbMonitor2: {
+                                name: 'gslbMonitor2',
+                                monitorType: 'http',
+                                target: '*:*',
+                                interval: 30,
+                                timeout: 120,
+                                probeTimeout: 5,
+                                ignoreDownResponseEnabled: false,
+                                transparent: false,
+                                reverseEnabled: false
+                            }
+                        }
+                    }
+                };
+
+                const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+                return gslbHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/http`][0],
+                            {
+                                name: 'gslbMonitor1',
+                                description: 'description',
+                                destination: '1.1.1.1:80',
+                                interval: 100,
+                                timeout: 1000,
+                                probeTimeout: 110,
+                                ignoreDownResponse: 'enabled',
+                                transparent: 'enabled',
+                                reverse: 'enabled',
+                                send: 'HEAD / HTTP/1.0\\r\\n',
+                                recv: 'HTTP'
+                            }
+                        );
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/http`][1],
+                            {
+                                name: 'gslbMonitor2',
+                                description: 'none',
+                                destination: '*:*',
+                                interval: 30,
+                                timeout: 120,
+                                probeTimeout: 5,
+                                ignoreDownResponse: 'disabled',
+                                transparent: 'disabled',
+                                reverse: 'disabled',
+                                send: 'none',
+                                recv: 'none'
+                            }
+                        );
+                    });
+            });
         });
     });
 });

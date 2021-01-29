@@ -653,7 +653,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
-    it('should delete a GSLBDataCenter and a GSLBServer in that order', () => {
+    it('should delete a GSLBMonitor, a GSLBDataCenter and a GSLBServer in that order', () => {
         const state = {
             currentConfig: {
                 Common: {
@@ -692,6 +692,41 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.strictEqual(deletedPaths.length, 2);
                 assert.strictEqual(deletedPaths[0], '/tm/gtm/server/~Common~gslbServer');
                 assert.strictEqual(deletedPaths[1], '/tm/gtm/datacenter/~Common~gslbDataCenter');
+            });
+    });
+
+    it('should delete a GSLBMonitor via updating its path with its monitorType and not delete http', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    GSLBMonitor: {
+                        gslbMonitor: {
+                            name: 'gslbMonitor',
+                            monitorType: 'http'
+                        },
+                        http: {
+                            name: 'http',
+                            monitorType: 'http'
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                GSLBMonitor: {
+                    gslbMonitor: {},
+                    http: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 1);
+                assert.strictEqual(deletedPaths[0], '/tm/gtm/monitor/http/~Common~gslbMonitor');
             });
     });
 });

@@ -1842,7 +1842,8 @@ describe('configManager', () => {
                     virtualServerDiscovery: 'enabled',
                     devicesReference: {
                         link: 'https://localhost/mgmt/tm/gtm/server/~Common~gslbServer/devices'
-                    }
+                    },
+                    monitor: '/Common/http and /Common/http_head_f5'
                 }
             ];
             listResponses['/tm/gtm/server/~Common~gslbServer/devices'] = [
@@ -1904,7 +1905,11 @@ describe('configManager', () => {
                                     }
                                 ],
                                 exposeRouteDomainsEnabled: true,
-                                virtualServerDiscoveryMode: 'enabled'
+                                virtualServerDiscoveryMode: 'enabled',
+                                monitors: [
+                                    '/Common/http',
+                                    '/Common/http_head_f5'
+                                ]
                             }
                         }
                     );
@@ -1920,14 +1925,17 @@ describe('configManager', () => {
             listResponses['/tm/gtm/server'] = [
                 {
                     name: 'serverEnabledStringVal',
-                    enabled: 'True'
+                    enabled: 'True',
+                    monitor: ''
                 },
                 {
                     name: 'serverDisabledStringVal',
-                    disabled: 'False'
+                    disabled: 'False',
+                    monitor: ''
                 },
                 {
-                    name: 'serverNoVal'
+                    name: 'serverNoVal',
+                    monitor: ''
                 }
             ];
 
@@ -1942,8 +1950,8 @@ describe('configManager', () => {
                 pathProbeEnabled: false,
                 ppsLimitEnabled: false,
                 serviceCheckProbeEnabled: false,
-                snmpProbeEnabled: false
-
+                snmpProbeEnabled: false,
+                monitors: []
             });
 
             const configManager = new ConfigManager(configItems, bigIpMock);
@@ -1958,6 +1966,66 @@ describe('configManager', () => {
                         }
                     );
                 });
+        });
+    });
+
+    describe('GSLBMonitor', () => {
+        describe('http', () => {
+            const configItems = getConfigItems('GSLBMonitor');
+
+            it('should handle HTTP GSLB Monitors', () => {
+                listResponses['/tm/sys/provision'] = [
+                    { name: 'gtm', level: 'nominal' }
+                ];
+                listResponses['/tm/gtm/monitor/http'] = [
+                    {
+                        kind: 'tm:gtm:monitor:http:httpstate',
+                        name: 'GSLBmonitor',
+                        partition: 'Common',
+                        fullPath: '/Common/GSLBmonitor',
+                        generation: 0,
+                        selfLink: 'https://localhost/mgmt/tm/gtm/monitor/http/~Common~GSLBmonitor?ver=15.1.2',
+                        defaultsFrom: '/Common/http',
+                        description: 'description',
+                        destination: '1.1.1.1:80',
+                        ignoreDownResponse: 'enabled',
+                        interval: 100,
+                        probeTimeout: 110,
+                        recv: 'HTTP',
+                        reverse: 'enabled',
+                        send: 'HEAD / HTTP/1.0\\r\\n',
+                        timeout: 1000,
+                        transparent: 'enabled'
+                    }
+                ];
+
+                const configManager = new ConfigManager(configItems, bigIpMock);
+                return configManager.get({}, state, doState)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            state.currentConfig.Common.GSLBMonitor,
+                            {
+                                GSLBmonitor: {
+                                    name: 'GSLBmonitor',
+                                    defaultsFrom: '/Common/http',
+                                    fullPath: '/Common/GSLBmonitor',
+                                    generation: 0,
+                                    ignoreDownResponseEnabled: true,
+                                    interval: 100,
+                                    monitorType: 'http',
+                                    probeTimeout: 110,
+                                    receive: 'HTTP',
+                                    remark: 'description',
+                                    reverseEnabled: true,
+                                    send: 'HEAD / HTTP/1.0\\r\\n',
+                                    target: '1.1.1.1:80',
+                                    timeout: 1000,
+                                    transparent: true
+                                }
+                            }
+                        );
+                    });
+            });
         });
     });
 });

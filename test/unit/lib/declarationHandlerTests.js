@@ -937,6 +937,16 @@ describe('declarationHandler', () => {
                                     address: '10.0.0.2'
                                 }
                             ]
+                        },
+                        gslbServerBigip: {
+                            label: 'testing bigip gslb server',
+                            dataCenter: '/Common/gslbDataCenter',
+                            devices: [
+                                {
+                                    address: '10.0.0.3'
+                                }
+                            ],
+                            serverType: 'bigip'
                         }
                     }
                 }
@@ -977,7 +987,28 @@ describe('declarationHandler', () => {
                                         translation: 'none'
                                     }]
                                 }
-                            ]
+                            ],
+                            monitors: []
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        declarationWithDefaults.Common.GSLBServer.gslbServerBigip,
+                        {
+                            dataCenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    remark: undefined,
+                                    addresses: [{
+                                        name: '10.0.0.3',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ],
+                            monitors: [
+                                '/Common/bigip'
+                            ],
+                            serverType: 'bigip'
                         }
                     );
                 });

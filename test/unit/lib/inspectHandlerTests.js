@@ -1023,7 +1023,8 @@ describe('inspectHandler', () => {
                         link: 'https://localhost/mgmt/tm/gtm/server/~Common~currentGSLBServer/devices'
                     },
                     exposeRouteDomains: 'yes',
-                    virtualServerDiscovery: 'enabled'
+                    virtualServerDiscovery: 'enabled',
+                    monitor: '/Common/http and /Common/http_head_f5'
                 }
             ],
             '/tm/gtm/server/~Common~currentGSLBServer/devices': [
@@ -1046,6 +1047,27 @@ describe('inspectHandler', () => {
                             translation: '192.0.2.13'
                         }
                     ]
+                }
+            ],
+            '/tm/gtm/monitor/http': [
+                {
+                    kind: 'tm:gtm:monitor:http:httpstate',
+                    name: 'currentGSLBMonitor',
+                    partition: 'Common',
+                    fullPath: '/Common/currentGSLBMonitor',
+                    generation: 0,
+                    selfLink: 'https://localhost/mgmt/tm/gtm/monitor/http/~Common~currentGSLBMonitor?ver=15.1.2',
+                    defaultsFrom: '/Common/http',
+                    description: 'description',
+                    destination: '1.1.1.1:80',
+                    ignoreDownResponse: 'enabled',
+                    interval: 100,
+                    probeTimeout: 110,
+                    recv: 'HTTP',
+                    reverse: 'enabled',
+                    send: 'HEAD / HTTP/1.0\\r\\n',
+                    timeout: 1000,
+                    transparent: 'enabled'
                 }
             ]
         });
@@ -1597,7 +1619,25 @@ describe('inspectHandler', () => {
                                 }
                             ],
                             exposeRouteDomainsEnabled: true,
-                            virtualServerDiscoveryMode: 'enabled'
+                            virtualServerDiscoveryMode: 'enabled',
+                            monitors: [
+                                '/Common/http',
+                                '/Common/http_head_f5'
+                            ]
+                        },
+                        currentGSLBMonitor: {
+                            class: 'GSLBMonitor',
+                            remark: 'description',
+                            monitorType: 'http',
+                            target: '1.1.1.1:80',
+                            interval: 100,
+                            timeout: 1000,
+                            probeTimeout: 110,
+                            ignoreDownResponseEnabled: true,
+                            transparent: true,
+                            reverseEnabled: true,
+                            send: 'HEAD / HTTP/1.0\\r\\n',
+                            receive: 'HTTP'
                         }
                     }
                 }

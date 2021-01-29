@@ -78,7 +78,8 @@ const CLASSES_OF_TRUTH = [
     'RoutingPrefixList',
     'GSLBGlobals',
     'GSLBDataCenter',
-    'GSLBServer'
+    'GSLBServer',
+    'GSLBMonitor'
 ];
 
 /**
@@ -547,6 +548,10 @@ function applyGSLBServerFixes(declaration) {
                 translation: device.addressTranslation || 'none'
             }]
         }));
+        if (!server.monitors && server.serverType === 'bigip') {
+            server.monitors = ['/Common/bigip'];
+        }
+        server.monitors = server.monitors || [];
         delete server.label;
     });
 }
