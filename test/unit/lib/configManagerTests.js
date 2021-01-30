@@ -1656,6 +1656,112 @@ describe('configManager', () => {
         });
     });
 
+    describe('RouteMap', () => {
+        it('should handle RouteMap', () => {
+            const configItems = getConfigItems('RouteMap');
+
+            listResponses['/tm/net/routing/route-map'] = [
+                {
+                    name: 'exampleRouteMap',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleRouteMap/entries?ver=14.1.2.8'
+                    }
+                }
+            ];
+            listResponses['/tm/net/routing/route-map/~Common~exampleRouteMap/entries'] = [
+                {
+                    name: 44,
+                    action: 'permit',
+                    match: {
+                        asPath: '/Common/aspath',
+                        asPathReference: {
+                            link: 'https://some/link/here'
+                        },
+                        community: {
+                            exactMatch: 'unset'
+                        },
+                        ipv4: {
+                            address: {
+                                prefixList: '/Common/prefixlist1',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            },
+                            nextHop: {
+                                prefixList: '/Common/prefixlist2',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            },
+                            peer: {
+                                prefixList: '/Common/prefixlist3',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            }
+                        },
+                        ipv6: {
+                            address: {
+                                prefixList: '/Common/prefixlist4',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            },
+                            nextHop: {
+                                prefixList: '/Common/prefixlist5',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            },
+                            peer: {
+                                prefixList: '/Common/prefixlist6',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            }
+                        },
+                        unwantedProperty: 'value'
+                    }
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common.RouteMap, {
+                        exampleRouteMap: {
+                            name: 'exampleRouteMap',
+                            entries: [
+                                {
+                                    name: 44,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/aspath',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: '/Common/prefixlist1'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixlist2'
+                                            }
+                                        },
+                                        ipv6: {
+                                            address: {
+                                                prefixList: '/Common/prefixlist4'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixlist5'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    });
+                });
+        });
+    });
+
     describe('RoutingPrefixList', () => {
         it('should handle RoutingPrefixList with references', () => {
             const configItems = getConfigItems('RoutingPrefixList');

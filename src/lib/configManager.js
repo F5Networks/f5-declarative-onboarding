@@ -22,6 +22,7 @@ const querystring = require('querystring');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 const RADIUS = require('./sharedConstants').RADIUS;
+const doUtil = require('./doUtil');
 
 const logger = new Logger(module);
 
@@ -473,16 +474,21 @@ function removeUnusedKeys(item, nameless) {
     }
 
     Object.assign(filtered, item);
-    Object.keys(filtered).forEach((key) => {
-        if (key.endsWith('Reference')) {
-            delete filtered[key];
-        }
-
-        if (keysToRemove.indexOf(key) !== -1) {
-            delete filtered[key];
-        }
-    });
-    return filtered;
+    const removeReferencesAndKeysToRemove = function (obj) {
+        Object.keys(obj).forEach((key) => {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                if (key.endsWith('Reference')) {
+                    delete obj[key];
+                } else if (keysToRemove.indexOf(key) !== -1) {
+                    delete obj[key];
+                } else if (typeof obj[key] === 'object') {
+                    removeReferencesAndKeysToRemove(obj[key]);
+                }
+            }
+        });
+        return obj;
+    };
+    return removeReferencesAndKeysToRemove(filtered);
 }
 
 /**
@@ -569,6 +575,10 @@ function mapProperties(item, configItem) {
                             }
 
                             value = match.pop();
+                        }
+
+                        if (trans.removeKeys) {
+                            doUtil.deleteKeys(value, trans.removeKeys);
                         }
 
                         // Attempt to convert values

@@ -653,6 +653,87 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
+    it('should delete RouteMap, RoutingAsPath, and RoutePrefixList in that order', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    RouteMap: {
+                        routeMapTest: {
+                            name: 44,
+                            action: 'permit',
+                            match: {
+                                asPath: '/Common/aspath',
+                                ipv4: {
+                                    address: {
+                                        prefixList: '/Common/prefixlist1'
+                                    },
+                                    nextHop: {
+                                        prefixList: '/Common/prefixlist2'
+                                    }
+                                },
+                                ipv6: {
+                                    address: {
+                                        prefixList: '/Common/prefixlist3'
+                                    },
+                                    nextHop: {
+                                        prefixList: '/Common/prefixlist4'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    RoutingAsPath: {
+                        routingAsPathTest: {
+                            name: 'routingAsPathTest',
+                            entries: [
+                                {
+                                    name: 36,
+                                    regex: 'bar'
+                                }
+                            ]
+                        }
+                    },
+                    RoutingPrefixList: {
+                        routingPrefixListTest: {
+                            name: 'routingPrefixListTest',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                RoutingAsPath: {
+                    routingAsPathTest: {}
+                },
+                RouteMap: {
+                    routeMapTest: {}
+                },
+                RoutingPrefixList: {
+                    routingPrefixListTest: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 3);
+                assert.strictEqual(deletedPaths[0], '/tm/net/routing/route-map/~Common~routeMapTest');
+                assert.strictEqual(deletedPaths[1], '/tm/net/routing/as-path/~Common~routingAsPathTest');
+                assert.strictEqual(deletedPaths[2], '/tm/net/routing/prefix-list/~Common~routingPrefixListTest');
+            });
+    });
+
     it('should delete GSLBProberPool, GSLBDataCenter, GSLBServer, and GSLBMonitor', () => {
         const state = {
             currentConfig: {

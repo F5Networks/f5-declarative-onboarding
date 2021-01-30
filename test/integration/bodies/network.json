@@ -128,6 +128,28 @@
                     "prefixLengthRange": 32
                 }
             ]
+        },
+        "testRouteMap": {
+            "class": "RouteMap",
+            "entries": [
+                {
+                    "name": "33",
+                    "action": "permit",
+                    "match": {
+                        "asPath": "testRoutingAsPath1",
+                        "ipv4": {
+                            "address": {
+                                "prefixList": "testRoutingPrefixList2"
+                            }
+                        },
+                        "ipv6": {
+                            "address": {
+                                "prefixList": "testRoutingPrefixList1"
+                            }
+                        }
+                    }
+                }
+            ]
         }
     }
 }

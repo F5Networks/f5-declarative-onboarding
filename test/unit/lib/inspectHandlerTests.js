@@ -668,6 +668,39 @@ describe('inspectHandler', () => {
                     prefixLenRange: '24'
                 }
             ],
+            '/tm/net/routing/route-map': [
+                {
+                    name: 'exampleRouteMap',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleRouteMap/entries?ver=14.1.2.8'
+                    }
+                }
+            ],
+            '/tm/net/routing/route-map/~Common~exampleRouteMap/entries': [
+                {
+                    name: 44,
+                    action: 'permit',
+                    match: {
+                        asPath: '/Common/aspath',
+                        ipv4: {
+                            address: {
+                                prefixList: '/Common/prefixlist1'
+                            },
+                            nextHop: {
+                                prefixList: '/Common/prefixlist2'
+                            }
+                        },
+                        ipv6: {
+                            address: {
+                                prefixList: '/Common/prefixlist3'
+                            },
+                            nextHop: {
+                                prefixList: '/Common/prefixlist4'
+                            }
+                        }
+                    }
+                }
+            ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
@@ -1277,6 +1310,34 @@ describe('inspectHandler', () => {
                                     action: 'deny',
                                     prefix: '1111:2222:3333:4444::/64',
                                     prefixLengthRange: 24
+                                }
+                            ]
+                        },
+                        exampleRouteMap: {
+                            class: 'RouteMap',
+                            entries: [
+                                {
+                                    name: 44,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/aspath',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: '/Common/prefixlist1'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixlist2'
+                                            }
+                                        },
+                                        ipv6: {
+                                            address: {
+                                                prefixList: '/Common/prefixlist3'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixlist4'
+                                            }
+                                        }
+                                    }
                                 }
                             ]
                         },
