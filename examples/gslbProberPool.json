@@ -6,9 +6,6 @@
         "gslbDataCenter": {
             "class": "GSLBDataCenter"
         },
-        "gslbProberPool": {
-            "class": "GSLBProberPool"
-        },
         "gslbServer": {
             "class": "GSLBServer",
             "label": "Example of all GSLB server properties",
@@ -21,11 +18,10 @@
                 }
             ],
             "dataCenter": "/Common/gslbDataCenter",
-            "serverType": "generic-host",
+            "serverType": "bigip",
             "enabled": false,
-            "proberPreferred": "pool",
+            "proberPreferred": "inside-datacenter",
             "proberFallback": "any-available",
-            "proberPool": "/Common/gslbProberPool",
             "bpsLimit": 10,
             "bpsLimitEnabled": true,
             "ppsLimit": 10,
@@ -41,6 +37,21 @@
             "cpuUsageLimitEnabled": true,
             "memoryLimit": 10,
             "memoryLimitEnabled": true
+        },
+        "gslbProberPool": {
+            "class": "GSLBProberPool",
+            "label": "Example of all GSLB prober pool properties",
+            "remark": "GSLB prober pool description",
+            "enabled": false,
+            "lbMode": "round-robin",
+            "members": [
+                {
+                    "server": "/Common/gslbServer",
+                    "label": "Example of all GSLB prober pool member properties",
+                    "remark": "GSLB prober pool member description",
+                    "enabled": false
+                }
+            ]
         }
     }
 }

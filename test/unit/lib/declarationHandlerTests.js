@@ -927,6 +927,7 @@ describe('declarationHandler', () => {
                         gslbServer: {
                             label: 'testing gslb server',
                             dataCenter: '/Common/gslbDataCenter',
+                            proberPool: '/Common/gslbProberPool',
                             devices: [
                                 {
                                     address: '10.0.0.1',
@@ -970,6 +971,7 @@ describe('declarationHandler', () => {
                         gslbServer,
                         {
                             dataCenter: 'gslbDataCenter',
+                            proberPool: 'gslbProberPool',
                             devices: [
                                 {
                                     name: '0',
@@ -1009,6 +1011,72 @@ describe('declarationHandler', () => {
                                 '/Common/bigip'
                             ],
                             serverType: 'bigip'
+                        }
+                    );
+                });
+        });
+
+        it('should apply GSLB prober pool fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    GSLBProberPool: {
+                        gslbProberPool: {
+                            label: 'testing gslb prober pool',
+                            members: [
+                                {
+                                    server: '/Common/gslbServerOne',
+                                    label: 'testing monitor one'
+                                },
+                                {
+                                    server: 'gslbServerTwo',
+                                    label: 'testing monitor two'
+                                }
+                            ]
+                        },
+                        gslbProberPoolNoMembers: {
+                            label: 'testing gslb prober pool with no members'
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const gslbProberPool = declarationWithDefaults.Common.GSLBProberPool;
+                    assert.deepStrictEqual(
+                        gslbProberPool,
+                        {
+                            gslbProberPool: {
+                                members: [
+                                    {
+                                        server: 'gslbServerOne',
+                                        remark: undefined,
+                                        enabled: undefined,
+                                        order: 0
+                                    },
+                                    {
+                                        server: 'gslbServerTwo',
+                                        remark: undefined,
+                                        enabled: undefined,
+                                        order: 1
+                                    }
+                                ]
+                            },
+                            gslbProberPoolNoMembers: {
+                                members: []
+                            }
                         }
                     );
                 });

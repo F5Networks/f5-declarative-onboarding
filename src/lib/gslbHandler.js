@@ -57,16 +57,30 @@ class GSLBHandler {
         }
         return handleGSLBGlobals.call(this)
             .then(() => {
-                logger.fine('Checking Data Centers');
-                return handleGSLBDataCenter.call(this);
-            })
-            .then(() => {
                 logger.fine('Checking Monitors');
                 return handleGSLBMonitor.call(this);
             })
             .then(() => {
-                logger.fine('Checking Servers');
-                return handleGSLBServer.call(this);
+                const transactionCommands = [
+                    (() => {
+                        logger.fine('Checking Data Centers');
+                        return handleGSLBDataCenter.call(this);
+                    })(),
+                    (() => {
+                        logger.fine('Checking Servers');
+                        return handleGSLBServer.call(this);
+                    })(),
+                    (() => {
+                        logger.fine('Checking Prober Pools');
+                        return handleGSLBProberPool.call(this);
+                    })()
+                ].reduce((array, commands) => array.concat(commands), []);
+
+                if (transactionCommands.length === 0) {
+                    return Promise.resolve();
+                }
+
+                return this.bigIp.transaction(transactionCommands);
             })
             .catch((err) => {
                 logger.severe(`Error processing GSLB declaration: ${err.message}`);
@@ -101,7 +115,7 @@ function handleGSLBGlobals() {
 }
 
 function handleGSLBDataCenter() {
-    const promises = [];
+    const commands = [];
 
     doUtil.forEach(this.declaration, 'GSLBDataCenter', (tenant, dataCenter) => {
         if (dataCenter.name) {
@@ -119,17 +133,21 @@ function handleGSLBDataCenter() {
                 body.proberPool = dataCenter.proberPool;
             }
 
-            promises.push(
-                this.bigIp.createOrModify(PATHS.GSLBDataCenter, body, null, cloudUtil.MEDIUM_RETRY)
-            );
+            let method = 'create';
+            if (this.state.currentConfig.Common.GSLBDataCenter
+                && this.state.currentConfig.Common.GSLBDataCenter[dataCenter.name]) {
+                method = 'modify';
+            }
+
+            commands.push({
+                method,
+                path: method === 'create' ? PATHS.GSLBDataCenter : `${PATHS.GSLBDataCenter}/~${tenant}~${dataCenter.name}`,
+                body
+            });
         }
     });
 
-    return Promise.all(promises)
-        .catch((err) => {
-            logger.severe(`Error creating Data Centers: ${err.message}`);
-            throw err;
-        });
+    return commands;
 }
 
 function handleGSLBMonitor() {
@@ -164,7 +182,7 @@ function handleGSLBMonitor() {
 }
 
 function handleGSLBServer() {
-    const promises = [];
+    const commands = [];
 
     function mapMonitors(server) {
         if (server.monitors && server.monitors.length > 0) {
@@ -184,6 +202,7 @@ function handleGSLBServer() {
                 product: server.serverType,
                 proberPreference: server.proberPreferred,
                 proberFallback: server.proberFallback,
+                proberPool: server.proberPool || 'none',
                 limitMaxBps: server.bpsLimit,
                 limitMaxBpsStatus: server.bpsLimitEnabled ? 'enabled' : 'disabled',
                 limitMaxPps: server.ppsLimit,
@@ -209,17 +228,59 @@ function handleGSLBServer() {
                 delete device.remark;
             });
 
-            promises.push(
-                this.bigIp.createOrModify(PATHS.GSLBServer, body, null, cloudUtil.MEDIUM_RETRY)
-            );
+            let method = 'create';
+            if (this.state.currentConfig.Common.GSLBServer
+                && this.state.currentConfig.Common.GSLBServer[server.name]) {
+                method = 'modify';
+            }
+
+            commands.push({
+                method,
+                path: method === 'create' ? PATHS.GSLBServer : `${PATHS.GSLBServer}/~${tenant}~${server.name}`,
+                body
+            });
         }
     });
 
-    return Promise.all(promises)
-        .catch((err) => {
-            logger.severe(`Error creating Servers: ${err.message}`);
-            throw err;
-        });
+    return commands;
+}
+
+function handleGSLBProberPool() {
+    const commands = [];
+
+    doUtil.forEach(this.declaration, 'GSLBProberPool', (tenant, proberPool) => {
+        if (proberPool && proberPool.name) {
+            const body = {
+                name: proberPool.name,
+                description: proberPool.remark || 'none',
+                enabled: proberPool.enabled,
+                disabled: !proberPool.enabled,
+                loadBalancingMode: proberPool.lbMode
+            };
+
+            body.members = (proberPool.members).map(member => ({
+                name: member.server,
+                description: member.remark || 'none',
+                enabled: member.enabled,
+                disabled: !member.enabled,
+                order: member.order
+            }));
+
+            let method = 'create';
+            if (this.state.currentConfig.Common.GSLBProberPool
+                && this.state.currentConfig.Common.GSLBProberPool[proberPool.name]) {
+                method = 'modify';
+            }
+
+            commands.push({
+                method,
+                path: method === 'create' ? PATHS.GSLBProberPool : `${PATHS.GSLBProberPool}/~${tenant}~${proberPool.name}`,
+                body
+            });
+        }
+    });
+
+    return commands;
 }
 
 module.exports = GSLBHandler;

@@ -190,8 +190,9 @@ describe('gslb.schema.json', () => {
                     ],
                     dataCenter: '/Common/gslbDataCenter',
                     enabled: false,
-                    proberPreferred: 'inside-datacenter',
-                    proberFallback: 'any-available',
+                    proberPreferred: 'pool',
+                    proberFallback: 'pool',
+                    proberPool: '/Common/gslbProberPool',
                     bpsLimit: 50,
                     bpsLimitEnabled: true,
                     ppsLimit: 60,
@@ -297,6 +298,18 @@ describe('gslb.schema.json', () => {
                 assert.strictEqual(validate(data), false);
                 assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
             });
+
+            it('should invalidate GSLBServer with proberPreferred value as pool and no proberPool', () => {
+                data.proberPreferred = 'pool';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'.proberPool\''), -1);
+            });
+
+            it('should invalidate GSLBServer with proberFallback value as pool and no proberPool', () => {
+                data.proberFallback = 'pool';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'.proberPool\''), -1);
+            });
         });
     });
 
@@ -364,6 +377,76 @@ describe('gslb.schema.json', () => {
                 assert.notStrictEqual(
                     getErrorString().indexOf('should have required property \'monitorType\''), -1
                 );
+            });
+        });
+    });
+
+    describe('GSLBProberPool class', () => {
+        describe('valid', () => {
+            it('should validate minimal properties', () => {
+                const data = {
+                    class: 'GSLBProberPool'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal member properties', () => {
+                const data = {
+                    class: 'GSLBProberPool',
+                    members: [
+                        {
+                            server: '/Common/gslbServer1'
+                        },
+                        {
+                            server: 'gslbServer2'
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all properties', () => {
+                const data = {
+                    class: 'GSLBProberPool',
+                    label: 'this is a test',
+                    remark: 'description',
+                    enabled: false,
+                    lbMode: 'round-robin',
+                    members: [
+                        {
+                            server: '/Common/gslbServer1',
+                            label: 'this is a member test 1',
+                            remark: 'member description 1',
+                            enabled: false
+                        },
+                        {
+                            server: 'gslbServer2',
+                            label: 'this is a member test 2',
+                            remark: 'member description 2',
+                            enabled: true
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            let data;
+
+            beforeEach(() => {
+                data = {
+                    class: 'GSLBProberPool',
+                    members: [{
+                        server: '/Common/gslbServer1'
+                    }]
+                };
+            });
+
+            it('should invalidate invalid lbMode value', () => {
+                data.lbMode = 'badValue';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
             });
         });
     });

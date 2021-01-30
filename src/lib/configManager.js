@@ -267,6 +267,10 @@ class ConfigManager {
                                         patchGSLBServer.call(this, patchedItem);
                                     }
 
+                                    if (schemaClass === 'GSLBProberPool') {
+                                        patchGSLBProberPool.call(this, patchedItem);
+                                    }
+
                                     if (patchedItem) {
                                         if (!currentConfig[schemaClass]) {
                                             currentConfig[schemaClass] = {};
@@ -425,6 +429,18 @@ class ConfigManager {
                         originalConfig.Common.Disk = {};
                     }
                     originalConfig.Common.Disk.applicationData = currentDisk.applicationData;
+                }
+
+                // Patch GSLB Prober Pool members after they've been dereferenced
+                const currentGSLBProberPool = state.currentConfig.Common.GSLBProberPool;
+                if (currentGSLBProberPool) {
+                    Object.keys(currentGSLBProberPool).forEach((key) => {
+                        (currentGSLBProberPool[key].members || []).forEach((member) => {
+                            member.enabled = isEnabledGtmObject(member);
+                            delete member.disabled;
+                        });
+                        (currentGSLBProberPool[key].members || []).sort((a, b) => a.order - b.order);
+                    });
                 }
 
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
@@ -922,6 +938,11 @@ function patchGSLBServer(patchedItem) {
 function patchGSLBMonitor(item) {
     // Pull the monitorType from kind before kind is deleted
     item.monitorType = item.kind.split(':')[3];
+}
+
+function patchGSLBProberPool(patchedItem) {
+    patchedItem.enabled = isEnabledGtmObject(patchedItem);
+    delete patchedItem.disabled;
 }
 
 /**
