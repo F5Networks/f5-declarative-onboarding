@@ -163,6 +163,7 @@
                             "RemoteAuthRole",
                             "Route",
                             "RouteDomain",
+                            "RouteMap",
                             "RoutingAsPath",
                             "RoutingPrefixList",
                             "SelfIp",

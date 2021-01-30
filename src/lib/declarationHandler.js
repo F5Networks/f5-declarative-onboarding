@@ -76,6 +76,7 @@ const CLASSES_OF_TRUTH = [
     'MirrorIp',
     'RoutingAsPath',
     'RoutingPrefixList',
+    'RouteMap',
     'GSLBGlobals',
     'GSLBDataCenter',
     'GSLBServer',
@@ -159,6 +160,7 @@ class DeclarationHandler {
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
                 applyGSLBServerFixes(parsedNewDeclaration);
+                applyRouteMapFixes(parsedNewDeclaration);
                 applyGSLBProberPoolFixes(parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
@@ -559,6 +561,47 @@ function applyGSLBServerFixes(declaration) {
         server.monitors = server.monitors || [];
         delete server.label;
     });
+}
+
+function applyRouteMapFixes(declaration) {
+    const routeMaps = (declaration.Common && declaration.Common.RouteMap) || {};
+    if (Object.keys(routeMaps).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RouteMap', (tenant, routeMap) => {
+        if (routeMap.entries) {
+            routeMap.entries.forEach((entry) => {
+                applyTenantPrefix(entry, 'match.asPath', tenant);
+                applyTenantPrefix(entry, 'match.ipv4.address.prefixList', tenant);
+                applyTenantPrefix(entry, 'match.ipv4.nextHop.prefixList', tenant);
+                applyTenantPrefix(entry, 'match.ipv6.address.prefixList', tenant);
+                applyTenantPrefix(entry, 'match.ipv6.nextHop.prefixList', tenant);
+            });
+        }
+    });
+}
+
+function applyTenantPrefix(obj, path, tenant) {
+    if (!obj || !path) {
+        return;
+    }
+
+    if (typeof path === 'string') {
+        path = path.split('.');
+    }
+
+    for (let i = 0; i < path.length - 1; i += 1) {
+        obj = obj[path[i]];
+        if (typeof obj === 'undefined') {
+            return;
+        }
+    }
+
+    const target = path.pop();
+    if (obj[target] && !obj[target].startsWith('/')) {
+        obj[target] = `/${tenant}/${obj[target]}`;
+    }
 }
 
 /**

@@ -310,6 +310,36 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }
             }
         ));
+
+        it('should match RouteMap', () => assert.deepStrictEqual(
+            currentState.RouteMap,
+            {
+                testRouteMap: {
+                    name: 'testRouteMap',
+                    entries: [
+                        {
+                            name: 33,
+                            action: 'permit',
+                            match: {
+                                asPath: '/Common/testRoutingAsPath1',
+                                ipv4: {
+                                    address: {
+                                        prefixList: '/Common/testRoutingPrefixList2'
+                                    },
+                                    nextHop: {}
+                                },
+                                ipv6: {
+                                    address: {
+                                        prefixList: '/Common/testRoutingPrefixList1'
+                                    },
+                                    nextHop: {}
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ));
     });
 
     describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {

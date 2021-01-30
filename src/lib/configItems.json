@@ -180,6 +180,27 @@
         }
     },
     {
+        "path": "/tm/net/routing/route-map",
+        "schemaClass": "RouteMap",
+        "properties": [
+            { "id": "name"},
+            { "id": "entriesReference"}
+        ],
+        "references": {
+            "entriesReference": [
+                { "id": "name", "stringToInt": true },
+                { "id": "action" },
+                { "id": "match",
+                  "transform": [
+                    { "id": "asPath" },
+                    { "id": "ipv4", "removeKeys": [ "peer" ] },
+                    { "id": "ipv6", "removeKeys": [ "peer" ] }
+                  ]
+                }
+            ]
+        }
+    },
+    {
         "path": "/tm/cm/device/~Common~{{deviceName}}",
         "schemaClass": "ConfigSync",
         "properties": [
