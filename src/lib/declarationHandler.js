@@ -79,7 +79,8 @@ const CLASSES_OF_TRUTH = [
     'GSLBGlobals',
     'GSLBDataCenter',
     'GSLBServer',
-    'GSLBMonitor'
+    'GSLBMonitor',
+    'GSLBProberPool'
 ];
 
 /**
@@ -158,6 +159,7 @@ class DeclarationHandler {
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
                 applyGSLBServerFixes(parsedNewDeclaration);
+                applyGSLBProberPoolFixes(parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
@@ -540,6 +542,9 @@ function applyGSLBServerFixes(declaration) {
         if (server.dataCenter.startsWith('/Common/')) {
             server.dataCenter = server.dataCenter.split('/Common/')[1];
         }
+        if (server.proberPool && server.proberPool.startsWith('/Common/')) {
+            server.proberPool = server.proberPool.split('/Common/')[1];
+        }
         server.devices = server.devices.map((device, i) => ({
             name: `${i}`,
             remark: device.remark,
@@ -553,6 +558,26 @@ function applyGSLBServerFixes(declaration) {
         }
         server.monitors = server.monitors || [];
         delete server.label;
+    });
+}
+
+/**
+ * Normalizes the GSLB Prober Pool section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyGSLBProberPoolFixes(declaration) {
+    const gslbProberPool = declaration.Common.GSLBProberPool || {};
+
+    Object.keys(gslbProberPool).forEach((name) => {
+        const proberPool = gslbProberPool[name];
+        proberPool.members = (proberPool.members || []).map((member, index) => ({
+            server: member.server.startsWith('/Common/') ? member.server.split('/Common/')[1] : member.server,
+            remark: member.remark,
+            enabled: member.enabled,
+            order: index
+        }));
+        delete proberPool.label;
     });
 }
 

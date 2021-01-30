@@ -590,17 +590,18 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             remark: 'GSLB server device description',
                             addresses: [
                                 {
-                                    name: '10.10.10.11',
+                                    name: '10.10.10.10',
                                     translation: '192.0.2.12'
                                 }
                             ]
                         }
                     ],
                     dataCenter: 'myDataCenter',
-                    serverType: 'generic-host',
+                    serverType: 'bigip',
                     enabled: false,
-                    proberPreferred: 'inside-datacenter',
+                    proberPreferred: 'pool',
                     proberFallback: 'any-available',
+                    proberPool: 'myGSLBProberPool',
                     bpsLimit: 10,
                     bpsLimitEnabled: true,
                     ppsLimit: 10,
@@ -619,6 +620,24 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     monitors: [
                         '/Common/http',
                         '/Common/myGSLBMonitor'
+                    ]
+                }
+            ));
+
+            it('should have created GSLB prober pool', () => assert.deepStrictEqual(
+                currentState.GSLBProberPool.myGSLBProberPool,
+                {
+                    name: 'myGSLBProberPool',
+                    remark: 'GSLB prober pool description',
+                    lbMode: 'round-robin',
+                    enabled: false,
+                    members: [
+                        {
+                            order: 0,
+                            server: 'myGSLBServer',
+                            remark: 'GSLB prober pool member description',
+                            enabled: false
+                        }
                     ]
                 }
             ));

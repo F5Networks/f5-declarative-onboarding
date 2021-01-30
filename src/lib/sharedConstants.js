@@ -75,7 +75,8 @@ module.exports = {
         GSLBGeneral: '/tm/gtm/global-settings/general',
         GSLBDataCenter: '/tm/gtm/datacenter',
         GSLBServer: '/tm/gtm/server',
-        GSLBMonitor: '/tm/gtm/monitor'
+        GSLBMonitor: '/tm/gtm/monitor',
+        GSLBProberPool: '/tm/gtm/prober-pool'
     },
     STATUS: {
         STATUS_OK: 'OK',

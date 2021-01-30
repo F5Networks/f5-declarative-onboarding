@@ -33,16 +33,17 @@
             "remark": "GSLB server description",
             "devices": [
                 {
-                    "address": "10.10.10.11",
+                    "address": "10.10.10.10",
                     "addressTranslation": "192.0.2.12",
                     "remark": "GSLB server device description"
                 }
             ],
             "dataCenter": "/Common/myDataCenter",
-            "serverType": "generic-host",
+            "serverType": "bigip",
             "enabled": false,
-            "proberPreferred": "inside-datacenter",
+            "proberPreferred": "pool",
             "proberFallback": "any-available",
+            "proberPool": "/Common/myGSLBProberPool",
             "bpsLimit": 10,
             "bpsLimitEnabled": true,
             "ppsLimit": 10,
@@ -61,6 +62,21 @@
             "monitors": [
                 "/Common/http",
                 "/Common/myGSLBMonitor"
+            ]
+        },
+        "myGSLBProberPool": {
+            "class": "GSLBProberPool",
+            "label": "Example of all GSLB prober pool properties",
+            "remark": "GSLB prober pool description",
+            "enabled": false,
+            "lbMode": "round-robin",
+            "members": [
+                {
+                    "server": "/Common/myGSLBServer",
+                    "label": "Example of all GSLB prober pool member properties",
+                    "remark": "GSLB prober pool member description",
+                    "enabled": false
+                }
             ]
         },
         "myGSLBMonitor": {

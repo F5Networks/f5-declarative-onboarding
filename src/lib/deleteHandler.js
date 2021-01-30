@@ -26,7 +26,7 @@ const AUTH = require('./sharedConstants').AUTH;
 const logger = new Logger(module);
 
 // This is an ordered list - objects will be deleted in this order
-const DELETABLE_CLASSES = ['DeviceGroup', 'DNS_Resolver', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute', 'Tunnel', 'RoutingAsPath', 'RoutingPrefixList', 'GSLBServer', 'GSLBDataCenter', 'GSLBMonitor'];
+const DELETABLE_CLASSES = ['DeviceGroup', 'DNS_Resolver', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute', 'Tunnel', 'RoutingAsPath', 'RoutingPrefixList', 'GSLBMonitor'];
 
 const READ_ONLY_DEVICE_GROUPS = ['device_trust_group', 'gtm', 'datasync-global-dg', 'dos-global-dg'];
 
@@ -92,6 +92,14 @@ class DeleteHandler {
         }
 
         const promises = [];
+
+        // Delete special GSLB item items first so that references to other items, such as
+        // GSLB Monitor, are not prematurely deleted
+        const gslbTransaction = getGSLBClassTransaction.call(this);
+        if (gslbTransaction) {
+            promises.push([gslbTransaction]);
+        }
+
         DELETABLE_CLASSES.forEach((deleteableClass) => {
             if (this.declaration.Common[deleteableClass]) {
                 const classPromises = [];
@@ -156,6 +164,29 @@ class DeleteHandler {
                 return Promise.resolve();
             });
     }
+}
+
+// Special handling for GSLB items that can reference one another in any order.
+function getGSLBClassTransaction() {
+    const GSLB_CLASSES = ['GSLBProberPool', 'GSLBServer', 'GSLBDataCenter'];
+    const transactionCommands = [];
+
+    GSLB_CLASSES.forEach((gslbClass) => {
+        if (this.declaration.Common[gslbClass]) {
+            Object.keys(this.declaration.Common[gslbClass]).forEach((itemToDelete) => {
+                transactionCommands.push({
+                    method: 'delete',
+                    path: `${PATHS[gslbClass]}/~Common~${itemToDelete}`
+                });
+            });
+        }
+    });
+
+    if (transactionCommands.length === 0) {
+        return null;
+    }
+
+    return this.bigIp.transaction(transactionCommands);
 }
 
 function getAuthClassPromises() {

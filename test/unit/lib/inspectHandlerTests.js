@@ -1003,8 +1003,9 @@ describe('inspectHandler', () => {
                     disabled: true,
                     enabled: false,
                     product: 'generic-host',
-                    proberPreference: 'inside-datacenter',
+                    proberPreference: 'pool',
                     proberFallback: 'outside-datacenter',
+                    proberPool: '/Common/testProberPool',
                     limitMaxBps: 1,
                     limitMaxBpsStatus: 'enabled',
                     limitMaxPps: 10,
@@ -1069,7 +1070,43 @@ describe('inspectHandler', () => {
                     timeout: 1000,
                     transparent: 'enabled'
                 }
-            ]
+            ],
+            '/tm/gtm/prober-pool': [
+                {
+                    name: 'currentGSLBProberPool',
+                    description: 'description',
+                    disabled: true,
+                    enabled: false,
+                    loadBalancingMode: 'round-robin',
+                    membersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/prober-pool/~Common~currentGSLBProberPool/members'
+                    }
+                },
+                {
+                    name: 'currentGSLBProberPoolNoMembers',
+                    loadBalancingMode: 'global-availability',
+                    membersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/prober-pool/~Common~currentGSLBProberPoolNoMembers/members'
+                    }
+                }
+            ],
+            '/tm/gtm/prober-pool/~Common~currentGSLBProberPool/members': [
+                {
+                    name: '/Common/serverOne',
+                    description: 'member description one',
+                    disabled: true,
+                    enabled: false,
+                    order: 0
+                },
+                {
+                    name: '/Common/serverTwo',
+                    description: 'member description two',
+                    disabled: false,
+                    enabled: true,
+                    order: 1
+                }
+            ],
+            '/tm/gtm/prober-pool/~Common~currentGSLBProberPoolNoMembers/members': []
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1590,8 +1627,9 @@ describe('inspectHandler', () => {
                             remark: 'description',
                             enabled: false,
                             serverType: 'generic-host',
-                            proberPreferred: 'inside-datacenter',
+                            proberPreferred: 'pool',
                             proberFallback: 'outside-datacenter',
+                            proberPool: 'testProberPool',
                             bpsLimit: 1,
                             bpsLimitEnabled: true,
                             ppsLimit: 10,
@@ -1638,6 +1676,30 @@ describe('inspectHandler', () => {
                             reverseEnabled: true,
                             send: 'HEAD / HTTP/1.0\\r\\n',
                             receive: 'HTTP'
+                        },
+                        currentGSLBProberPool: {
+                            class: 'GSLBProberPool',
+                            remark: 'description',
+                            enabled: false,
+                            lbMode: 'round-robin',
+                            members: [
+                                {
+                                    server: 'serverOne',
+                                    remark: 'member description one',
+                                    enabled: false
+                                },
+                                {
+                                    server: 'serverTwo',
+                                    remark: 'member description two',
+                                    enabled: true
+                                }
+                            ]
+                        },
+                        currentGSLBProberPoolNoMembers: {
+                            class: 'GSLBProberPool',
+                            enabled: true,
+                            lbMode: 'global-availability',
+                            members: []
                         }
                     }
                 }

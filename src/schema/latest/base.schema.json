@@ -183,7 +183,8 @@
                             "GSLBGlobals",
                             "GSLBDataCenter",
                             "GSLBServer",
-                            "GSLBMonitor"
+                            "GSLBMonitor",
+                            "GSLBProberPool"
                         ]
                     }
                 },

@@ -1837,7 +1837,8 @@ describe('configManager', () => {
                     limitMemAvail: 12,
                     limitMemAvailStatus: 'enabled',
                     proberFallback: 'any-available',
-                    proberPreference: 'inside-datacenter',
+                    proberPreference: 'pool',
+                    proberPool: '/Common/gslbProberPool',
                     product: 'generic-host',
                     virtualServerDiscovery: 'enabled',
                     devicesReference: {
@@ -1870,8 +1871,9 @@ describe('configManager', () => {
                                 remark: 'description',
                                 enabled: false,
                                 serverType: 'generic-host',
-                                proberPreferred: 'inside-datacenter',
+                                proberPreferred: 'pool',
                                 proberFallback: 'any-available',
+                                proberPool: 'gslbProberPool',
                                 bpsLimit: 50,
                                 bpsLimitEnabled: true,
                                 ppsLimit: 60,
@@ -2026,6 +2028,165 @@ describe('configManager', () => {
                         );
                     });
             });
+        });
+    });
+
+    describe('GSLBProberPool', () => {
+        it('should handle GSLBProberPool', () => {
+            const configItems = getConfigItems('GSLBProberPool');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/prober-pool'] = [
+                {
+                    name: 'gslbProberPool',
+                    description: 'description',
+                    disabled: true,
+                    loadBalancingMode: 'round-robin',
+                    membersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/prober-pool/~Common~gslbProberPool/members'
+                    }
+                }
+            ];
+            listResponses['/tm/gtm/prober-pool/~Common~gslbProberPool/members'] = [
+                {
+                    name: '/Common/serverOne',
+                    description: 'member description one',
+                    disabled: true,
+                    enabled: false,
+                    order: 1
+                },
+                {
+                    name: '/Common/serverTwo',
+                    description: 'member description two',
+                    disabled: false,
+                    enabled: true,
+                    order: 0
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBProberPool,
+                        {
+                            gslbProberPool: {
+                                name: 'gslbProberPool',
+                                remark: 'description',
+                                enabled: false,
+                                lbMode: 'round-robin',
+                                members: [
+                                    {
+                                        server: 'serverTwo',
+                                        remark: 'member description two',
+                                        enabled: true,
+                                        order: 0
+                                    },
+                                    {
+                                        server: 'serverOne',
+                                        remark: 'member description one',
+                                        enabled: false,
+                                        order: 1
+                                    }
+                                ]
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should handle alternative GSLBProberPool enable/disable values', () => {
+            const configItems = getConfigItems('GSLBProberPool');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/prober-pool'] = [
+                {
+                    name: 'proberPoolEnabledStringVal',
+                    enabled: 'True'
+                },
+                {
+                    name: 'proberPoolDisabledStringVal',
+                    disabled: 'False'
+                },
+                {
+                    name: 'proberPoolNoVal'
+                }
+            ];
+
+            const getExpected = name => ({
+                name,
+                enabled: true
+            });
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBProberPool,
+                        {
+                            proberPoolEnabledStringVal: getExpected('proberPoolEnabledStringVal'),
+                            proberPoolDisabledStringVal: getExpected('proberPoolDisabledStringVal'),
+                            proberPoolNoVal: getExpected('proberPoolNoVal')
+                        }
+                    );
+                });
+        });
+
+        it('should handle alternative GSLBProberPool member enable/disable values', () => {
+            const configItems = getConfigItems('GSLBProberPool');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/prober-pool'] = [
+                {
+                    name: 'gslbProberPool',
+                    membersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/prober-pool/~Common~gslbProberPool/members'
+                    }
+                }
+            ];
+            listResponses['/tm/gtm/prober-pool/~Common~gslbProberPool/members'] = [
+                {
+                    name: '/Common/memberEnabledStringVal',
+                    enabled: 'True'
+                },
+                {
+                    name: '/Common/memberDisabledStringVal',
+                    disabled: 'False'
+                },
+                {
+                    name: '/Common/memberNoVal'
+                }
+            ];
+
+            const getExpected = server => ({
+                server,
+                enabled: true
+            });
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBProberPool,
+                        {
+                            gslbProberPool: {
+                                name: 'gslbProberPool',
+                                enabled: true,
+                                members: [
+                                    getExpected('memberEnabledStringVal'),
+                                    getExpected('memberDisabledStringVal'),
+                                    getExpected('memberNoVal')
+                                ]
+                            }
+                        }
+                    );
+                });
         });
     });
 });

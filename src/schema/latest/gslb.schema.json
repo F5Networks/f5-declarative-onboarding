@@ -35,6 +35,14 @@
                 "properties": { "class": { "const": "GSLBMonitor" } }
             },
             "then": { "$ref": "#/definitions/gslbMonitor" }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "GSLBProberPool" } }
+            },
+            "then": { "$ref": "#/definitions/gslbProberPool" }
         }
     ],
     "definitions": {
@@ -175,7 +183,7 @@
                     "description": "Specifies the type of prober to use to monitor servers defined in this data center. The default value is inherit. Note: Prober pools are not used by the bigip monitor",
                     "type": "string",
                     "enum": [
-                        "inherit", "inside-datacenter", "outside-datacenter"
+                        "inherit", "inside-datacenter", "outside-datacenter", "pool"
                     ],
                     "default": "inherit"
                 },
@@ -183,9 +191,13 @@
                     "description": "Specifies the type of prober to use to monitor servers defined in this data center when the preferred type is not available. The default value is inherit",
                     "type": "string",
                     "enum": [
-                       "inherit", "any-available", "inside-datacenter", "none", "outside-datacenter"
+                       "inherit", "any-available", "inside-datacenter", "none", "outside-datacenter", "pool"
                     ],
                     "default": "inherit"
+                },
+                "proberPool": {
+                    "description": "Specifies the name of a prober pool to use to monitor this server's resources when either the proberPreferred or proberFallback value is pool",
+                    "type": "string"
                 },
                 "dataCenter": {
                     "description": "Specifies the GSLB data center to which the server belongs",
@@ -288,6 +300,16 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            },
+            "dependencies": {
+                "proberPreferred": {
+                    "if": { "properties": { "proberPreferred": { "const": "pool" } } },
+                    "then": { "required": [ "proberPool" ] }
+                },
+                "proberFallback": {
+                    "if": { "properties": { "proberFallback": { "const": "pool" } } },
+                    "then": { "required": [ "proberPool" ] }
                 }
             },
             "additionalProperties": false
@@ -401,6 +423,69 @@
                     "default": "HTTP/1."
                 }
             }
+        },
+        "gslbProberPool": {
+            "description": "Declares a pool of BIG-IP devices that will monitor server resources for health and performance. Note: Prober pools are not used by the bigip monitor",
+            "type": "object",
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains GSLB Prober Pool configuration",
+                    "type": "string",
+                    "const": "GSLBProberPool"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "enabled": {
+                    "description": "Specifies whether this pool is available for conducting probes",
+                    "type": "boolean",
+                    "default": true
+                },
+                "lbMode": {
+                    "description": "Specifies the load balancing mode that the system uses to select the members of this pool",
+                    "type": "string",
+                    "enum": [
+                        "global-availability",
+                        "round-robin"
+                    ],
+                    "default": "global-availability"
+                },
+                "members": {
+                    "description": "Specifies the members of the prober pool",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/gslbProberPoolMember"
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "gslbProberPoolMember": {
+            "description": "Declares member of the GSLB prober pool",
+            "type": "object",
+            "required": [ "server" ],
+            "properties": {
+                "server": {
+                    "description": "Specifies the GSLB Server name of the pool member",
+                    "type": "string"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "enabled": {
+                    "description": "Specifies whether the server can be used as a member of a prober pool",
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "additionalProperties": false
         }
     }
 }

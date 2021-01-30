@@ -653,13 +653,21 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
-    it('should delete a GSLBMonitor, a GSLBDataCenter and a GSLBServer in that order', () => {
+    it('should delete GSLBProberPool, GSLBDataCenter, GSLBServer, and GSLBMonitor', () => {
         const state = {
             currentConfig: {
                 Common: {
+                    GSLBProberPool: {
+                        gslbProberPool: {
+                            name: 'gslbProberPool',
+                            members: [{
+                                server: 'gslbServer'
+                            }]
+                        }
+                    },
                     GSLBServer: {
                         gslbServer: {
-                            name: ' gslbServer',
+                            name: 'gslbServer',
                             dataCenter: '/Common/gslbDataCenter',
                             devices: [{
                                 address: '10.0.0.1'
@@ -670,6 +678,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
                         gslbDataCenter: {
                             name: 'gslbDataCenter'
                         }
+                    },
+                    GSLBMonitor: {
+                        gslbMonitor: {
+                            name: 'gslbMonitor',
+                            monitorType: 'http'
+                        }
                     }
                 }
             }
@@ -677,11 +691,17 @@ describe(('deleteHandler'), function testDeleteHandler() {
 
         const declaration = {
             Common: {
+                GSLBProberPool: {
+                    gslbProberPool: {}
+                },
                 GSLBServer: {
                     gslbServer: {}
                 },
                 GSLBDataCenter: {
                     gslbDataCenter: {}
+                },
+                GSLBMonitor: {
+                    gslbMonitor: {}
                 }
             }
         };
@@ -689,9 +709,15 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
         return deleteHandler.process()
             .then(() => {
-                assert.strictEqual(deletedPaths.length, 2);
-                assert.strictEqual(deletedPaths[0], '/tm/gtm/server/~Common~gslbServer');
-                assert.strictEqual(deletedPaths[1], '/tm/gtm/datacenter/~Common~gslbDataCenter');
+                assert.strictEqual(deletedPaths.length, 4);
+                assert.strictEqual(deletedPaths[0], '/tm/gtm/prober-pool/~Common~gslbProberPool');
+                assert.strictEqual(deletedPaths[1], '/tm/gtm/server/~Common~gslbServer');
+                assert.strictEqual(deletedPaths[2], '/tm/gtm/datacenter/~Common~gslbDataCenter');
+                assert.strictEqual(deletedPaths[3], '/tm/gtm/monitor/http/~Common~gslbMonitor');
+                assert.strictEqual(transactionDeletedPaths.length, 3);
+                assert.strictEqual(transactionDeletedPaths[0], '/tm/gtm/prober-pool/~Common~gslbProberPool');
+                assert.strictEqual(transactionDeletedPaths[1], '/tm/gtm/server/~Common~gslbServer');
+                assert.strictEqual(transactionDeletedPaths[2], '/tm/gtm/datacenter/~Common~gslbDataCenter');
             });
     });
 
