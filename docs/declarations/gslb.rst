@@ -28,8 +28,8 @@ This example only includes the GSLBGlobals class, which can be used as a part of
 
 .. _gslbdc:
 
-Configuring a GSLB Data Center in a declaration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Configuring a GSLB Data Center
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for configuring GSLB Data Centers in a declaration is available in DO v1.18 and later. 
@@ -51,8 +51,8 @@ This example only includes the GSLBDataCenter class, which can be used as a part
 
 .. _gslbserver:
 
-Configuring a GSLB server in a declaration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Configuring a GSLB server
+^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for configuring GSLB Servers in a declaration is available in DO v1.18 and later. 
@@ -69,6 +69,29 @@ This example only includes the GSLBServer and GSLB Data Center classes, which ca
    :language: json
 
 |
+
+.. _monitor:
+
+Configuring a GSLB HTTP health monitor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring HTTP GSLB health monitors is available in DO v1.19 and later. 
+
+In this example, we show how you can configure an HTTP GSLB health monitor in a Declarative Onboarding declaration.
+
+For information on BIG-IP DNS, including GSLB Servers, see the |dns| for your BIG-IP version.
+
+For details on the available properties and DO usage, see |gslbserver| in the Schema Reference.  
+
+This example only includes the GSLBServer and GSLB Data Center classes, which can be used as a part of a larger DO declaration.
+
+.. literalinclude:: ../../examples/gslbServer.json
+   :language: json
+
+|
+
+
 
 .. |dns| raw:: html
 
