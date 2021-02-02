@@ -540,7 +540,8 @@
                             },
                             "required": ["name", "regex"],
                             "additionalProperties": false
-                        }
+                        },
+                        "default": []
                     }
                 },
                 "additionalProperties": false
@@ -589,6 +590,134 @@
                                     "minimum": 0,
                                     "maximum": 128,
                                     "default": 0
+                                }
+                            },
+                            "required": ["name", "action"],
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RouteMap" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains route map configuration.",
+                        "type": "string",
+                        "const": "RouteMap"
+                    },
+                    "entries": {
+                        "description": "An array that holds action to take when corresponding entries are matched.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "description": "Name of the entity",
+                                    "type": "integer"
+                                },
+                                "action": {
+                                    "description": "An action to take",
+                                    "type": "string",
+                                    "enum": [
+                                        "permit",
+                                        "deny"
+                                    ]
+                                },
+                                "match": {
+                                    "description": "AS path and addresses to match",
+                                    "type": "object",
+                                    "properties": {
+                                        "asPath": {
+                                            "description": "RoutingAsPath to match.  Defines a BGP AS path access list.",
+                                            "type": "string"
+                                        },
+                                        "ipv4": {
+                                            "description": "IPv4 to match",
+                                            "type": "object",
+                                            "properties": {
+                                                "address": {
+                                                    "description": "IPv4 addresses to match",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "prefixList": {
+                                                            "description": "RoutingPrefixList to match",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "default": {}
+                                                },
+                                                "nextHop": {
+                                                    "description": "IPv4 next hops to match",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "prefixList": {
+                                                            "description": "RoutingPrefixList to match",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "default": {}
+                                                }
+                                            },
+                                            "default": {
+                                                    "address": {},
+                                                    "nextHop": {}
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        "ipv6": {
+                                            "description": "IPv6 to match",
+                                            "type": "object",
+                                            "properties": {
+                                                "address": {
+                                                    "description": "IPv6 addresses to match",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "prefixList": {
+                                                            "description": "RoutingPrefixList to match",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "default": {}
+                                                },
+                                                "nextHop": {
+                                                    "description": "IPv6 next hops to match",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "prefixList": {
+                                                            "description": "RoutingPrefixList to match",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "default": {}
+                                                }
+                                            },
+                                            "default": {
+                                                "address": {},
+                                                "nextHop": {}
+                                            },
+                                            "additionalProperties": false
+                                        }
+                                    },
+                                    "default": {
+                                        "ipv4": {
+                                            "address": {},
+                                            "nextHop": {}
+                                        },
+                                        "ipv6": {
+                                            "address": {},
+                                            "nextHop": {}
+                                        }
+                                    },
+                                    "additionalProperties": false
                                 }
                             },
                             "required": ["name", "action"],

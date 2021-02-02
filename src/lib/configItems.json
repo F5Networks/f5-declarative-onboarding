@@ -180,6 +180,27 @@
         }
     },
     {
+        "path": "/tm/net/routing/route-map",
+        "schemaClass": "RouteMap",
+        "properties": [
+            { "id": "name"},
+            { "id": "entriesReference"}
+        ],
+        "references": {
+            "entriesReference": [
+                { "id": "name", "stringToInt": true },
+                { "id": "action" },
+                { "id": "match",
+                  "transform": [
+                    { "id": "asPath" },
+                    { "id": "ipv4", "removeKeys": [ "peer" ] },
+                    { "id": "ipv6", "removeKeys": [ "peer" ] }
+                  ]
+                }
+            ]
+        }
+    },
+    {
         "path": "/tm/cm/device/~Common~{{deviceName}}",
         "schemaClass": "ConfigSync",
         "properties": [
@@ -662,29 +683,31 @@
         "schemaClass": "GSLBServer",
         "requiredModule": "gtm",
         "properties": [
-            { "id":"description", "newId": "remark" },
-            { "id":"enabled" },
-            { "id":"disabled" },
-            { "id":"product", "newId": "serverType" },
-            { "id":"proberPreference", "newId": "proberPreferred" },
-            { "id":"proberFallback" },
-            { "id":"limitMaxBps", "newId": "bpsLimit" },
-            { "id":"limitMaxBpsStatus", "newId": "bpsLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"limitMaxPps", "newId": "ppsLimit" },
-            { "id":"limitMaxPpsStatus", "newId": "ppsLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"limitMaxConnections", "newId": "connectionsLimit" },
-            { "id":"limitMaxConnectionsStatus", "newId": "connectionsLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"limitCpuUsage", "newId": "cpuUsageLimit" },
-            { "id":"limitCpuUsageStatus", "newId": "cpuUsageLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"limitMemAvail", "newId": "memoryLimit" },
-            { "id":"limitMemAvailStatus", "newId": "memoryLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"iqAllowServiceCheck", "newId": "serviceCheckProbeEnabled", "truth": "yes", "falsehood": "no" },
-            { "id":"iqAllowPath", "newId": "pathProbeEnabled", "truth": "yes", "falsehood": "no" },
-            { "id":"iqAllowSnmp", "newId": "snmpProbeEnabled", "truth": "yes", "falsehood": "no" },
-            { "id":"datacenter", "newId": "dataCenter" },
-            { "id":"devicesReference" },
-            { "id":"exposeRouteDomains", "newId": "exposeRouteDomainsEnabled", "truth": "yes", "falsehood": "no" },
-            { "id":"virtualServerDiscovery", "newId": "virtualServerDiscoveryMode" }
+            { "id": "description", "newId": "remark" },
+            { "id": "enabled" },
+            { "id": "disabled" },
+            { "id": "product", "newId": "serverType" },
+            { "id": "proberPreference", "newId": "proberPreferred" },
+            { "id": "proberFallback" },
+            { "id": "proberPool" },
+            { "id": "limitMaxBps", "newId": "bpsLimit" },
+            { "id": "limitMaxBpsStatus", "newId": "bpsLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "limitMaxPps", "newId": "ppsLimit" },
+            { "id": "limitMaxPpsStatus", "newId": "ppsLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "limitMaxConnections", "newId": "connectionsLimit" },
+            { "id": "limitMaxConnectionsStatus", "newId": "connectionsLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "limitCpuUsage", "newId": "cpuUsageLimit" },
+            { "id": "limitCpuUsageStatus", "newId": "cpuUsageLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "limitMemAvail", "newId": "memoryLimit" },
+            { "id": "limitMemAvailStatus", "newId": "memoryLimitEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "iqAllowServiceCheck", "newId": "serviceCheckProbeEnabled", "truth": "yes", "falsehood": "no" },
+            { "id": "iqAllowPath", "newId": "pathProbeEnabled", "truth": "yes", "falsehood": "no" },
+            { "id": "iqAllowSnmp", "newId": "snmpProbeEnabled", "truth": "yes", "falsehood": "no" },
+            { "id": "datacenter", "newId": "dataCenter" },
+            { "id": "devicesReference" },
+            { "id": "exposeRouteDomains", "newId": "exposeRouteDomainsEnabled", "truth": "yes", "falsehood": "no" },
+            { "id": "virtualServerDiscovery", "newId": "virtualServerDiscoveryMode" },
+            { "id": "monitor", "newId": "monitors", "retainCommon": true }
         ],
         "references": {
             "devicesReference": [
@@ -701,6 +724,50 @@
         "declaration": {
             "customFunctions": [
                 { "id": "formatGSLBServer" }
+            ]
+        }
+    },
+    {
+        "path": "/tm/gtm/monitor/http",
+        "schemaClass": "GSLBMonitor",
+        "requiredModule": "gtm",
+        "properties": [
+            { "id":"kind" },
+            { "id":"description", "newId": "remark" },
+            { "id":"destination", "newId": "target" },
+            { "id":"interval" },
+            { "id":"timeout" },
+            { "id":"probeTimeout" },
+            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"send" },
+            { "id":"recv", "newId": "receive" }
+        ]
+    },
+    {
+        "path": "/tm/gtm/prober-pool",
+        "schemaClass": "GSLBProberPool",
+        "requiredModule": "gtm",
+        "properties": [
+            { "id": "description", "newId": "remark" },
+            { "id": "enabled" },
+            { "id": "disabled" },
+            { "id": "loadBalancingMode", "newId": "lbMode" },
+            { "id": "membersReference" }
+        ],
+        "references": {
+            "membersReference": [
+                { "id": "name", "newId": "server" },
+                { "id": "description", "newId": "remark" },
+                { "id": "enabled" },
+                { "id": "disabled" },
+                { "id": "order" }
+            ]
+        },
+        "declaration": {
+            "customFunctions": [
+                { "id": "formatGSLBProberPool" }
             ]
         }
     }

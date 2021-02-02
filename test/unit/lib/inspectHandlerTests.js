@@ -668,6 +668,39 @@ describe('inspectHandler', () => {
                     prefixLenRange: '24'
                 }
             ],
+            '/tm/net/routing/route-map': [
+                {
+                    name: 'exampleRouteMap',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleRouteMap/entries?ver=14.1.2.8'
+                    }
+                }
+            ],
+            '/tm/net/routing/route-map/~Common~exampleRouteMap/entries': [
+                {
+                    name: 44,
+                    action: 'permit',
+                    match: {
+                        asPath: '/Common/aspath',
+                        ipv4: {
+                            address: {
+                                prefixList: '/Common/prefixlist1'
+                            },
+                            nextHop: {
+                                prefixList: '/Common/prefixlist2'
+                            }
+                        },
+                        ipv6: {
+                            address: {
+                                prefixList: '/Common/prefixlist3'
+                            },
+                            nextHop: {
+                                prefixList: '/Common/prefixlist4'
+                            }
+                        }
+                    }
+                }
+            ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
@@ -1003,8 +1036,9 @@ describe('inspectHandler', () => {
                     disabled: true,
                     enabled: false,
                     product: 'generic-host',
-                    proberPreference: 'inside-datacenter',
+                    proberPreference: 'pool',
                     proberFallback: 'outside-datacenter',
+                    proberPool: '/Common/testProberPool',
                     limitMaxBps: 1,
                     limitMaxBpsStatus: 'enabled',
                     limitMaxPps: 10,
@@ -1023,7 +1057,8 @@ describe('inspectHandler', () => {
                         link: 'https://localhost/mgmt/tm/gtm/server/~Common~currentGSLBServer/devices'
                     },
                     exposeRouteDomains: 'yes',
-                    virtualServerDiscovery: 'enabled'
+                    virtualServerDiscovery: 'enabled',
+                    monitor: '/Common/http and /Common/http_head_f5'
                 }
             ],
             '/tm/gtm/server/~Common~currentGSLBServer/devices': [
@@ -1047,7 +1082,64 @@ describe('inspectHandler', () => {
                         }
                     ]
                 }
-            ]
+            ],
+            '/tm/gtm/monitor/http': [
+                {
+                    kind: 'tm:gtm:monitor:http:httpstate',
+                    name: 'currentGSLBMonitor',
+                    partition: 'Common',
+                    fullPath: '/Common/currentGSLBMonitor',
+                    generation: 0,
+                    selfLink: 'https://localhost/mgmt/tm/gtm/monitor/http/~Common~currentGSLBMonitor?ver=15.1.2',
+                    defaultsFrom: '/Common/http',
+                    description: 'description',
+                    destination: '1.1.1.1:80',
+                    ignoreDownResponse: 'enabled',
+                    interval: 100,
+                    probeTimeout: 110,
+                    recv: 'HTTP',
+                    reverse: 'enabled',
+                    send: 'HEAD / HTTP/1.0\\r\\n',
+                    timeout: 1000,
+                    transparent: 'enabled'
+                }
+            ],
+            '/tm/gtm/prober-pool': [
+                {
+                    name: 'currentGSLBProberPool',
+                    description: 'description',
+                    disabled: true,
+                    enabled: false,
+                    loadBalancingMode: 'round-robin',
+                    membersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/prober-pool/~Common~currentGSLBProberPool/members'
+                    }
+                },
+                {
+                    name: 'currentGSLBProberPoolNoMembers',
+                    loadBalancingMode: 'global-availability',
+                    membersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/prober-pool/~Common~currentGSLBProberPoolNoMembers/members'
+                    }
+                }
+            ],
+            '/tm/gtm/prober-pool/~Common~currentGSLBProberPool/members': [
+                {
+                    name: '/Common/serverOne',
+                    description: 'member description one',
+                    disabled: true,
+                    enabled: false,
+                    order: 0
+                },
+                {
+                    name: '/Common/serverTwo',
+                    description: 'member description two',
+                    disabled: false,
+                    enabled: true,
+                    order: 1
+                }
+            ],
+            '/tm/gtm/prober-pool/~Common~currentGSLBProberPoolNoMembers/members': []
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1218,6 +1310,34 @@ describe('inspectHandler', () => {
                                     action: 'deny',
                                     prefix: '1111:2222:3333:4444::/64',
                                     prefixLengthRange: 24
+                                }
+                            ]
+                        },
+                        exampleRouteMap: {
+                            class: 'RouteMap',
+                            entries: [
+                                {
+                                    name: 44,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/aspath',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: '/Common/prefixlist1'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixlist2'
+                                            }
+                                        },
+                                        ipv6: {
+                                            address: {
+                                                prefixList: '/Common/prefixlist3'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixlist4'
+                                            }
+                                        }
+                                    }
                                 }
                             ]
                         },
@@ -1568,8 +1688,9 @@ describe('inspectHandler', () => {
                             remark: 'description',
                             enabled: false,
                             serverType: 'generic-host',
-                            proberPreferred: 'inside-datacenter',
+                            proberPreferred: 'pool',
                             proberFallback: 'outside-datacenter',
+                            proberPool: 'testProberPool',
                             bpsLimit: 1,
                             bpsLimitEnabled: true,
                             ppsLimit: 10,
@@ -1597,7 +1718,49 @@ describe('inspectHandler', () => {
                                 }
                             ],
                             exposeRouteDomainsEnabled: true,
-                            virtualServerDiscoveryMode: 'enabled'
+                            virtualServerDiscoveryMode: 'enabled',
+                            monitors: [
+                                '/Common/http',
+                                '/Common/http_head_f5'
+                            ]
+                        },
+                        currentGSLBMonitor: {
+                            class: 'GSLBMonitor',
+                            remark: 'description',
+                            monitorType: 'http',
+                            target: '1.1.1.1:80',
+                            interval: 100,
+                            timeout: 1000,
+                            probeTimeout: 110,
+                            ignoreDownResponseEnabled: true,
+                            transparent: true,
+                            reverseEnabled: true,
+                            send: 'HEAD / HTTP/1.0\\r\\n',
+                            receive: 'HTTP'
+                        },
+                        currentGSLBProberPool: {
+                            class: 'GSLBProberPool',
+                            remark: 'description',
+                            enabled: false,
+                            lbMode: 'round-robin',
+                            members: [
+                                {
+                                    server: 'serverOne',
+                                    remark: 'member description one',
+                                    enabled: false
+                                },
+                                {
+                                    server: 'serverTwo',
+                                    remark: 'member description two',
+                                    enabled: true
+                                }
+                            ]
+                        },
+                        currentGSLBProberPoolNoMembers: {
+                            class: 'GSLBProberPool',
+                            enabled: true,
+                            lbMode: 'global-availability',
+                            members: []
                         }
                     }
                 }

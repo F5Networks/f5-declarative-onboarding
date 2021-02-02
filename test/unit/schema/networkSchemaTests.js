@@ -778,6 +778,16 @@ describe('network.schema.json', () => {
 
     describe('RoutingAsPath', () => {
         describe('valid', () => {
+            it('should validate minimal declaration', () => {
+                const data = {
+                    class: 'RoutingAsPath'
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert(Array.isArray(data.entries), 'entries should be an array');
+                assert(Object.keys(data.entries.length === 0, 'entries should be empty'));
+            });
+
             it('should validate a full entries declaration', () => {
                 const data = {
                     class: 'RoutingAsPath',
@@ -823,6 +833,278 @@ describe('network.schema.json', () => {
         });
     });
 
+    describe('RouteMap', () => {
+        describe('valid', () => {
+            it('should validate minimal declaration', () => {
+                const data = {
+                    class: 'RouteMap'
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert(Array.isArray(data.entries), 'entries should be an array');
+                assert(Object.keys(data.entries.length === 0, 'entries should be empty'));
+            });
+
+            it('should supply default for missing match', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert(Object.keys(data.entries[0].match.ipv4.address).length === 0, 'ipv4.address should be empty object');
+                assert(Object.keys(data.entries[0].match.ipv4.nextHop).length === 0, 'ipv4.nextHop should be empty object');
+                assert(Object.keys(data.entries[0].match.ipv6.address).length === 0, 'ipv6.address should be empty object');
+                assert(Object.keys(data.entries[0].match.ipv6.nextHop).length === 0, 'ipv6.nextHop should be empty object');
+            });
+
+            it('should supply defaults for missing ipv4 and ipv6', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            match: {}
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert(Object.keys(data.entries[0].match.ipv4.address).length === 0, 'ipv4.address should be empty object');
+                assert(Object.keys(data.entries[0].match.ipv4.nextHop).length === 0, 'ipv4.nextHop should be empty object');
+                assert(Object.keys(data.entries[0].match.ipv6.address).length === 0, 'ipv6.address should be empty object');
+                assert(Object.keys(data.entries[0].match.ipv6.nextHop).length === 0, 'ipv6.nextHop should be empty object');
+            });
+
+            it('should supply defaults for empty ipv4 and ipv6', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            match: {
+                                ipv4: {},
+                                ipv6: {}
+                            }
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert(Object.keys(data.entries[0].match.ipv4.address).length === 0, 'ipv4.address should be empty object');
+                assert(Object.keys(data.entries[0].match.ipv4.nextHop).length === 0, 'ipv4.nextHop should be empty object');
+                assert(Object.keys(data.entries[0].match.ipv6.address).length === 0, 'ipv6.address should be empty object');
+                assert(Object.keys(data.entries[0].match.ipv6.nextHop).length === 0, 'ipv6.nextHop should be empty object');
+            });
+
+            it('should validate a full entries declaration', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            match: {
+                                asPath: 'aspath0',
+                                ipv4: {
+                                    address: {
+                                        prefixList: 'aspath1'
+                                    },
+                                    nextHop: {
+                                        prefixList: 'aspath2'
+                                    }
+                                },
+                                ipv6: {
+                                    address: {
+                                        prefixList: 'aspath3'
+                                    },
+                                    nextHop: {
+                                        prefixList: 'aspath4'
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            name: 30,
+                            action: 'deny',
+                            match: {
+                                asPath: 'aspath5',
+                                ipv4: {
+                                    address: {
+                                        prefixList: 'aspath6'
+                                    },
+                                    nextHop: {
+                                        prefixList: 'aspath7'
+                                    }
+                                },
+                                ipv6: {
+                                    address: {
+                                        prefixList: 'aspath8'
+                                    },
+                                    nextHop: {
+                                        prefixList: 'aspath9'
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate if asPath is not provided', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            match: {
+                                ipv4: {
+                                    address: {
+                                        prefixList: 'aspath1'
+                                    },
+                                    nextHop: {
+                                        prefixList: 'aspath2'
+                                    }
+                                },
+                                ipv6: {
+                                    address: {
+                                        prefixList: 'aspath3'
+                                    },
+                                    nextHop: {
+                                        prefixList: 'aspath4'
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate if ipv4 is not provided', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            match: {
+                                asPath: 'aspath0',
+                                ipv6: {
+                                    address: {
+                                        prefixList: 'aspath3'
+                                    },
+                                    nextHop: {
+                                        prefixList: 'aspath4'
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate if ipv6 is not provided', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            match: {
+                                asPath: 'aspath0',
+                                ipv4: {
+                                    address: {
+                                        prefixList: 'aspath1'
+                                    },
+                                    nextHop: {
+                                        prefixList: 'aspath2'
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate empty entries property', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: []
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+        describe('invalid', () => {
+            it('should fail if no name is provided', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: [
+                        {
+                            action: 'permit',
+                            match: {
+                                asPath: 'aspath0',
+                                ipv4: {
+                                    addressPrefixList: 'aspath1',
+                                    nextHopPrefixList: 'aspath2'
+                                },
+                                ipv6: {
+                                    addressPrefixList: 'aspath3',
+                                    nextHopPrefixList: 'aspath4'
+                                }
+                            }
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if name is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'name\''), -1,
+                    `Errored but not because of the missing name:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if no action is provided', () => {
+                const data = {
+                    class: 'RouteMap',
+                    entries: [
+                        {
+                            name: 20,
+                            match: {
+                                asPath: 'aspath0',
+                                ipv4: {
+                                    addressPrefixList: 'aspath1',
+                                    nextHopPrefixList: 'aspath2'
+                                },
+                                ipv6: {
+                                    addressPrefixList: 'aspath3',
+                                    nextHopPrefixList: 'aspath4'
+                                }
+                            }
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if action is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'action\''), -1,
+                    `Errored but not because of the missing action:\n${getErrorString()}`
+                );
+            });
+        });
+    });
+
     describe('RoutingPrefixList', () => {
         describe('valid', () => {
             it('should validate minimal declaration', () => {
@@ -831,6 +1113,8 @@ describe('network.schema.json', () => {
                 };
 
                 assert.ok(validate(data), getErrorString(validate));
+                assert(Array.isArray(data.entries), 'entries should be an array');
+                assert(Object.keys(data.entries.length === 0, 'entries should be empty'));
             });
 
             it('should validate a full entries declaration', () => {

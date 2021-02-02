@@ -412,6 +412,14 @@ const customFunctions = {
             remark: device.remark
         }));
         return [configKey, configObject];
+    },
+    // GSLB Prober Pool item
+    formatGSLBProberPool: (configKey, configObject) => {
+        // Order is determined automatically by array order in the schema and the property is not needed
+        configObject.members.forEach((member) => {
+            delete member.order;
+        });
+        return [configKey, configObject];
     }
 };
 

@@ -27,6 +27,22 @@
                 "properties": { "class": { "const": "GSLBServer" } }
             },
             "then": { "$ref": "#/definitions/gslbServer" }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "GSLBMonitor" } }
+            },
+            "then": { "$ref": "#/definitions/gslbMonitor" }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "GSLBProberPool" } }
+            },
+            "then": { "$ref": "#/definitions/gslbProberPool" }
         }
     ],
     "definitions": {
@@ -167,7 +183,7 @@
                     "description": "Specifies the type of prober to use to monitor servers defined in this data center. The default value is inherit. Note: Prober pools are not used by the bigip monitor",
                     "type": "string",
                     "enum": [
-                        "inherit", "inside-datacenter", "outside-datacenter"
+                        "inherit", "inside-datacenter", "outside-datacenter", "pool"
                     ],
                     "default": "inherit"
                 },
@@ -175,9 +191,13 @@
                     "description": "Specifies the type of prober to use to monitor servers defined in this data center when the preferred type is not available. The default value is inherit",
                     "type": "string",
                     "enum": [
-                       "inherit", "any-available", "inside-datacenter", "none", "outside-datacenter"
+                       "inherit", "any-available", "inside-datacenter", "none", "outside-datacenter", "pool"
                     ],
                     "default": "inherit"
+                },
+                "proberPool": {
+                    "description": "Specifies the name of a prober pool to use to monitor this server's resources when either the proberPreferred or proberFallback value is pool",
+                    "type": "string"
                 },
                 "dataCenter": {
                     "description": "Specifies the GSLB data center to which the server belongs",
@@ -273,6 +293,23 @@
                     "description": "Specifies whether this BIG-IP device will be used to conduct a SNMP probe before traffic will be delegated to it. The default value is (true) enabled ",
                     "type": "boolean",
                     "default": true
+                },
+                "monitors": {
+                    "description": "Specifies the path and name of the health monitors that the system uses to determine whether it can use this server for load balancing",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dependencies": {
+                "proberPreferred": {
+                    "if": { "properties": { "proberPreferred": { "const": "pool" } } },
+                    "then": { "required": [ "proberPool" ] }
+                },
+                "proberFallback": {
+                    "if": { "properties": { "proberFallback": { "const": "pool" } } },
+                    "then": { "required": [ "proberPool" ] }
                 }
             },
             "additionalProperties": false
@@ -297,6 +334,155 @@
                     "type": "string",
                     "description": "Specifies the internal (private) address that corresponds to the external address",
                     "format": "f5ip"
+                }
+            },
+            "additionalProperties": false
+        },
+        "gslbMonitor": {
+            "description": "Declares a monitor that verifies the availability and/or performance status of a particular protocol, service or application",
+            "type": "object",
+            "required": [ "class", "monitorType" ],
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "GSLBMonitor"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "monitorType": {
+                    "description": "Specifies the type of monitor",
+                    "type": "string",
+                    "enum": [ "http" ]
+                },
+                "target": {
+                    "description": "Specifies the IP address and service port of the resource that is the destination of this monitor. Format is ip:port",
+                    "type": "string",
+                    "default": "*:*"
+                },
+                "interval": {
+                    "description": "Specifies, in seconds, the frequency at which the system issues the monitor check when either the resource is down or the status of the resource is unknown",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 86399,
+                    "default": 30
+                },
+                "timeout":  {
+                    "description": "Specifies the number of seconds the target has in which to respond to the monitor request",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 86400,
+                    "default": 120
+                },
+                "probeTimeout": {
+                    "description": "Specifies the number of seconds after which the system times out the probe request to the system",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 86400,
+                    "default": 5
+                },
+                "ignoreDownResponseEnabled": {
+                    "description": "Specifies whether the monitor immediately marks an object down when it recieves a down response. If enabled, the monitor ignores the down response for the duration of timeout. The default is false (disabled)",
+                    "type": "boolean",
+                    "default": false
+                },
+                "transparent": {
+                    "description": "Enables monitoring of pool members through firewalls. The default value is false (disabled)",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "allOf": [
+                {
+                    "if": { "properties": { "monitorType": { "const": "http" } } },
+                    "then": { "$ref": "#/definitions/gslbMonitorHTTP" }
+                }
+            ]
+        },
+
+        "gslbMonitorHTTP": {
+            "description": "Additional Monitor class properties available when monitorType = http",
+            "type": "object",
+            "properties": {
+                "reverseEnabled": {
+                    "description": "When enabled, a successful check marks the monitored object down instead of up. You can use the Reverse mode only if you configure both the send and receive options",
+                    "type": "boolean",
+                    "default": false
+                },
+                "send": {
+                    "description": "Specifies the text string that the monitor sends to the target object. If you do not specify a value for both the send and receive options, the monitor performs a simple service check and connect only",
+                    "type": "string",
+                    "default": "HEAD / HTTP/1.0\\r\\n\\r\\n"
+                },
+                "receive": {
+                    "description": "Specifies the text string that the monitor looks for in the returned resource. If you do not specify a value for both the send and receive options, the monitor performs a simple service check and connect only",
+                    "type": "string",
+                    "default": "HTTP/1."
+                }
+            }
+        },
+        "gslbProberPool": {
+            "description": "Declares a pool of BIG-IP devices that will monitor server resources for health and performance. Note: Prober pools are not used by the bigip monitor",
+            "type": "object",
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains GSLB Prober Pool configuration",
+                    "type": "string",
+                    "const": "GSLBProberPool"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "enabled": {
+                    "description": "Specifies whether this pool is available for conducting probes",
+                    "type": "boolean",
+                    "default": true
+                },
+                "lbMode": {
+                    "description": "Specifies the load balancing mode that the system uses to select the members of this pool",
+                    "type": "string",
+                    "enum": [
+                        "global-availability",
+                        "round-robin"
+                    ],
+                    "default": "global-availability"
+                },
+                "members": {
+                    "description": "Specifies the members of the prober pool",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/gslbProberPoolMember"
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "gslbProberPoolMember": {
+            "description": "Declares member of the GSLB prober pool",
+            "type": "object",
+            "required": [ "server" ],
+            "properties": {
+                "server": {
+                    "description": "Specifies the GSLB Server name of the pool member",
+                    "type": "string"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "enabled": {
+                    "description": "Specifies whether the server can be used as a member of a prober pool",
+                    "type": "boolean",
+                    "default": true
                 }
             },
             "additionalProperties": false

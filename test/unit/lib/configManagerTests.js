@@ -1656,6 +1656,112 @@ describe('configManager', () => {
         });
     });
 
+    describe('RouteMap', () => {
+        it('should handle RouteMap', () => {
+            const configItems = getConfigItems('RouteMap');
+
+            listResponses['/tm/net/routing/route-map'] = [
+                {
+                    name: 'exampleRouteMap',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleRouteMap/entries?ver=14.1.2.8'
+                    }
+                }
+            ];
+            listResponses['/tm/net/routing/route-map/~Common~exampleRouteMap/entries'] = [
+                {
+                    name: 44,
+                    action: 'permit',
+                    match: {
+                        asPath: '/Common/aspath',
+                        asPathReference: {
+                            link: 'https://some/link/here'
+                        },
+                        community: {
+                            exactMatch: 'unset'
+                        },
+                        ipv4: {
+                            address: {
+                                prefixList: '/Common/prefixlist1',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            },
+                            nextHop: {
+                                prefixList: '/Common/prefixlist2',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            },
+                            peer: {
+                                prefixList: '/Common/prefixlist3',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            }
+                        },
+                        ipv6: {
+                            address: {
+                                prefixList: '/Common/prefixlist4',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            },
+                            nextHop: {
+                                prefixList: '/Common/prefixlist5',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            },
+                            peer: {
+                                prefixList: '/Common/prefixlist6',
+                                prefixListReference: {
+                                    link: 'https://some/link/here'
+                                }
+                            }
+                        },
+                        unwantedProperty: 'value'
+                    }
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common.RouteMap, {
+                        exampleRouteMap: {
+                            name: 'exampleRouteMap',
+                            entries: [
+                                {
+                                    name: 44,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/aspath',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: '/Common/prefixlist1'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixlist2'
+                                            }
+                                        },
+                                        ipv6: {
+                                            address: {
+                                                prefixList: '/Common/prefixlist4'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixlist5'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    });
+                });
+        });
+    });
+
     describe('RoutingPrefixList', () => {
         it('should handle RoutingPrefixList with references', () => {
             const configItems = getConfigItems('RoutingPrefixList');
@@ -1837,12 +1943,14 @@ describe('configManager', () => {
                     limitMemAvail: 12,
                     limitMemAvailStatus: 'enabled',
                     proberFallback: 'any-available',
-                    proberPreference: 'inside-datacenter',
+                    proberPreference: 'pool',
+                    proberPool: '/Common/gslbProberPool',
                     product: 'generic-host',
                     virtualServerDiscovery: 'enabled',
                     devicesReference: {
                         link: 'https://localhost/mgmt/tm/gtm/server/~Common~gslbServer/devices'
-                    }
+                    },
+                    monitor: '/Common/http and /Common/http_head_f5'
                 }
             ];
             listResponses['/tm/gtm/server/~Common~gslbServer/devices'] = [
@@ -1869,8 +1977,9 @@ describe('configManager', () => {
                                 remark: 'description',
                                 enabled: false,
                                 serverType: 'generic-host',
-                                proberPreferred: 'inside-datacenter',
+                                proberPreferred: 'pool',
                                 proberFallback: 'any-available',
+                                proberPool: 'gslbProberPool',
                                 bpsLimit: 50,
                                 bpsLimitEnabled: true,
                                 ppsLimit: 60,
@@ -1904,7 +2013,11 @@ describe('configManager', () => {
                                     }
                                 ],
                                 exposeRouteDomainsEnabled: true,
-                                virtualServerDiscoveryMode: 'enabled'
+                                virtualServerDiscoveryMode: 'enabled',
+                                monitors: [
+                                    '/Common/http',
+                                    '/Common/http_head_f5'
+                                ]
                             }
                         }
                     );
@@ -1920,14 +2033,17 @@ describe('configManager', () => {
             listResponses['/tm/gtm/server'] = [
                 {
                     name: 'serverEnabledStringVal',
-                    enabled: 'True'
+                    enabled: 'True',
+                    monitor: ''
                 },
                 {
                     name: 'serverDisabledStringVal',
-                    disabled: 'False'
+                    disabled: 'False',
+                    monitor: ''
                 },
                 {
-                    name: 'serverNoVal'
+                    name: 'serverNoVal',
+                    monitor: ''
                 }
             ];
 
@@ -1942,8 +2058,8 @@ describe('configManager', () => {
                 pathProbeEnabled: false,
                 ppsLimitEnabled: false,
                 serviceCheckProbeEnabled: false,
-                snmpProbeEnabled: false
-
+                snmpProbeEnabled: false,
+                monitors: []
             });
 
             const configManager = new ConfigManager(configItems, bigIpMock);
@@ -1955,6 +2071,225 @@ describe('configManager', () => {
                             serverEnabledStringVal: getExpected('serverEnabledStringVal'),
                             serverDisabledStringVal: getExpected('serverDisabledStringVal'),
                             serverNoVal: getExpected('serverNoVal')
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('GSLBMonitor', () => {
+        describe('http', () => {
+            const configItems = getConfigItems('GSLBMonitor');
+
+            it('should handle HTTP GSLB Monitors', () => {
+                listResponses['/tm/sys/provision'] = [
+                    { name: 'gtm', level: 'nominal' }
+                ];
+                listResponses['/tm/gtm/monitor/http'] = [
+                    {
+                        kind: 'tm:gtm:monitor:http:httpstate',
+                        name: 'GSLBmonitor',
+                        partition: 'Common',
+                        fullPath: '/Common/GSLBmonitor',
+                        generation: 0,
+                        selfLink: 'https://localhost/mgmt/tm/gtm/monitor/http/~Common~GSLBmonitor?ver=15.1.2',
+                        defaultsFrom: '/Common/http',
+                        description: 'description',
+                        destination: '1.1.1.1:80',
+                        ignoreDownResponse: 'enabled',
+                        interval: 100,
+                        probeTimeout: 110,
+                        recv: 'HTTP',
+                        reverse: 'enabled',
+                        send: 'HEAD / HTTP/1.0\\r\\n',
+                        timeout: 1000,
+                        transparent: 'enabled'
+                    }
+                ];
+
+                const configManager = new ConfigManager(configItems, bigIpMock);
+                return configManager.get({}, state, doState)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            state.currentConfig.Common.GSLBMonitor,
+                            {
+                                GSLBmonitor: {
+                                    name: 'GSLBmonitor',
+                                    defaultsFrom: '/Common/http',
+                                    fullPath: '/Common/GSLBmonitor',
+                                    generation: 0,
+                                    ignoreDownResponseEnabled: true,
+                                    interval: 100,
+                                    monitorType: 'http',
+                                    probeTimeout: 110,
+                                    receive: 'HTTP',
+                                    remark: 'description',
+                                    reverseEnabled: true,
+                                    send: 'HEAD / HTTP/1.0\\r\\n',
+                                    target: '1.1.1.1:80',
+                                    timeout: 1000,
+                                    transparent: true
+                                }
+                            }
+                        );
+                    });
+            });
+        });
+    });
+
+    describe('GSLBProberPool', () => {
+        it('should handle GSLBProberPool', () => {
+            const configItems = getConfigItems('GSLBProberPool');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/prober-pool'] = [
+                {
+                    name: 'gslbProberPool',
+                    description: 'description',
+                    disabled: true,
+                    loadBalancingMode: 'round-robin',
+                    membersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/prober-pool/~Common~gslbProberPool/members'
+                    }
+                }
+            ];
+            listResponses['/tm/gtm/prober-pool/~Common~gslbProberPool/members'] = [
+                {
+                    name: '/Common/serverOne',
+                    description: 'member description one',
+                    disabled: true,
+                    enabled: false,
+                    order: 1
+                },
+                {
+                    name: '/Common/serverTwo',
+                    description: 'member description two',
+                    disabled: false,
+                    enabled: true,
+                    order: 0
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBProberPool,
+                        {
+                            gslbProberPool: {
+                                name: 'gslbProberPool',
+                                remark: 'description',
+                                enabled: false,
+                                lbMode: 'round-robin',
+                                members: [
+                                    {
+                                        server: 'serverTwo',
+                                        remark: 'member description two',
+                                        enabled: true,
+                                        order: 0
+                                    },
+                                    {
+                                        server: 'serverOne',
+                                        remark: 'member description one',
+                                        enabled: false,
+                                        order: 1
+                                    }
+                                ]
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should handle alternative GSLBProberPool enable/disable values', () => {
+            const configItems = getConfigItems('GSLBProberPool');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/prober-pool'] = [
+                {
+                    name: 'proberPoolEnabledStringVal',
+                    enabled: 'True'
+                },
+                {
+                    name: 'proberPoolDisabledStringVal',
+                    disabled: 'False'
+                },
+                {
+                    name: 'proberPoolNoVal'
+                }
+            ];
+
+            const getExpected = name => ({
+                name,
+                enabled: true
+            });
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBProberPool,
+                        {
+                            proberPoolEnabledStringVal: getExpected('proberPoolEnabledStringVal'),
+                            proberPoolDisabledStringVal: getExpected('proberPoolDisabledStringVal'),
+                            proberPoolNoVal: getExpected('proberPoolNoVal')
+                        }
+                    );
+                });
+        });
+
+        it('should handle alternative GSLBProberPool member enable/disable values', () => {
+            const configItems = getConfigItems('GSLBProberPool');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/prober-pool'] = [
+                {
+                    name: 'gslbProberPool',
+                    membersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/prober-pool/~Common~gslbProberPool/members'
+                    }
+                }
+            ];
+            listResponses['/tm/gtm/prober-pool/~Common~gslbProberPool/members'] = [
+                {
+                    name: '/Common/memberEnabledStringVal',
+                    enabled: 'True'
+                },
+                {
+                    name: '/Common/memberDisabledStringVal',
+                    disabled: 'False'
+                },
+                {
+                    name: '/Common/memberNoVal'
+                }
+            ];
+
+            const getExpected = server => ({
+                server,
+                enabled: true
+            });
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBProberPool,
+                        {
+                            gslbProberPool: {
+                                name: 'gslbProberPool',
+                                enabled: true,
+                                members: [
+                                    getExpected('memberEnabledStringVal'),
+                                    getExpected('memberDisabledStringVal'),
+                                    getExpected('memberNoVal')
+                                ]
+                            }
                         }
                     );
                 });

@@ -163,6 +163,7 @@
                             "RemoteAuthRole",
                             "Route",
                             "RouteDomain",
+                            "RouteMap",
                             "RoutingAsPath",
                             "RoutingPrefixList",
                             "SelfIp",
@@ -182,7 +183,9 @@
                             "TrafficGroup",
                             "GSLBGlobals",
                             "GSLBDataCenter",
-                            "GSLBServer"
+                            "GSLBServer",
+                            "GSLBMonitor",
+                            "GSLBProberPool"
                         ]
                     }
                 },

@@ -26,8 +26,7 @@ const AUTH = require('./sharedConstants').AUTH;
 const logger = new Logger(module);
 
 // This is an ordered list - objects will be deleted in this order
-const DELETABLE_CLASSES = ['DeviceGroup', 'DNS_Resolver', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute', 'Tunnel', 'RoutingAsPath', 'RoutingPrefixList', 'GSLBServer', 'GSLBDataCenter'];
-
+const DELETABLE_CLASSES = ['DeviceGroup', 'DNS_Resolver', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute', 'Tunnel', 'RouteMap', 'RoutingAsPath', 'RoutingPrefixList', 'GSLBMonitor'];
 const READ_ONLY_DEVICE_GROUPS = ['device_trust_group', 'gtm', 'datasync-global-dg', 'dos-global-dg'];
 
 /**
@@ -81,6 +80,10 @@ class DeleteHandler {
                 },
                 DNS_Resolver: {
                     'f5-aws-dns': {} // referenced by Security Offbox Service f5-tap-ingress-aws-global
+                },
+                GSLBMonitor: { // BIG-IP has a number of default monitors, that cannot be removed
+                    http: {},
+                    http_head_f5: {}
                 }
             };
 
@@ -88,6 +91,14 @@ class DeleteHandler {
         }
 
         const promises = [];
+
+        // Delete special GSLB item items first so that references to other items, such as
+        // GSLB Monitor, are not prematurely deleted
+        const gslbTransaction = getGSLBClassTransaction.call(this);
+        if (gslbTransaction) {
+            promises.push([gslbTransaction]);
+        }
+
         DELETABLE_CLASSES.forEach((deleteableClass) => {
             if (this.declaration.Common[deleteableClass]) {
                 const classPromises = [];
@@ -105,6 +116,12 @@ class DeleteHandler {
                         const partition = this.state.currentConfig.Common.Route[itemToDelete].localOnly
                             ? 'LOCAL_ONLY' : 'Common';
                         const path = `${PATHS.Route}/~${partition}~${itemToDelete}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    } else if (deleteableClass === 'GSLBMonitor'
+                        && !isRetainedItem(deleteableClass, itemToDelete)) {
+                        // GSLB Monitors have their monitor type as part of the path instead of a property
+                        const currMon = this.state.currentConfig.Common.GSLBMonitor[itemToDelete];
+                        const path = `${PATHS.GSLBMonitor}/${currMon.monitorType}/~Common~${itemToDelete}`;
                         classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
                     } else if (!isRetainedItem(deleteableClass, itemToDelete)) {
                         const commonPrefix = deleteableClass === 'Trunk' ? '' : '~Common~';
@@ -146,6 +163,29 @@ class DeleteHandler {
                 return Promise.resolve();
             });
     }
+}
+
+// Special handling for GSLB items that can reference one another in any order.
+function getGSLBClassTransaction() {
+    const GSLB_CLASSES = ['GSLBProberPool', 'GSLBServer', 'GSLBDataCenter'];
+    const transactionCommands = [];
+
+    GSLB_CLASSES.forEach((gslbClass) => {
+        if (this.declaration.Common[gslbClass]) {
+            Object.keys(this.declaration.Common[gslbClass]).forEach((itemToDelete) => {
+                transactionCommands.push({
+                    method: 'delete',
+                    path: `${PATHS[gslbClass]}/~Common~${itemToDelete}`
+                });
+            });
+        }
+    });
+
+    if (transactionCommands.length === 0) {
+        return null;
+    }
+
+    return this.bigIp.transaction(transactionCommands);
 }
 
 function getAuthClassPromises() {

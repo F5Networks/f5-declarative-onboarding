@@ -66,6 +66,7 @@ module.exports = {
         SSHD: '/tm/sys/sshd',
         SoftwareUpdate: '/tm/sys/software/update',
         Tunnel: '/tm/net/tunnels/tunnel',
+        RouteMap: '/tm/net/routing/route-map',
         RoutingAsPath: '/tm/net/routing/as-path',
         RoutingPrefixList: '/tm/net/routing/prefix-list',
         Uploads: '/shared/file-transfer/uploads',
@@ -74,7 +75,9 @@ module.exports = {
         UnixRm: '/tm/util/unix-rm',
         GSLBGeneral: '/tm/gtm/global-settings/general',
         GSLBDataCenter: '/tm/gtm/datacenter',
-        GSLBServer: '/tm/gtm/server'
+        GSLBServer: '/tm/gtm/server',
+        GSLBMonitor: '/tm/gtm/monitor',
+        GSLBProberPool: '/tm/gtm/prober-pool'
     },
     STATUS: {
         STATUS_OK: 'OK',

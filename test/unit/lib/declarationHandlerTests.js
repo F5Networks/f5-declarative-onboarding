@@ -919,6 +919,105 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should apply RouteMap path prefix fixes', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    RouteMap: {
+                        rm1: {
+                            name: 'rm1',
+                            entries: [
+                                {
+                                    name: 33,
+                                    action: 'deny',
+                                    match: {
+                                        asPath: 'asPath1',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: 'prefixList1'
+                                            },
+                                            nextHop: {
+                                                prefixList: 'prefixList1NextHop'
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    name: 44,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: 'asPath2',
+                                        ipv6: {
+                                            address: {
+                                                prefixList: 'prefixList2'
+                                            },
+                                            nextHop: {
+                                                prefixList: 'prefixList2NextHop'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const routeMap = declarationWithDefaults.Common.RouteMap.rm1;
+                    assert.deepStrictEqual(
+                        routeMap,
+                        {
+                            name: 'rm1',
+                            entries: [
+                                {
+                                    name: 33,
+                                    action: 'deny',
+                                    match: {
+                                        asPath: '/Common/asPath1',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: '/Common/prefixList1'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixList1NextHop'
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    name: 44,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/asPath2',
+                                        ipv6: {
+                                            address: {
+                                                prefixList: '/Common/prefixList2'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/prefixList2NextHop'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    );
+                });
+        });
+
         it('should apply GSLB server fix', () => {
             const newDeclaration = {
                 parsed: true,
@@ -927,6 +1026,7 @@ describe('declarationHandler', () => {
                         gslbServer: {
                             label: 'testing gslb server',
                             dataCenter: '/Common/gslbDataCenter',
+                            proberPool: '/Common/gslbProberPool',
                             devices: [
                                 {
                                     address: '10.0.0.1',
@@ -937,6 +1037,16 @@ describe('declarationHandler', () => {
                                     address: '10.0.0.2'
                                 }
                             ]
+                        },
+                        gslbServerBigip: {
+                            label: 'testing bigip gslb server',
+                            dataCenter: '/Common/gslbDataCenter',
+                            devices: [
+                                {
+                                    address: '10.0.0.3'
+                                }
+                            ],
+                            serverType: 'bigip'
                         }
                     }
                 }
@@ -960,6 +1070,7 @@ describe('declarationHandler', () => {
                         gslbServer,
                         {
                             dataCenter: 'gslbDataCenter',
+                            proberPool: 'gslbProberPool',
                             devices: [
                                 {
                                     name: '0',
@@ -977,7 +1088,94 @@ describe('declarationHandler', () => {
                                         translation: 'none'
                                     }]
                                 }
+                            ],
+                            monitors: []
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        declarationWithDefaults.Common.GSLBServer.gslbServerBigip,
+                        {
+                            dataCenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    remark: undefined,
+                                    addresses: [{
+                                        name: '10.0.0.3',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ],
+                            monitors: [
+                                '/Common/bigip'
+                            ],
+                            serverType: 'bigip'
+                        }
+                    );
+                });
+        });
+
+        it('should apply GSLB prober pool fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    GSLBProberPool: {
+                        gslbProberPool: {
+                            label: 'testing gslb prober pool',
+                            members: [
+                                {
+                                    server: '/Common/gslbServerOne',
+                                    label: 'testing monitor one'
+                                },
+                                {
+                                    server: 'gslbServerTwo',
+                                    label: 'testing monitor two'
+                                }
                             ]
+                        },
+                        gslbProberPoolNoMembers: {
+                            label: 'testing gslb prober pool with no members'
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const gslbProberPool = declarationWithDefaults.Common.GSLBProberPool;
+                    assert.deepStrictEqual(
+                        gslbProberPool,
+                        {
+                            gslbProberPool: {
+                                members: [
+                                    {
+                                        server: 'gslbServerOne',
+                                        remark: undefined,
+                                        enabled: undefined,
+                                        order: 0
+                                    },
+                                    {
+                                        server: 'gslbServerTwo',
+                                        remark: undefined,
+                                        enabled: undefined,
+                                        order: 1
+                                    }
+                                ]
+                            },
+                            gslbProberPoolNoMembers: {
+                                members: []
+                            }
                         }
                     );
                 });

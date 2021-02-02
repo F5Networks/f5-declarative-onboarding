@@ -27,16 +27,26 @@ const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 
 describe('gslbHandler', () => {
     let bigIpMock;
-    let pathsSent;
     let dataSent;
+    let state;
+    let transactionCount;
 
     beforeEach(() => {
-        pathsSent = [];
         dataSent = [];
+        transactionCount = 0;
         bigIpMock = {
             modify(path, data) {
-                pathsSent.push(path);
-                dataSent.push(data);
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
+                return Promise.resolve();
+            },
+            create(path, data) {
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
                 return Promise.resolve();
             },
             createOrModify(path, data) {
@@ -45,6 +55,30 @@ describe('gslbHandler', () => {
                 }
                 dataSent[path].push(data);
                 return Promise.resolve();
+            },
+            transaction(commands) {
+                let promise = Promise.resolve();
+                transactionCount += 1;
+                commands.forEach((command) => {
+                    if (command.method === 'create') {
+                        promise = promise.then(() => this.create(command.path, command.body));
+                    } else if (command.method === 'modify') {
+                        promise = promise.then(() => this.modify(command.path, command.body));
+                    } else if (command.method === 'delete') {
+                        promise = promise.then(() => this.delete(command.path));
+                    } else {
+                        promise = promise.then(() => {
+                            throw new Error(`Unrecognized command method: ${command.method}`);
+                        });
+                    }
+                });
+                return promise;
+            }
+        };
+
+        state = {
+            currentConfig: {
+                Common: {}
             }
         };
     });
@@ -67,8 +101,10 @@ describe('gslbHandler', () => {
             const gslbHandler = new GSLBHandler(declaration, bigIpMock);
             return gslbHandler.process()
                 .then(() => {
+                    const general = dataSent[PATHS.GSLBGeneral];
+                    assert.strictEqual(transactionCount, 0, 'should not have used a transaction');
                     assert.deepStrictEqual(
-                        dataSent[0],
+                        general[0],
                         {
                             synchronization: 'yes',
                             synchronizationGroupName: 'newGroupName',
@@ -106,12 +142,16 @@ describe('gslbHandler', () => {
                 }
             };
 
-            const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+            state.currentConfig.Common.GSLBDataCenter = {
+                dataCenter1: {}
+            };
+
+            const gslbHandler = new GSLBHandler(declaration, bigIpMock, null, state);
             return gslbHandler.process()
                 .then(() => {
-                    const dataCenter = dataSent[PATHS.GSLBDataCenter];
+                    assert.strictEqual(transactionCount, 1, 'should have used a transaction');
                     assert.deepStrictEqual(
-                        dataCenter[0],
+                        dataSent[PATHS.GSLBDataCenter][0],
                         {
                             name: 'dataCenter0',
                             partition: 'Common',
@@ -124,7 +164,7 @@ describe('gslbHandler', () => {
                         }
                     );
                     assert.deepStrictEqual(
-                        dataCenter[1],
+                        dataSent[`${PATHS.GSLBDataCenter}/~Common~dataCenter1`][0],
                         {
                             name: 'dataCenter1',
                             partition: 'Common',
@@ -174,15 +214,20 @@ describe('gslbHandler', () => {
                                 }
                             ],
                             exposeRouteDomainsEnabled: false,
-                            virtualServerDiscoveryMode: 'disabled'
+                            virtualServerDiscoveryMode: 'disabled',
+                            monitors: [
+                                '/Common/GSLBmonitor',
+                                '/Common/otherMonitor'
+                            ]
                         },
                         gslbServer2: {
                             name: 'gslbServer2',
                             remark: 'test description',
                             enabled: false,
                             serverType: 'generic-host',
-                            proberPreferred: 'inside-datacenter',
+                            proberPreferred: 'pool',
                             proberFallback: 'any-available',
+                            proberPool: 'gslbProberPool',
                             bpsLimit: 50,
                             bpsLimitEnabled: true,
                             ppsLimit: 60,
@@ -208,18 +253,57 @@ describe('gslbHandler', () => {
                                 }
                             ],
                             exposeRouteDomainsEnabled: true,
-                            virtualServerDiscoveryMode: 'enabled'
+                            virtualServerDiscoveryMode: 'enabled',
+                            monitors: []
+                        },
+                        gslbServer3: {
+                            name: 'gslbServer3',
+                            enabled: true,
+                            serverType: 'bigip',
+                            proberPreferred: 'inherit',
+                            proberFallback: 'inherit',
+                            proberPool: 'none',
+                            bpsLimit: 0,
+                            bpsLimitEnabled: false,
+                            ppsLimit: 0,
+                            ppsLimitEnabled: false,
+                            connectionsLimit: 0,
+                            connectionsLimitEnabled: false,
+                            cpuUsageLimit: 0,
+                            cpuUsageLimitEnabled: false,
+                            memoryLimit: 0,
+                            memoryLimitEnabled: false,
+                            serviceCheckProbeEnabled: true,
+                            pathProbeEnabled: true,
+                            snmpProbeEnabled: true,
+                            dataCenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ],
+                            exposeRouteDomainsEnabled: false,
+                            virtualServerDiscoveryMode: 'disabled',
+                            monitors: ['/Common/bigip']
                         }
                     }
                 }
             };
 
-            const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+            state.currentConfig.Common.GSLBServer = {
+                gslbServer2: {}
+            };
+
+            const gslbHandler = new GSLBHandler(declaration, bigIpMock, null, state);
             return gslbHandler.process()
                 .then(() => {
-                    const gslbServer = dataSent[PATHS.GSLBServer];
+                    assert.strictEqual(transactionCount, 1, 'should have used a transaction');
                     assert.deepStrictEqual(
-                        gslbServer[0],
+                        dataSent[PATHS.GSLBServer][0],
                         {
                             name: 'gslbServer1',
                             description: 'none',
@@ -228,6 +312,7 @@ describe('gslbHandler', () => {
                             product: 'bigip',
                             proberPreference: 'inherit',
                             proberFallback: 'inherit',
+                            proberPool: 'none',
                             limitMaxBps: 0,
                             limitMaxBpsStatus: 'disabled',
                             limitMaxPps: 0,
@@ -253,19 +338,21 @@ describe('gslbHandler', () => {
                                 }
                             ],
                             exposeRouteDomains: 'no',
-                            virtualServerDiscovery: 'disabled'
+                            virtualServerDiscovery: 'disabled',
+                            monitor: '/Common/GSLBmonitor and /Common/otherMonitor'
                         }
                     );
                     assert.deepStrictEqual(
-                        gslbServer[1],
+                        dataSent[`${PATHS.GSLBServer}/~Common~gslbServer2`][0],
                         {
                             name: 'gslbServer2',
                             description: 'test description',
                             enabled: false,
                             disabled: true,
                             product: 'generic-host',
-                            proberPreference: 'inside-datacenter',
+                            proberPreference: 'pool',
                             proberFallback: 'any-available',
+                            proberPool: 'gslbProberPool',
                             limitMaxBps: 50,
                             limitMaxBpsStatus: 'enabled',
                             limitMaxPps: 60,
@@ -291,7 +378,233 @@ describe('gslbHandler', () => {
                                 }
                             ],
                             exposeRouteDomains: 'yes',
-                            virtualServerDiscovery: 'enabled'
+                            virtualServerDiscovery: 'enabled',
+                            monitor: ''
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        dataSent[PATHS.GSLBServer][1],
+                        {
+                            name: 'gslbServer3',
+                            description: 'none',
+                            enabled: true,
+                            disabled: false,
+                            product: 'bigip',
+                            proberPreference: 'inherit',
+                            proberFallback: 'inherit',
+                            proberPool: 'none',
+                            limitMaxBps: 0,
+                            limitMaxBpsStatus: 'disabled',
+                            limitMaxPps: 0,
+                            limitMaxPpsStatus: 'disabled',
+                            limitMaxConnections: 0,
+                            limitMaxConnectionsStatus: 'disabled',
+                            limitCpuUsage: 0,
+                            limitCpuUsageStatus: 'disabled',
+                            limitMemAvail: 0,
+                            limitMemAvailStatus: 'disabled',
+                            iqAllowServiceCheck: 'yes',
+                            iqAllowPath: 'yes',
+                            iqAllowSnmp: 'yes',
+                            datacenter: 'gslbDataCenter',
+                            devices: [
+                                {
+                                    name: '0',
+                                    description: 'none',
+                                    addresses: [{
+                                        name: '10.0.0.1',
+                                        translation: 'none'
+                                    }]
+                                }
+                            ],
+                            exposeRouteDomains: 'no',
+                            virtualServerDiscovery: 'disabled',
+                            monitor: '/Common/bigip'
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('GSLB monitor', () => {
+        describe('http', () => {
+            it('should handle GSLB monitor http', () => {
+                const declaration = {
+                    Common: {
+                        GSLBMonitor: {
+                            gslbMonitor1: {
+                                name: 'gslbMonitor1',
+                                remark: 'description',
+                                monitorType: 'http',
+                                target: '1.1.1.1:80',
+                                interval: 100,
+                                timeout: 1000,
+                                probeTimeout: 110,
+                                ignoreDownResponseEnabled: true,
+                                transparent: true,
+                                reverseEnabled: true,
+                                send: 'HEAD / HTTP/1.0\\r\\n',
+                                receive: 'HTTP'
+                            },
+                            gslbMonitor2: {
+                                name: 'gslbMonitor2',
+                                monitorType: 'http',
+                                target: '*:*',
+                                interval: 30,
+                                timeout: 120,
+                                probeTimeout: 5,
+                                ignoreDownResponseEnabled: false,
+                                transparent: false,
+                                reverseEnabled: false
+                            }
+                        }
+                    }
+                };
+
+                const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+                return gslbHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/http`][0],
+                            {
+                                name: 'gslbMonitor1',
+                                description: 'description',
+                                destination: '1.1.1.1:80',
+                                interval: 100,
+                                timeout: 1000,
+                                probeTimeout: 110,
+                                ignoreDownResponse: 'enabled',
+                                transparent: 'enabled',
+                                reverse: 'enabled',
+                                send: 'HEAD / HTTP/1.0\\r\\n',
+                                recv: 'HTTP'
+                            }
+                        );
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/http`][1],
+                            {
+                                name: 'gslbMonitor2',
+                                description: 'none',
+                                destination: '*:*',
+                                interval: 30,
+                                timeout: 120,
+                                probeTimeout: 5,
+                                ignoreDownResponse: 'disabled',
+                                transparent: 'disabled',
+                                reverse: 'disabled',
+                                send: 'none',
+                                recv: 'none'
+                            }
+                        );
+                    });
+            });
+        });
+    });
+
+    describe('GSLBProberPool', () => {
+        it('should handle GSLBProberPool', () => {
+            const declaration = {
+                Common: {
+                    GSLBProberPool: {
+                        gslbProberPool1: {
+                            name: 'gslbProberPool1',
+                            enabled: true,
+                            lbMode: 'global-availability',
+                            members: []
+                        },
+                        gslbProberPool2: {
+                            name: 'gslbProberPool2',
+                            enabled: true,
+                            lbMode: 'global-availability',
+                            members: [
+                                {
+                                    server: 'gslbServer1',
+                                    enabled: true,
+                                    order: 0
+                                },
+                                {
+                                    server: 'gslbServer2',
+                                    enabled: true,
+                                    order: 1
+                                }
+                            ]
+                        },
+                        gslbProberPool3: {
+                            name: 'gslbProberPool3',
+                            remark: 'test description',
+                            enabled: false,
+                            lbMode: 'round-robin',
+                            members: [{
+                                server: 'gslbServer1',
+                                remark: 'test member description',
+                                enabled: false,
+                                order: 0
+                            }]
+                        }
+                    }
+                }
+            };
+
+            state.currentConfig.Common.GSLBProberPool = {
+                gslbProberPool3: {}
+            };
+
+            const gslbHandler = new GSLBHandler(declaration, bigIpMock, null, state);
+            return gslbHandler.process()
+                .then(() => {
+                    assert.strictEqual(transactionCount, 1, 'should have used a transaction');
+                    assert.deepStrictEqual(
+                        dataSent[PATHS.GSLBProberPool][0],
+                        {
+                            name: 'gslbProberPool1',
+                            description: 'none',
+                            enabled: true,
+                            disabled: false,
+                            loadBalancingMode: 'global-availability',
+                            members: []
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        dataSent[PATHS.GSLBProberPool][1],
+                        {
+                            name: 'gslbProberPool2',
+                            description: 'none',
+                            enabled: true,
+                            disabled: false,
+                            loadBalancingMode: 'global-availability',
+                            members: [
+                                {
+                                    name: 'gslbServer1',
+                                    description: 'none',
+                                    enabled: true,
+                                    disabled: false,
+                                    order: 0
+                                },
+                                {
+                                    name: 'gslbServer2',
+                                    description: 'none',
+                                    enabled: true,
+                                    disabled: false,
+                                    order: 1
+                                }
+                            ]
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        dataSent[`${PATHS.GSLBProberPool}/~Common~gslbProberPool3`][0],
+                        {
+                            name: 'gslbProberPool3',
+                            description: 'test description',
+                            enabled: false,
+                            disabled: true,
+                            loadBalancingMode: 'round-robin',
+                            members: [{
+                                name: 'gslbServer1',
+                                description: 'test member description',
+                                enabled: false,
+                                disabled: true,
+                                order: 0
+                            }]
                         }
                     );
                 });

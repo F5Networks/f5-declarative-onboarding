@@ -460,5 +460,44 @@ module.exports = {
                 // Block with Promise that never resolves and wait for BIG-IP to restart
                 return new Promise(() => {});
             });
+    },
+
+    /**
+     * Deletes a deeply nested key denoted by a dot-separated path from an object
+     *
+     * This function does not work on a path that passes through an Array.
+     * For example, if path = 'here.is.my.key' and 'is' is
+     * an Array then this function will not work.
+     *
+     * @param {Object} obj - The object to delete a key from.
+     * @param {String} path - A dot-separated path to a key to delete.
+     */
+    deleteKey(obj, path) {
+        if (!obj || !path) {
+            return;
+        }
+        if (typeof path === 'string') {
+            path = path.split('.');
+
+            for (let i = 0; i < path.length - 1; i += 1) {
+                obj = obj[path[i]];
+                if (typeof obj === 'undefined') {
+                    return;
+                }
+            }
+            delete obj[path.pop()];
+        }
+    },
+
+    /**
+     * Deletes an array of deeply nested keys denoted by a dot-separated paths from an object
+     *
+     * @param {Object} obj - The object to delete a key from.
+     * @param {String} paths - An array dot-separated paths to keys to delete.
+     */
+    deleteKeys(obj, paths) {
+        paths.forEach((path) => {
+            this.deleteKey(obj, path);
+        });
     }
 };
