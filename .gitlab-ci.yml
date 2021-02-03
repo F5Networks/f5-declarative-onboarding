@@ -64,8 +64,7 @@ test_node:latest:
         -   export ESR_TEST_TYPE=unit
         -   export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
         -   export GIT_SSL_NO_VERIFY=1
-        -   npm install git+https://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/automation-toolchain/atg-shared-utilities.git#develop
-        -   npm test -- --reporter atg-shared-utilities/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
+        -   npm test -- --reporter @f5devcentral/atg-shared-utilities/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
         - else
         -   npm test
         - fi
@@ -153,9 +152,8 @@ integration-test:
         - export ESR_BIG_IP_VERSION=$(echo $BIGIP_IMAGE | cut -d '-' -f 2)
         - export GIT_SSL_NO_VERIFY=1
         - npm install
-        - npm install git+https://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/automation-toolchain/atg-shared-utilities.git#develop
         - echo BIGIP_VERSION $ESR_BIG_IP_VERSION
-        - npm run integration -- --reporter atg-shared-utilities/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
+        - npm run integration -- --reporter @f5devcentral/atg-shared-utilities/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
     after_script:
         - apt-get update
         - apt-get install -y jq
