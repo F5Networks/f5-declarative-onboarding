@@ -78,15 +78,15 @@ Configuring a GSLB HTTP health monitor
 
    Support for configuring HTTP GSLB health monitors is available in DO v1.19 and later. 
 
-In this example, we show how you can configure an HTTP GSLB health monitor in a Declarative Onboarding declaration.
+In this example, we show how you can configure an HTTP GSLB health monitor in a Declarative Onboarding declaration. This monitor verifies the availability and/or performance status of a particular protocol, service or application (HTTP in this case).
+
+For details on the available properties and DO usage, see |gslbmon| in the Schema Reference.  
 
 For information on BIG-IP DNS, including GSLB Servers, see the |dns| for your BIG-IP version.
 
-For details on the available properties and DO usage, see |gslbserver| in the Schema Reference.  
+.. NOTE:: GSLB Monitor has a number of built-in monitors, such as **http** and **http_head_f5**. You cannot use these names in a declaration or it will fail.  These default monitors cannot be deleted.  
 
-This example only includes the GSLBServer and GSLB Data Center classes, which can be used as a part of a larger DO declaration.
-
-.. literalinclude:: ../../examples/gslbServer.json
+.. literalinclude:: ../../examples/gslbMonitorHTTP.json
    :language: json
 
 |
@@ -112,3 +112,9 @@ This example only includes the GSLBServer and GSLB Data Center classes, which ca
 .. |gslbserver| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#gslbserver" target="_blank">GSLBServer</a>
+
+.. |gslbmon| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#gslbmonitor" target="_blank">GSLBMonitor</a>
+
+
