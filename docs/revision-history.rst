@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.6
-        - Updated the documentation for Declarative Onboarding v1.19.0.  This release contains the following changes: |br| *  |br| |br| 
+        - Updated the documentation for Declarative Onboarding v1.19.0.  This release contains the following changes: |br| * Added support for GSLB HTTP health monitors (see :ref:`GSLB Monitors<monitor>` |br| |br| Issues Resolved: |br| *
         - 2-23-21
 
       * - 3.5

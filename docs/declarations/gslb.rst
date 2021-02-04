@@ -84,7 +84,7 @@ For details on the available properties and DO usage, see |gslbmon| in the Schem
 
 .. NOTE:: GSLB Monitor has a number of built-in monitors, such as **http** and **http_head_f5**. You cannot use these names in a declaration or it will fail.  These default monitors cannot be deleted.  
 
-.. literalinclude:: ../../examples/gslbMonitorHTTP.json
+.. literalinclude:: ../../examples/gslbMonitorHttp.json
    :language: json
 
 |
