@@ -82,7 +82,7 @@ In this example, we show how you can configure an HTTP GSLB health monitor in a 
 
 For details on the available properties and DO usage, see |gslbmon| in the Schema Reference.  
 
-.. NOTE:: GSLB Monitor has a number of built-in monitors, such as **http** and **http_head_f5**. You cannot use these names in a declaration or it will fail.  These default monitors cannot be deleted.  
+.. NOTE:: GSLB Monitor has a number of built-in monitors, such as **http** and **http_head_f5**. If you attempt to create or modify a monitor in a declaration with one of the default monitor names, the BIG-IP system returns an error, and the declaration will fail.
 
 .. literalinclude:: ../../examples/gslbMonitorHttp.json
    :language: json
