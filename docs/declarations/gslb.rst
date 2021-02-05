@@ -65,11 +65,11 @@ For details on the available properties and DO usage, see |gslbserver| in the Sc
 
 This example only includes the GSLB Server, Data Center, and Prober Pool classes, which can be used as a part of a larger DO declaration.
 
-.. IMPORTANT:: This example was updated to include a Prober pool.  Prober pools were introduced in DO v1.19, if you attempt to use the following declaration on a previous version, it will fail.  If you are using a version prior to 1.19, you can remove the Prober pool lines (in yellow).
+.. IMPORTANT:: This example was updated to include a Prober pool.  Prober pools were introduced in DO v1.19, if you attempt to use the following declaration on a previous version, it will fail.  If you are using a version prior to 1.19, you can remove the Prober pool lines (in yellow). |br| See :ref:`prober` for a complete Prober pool example.
 
 .. literalinclude:: ../../examples/gslbServer.json
    :language: json
-   :emphasize-lines: 8-9
+   :emphasize-lines: 9-10
 
 |
 
@@ -142,8 +142,10 @@ For details on the available properties and DO usage, see |gslbpp| in the Schema
 
    <a href="https://support.f5.com/csp/article/K08433560" target="_blank">K08433560: Configuring prober pools</a>
 
-
 .. |gslbpp| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#gslbproberpool" target="_blank">GSLBProberPool</a>
 
+.. |br| raw:: html
+ 
+   <br />
