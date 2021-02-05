@@ -69,7 +69,7 @@ This example only includes the GSLB Server, Data Center, and Prober Pool classes
 
 .. literalinclude:: ../../examples/gslbServer.json
    :language: json
-   :emphasize-lines: 9-10
+   :emphasize-lines: 9-11, 28
 
 |
 
