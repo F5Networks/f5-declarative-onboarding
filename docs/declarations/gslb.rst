@@ -63,10 +63,13 @@ A GSLB Server defines a physical system on the network. Servers contain the virt
 
 For details on the available properties and DO usage, see |gslbserver| in the Schema Reference.  
 
-This example only includes the GSLBServer and GSLB Data Center classes, which can be used as a part of a larger DO declaration.
+This example only includes the GSLB Server, Data Center, and Prober Pool classes, which can be used as a part of a larger DO declaration.
+
+.. IMPORTANT:: This example was updated to include a Prober pool.  Prober pools were introduced in DO v1.19, if you attempt to use the following declaration on a previous version, it will fail.  If you are using a version prior to 1.19, you can remove the Prober pool lines (in yellow).
 
 .. literalinclude:: ../../examples/gslbServer.json
    :language: json
+   :emphasize-lines: 8-9
 
 |
 
@@ -82,9 +85,29 @@ In this example, we show how you can configure an HTTP GSLB health monitor in a 
 
 For details on the available properties and DO usage, see |gslbmon| in the Schema Reference.  
 
-.. NOTE:: GSLB Monitor has a number of built-in monitors, such as **http** and **http_head_f5**. If you attempt to create or modify a monitor in a declaration with one of the default monitor names, the BIG-IP system returns an error, and the declaration will fail.
+.. NOTE:: GSLB Monitor has a number of built-in monitors, such as **http** and **http_head_f5**. You cannot use these names in a declaration or it will fail.  These default monitors cannot be deleted.  
 
 .. literalinclude:: ../../examples/gslbMonitorHttp.json
+   :language: json
+
+|
+
+
+.. _prober:
+
+Configuring a GSLB prober pool
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring GSLB prober pools is available in DO v1.19 and later. 
+
+In this example, we show how you can configure a GSLB prober pool in a Declarative Onboarding declaration. Prober pools contain specific BIG-IP devices that probe data centers and servers.
+
+For more information on Prober pools, including manual configuration, see |proberkb|.
+
+For details on the available properties and DO usage, see |gslbpp| in the Schema Reference.  
+
+.. literalinclude:: ../../examples/gslbProberPool.json
    :language: json
 
 |
@@ -115,4 +138,12 @@ For details on the available properties and DO usage, see |gslbmon| in the Schem
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#gslbmonitor" target="_blank">GSLBMonitor</a>
 
+.. |proberkb| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K08433560" target="_blank">K08433560: Configuring prober pools</a>
+
+
+.. |gslbpp| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#gslbproberpool" target="_blank">GSLBProberPool</a>
 
