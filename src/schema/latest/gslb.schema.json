@@ -209,6 +209,11 @@
                     "items": { "$ref": "#/definitions/gslbServerDevice" },
                     "minItems": 1
                 },
+                "virtualServers": {
+                    "description": "Specifies the virtual server(s) that are resources on this server object",
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/gslbVirtualServer" }
+                },
                 "virtualServerDiscoveryMode": {
                     "description": "Specifies virtual server auto-discovery settings. Use 'enabled' (add, modify, delete), 'enabled-no-delete' (add, modify) or the default 'disabled' (manual configuration)",
                     "type": "string",
@@ -483,6 +488,60 @@
                     "description": "Specifies whether the server can be used as a member of a prober pool",
                     "type": "boolean",
                     "default": true
+                }
+            },
+            "additionalProperties": false
+        },
+        "gslbVirtualServer": {
+            "description": "Declares virtual server resource for the GSLB server",
+            "type": "object",
+            "required": ["address"],
+            "properties": {
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "enabled": {
+                    "description": "Specifies whether the virtual server is enabled or disabled",
+                    "type": "boolean",
+                    "default": true
+                },
+                "port": {
+                    "description": "Specifies the L4 port for the service (like 443 for HTTPS)",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "default": 0
+                },
+                "address": {
+                    "description": "Specifies the IP address for the virtual server",
+                    "type": "string",
+                    "format": "f5ip"
+                },
+                "addressTranslation": {
+                    "description": "Specifies the public address that this virtual server translates into when the GSLB provider communicates between the network and the Internet",
+                    "type": "string",
+                    "format": "f5ip"
+                },
+                "addressTranslationPort": {
+                    "description": "Specifies the translation port number for the virtual server",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "default": 0
+                },
+                "monitors": {
+                    "description": "Specifies the health monitors that the system uses to determine whether it can use this linked virtual server for load balancing",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "Specifies the name of the virtual server",
+                    "type": "string"
                 }
             },
             "additionalProperties": false

@@ -444,6 +444,28 @@ class ConfigManager {
                     });
                 }
 
+                // Patch GSLB Server virtual servers after they've been dereferenced
+                const currentGSLBServer = state.currentConfig.Common.GSLBServer;
+                if (currentGSLBServer) {
+                    Object.keys(currentGSLBServer).forEach((key) => {
+                        (currentGSLBServer[key].virtualServers || []).forEach((virtualServer) => {
+                            const splitDestination = virtualServer.destination.split(/(\.|:)(?=[^.:]*$)/);
+
+                            virtualServer.address = splitDestination[0];
+                            virtualServer.port = parseInt(splitDestination[2], 10);
+                            virtualServer.monitors = getGtmMonitorArray(virtualServer.monitors);
+                            virtualServer.enabled = isEnabledGtmObject(virtualServer);
+
+                            delete virtualServer.disabled;
+                            delete virtualServer.destination;
+
+                            if (virtualServer.addressTranslation === 'none') {
+                                delete virtualServer.addressTranslation;
+                            }
+                        });
+                    });
+                }
+
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
                 state.originalConfig = originalConfig;
 
@@ -938,11 +960,9 @@ function patchGSLBGlobals(patchedItem) {
 }
 
 function patchGSLBServer(patchedItem) {
+    patchedItem.monitors = getGtmMonitorArray(patchedItem.monitors);
     patchedItem.enabled = isEnabledGtmObject(patchedItem);
     delete patchedItem.disabled;
-
-    // Convert monitors from BIG-IP string to declaration compatible array, for diffing
-    patchedItem.monitors = patchedItem.monitors ? patchedItem.monitors.split(' and ') : [];
 }
 
 function patchGSLBMonitor(item) {
@@ -977,6 +997,11 @@ function isEnabledGtmObject(obj) {
         isEnabled = true;
     }
     return isEnabled;
+}
+
+function getGtmMonitorArray(monitorString) {
+    // Convert monitors from BIG-IP string to declaration compatible array, for diffing
+    return monitorString ? monitorString.split(' and ') : [];
 }
 
 function shouldIgnore(item, ignoreList) {

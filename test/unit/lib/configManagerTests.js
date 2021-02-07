@@ -1950,6 +1950,9 @@ describe('configManager', () => {
                     devicesReference: {
                         link: 'https://localhost/mgmt/tm/gtm/server/~Common~gslbServer/devices'
                     },
+                    virtualServersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/server/~Common~gslbServer/virtual-servers'
+                    },
                     monitor: '/Common/http and /Common/http_head_f5'
                 }
             ];
@@ -1963,6 +1966,25 @@ describe('configManager', () => {
                     name: '1',
                     description: 'deviceDescription2',
                     addresses: [{ name: '10.0.0.2', translation: '192.0.2.13' }]
+                }
+            ];
+            listResponses['/tm/gtm/server/~Common~gslbServer/virtual-servers'] = [
+                {
+                    name: 'virtualServer1',
+                    description: 'virtual server description one',
+                    destination: '192.0.10.20:443',
+                    enabled: false,
+                    disabled: true,
+                    translationAddress: '10.10.0.10',
+                    translationPort: 23,
+                    monitor: '/Common/bigip and /Common/tcp'
+                },
+                {
+                    name: 'virtualServer2',
+                    destination: 'a989:1c34:9c::b099:c1c7:8bfe.0',
+                    enabled: true,
+                    translationAddress: 'none',
+                    translationPort: 0
                 }
             ];
 
@@ -2010,6 +2032,29 @@ describe('configManager', () => {
                                             name: '10.0.0.2',
                                             translation: '192.0.2.13'
                                         }]
+                                    }
+                                ],
+                                virtualServers: [
+                                    {
+                                        name: 'virtualServer1',
+                                        remark: 'virtual server description one',
+                                        enabled: false,
+                                        address: '192.0.10.20',
+                                        port: 443,
+                                        addressTranslation: '10.10.0.10',
+                                        addressTranslationPort: 23,
+                                        monitors: [
+                                            '/Common/bigip',
+                                            '/Common/tcp'
+                                        ]
+                                    },
+                                    {
+                                        name: 'virtualServer2',
+                                        enabled: true,
+                                        address: 'a989:1c34:9c::b099:c1c7:8bfe',
+                                        port: 0,
+                                        addressTranslationPort: 0,
+                                        monitors: []
                                     }
                                 ],
                                 exposeRouteDomainsEnabled: true,

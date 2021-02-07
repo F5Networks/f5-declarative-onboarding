@@ -220,7 +220,17 @@ function handleGSLBServer() {
                 devices: server.devices,
                 exposeRouteDomains: server.exposeRouteDomainsEnabled ? 'yes' : 'no',
                 virtualServerDiscovery: server.virtualServerDiscoveryMode,
-                monitor: mapMonitors(server)
+                monitor: mapMonitors(server),
+                virtualServers: server.virtualServers.map(vs => ({
+                    name: vs.name,
+                    description: vs.remark || 'none',
+                    destination: `${vs.address}${vs.address.indexOf(':') > -1 ? '.' : ':'}${vs.port}`,
+                    enabled: vs.enabled,
+                    disabled: !vs.enabled,
+                    translationAddress: vs.addressTranslation || 'none',
+                    translationPort: vs.addressTranslationPort,
+                    monitor: mapMonitors(vs)
+                }))
             };
 
             body.devices.forEach((device) => {
@@ -258,7 +268,7 @@ function handleGSLBProberPool() {
                 loadBalancingMode: proberPool.lbMode
             };
 
-            body.members = (proberPool.members).map(member => ({
+            body.members = proberPool.members.map(member => ({
                 name: member.server,
                 description: member.remark || 'none',
                 enabled: member.enabled,

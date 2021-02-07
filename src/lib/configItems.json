@@ -706,6 +706,7 @@
             { "id": "datacenter", "newId": "dataCenter" },
             { "id": "devicesReference" },
             { "id": "exposeRouteDomains", "newId": "exposeRouteDomainsEnabled", "truth": "yes", "falsehood": "no" },
+            { "id": "virtualServersReference" },
             { "id": "virtualServerDiscovery", "newId": "virtualServerDiscoveryMode" },
             { "id": "monitor", "newId": "monitors", "retainCommon": true }
         ],
@@ -719,6 +720,16 @@
                   ]
                 },
                 { "id": "description", "newId": "remark" }
+            ],
+            "virtualServersReference": [
+                { "id": "name" },
+                { "id": "description", "newId": "remark" },
+                { "id": "destination" },
+                { "id": "enabled" },
+                { "id": "disabled" },
+                { "id": "translationAddress", "newId": "addressTranslation" },
+                { "id": "translationPort", "newId": "addressTranslationPort" },
+                { "id": "monitor", "newId": "monitors", "retainCommon": true }
             ]
         },
         "declaration": {
@@ -732,17 +743,17 @@
         "schemaClass": "GSLBMonitor",
         "requiredModule": "gtm",
         "properties": [
-            { "id":"kind" },
-            { "id":"description", "newId": "remark" },
-            { "id":"destination", "newId": "target" },
-            { "id":"interval" },
-            { "id":"timeout" },
-            { "id":"probeTimeout" },
-            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"send" },
-            { "id":"recv", "newId": "receive" }
+            { "id": "kind" },
+            { "id": "description", "newId": "remark" },
+            { "id": "destination", "newId": "target" },
+            { "id": "interval" },
+            { "id": "timeout" },
+            { "id": "probeTimeout" },
+            { "id": "ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "send" },
+            { "id": "recv", "newId": "receive" }
         ]
     },
     {

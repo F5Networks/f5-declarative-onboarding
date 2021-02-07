@@ -218,6 +218,16 @@ describe('gslbHandler', () => {
                             monitors: [
                                 '/Common/GSLBmonitor',
                                 '/Common/otherMonitor'
+                            ],
+                            virtualServers: [
+                                {
+                                    name: '0',
+                                    enabled: true,
+                                    address: '10.0.20.1',
+                                    port: 0,
+                                    addressTranslationPort: 0,
+                                    monitors: []
+                                }
                             ]
                         },
                         gslbServer2: {
@@ -254,7 +264,22 @@ describe('gslbHandler', () => {
                             ],
                             exposeRouteDomainsEnabled: true,
                             virtualServerDiscoveryMode: 'enabled',
-                            monitors: []
+                            monitors: [],
+                            virtualServers: [
+                                {
+                                    name: 'testVirtualServer',
+                                    remark: 'test virtual server description',
+                                    enabled: false,
+                                    address: 'a989:1c34:9c::b099:c1c7:8bfe',
+                                    port: 8080,
+                                    addressTranslation: '1:0:1::',
+                                    addressTranslationPort: 80,
+                                    monitors: [
+                                        '/Common/tcp',
+                                        '/Common/http'
+                                    ]
+                                }
+                            ]
                         },
                         gslbServer3: {
                             name: 'gslbServer3',
@@ -288,7 +313,8 @@ describe('gslbHandler', () => {
                             ],
                             exposeRouteDomainsEnabled: false,
                             virtualServerDiscoveryMode: 'disabled',
-                            monitors: ['/Common/bigip']
+                            monitors: ['/Common/bigip'],
+                            virtualServers: []
                         }
                     }
                 }
@@ -339,7 +365,19 @@ describe('gslbHandler', () => {
                             ],
                             exposeRouteDomains: 'no',
                             virtualServerDiscovery: 'disabled',
-                            monitor: '/Common/GSLBmonitor and /Common/otherMonitor'
+                            monitor: '/Common/GSLBmonitor and /Common/otherMonitor',
+                            virtualServers: [
+                                {
+                                    name: '0',
+                                    description: 'none',
+                                    enabled: true,
+                                    disabled: false,
+                                    destination: '10.0.20.1:0',
+                                    translationAddress: 'none',
+                                    translationPort: 0,
+                                    monitor: ''
+                                }
+                            ]
                         }
                     );
                     assert.deepStrictEqual(
@@ -379,7 +417,19 @@ describe('gslbHandler', () => {
                             ],
                             exposeRouteDomains: 'yes',
                             virtualServerDiscovery: 'enabled',
-                            monitor: ''
+                            monitor: '',
+                            virtualServers: [
+                                {
+                                    name: 'testVirtualServer',
+                                    description: 'test virtual server description',
+                                    enabled: false,
+                                    disabled: true,
+                                    destination: 'a989:1c34:9c::b099:c1c7:8bfe.8080',
+                                    translationAddress: '1:0:1::',
+                                    translationPort: 80,
+                                    monitor: '/Common/tcp and /Common/http'
+                                }
+                            ]
                         }
                     );
                     assert.deepStrictEqual(
@@ -419,7 +469,8 @@ describe('gslbHandler', () => {
                             ],
                             exposeRouteDomains: 'no',
                             virtualServerDiscovery: 'disabled',
-                            monitor: '/Common/bigip'
+                            monitor: '/Common/bigip',
+                            virtualServers: []
                         }
                     );
                 });

@@ -650,6 +650,29 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     monitors: [
                         '/Common/http',
                         '/Common/myGSLBMonitor'
+                    ],
+                    virtualServers: [
+                        {
+                            name: '0',
+                            address: '10.0.20.1',
+                            port: 80,
+                            enabled: true,
+                            addressTranslationPort: 0,
+                            monitors: []
+                        },
+                        {
+                            name: 'virtualServer',
+                            remark: 'GSLB server virtual server description',
+                            enabled: false,
+                            address: 'a989:1c34:9c::b099:c1c7:8bfe',
+                            port: 8080,
+                            addressTranslation: '1:0:1::',
+                            addressTranslationPort: 80,
+                            monitors: [
+                                '/Common/tcp',
+                                '/Common/http'
+                            ]
+                        }
                     ]
                 }
             ));

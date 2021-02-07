@@ -1056,6 +1056,9 @@ describe('inspectHandler', () => {
                     devicesReference: {
                         link: 'https://localhost/mgmt/tm/gtm/server/~Common~currentGSLBServer/devices'
                     },
+                    virtualServersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/server/~Common~currentGSLBServer/virtual-servers'
+                    },
                     exposeRouteDomains: 'yes',
                     virtualServerDiscovery: 'enabled',
                     monitor: '/Common/http and /Common/http_head_f5'
@@ -1081,6 +1084,25 @@ describe('inspectHandler', () => {
                             translation: '192.0.2.13'
                         }
                     ]
+                }
+            ],
+            '/tm/gtm/server/~Common~currentGSLBServer/virtual-servers': [
+                {
+                    name: 'virtualServer1',
+                    description: 'virtual server description one',
+                    destination: '192.0.10.20:443',
+                    enabled: false,
+                    disabled: true,
+                    translationAddress: '10.10.0.10',
+                    translationPort: 23,
+                    monitor: '/Common/bigip and /Common/tcp'
+                },
+                {
+                    name: 'virtualServer2',
+                    destination: 'a989:1c34:9c::b099:c1c7:8bfe.0',
+                    enabled: true,
+                    translationAddress: 'none',
+                    translationPort: 0
                 }
             ],
             '/tm/gtm/monitor/http': [
@@ -1719,6 +1741,29 @@ describe('inspectHandler', () => {
                             ],
                             exposeRouteDomainsEnabled: true,
                             virtualServerDiscoveryMode: 'enabled',
+                            virtualServers: [
+                                {
+                                    name: 'virtualServer1',
+                                    remark: 'virtual server description one',
+                                    enabled: false,
+                                    address: '192.0.10.20',
+                                    port: 443,
+                                    addressTranslation: '10.10.0.10',
+                                    addressTranslationPort: 23,
+                                    monitors: [
+                                        '/Common/bigip',
+                                        '/Common/tcp'
+                                    ]
+                                },
+                                {
+                                    name: 'virtualServer2',
+                                    enabled: true,
+                                    address: 'a989:1c34:9c::b099:c1c7:8bfe',
+                                    port: 0,
+                                    addressTranslationPort: 0,
+                                    monitors: []
+                                }
+                            ],
                             monitors: [
                                 '/Common/http',
                                 '/Common/http_head_f5'
