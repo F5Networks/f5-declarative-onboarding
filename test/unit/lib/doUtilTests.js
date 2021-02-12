@@ -586,4 +586,31 @@ describe('doUtil', () => {
                 });
         });
     });
+
+    describe('minimizeIP', () => {
+        it('should return an undefined when nothing is sent in', () => {
+            assert.strictEqual(doUtil.minimizeIP(), undefined);
+        });
+
+        it('should return an empty string when an empty is sent in', () => {
+            assert.strictEqual(doUtil.minimizeIP(''), '');
+        });
+
+        it('should return valid IPv4 addresses', () => {
+            assert.strictEqual(doUtil.minimizeIP('0.0.0.0/24'), '0.0.0.0/24');
+        });
+
+        it('should return valid shortened IPv6 addresses', () => {
+            assert.strictEqual(doUtil.minimizeIP('0:0:0:0:0:0:0:0'), '::');
+            assert.strictEqual(doUtil.minimizeIP('1:0:0:0:0:0:0:0'), '1::');
+            assert.strictEqual(doUtil.minimizeIP('0:0:0:0:0:0:0:1'), '::1');
+            assert.strictEqual(doUtil.minimizeIP('1:0:0:0:0:0:0:1'), '1::1');
+            assert.strictEqual(doUtil.minimizeIP('1:0:1:0:0:0:0:0'), '1:0:1::');
+            assert.strictEqual(doUtil.minimizeIP('1:0:0:1:0:0:0:1'), '1:0:0:1::1');
+        });
+
+        it('should return valid IPv6 address from IPv4-Mapped address', () => {
+            assert.strictEqual(doUtil.minimizeIP('::ffff:192.0.3.47'), '::ffff:c000:32f');
+        });
+    });
 });

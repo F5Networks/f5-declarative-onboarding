@@ -203,6 +203,25 @@ describe('gslb.schema.json', () => {
                     pathProbeEnabled: false,
                     snmpProbeEnabled: false,
                     virtualServerDiscoveryMode: 'enabled',
+                    virtualServers: [
+                        {
+                            name: 'virtualServer1',
+                            remark: 'virtual server description one',
+                            label: 'virtual server label one',
+                            enabled: false,
+                            address: '192.0.10.20',
+                            port: 443,
+                            addressTranslation: '10.10.0.10',
+                            addressTranslationPort: 23,
+                            monitors: [
+                                '/Common/bigip',
+                                '/Common/tcp'
+                            ]
+                        },
+                        {
+                            address: 'a989:1c34:009c:0000:0000:b099:c1c7:8bfe'
+                        }
+                    ],
                     exposeRouteDomainsEnabled: true,
                     cpuUsageLimit: 10,
                     cpuUsageLimitEnabled: true,
@@ -309,6 +328,48 @@ describe('gslb.schema.json', () => {
                 data.proberFallback = 'pool';
                 assert.strictEqual(validate(data), false);
                 assert.notStrictEqual(getErrorString().indexOf('should have required property \'.proberPool\''), -1);
+            });
+
+            it('should invalidate GSLBServer with invalid virtual server address value', () => {
+                data.virtualServers = [{ address: 'badIP' }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate GSLBServer with invalid virtual server addressTranslation value', () => {
+                data.virtualServers = [{ address: '192.0.2.12', addressTranslation: 'badIP' }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server without address property', () => {
+                data.virtualServers = [{ port: 8080 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'address\''), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server with port value of less than 0', () => {
+                data.virtualServers = [{ address: '192.0.2.12', port: -1 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server with addressTranslationPort value of less than 0', () => {
+                data.virtualServers = [{ address: '192.0.2.12', addressTranslationPort: -1 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server with port value of more than 65535', () => {
+                data.virtualServers = [{ address: '192.0.2.12', port: 65536 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server with addressTranslationPort value of more than 65535', () => {
+                data.virtualServers = [{ address: '192.0.2.12', addressTranslationPort: 65536 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
             });
         });
     });

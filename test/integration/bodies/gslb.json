@@ -62,6 +62,26 @@
             "monitors": [
                 "/Common/http",
                 "/Common/myGSLBMonitor"
+            ],
+            "virtualServers": [
+                {
+                    "address": "10.0.20.1",
+                    "port": 80
+                },
+                {
+                    "name": "virtualServer",
+                    "label": "Example of all GSLB server virtual server properties",
+                    "remark": "GSLB server virtual server description",
+                    "enabled": false,
+                    "address": "a989:1c34:009c:0000:0000:b099:c1c7:8bfe",
+                    "port": 8080,
+                    "addressTranslation": "1:0:1:0:0:0:0:0",
+                    "addressTranslationPort": 80,
+                    "monitors": [
+                        "/Common/tcp",
+                        "/Common/http"
+                    ]
+                }
             ]
         },
         "myGSLBProberPool": {
