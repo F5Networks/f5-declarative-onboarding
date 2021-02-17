@@ -193,12 +193,16 @@ class ConfigManager {
             .then((results) => {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
+                    const schemaClass = this.configItems[index].schemaClass;
                     // looks like configItem was skipped in previous step
                     if (currentItem === false) {
+                        if (!currentConfig[schemaClass] && classPresent(declaration, schemaClass)) {
+                            currentConfig[schemaClass] = {};
+                        }
+
                         return;
                     }
 
-                    const schemaClass = this.configItems[index].schemaClass;
                     if (!schemaClass) {
                         // Simple item that is just key:value - not a larger object
                         Object.keys(currentItem).forEach((key) => {
@@ -1028,6 +1032,11 @@ function inPartitions(item, partitionList) {
     }
 
     return false;
+}
+
+function classPresent(declaration, className) {
+    return declaration.Common
+        && Object.keys(declaration.Common).find(key => declaration.Common[key].class === className);
 }
 
 module.exports = ConfigManager;

@@ -361,7 +361,7 @@
                 "monitorType": {
                     "description": "Specifies the type of monitor",
                     "type": "string",
-                    "enum": [ "http" ]
+                    "enum": [ "http", "https", "gateway-icmp", "tcp", "udp" ]
                 },
                 "target": {
                     "description": "Specifies the IP address and service port of the resource that is the destination of this monitor. Format is ip:port",
@@ -404,6 +404,22 @@
                 {
                     "if": { "properties": { "monitorType": { "const": "http" } } },
                     "then": { "$ref": "#/definitions/gslbMonitorHTTP" }
+                },
+                {
+                    "if": { "properties": { "monitorType": { "const": "https" } } },
+                    "then": { "$ref": "#/definitions/gslbMonitorHTTPS" }
+                },
+                {
+                    "if": { "properties": { "monitorType": { "const": "gateway-icmp" } } },
+                    "then": { "$ref": "#/definitions/gslbMonitorICMP" }
+                },
+                {
+                    "if": { "properties": { "monitorType": { "const": "tcp" } } },
+                    "then": { "$ref": "#/definitions/gslbMonitorTCP" }
+                },
+                {
+                    "if": { "properties": { "monitorType": { "const": "udp" } } },
+                    "then": { "$ref": "#/definitions/gslbMonitorUDP" }
                 }
             ]
         },
@@ -426,6 +442,105 @@
                     "description": "Specifies the text string that the monitor looks for in the returned resource. If you do not specify a value for both the send and receive options, the monitor performs a simple service check and connect only",
                     "type": "string",
                     "default": "HTTP/1."
+                }
+            }
+        },
+        "gslbMonitorHTTPS": {
+            "description": "Additional Monitor class properties available when monitorType = https",
+            "type": "object",
+            "allOf": [
+                {
+                    "properties": {
+                        "ciphers": {
+                            "description": "Ciphersuite selection string",
+                            "type": "string",
+                            "default": "DEFAULT"
+                        },
+                        "clientCertificate": {
+                            "description": "Pointer to client Certificate declaration, for TLS authentication (optional)",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "$ref": "#/definitions/gslbMonitorHTTP"
+                }
+            ]
+        },
+        "gslbMonitorICMP": {
+            "description": "Additional Monitor class properties available when monitorType = gateway-icmp",
+            "type": "object",
+            "properties": {
+                "probeInterval": {
+                    "description": "Specifies the frequency at which the BIG-IP system probes the host server",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 1
+                },
+                "probeAttempts": {
+                    "description": "Specifies the number of times the BIG-IP system attempts to probe the host server, after which the BIG-IP system considers the host server down or unavailable",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 3
+                }
+            }
+        },
+        "gslbMonitorTCP": {
+            "description": "Additional Monitor class properties available when monitorType = tcp",
+            "type": "object",
+            "properties": {
+                "reverseEnabled": {
+                    "description": "When enabled, a successful check marks the monitored object down instead of up. You can use the Reverse mode only if you configure both the send and receive options",
+                    "type": "boolean",
+                    "default": false
+                },
+                "send": {
+                    "description": "Specifies the text string that the monitor sends to the target object. If you do not specify a value for both the send and receive options, the monitor performs a simple service check and connect only",
+                    "type": "string",
+                    "default": ""
+                },
+                "receive": {
+                    "description": "Specifies the text string that the monitor looks for in the returned resource. If you do not specify a value for both the send and receive options, the monitor performs a simple service check and connect only",
+                    "type": "string",
+                    "default": ""
+                }
+            }
+        },
+        "gslbMonitorUDP": {
+            "description": "Additional Monitor class properties available when monitorType = udp",
+            "type": "object",
+            "properties": {
+                "debugEnabled": {
+                    "description": "When enabled, the monitor sends error messages and additional information to a log file created and labeled specifically for this monitor. The default is false (disabled)",
+                    "type": "boolean",
+                    "default": false
+                },
+                "probeAttempts": {
+                    "description": "Specifies the number of times the BIG-IP system attempts to probe the host server, after which the BIG-IP system considers the host server down or unavailable",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 3
+                },
+                "probeInterval": {
+                    "description": "Specifies the frequency at which the BIG-IP system probes the host server",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 1
+                },
+                "reverseEnabled": {
+                    "description": "When enabled, a successful check marks the monitored object down instead of up. You can use the Reverse mode only if you configure both the send and receive options",
+                    "type": "boolean",
+                    "default": false
+                },
+                "send": {
+                    "description": "Specifies the text string that the monitor sends to the target object. If you do not specify a value for both the send and receive options, the monitor performs a simple service check and connect only",
+                    "type": "string",
+                    "default": "default send string"
+                },
+                "receive": {
+                    "description": "Specifies the text string that the monitor looks for in the returned resource. If you do not specify a value for both the send and receive options, the monitor performs a simple service check and connect only",
+                    "type": "string",
+                    "default": ""
                 }
             }
         },

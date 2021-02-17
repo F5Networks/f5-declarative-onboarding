@@ -163,11 +163,28 @@ function handleGSLBMonitor() {
                 timeout: monitor.timeout,
                 probeTimeout: monitor.probeTimeout,
                 ignoreDownResponse: (monitor.ignoreDownResponseEnabled) ? 'enabled' : 'disabled',
-                transparent: (monitor.transparent) ? 'enabled' : 'disabled',
-                reverse: (monitor.reverseEnabled) ? 'enabled' : 'disabled',
-                send: monitor.send || 'none',
-                recv: monitor.receive || 'none'
+                transparent: (monitor.transparent) ? 'enabled' : 'disabled'
             };
+
+            if (monitor.monitorType !== 'gateway-icmp') {
+                body.reverse = (monitor.reverseEnabled) ? 'enabled' : 'disabled';
+                body.send = monitor.send || 'none';
+                body.recv = monitor.receive || 'none';
+            }
+
+            if (monitor.monitorType === 'https') {
+                body.cipherlist = monitor.ciphers || 'none';
+                body.cert = monitor.clientCertificate || 'none';
+            }
+
+            if (monitor.monitorType === 'gateway-icmp' || monitor.monitorType === 'udp') {
+                body.probeInterval = monitor.probeInterval;
+                body.probeAttempts = monitor.probeAttempts;
+            }
+
+            if (monitor.monitorType === 'udp') {
+                body.debug = (monitor.debugEnabled) ? 'yes' : 'no';
+            }
 
             const monPath = `${PATHS.GSLBMonitor}/${monitor.monitorType}`;
             promises.push(this.bigIp.createOrModify(monPath, body, null, cloudUtil.MEDIUM_RETRY));

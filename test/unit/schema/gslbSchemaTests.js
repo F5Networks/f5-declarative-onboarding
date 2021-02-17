@@ -416,6 +416,177 @@ describe('gslb.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate minimal properties and fill in defaults for monitorType https', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'https'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'https',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        reverseEnabled: false,
+                        send: 'HEAD / HTTP/1.0\\r\\n\\r\\n',
+                        receive: 'HTTP/1.',
+                        ciphers: 'DEFAULT'
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType https', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'http',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    reverseEnabled: true,
+                    send: 'example send string',
+                    receive: 'example receive string',
+                    ciphers: 'example ciphers',
+                    clientCertificate: '/Common/cert'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal properties and fill in defaults for monitorType gateway-icmp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'gateway-icmp'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'gateway-icmp',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        probeInterval: 1,
+                        probeAttempts: 3
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType gateway-icmp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'gateway-icmp',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    probeInterval: 10,
+                    probeAttempts: 15
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal properties and fill in defaults for monitorType tcp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'tcp'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'tcp',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        reverseEnabled: false,
+                        send: '',
+                        receive: ''
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType tcp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'tcp',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    reverseEnabled: true,
+                    send: 'example send string',
+                    receive: 'example receive string'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal properties and fill in defaults for monitorType udp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'udp'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'udp',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        reverseEnabled: false,
+                        debugEnabled: false,
+                        probeInterval: 1,
+                        probeAttempts: 3,
+                        send: 'default send string',
+                        receive: ''
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType udp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'udp',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    reverseEnabled: true,
+                    send: 'example send string',
+                    receive: 'example receive string',
+                    probeInterval: 10,
+                    probeAttempts: 5,
+                    debugEnabled: true
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
