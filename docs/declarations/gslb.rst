@@ -51,7 +51,7 @@ This example only includes the GSLBDataCenter class, which can be used as a part
 
 .. _gslbserver:
 
-Configuring a GSLB server
+Configuring a GSLB Server
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
@@ -61,9 +61,11 @@ In this example, we show how you can configure a GSLB Server in DO 1.18 and late
 
 A GSLB Server defines a physical system on the network. Servers contain the virtual servers that are the ultimate destinations of DNS name resolution requests. For information on BIG-IP DNS, including GSLB Servers, see the |dns| for your BIG-IP version.
 
+DO 1.19 added support for Prober pools and GSLB virtual servers to GSLB Servers. For information on Prober pools, see :ref:`prober`. |br| For information on GSLB virtual servers, see the |gslbvipdoc| chapter of the documentation. For DO options and usage, see |gslbvip|.
+
 For details on the available properties and DO usage, see |gslbserver| in the Schema Reference.  
 
-.. IMPORTANT:: This example was updated to include a Prober pool and GSLB virtual servers.  Prober pools and GSLB virtual servers were introduced in DO v1.19, if you attempt to use the following declaration on a previous version, it will fail.  If you are using a version prior to 1.19, you can remove the Prober pool and virtual server lines (in yellow). |br| See :ref:`prober` for a complete Prober pool example.
+.. IMPORTANT:: This example was updated to include a Prober pool and GSLB virtual servers.  Prober pools and GSLB virtual servers were introduced in DO v1.19, if you attempt to use the following declaration on a previous version, it will fail.  If you are using a version prior to 1.19, you can remove the Prober pool and virtual server lines (in yellow). |br| S
 
 .. literalinclude:: ../../examples/gslbServer.json
    :language: json
@@ -147,3 +149,11 @@ For details on the available properties and DO usage, see |gslbpp| in the Schema
 .. |br| raw:: html
  
    <br />
+
+.. |gslbvip| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#gslbserver-virtualservers" target="_blank">GSLBServer-virtualServers</a>
+
+.. |gslbvipdoc| raw:: html
+
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip-dns/manuals/product/big-ip-dns-load-balancing-14-1-0/01.html" target="_blank">Global Server Load Balancing</a>
