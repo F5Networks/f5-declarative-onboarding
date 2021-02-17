@@ -802,7 +802,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
-    it('should delete a GSLBMonitor via updating its path with its monitorType and not delete http', () => {
+    it('should delete a GSLBMonitor via updating its path with its monitorType and not delete default monitors', () => {
         const state = {
             currentConfig: {
                 Common: {
@@ -814,6 +814,22 @@ describe(('deleteHandler'), function testDeleteHandler() {
                         http: {
                             name: 'http',
                             monitorType: 'http'
+                        },
+                        https: {
+                            name: 'https',
+                            monitorType: 'https'
+                        },
+                        gateway_icmp: {
+                            name: 'gateway-icmp',
+                            monitorType: 'gateway-icmp'
+                        },
+                        tcp: {
+                            name: 'tcp',
+                            monitorType: 'tcp'
+                        },
+                        udp: {
+                            name: 'udp',
+                            monitorType: 'udp'
                         }
                     }
                 }
@@ -824,7 +840,11 @@ describe(('deleteHandler'), function testDeleteHandler() {
             Common: {
                 GSLBMonitor: {
                     gslbMonitor: {},
-                    http: {}
+                    http: {},
+                    https: {},
+                    gateway_icmp: {},
+                    tcp: {},
+                    udp: {}
                 }
             }
         };

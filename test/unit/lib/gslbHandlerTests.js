@@ -478,40 +478,43 @@ describe('gslbHandler', () => {
     });
 
     describe('GSLB monitor', () => {
-        describe('http', () => {
-            it('should handle GSLB monitor http', () => {
-                const declaration = {
-                    Common: {
-                        GSLBMonitor: {
-                            gslbMonitor1: {
-                                name: 'gslbMonitor1',
-                                remark: 'description',
-                                monitorType: 'http',
-                                target: '1.1.1.1:80',
-                                interval: 100,
-                                timeout: 1000,
-                                probeTimeout: 110,
-                                ignoreDownResponseEnabled: true,
-                                transparent: true,
-                                reverseEnabled: true,
-                                send: 'HEAD / HTTP/1.0\\r\\n',
-                                receive: 'HTTP'
-                            },
-                            gslbMonitor2: {
-                                name: 'gslbMonitor2',
-                                monitorType: 'http',
-                                target: '*:*',
-                                interval: 30,
-                                timeout: 120,
-                                probeTimeout: 5,
-                                ignoreDownResponseEnabled: false,
-                                transparent: false,
-                                reverseEnabled: false
-                            }
+        let declaration;
+
+        beforeEach(() => {
+            declaration = {
+                Common: {
+                    GSLBMonitor: {
+                        gslbMonitor1: {
+                            name: 'gslbMonitor1',
+                            remark: 'description',
+                            target: '1.1.1.1:80',
+                            interval: 100,
+                            timeout: 1000,
+                            probeTimeout: 110,
+                            ignoreDownResponseEnabled: true,
+                            transparent: true
+                        },
+                        gslbMonitor2: {
+                            name: 'gslbMonitor2',
+                            target: '*:*',
+                            interval: 30,
+                            timeout: 120,
+                            probeTimeout: 5,
+                            ignoreDownResponseEnabled: false,
+                            transparent: false
                         }
                     }
-                };
+                }
+            };
+        });
 
+        describe('http', () => {
+            it('should handle GSLB monitor http', () => {
+                declaration.Common.GSLBMonitor.gslbMonitor1.monitorType = 'http';
+                declaration.Common.GSLBMonitor.gslbMonitor2.monitorType = 'http';
+                declaration.Common.GSLBMonitor.gslbMonitor1.reverseEnabled = true;
+                declaration.Common.GSLBMonitor.gslbMonitor1.send = 'HEAD / HTTP/1.0\\r\\n';
+                declaration.Common.GSLBMonitor.gslbMonitor1.receive = 'HTTP';
                 const gslbHandler = new GSLBHandler(declaration, bigIpMock);
                 return gslbHandler.process()
                     .then(() => {
@@ -545,6 +548,206 @@ describe('gslbHandler', () => {
                                 reverse: 'disabled',
                                 send: 'none',
                                 recv: 'none'
+                            }
+                        );
+                    });
+            });
+        });
+
+        describe('https', () => {
+            it('should handle GSLB monitor https', () => {
+                declaration.Common.GSLBMonitor.gslbMonitor1.monitorType = 'https';
+                declaration.Common.GSLBMonitor.gslbMonitor2.monitorType = 'https';
+                declaration.Common.GSLBMonitor.gslbMonitor1.ciphers = 'DEFAULT';
+                declaration.Common.GSLBMonitor.gslbMonitor1.clientCertificate = '/Common/default.crt';
+                declaration.Common.GSLBMonitor.gslbMonitor1.send = 'HEAD / HTTP/1.0\\r\\n';
+                declaration.Common.GSLBMonitor.gslbMonitor1.receive = 'HTTP';
+                declaration.Common.GSLBMonitor.gslbMonitor1.reverseEnabled = true;
+                const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+                return gslbHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/https`][0],
+                            {
+                                name: 'gslbMonitor1',
+                                description: 'description',
+                                destination: '1.1.1.1:80',
+                                interval: 100,
+                                timeout: 1000,
+                                probeTimeout: 110,
+                                ignoreDownResponse: 'enabled',
+                                transparent: 'enabled',
+                                cipherlist: 'DEFAULT',
+                                cert: '/Common/default.crt',
+                                reverse: 'enabled',
+                                send: 'HEAD / HTTP/1.0\\r\\n',
+                                recv: 'HTTP'
+                            }
+                        );
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/https`][1],
+                            {
+                                name: 'gslbMonitor2',
+                                description: 'none',
+                                destination: '*:*',
+                                interval: 30,
+                                timeout: 120,
+                                probeTimeout: 5,
+                                ignoreDownResponse: 'disabled',
+                                transparent: 'disabled',
+                                cipherlist: 'none',
+                                cert: 'none',
+                                reverse: 'disabled',
+                                send: 'none',
+                                recv: 'none'
+                            }
+                        );
+                    });
+            });
+        });
+
+        describe('gateway-icmp', () => {
+            it('should handle GSLB monitor gateway-icmp', () => {
+                declaration.Common.GSLBMonitor.gslbMonitor1.monitorType = 'gateway-icmp';
+                declaration.Common.GSLBMonitor.gslbMonitor2.monitorType = 'gateway-icmp';
+                declaration.Common.GSLBMonitor.gslbMonitor1.probeInterval = 5;
+                declaration.Common.GSLBMonitor.gslbMonitor1.probeAttempts = 3;
+                declaration.Common.GSLBMonitor.gslbMonitor2.probeInterval = 15;
+                declaration.Common.GSLBMonitor.gslbMonitor2.probeAttempts = 5;
+                const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+                return gslbHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/gateway-icmp`][0],
+                            {
+                                name: 'gslbMonitor1',
+                                description: 'description',
+                                destination: '1.1.1.1:80',
+                                interval: 100,
+                                timeout: 1000,
+                                probeTimeout: 110,
+                                ignoreDownResponse: 'enabled',
+                                transparent: 'enabled',
+                                probeInterval: 5,
+                                probeAttempts: 3
+                            }
+                        );
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/gateway-icmp`][1],
+                            {
+                                name: 'gslbMonitor2',
+                                description: 'none',
+                                destination: '*:*',
+                                interval: 30,
+                                timeout: 120,
+                                probeTimeout: 5,
+                                ignoreDownResponse: 'disabled',
+                                transparent: 'disabled',
+                                probeInterval: 15,
+                                probeAttempts: 5
+                            }
+                        );
+                    });
+            });
+        });
+
+        describe('tcp', () => {
+            it('should handle GSLB monitor tcp', () => {
+                declaration.Common.GSLBMonitor.gslbMonitor1.monitorType = 'tcp';
+                declaration.Common.GSLBMonitor.gslbMonitor2.monitorType = 'tcp';
+                declaration.Common.GSLBMonitor.gslbMonitor1.reverseEnabled = true;
+                declaration.Common.GSLBMonitor.gslbMonitor1.send = 'example send';
+                declaration.Common.GSLBMonitor.gslbMonitor1.receive = 'example receive';
+                const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+                return gslbHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/tcp`][0],
+                            {
+                                name: 'gslbMonitor1',
+                                description: 'description',
+                                destination: '1.1.1.1:80',
+                                interval: 100,
+                                timeout: 1000,
+                                probeTimeout: 110,
+                                ignoreDownResponse: 'enabled',
+                                transparent: 'enabled',
+                                reverse: 'enabled',
+                                send: 'example send',
+                                recv: 'example receive'
+                            }
+                        );
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/tcp`][1],
+                            {
+                                name: 'gslbMonitor2',
+                                description: 'none',
+                                destination: '*:*',
+                                interval: 30,
+                                timeout: 120,
+                                probeTimeout: 5,
+                                ignoreDownResponse: 'disabled',
+                                transparent: 'disabled',
+                                reverse: 'disabled',
+                                send: 'none',
+                                recv: 'none'
+                            }
+                        );
+                    });
+            });
+        });
+
+        describe('udp', () => {
+            it('should handle GSLB monitor udp', () => {
+                declaration.Common.GSLBMonitor.gslbMonitor1.monitorType = 'udp';
+                declaration.Common.GSLBMonitor.gslbMonitor2.monitorType = 'udp';
+                declaration.Common.GSLBMonitor.gslbMonitor1.debugEnabled = true;
+                declaration.Common.GSLBMonitor.gslbMonitor1.probeInterval = 5;
+                declaration.Common.GSLBMonitor.gslbMonitor1.probeAttempts = 3;
+                declaration.Common.GSLBMonitor.gslbMonitor1.send = 'default send string';
+                declaration.Common.GSLBMonitor.gslbMonitor1.receive = 'example receive';
+                declaration.Common.GSLBMonitor.gslbMonitor1.reverseEnabled = true;
+                declaration.Common.GSLBMonitor.gslbMonitor2.probeInterval = 15;
+                declaration.Common.GSLBMonitor.gslbMonitor2.probeAttempts = 5;
+                const gslbHandler = new GSLBHandler(declaration, bigIpMock);
+                return gslbHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/udp`][0],
+                            {
+                                name: 'gslbMonitor1',
+                                description: 'description',
+                                destination: '1.1.1.1:80',
+                                interval: 100,
+                                timeout: 1000,
+                                probeTimeout: 110,
+                                ignoreDownResponse: 'enabled',
+                                transparent: 'enabled',
+                                probeInterval: 5,
+                                probeAttempts: 3,
+                                debug: 'yes',
+                                send: 'default send string',
+                                recv: 'example receive',
+                                reverse: 'enabled'
+                            }
+                        );
+                        assert.deepStrictEqual(
+                            dataSent[`${PATHS.GSLBMonitor}/udp`][1],
+                            {
+                                name: 'gslbMonitor2',
+                                description: 'none',
+                                destination: '*:*',
+                                interval: 30,
+                                timeout: 120,
+                                probeTimeout: 5,
+                                ignoreDownResponse: 'disabled',
+                                transparent: 'disabled',
+                                probeInterval: 15,
+                                probeAttempts: 5,
+                                debug: 'no',
+                                send: 'none',
+                                recv: 'none',
+                                reverse: 'disabled'
                             }
                         );
                     });

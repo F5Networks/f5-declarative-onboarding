@@ -1494,6 +1494,35 @@ describe('configManager', () => {
             });
     });
 
+    it('should add empty object for unprovisioned modules when a class is in the delcaration', () => {
+        const configItems = [
+            {
+                path: '/tm/gtm/monitor/http',
+                schemaClass: 'GSLBMonitor',
+                requiredModule: 'gtm',
+                properties: []
+            }
+        ];
+        const declaration = {
+            Common: {
+                gslbMonitor: {
+                    class: 'GSLBMonitor'
+                }
+            }
+        };
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get(declaration, state, doState)
+            .then(() => {
+                assert.deepStrictEqual(
+                    state.currentConfig.Common,
+                    {
+                        GSLBMonitor: {}
+                    }
+                );
+            });
+    });
+
     it('should keep the right order for response items when configItem was skipped', () => {
         const configItems = [
             {

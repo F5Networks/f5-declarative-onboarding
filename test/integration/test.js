@@ -649,7 +649,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     memoryLimitEnabled: true,
                     monitors: [
                         '/Common/http',
-                        '/Common/myGSLBMonitor'
+                        '/Common/myGSLBMonitorHTTP',
+                        '/Common/myGSLBMonitorHTTPS',
+                        '/Common/myGSLBMonitorICMP',
+                        '/Common/myGSLBMonitorTCP',
+                        '/Common/myGSLBMonitorUDP'
                     ],
                     virtualServers: [
                         {
@@ -695,10 +699,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }
             ));
 
-            it('should have created a GSLB monitor', () => assert.deepStrictEqual(
-                currentState.GSLBMonitor.myGSLBMonitor,
+            it('should have created a GSLB monitor of type http', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorHTTP,
                 {
-                    name: 'myGSLBMonitor',
+                    name: 'myGSLBMonitorHTTP',
                     interval: 100,
                     probeTimeout: 110,
                     send: 'HEAD / HTTP/1.0\\r\\n',
@@ -710,6 +714,82 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     ignoreDownResponseEnabled: true,
                     reverseEnabled: true,
                     receive: 'HTTP'
+                }
+            ));
+
+            it('should have created a GSLB monitor of type https', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorHTTPS,
+                {
+                    name: 'myGSLBMonitorHTTPS',
+                    interval: 100,
+                    probeTimeout: 110,
+                    send: 'HEAD / HTTP/1.0\\r\\n',
+                    timeout: 1000,
+                    transparent: true,
+                    monitorType: 'https',
+                    remark: 'description',
+                    target: '2.2.2.2:80',
+                    ignoreDownResponseEnabled: true,
+                    reverseEnabled: true,
+                    receive: 'HTTP',
+                    ciphers: 'DEFAULT',
+                    clientCertificate: 'default.crt'
+                }
+            ));
+
+            it('should have created a GSLB monitor of type gateway-icmp', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorICMP,
+                {
+                    name: 'myGSLBMonitorICMP',
+                    interval: 100,
+                    probeTimeout: 110,
+                    timeout: 1000,
+                    transparent: true,
+                    monitorType: 'gateway-icmp',
+                    remark: 'description',
+                    target: '3.3.3.3:80',
+                    ignoreDownResponseEnabled: true,
+                    probeInterval: 1,
+                    probeAttempts: 3
+                }
+            ));
+
+            it('should have created a GSLB monitor of type tcp', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorTCP,
+                {
+                    name: 'myGSLBMonitorTCP',
+                    interval: 100,
+                    probeTimeout: 110,
+                    timeout: 1000,
+                    transparent: true,
+                    monitorType: 'tcp',
+                    remark: 'description',
+                    target: '4.4.4.4:80',
+                    ignoreDownResponseEnabled: true,
+                    reverseEnabled: true,
+                    receive: 'example receive',
+                    send: 'example send'
+                }
+            ));
+
+            it('should have created a GSLB monitor of type udp', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorUDP,
+                {
+                    name: 'myGSLBMonitorUDP',
+                    interval: 100,
+                    probeTimeout: 110,
+                    send: 'default send string',
+                    timeout: 1000,
+                    transparent: true,
+                    monitorType: 'udp',
+                    remark: 'description',
+                    target: '5.5.5.5:80',
+                    ignoreDownResponseEnabled: true,
+                    reverseEnabled: true,
+                    receive: 'udp receive',
+                    debugEnabled: true,
+                    probeInterval: 1,
+                    probeAttempts: 3
                 }
             ));
         });

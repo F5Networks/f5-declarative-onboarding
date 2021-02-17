@@ -757,6 +757,94 @@
         ]
     },
     {
+        "path": "/tm/gtm/monitor/https",
+        "schemaClass": "GSLBMonitor",
+        "schemaMerge": {
+            "action": "add"
+        },
+        "requiredModule": "gtm",
+        "properties": [
+            { "id":"kind" },
+            { "id":"description", "newId": "remark" },
+            { "id":"destination", "newId": "target" },
+            { "id":"interval" },
+            { "id":"timeout" },
+            { "id":"probeTimeout" },
+            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"send" },
+            { "id":"recv", "newId": "receive" },
+            { "id":"cipherlist", "newId": "ciphers" },
+            { "id":"cert", "newId":"clientCertificate" }
+        ]
+    },
+    {
+        "path": "/tm/gtm/monitor/gateway-icmp",
+        "schemaClass": "GSLBMonitor",
+        "schemaMerge": {
+            "action": "add"
+        },
+        "requiredModule": "gtm",
+        "properties": [
+            { "id":"kind" },
+            { "id":"description", "newId": "remark" },
+            { "id":"destination", "newId": "target" },
+            { "id":"interval" },
+            { "id":"timeout" },
+            { "id":"probeTimeout" },
+            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"probeInterval" },
+            { "id":"probeAttempts" }
+        ]
+    },
+    {
+        "path": "/tm/gtm/monitor/tcp",
+        "schemaClass": "GSLBMonitor",
+        "schemaMerge": {
+            "action": "add"
+        },
+        "requiredModule": "gtm",
+        "properties": [
+            { "id":"kind" },
+            { "id":"description", "newId": "remark" },
+            { "id":"destination", "newId": "target" },
+            { "id":"interval" },
+            { "id":"timeout" },
+            { "id":"probeTimeout" },
+            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"send" },
+            { "id":"recv", "newId": "receive" }
+        ]
+    },
+    {
+        "path": "/tm/gtm/monitor/udp",
+        "schemaClass": "GSLBMonitor",
+        "schemaMerge": {
+            "action": "add"
+        },
+        "requiredModule": "gtm",
+        "properties": [
+            { "id":"kind" },
+            { "id":"description", "newId": "remark" },
+            { "id":"destination", "newId": "target" },
+            { "id":"interval" },
+            { "id":"timeout" },
+            { "id":"probeTimeout" },
+            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id":"send" },
+            { "id":"recv", "newId": "receive" },
+            { "id":"probeInterval" },
+            { "id":"probeAttempts" },
+            { "id":"debug", "newId": "debugEnabled", "truth": "yes", "falsehood": "no" }
+        ]
+    },
+    {
         "path": "/tm/gtm/prober-pool",
         "schemaClass": "GSLBProberPool",
         "requiredModule": "gtm",
