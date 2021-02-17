@@ -87,7 +87,7 @@ For more information, see |deviceclass| in the Schema Reference.
 
 **Example of the request sent to the webhook**
 
-.. code-block:: json
+.. code-block:: shell
 
     POST / HTTP/1.1
     Content-Type: application/json

@@ -85,10 +85,9 @@ See :doc:`validate` for information.
 
 |
 
-**Where can I find DO declaration examples? for licensing BIG-IP via BIG-IQ?**
+**Where can I find DO declaration examples?**
 
-- BIG-IP and general example declarations can be found :doc:`here<bigip-examples>`.
-- BIG-IQ example declarations for licensing BIG-IP devices can be found :doc:`here<bigiq-examples>`.
+- You can find all DO example declarations, including those for BIG-IQ, here: :doc:`examples`.
 
 |
 
