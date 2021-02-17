@@ -65,7 +65,7 @@ DO 1.19 added support for Prober pools and GSLB virtual servers to GSLB Servers.
 
 For details on the available properties and DO usage, see |gslbserver| in the Schema Reference.  
 
-.. IMPORTANT:: This example was updated to include a Prober pool and GSLB virtual servers.  Prober pools and GSLB virtual servers were introduced in DO v1.19, if you attempt to use the following declaration on a previous version, it will fail.  If you are using a version prior to 1.19, you can remove the Prober pool and virtual server lines (in yellow). |br| S
+.. IMPORTANT:: Because this example was updated to include a Prober pool and GSLB virtual servers, if you attempt to use the following declaration on a previous version of DO, it will fail.  If you are using a version prior to 1.19, you can remove the Prober pool and virtual server lines (in yellow). 
 
 .. literalinclude:: ../../examples/gslbServer.json
    :language: json
