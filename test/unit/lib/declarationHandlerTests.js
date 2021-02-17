@@ -1036,6 +1036,29 @@ describe('declarationHandler', () => {
                                 {
                                     address: '10.0.0.2'
                                 }
+                            ],
+                            virtualServers: [
+                                {
+                                    label: 'virtual server with minimal properties',
+                                    enabled: true,
+                                    address: '10.0.20.1',
+                                    port: 0,
+                                    addressTranslationPort: 0
+                                },
+                                {
+                                    name: 'testVirtualServer',
+                                    label: 'virtual server with all properties',
+                                    remark: 'test virtual server description',
+                                    enabled: false,
+                                    address: 'a989:1c34:009c:0000:0000:b099:c1c7:8bfe',
+                                    port: 8080,
+                                    addressTranslation: '1:0:1:0:0:0:0:0',
+                                    addressTranslationPort: 80,
+                                    monitors: [
+                                        '/Common/tcp',
+                                        '/Common/http'
+                                    ]
+                                }
                             ]
                         },
                         gslbServerBigip: {
@@ -1089,7 +1112,30 @@ describe('declarationHandler', () => {
                                     }]
                                 }
                             ],
-                            monitors: []
+                            monitors: [],
+                            virtualServers: [
+                                {
+                                    name: '0',
+                                    enabled: true,
+                                    address: '10.0.20.1',
+                                    port: 0,
+                                    addressTranslationPort: 0,
+                                    monitors: []
+                                },
+                                {
+                                    name: 'testVirtualServer',
+                                    remark: 'test virtual server description',
+                                    enabled: false,
+                                    address: 'a989:1c34:9c::b099:c1c7:8bfe',
+                                    port: 8080,
+                                    addressTranslation: '1:0:1::',
+                                    addressTranslationPort: 80,
+                                    monitors: [
+                                        '/Common/tcp',
+                                        '/Common/http'
+                                    ]
+                                }
+                            ]
                         }
                     );
                     assert.deepStrictEqual(
@@ -1109,7 +1155,8 @@ describe('declarationHandler', () => {
                             monitors: [
                                 '/Common/bigip'
                             ],
-                            serverType: 'bigip'
+                            serverType: 'bigip',
+                            virtualServers: []
                         }
                     );
                 });

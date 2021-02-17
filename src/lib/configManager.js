@@ -193,12 +193,16 @@ class ConfigManager {
             .then((results) => {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
+                    const schemaClass = this.configItems[index].schemaClass;
                     // looks like configItem was skipped in previous step
                     if (currentItem === false) {
+                        if (!currentConfig[schemaClass] && classPresent(declaration, schemaClass)) {
+                            currentConfig[schemaClass] = {};
+                        }
+
                         return;
                     }
 
-                    const schemaClass = this.configItems[index].schemaClass;
                     if (!schemaClass) {
                         // Simple item that is just key:value - not a larger object
                         Object.keys(currentItem).forEach((key) => {
@@ -441,6 +445,28 @@ class ConfigManager {
                             delete member.disabled;
                         });
                         (currentGSLBProberPool[key].members || []).sort((a, b) => a.order - b.order);
+                    });
+                }
+
+                // Patch GSLB Server virtual servers after they've been dereferenced
+                const currentGSLBServer = state.currentConfig.Common.GSLBServer;
+                if (currentGSLBServer) {
+                    Object.keys(currentGSLBServer).forEach((key) => {
+                        (currentGSLBServer[key].virtualServers || []).forEach((virtualServer) => {
+                            const splitDestination = virtualServer.destination.split(/(\.|:)(?=[^.:]*$)/);
+
+                            virtualServer.address = splitDestination[0];
+                            virtualServer.port = parseInt(splitDestination[2], 10);
+                            virtualServer.monitors = getGtmMonitorArray(virtualServer.monitors);
+                            virtualServer.enabled = isEnabledGtmObject(virtualServer);
+
+                            delete virtualServer.disabled;
+                            delete virtualServer.destination;
+
+                            if (virtualServer.addressTranslation === 'none') {
+                                delete virtualServer.addressTranslation;
+                            }
+                        });
                     });
                 }
 
@@ -938,11 +964,9 @@ function patchGSLBGlobals(patchedItem) {
 }
 
 function patchGSLBServer(patchedItem) {
+    patchedItem.monitors = getGtmMonitorArray(patchedItem.monitors);
     patchedItem.enabled = isEnabledGtmObject(patchedItem);
     delete patchedItem.disabled;
-
-    // Convert monitors from BIG-IP string to declaration compatible array, for diffing
-    patchedItem.monitors = patchedItem.monitors ? patchedItem.monitors.split(' and ') : [];
 }
 
 function patchGSLBMonitor(item) {
@@ -979,6 +1003,11 @@ function isEnabledGtmObject(obj) {
     return isEnabled;
 }
 
+function getGtmMonitorArray(monitorString) {
+    // Convert monitors from BIG-IP string to declaration compatible array, for diffing
+    return monitorString ? monitorString.split(' and ') : [];
+}
+
 function shouldIgnore(item, ignoreList) {
     if (!ignoreList) {
         return false;
@@ -1003,6 +1032,11 @@ function inPartitions(item, partitionList) {
     }
 
     return false;
+}
+
+function classPresent(declaration, className) {
+    return declaration.Common
+        && Object.keys(declaration.Common).find(key => declaration.Common[key].class === className);
 }
 
 module.exports = ConfigManager;

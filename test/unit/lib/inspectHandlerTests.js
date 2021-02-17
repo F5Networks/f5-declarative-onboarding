@@ -1056,6 +1056,9 @@ describe('inspectHandler', () => {
                     devicesReference: {
                         link: 'https://localhost/mgmt/tm/gtm/server/~Common~currentGSLBServer/devices'
                     },
+                    virtualServersReference: {
+                        link: 'https://localhost/mgmt/tm/gtm/server/~Common~currentGSLBServer/virtual-servers'
+                    },
                     exposeRouteDomains: 'yes',
                     virtualServerDiscovery: 'enabled',
                     monitor: '/Common/http and /Common/http_head_f5'
@@ -1083,14 +1086,33 @@ describe('inspectHandler', () => {
                     ]
                 }
             ],
+            '/tm/gtm/server/~Common~currentGSLBServer/virtual-servers': [
+                {
+                    name: 'virtualServer1',
+                    description: 'virtual server description one',
+                    destination: '192.0.10.20:443',
+                    enabled: false,
+                    disabled: true,
+                    translationAddress: '10.10.0.10',
+                    translationPort: 23,
+                    monitor: '/Common/bigip and /Common/tcp'
+                },
+                {
+                    name: 'virtualServer2',
+                    destination: 'a989:1c34:9c::b099:c1c7:8bfe.0',
+                    enabled: true,
+                    translationAddress: 'none',
+                    translationPort: 0
+                }
+            ],
             '/tm/gtm/monitor/http': [
                 {
                     kind: 'tm:gtm:monitor:http:httpstate',
-                    name: 'currentGSLBMonitor',
+                    name: 'currentGSLBMonitorHTTP',
                     partition: 'Common',
-                    fullPath: '/Common/currentGSLBMonitor',
+                    fullPath: '/Common/currentGSLBMonitorHTTP',
                     generation: 0,
-                    selfLink: 'https://localhost/mgmt/tm/gtm/monitor/http/~Common~currentGSLBMonitor?ver=15.1.2',
+                    selfLink: 'https://localhost/mgmt/tm/gtm/monitor/http/~Common~currentGSLBMonitorHTTP?ver=15.1.2',
                     defaultsFrom: '/Common/http',
                     description: 'description',
                     destination: '1.1.1.1:80',
@@ -1100,6 +1122,94 @@ describe('inspectHandler', () => {
                     recv: 'HTTP',
                     reverse: 'enabled',
                     send: 'HEAD / HTTP/1.0\\r\\n',
+                    timeout: 1000,
+                    transparent: 'enabled'
+                }
+            ],
+            '/tm/gtm/monitor/https': [
+                {
+                    kind: 'tm:gtm:monitor:https:httpsstate',
+                    name: 'currentGSLBMonitorHTTPS',
+                    partition: 'Common',
+                    fullPath: '/Common/currentGSLBMonitorHTTPS',
+                    generation: 0,
+                    selfLink: 'https://localhost/mgmt/tm/gtm/monitor/https/~Common~currentGSLBMonitorHTTPS?ver=15.1.2',
+                    cipherlist: 'DEFAULT',
+                    cert: '/Common/cert',
+                    defaultsFrom: '/Common/https',
+                    description: 'description',
+                    destination: '1.1.1.1:80',
+                    ignoreDownResponse: 'enabled',
+                    interval: 100,
+                    probeTimeout: 110,
+                    recv: 'HTTP',
+                    reverse: 'enabled',
+                    send: 'HEAD / HTTP/1.0\\r\\n',
+                    timeout: 1000,
+                    transparent: 'enabled'
+                }
+            ],
+            '/tm/gtm/monitor/gateway-icmp': [
+                {
+                    kind: 'tm:gtm:monitor:gateway-icmp:gateway-icmpstate',
+                    name: 'currentGSLBMonitorICMP',
+                    partition: 'Common',
+                    fullPath: '/Common/currentGSLBMonitorICMP',
+                    generation: 0,
+                    selfLink: 'https://localhost/mgmt/tm/gtm/monitor/gateway-icmp/~Common~currentGSLBMonitorICMP?ver=15.1.2',
+                    defaultsFrom: '/Common/gateway-icmp',
+                    description: 'description',
+                    destination: '1.1.1.1:80',
+                    ignoreDownResponse: 'enabled',
+                    interval: 100,
+                    probeAttempts: 3,
+                    probeInterval: 1,
+                    probeTimeout: 110,
+                    timeout: 1000,
+                    transparent: 'enabled'
+                }
+            ],
+            '/tm/gtm/monitor/tcp': [
+                {
+                    kind: 'tm:gtm:monitor:tcp:tcpstate',
+                    name: 'currentGSLBMonitorTCP',
+                    partition: 'Common',
+                    fullPath: '/Common/currentGSLBMonitorTCP',
+                    generation: 0,
+                    selfLink: 'https://localhost/mgmt/tm/gtm/monitor/tcp/~Common~currentGSLBMonitorTCP?ver=15.1.2',
+                    defaultsFrom: '/Common/tcp',
+                    description: 'description',
+                    destination: '1.1.1.1:80',
+                    ignoreDownResponse: 'enabled',
+                    interval: 100,
+                    probeTimeout: 110,
+                    recv: '',
+                    reverse: 'enabled',
+                    send: '',
+                    timeout: 1000,
+                    transparent: 'enabled'
+                }
+            ],
+            '/tm/gtm/monitor/udp': [
+                {
+                    kind: 'tm:gtm:monitor:udp:udpstate',
+                    name: 'currentGSLBMonitorUDP',
+                    partition: 'Common',
+                    fullPath: '/Common/currentGSLBMonitorUDP',
+                    generation: 0,
+                    selfLink: 'https://localhost/mgmt/tm/gtm/monitor/udp/~Common~currentGSLBMonitorUDP?ver=15.1.2',
+                    debug: 'no',
+                    defaultsFrom: '/Common/udp',
+                    description: 'description',
+                    destination: '1.1.1.1:80',
+                    ignoreDownResponse: 'enabled',
+                    interval: 100,
+                    probeAttempts: 3,
+                    probeInterval: 1,
+                    probeTimeout: 110,
+                    recv: '',
+                    reverse: 'enabled',
+                    send: 'default send string',
                     timeout: 1000,
                     transparent: 'enabled'
                 }
@@ -1719,12 +1829,35 @@ describe('inspectHandler', () => {
                             ],
                             exposeRouteDomainsEnabled: true,
                             virtualServerDiscoveryMode: 'enabled',
+                            virtualServers: [
+                                {
+                                    name: 'virtualServer1',
+                                    remark: 'virtual server description one',
+                                    enabled: false,
+                                    address: '192.0.10.20',
+                                    port: 443,
+                                    addressTranslation: '10.10.0.10',
+                                    addressTranslationPort: 23,
+                                    monitors: [
+                                        '/Common/bigip',
+                                        '/Common/tcp'
+                                    ]
+                                },
+                                {
+                                    name: 'virtualServer2',
+                                    enabled: true,
+                                    address: 'a989:1c34:9c::b099:c1c7:8bfe',
+                                    port: 0,
+                                    addressTranslationPort: 0,
+                                    monitors: []
+                                }
+                            ],
                             monitors: [
                                 '/Common/http',
                                 '/Common/http_head_f5'
                             ]
                         },
-                        currentGSLBMonitor: {
+                        currentGSLBMonitorHTTP: {
                             class: 'GSLBMonitor',
                             remark: 'description',
                             monitorType: 'http',
@@ -1737,6 +1870,66 @@ describe('inspectHandler', () => {
                             reverseEnabled: true,
                             send: 'HEAD / HTTP/1.0\\r\\n',
                             receive: 'HTTP'
+                        },
+                        currentGSLBMonitorHTTPS: {
+                            class: 'GSLBMonitor',
+                            remark: 'description',
+                            monitorType: 'https',
+                            target: '1.1.1.1:80',
+                            interval: 100,
+                            timeout: 1000,
+                            probeTimeout: 110,
+                            ignoreDownResponseEnabled: true,
+                            transparent: true,
+                            reverseEnabled: true,
+                            send: 'HEAD / HTTP/1.0\\r\\n',
+                            receive: 'HTTP',
+                            ciphers: 'DEFAULT',
+                            clientCertificate: 'cert'
+                        },
+                        currentGSLBMonitorICMP: {
+                            class: 'GSLBMonitor',
+                            remark: 'description',
+                            monitorType: 'gateway-icmp',
+                            target: '1.1.1.1:80',
+                            interval: 100,
+                            timeout: 1000,
+                            probeTimeout: 110,
+                            ignoreDownResponseEnabled: true,
+                            transparent: true,
+                            probeInterval: 1,
+                            probeAttempts: 3
+                        },
+                        currentGSLBMonitorTCP: {
+                            class: 'GSLBMonitor',
+                            remark: 'description',
+                            monitorType: 'tcp',
+                            target: '1.1.1.1:80',
+                            interval: 100,
+                            timeout: 1000,
+                            probeTimeout: 110,
+                            ignoreDownResponseEnabled: true,
+                            transparent: true,
+                            reverseEnabled: true,
+                            send: '',
+                            receive: ''
+                        },
+                        currentGSLBMonitorUDP: {
+                            class: 'GSLBMonitor',
+                            remark: 'description',
+                            monitorType: 'udp',
+                            target: '1.1.1.1:80',
+                            interval: 100,
+                            timeout: 1000,
+                            probeTimeout: 110,
+                            ignoreDownResponseEnabled: true,
+                            transparent: true,
+                            reverseEnabled: true,
+                            send: 'default send string',
+                            receive: '',
+                            probeInterval: 1,
+                            probeAttempts: 3,
+                            debugEnabled: false
                         },
                         currentGSLBProberPool: {
                             class: 'GSLBProberPool',

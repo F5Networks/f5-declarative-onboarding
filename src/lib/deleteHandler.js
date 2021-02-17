@@ -83,7 +83,12 @@ class DeleteHandler {
                 },
                 GSLBMonitor: { // BIG-IP has a number of default monitors, that cannot be removed
                     http: {},
-                    http_head_f5: {}
+                    http_head_f5: {},
+                    https: {},
+                    https_head_f5: {},
+                    gateway_icmp: {},
+                    tcp: {},
+                    udp: {}
                 }
             };
 

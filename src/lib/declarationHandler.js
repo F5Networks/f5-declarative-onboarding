@@ -558,6 +558,16 @@ function applyGSLBServerFixes(declaration) {
         if (!server.monitors && server.serverType === 'bigip') {
             server.monitors = ['/Common/bigip'];
         }
+        server.virtualServers = server.virtualServers || [];
+        server.virtualServers.forEach((virtualServer, i) => {
+            virtualServer.name = virtualServer.name || `${i}`;
+            virtualServer.address = doUtil.minimizeIP(virtualServer.address);
+            virtualServer.monitors = virtualServer.monitors || [];
+            if (virtualServer.addressTranslation) {
+                virtualServer.addressTranslation = doUtil.minimizeIP(virtualServer.addressTranslation);
+            }
+            delete virtualServer.label;
+        });
         server.monitors = server.monitors || [];
         delete server.label;
     });
