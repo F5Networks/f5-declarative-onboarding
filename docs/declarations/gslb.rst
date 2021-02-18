@@ -89,7 +89,7 @@ For details on the available properties and DO usage, see |gslbmon| in the Schem
 
 .. NOTE:: GSLB Monitor has a number of built-in monitors, such as **http** and **http_head_f5**. You cannot use these names in a declaration or it will fail.  These default monitors cannot be deleted.  
 
-This example includes each of the available GSLB monitors which you can use as part of a larger Declarative Onboarding declaration.
+This example includes each of the available GSLB monitors which you can use as part of a larger Declarative Onboarding declaration.  In this declaration, the monitors are all used in the GSLB Server (see :ref:`the GSLB Server example<gslbserver>`).
 
 .. literalinclude:: ../../examples/gslbMonitor.json
    :language: json
