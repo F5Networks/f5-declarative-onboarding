@@ -73,7 +73,7 @@ For details on the available properties and DO usage, see |gslbserver| in the Sc
 
 |
 
-.. _monitor:
+.. _gslbmonitors:
 
 Configuring GSLB health monitors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.6
-        - Updated the documentation for Declarative Onboarding v1.19.0.  This release contains the following changes: |br| * Added support for GSLB HTTP health monitors (see :ref:`GSLB Monitors<monitor>`) |br| * Added support for GSLB Prober pools (see :ref:`Prober pools<prober>`) |br| |br| Issues Resolved: |br| * Improve behavior when tenant is missing, `GitHub Issue 118 <https://github.com/F5Networks/f5-declarative-onboarding/issues/118>`_
+        - Updated the documentation for Declarative Onboarding v1.19.0.  This release contains the following changes: |br| * Added support for GSLB health monitors (see :ref:`GSLB Monitors<gslbmonitors>`) |br| * Added support for GSLB Prober pools (see :ref:`Prober pools<prober>`) |br| * Added support for GSLB virtual servers (see the updated :ref:`GSLB Server<gslbserver>` example) |br| |br| Issues Resolved: |br| * Improve behavior when tenant is missing, `GitHub Issue 118 <https://github.com/F5Networks/f5-declarative-onboarding/issues/118>`_
         - 2-23-21
 
       * - 3.5
