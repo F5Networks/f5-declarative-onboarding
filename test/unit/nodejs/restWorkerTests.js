@@ -1066,6 +1066,19 @@ describe('restWorker', () => {
             }
         }));
 
+        it('should save state', () => new Promise((resolve, reject) => {
+            restOperationMock.complete = () => {
+                assert.ok(saveStateCalled, 'State should have been saved');
+                resolve();
+            };
+
+            try {
+                restWorker.onPost(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
         it('should set status to rebooting if reboot is required', () => new Promise((resolve, reject) => {
             doUtilMock.rebootRequired.restore();
             sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
