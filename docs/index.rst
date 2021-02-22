@@ -49,7 +49,7 @@ To provide feedback on this documentation, you can file a GitHub Issue or email 
 
 .. |as3| raw:: html
 
-   <a href="https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/3/" target="_blank">Application Services 3 (AS3)</a>
+   <a href="https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/latest/" target="_blank">Application Services 3 (AS3)</a>
 
 .. |vid| raw:: html
 

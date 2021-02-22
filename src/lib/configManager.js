@@ -22,6 +22,7 @@ const querystring = require('querystring');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 const RADIUS = require('./sharedConstants').RADIUS;
+const doUtil = require('./doUtil');
 
 const logger = new Logger(module);
 
@@ -192,12 +193,16 @@ class ConfigManager {
             .then((results) => {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
+                    const schemaClass = this.configItems[index].schemaClass;
                     // looks like configItem was skipped in previous step
                     if (currentItem === false) {
+                        if (!currentConfig[schemaClass] && classPresent(declaration, schemaClass)) {
+                            currentConfig[schemaClass] = {};
+                        }
+
                         return;
                     }
 
-                    const schemaClass = this.configItems[index].schemaClass;
                     if (!schemaClass) {
                         // Simple item that is just key:value - not a larger object
                         Object.keys(currentItem).forEach((key) => {
@@ -217,6 +222,11 @@ class ConfigManager {
                                         item.localOnly = true;
                                     }
                                     delete item.partition; // Must be removed for the diffs
+
+                                    if (schemaClass === 'GSLBMonitor') {
+                                        // Must pull the kind before it is removed in removeUnusedKeys()
+                                        patchGSLBMonitor.call(this, item);
+                                    }
 
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties(patchedItem, this.configItems[index]);
@@ -260,6 +270,10 @@ class ConfigManager {
 
                                     if (schemaClass === 'GSLBServer') {
                                         patchGSLBServer.call(this, patchedItem);
+                                    }
+
+                                    if (schemaClass === 'GSLBProberPool') {
+                                        patchGSLBProberPool.call(this, patchedItem);
                                     }
 
                                     if (patchedItem) {
@@ -422,6 +436,40 @@ class ConfigManager {
                     originalConfig.Common.Disk.applicationData = currentDisk.applicationData;
                 }
 
+                // Patch GSLB Prober Pool members after they've been dereferenced
+                const currentGSLBProberPool = state.currentConfig.Common.GSLBProberPool;
+                if (currentGSLBProberPool) {
+                    Object.keys(currentGSLBProberPool).forEach((key) => {
+                        (currentGSLBProberPool[key].members || []).forEach((member) => {
+                            member.enabled = isEnabledGtmObject(member);
+                            delete member.disabled;
+                        });
+                        (currentGSLBProberPool[key].members || []).sort((a, b) => a.order - b.order);
+                    });
+                }
+
+                // Patch GSLB Server virtual servers after they've been dereferenced
+                const currentGSLBServer = state.currentConfig.Common.GSLBServer;
+                if (currentGSLBServer) {
+                    Object.keys(currentGSLBServer).forEach((key) => {
+                        (currentGSLBServer[key].virtualServers || []).forEach((virtualServer) => {
+                            const splitDestination = virtualServer.destination.split(/(\.|:)(?=[^.:]*$)/);
+
+                            virtualServer.address = splitDestination[0];
+                            virtualServer.port = parseInt(splitDestination[2], 10);
+                            virtualServer.monitors = getGtmMonitorArray(virtualServer.monitors);
+                            virtualServer.enabled = isEnabledGtmObject(virtualServer);
+
+                            delete virtualServer.disabled;
+                            delete virtualServer.destination;
+
+                            if (virtualServer.addressTranslation === 'none') {
+                                delete virtualServer.addressTranslation;
+                            }
+                        });
+                    });
+                }
+
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
                 state.originalConfig = originalConfig;
 
@@ -452,16 +500,21 @@ function removeUnusedKeys(item, nameless) {
     }
 
     Object.assign(filtered, item);
-    Object.keys(filtered).forEach((key) => {
-        if (key.endsWith('Reference')) {
-            delete filtered[key];
-        }
-
-        if (keysToRemove.indexOf(key) !== -1) {
-            delete filtered[key];
-        }
-    });
-    return filtered;
+    const removeReferencesAndKeysToRemove = function (obj) {
+        Object.keys(obj).forEach((key) => {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                if (key.endsWith('Reference')) {
+                    delete obj[key];
+                } else if (keysToRemove.indexOf(key) !== -1) {
+                    delete obj[key];
+                } else if (typeof obj[key] === 'object') {
+                    removeReferencesAndKeysToRemove(obj[key]);
+                }
+            }
+        });
+        return obj;
+    };
+    return removeReferencesAndKeysToRemove(filtered);
 }
 
 /**
@@ -517,9 +570,12 @@ function mapProperties(item, configItem) {
             // If property is a reference, strip the /Common if it is there
             // Either the user specified it without /Commmon in their declaration
             // or we replaced the user value with just the last part because it looks
-            // like a json pointer
+            // like a json pointer.
+            // retainCommon is a configItems property that prevents the removal of Common from the
+            // id. This was used in GSLBServer.monitor so it would line up with the BIG-IP
             if (typeof mappedItem[property.id] === 'string'
-                && mappedItem[property.id].startsWith('/Common/')) {
+                && mappedItem[property.id].startsWith('/Common/')
+                && !property.retainCommon) {
                 mappedItem[property.id] = mappedItem[property.id].substring('/Common/'.length);
             }
 
@@ -545,6 +601,10 @@ function mapProperties(item, configItem) {
                             }
 
                             value = match.pop();
+                        }
+
+                        if (trans.removeKeys) {
+                            doUtil.deleteKeys(value, trans.removeKeys);
                         }
 
                         // Attempt to convert values
@@ -904,6 +964,17 @@ function patchGSLBGlobals(patchedItem) {
 }
 
 function patchGSLBServer(patchedItem) {
+    patchedItem.monitors = getGtmMonitorArray(patchedItem.monitors);
+    patchedItem.enabled = isEnabledGtmObject(patchedItem);
+    delete patchedItem.disabled;
+}
+
+function patchGSLBMonitor(item) {
+    // Pull the monitorType from kind before kind is deleted
+    item.monitorType = item.kind.split(':')[3];
+}
+
+function patchGSLBProberPool(patchedItem) {
     patchedItem.enabled = isEnabledGtmObject(patchedItem);
     delete patchedItem.disabled;
 }
@@ -932,6 +1003,11 @@ function isEnabledGtmObject(obj) {
     return isEnabled;
 }
 
+function getGtmMonitorArray(monitorString) {
+    // Convert monitors from BIG-IP string to declaration compatible array, for diffing
+    return monitorString ? monitorString.split(' and ') : [];
+}
+
 function shouldIgnore(item, ignoreList) {
     if (!ignoreList) {
         return false;
@@ -956,6 +1032,11 @@ function inPartitions(item, partitionList) {
     }
 
     return false;
+}
+
+function classPresent(declaration, className) {
+    return declaration.Common
+        && Object.keys(declaration.Common).find(key => declaration.Common[key].class === className);
 }
 
 module.exports = ConfigManager;

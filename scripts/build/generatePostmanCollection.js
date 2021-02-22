@@ -22,11 +22,10 @@ const packageVersion = require('../../package.json').version;
 const examplesDir = 'examples';
 const outputFile = `dist/do.examples-${packageVersion}.collection.json`;
 
-const makeDirP = path => {
+const makeDirP = (path) => {
     try {
         fs.mkdirSync(path);
-    }
-    catch (err) {
+    } catch (err) {
         if (err.code !== 'EEXIST') {
             throw err;
         }
@@ -34,6 +33,7 @@ const makeDirP = path => {
 };
 
 const readdir = path => fs.readdirSync(path)
+    .filter(name => name.endsWith('.json'))
     .map(example => ({
         json: JSON.parse(fs.readFileSync(`${path}/${example}`)),
         name: example.split('.')[0]

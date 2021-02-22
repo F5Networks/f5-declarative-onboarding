@@ -379,6 +379,103 @@ module.exports = {
     },
 
     /**
+     * minimize zeroes in the string representation
+     * of an F5 IPv4/6 address.  TMSH does this, but
+     * TMGUI sometimes doesn't.  Input should be f5ip
+     * or empty/undefined, otherwise returns garbage
+     * (usually NaN)
+     *
+     * @public
+     * @param {string} ip - IPv4/6 address as string
+     * @returns {string}
+     */
+    minimizeIP(ip) {
+        let cidr;
+        let rd;
+        let left;
+        let middle;
+        let right;
+
+        if ((ip === undefined) || (ip === '::') || (ip === '')) { return ip; }
+
+        cidr = ip.split('/'); ip = cidr[0]; cidr = cidr[1];
+        rd = ip.split('%'); ip = rd[0]; rd = rd[1];
+
+        if (!ip.includes(':')) {
+            ip = ip.split('.');
+            ip.forEach((v, x, a) => {
+                a[x] = parseInt(v, 10).toString(10);
+            });
+            ip = ip.join('.');
+        } else {
+            ip = ip.split('.');
+            if (ip.length > 1) {
+                const b = ip.slice(1);
+                ip = ip[0].split(':');
+                b.unshift(ip.slice(-1));
+                ip = ip.slice(0, -1);
+                // eslint-disable-next-line no-bitwise
+                ip.push(((parseInt(b[0], 10) << 8) + parseInt(b[1], 10)).toString(16));
+                // eslint-disable-next-line no-bitwise
+                ip.push(((parseInt(b[2], 10) << 8) + parseInt(b[3], 10)).toString(16));
+            }
+            ip = ip.join(':');
+
+            ip = ip.split('::');
+            left = ip[0].split(':');
+            right = (ip.length > 1) ? ip[1].split(':') : [];
+            middle = Array(8 - (left.length + right.length)).fill('0');
+            ip = left.concat(middle, right);
+            ip.forEach((v, x, a) => {
+                a[x] = ((v === undefined) || (v === '')) ? 0 : parseInt(v, 16);
+            });
+            let p;
+            let q;
+            let i;
+            let j;
+            let k;
+            let n;
+            // We scan the array ip finding consecutive zero elements and
+            // also converting numeric values to hexadecimal strings
+            // i and n are index and numeric value of element we are looking at
+            // j and k are first index and count of currently-found series of zeros
+            // p and q are first index and count of the longest series of zeros
+            // found so far
+            // We replace the longest series of zero elements with '' so when
+            // we join ip's elements into one string we'll get '::' there, but
+            // since join() only fills interstices we must handle '::' at
+            // start or end of string specially
+            for (i = 0, j = -1, p = -1, q = -1; i < ip.length; i += 1) {
+                n = ip[i];
+                if (n === 0) {
+                    if (j < 0) { j = i; k = 1; } else { k += 1; }
+                } else if (j >= 0) {
+                    if (k > q) { p = j; q = k; }
+                    j = -1;
+                }
+                ip[i] = n.toString(16);
+            }
+            if ((j >= 0) && (k > q)) { p = j; q = k; }
+            if (q > 7) {
+                ip = [':', ''];
+            } else if (q > 1) {
+                const g = ((p === 0) || ((p + q) > 7)) ? ':' : '';
+                ip.splice(p, q, g);
+            }
+            ip = ip.join(':');
+        }
+
+        if ((rd !== undefined) && (rd !== '')) {
+            ip += `%${parseInt(rd, 10).toString(10)}`;
+        }
+        if ((cidr !== undefined) && (cidr !== '')) {
+            ip += `/${parseInt(cidr, 10).toString(10)}`;
+        }
+
+        return ip;
+    },
+
+    /**
      * Checks if hostname exists
      * @param {String} address - URL address
      * @returns {boolean} found - Returns if the hostname was found
@@ -460,5 +557,44 @@ module.exports = {
                 // Block with Promise that never resolves and wait for BIG-IP to restart
                 return new Promise(() => {});
             });
+    },
+
+    /**
+     * Deletes a deeply nested key denoted by a dot-separated path from an object
+     *
+     * This function does not work on a path that passes through an Array.
+     * For example, if path = 'here.is.my.key' and 'is' is
+     * an Array then this function will not work.
+     *
+     * @param {Object} obj - The object to delete a key from.
+     * @param {String} path - A dot-separated path to a key to delete.
+     */
+    deleteKey(obj, path) {
+        if (!obj || !path) {
+            return;
+        }
+        if (typeof path === 'string') {
+            path = path.split('.');
+
+            for (let i = 0; i < path.length - 1; i += 1) {
+                obj = obj[path[i]];
+                if (typeof obj === 'undefined') {
+                    return;
+                }
+            }
+            delete obj[path.pop()];
+        }
+    },
+
+    /**
+     * Deletes an array of deeply nested keys denoted by a dot-separated paths from an object
+     *
+     * @param {Object} obj - The object to delete a key from.
+     * @param {String} paths - An array dot-separated paths to keys to delete.
+     */
+    deleteKeys(obj, paths) {
+        paths.forEach((path) => {
+            this.deleteKey(obj, path);
+        });
     }
 };

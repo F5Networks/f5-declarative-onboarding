@@ -8,19 +8,9 @@ stages:
     - deploy
     - integration-test
     - teardown
-    - post build
-    - publish
 
 variables:
-    PROJECT_NAME: ${BIGIP_VERSION}
-    PROJECT_DIR: /root/deploy-projects/${CI_PROJECT_NAME}
-    NUMBER_OF_BIGIP: 3
-    DO_LICENSING: 'false'
-    DO_PROVISIONING: 'false'
-    DO_PHONING_HOME: 'false'
-    TEST_HARNESS_FILE: ${CI_PROJECT_DIR}/harness_facts_flat_${BIGIP_VERSION}.json
-    BIGIP_VERSION: ${DEFAULT_BIGIP_VERSION}
-    BIGIP_BUILD: ${DEFAULT_BIGIP_BUILD}
+    TEST_HARNESS_FILE: ${CI_PROJECT_DIR}/harness_facts.json
     ESR_PRODUCT: DO
     ESR_TEST_RUN_ID: ${CI_JOB_ID}
     ESR_TEST_RUN_WEB_URL: ${CI_JOB_URL}
@@ -74,76 +64,96 @@ test_node:latest:
         -   export ESR_TEST_TYPE=unit
         -   export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
         -   export GIT_SSL_NO_VERIFY=1
-        -   npm install git+https://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/automation-toolchain/atg-shared-utilities.git#develop
-        -   npm test -- --reporter atg-shared-utilities/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
+        -   npm test -- --reporter @f5devcentral/atg-shared-utilities/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
         - else
         -   npm test
         - fi
 
+coverage:
+  image: $DOCKER_URL/node:lts
+  stage: test
+  tags:
+      - cm-official-docker-executor
+  script:
+        - PUBLIC_DIR='./public'
+        - mkdir -p ${PUBLIC_DIR}
+        - COVERAGE_DOCS=${PUBLIC_DIR}/coverage-docs
+        - mkdir -p ${COVERAGE_DOCS}
+        ## place code coverage docs under: /coverage-docs ##
+        - npm ci
+        - npm run coverage
+        - cp -R coverage/* ${COVERAGE_DOCS}
+  except:
+      # For develop, coverage is run in the pages job
+      - develop
+      - pipelines
+  artifacts:
+      paths:
+        - public
+
 # the following variables should be defined for deploy, integration-tests and teardown:
-# CICD_AUTH_OS_USERNAME - VIO user
-# CICD_AUTH_OS_PASSWORD - VIO password
-# CICD_AUTH_OS_PROJECT  - VIO project
-# BIGIP_VERSION         - BIG-IP Version (ex: 13.1.1.4)
-# BIGIP_BUILD           - BIG-IP Build (ex: 0.0.4)
-deploy:
-    image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
+# BIGIP_IMAGE           - BIGIP VIO image name. (e.g. BIGIP-15.1.0.5-0.0.8)
+.deploy_common: &deploy_common
+    image: $INTEGRATION_DEPLOY_IMAGE
     tags:
         - do-test-docker-executor
-    only:
-        - schedules
-        - tags
-        - triggers
     stage: deploy
     timeout: 2 hours
-    variables:
-        DEFAULT_RETRY_DELAY: 20
-        DEFAULT_RETRIES: 60
-        DEVICE_ANSIBLE_CONNECTION_DELAY: 10
-        DEVICE_ANSIBLE_CONNECTION_RETRIES: 100
-        DEVICE_FAILOVER_LINKSUP_DELAY: 10
-        DEVICE_HTTPS_PORT_DELAY: 10
-        SSH_AVAILABILITY_DELAY: 10
-        SSH_AVAILABILITY_RETRIES: 100
-        VIO_DEPLOYMENT_DELAY: 20
-        VIO_DEPLOYMENT_RETRIES: 150
     script:
-        - export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
-        - cd /root/cicd-bigip-deploy && make configure && make printvars
-        - ls -als "${PROJECT_DIR}"
-        - cat "${PROJECT_DIR}/project-declaration-parsed"
-        - make setup
-        - cp ${PROJECT_DIR}/harness_facts_flat.json ${TEST_HARNESS_FILE}
-        - cd ${CI_PROJECT_DIR}
-        - if [[ $? != 0 ]]; then echo setup failed && exit 1; fi
-        - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
-        - yum install -y nodejs
+        - if [[ $CI_PIPELINE_SOURCE == "pipeline" ]]; then
+        -     echo using RPM from cross-project pipeline
+        -     export RPM_PACKAGE=$(ls ${UPSTREAM_RPM_PATH}/*.rpm)
+        - else
+        -     echo using RPM from our pipeline
+        -     export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
+        - fi
+        - apt update
+        - curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
+        - /bin/bash nodesource_setup.sh
+        - apt install -y nodejs
+        - apt install -y jq
+        - scripts/dev/rebuild-test-env.sh CREATE
         - npm install
         - node test/integration/setup.js
     artifacts:
-        name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
-        paths:
-            - ${TEST_HARNESS_FILE}
-        expire_in: 1 day
+      paths:
+        - ${TEST_HARNESS_FILE}
+      expire_in: 1 day
+
+deploy_for_this_project:
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    <<: *deploy_common
+    needs:
+        - job: build_rpm
+          artifacts: true
+
+deploy_for_other_project:
+    rules:
+        - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
+    <<: *deploy_common
+    needs:
+        - project: "$UPSTREAM_PROJECT_PATH"
+          job: "$UPSTREAM_JOB"
+          ref: "$UPSTREAM_REF"
+          artifacts: true
 
 integration-test:
     tags:
         - do-test-docker-executor
-    only:
-        - schedules
-        - tags
-        - triggers
+    rules:
+      - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
     stage: integration-test
     timeout: 3 hours
     script:
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
-        - export ESR_BIG_IP_VERSION=${BIGIP_VERSION}
+        - export ESR_BIG_IP_VERSION=$(echo $BIGIP_IMAGE | cut -d '-' -f 2)
         - export GIT_SSL_NO_VERIFY=1
         - npm install
-        - npm install git+https://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/automation-toolchain/atg-shared-utilities.git#develop
-        - echo BIGIP_VERSION $BIGIP_VERSION
-        - npm run integration -- --reporter atg-shared-utilities/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
+        - echo BIGIP_VERSION $ESR_BIG_IP_VERSION
+        - npm run integration -- --reporter @f5devcentral/atg-shared-utilities/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
     after_script:
         - apt-get update
         - apt-get install -y jq
@@ -154,25 +164,29 @@ integration-test:
         when: always
         paths:
             - test/logs
+        expire_in: 1 day
 
 teardown:
-    image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
+    image: $INTEGRATION_DEPLOY_IMAGE
     tags:
-        - cm-official-docker-executor
-    script:
-        - cd /root/cicd-bigip-deploy && make configure && make teardown
-    when: always
-    only:
-        - schedules
-        - tags
-        - triggers
+        - do-test-docker-executor
     stage: teardown
+    rules:
+      - if: '$CI_PIPELINE_SOURCE == "schedule"'
+        when: always
+      - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
+        when: always
+      - when: never
+    script:
+        - scripts/dev/rebuild-test-env.sh DELETE
 
-build rpm:
+build_rpm:
     image: $DOCKER_URL/node:12
     stage: build
     tags:
         - cm-official-docker-executor
+    except:
+        - pipelines
     script:
         # setup node environment
         - apt-get update && apt-get install -y rpm --no-install-recommends
@@ -185,76 +199,10 @@ build rpm:
             - dist/
         expire_in: 1 week
 
-create postman collection:
-    stage: post build
-    except:
-        - schedules
-    tags:
-        - cm-official-docker-executor
-    script:
-        - node scripts/build/generatePostmanCollection.js
-    artifacts:
-        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
-        paths:
-            - dist/
-        expire_in: 1 week
-
-publish to artifactory:
-    stage: publish
-    only:
-        - tags
-    tags:
-        - cm-official-docker-executor
-    script:
-        - VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
-        - RPM_FILE=$(ls dist/*.rpm)
-        - RPM_NAME=$(basename $RPM_FILE)
-        - HASH_FILE=${RPM_FILE}.sha256
-        - HASH_NAME=$(basename $HASH_FILE).txt
-        - POSTMAN_FILE=$(ls dist/*.collection.json)
-        - POSTMAN_NAME=$(basename $POSTMAN_FILE)
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${RPM_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${RPM_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${HASH_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${HASH_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during hash upload; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${POSTMAN_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/${VERSION}/${POSTMAN_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload; exit 1; fi
-        # Upload release to 'latest' directory on artifactory
-        - >-
-            curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X DELETE
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${RPM_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${RPM_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload to latest directory; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${HASH_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${HASH_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during hash upload to latest directory; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "X-JFrog-Art-Api:$ARTIFACTORY_API_KEY" -X PUT --data-binary @${POSTMAN_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-automation-toolchain-generic/f5-declarative-onboarding/latest/${POSTMAN_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload to latest directory; exit 1; fi
-
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build
     allow_failure: true
-    except:
-        - tags
-        - schedules
     script:
         - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
         -   rm -rf docs/_templates
@@ -278,9 +226,6 @@ create docs:
 pages:
     stage: docs
     allow_failure: true
-    except:
-        - tags
-        - schedules
     environment:
         name: review
         url: https://${CI_PROJECT_NAMESPACE}.${PAGES_DOMAIN}/${CI_PROJECT_NAME}/
@@ -318,7 +263,7 @@ pages:
         paths:
             - public
     only:
-        # - develop
+        - develop
         - doc-release-branch
         - joes-do-wip
 

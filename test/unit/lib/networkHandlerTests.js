@@ -1142,7 +1142,57 @@ describe('networkHandler', () => {
                 });
         });
 
-        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath and RoutingPrefixList', () => {
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingMap', () => {
+            const declaration = {
+                Common: {
+                    RouteMap: {
+                        RouteMap1: {
+                            name: 'RouteMap1',
+                            entries: [
+                                {
+                                    name: 33,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/asPath1',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: '/Common/routingPrefixList1'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        RouteMap2: {
+                            name: 'RouteMap2',
+                            entries: [
+                                {
+                                    name: 44,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/asPath2',
+                                        ipv6: {
+                                            address: {
+                                                prefixList: '/Common/routingPrefixList2'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
+                    assert.deepStrictEqual(data, [{ value: 'enable' }]);
+                });
+        });
+
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath, RoutingPrefixList, and RouteMap', () => {
             const declaration = {
                 Common: {
                     RoutingAsPath: {
@@ -1198,6 +1248,28 @@ describe('networkHandler', () => {
                                 }
                             ]
                         }
+                    },
+                    RouteMap: {
+                        RouteMap1: {
+                            name: 'RouteMap1',
+                            entries: [
+                                {
+                                    name: 33,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/RoutingAsPath1',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: '/Common/RoutingPrefixList1'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/RoutingPrefixList2'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
                     }
                 }
             };
@@ -1210,11 +1282,12 @@ describe('networkHandler', () => {
                 });
         });
 
-        it('should not send out an enable value to the sys/db/...routing endpoint if a declaration lacks RoutingAsPath and RoutingPrefixList', () => {
+        it('should not send out an enable value to the sys/db/...routing endpoint if a declaration lacks RoutingAsPath, RoutingPrefixList, and RouteMap', () => {
             const declaration = {
                 Common: {
                     RoutingAsPath: {},
-                    RoutingPrefixList: {}
+                    RoutingPrefixList: {},
+                    RouteMap: {}
                 }
             };
 
@@ -1285,6 +1358,30 @@ describe('networkHandler', () => {
                                 regex: '^$'
                             }
                         }
+                    });
+                });
+        });
+
+        it('should handle empty entries property', () => {
+            const declaration = {
+                Common: {
+                    RoutingAsPath: {
+                        RoutingAsPath1: {
+                            name: 'RoutingAsPath1',
+                            entries: []
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RoutingAsPath];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RoutingAsPath1',
+                        partition: 'Common',
+                        entries: {}
                     });
                 });
         });
@@ -1379,6 +1476,172 @@ describe('networkHandler', () => {
                     const data = dataSent[PATHS.RoutingPrefixList];
                     assert.deepStrictEqual(data[0], {
                         name: 'RoutingPrefixList1',
+                        partition: 'Common',
+                        entries: {}
+                    });
+                });
+        });
+    });
+
+    describe('RouteMap', () => {
+        it('should handle a fully specified RouteMap', () => {
+            const declaration = {
+                Common: {
+                    RouteMap: {
+                        RouteMap1: {
+                            name: 'RouteMap1',
+                            entries: [
+                                {
+                                    name: 33,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/asPath1',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: '/Common/routingPrefixList1'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/routingPrefixList2'
+                                            }
+                                        },
+                                        ipv6: {
+                                            address: {
+                                                prefixList: '/Common/routingPrefixList3'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/routingPrefixList4'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        RouteMap2: {
+                            name: 'RouteMap2',
+                            entries: [
+                                {
+                                    name: 44,
+                                    action: 'permit',
+                                    match: {
+                                        asPath: '/Common/asPath2',
+                                        ipv4: {
+                                            address: {
+                                                prefixList: '/Common/routingPrefixList5'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/routingPrefixList6'
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    name: 55,
+                                    action: 'deny',
+                                    match: {
+                                        asPath: '/Common/asPath3',
+                                        ipv6: {
+                                            address: {
+                                                prefixList: '/Common/routingPrefixList7'
+                                            },
+                                            nextHop: {
+                                                prefixList: '/Common/routingPrefixList8'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RouteMap];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RouteMap1',
+                        partition: 'Common',
+                        entries: {
+                            33: {
+                                action: 'permit',
+                                match: {
+                                    asPath: '/Common/asPath1',
+                                    ipv4: {
+                                        address: {
+                                            prefixList: '/Common/routingPrefixList1'
+                                        },
+                                        nextHop: {
+                                            prefixList: '/Common/routingPrefixList2'
+                                        }
+                                    },
+                                    ipv6: {
+                                        address: {
+                                            prefixList: '/Common/routingPrefixList3'
+                                        },
+                                        nextHop: {
+                                            prefixList: '/Common/routingPrefixList4'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    assert.deepStrictEqual(data[1], {
+                        name: 'RouteMap2',
+                        partition: 'Common',
+                        entries: {
+                            44: {
+                                action: 'permit',
+                                match: {
+                                    asPath: '/Common/asPath2',
+                                    ipv4: {
+                                        address: {
+                                            prefixList: '/Common/routingPrefixList5'
+                                        },
+                                        nextHop: {
+                                            prefixList: '/Common/routingPrefixList6'
+                                        }
+                                    }
+                                }
+                            },
+                            55: {
+                                action: 'deny',
+                                match: {
+                                    asPath: '/Common/asPath3',
+                                    ipv6: {
+                                        address: {
+                                            prefixList: '/Common/routingPrefixList7'
+                                        },
+                                        nextHop: {
+                                            prefixList: '/Common/routingPrefixList8'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+        });
+
+        it('should handle empty entries property', () => {
+            const declaration = {
+                Common: {
+                    RouteMap: {
+                        RouteMap1: {
+                            name: 'RouteMap1',
+                            entries: []
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RouteMap];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RouteMap1',
                         partition: 'Common',
                         entries: {}
                     });
