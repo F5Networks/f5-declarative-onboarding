@@ -181,70 +181,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 haOrder: ['/Common/f5.example.com']
             }
         ));
-
-        it('should have updated GSLB global-settings', () => assert.deepStrictEqual(
-            currentState.GSLBGlobals,
-            {
-                general: {
-                    synchronizationEnabled: true,
-                    synchronizationGroupName: 'newGroup',
-                    synchronizationTimeTolerance: 123,
-                    synchronizationTimeout: 12345
-                }
-            }
-        ));
-
-        it('should have created GSLB data center', () => assert.deepStrictEqual(
-            currentState.GSLBDataCenter.myDataCenter,
-            {
-                name: 'myDataCenter',
-                enabled: true,
-                contact: 'dataCenterContact',
-                location: 'dataCenterLocation',
-                proberFallback: 'outside-datacenter',
-                proberPreferred: 'inside-datacenter'
-            }
-        ));
-
-        it('should have created GSLB server', () => assert.deepStrictEqual(
-            currentState.GSLBServer.myGSLBServer,
-            {
-                name: 'myGSLBServer',
-                remark: 'GSLB server description',
-                devices: [
-                    {
-                        name: '0',
-                        remark: 'GSLB server device description',
-                        addresses: [
-                            {
-                                name: '10.10.10.10',
-                                translation: '192.0.2.12'
-                            }
-                        ]
-                    }
-                ],
-                dataCenter: 'myDataCenter',
-                serverType: 'generic-host',
-                enabled: false,
-                proberPreferred: 'inside-datacenter',
-                proberFallback: 'any-available',
-                bpsLimit: 10,
-                bpsLimitEnabled: true,
-                ppsLimit: 10,
-                ppsLimitEnabled: true,
-                connectionsLimit: 10,
-                connectionsLimitEnabled: true,
-                serviceCheckProbeEnabled: false,
-                pathProbeEnabled: false,
-                snmpProbeEnabled: false,
-                virtualServerDiscoveryMode: 'enabled',
-                exposeRouteDomainsEnabled: true,
-                cpuUsageLimit: 10,
-                cpuUsageLimitEnabled: true,
-                memoryLimit: 10,
-                memoryLimitEnabled: true
-            }
-        ));
     });
 
     describe('Test Networking', function testNetworking() {
@@ -374,6 +310,36 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }
             }
         ));
+
+        it('should match RouteMap', () => assert.deepStrictEqual(
+            currentState.RouteMap,
+            {
+                testRouteMap: {
+                    name: 'testRouteMap',
+                    entries: [
+                        {
+                            name: 33,
+                            action: 'permit',
+                            match: {
+                                asPath: '/Common/testRoutingAsPath1',
+                                ipv4: {
+                                    address: {
+                                        prefixList: '/Common/testRoutingPrefixList2'
+                                    },
+                                    nextHop: {}
+                                },
+                                ipv6: {
+                                    address: {
+                                        prefixList: '/Common/testRoutingPrefixList1'
+                                    },
+                                    nextHop: {}
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ));
     });
 
     describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {
@@ -474,7 +440,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
     });
 
-    describe('Test Licensing', function testLicensing() {
+    describe('Test Licensing and properties requiring a license', function testLicensing() {
         this.timeout(1000 * 60 * 30); // 30 minutes
 
         const bigIqAuth = {
@@ -484,13 +450,14 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         const bigIqAddress = process.env.BIG_IQ_HOST;
         const bodyFileLicensing = `${BODIES}/licensing_big_iq.json`;
 
+        let thisMachine;
         let bigIpAddress;
         let bigIpAuth;
         let oldAuditLink;
         let newAuditLink;
 
         before(() => {
-            const thisMachine = machines[2];
+            thisMachine = machines[2];
             bigIpAddress = thisMachine.ip;
             bigIpAuth = {
                 username: thisMachine.adminUsername,
@@ -586,119 +553,364 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 });
         }));
 
-        it('should have revoked old license', () => {
-            logTestTitle(this.ctx.test.title);
-            const retryOptions = {
-                trials: 100,
-                timeInterval: 1000
-            };
-            return new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
-                .then((token) => {
-                    logger.debug(`oldAuditLink: ${oldAuditLink}`);
-                    logger.debug(`token: ${token}`);
-                    const options = common.buildBody(oldAuditLink, null, { token }, 'GET');
-                    return common.sendRequest(options, retryOptions);
-                })
-                .then((response) => {
-                    if (response.response.statusCode !== constants.HTTP_SUCCESS) {
-                        reject(new Error('could not check revoking'));
+        describe('Test GSLB', function testGslb() {
+            let currentState;
+            let body;
+
+            before(() => new Promise((resolve, reject) => {
+                const bodyFile = `${BODIES}/gslb.json`;
+                // send out gslb declaration
+                return common.readFile(bodyFile)
+                    .then(JSON.parse)
+                    .then((readBody) => {
+                        body = readBody;
+                    })
+                    .then(() => common.testRequest(
+                        body,
+                        `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`, bigIpAuth,
+                        constants.HTTP_ACCEPTED, 'POST'
+                    ))
+                    .then(() => common.testGetStatus(60, 15 * 1000, bigIpAddress, bigIpAuth,
+                        constants.HTTP_SUCCESS))
+                    .then((response) => {
+                        currentState = response.currentConfig.Common;
+                        resolve();
+                    })
+                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
+                    .then((declarationStatus) => {
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            }));
+
+            it('should have updated GSLB global-settings', () => assert.deepStrictEqual(
+                currentState.GSLBGlobals,
+                {
+                    general: {
+                        synchronizationEnabled: true,
+                        synchronizationGroupName: 'newGroup',
+                        synchronizationTimeTolerance: 123,
+                        synchronizationTimeout: 12345
                     }
-                    return response.body;
-                })
-                .then(JSON.parse)
-                .then((assignment) => {
-                    assert.strictEqual(assignment.status, 'REVOKED');
-                })
-                .then(() => {
-                    resolve();
-                })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                .then((declarationStatus) => {
-                    reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                })
-                .catch((err) => {
-                    reject(err);
-                }));
+                }
+            ));
+
+            it('should have created GSLB data center', () => assert.deepStrictEqual(
+                currentState.GSLBDataCenter.myDataCenter,
+                {
+                    name: 'myDataCenter',
+                    enabled: true,
+                    contact: 'dataCenterContact',
+                    location: 'dataCenterLocation',
+                    proberFallback: 'outside-datacenter',
+                    proberPreferred: 'inside-datacenter'
+                }
+            ));
+
+            it('should have created GSLB server', () => assert.deepStrictEqual(
+                currentState.GSLBServer.myGSLBServer,
+                {
+                    name: 'myGSLBServer',
+                    remark: 'GSLB server description',
+                    devices: [
+                        {
+                            name: '0',
+                            remark: 'GSLB server device description',
+                            addresses: [
+                                {
+                                    name: '10.10.10.10',
+                                    translation: '192.0.2.12'
+                                }
+                            ]
+                        }
+                    ],
+                    dataCenter: 'myDataCenter',
+                    serverType: 'bigip',
+                    enabled: false,
+                    proberPreferred: 'pool',
+                    proberFallback: 'any-available',
+                    proberPool: 'myGSLBProberPool',
+                    bpsLimit: 10,
+                    bpsLimitEnabled: true,
+                    ppsLimit: 10,
+                    ppsLimitEnabled: true,
+                    connectionsLimit: 10,
+                    connectionsLimitEnabled: true,
+                    serviceCheckProbeEnabled: false,
+                    pathProbeEnabled: false,
+                    snmpProbeEnabled: false,
+                    virtualServerDiscoveryMode: 'enabled',
+                    exposeRouteDomainsEnabled: true,
+                    cpuUsageLimit: 10,
+                    cpuUsageLimitEnabled: true,
+                    memoryLimit: 10,
+                    memoryLimitEnabled: true,
+                    monitors: [
+                        '/Common/http',
+                        '/Common/myGSLBMonitorHTTP',
+                        '/Common/myGSLBMonitorHTTPS',
+                        '/Common/myGSLBMonitorICMP',
+                        '/Common/myGSLBMonitorTCP',
+                        '/Common/myGSLBMonitorUDP'
+                    ],
+                    virtualServers: [
+                        {
+                            name: '0',
+                            address: '10.0.20.1',
+                            port: 80,
+                            enabled: true,
+                            addressTranslationPort: 0,
+                            monitors: []
+                        },
+                        {
+                            name: 'virtualServer',
+                            remark: 'GSLB server virtual server description',
+                            enabled: false,
+                            address: 'a989:1c34:9c::b099:c1c7:8bfe',
+                            port: 8080,
+                            addressTranslation: '1:0:1::',
+                            addressTranslationPort: 80,
+                            monitors: [
+                                '/Common/tcp',
+                                '/Common/http'
+                            ]
+                        }
+                    ]
+                }
+            ));
+
+            it('should have created GSLB prober pool', () => assert.deepStrictEqual(
+                currentState.GSLBProberPool.myGSLBProberPool,
+                {
+                    name: 'myGSLBProberPool',
+                    remark: 'GSLB prober pool description',
+                    lbMode: 'round-robin',
+                    enabled: false,
+                    members: [
+                        {
+                            order: 0,
+                            server: 'myGSLBServer',
+                            remark: 'GSLB prober pool member description',
+                            enabled: false
+                        }
+                    ]
+                }
+            ));
+
+            it('should have created a GSLB monitor of type http', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorHTTP,
+                {
+                    name: 'myGSLBMonitorHTTP',
+                    interval: 100,
+                    probeTimeout: 110,
+                    send: 'HEAD / HTTP/1.0\\r\\n',
+                    timeout: 1000,
+                    transparent: true,
+                    monitorType: 'http',
+                    remark: 'description',
+                    target: '1.1.1.1:80',
+                    ignoreDownResponseEnabled: true,
+                    reverseEnabled: true,
+                    receive: 'HTTP'
+                }
+            ));
+
+            it('should have created a GSLB monitor of type https', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorHTTPS,
+                {
+                    name: 'myGSLBMonitorHTTPS',
+                    interval: 100,
+                    probeTimeout: 110,
+                    send: 'HEAD / HTTP/1.0\\r\\n',
+                    timeout: 1000,
+                    transparent: true,
+                    monitorType: 'https',
+                    remark: 'description',
+                    target: '2.2.2.2:80',
+                    ignoreDownResponseEnabled: true,
+                    reverseEnabled: true,
+                    receive: 'HTTP',
+                    ciphers: 'DEFAULT',
+                    clientCertificate: 'default.crt'
+                }
+            ));
+
+            it('should have created a GSLB monitor of type gateway-icmp', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorICMP,
+                {
+                    name: 'myGSLBMonitorICMP',
+                    interval: 100,
+                    probeTimeout: 110,
+                    timeout: 1000,
+                    transparent: true,
+                    monitorType: 'gateway-icmp',
+                    remark: 'description',
+                    target: '3.3.3.3:80',
+                    ignoreDownResponseEnabled: true,
+                    probeInterval: 1,
+                    probeAttempts: 3
+                }
+            ));
+
+            it('should have created a GSLB monitor of type tcp', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorTCP,
+                {
+                    name: 'myGSLBMonitorTCP',
+                    interval: 100,
+                    probeTimeout: 110,
+                    timeout: 1000,
+                    transparent: true,
+                    monitorType: 'tcp',
+                    remark: 'description',
+                    target: '4.4.4.4:80',
+                    ignoreDownResponseEnabled: true,
+                    reverseEnabled: true,
+                    receive: 'example receive',
+                    send: 'example send'
+                }
+            ));
+
+            it('should have created a GSLB monitor of type udp', () => assert.deepStrictEqual(
+                currentState.GSLBMonitor.myGSLBMonitorUDP,
+                {
+                    name: 'myGSLBMonitorUDP',
+                    interval: 100,
+                    probeTimeout: 110,
+                    send: 'default send string',
+                    timeout: 1000,
+                    transparent: true,
+                    monitorType: 'udp',
+                    remark: 'description',
+                    target: '5.5.5.5:80',
+                    ignoreDownResponseEnabled: true,
+                    reverseEnabled: true,
+                    receive: 'udp receive',
+                    debugEnabled: true,
+                    probeInterval: 1,
+                    probeAttempts: 3
+                }
+            ));
         });
 
-        it('cleanup by revoking new license', () => new Promise((resolve, reject) => {
-            logTestTitle(this.ctx.test.title);
-            let body;
-            const bodyFileRevoking = `${BODIES}/revoke_from_bigiq.json`;
-            const retryOptions = {
-                trials: 100,
-                timeInterval: 1000
-            };
-            return common.readFile(bodyFileRevoking)
-                .then(JSON.parse)
-                .then((bodyStub) => {
-                    body = bodyStub;
-                    body.address = bigIpAddress;
-                    body.user = bigIpAuth.username;
-                    body.password = bigIpAuth.password;
-                })
-                .then(() => getF5Token(bigIqAddress, bigIqAuth))
-                .then((token) => {
-                    const options = common.buildBody(`${common.hostname(bigIqAddress, constants.PORT)}`
-                        + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
-                    body, { token }, 'POST');
-                    return common.sendRequest(options, retryOptions);
-                })
-                .then((response) => {
-                    if (response.response.statusCode !== constants.HTTP_ACCEPTED) {
-                        reject(new Error('could not request to revoke license'));
-                    }
-                    return response.body;
-                })
-                .then(JSON.parse)
-                .then((response) => {
-                    logger.info(`Expecting STARTED. Got ${response.status}`);
-                    assert.strictEqual(response.status, 'STARTED');
-                })
-                .then(() => {
-                    const func = function () {
-                        logger.debug('In retry func');
-                        return new Promise((resolveThis, rejectThis) => getF5Token(bigIqAddress, bigIqAuth)
-                            .then((token) => {
-                                const options = common.buildBody(newAuditLink, null,
-                                    { token }, 'GET');
-                                return common.sendRequest(options, retryOptions);
-                            })
-                            .then((response) => {
-                                logger.debug(`Audit status code ${response.response.statusCode}`);
-                                if (response.response.statusCode === constants.HTTP_SUCCESS) {
-                                    logger.debug('Got success status for GET request');
-                                    logger.debug(`Looking for REVOKED. Got ${JSON.parse(response.body).status}`);
-                                    if (JSON.parse(response.body).status === 'REVOKED') {
-                                        logger.debug('resolving retry func');
-                                        resolveThis();
+        describe('further license testing', () => {
+            it('should have revoked old license', () => {
+                logTestTitle(this.ctx.test.title);
+                const retryOptions = {
+                    trials: 100,
+                    timeInterval: 1000
+                };
+                return new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
+                    .then((token) => {
+                        logger.debug(`oldAuditLink: ${oldAuditLink}`);
+                        logger.debug(`token: ${token}`);
+                        const options = common.buildBody(oldAuditLink, null, { token }, 'GET');
+                        return common.sendRequest(options, retryOptions);
+                    })
+                    .then((response) => {
+                        if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+                            reject(new Error('could not check revoking'));
+                        }
+                        return response.body;
+                    })
+                    .then(JSON.parse)
+                    .then((assignment) => {
+                        assert.strictEqual(assignment.status, 'REVOKED');
+                    })
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
+                    .then((declarationStatus) => {
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    }));
+            });
+
+            it('cleanup by revoking new license', () => new Promise((resolve, reject) => {
+                logTestTitle(this.ctx.test.title);
+                let body;
+                const bodyFileRevoking = `${BODIES}/revoke_from_bigiq.json`;
+                const retryOptions = {
+                    trials: 100,
+                    timeInterval: 1000
+                };
+                return common.readFile(bodyFileRevoking)
+                    .then(JSON.parse)
+                    .then((bodyStub) => {
+                        body = bodyStub;
+                        body.address = bigIpAddress;
+                        body.user = bigIpAuth.username;
+                        body.password = bigIpAuth.password;
+                    })
+                    .then(() => getF5Token(bigIqAddress, bigIqAuth))
+                    .then((token) => {
+                        const options = common.buildBody(
+                            `${common.hostname(bigIqAddress, constants.PORT)}`
+                            + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
+                            body, { token }, 'POST'
+                        );
+                        return common.sendRequest(options, retryOptions);
+                    })
+                    .then((response) => {
+                        if (response.response.statusCode !== constants.HTTP_ACCEPTED) {
+                            reject(new Error('could not request to revoke license'));
+                        }
+                        return response.body;
+                    })
+                    .then(JSON.parse)
+                    .then((response) => {
+                        logger.info(`Expecting STARTED. Got ${response.status}`);
+                        assert.strictEqual(response.status, 'STARTED');
+                    })
+                    .then(() => {
+                        const func = function () {
+                            logger.debug('In retry func');
+                            return new Promise((resolveThis, rejectThis) => getF5Token(bigIqAddress, bigIqAuth)
+                                .then((token) => {
+                                    const options = common.buildBody(newAuditLink, null,
+                                        { token }, 'GET');
+                                    return common.sendRequest(options, retryOptions);
+                                })
+                                .then((response) => {
+                                    logger.debug(`Audit status code ${response.response.statusCode}`);
+                                    if (response.response.statusCode === constants.HTTP_SUCCESS) {
+                                        logger.debug('Got success status for GET request');
+                                        logger.debug(`Looking for REVOKED. Got ${JSON.parse(response.body).status}`);
+                                        if (JSON.parse(response.body).status === 'REVOKED') {
+                                            logger.debug('resolving retry func');
+                                            resolveThis();
+                                        } else {
+                                            logger.debug('rejecting retry func for status');
+                                            rejectThis(new Error(JSON.parse(response.body).status));
+                                        }
                                     } else {
-                                        logger.debug('rejecting retry func for status');
-                                        rejectThis(new Error(JSON.parse(response.body).status));
+                                        logger.debug('rejecting retry func for status code');
+                                        rejectThis(new Error(response.response.statusCode));
                                     }
-                                } else {
-                                    logger.debug('rejecting retry func for status code');
-                                    rejectThis(new Error(response.response.statusCode));
-                                }
-                            })
-                            .catch((err) => {
-                                logger.debug(`Retry func caught ${err.message}`);
-                                rejectThis(new Error(err));
-                            }));
-                    };
-                    return common.tryOften(func, 10, 30 * 1000, [constants.HTTP_ACCEPTED, 'GRANTED'], true);
-                })
-                .then(() => {
-                    resolve();
-                })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                .then((declarationStatus) => {
-                    reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        }));
+                                })
+                                .catch((err) => {
+                                    logger.debug(`Retry func caught ${err.message}`);
+                                    rejectThis(new Error(err));
+                                }));
+                        };
+                        return common.tryOften(func, 10, 30 * 1000, [constants.HTTP_ACCEPTED, 'GRANTED'], true);
+                    })
+                    .then(() => {
+                        resolve();
+                    })
+                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
+                    .then((declarationStatus) => {
+                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            }));
+        });
     });
 
     describe('Test Rollbacking', function testRollbacking() {

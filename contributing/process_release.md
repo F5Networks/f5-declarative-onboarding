@@ -45,6 +45,10 @@ At some point in the sprint we create a release branch. This should happen when 
 * If the DO pipleline is successful, that pipeline will upload the build artifacts to Artifactory. Once this happens, forward the release email to the `f5-declarative-onboarding` distribution list.
 
 ## Process for release
-* Using the GUI, create an MR to merge the release branch to `master`. You can self-approve and merge this MR.
-* Using the GUI, create an MR to merge the release branch to `develop`. You can self-approve and merge this MR.
+* Using the GUI, create 2 MRs.
+  * One MR to merge the release branch to `master`.
+  * One MR to merge the release branch to `develop`.
+  * Do not squash commits.
+  * You can self-approve and merge these MRs.
+* Using the GUI, create a tag on the `master` branch in the format `v<version>` (e.g. `v1.13.0`).
 * Add a `released` property with a value of `true` to the released RPM in Artifactory.

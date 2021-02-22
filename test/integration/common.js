@@ -105,7 +105,7 @@ module.exports = {
      * @interval {Number} : Seconds to wait between requests (default 60)
      * Returns Promise which resolves with response body on success or rejects with error
     */
-    testRequest(body, url, auth, expectedCode, method, interval) {
+    testRequest(body, url, auth, expectedCode, method, interval, acceptErrors) {
         logger.debug(`${method} ${JSON.stringify(body)} ${url}`);
         const func = function () {
             return new Promise((resolve, reject) => {
@@ -124,8 +124,9 @@ module.exports = {
                     });
             });
         };
+        const acceptableErrors = [constants.HTTP_UNAVAILABLE, constants.HTTP_BAD_REQUEST].concat(acceptErrors || []);
         return module.exports.tryOften(func, 10, (interval || 60) * 1000,
-            [constants.HTTP_UNAVAILABLE, constants.HTTP_BAD_REQUEST], true);
+            acceptableErrors, true);
     },
 
     /**

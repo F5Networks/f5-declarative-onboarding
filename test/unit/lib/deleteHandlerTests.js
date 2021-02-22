@@ -653,13 +653,102 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
-    it('should delete a GSLBDataCenter and a GSLBServer in that order', () => {
+    it('should delete RouteMap, RoutingAsPath, and RoutePrefixList in that order', () => {
         const state = {
             currentConfig: {
                 Common: {
+                    RouteMap: {
+                        routeMapTest: {
+                            name: 44,
+                            action: 'permit',
+                            match: {
+                                asPath: '/Common/aspath',
+                                ipv4: {
+                                    address: {
+                                        prefixList: '/Common/prefixlist1'
+                                    },
+                                    nextHop: {
+                                        prefixList: '/Common/prefixlist2'
+                                    }
+                                },
+                                ipv6: {
+                                    address: {
+                                        prefixList: '/Common/prefixlist3'
+                                    },
+                                    nextHop: {
+                                        prefixList: '/Common/prefixlist4'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    RoutingAsPath: {
+                        routingAsPathTest: {
+                            name: 'routingAsPathTest',
+                            entries: [
+                                {
+                                    name: 36,
+                                    regex: 'bar'
+                                }
+                            ]
+                        }
+                    },
+                    RoutingPrefixList: {
+                        routingPrefixListTest: {
+                            name: 'routingPrefixListTest',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    prefix: '10.3.3.0/24',
+                                    prefixLengthRange: 32
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                RoutingAsPath: {
+                    routingAsPathTest: {}
+                },
+                RouteMap: {
+                    routeMapTest: {}
+                },
+                RoutingPrefixList: {
+                    routingPrefixListTest: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 3);
+                assert.strictEqual(deletedPaths[0], '/tm/net/routing/route-map/~Common~routeMapTest');
+                assert.strictEqual(deletedPaths[1], '/tm/net/routing/as-path/~Common~routingAsPathTest');
+                assert.strictEqual(deletedPaths[2], '/tm/net/routing/prefix-list/~Common~routingPrefixListTest');
+            });
+    });
+
+    it('should delete GSLBProberPool, GSLBDataCenter, GSLBServer, and GSLBMonitor', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    GSLBProberPool: {
+                        gslbProberPool: {
+                            name: 'gslbProberPool',
+                            members: [{
+                                server: 'gslbServer'
+                            }]
+                        }
+                    },
                     GSLBServer: {
                         gslbServer: {
-                            name: ' gslbServer',
+                            name: 'gslbServer',
                             dataCenter: '/Common/gslbDataCenter',
                             devices: [{
                                 address: '10.0.0.1'
@@ -670,6 +759,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
                         gslbDataCenter: {
                             name: 'gslbDataCenter'
                         }
+                    },
+                    GSLBMonitor: {
+                        gslbMonitor: {
+                            name: 'gslbMonitor',
+                            monitorType: 'http'
+                        }
                     }
                 }
             }
@@ -677,11 +772,17 @@ describe(('deleteHandler'), function testDeleteHandler() {
 
         const declaration = {
             Common: {
+                GSLBProberPool: {
+                    gslbProberPool: {}
+                },
                 GSLBServer: {
                     gslbServer: {}
                 },
                 GSLBDataCenter: {
                     gslbDataCenter: {}
+                },
+                GSLBMonitor: {
+                    gslbMonitor: {}
                 }
             }
         };
@@ -689,9 +790,70 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
         return deleteHandler.process()
             .then(() => {
-                assert.strictEqual(deletedPaths.length, 2);
-                assert.strictEqual(deletedPaths[0], '/tm/gtm/server/~Common~gslbServer');
-                assert.strictEqual(deletedPaths[1], '/tm/gtm/datacenter/~Common~gslbDataCenter');
+                assert.strictEqual(deletedPaths.length, 4);
+                assert.strictEqual(deletedPaths[0], '/tm/gtm/prober-pool/~Common~gslbProberPool');
+                assert.strictEqual(deletedPaths[1], '/tm/gtm/server/~Common~gslbServer');
+                assert.strictEqual(deletedPaths[2], '/tm/gtm/datacenter/~Common~gslbDataCenter');
+                assert.strictEqual(deletedPaths[3], '/tm/gtm/monitor/http/~Common~gslbMonitor');
+                assert.strictEqual(transactionDeletedPaths.length, 3);
+                assert.strictEqual(transactionDeletedPaths[0], '/tm/gtm/prober-pool/~Common~gslbProberPool');
+                assert.strictEqual(transactionDeletedPaths[1], '/tm/gtm/server/~Common~gslbServer');
+                assert.strictEqual(transactionDeletedPaths[2], '/tm/gtm/datacenter/~Common~gslbDataCenter');
+            });
+    });
+
+    it('should delete a GSLBMonitor via updating its path with its monitorType and not delete default monitors', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    GSLBMonitor: {
+                        gslbMonitor: {
+                            name: 'gslbMonitor',
+                            monitorType: 'http'
+                        },
+                        http: {
+                            name: 'http',
+                            monitorType: 'http'
+                        },
+                        https: {
+                            name: 'https',
+                            monitorType: 'https'
+                        },
+                        gateway_icmp: {
+                            name: 'gateway-icmp',
+                            monitorType: 'gateway-icmp'
+                        },
+                        tcp: {
+                            name: 'tcp',
+                            monitorType: 'tcp'
+                        },
+                        udp: {
+                            name: 'udp',
+                            monitorType: 'udp'
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                GSLBMonitor: {
+                    gslbMonitor: {},
+                    http: {},
+                    https: {},
+                    gateway_icmp: {},
+                    tcp: {},
+                    udp: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 1);
+                assert.strictEqual(deletedPaths[0], '/tm/gtm/monitor/http/~Common~gslbMonitor');
             });
     });
 });

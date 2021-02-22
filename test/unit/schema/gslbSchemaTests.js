@@ -190,8 +190,9 @@ describe('gslb.schema.json', () => {
                     ],
                     dataCenter: '/Common/gslbDataCenter',
                     enabled: false,
-                    proberPreferred: 'inside-datacenter',
-                    proberFallback: 'any-available',
+                    proberPreferred: 'pool',
+                    proberFallback: 'pool',
+                    proberPool: '/Common/gslbProberPool',
                     bpsLimit: 50,
                     bpsLimitEnabled: true,
                     ppsLimit: 60,
@@ -202,12 +203,35 @@ describe('gslb.schema.json', () => {
                     pathProbeEnabled: false,
                     snmpProbeEnabled: false,
                     virtualServerDiscoveryMode: 'enabled',
+                    virtualServers: [
+                        {
+                            name: 'virtualServer1',
+                            remark: 'virtual server description one',
+                            label: 'virtual server label one',
+                            enabled: false,
+                            address: '192.0.10.20',
+                            port: 443,
+                            addressTranslation: '10.10.0.10',
+                            addressTranslationPort: 23,
+                            monitors: [
+                                '/Common/bigip',
+                                '/Common/tcp'
+                            ]
+                        },
+                        {
+                            address: 'a989:1c34:009c:0000:0000:b099:c1c7:8bfe'
+                        }
+                    ],
                     exposeRouteDomainsEnabled: true,
                     cpuUsageLimit: 10,
                     cpuUsageLimitEnabled: true,
                     memoryLimit: 12,
                     memoryLimitEnabled: true,
-                    serverType: 'generic-host'
+                    serverType: 'generic-host',
+                    monitors: [
+                        '/Common/GSLBmonitor',
+                        '/Common/otherMonitor'
+                    ]
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -292,6 +316,369 @@ describe('gslb.schema.json', () => {
                 data.memoryLimit = -1;
                 assert.strictEqual(validate(data), false);
                 assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+
+            it('should invalidate GSLBServer with proberPreferred value as pool and no proberPool', () => {
+                data.proberPreferred = 'pool';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'.proberPool\''), -1);
+            });
+
+            it('should invalidate GSLBServer with proberFallback value as pool and no proberPool', () => {
+                data.proberFallback = 'pool';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'.proberPool\''), -1);
+            });
+
+            it('should invalidate GSLBServer with invalid virtual server address value', () => {
+                data.virtualServers = [{ address: 'badIP' }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate GSLBServer with invalid virtual server addressTranslation value', () => {
+                data.virtualServers = [{ address: '192.0.2.12', addressTranslation: 'badIP' }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server without address property', () => {
+                data.virtualServers = [{ port: 8080 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'address\''), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server with port value of less than 0', () => {
+                data.virtualServers = [{ address: '192.0.2.12', port: -1 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server with addressTranslationPort value of less than 0', () => {
+                data.virtualServers = [{ address: '192.0.2.12', addressTranslationPort: -1 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server with port value of more than 65535', () => {
+                data.virtualServers = [{ address: '192.0.2.12', port: 65536 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+            });
+
+            it('should invalidate GSLBServer with virtual server with addressTranslationPort value of more than 65535', () => {
+                data.virtualServers = [{ address: '192.0.2.12', addressTranslationPort: 65536 }];
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+            });
+        });
+    });
+
+    describe('GSLBMonitor class', () => {
+        describe('valid', () => {
+            it('should validate minimal properties and fill in defaults for monitorType http', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'http'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'http',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        reverseEnabled: false,
+                        send: 'HEAD / HTTP/1.0\\r\\n\\r\\n',
+                        receive: 'HTTP/1.'
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType http', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'http',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    reverseEnabled: true,
+                    send: 'example send string',
+                    receive: 'example receive string'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal properties and fill in defaults for monitorType https', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'https'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'https',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        reverseEnabled: false,
+                        send: 'HEAD / HTTP/1.0\\r\\n\\r\\n',
+                        receive: 'HTTP/1.',
+                        ciphers: 'DEFAULT'
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType https', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'http',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    reverseEnabled: true,
+                    send: 'example send string',
+                    receive: 'example receive string',
+                    ciphers: 'example ciphers',
+                    clientCertificate: '/Common/cert'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal properties and fill in defaults for monitorType gateway-icmp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'gateway-icmp'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'gateway-icmp',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        probeInterval: 1,
+                        probeAttempts: 3
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType gateway-icmp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'gateway-icmp',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    probeInterval: 10,
+                    probeAttempts: 15
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal properties and fill in defaults for monitorType tcp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'tcp'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'tcp',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        reverseEnabled: false,
+                        send: '',
+                        receive: ''
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType tcp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'tcp',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    reverseEnabled: true,
+                    send: 'example send string',
+                    receive: 'example receive string'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal properties and fill in defaults for monitorType udp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'udp'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(
+                    data,
+                    {
+                        class: 'GSLBMonitor',
+                        monitorType: 'udp',
+                        target: '*:*',
+                        interval: 30,
+                        timeout: 120,
+                        probeTimeout: 5,
+                        ignoreDownResponseEnabled: false,
+                        transparent: false,
+                        reverseEnabled: false,
+                        debugEnabled: false,
+                        probeInterval: 1,
+                        probeAttempts: 3,
+                        send: 'default send string',
+                        receive: ''
+                    }
+                );
+            });
+
+            it('should validate all properties for monitorType udp', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'udp',
+                    target: '10.1.1.2:8080',
+                    interval: 100,
+                    timeout: 1000,
+                    probeTimeout: 50,
+                    ignoreDownResponseEnabled: true,
+                    transparent: true,
+                    reverseEnabled: true,
+                    send: 'example send string',
+                    receive: 'example receive string',
+                    probeInterval: 10,
+                    probeAttempts: 5,
+                    debugEnabled: true
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate if monitorType is improperly set', () => {
+                const data = {
+                    class: 'GSLBMonitor',
+                    monitorType: 'BAD_TYPE'
+                };
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should be equal to one of the allowed values'), -1
+                );
+            });
+
+            it('should invalidate if monitorType is missing', () => {
+                const data = {
+                    class: 'GSLBMonitor'
+                };
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'monitorType\''), -1
+                );
+            });
+        });
+    });
+
+    describe('GSLBProberPool class', () => {
+        describe('valid', () => {
+            it('should validate minimal properties', () => {
+                const data = {
+                    class: 'GSLBProberPool'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal member properties', () => {
+                const data = {
+                    class: 'GSLBProberPool',
+                    members: [
+                        {
+                            server: '/Common/gslbServer1'
+                        },
+                        {
+                            server: 'gslbServer2'
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all properties', () => {
+                const data = {
+                    class: 'GSLBProberPool',
+                    label: 'this is a test',
+                    remark: 'description',
+                    enabled: false,
+                    lbMode: 'round-robin',
+                    members: [
+                        {
+                            server: '/Common/gslbServer1',
+                            label: 'this is a member test 1',
+                            remark: 'member description 1',
+                            enabled: false
+                        },
+                        {
+                            server: 'gslbServer2',
+                            label: 'this is a member test 2',
+                            remark: 'member description 2',
+                            enabled: true
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            let data;
+
+            beforeEach(() => {
+                data = {
+                    class: 'GSLBProberPool',
+                    members: [{
+                        server: '/Common/gslbServer1'
+                    }]
+                };
+            });
+
+            it('should invalidate invalid lbMode value', () => {
+                data.lbMode = 'badValue';
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
             });
         });
     });

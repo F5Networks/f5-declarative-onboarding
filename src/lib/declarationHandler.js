@@ -76,9 +76,12 @@ const CLASSES_OF_TRUTH = [
     'MirrorIp',
     'RoutingAsPath',
     'RoutingPrefixList',
+    'RouteMap',
     'GSLBGlobals',
     'GSLBDataCenter',
-    'GSLBServer'
+    'GSLBServer',
+    'GSLBMonitor',
+    'GSLBProberPool'
 ];
 
 /**
@@ -157,6 +160,8 @@ class DeclarationHandler {
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
                 applyGSLBServerFixes(parsedNewDeclaration);
+                applyRouteMapFixes(parsedNewDeclaration);
+                applyGSLBProberPoolFixes(parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
@@ -539,6 +544,9 @@ function applyGSLBServerFixes(declaration) {
         if (server.dataCenter.startsWith('/Common/')) {
             server.dataCenter = server.dataCenter.split('/Common/')[1];
         }
+        if (server.proberPool && server.proberPool.startsWith('/Common/')) {
+            server.proberPool = server.proberPool.split('/Common/')[1];
+        }
         server.devices = server.devices.map((device, i) => ({
             name: `${i}`,
             remark: device.remark,
@@ -547,7 +555,82 @@ function applyGSLBServerFixes(declaration) {
                 translation: device.addressTranslation || 'none'
             }]
         }));
+        if (!server.monitors && server.serverType === 'bigip') {
+            server.monitors = ['/Common/bigip'];
+        }
+        server.virtualServers = server.virtualServers || [];
+        server.virtualServers.forEach((virtualServer, i) => {
+            virtualServer.name = virtualServer.name || `${i}`;
+            virtualServer.address = doUtil.minimizeIP(virtualServer.address);
+            virtualServer.monitors = virtualServer.monitors || [];
+            if (virtualServer.addressTranslation) {
+                virtualServer.addressTranslation = doUtil.minimizeIP(virtualServer.addressTranslation);
+            }
+            delete virtualServer.label;
+        });
+        server.monitors = server.monitors || [];
         delete server.label;
+    });
+}
+
+function applyRouteMapFixes(declaration) {
+    const routeMaps = (declaration.Common && declaration.Common.RouteMap) || {};
+    if (Object.keys(routeMaps).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RouteMap', (tenant, routeMap) => {
+        if (routeMap.entries) {
+            routeMap.entries.forEach((entry) => {
+                applyTenantPrefix(entry, 'match.asPath', tenant);
+                applyTenantPrefix(entry, 'match.ipv4.address.prefixList', tenant);
+                applyTenantPrefix(entry, 'match.ipv4.nextHop.prefixList', tenant);
+                applyTenantPrefix(entry, 'match.ipv6.address.prefixList', tenant);
+                applyTenantPrefix(entry, 'match.ipv6.nextHop.prefixList', tenant);
+            });
+        }
+    });
+}
+
+function applyTenantPrefix(obj, path, tenant) {
+    if (!obj || !path) {
+        return;
+    }
+
+    if (typeof path === 'string') {
+        path = path.split('.');
+    }
+
+    for (let i = 0; i < path.length - 1; i += 1) {
+        obj = obj[path[i]];
+        if (typeof obj === 'undefined') {
+            return;
+        }
+    }
+
+    const target = path.pop();
+    if (obj[target] && !obj[target].startsWith('/')) {
+        obj[target] = `/${tenant}/${obj[target]}`;
+    }
+}
+
+/**
+ * Normalizes the GSLB Prober Pool section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyGSLBProberPoolFixes(declaration) {
+    const gslbProberPool = declaration.Common.GSLBProberPool || {};
+
+    Object.keys(gslbProberPool).forEach((name) => {
+        const proberPool = gslbProberPool[name];
+        proberPool.members = (proberPool.members || []).map((member, index) => ({
+            server: member.server.startsWith('/Common/') ? member.server.split('/Common/')[1] : member.server,
+            remark: member.remark,
+            enabled: member.enabled,
+            order: index
+        }));
+        delete proberPool.label;
     });
 }
 

@@ -11,8 +11,12 @@ Document Revision History
         - Description
         - Date
              
+      * - 3.6
+        - Updated the documentation for Declarative Onboarding v1.19.0.  This release contains the following changes: |br| * Added support for GSLB HTTP health monitors (see :ref:`GSLB Monitors<monitor>` |br| |br| Issues Resolved: |br| *
+        - 2-23-21
+
       * - 3.5
-        - Updated the documentation for Declarative Onboarding v1.18.0.  This release contains the following changes: |br| * Added support for GSLB Data Centers in a declaration (see :ref:`GSLB Data Center<gslbdc>`) |br| * Added support for GSLB Servers in a declaration (see :ref:`GSLB Server<gslb>`) |br| * Added support for routing prefix lists (see :ref:`Prefix list example<example26>`) |br| * Added support for using an external auth provider for BIG-IQ licensing (see :ref:`External Auth Provider<bigiqauth>`) |br| * * The version of DO is now displayed in the logs on startup |br| |br| Issues Resolved: |br| * Can only create one DeviceGroup, `GitHub Issue 149 <https://github.com/F5Networks/f5-declarative-onboarding/issues/149>`_ |br| * GSLB schema defaults are not applied in some cases
+        - Updated the documentation for Declarative Onboarding v1.18.0.  This release contains the following changes: |br| * Added support for GSLB Data Centers in a declaration (see :ref:`GSLB Data Center<gslbdc>`) |br| * Added support for GSLB Servers in a declaration (see :ref:`GSLB Server<gslb>`) |br| * Added support for routing prefix lists (see :ref:`Prefix list example<example26>`) |br| * Added support for using an external auth provider for BIG-IQ licensing (see :ref:`External Auth Provider<bigiqauth>`) |br| * The version of DO is now displayed in the logs on startup |br| |br| Issues Resolved: |br| * Can only create one DeviceGroup, `GitHub Issue 149 <https://github.com/F5Networks/f5-declarative-onboarding/issues/149>`_ |br| * GSLB schema defaults are not applied in some cases
         - 1-12-21
 
       * - 3.4

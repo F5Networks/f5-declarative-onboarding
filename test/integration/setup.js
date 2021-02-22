@@ -59,6 +59,8 @@ return common.readFile(process.env.TEST_HARNESS_FILE)
  * Returns Promise
 */
 function setupMachines(harnessInfo) {
+    console.log('Setting up machines');
+    console.log(JSON.stringify(harnessInfo, null, 4));
     return new Promise((resolveOuter, rejectOuter) => {
         const installPromises = [];
         harnessInfo.forEach((machine) => {
@@ -100,16 +102,23 @@ function setupMachines(harnessInfo) {
  * @adminPassword {String} : BIG-IP's admin password
 */
 function installRpm(host, adminUsername, adminPassword) {
+    console.log('Installing RPM');
     const installBody = {
         operation: 'INSTALL',
         /* eslint-disable no-undef */
         packageFilePath: `${REMOTE_DIR}/${path.basename(RPM_PACKAGE)}`
         /* eslint-enable no-undef */
     };
-    return common.testRequest(installBody, `${common.hostname(host, constants.PORT)}${constants.ICONTROL_API}`
+    return common.testRequest(
+        installBody,
+        `${common.hostname(host, constants.PORT)}${constants.ICONTROL_API}`
         + '/shared/iapp/package-management-tasks',
-    { username: adminUsername, password: adminPassword },
-    constants.HTTP_ACCEPTED, 'POST');
+        { username: adminUsername, password: adminPassword },
+        constants.HTTP_ACCEPTED,
+        'POST',
+        60,
+        constants.HTTP_NOTFOUND
+    );
 }
 
 /**
@@ -120,6 +129,7 @@ function installRpm(host, adminUsername, adminPassword) {
  * @password {String} : BIG-IP's root password
 */
 function scpRpm(host, username, password) {
+    console.log('Uploading RPM');
     const ssh = new NodeSSH();
     const func = function () {
         return new Promise((resolve, reject) => {

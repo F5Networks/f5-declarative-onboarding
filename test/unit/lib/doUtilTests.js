@@ -474,4 +474,143 @@ describe('doUtil', () => {
                 }));
         });
     });
+
+    describe('deleteKey and deleteKeys', () => {
+        let data;
+
+        beforeEach(() => {
+            data = {
+                key1: {
+                    subKey1: {
+                        subSubKey1: {
+                            subSubKey1Value1: 'subSubKey1Value1'
+                        },
+                        subSubValue1: 'subSubValue1',
+                        subSubValue2: 'subSubValue2'
+                    },
+                    subKey2: {
+                        subKey2Value: 'subKey2Value'
+                    },
+                    subValue: 'subValue'
+                },
+                key2: 'key2Value'
+            };
+        });
+
+        it('should remove a deeply nested key from an object', () => {
+            doUtil.deleteKey(data, 'key1.subKey1.subSubValue1');
+            assert.deepStrictEqual(data,
+                {
+                    key1: {
+                        subKey1: {
+                            subSubKey1: {
+                                subSubKey1Value1: 'subSubKey1Value1'
+                            },
+                            subSubValue2: 'subSubValue2'
+                        },
+                        subKey2: {
+                            subKey2Value: 'subKey2Value'
+                        },
+                        subValue: 'subValue'
+                    },
+                    key2: 'key2Value'
+                });
+        });
+
+        it('should remove multiple deeply nested keys from an object', () => {
+            doUtil.deleteKeys(data, [
+                'key1.subKey1.subSubKey1',
+                'key1.subKey1.subSubValue1',
+                'key2'
+            ]);
+
+            assert.deepStrictEqual(data,
+                {
+                    key1: {
+                        subKey1: {
+                            subSubValue2: 'subSubValue2'
+                        },
+                        subKey2: {
+                            subKey2Value: 'subKey2Value'
+                        },
+                        subValue: 'subValue'
+                    }
+                });
+        });
+
+        it('should handle removing a key that does not exist', () => {
+            doUtil.deleteKey(data, 'a.b.c');
+            assert.deepStrictEqual(data,
+                {
+                    key1: {
+                        subKey1: {
+                            subSubKey1: {
+                                subSubKey1Value1: 'subSubKey1Value1'
+                            },
+                            subSubValue1: 'subSubValue1',
+                            subSubValue2: 'subSubValue2'
+                        },
+                        subKey2: {
+                            subKey2Value: 'subKey2Value'
+                        },
+                        subValue: 'subValue'
+                    },
+                    key2: 'key2Value'
+                });
+        });
+
+        it('should handle undefined data', () => {
+            data = undefined;
+            doUtil.deleteKey(data, 'a.b.c');
+            assert.deepStrictEqual(data, undefined);
+        });
+
+        it('should handle undefined key', () => {
+            doUtil.deleteKey(data, undefined);
+            assert.deepStrictEqual(data,
+                {
+                    key1: {
+                        subKey1: {
+                            subSubKey1: {
+                                subSubKey1Value1: 'subSubKey1Value1'
+                            },
+                            subSubValue1: 'subSubValue1',
+                            subSubValue2: 'subSubValue2'
+                        },
+                        subKey2: {
+                            subKey2Value: 'subKey2Value'
+                        },
+                        subValue: 'subValue'
+                    },
+                    key2: 'key2Value'
+                });
+        });
+    });
+
+    describe('minimizeIP', () => {
+        it('should return an undefined when nothing is sent in', () => {
+            assert.strictEqual(doUtil.minimizeIP(), undefined);
+        });
+
+        it('should return an empty string when an empty is sent in', () => {
+            assert.strictEqual(doUtil.minimizeIP(''), '');
+        });
+
+        it('should return valid IPv4 addresses', () => {
+            assert.strictEqual(doUtil.minimizeIP('0.0.0.0/24'), '0.0.0.0/24');
+        });
+
+        it('should return valid shortened IPv6 addresses', () => {
+            assert.strictEqual(doUtil.minimizeIP('0:0:0:0:0:0:0:0'), '::');
+            assert.strictEqual(doUtil.minimizeIP('1:0:0:0:0:0:0:0'), '1::');
+            assert.strictEqual(doUtil.minimizeIP('0:0:0:0:0:0:0:1'), '::1');
+            assert.strictEqual(doUtil.minimizeIP('1:0:0:0:0:0:0:1'), '1::1');
+            assert.strictEqual(doUtil.minimizeIP('1:0:1:0:0:0:0:0'), '1:0:1::');
+            assert.strictEqual(doUtil.minimizeIP('1:0:0:1:0:0:0:1'), '1:0:0:1::1');
+        });
+
+        it('should return valid IPv6 address from IPv4-Mapped address', () => {
+            assert.strictEqual(doUtil.minimizeIP('::ffff:192.0.3.47'), '::ffff:c000:32f');
+        });
+    });
 });

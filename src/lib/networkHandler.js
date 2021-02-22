@@ -96,6 +96,10 @@ class NetworkHandler {
                 return handleRoutingPrefixList.call(this);
             })
             .then(() => {
+                logger.info('Checking RouteMap');
+                return handleRouteMap.call(this);
+            })
+            .then(() => {
                 logger.info('Done processing network declartion.');
                 return Promise.resolve();
             })
@@ -521,7 +525,7 @@ function handleTunnel() {
 function handleEnableRouting() {
     const promises = [];
     let enabledRouting = false;
-    ['RoutingAsPath', 'RoutingPrefixList'].forEach((routingModuleClass) => {
+    ['RouteMap', 'RoutingAsPath', 'RoutingPrefixList'].forEach((routingModuleClass) => {
         doUtil.forEach(this.declaration, routingModuleClass, () => {
             if (!enabledRouting) {
                 // Enable routing module on the BIG-IP
@@ -543,15 +547,17 @@ function handleEnableRouting() {
 function handleRoutingAsPath() {
     const promises = [];
     doUtil.forEach(this.declaration, 'RoutingAsPath', (tenant, routing) => {
-        if (routing && routing.entries) {
+        if (routing && Object.keys(routing).length !== 0) {
             const entries = {};
 
-            routing.entries.forEach((entry) => {
-                entries[entry.name] = {
-                    action: 'permit',
-                    regex: entry.regex
-                };
-            });
+            if (routing.entries) {
+                routing.entries.forEach((entry) => {
+                    entries[entry.name] = {
+                        action: 'permit',
+                        regex: entry.regex
+                    };
+                });
+            }
 
             const body = {
                 name: routing.name,
@@ -575,8 +581,9 @@ function handleRoutingAsPath() {
 function handleRoutingPrefixList() {
     const promises = [];
     doUtil.forEach(this.declaration, 'RoutingPrefixList', (tenant, list) => {
-        if (list) {
+        if (list && Object.keys(list).length !== 0) {
             const entries = {};
+
             if (list.entries) {
                 list.entries.forEach((entry) => {
                     entries[entry.name] = {
@@ -602,6 +609,40 @@ function handleRoutingPrefixList() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating RoutingPrefixList: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleRouteMap() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'RouteMap', (tenant, map) => {
+        if (map && Object.keys(map).length !== 0) {
+            const entries = {};
+
+            if (map.entries) {
+                map.entries.forEach((entry) => {
+                    entries[entry.name] = {
+                        action: entry.action,
+                        match: entry.match
+                    };
+                });
+            }
+
+            const body = {
+                name: map.name,
+                partition: tenant,
+                entries
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.RouteMap, body, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating RouteMap: ${err.message}`);
             throw err;
         });
 }

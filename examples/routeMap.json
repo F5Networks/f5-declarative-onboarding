@@ -1,0 +1,90 @@
+{
+    "schemaVersion": "1.19.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "exampleRoutingAsPath": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^165001 *"
+                }
+            ]
+        },
+        "exampleRoutingPrefixList1": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 10,
+                    "action": "permit",
+                    "prefix": "1111:2222::/127",
+                    "prefixLengthRange": 128
+                }
+            ]
+        },
+        "exampleRoutingPrefixList2": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 15,
+                    "action": "permit",
+                    "prefix": "f5f5:f5f5::/64",
+                    "prefixLengthRange": 80
+                }
+            ]
+        },
+        "exampleRoutingPrefixList3": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 20,
+                    "action": "permit",
+                    "prefix": "10.3.3.0/24",
+                    "prefixLengthRange": 32
+                }
+            ]
+        },
+        "exampleRoutingPrefixList4": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 30,
+                    "action": "permit",
+                    "prefix": "10.4.4.0/23",
+                    "prefixLengthRange": 24
+                }
+            ]
+        },
+        "exampleRouteMap": {
+            "class": "RouteMap",
+            "entries": [
+                {
+                    "name": "33",
+                    "action": "permit",
+                    "match": {
+                        "asPath": "exampleRoutingAsPath",
+                        "ipv6": {
+                            "address": {
+                                "prefixList": "exampleRoutingPrefixList1"
+                            },
+                            "nextHop": {
+                                "prefixList": "exampleRoutingPrefixList2"
+                            }
+                        },
+                        "ipv4": {
+                            "address": {
+                                "prefixList": "exampleRoutingPrefixList3"
+                            },
+                            "nextHop": {
+                                "prefixList": "exampleRoutingPrefixList4"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

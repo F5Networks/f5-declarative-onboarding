@@ -1,6 +1,18 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.19.0
+### Added
+- AUTOTOOL-1990: Route Map
+- AUTOTOOL-2175: Add support for gslb monitor http
+- AUTOTOOL-2176: GSLB Prober Pool
+- AUTOTOOL-2173: Add support for virtual servers in GSLB server
+- AUTOTOOL-2180: GSLB Monitor (Remaining)
+### Fixed
+### Changed
+- AUTOTOOL-1238: ([GitHub Issue 118](https://github.com/F5Networks/f5-declarative-onboarding/issues/118)): Improve behavior when tenant is missing
+### Removed
+
 ## 1.18.0
 ### Added
 - AUTOTOOL-2002: GSLB Data Center
