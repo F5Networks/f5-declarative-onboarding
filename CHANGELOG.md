@@ -11,10 +11,10 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.19.0
 ### Added
 - AUTOTOOL-1990: Route Map
-- AUTOTOOL-2175: Add support for gslb monitor http
+- AUTOTOOL-2175: Add support for HTTP GSLB monitor
 - AUTOTOOL-2176: GSLB Prober Pool
 - AUTOTOOL-2173: Add support for virtual servers in GSLB server
-- AUTOTOOL-2180: GSLB Monitor (Remaining)
+- AUTOTOOL-2180: GSLB Monitors (Remaining)
 ### Fixed
 ### Changed
 - AUTOTOOL-1238: ([GitHub Issue 118](https://github.com/F5Networks/f5-declarative-onboarding/issues/118)): Improve behavior when tenant is missing
