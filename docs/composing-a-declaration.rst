@@ -43,6 +43,8 @@ In this section, we break down the example into each class so you can understand
 
 If there is a default value, it is shown in bold in the Options column.  
 
+.. TIP:: There may be additional properties available in some of the classes.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for additional properties that may be available.
+
 Use the index in the left pane if you want to go directly to a particular class.
 
 .. _base-comps:
