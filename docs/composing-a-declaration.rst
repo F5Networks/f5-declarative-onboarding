@@ -27,6 +27,8 @@ Sample declaration for a standalone BIG-IP
 
 In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of the parts of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`. 
 
+.. TIP:: There may be additional properties available in some of the classes.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for detailed information on each class and their associated properties. 
+
 This example is the entire declaration.  The following sections break down each class of this example declaration. 
 
 
@@ -43,7 +45,7 @@ In this section, we break down the example into each class so you can understand
 
 If there is a default value, it is shown in bold in the Options column.  
 
-.. TIP:: There may be additional properties available in some of the classes.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for additional properties that may be available.
+.. TIP:: There may be additional properties available in some of the classes.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for detailed information on each class and their associated properties. 
 
 Use the index in the left pane if you want to go directly to a particular class.
 

@@ -81,6 +81,9 @@ If there is a default value, it is shown in bold in the Options column.
 
 Use the index in the left pane if you want to go directly to a particular section.
 
+.. TIP:: There may be additional properties available in some of the classes.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for detailed information on each class and their associated properties. 
+
+
 .. _sync-class:
 
 Configsync class
