@@ -66,6 +66,7 @@ module.exports = {
         SSHD: '/tm/sys/sshd',
         SoftwareUpdate: '/tm/sys/software/update',
         Tunnel: '/tm/net/tunnels/tunnel',
+        RoutingBGP: '/tm/net/routing/bgp',
         RouteMap: '/tm/net/routing/route-map',
         RoutingAsPath: '/tm/net/routing/as-path',
         RoutingPrefixList: '/tm/net/routing/prefix-list',

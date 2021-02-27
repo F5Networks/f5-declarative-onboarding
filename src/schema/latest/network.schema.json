@@ -728,6 +728,195 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RoutingBGP" } }
+            },
+            "then": {
+                "required": ["class", "localAs"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Border Gateway Protocol configuration.",
+                        "type": "string",
+                        "const": "RoutingBGP"
+                    },
+                    "localAs": {
+                        "description": "Local Autonomous System.  After the RoutingBGP has been created this value cannot be modified.",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 4294967295
+                    },
+                    "addressFamilies": {
+                        "description": "Address family",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["internetProtocol"],
+                            "properties": {
+                                "internetProtocol": {
+                                    "description": "Address family.  The value 'all' sets both 'ipv4' and 'ipv6' to the 'all' values.",
+                                    "type": "string",
+                                    "enum": ["ipv4", "ipv6", "all"]
+                                },
+                                "redistributionList": {
+                                    "description": "Redistribution list",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["routingProtocol"],
+                                        "properties": {
+                                            "routingProtocol": {
+                                                "description":"Routing protocol",
+                                                "type": "string",
+                                                "enum": ["connected", "isis", "kernel", "ospf", "rip", "static"]
+                                            },
+                                            "routeMap": {
+                                                "description": "Route map",
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "gracefulRestart": {
+                        "description": "Graceful restart",
+                        "type": "object",
+                        "properties": {
+                            "gracefulResetEnabled": {
+                                "description": "Graceful reset capability",
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "restartTime": {
+                                "description": "Maximum time needed for neighbor(s) to restart (seconds)",
+                                "type": "integer",
+                                "default": 0,
+                                "minimum": 0,
+                                "maximum": 3600
+                            },
+                            "stalePathTime": {
+                                "description": "Maximum time to retain stale paths from restarting neighbor(s) (seconds)",
+                                "type": "integer",
+                                "default": 0,
+                                "minimum": 0,
+                                "maximum": 3600
+                            }
+                        },
+                        "default": {
+                            "gracefulResetEnabled": false,
+                            "restartTime": 0,
+                            "stalePathTime": 0
+                        },
+                        "additionalProperties": false
+                    },
+                    "holdTime": {
+                        "description": "Globally set or reset the hold time for all of the neighbors.  The holdTime must be either 0 or at least 3 times keepAlive",
+                        "type": "integer",
+                        "default": 90,
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "keepAlive": {
+                        "description": "Globally set or reset the keep alive for all of the neighbors",
+                        "type": "integer",
+                        "default": 30,
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "neighbors": {
+                        "description": "Neighbors",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["address", "peerGroup"],
+                            "properties": {
+                                "address": {
+                                    "description": "Name",
+                                    "type": "string",
+                                    "format": "f5ip"
+                                },
+                                "peerGroup": {
+                                    "description": "Peer group",
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    },
+                    "peerGroups": {
+                        "description": "Peer group",
+                        "type": "array",
+                        "items": {
+                            "description": "Peer groups member",
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                                "name": {
+                                    "description": "Name",
+                                    "type": "string"
+                                },
+                                "addressFamilies": {
+                                    "description": "Address family",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["internetProtocol"],
+                                        "properties": {
+                                            "internetProtocol": {
+                                                "description": "Address family",
+                                                "type": "string",
+                                                "enum": ["ipv4", "ipv6"]
+                                            },
+                                            "softReconfigurationInboundEnabled": {
+                                                "description": "Soft reconfiguration inbound enabled",
+                                                "type": "boolean",
+                                                "default": false
+                                            },
+                                            "routeMap": {
+                                                "description": "Route maps",
+                                                "type": "object",
+                                                "properties": {
+                                                    "in": {
+                                                        "description": "Incoming route map",
+                                                        "type": "string"
+                                                    },
+                                                    "out": {
+                                                        "description": "Outgoing route map",
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "default": {},
+                                                "additionalProperties": false
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                },
+                                "remoteAs": {
+                                    "description": "Remote Autonomous System",
+                                    "type": "integer",
+                                    "default": 0
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    },
+                    "routerId": {
+                        "description": "Manually override current router identifier (peers will reset)",
+                        "type": "string",
+                        "default": "any6"
+                    }
+                },
+                "additionalProperties": false
+            }
         }
     ]
 }

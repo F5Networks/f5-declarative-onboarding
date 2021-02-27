@@ -833,6 +833,530 @@ describe('network.schema.json', () => {
         });
     });
 
+    describe('RoutingBGP', () => {
+        describe('valid', () => {
+            it('should validate minimal declaration and populate default values', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data, {
+                    class: 'RoutingBGP',
+                    gracefulRestart: {
+                        gracefulResetEnabled: false,
+                        restartTime: 0,
+                        stalePathTime: 0
+                    },
+                    holdTime: 90,
+                    keepAlive: 30,
+                    localAs: 1,
+                    neighbors: [],
+                    peerGroups: [],
+                    routerId: 'any6'
+                });
+            });
+
+            it('should validate full declaration', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    addressFamilies: [
+                        {
+                            internetProtocol: 'ipv4',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'kernel',
+                                    routeMap: 'exampleRouteMap'
+                                }
+                            ]
+                        }
+                    ],
+                    gracefulRestart: {
+                        gracefulResetEnabled: true,
+                        restartTime: 120,
+                        stalePathTime: 240
+                    },
+                    holdTime: 35,
+                    keepAlive: 10,
+                    localAs: 65010,
+                    neighbors: [
+                        {
+                            address: '10.2.2.2',
+                            peerGroup: 'Neighbor_IN'
+                        }
+                    ],
+                    peerGroups: [
+                        {
+                            name: 'Neighbor_IN',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    routeMap: {
+                                        in: 'routeMapIn',
+                                        out: 'routeMapOut'
+                                    },
+                                    softReconfigurationInboundEnabled: true
+                                }
+                            ],
+                            remoteAs: 65020
+                        }
+                    ],
+                    routerId: '10.1.1.1'
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data, {
+                    class: 'RoutingBGP',
+                    addressFamilies: [
+                        {
+                            internetProtocol: 'ipv4',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'kernel',
+                                    routeMap: 'exampleRouteMap'
+                                }
+                            ]
+                        }
+                    ],
+                    gracefulRestart: {
+                        gracefulResetEnabled: true,
+                        restartTime: 120,
+                        stalePathTime: 240
+                    },
+                    holdTime: 35,
+                    keepAlive: 10,
+                    localAs: 65010,
+                    neighbors: [
+                        {
+                            address: '10.2.2.2',
+                            peerGroup: 'Neighbor_IN'
+                        }
+                    ],
+                    peerGroups: [
+                        {
+                            name: 'Neighbor_IN',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    routeMap: {
+                                        in: 'routeMapIn',
+                                        out: 'routeMapOut'
+                                    },
+                                    softReconfigurationInboundEnabled: true
+                                }
+                            ],
+                            remoteAs: 65020
+                        }
+                    ],
+                    routerId: '10.1.1.1'
+                });
+            });
+
+            it('should validate declaration using all internetProtocols in addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    addressFamilies: [
+                        {
+                            internetProtocol: 'ipv4',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'kernel',
+                                    routeMap: 'exampleRouteMap1'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'ipv6',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'kernel',
+                                    routeMap: 'exampleRouteMap2'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'all',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'kernel',
+                                    routeMap: 'exampleRouteMap3'
+                                }
+                            ]
+                        }
+                    ],
+                    localAs: 65010
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data.addressFamilies, [
+                    {
+                        internetProtocol: 'ipv4',
+                        redistributionList: [
+                            {
+                                routingProtocol: 'kernel',
+                                routeMap: 'exampleRouteMap1'
+                            }
+                        ]
+                    },
+                    {
+                        internetProtocol: 'ipv6',
+                        redistributionList: [
+                            {
+                                routingProtocol: 'kernel',
+                                routeMap: 'exampleRouteMap2'
+                            }
+                        ]
+                    },
+                    {
+                        internetProtocol: 'all',
+                        redistributionList: [
+                            {
+                                routingProtocol: 'kernel',
+                                routeMap: 'exampleRouteMap3'
+                            }
+                        ]
+                    }
+                ]);
+            });
+
+            it('should validate declaration using all routingProtocols in addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    addressFamilies: [
+                        {
+                            internetProtocol: 'all',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'connected',
+                                    routeMap: 'exampleRouteMap1'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'all',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'isis',
+                                    routeMap: 'exampleRouteMap2'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'all',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'kernel',
+                                    routeMap: 'exampleRouteMap3'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'all',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'ospf',
+                                    routeMap: 'exampleRouteMap4'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'all',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'rip',
+                                    routeMap: 'exampleRouteMap5'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'all',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'static',
+                                    routeMap: 'exampleRouteMap6'
+                                }
+                            ]
+                        }
+                    ],
+                    localAs: 65010
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data.addressFamilies, [
+                    {
+                        internetProtocol: 'all',
+                        redistributionList: [
+                            {
+                                routingProtocol: 'connected',
+                                routeMap: 'exampleRouteMap1'
+                            }
+                        ]
+                    },
+                    {
+                        internetProtocol: 'all',
+                        redistributionList: [
+                            {
+                                routingProtocol: 'isis',
+                                routeMap: 'exampleRouteMap2'
+                            }
+                        ]
+                    },
+                    {
+                        internetProtocol: 'all',
+                        redistributionList: [
+                            {
+                                routingProtocol: 'kernel',
+                                routeMap: 'exampleRouteMap3'
+                            }
+                        ]
+                    },
+                    {
+                        internetProtocol: 'all',
+                        redistributionList: [
+                            {
+                                routingProtocol: 'ospf',
+                                routeMap: 'exampleRouteMap4'
+                            }
+                        ]
+                    },
+                    {
+                        internetProtocol: 'all',
+                        redistributionList: [
+                            {
+                                routingProtocol: 'rip',
+                                routeMap: 'exampleRouteMap5'
+                            }
+                        ]
+                    },
+                    {
+                        internetProtocol: 'all',
+                        redistributionList: [
+                            {
+                                routingProtocol: 'static',
+                                routeMap: 'exampleRouteMap6'
+                            }
+                        ]
+                    }
+                ]);
+            });
+
+            it('should populate empty gracefulRestart with defaults', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    gracefulRestart: {}
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data.gracefulRestart, {
+                    gracefulResetEnabled: false,
+                    restartTime: 0,
+                    stalePathTime: 0
+                });
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional properties at the top level', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    additionalProp: true
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    `Errored but not because of additional properties:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate additional properties in addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    addressFamilies: [
+                        {
+                            additionalProp: true
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    `Errored but not because of additional properties:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate additional properties in addressFamilies.redistribution', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    addressFamilies: [
+                        {
+                            internetProtocol: 'ipv4',
+                            redistributionList: [
+                                {
+                                    additionalProperty: true
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    `Errored but not because of additional properties:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate unknown internetProtocol in addressFamilies object', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    addressFamilies: [
+                        {
+                            internetProtocol: 'ipv5'
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail due to invalid internetProtocol');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should be equal to one of the allowed values'), -1,
+                    `Errored but not because of invalid internetProtocol:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate unknown routerProtocol in addressFamilies object', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    addressFamilies: [
+                        {
+                            internetProtocol: 'ipv4',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'dynamic'
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail due to invalid routingProtocol');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should be equal to one of the allowed values'), -1,
+                    `Errored but not because of invalid routingProtocol:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate additional properties in gracefulRestart object', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    gracefulRestart: {
+                        anotherProp: true
+                    }
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    `Errored but not because of additional properties in gracefulRestart object:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate additional properties in neighbors object', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    neighbors: [
+                        {
+                            additionalProperty: true
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    `Errored but not because of additional properties in neighbors object:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate additional properties in peerGroups', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    peerGroups: [
+                        {
+                            additionalProperty: true
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    `Errored but not because of additional properties in peerGroups object:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate additional properties in peerGroups.addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    peerGroups: [
+                        {
+                            name: 'Neighbor_IN',
+                            addressFamilies: [
+                                {
+                                    additionalProperty: true
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    `Errored but not because of additional properties in peerGroups object:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate additional properties in peerGroups.addressFamilies.routeMap', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAs: 1,
+                    peerGroups: [
+                        {
+                            name: 'Neighbor_IN',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    routeMap: {
+                                        additionalProperty: true
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    `Errored but not because of additional properties in peerGroups object:\n${getErrorString()}`
+                );
+            });
+        });
+    });
+
     describe('RouteMap', () => {
         describe('valid', () => {
             it('should validate minimal declaration', () => {

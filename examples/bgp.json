@@ -1,0 +1,136 @@
+{
+    "schemaVersion": "1.20.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "exampleRoutingAsPath1": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^165001 *"
+                }
+            ]
+        },
+        "exampleRoutingAsPath2": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 20,
+                    "regex": "^165005$"
+                }
+            ]
+        },
+        "exampleRoutingPrefixList1": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 20,
+                    "action": "permit",
+                    "prefix": "10.3.3.0/24",
+                    "prefixLengthRange": 32
+                }
+            ]
+        },
+        "exampleRoutingPrefixList2": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 30,
+                    "action": "deny",
+                    "prefix": "10.4.4.0/23",
+                    "prefixLengthRange": 24
+                }
+            ]
+        },
+        "exampleRouteMap1": {
+            "class": "RouteMap",
+            "entries": [
+                {
+                    "name": "33",
+                    "action": "permit",
+                    "match": {
+                        "asPath": "exampleRoutingAsPath1",
+                        "ipv4": {
+                            "address": {
+                                "prefixList": "exampleRoutingPrefixList1"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "exampleRouteMap2": {
+            "class": "RouteMap",
+            "entries": [
+                {
+                    "name": "44",
+                    "action": "deny",
+                    "match": {
+                        "asPath": "exampleRoutingAsPath2",
+                        "ipv4": {
+                            "address": {
+                                "prefixList": "exampleRoutingPrefixList2"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "exampleRoutingBGP": {
+            "class": "RoutingBGP",
+            "localAs": 65010,
+            "addressFamilies": [
+                {
+                    "internetProtocol": "ipv4",
+                    "redistributionList": [
+                        {
+                            "routingProtocol": "kernel",
+                            "routeMap": "exampleRouteMap1"
+                        },
+                        {
+                            "routingProtocol": "static",
+                            "routeMap": "exampleRouteMap2"
+                        }
+                    ]
+                }
+            ],
+            "gracefulRestart": {
+                "gracefulResetEnabled": true,
+                "restartTime": 120,
+                "stalePathTime": 60
+            },
+            "holdTime": 35,
+            "keepAlive": 10,
+            "neighbors": [
+                {
+                    "address": "10.1.1.2",
+                    "peerGroup": "Neighbor"
+                },
+                {
+                    "address": "10.1.1.3",
+                    "peerGroup": "Neighbor"
+                }
+            ],
+            "peerGroups": [
+                {
+                    "name": "Neighbor",
+                    "addressFamilies": [
+                        {
+                            "internetProtocol": "ipv4",
+                            "routeMap": {
+                                "in": "exampleRouteMap1",
+                                "out": "exampleRouteMap2"
+                            },
+                            "softReconfigurationInboundEnabled": true
+                        }
+                    ],
+                    "remoteAs": 65020
+                }
+            ],
+            "routerId": "10.1.1.1"
+        }
+    }
+}

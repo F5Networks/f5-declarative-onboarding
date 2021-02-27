@@ -100,6 +100,10 @@ class NetworkHandler {
                 return handleRouteMap.call(this);
             })
             .then(() => {
+                logger.info('Checking RoutingBGP');
+                return handleRoutingBGP.call(this);
+            })
+            .then(() => {
                 logger.info('Done processing network declartion.');
                 return Promise.resolve();
             })
@@ -525,7 +529,7 @@ function handleTunnel() {
 function handleEnableRouting() {
     const promises = [];
     let enabledRouting = false;
-    ['RouteMap', 'RoutingAsPath', 'RoutingPrefixList'].forEach((routingModuleClass) => {
+    ['RoutingBGP', 'RouteMap', 'RoutingAsPath', 'RoutingPrefixList'].forEach((routingModuleClass) => {
         doUtil.forEach(this.declaration, routingModuleClass, () => {
             if (!enabledRouting) {
                 // Enable routing module on the BIG-IP
@@ -644,6 +648,127 @@ function handleRouteMap() {
         .catch((err) => {
             logger.severe(`Error creating RouteMap: ${err.message}`);
             throw err;
+        });
+}
+
+function handleRoutingBGP() {
+    if (!this.declaration.Common.RoutingBGP) {
+        return Promise.resolve();
+    }
+
+    let promises = [];
+    return Promise.resolve()
+        .then(() => {
+            // BIGIP has a bug where a peerGroup with any members cannot be set to 'none' or overwritten.
+            // Get around by preemptively deleting any matches found in current config that are about to be modified.
+            doUtil.forEach(this.declaration, 'RoutingBGP', (declTenant, declBgp) => {
+                if (this.state.currentConfig.Common.RoutingBGP) {
+                    Object.keys(this.state.currentConfig.Common.RoutingBGP).forEach((bgp) => {
+                        const curBgp = this.state.currentConfig.Common.RoutingBGP[bgp];
+                        if ((declBgp.name === curBgp.name)
+                            && ((curBgp.peerGroups && curBgp.peerGroups.length > 0)
+                            || (curBgp.localAs !== declBgp.localAs))) {
+                            promises.push(
+                                this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${bgp}`, null, null, cloudUtil.NO_RETRY)
+                            );
+                        }
+                    });
+                }
+            });
+
+            return Promise.all(promises)
+                .catch((err) => {
+                    logger.severe(`Error deleting existing RoutingBGP: ${err.message}`);
+                    throw err;
+                });
+        })
+        .then(() => {
+            promises = [];
+            doUtil.forEach(this.declaration, 'RoutingBGP', (tenant, bgp) => {
+                if (bgp && Object.keys(bgp).length !== 0) {
+                    const addressFamilies = [];
+
+                    if (bgp.addressFamilies) {
+                        bgp.addressFamilies.forEach((family) => {
+                            const familyBody = {};
+                            familyBody.name = family.internetProtocol;
+                            familyBody.redistribute = [];
+                            if (family.redistributionList) {
+                                family.redistributionList.forEach((r) => {
+                                    const entry = {};
+                                    entry.name = r.routingProtocol;
+                                    entry.routeMap = r.routeMap || 'none';
+                                    familyBody.redistribute.push(entry);
+                                });
+                            }
+                            addressFamilies.push(familyBody);
+                        });
+                    }
+
+                    const peerGroup = [];
+                    if (bgp.peerGroups) {
+                        bgp.peerGroups.forEach((peer) => {
+                            const peerBody = {};
+                            peerBody.name = peer.name;
+                            if (peer.addressFamilies) {
+                                const peerAddressFamilies = [];
+                                peer.addressFamilies.forEach((af) => {
+                                    const entry = {};
+                                    entry.name = af.internetProtocol;
+                                    const routeMap = {};
+                                    if (af.routeMap) {
+                                        routeMap.in = af.routeMap.in || 'none';
+                                        routeMap.out = af.routeMap.out || 'none';
+                                    }
+                                    entry.routeMap = routeMap;
+                                    entry.softReconfigurationInbound = af.softReconfigurationInboundEnabled ? 'enabled' : 'disabled';
+                                    peerAddressFamilies.push(entry);
+                                });
+                                peerBody.addressFamily = peerAddressFamilies;
+                            }
+                            peerBody.remoteAs = peer.remoteAs;
+                            peerGroup.push(peerBody);
+                        });
+                    }
+
+                    const neighbor = [];
+                    if (bgp.neighbors) {
+                        bgp.neighbors.forEach((n) => {
+                            const neighborBody = {};
+                            neighborBody.name = n.address;
+                            neighborBody.peerGroup = n.peerGroup;
+                            neighbor.push(neighborBody);
+                        });
+                    }
+
+                    const body = {
+                        name: bgp.name,
+                        partition: tenant,
+                        addressFamily: addressFamilies,
+                        gracefulRestart: bgp.gracefulRestart ? {
+                            gracefulReset: bgp.gracefulRestart.gracefulResetEnabled === true ? 'enabled' : 'disabled',
+                            restartTime: bgp.gracefulRestart.restartTime,
+                            stalepathTime: bgp.gracefulRestart.stalePathTime
+                        } : undefined,
+                        keepAlive: bgp.keepAlive,
+                        holdTime: bgp.holdTime,
+                        localAs: bgp.localAs,
+                        neighbor,
+                        peerGroup,
+                        routerId: bgp.routerId
+                    };
+
+                    promises.push(
+                        this.bigIp.createOrModify(PATHS.RoutingBGP, body, null, cloudUtil.MEDIUM_RETRY)
+                    );
+                }
+            });
+
+            return Promise.all(promises)
+                .catch((err) => {
+                    logger.severe(`Error creating RoutingBGP: ${err.message}`);
+                    throw err;
+                });
         });
 }
 

@@ -653,10 +653,15 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
-    it('should delete RouteMap, RoutingAsPath, and RoutePrefixList in that order', () => {
+    it('should delete RoutingBGP, RouteMap, RoutingAsPath, and RoutePrefixList in that order', () => {
         const state = {
             currentConfig: {
                 Common: {
+                    RoutingBGP: {
+                        routinBgpTest: {
+                            asLocal: 1
+                        }
+                    },
                     RouteMap: {
                         routeMapTest: {
                             name: 44,
@@ -712,6 +717,9 @@ describe(('deleteHandler'), function testDeleteHandler() {
 
         const declaration = {
             Common: {
+                RoutingBGP: {
+                    routingBgpTest: {}
+                },
                 RoutingAsPath: {
                     routingAsPathTest: {}
                 },
@@ -727,10 +735,11 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
         return deleteHandler.process()
             .then(() => {
-                assert.strictEqual(deletedPaths.length, 3);
-                assert.strictEqual(deletedPaths[0], '/tm/net/routing/route-map/~Common~routeMapTest');
-                assert.strictEqual(deletedPaths[1], '/tm/net/routing/as-path/~Common~routingAsPathTest');
-                assert.strictEqual(deletedPaths[2], '/tm/net/routing/prefix-list/~Common~routingPrefixListTest');
+                assert.strictEqual(deletedPaths.length, 4);
+                assert.strictEqual(deletedPaths[0], '/tm/net/routing/bgp/~Common~routingBgpTest');
+                assert.strictEqual(deletedPaths[1], '/tm/net/routing/route-map/~Common~routeMapTest');
+                assert.strictEqual(deletedPaths[2], '/tm/net/routing/as-path/~Common~routingAsPathTest');
+                assert.strictEqual(deletedPaths[3], '/tm/net/routing/prefix-list/~Common~routingPrefixListTest');
             });
     });
 

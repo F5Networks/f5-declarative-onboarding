@@ -613,4 +613,49 @@ describe('doUtil', () => {
             assert.strictEqual(doUtil.minimizeIP('::ffff:192.0.3.47'), '::ffff:c000:32f');
         });
     });
+
+    describe('sortArrayByValueString', () => {
+        const data = [
+            {
+                key1: 'cherry',
+                key2: 'pie'
+            },
+            {
+                key1: 'apple',
+                key2: true
+            },
+            {
+                key1: 'lime',
+                key2: 'tart'
+            },
+            {
+                key1: 'pear',
+                key2: 'croissant'
+            },
+            {
+                key1: 'apple',
+                key2: 'sauce'
+            }
+        ];
+
+        doUtil.sortArrayByValueString(data, 'key1');
+        assert.deepStrictEqual(data.length, 5);
+        assert.deepStrictEqual(data[0].key1, 'apple');
+        assert.isTrue(data[0].key2 === true || data[0].key2 === 'sauce');
+        assert.deepStrictEqual(data[1].key1, 'apple');
+        assert.isTrue(data[1].key2 === true || data[1].key2 === 'sauce');
+        assert.isTrue(data[0].key2 !== data[1].key2);
+        assert.deepStrictEqual(data[2], {
+            key1: 'cherry',
+            key2: 'pie'
+        });
+        assert.deepStrictEqual(data[3], {
+            key1: 'lime',
+            key2: 'tart'
+        });
+        assert.deepStrictEqual(data[4], {
+            key1: 'pear',
+            key2: 'croissant'
+        });
+    });
 });
