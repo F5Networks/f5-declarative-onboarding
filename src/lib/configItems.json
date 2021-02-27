@@ -201,6 +201,49 @@
         }
     },
     {
+        "path": "/tm/net/routing/bgp",
+        "schemaClass": "RoutingBGP",
+        "properties": [
+            { "id": "name" },
+            { "id": "addressFamily", "newId": "addressFamilies",
+                "transform": [
+                    { "id": "name", "newId": "internetProtocol" },
+                    { "id": "redistribute", "newId": "redistributionList" }
+                ]
+            },
+            { "id": "localAs" },
+            { "id": "routerId"},
+            { "id": "gracefulRestart",
+                "transform": [
+                    { "id": "gracefulReset", "newId": "gracefulResetEnabled", "truth": "enabled", "falsehood": "disabled" },
+                    { "id": "restartTime" },
+                    { "id": "stalepathTime", "newId": "stalePathTime" }
+                ]
+            },
+            { "id": "keepAlive" },
+            { "id": "holdTime" },
+            { "id": "peerGroupReference" },
+            { "id": "neighborReference" }
+        ],
+        "references": {
+            "peerGroupReference": [
+                { "id": "name" },
+                { "id": "remoteAs" },
+                { "id": "addressFamily", "newId": "addressFamilies",
+                    "transform": [
+                        { "id": "name", "newId": "internetProtocol" },
+                        { "id": "routeMap" },
+                        { "id": "softReconfigurationInbound", "newId": "softReconfigurationInboundEnabled", "truth": "enabled", "falsehood": "disabled" }
+                    ]
+                }
+            ],
+            "neighborReference": [
+                { "id": "name", "newId": "address" },
+                { "id": "peerGroup" }
+            ]
+        }
+    },
+    {
         "path": "/tm/cm/device/~Common~{{deviceName}}",
         "schemaClass": "ConfigSync",
         "properties": [

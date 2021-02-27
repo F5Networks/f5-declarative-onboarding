@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.20.0
 ### Added
+- AUTOTOOL-1991: Added RoutingBGP
 ### Fixed
 - AUTOTOOL-2080: Task status change after restnoded process restarted
 ### Changed

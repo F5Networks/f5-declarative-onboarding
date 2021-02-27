@@ -26,7 +26,7 @@ const AUTH = require('./sharedConstants').AUTH;
 const logger = new Logger(module);
 
 // This is an ordered list - objects will be deleted in this order
-const DELETABLE_CLASSES = ['DeviceGroup', 'DNS_Resolver', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute', 'Tunnel', 'RouteMap', 'RoutingAsPath', 'RoutingPrefixList', 'GSLBMonitor'];
+const DELETABLE_CLASSES = ['DeviceGroup', 'DNS_Resolver', 'Route', 'SelfIp', 'VLAN', 'Trunk', 'RouteDomain', 'RemoteAuthRole', 'ManagementRoute', 'Tunnel', 'RoutingBGP', 'RouteMap', 'RoutingAsPath', 'RoutingPrefixList', 'GSLBMonitor'];
 const READ_ONLY_DEVICE_GROUPS = ['device_trust_group', 'gtm', 'datasync-global-dg', 'dos-global-dg'];
 
 /**
@@ -122,6 +122,11 @@ class DeleteHandler {
                             ? 'LOCAL_ONLY' : 'Common';
                         const path = `${PATHS.Route}/~${partition}~${itemToDelete}`;
                         classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    } else if (deleteableClass === 'RoutingAsPath' || deleteableClass === 'RoutingPrefixList') {
+                        const path = `${PATHS[deleteableClass]}/~Common~${itemToDelete}`;
+                        const retryOptions = { continueOnError: true };
+                        Object.assign(retryOptions, cloudUtil.SHORT_RETRY);
+                        classPromises.push(this.bigIp.delete(path, null, null, retryOptions));
                     } else if (deleteableClass === 'GSLBMonitor'
                         && !isRetainedItem(deleteableClass, itemToDelete)) {
                         // GSLB Monitors have their monitor type as part of the path instead of a property

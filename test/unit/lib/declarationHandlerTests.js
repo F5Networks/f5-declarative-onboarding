@@ -1228,6 +1228,628 @@ describe('declarationHandler', () => {
                 });
         });
 
+        describe('RoutingBGP fixes', () => {
+            let newDeclaration;
+            let state;
+
+            beforeEach(() => {
+                newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        RoutingBGP: {
+                            bgp1: {
+                                name: 'bgp1'
+                            }
+                        }
+                    }
+                };
+
+                state = {
+                    originalConfig: {
+                        Common: {}
+                    },
+                    currentConfig: {
+                        parsed: true,
+                        Common: {}
+                    }
+                };
+            });
+
+            describe('addressFamilies.internetProtocol', () => {
+                it('should split addressFamilies when internetProtocol is all', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                        {
+                            internetProtocol: 'all',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'static',
+                                    routeMap: 'routeMap1'
+                                }
+                            ]
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                [
+                                    {
+                                        internetProtocol: 'ipv4',
+                                        redistributionList: [
+                                            {
+                                                routingProtocol: 'static',
+                                                routeMap: '/Common/routeMap1'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        internetProtocol: 'ipv6',
+                                        redistributionList: [
+                                            {
+                                                routingProtocol: 'static',
+                                                routeMap: '/Common/routeMap1'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+
+                it('should fill in unspecified addressFamilies ipv6 internetProtocol', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                        {
+                            internetProtocol: 'ipv4',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'static',
+                                    routeMap: 'routeMap1'
+                                }
+                            ]
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                [
+                                    {
+                                        internetProtocol: 'ipv4',
+                                        redistributionList: [
+                                            {
+                                                routingProtocol: 'static',
+                                                routeMap: '/Common/routeMap1'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        internetProtocol: 'ipv6'
+                                    }
+                                ]
+                            );
+                        });
+                });
+
+                it('should fill in unspecified addressFamilies ipv4 internetProtocol', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                        {
+                            internetProtocol: 'ipv6',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'static',
+                                    routeMap: 'routeMap1'
+                                }
+                            ]
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                [
+                                    {
+                                        internetProtocol: 'ipv4'
+                                    },
+                                    {
+                                        internetProtocol: 'ipv6',
+                                        redistributionList: [
+                                            {
+                                                routingProtocol: 'static',
+                                                routeMap: '/Common/routeMap1'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+
+                it('should fill in both unspecified ipv4 and ipv6 internetProtocol with empty addressFamilies', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                [
+                                    {
+                                        internetProtocol: 'ipv4'
+                                    },
+                                    {
+                                        internetProtocol: 'ipv6'
+                                    }
+                                ]
+                            );
+                        });
+                });
+
+                it('should fill in both unspecified ipv4 and ipv6 internetProtocol with no addressFamilies', () => {
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                [
+                                    {
+                                        internetProtocol: 'ipv4'
+                                    },
+                                    {
+                                        internetProtocol: 'ipv6'
+                                    }
+                                ]
+                            );
+                        });
+                });
+
+                it('should sort addressFamilies by internetProtocol ipv4 first', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                        {
+                            internetProtocol: 'ipv6',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'static',
+                                    routeMap: 'routeMap2'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'ipv4',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'static',
+                                    routeMap: 'routeMap1'
+                                }
+                            ]
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                [
+                                    {
+                                        internetProtocol: 'ipv4',
+                                        redistributionList: [
+                                            {
+                                                routingProtocol: 'static',
+                                                routeMap: '/Common/routeMap1'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        internetProtocol: 'ipv6',
+                                        redistributionList: [
+                                            {
+                                                routingProtocol: 'static',
+                                                routeMap: '/Common/routeMap2'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+            });
+
+            describe('addressFamilies.redistributionList', () => {
+                it('should sort redistributionList by routingProtocol', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                        {
+                            internetProtocol: 'ipv6',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'static',
+                                    routeMap: 'routeMap6'
+                                },
+                                {
+                                    routingProtocol: 'rip',
+                                    routeMap: 'routeMap5'
+                                },
+                                {
+                                    routingProtocol: 'ospf',
+                                    routeMap: 'routeMap4'
+                                },
+                                {
+                                    routingProtocol: 'kernel',
+                                    routeMap: 'routeMap3'
+                                },
+                                {
+                                    routingProtocol: 'isis',
+                                    routeMap: 'routeMap2'
+                                },
+                                {
+                                    routingProtocol: 'connected',
+                                    routeMap: 'routeMap1'
+                                }
+                            ]
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                [
+                                    {
+                                        internetProtocol: 'ipv4'
+                                    },
+                                    {
+                                        internetProtocol: 'ipv6',
+                                        redistributionList: [
+                                            {
+                                                routingProtocol: 'connected',
+                                                routeMap: '/Common/routeMap1'
+                                            },
+                                            {
+                                                routingProtocol: 'isis',
+                                                routeMap: '/Common/routeMap2'
+                                            },
+                                            {
+                                                routingProtocol: 'kernel',
+                                                routeMap: '/Common/routeMap3'
+                                            },
+                                            {
+                                                routingProtocol: 'ospf',
+                                                routeMap: '/Common/routeMap4'
+                                            },
+                                            {
+                                                routingProtocol: 'rip',
+                                                routeMap: '/Common/routeMap5'
+                                            },
+                                            {
+                                                routingProtocol: 'static',
+                                                routeMap: '/Common/routeMap6'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+
+                it('should add tenant prefix to redistributionList routeMap only if mising', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                        {
+                            internetProtocol: 'ipv6',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'rip',
+                                    routeMap: 'routeMap1'
+                                },
+                                {
+                                    routingProtocol: 'static',
+                                    routeMap: '/Common/routeMap2'
+                                }
+                            ]
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                [
+                                    {
+                                        internetProtocol: 'ipv4'
+                                    },
+                                    {
+                                        internetProtocol: 'ipv6',
+                                        redistributionList: [
+                                            {
+                                                routingProtocol: 'rip',
+                                                routeMap: '/Common/routeMap1'
+                                            },
+                                            {
+                                                routingProtocol: 'static',
+                                                routeMap: '/Common/routeMap2'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+            });
+
+            describe('addressFamilies.internetProtocol', () => {
+                it('should fill in unspecified addressFamilies ipv6 internetProtocol', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
+                        {
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    routeMap: {},
+                                    softReconfigurationInboundEnabled: false
+                                }
+                            ]
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
+                                [
+                                    {
+                                        addressFamilies: [
+                                            {
+                                                internetProtocol: 'ipv4',
+                                                routeMap: {},
+                                                softReconfigurationInboundEnabled: false
+                                            },
+                                            {
+                                                internetProtocol: 'ipv6',
+                                                routeMap: {},
+                                                softReconfigurationInboundEnabled: false
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+
+                it('should fill in unspecified addressFamilies ipv4 internetProtocol', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
+                        {
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv6',
+                                    routeMap: {},
+                                    softReconfigurationInboundEnabled: false
+                                }
+                            ]
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
+                                [
+                                    {
+                                        addressFamilies: [
+                                            {
+                                                internetProtocol: 'ipv4',
+                                                routeMap: {},
+                                                softReconfigurationInboundEnabled: false
+                                            },
+                                            {
+                                                internetProtocol: 'ipv6',
+                                                routeMap: {},
+                                                softReconfigurationInboundEnabled: false
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+
+                it('should fill in both unspecified ipv4 and ipv6 internetProtocol with empty addressFamilies', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
+                        {
+                            addressFamilies: []
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
+                                [
+                                    {
+                                        addressFamilies: [
+                                            {
+                                                internetProtocol: 'ipv4',
+                                                routeMap: {},
+                                                softReconfigurationInboundEnabled: false
+                                            },
+                                            {
+                                                internetProtocol: 'ipv6',
+                                                routeMap: {},
+                                                softReconfigurationInboundEnabled: false
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+
+                it('should fill in both unspecified ipv4 and ipv6 internetProtocol with no addressFamilies', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
+                        {}
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
+                                [
+                                    {
+                                        addressFamilies: [
+                                            {
+                                                internetProtocol: 'ipv4',
+                                                routeMap: {},
+                                                softReconfigurationInboundEnabled: false
+                                            },
+                                            {
+                                                internetProtocol: 'ipv6',
+                                                routeMap: {},
+                                                softReconfigurationInboundEnabled: false
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+            });
+
+            describe('peerGroups', () => {
+                it('should sort peerGroups by name', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
+                        {
+                            name: 'Neighbor_IN'
+                        },
+                        {
+                            name: 'Neighbor_OUT'
+                        },
+                        {
+                            name: 'Neighbor_FOO'
+                        },
+                        {
+                            name: 'Neighbor_BAR'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups.length, 4);
+                            assert.deepStrictEqual(declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups[0].name, 'Neighbor_BAR');
+                            assert.deepStrictEqual(declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups[1].name, 'Neighbor_FOO');
+                            assert.deepStrictEqual(declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups[2].name, 'Neighbor_IN');
+                            assert.deepStrictEqual(declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups[3].name, 'Neighbor_OUT');
+                        });
+                });
+
+                it('should add tenant prefix to addressFamilies routeMap only if mising', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
+                        {
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    routeMap: {
+                                        in: 'routeMapIn'
+                                    }
+                                },
+                                {
+                                    internetProtocol: 'ipv6',
+                                    routeMap: {
+                                        in: 'routeMapIn2',
+                                        out: 'routeMapOut2'
+                                    }
+                                }
+                            ]
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
+                                [
+                                    {
+                                        addressFamilies: [
+                                            {
+                                                internetProtocol: 'ipv4',
+                                                routeMap: {
+                                                    in: '/Common/routeMapIn'
+                                                }
+                                            },
+                                            {
+                                                internetProtocol: 'ipv6',
+                                                routeMap: {
+                                                    in: '/Common/routeMapIn2',
+                                                    out: '/Common/routeMapOut2'
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            );
+                        });
+                });
+            });
+
+            describe('neighbors', () => {
+                it('should sort neighbors by ip address', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.neighbors = [
+                        {
+                            address: '10.1.1.4',
+                            peerGroup: 'Neighbor_IN'
+                        },
+                        {
+                            address: '10.1.1.5',
+                            peerGroup: 'Neighbor_OUT'
+                        },
+                        {
+                            address: '10.1.1.2',
+                            peerGroup: 'Neighbor_IN'
+                        },
+                        {
+                            address: '10.1.1.3',
+                            peerGroup: 'Neighbor_OUT'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.deepStrictEqual(
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.neighbors,
+                                [
+                                    {
+                                        address: '10.1.1.2',
+                                        peerGroup: 'Neighbor_IN'
+                                    },
+                                    {
+                                        address: '10.1.1.3',
+                                        peerGroup: 'Neighbor_OUT'
+                                    },
+                                    {
+                                        address: '10.1.1.4',
+                                        peerGroup: 'Neighbor_IN'
+                                    },
+                                    {
+                                        address: '10.1.1.5',
+                                        peerGroup: 'Neighbor_OUT'
+                                    }
+                                ]
+                            );
+                        });
+                });
+            });
+        });
+
         describe('should apply fix for HTTPD allow value', () => {
             it('should convert single word all to array', () => {
                 const newDeclaration = {

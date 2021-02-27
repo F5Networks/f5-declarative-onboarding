@@ -340,6 +340,64 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }
             }
         ));
+
+        it('should match RoutingBGP', () => assert.deepStrictEqual(
+            currentState.RoutingBGP,
+            {
+                testRoutingBGP: {
+                    name: 'testRoutingBGP',
+                    addressFamilies: [
+                        {
+                            internetProtocol: 'ipv4',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'kernel',
+                                    routeMap: '/Common/testRouteMap'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'ipv6'
+                        }
+                    ],
+                    gracefulRestart: {
+                        gracefulResetEnabled: true,
+                        restartTime: 120,
+                        stalePathTime: 0
+                    },
+                    holdTime: 35,
+                    keepAlive: 10,
+                    localAs: 50208,
+                    neighbors: [
+                        {
+                            address: '10.1.1.2',
+                            peerGroup: 'Neighbor'
+                        }
+                    ],
+                    peerGroups: [
+                        {
+                            name: 'Neighbor',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    routeMap: {
+                                        out: '/Common/testRouteMap'
+                                    },
+                                    softReconfigurationInboundEnabled: true
+                                },
+                                {
+                                    internetProtocol: 'ipv6',
+                                    routeMap: {},
+                                    softReconfigurationInboundEnabled: false
+                                }
+                            ],
+                            remoteAs: 65020
+                        }
+                    ],
+                    routerId: '10.1.1.1'
+                }
+            }
+        ));
     });
 
     describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {

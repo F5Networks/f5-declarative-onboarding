@@ -76,6 +76,7 @@ const CLASSES_OF_TRUTH = [
     'MirrorIp',
     'RoutingAsPath',
     'RoutingPrefixList',
+    'RoutingBGP',
     'RouteMap',
     'GSLBGlobals',
     'GSLBDataCenter',
@@ -161,6 +162,7 @@ class DeclarationHandler {
                 applyHttpdFixes(parsedNewDeclaration);
                 applyGSLBServerFixes(parsedNewDeclaration);
                 applyRouteMapFixes(parsedNewDeclaration);
+                applyRoutingBgpFixes(parsedNewDeclaration);
                 applyGSLBProberPoolFixes(parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
@@ -589,6 +591,116 @@ function applyRouteMapFixes(declaration) {
                 applyTenantPrefix(entry, 'match.ipv6.nextHop.prefixList', tenant);
             });
         }
+    });
+}
+
+/**
+ * Apply fixes to RoutingBGP to align the current config to the desired config.
+ * @param {Object} declaration
+ */
+function applyRoutingBgpFixes(declaration) {
+    /**
+     * Fill in default addressFamilies entries for internet protocols ipv4 and ipv6 with the purpose of aligning current
+     * and desired configs.
+     * @param {Object} containingObj - object that contains the addressFamilies
+     * @param {Object} addressFamiliesDefaults - default values to add in after the entry is created
+     */
+
+    function processAddressFamiliesDefaults(containingObj, addressFamiliesDefaults) {
+        let hasIpv4 = false;
+        let hasIpv6 = false;
+
+        // Fill in addressFamilies defaults that are hard to do within schema
+        containingObj.addressFamilies = containingObj.addressFamilies || [];
+        containingObj.addressFamilies.forEach((family) => {
+            hasIpv4 = family.internetProtocol === 'ipv4' ? true : hasIpv4;
+            hasIpv6 = family.internetProtocol === 'ipv6' ? true : hasIpv6;
+        });
+
+        if (!hasIpv4) {
+            let unshiftObj = {
+                internetProtocol: 'ipv4'
+            };
+            unshiftObj = addressFamiliesDefaults ? Object.assign(unshiftObj, addressFamiliesDefaults) : unshiftObj;
+            containingObj.addressFamilies.unshift(unshiftObj);
+        }
+
+        if (!hasIpv6) {
+            let pushObj = {
+                internetProtocol: 'ipv6'
+            };
+            pushObj = addressFamiliesDefaults ? Object.assign(pushObj, addressFamiliesDefaults) : pushObj;
+            containingObj.addressFamilies.push(pushObj);
+        }
+    }
+
+    const routingBGPs = (declaration.Common && declaration.Common.RoutingBGP) || {};
+    if (Object.keys(routingBGPs).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RoutingBGP', (tenant, bgp) => {
+        if (bgp.addressFamilies) {
+            // add tenant prefix to addressFamilies routeMap property if needed to match current config
+            bgp.addressFamilies.forEach((family) => {
+                (family.redistributionList || []).forEach((redist) => {
+                    applyTenantPrefix(redist, 'routeMap', tenant);
+                });
+                if (family.redistributionList && family.redistributionList.length === 0) {
+                    delete family.redistributionList;
+                }
+            });
+
+            // If the internetProtocol 'all' is specified.  Split it up into 'ipv4' and 'ipv6'.
+            // BIGIP does this and then iControl responds with the split result in the config manager.
+            // Split it now so the current config and desired config will match.
+            if (bgp.addressFamilies.length === 1 && bgp.addressFamilies[0].internetProtocol === 'all') {
+                const ipv4 = JSON.parse(JSON.stringify(bgp.addressFamilies[0]));
+                ipv4.internetProtocol = 'ipv4';
+                const ipv6 = JSON.parse(JSON.stringify(bgp.addressFamilies[0]));
+                ipv6.internetProtocol = 'ipv6';
+                bgp.addressFamilies = [ipv4, ipv6];
+            }
+        }
+
+        // fill in missing addressFamilies defaults that are difficult to specify in schema
+        processAddressFamiliesDefaults(bgp);
+
+        // sort addressFamilies by internetProtocol order ipv4 first
+        doUtil.sortArrayByValueString(bgp.addressFamilies, 'internetProtocol');
+
+        // sort redistributionList array in routingProtocol alphabetical order
+        bgp.addressFamilies.forEach((family) => {
+            doUtil.sortArrayByValueString(family.redistributionList, 'routingProtocol');
+        });
+
+        // sort neighbors array in address alphabetical order
+        doUtil.sortArrayByValueString(bgp.neighbors, 'address');
+
+        // sort peerGroups array in name alphabetical order
+        doUtil.sortArrayByValueString(bgp.peerGroups, 'name');
+
+        // fill in missing peerGroups addressFamilies defaults that are difficult to specify in schema
+        (bgp.peerGroups || []).forEach((peer) => {
+            processAddressFamiliesDefaults(peer, {
+                routeMap: {},
+                softReconfigurationInboundEnabled: false
+            });
+        });
+
+        (bgp.peerGroups || []).forEach((peer) => {
+            if (peer.addressFamilies.length === 0) {
+                delete peer.addressFamilies;
+            } else {
+                // add tenant prefix to peerGroups addressFamilies routeMap if needed to match current config
+                peer.addressFamilies.forEach((family) => {
+                    if (family.routeMap) {
+                        applyTenantPrefix(family.routeMap, 'in', tenant);
+                        applyTenantPrefix(family.routeMap, 'out', tenant);
+                    }
+                });
+            }
+        });
     });
 }
 

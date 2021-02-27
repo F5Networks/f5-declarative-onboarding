@@ -228,6 +228,10 @@ class ConfigManager {
                                         patchGSLBMonitor.call(this, item);
                                     }
 
+                                    if (schemaClass === 'RoutingBGP') {
+                                        patchRoutingBGP.call(this, item);
+                                    }
+
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties(patchedItem, this.configItems[index]);
 
@@ -448,6 +452,24 @@ class ConfigManager {
                     });
                 }
 
+                // Patch RoutingBGP neighbor members after they've been dereferenced
+                const currentRoutingBgp = state.currentConfig.Common.RoutingBGP;
+                Object.keys(currentRoutingBgp || []).forEach((key) => {
+                    doUtil.sortArrayByValueString(currentRoutingBgp[key].neighbor, 'address');
+                    if (currentRoutingBgp[key].neighbor) {
+                        currentRoutingBgp[key].neighbors = JSON.parse(
+                            JSON.stringify(currentRoutingBgp[key].neighbor)
+                        );
+                        delete currentRoutingBgp[key].neighbor;
+                    }
+                    if (currentRoutingBgp[key].peerGroup) {
+                        currentRoutingBgp[key].peerGroups = JSON.parse(
+                            JSON.stringify(currentRoutingBgp[key].peerGroup)
+                        );
+                        delete currentRoutingBgp[key].peerGroup;
+                    }
+                });
+
                 // Patch GSLB Server virtual servers after they've been dereferenced
                 const currentGSLBServer = state.currentConfig.Common.GSLBServer;
                 if (currentGSLBServer) {
@@ -605,6 +627,10 @@ function mapProperties(item, configItem) {
 
                         if (trans.removeKeys) {
                             doUtil.deleteKeys(value, trans.removeKeys);
+                        }
+
+                        if (trans.truth !== undefined) {
+                            value = mapTruth(currentProperty, trans);
                         }
 
                         // Attempt to convert values
@@ -977,6 +1003,22 @@ function patchGSLBMonitor(item) {
 function patchGSLBProberPool(patchedItem) {
     patchedItem.enabled = isEnabledGtmObject(patchedItem);
     delete patchedItem.disabled;
+}
+
+/**
+ * Renames deeply nested 'name' property to 'routingProtocol'
+ *
+ * @param {Object} patchedItem - config item that needs patching
+ */
+function patchRoutingBGP(patchedItem) {
+    (patchedItem.addressFamily || []).forEach((family) => {
+        (family.redistribute || []).forEach((redist) => {
+            if (redist.name) {
+                redist.routingProtocol = redist.name;
+                delete redist.name;
+            }
+        });
+    });
 }
 
 /**

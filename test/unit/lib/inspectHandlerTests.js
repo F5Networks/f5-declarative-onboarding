@@ -701,6 +701,76 @@ describe('inspectHandler', () => {
                     }
                 }
             ],
+            '/tm/net/routing/bgp': [
+                {
+                    name: 'exampleBGP',
+                    addressFamily: [
+                        {
+                            name: 'ipv4',
+                            redistribute: [
+                                {
+                                    name: 'kernel',
+                                    routeMap: '/Common/routeMap1',
+                                    routeMapReference: {
+                                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleBGP?ver=14.1.2.8'
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    gracefulRestart: {
+                        gracefulReset: 'enabled',
+                        restartTime: 120,
+                        stalepathTime: 0
+                    },
+                    holdTime: 35,
+                    keepAlive: 10,
+                    localAs: 65010,
+                    neighborReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~exampleBGP/neighbor?ver=14.1.2.8'
+                    },
+                    peerGroupReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~exampleBGP/peer-group?ver=14.1.2.8'
+                    },
+                    routerId: '10.1.1.1'
+                }
+            ],
+            '/tm/net/routing/bgp/~Common~exampleBGP/neighbor': [
+                {
+                    name: '10.1.1.2',
+                    peerGroup: 'Neighbor_IN',
+                    unwanted: 1
+                }
+            ],
+            '/tm/net/routing/bgp/~Common~exampleBGP/peer-group': [
+                {
+                    name: 'Neighbor_IN',
+                    remoteAs: 65020,
+                    addressFamily: [
+                        {
+                            name: 'ipv4',
+                            routeMap: {
+                                in: '/Common/routeMapIn',
+                                inReference: {
+                                    link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMapIn?ver=14.1.2.8'
+                                },
+                                out: '/Common/routeMapOut',
+                                outReference: {
+                                    link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMapOut?ver=14.1.2.8'
+                                }
+                            },
+                            softReconfigurationInbound: 'enabled',
+                            unwantedProperty: 2
+                        },
+                        {
+                            name: 'ipv6',
+                            routeMap: {},
+                            unwantedProperty: 3
+                        }
+                    ],
+                    unwantedProperty: 4
+                }
+            ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
@@ -1450,6 +1520,56 @@ describe('inspectHandler', () => {
                                     }
                                 }
                             ]
+                        },
+                        exampleBGP: {
+                            class: 'RoutingBGP',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    redistributionList: [
+                                        {
+                                            routingProtocol: 'kernel',
+                                            routeMap: '/Common/routeMap1'
+                                        }
+                                    ]
+                                }
+                            ],
+                            gracefulRestart: {
+                                gracefulResetEnabled: true,
+                                restartTime: 120,
+                                stalePathTime: 0
+                            },
+                            holdTime: 35,
+                            keepAlive: 10,
+                            localAs: 65010,
+                            neighbors: [
+                                {
+                                    address: '10.1.1.2',
+                                    peerGroup: 'Neighbor_IN'
+                                }
+                            ],
+                            peerGroups: [
+                                {
+                                    name: 'Neighbor_IN',
+                                    remoteAs: 65020,
+                                    addressFamilies: [
+                                        {
+                                            internetProtocol: 'ipv4',
+                                            routeMap: {
+                                                in: '/Common/routeMapIn',
+                                                out: '/Common/routeMapOut'
+                                            },
+                                            softReconfigurationInboundEnabled: true
+                                        },
+                                        {
+                                            internetProtocol: 'ipv6',
+                                            routeMap: {},
+                                            softReconfigurationInboundEnabled: false
+                                        }
+                                    ]
+                                }
+                            ],
+                            routerId: '10.1.1.1'
                         },
                         currentConfigSync: {
                             configsyncIp: '10.0.0.2',

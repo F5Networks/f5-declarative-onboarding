@@ -167,6 +167,7 @@
                             "RouteMap",
                             "RoutingAsPath",
                             "RoutingPrefixList",
+                            "RoutingBGP",
                             "SelfIp",
                             "SnmpAgent",
                             "SnmpCommunity",
