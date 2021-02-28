@@ -659,20 +659,23 @@ function handleRoutingBGP() {
     let promises = [];
     return Promise.resolve()
         .then(() => {
-            // BIGIP has a bug where a peerGroup with any members cannot be set to 'none' or overwritten.
-            // Get around by preemptively deleting any matches found in current config that are about to be modified.
-            doUtil.forEach(this.declaration, 'RoutingBGP', (declTenant, declBgp) => {
-                if (this.state.currentConfig.Common.RoutingBGP) {
-                    Object.keys(this.state.currentConfig.Common.RoutingBGP).forEach((bgp) => {
-                        const curBgp = this.state.currentConfig.Common.RoutingBGP[bgp];
-                        if ((declBgp.name === curBgp.name)
-                            && ((curBgp.peerGroups && curBgp.peerGroups.length > 0)
-                            || (curBgp.localAs !== declBgp.localAs))) {
-                            promises.push(
-                                this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${bgp}`, null, null, cloudUtil.NO_RETRY)
-                            );
-                        }
-                    });
+            Object.keys(this.state.currentConfig.Common.RoutingBGP || []).forEach((name) => {
+                const declBgp = this.declaration.Common.RoutingBGP[name];
+                if (declBgp) {
+                    // BIGIP has a bug where a peerGroup with any members cannot be set to 'none' or overwritten.
+                    // Get around by preemptively deleting any matches found in current config that are to be modified.
+                    const curBgp = this.state.currentConfig.Common.RoutingBGP[name];
+                    if ((curBgp.peerGroups && curBgp.peerGroups.length > 0) || (curBgp.localAS !== declBgp.localAS)) {
+                        promises.push(
+                            this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
+                        );
+                    }
+                } else {
+                    // Process deletes here instead of in deleteHandler.  Can only have 1 RoutingBGP.  If renamed the
+                    // delete handler is too late.  The new RoutingBGP will already be created.
+                    promises.push(
+                        this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
+                    );
                 }
             });
 
@@ -726,7 +729,7 @@ function handleRoutingBGP() {
                                 });
                                 peerBody.addressFamily = peerAddressFamilies;
                             }
-                            peerBody.remoteAs = peer.remoteAs;
+                            peerBody.remoteAs = peer.remoteAS;
                             peerGroup.push(peerBody);
                         });
                     }
@@ -752,7 +755,7 @@ function handleRoutingBGP() {
                         } : undefined,
                         keepAlive: bgp.keepAlive,
                         holdTime: bgp.holdTime,
-                        localAs: bgp.localAs,
+                        localAs: bgp.localAS,
                         neighbor,
                         peerGroup,
                         routerId: bgp.routerId

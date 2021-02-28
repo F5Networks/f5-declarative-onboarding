@@ -367,7 +367,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     },
                     holdTime: 35,
                     keepAlive: 10,
-                    localAs: 50208,
+                    localAS: 50208,
                     neighbors: [
                         {
                             address: '10.1.1.2',
@@ -391,7 +391,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                     softReconfigurationInboundEnabled: false
                                 }
                             ],
-                            remoteAs: 65020
+                            remoteAS: 65020
                         }
                     ],
                     routerId: '10.1.1.1'

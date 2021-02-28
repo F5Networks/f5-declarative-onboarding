@@ -838,7 +838,7 @@ describe('network.schema.json', () => {
             it('should validate minimal declaration and populate default values', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1
+                    localAS: 1
                 };
 
                 assert.ok(validate(data), getErrorString(validate));
@@ -851,7 +851,7 @@ describe('network.schema.json', () => {
                     },
                     holdTime: 90,
                     keepAlive: 30,
-                    localAs: 1,
+                    localAS: 1,
                     neighbors: [],
                     peerGroups: [],
                     routerId: 'any6'
@@ -879,7 +879,7 @@ describe('network.schema.json', () => {
                     },
                     holdTime: 35,
                     keepAlive: 10,
-                    localAs: 65010,
+                    localAS: 65010,
                     neighbors: [
                         {
                             address: '10.2.2.2',
@@ -899,7 +899,7 @@ describe('network.schema.json', () => {
                                     softReconfigurationInboundEnabled: true
                                 }
                             ],
-                            remoteAs: 65020
+                            remoteAS: 65020
                         }
                     ],
                     routerId: '10.1.1.1'
@@ -926,7 +926,7 @@ describe('network.schema.json', () => {
                     },
                     holdTime: 35,
                     keepAlive: 10,
-                    localAs: 65010,
+                    localAS: 65010,
                     neighbors: [
                         {
                             address: '10.2.2.2',
@@ -946,7 +946,7 @@ describe('network.schema.json', () => {
                                     softReconfigurationInboundEnabled: true
                                 }
                             ],
-                            remoteAs: 65020
+                            remoteAS: 65020
                         }
                     ],
                     routerId: '10.1.1.1'
@@ -985,7 +985,7 @@ describe('network.schema.json', () => {
                             ]
                         }
                     ],
-                    localAs: 65010
+                    localAS: 65010
                 };
 
                 assert.ok(validate(data), getErrorString(validate));
@@ -1079,7 +1079,7 @@ describe('network.schema.json', () => {
                             ]
                         }
                     ],
-                    localAs: 65010
+                    localAS: 65010
                 };
 
                 assert.ok(validate(data), getErrorString(validate));
@@ -1144,7 +1144,7 @@ describe('network.schema.json', () => {
             it('should populate empty gracefulRestart with defaults', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     gracefulRestart: {}
                 };
 
@@ -1161,7 +1161,7 @@ describe('network.schema.json', () => {
             it('should invalidate additional properties at the top level', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     additionalProp: true
                 };
 
@@ -1175,7 +1175,7 @@ describe('network.schema.json', () => {
             it('should invalidate additional properties in addressFamilies', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     addressFamilies: [
                         {
                             additionalProp: true
@@ -1193,7 +1193,7 @@ describe('network.schema.json', () => {
             it('should invalidate additional properties in addressFamilies.redistribution', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     addressFamilies: [
                         {
                             internetProtocol: 'ipv4',
@@ -1216,7 +1216,7 @@ describe('network.schema.json', () => {
             it('should invalidate unknown internetProtocol in addressFamilies object', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     addressFamilies: [
                         {
                             internetProtocol: 'ipv5'
@@ -1234,7 +1234,7 @@ describe('network.schema.json', () => {
             it('should invalidate unknown routerProtocol in addressFamilies object', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     addressFamilies: [
                         {
                             internetProtocol: 'ipv4',
@@ -1257,7 +1257,7 @@ describe('network.schema.json', () => {
             it('should invalidate additional properties in gracefulRestart object', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     gracefulRestart: {
                         anotherProp: true
                     }
@@ -1273,7 +1273,7 @@ describe('network.schema.json', () => {
             it('should invalidate additional properties in neighbors object', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     neighbors: [
                         {
                             additionalProperty: true
@@ -1291,7 +1291,7 @@ describe('network.schema.json', () => {
             it('should invalidate additional properties in peerGroups', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     peerGroups: [
                         {
                             additionalProperty: true
@@ -1309,7 +1309,7 @@ describe('network.schema.json', () => {
             it('should invalidate additional properties in peerGroups.addressFamilies', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     peerGroups: [
                         {
                             name: 'Neighbor_IN',
@@ -1332,7 +1332,7 @@ describe('network.schema.json', () => {
             it('should invalidate additional properties in peerGroups.addressFamilies.routeMap', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAs: 1,
+                    localAS: 1,
                     peerGroups: [
                         {
                             name: 'Neighbor_IN',

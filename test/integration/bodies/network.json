@@ -170,7 +170,7 @@
             },
             "holdTime": 35,
             "keepAlive": 10,
-            "localAs": 50208,
+            "localAS": 50208,
             "neighbors": [
                 {
                     "address": "10.1.1.2",
@@ -189,7 +189,7 @@
                             "softReconfigurationInboundEnabled": true
                         }
                     ],
-                    "remoteAs": 65020
+                    "remoteAS": 65020
                 }
             ],
             "routerId": "10.1.1.1"

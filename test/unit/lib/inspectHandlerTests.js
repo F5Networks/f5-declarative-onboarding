@@ -1541,7 +1541,7 @@ describe('inspectHandler', () => {
                             },
                             holdTime: 35,
                             keepAlive: 10,
-                            localAs: 65010,
+                            localAS: 65010,
                             neighbors: [
                                 {
                                     address: '10.1.1.2',
@@ -1551,7 +1551,7 @@ describe('inspectHandler', () => {
                             peerGroups: [
                                 {
                                     name: 'Neighbor_IN',
-                                    remoteAs: 65020,
+                                    remoteAS: 65020,
                                     addressFamilies: [
                                         {
                                             internetProtocol: 'ipv4',
