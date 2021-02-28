@@ -1322,6 +1322,12 @@ describe('networkHandler', () => {
         });
 
         it('should not send out an enable value to the sys/db/...routing endpoint if a declaration lacks RoutingAsPath, RoutingPrefixList, RouteMap, and RoutingBGP', () => {
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+
             const declaration = {
                 Common: {
                     RoutingAsPath: {},
@@ -1331,7 +1337,7 @@ describe('networkHandler', () => {
                 }
             };
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
@@ -1748,7 +1754,7 @@ describe('networkHandler', () => {
                             },
                             holdTime: 35,
                             keepAlive: 10,
-                            localAs: 65010,
+                            localAS: 65010,
                             peerGroups: [
                                 {
                                     name: 'Neighbor_IN',
@@ -1762,7 +1768,7 @@ describe('networkHandler', () => {
                                             softReconfigurationInboundEnabled: true
                                         }
                                     ],
-                                    remoteAs: 65020
+                                    remoteAS: 65020
                                 },
                                 {
                                     name: 'Neighbor_OUT',
@@ -1776,7 +1782,7 @@ describe('networkHandler', () => {
                                             softReconfigurationInboundEnabled: false
                                         }
                                     ],
-                                    remoteAs: 65040
+                                    remoteAS: 65040
                                 }
                             ],
                             neighbors: [
@@ -1885,6 +1891,46 @@ describe('networkHandler', () => {
                 });
         });
 
+        it('should handle renaming a RoutingBGP', () => {
+            const state = {
+                currentConfig: {
+                    Common: {
+                        RoutingBGP: {
+                            oldName: {
+                                name: 'oldName'
+                            },
+                            keepMe: {
+                                name: 'keepMe'
+                            }
+                        }
+                    }
+                }
+            };
+
+            const declaration = {
+                Common: {
+                    RoutingBGP: {
+                        newName: {
+                            name: 'newName'
+                        },
+                        keepMe: {
+                            name: 'keepMe'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(deletedPaths.length, 1);
+                    assert.deepStrictEqual(deletedPaths[0], '/tm/net/routing/bgp/~Common~oldName');
+                    assert.deepStrictEqual(dataSent[PATHS.RoutingBGP].length, 2);
+                    assert.deepStrictEqual(dataSent[PATHS.RoutingBGP][0].name, 'newName');
+                    assert.deepStrictEqual(dataSent[PATHS.RoutingBGP][1].name, 'keepMe');
+                });
+        });
+
         it('should handle a false gracefulResetEnabled', () => {
             const state = {
                 currentConfig: {
@@ -1934,7 +1980,7 @@ describe('networkHandler', () => {
                             },
                             holdTime: 90,
                             keepAlive: 30,
-                            localAs: 65010,
+                            localAS: 65010,
                             peerGroups: [
                                 {
                                     name: 'Neighbor_IN',
@@ -1945,7 +1991,7 @@ describe('networkHandler', () => {
                                             softReconfigurationInboundEnabled: true
                                         }
                                     ],
-                                    remoteAs: 65020
+                                    remoteAS: 65020
                                 }
                             ],
                             routerId: 'any6'
@@ -2100,14 +2146,14 @@ describe('networkHandler', () => {
                     });
             });
 
-            it('should call delete if RoutingBGP has localAs changes', () => {
+            it('should call delete if RoutingBGP has localAS changes', () => {
                 const state = {
                     currentConfig: {
                         Common: {
                             RoutingBGP: {
                                 routingBgp: {
                                     name: 'routingBgp',
-                                    localAs: 10
+                                    localAS: 10
                                 }
                             }
                         }
@@ -2119,7 +2165,7 @@ describe('networkHandler', () => {
                         RoutingBGP: {
                             routingBgp: {
                                 name: 'routingBgp',
-                                localAs: 20
+                                localAS: 20
                             }
                         }
                     }

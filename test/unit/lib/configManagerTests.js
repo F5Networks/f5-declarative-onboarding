@@ -1650,7 +1650,7 @@ describe('configManager', () => {
                     },
                     holdTime: 35,
                     keepAlive: 10,
-                    localAs: 65010,
+                    localAS: 65010,
                     routerId: '10.1.1.1',
                     addressFamily: [
                         {
@@ -1737,7 +1737,7 @@ describe('configManager', () => {
             listResponses['/tm/net/routing/bgp/~Common~peerGroup/peer-group'] = [
                 {
                     name: 'Neighbor_IN',
-                    remoteAs: 65020,
+                    remoteAS: 65020,
                     addressFamily: [
                         {
                             name: 'ipv4',
@@ -1785,7 +1785,7 @@ describe('configManager', () => {
                             },
                             holdTime: 35,
                             keepAlive: 10,
-                            localAs: 65010,
+                            localAS: 65010,
                             routerId: '10.1.1.1',
                             addressFamilies: [
                                 {
@@ -1836,7 +1836,7 @@ describe('configManager', () => {
                             peerGroups: [
                                 {
                                     name: 'Neighbor_IN',
-                                    remoteAs: 65020,
+                                    remoteAS: 65020,
                                     addressFamilies: [
                                         {
                                             internetProtocol: 'ipv4',
@@ -1855,7 +1855,7 @@ describe('configManager', () => {
                                 },
                                 {
                                     name: 'Neighbor_OUT',
-                                    remoteAs: 65030,
+                                    remoteAS: 65030,
                                     addressFamilies: [
                                         {
                                             internetProtocol: 'ipv4',

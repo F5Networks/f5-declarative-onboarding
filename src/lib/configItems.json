@@ -211,7 +211,7 @@
                     { "id": "redistribute", "newId": "redistributionList" }
                 ]
             },
-            { "id": "localAs" },
+            { "id": "localAs", "newId": "localAS" },
             { "id": "routerId"},
             { "id": "gracefulRestart",
                 "transform": [
@@ -228,7 +228,7 @@
         "references": {
             "peerGroupReference": [
                 { "id": "name" },
-                { "id": "remoteAs" },
+                { "id": "remoteAs", "newId": "remoteAS" },
                 { "id": "addressFamily", "newId": "addressFamilies",
                     "transform": [
                         { "id": "name", "newId": "internetProtocol" },

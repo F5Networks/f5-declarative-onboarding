@@ -32,7 +32,7 @@ describe('routingBgpValidator', () => {
                     Common: {
                         exampleRoutingBgp: {
                             class: 'RoutingBGP',
-                            localAs: 1
+                            localAS: 1
                         }
                     }
                 }
@@ -118,7 +118,7 @@ describe('routingBgpValidator', () => {
                     Common: {
                         exampleRoutingBgp: {
                             class: 'RoutingBGP',
-                            localAs: 1
+                            localAS: 1
                         }
                     }
                 }

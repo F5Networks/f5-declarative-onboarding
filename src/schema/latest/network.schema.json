@@ -735,14 +735,14 @@
                 "properties": { "class": { "const": "RoutingBGP" } }
             },
             "then": {
-                "required": ["class", "localAs"],
+                "required": ["class", "localAS"],
                 "properties": {
                     "class": {
                         "description": "Indicates that this property contains Border Gateway Protocol configuration.",
                         "type": "string",
                         "const": "RoutingBGP"
                     },
-                    "localAs": {
+                    "localAS": {
                         "description": "Local Autonomous System.  After the RoutingBGP has been created this value cannot be modified.",
                         "type": "integer",
                         "minimum": 1,
@@ -899,7 +899,7 @@
                                         "additionalProperties": false
                                     }
                                 },
-                                "remoteAs": {
+                                "remoteAS": {
                                     "description": "Remote Autonomous System",
                                     "type": "integer",
                                     "default": 0
