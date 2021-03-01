@@ -20,9 +20,32 @@ echo
 
 delete_stack () {
     echo "Deleting stack"
-    openstack stack --insecure delete -y "$STACK_NAME" 2>/dev/null
-    stack_id="$STACK_NAME"
+
+    MAX_TRIES=5
+    currentTry=0
+
+    stack_id=''
+    while [[ -z $stack_id && $currentTry < $MAX_TRIES ]]; do
+        if RESULT=$(openstack stack --insecure delete -y "$STACK_NAME" 2>/dev/null); then
+            stack_id="$STACK_NAME"
+        else
+            if [[ "$RESULT" != *"Stack not found"* ]]; then
+                echo "Failed attempt to delete."
+                (( currentTry = currentTry + 1 ))
+            else
+                stack_id="$STACK_NAME"
+            fi
+        fi
+    done
+
+    if [[ -z $stack_id ]]; then
+        echo "Stack delete failed"
+        exit 1
+    fi
+
     poll_status DELETE
+
+    stack_id=''
     echo "Done deleting stack"
 }
 
