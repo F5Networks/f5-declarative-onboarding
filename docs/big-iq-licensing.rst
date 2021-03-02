@@ -13,7 +13,7 @@ To use this feature:
 
 Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
 
-See :ref:`BIG-IQ examples<iqexamples>` for additional example declarations.
+See :ref:`BIG-IQ examples<iqexamples>` for additional example declarations.  
 
 .. NOTE:: See |compat| for information on BIG-IQ and Declarative Onboarding compatibility.
 
@@ -25,6 +25,9 @@ In this declaration snippet, we only include the License class, which is specifi
 For the full BIG-IQ Licensing example declaration, see :ref:`bigiq1` and :ref:`bigiq2`.
 
 In the following snippet, we set *reachable* to **true** (reachable means the BIG-IQ has a route to the BIG-IP), therefore we include a BIG-IP username and password. We are also using a utility pool behind the scenes on BIG-IQ, so use SKU keywords and unit of measure.  If reachable is false, you only specify the hypervisor (see the :ref:`BIG-IQ examples<iqexamples>` for example declarations). And for a RegKey pool, you do not need the SKU keywords or the unit of measure (see the table and :ref:`bigiq2` for usage). 
+
+.. TIP:: There may be additional properties available.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for detailed information on each class and their associated properties. 
+
 
 .. code-block:: javascript
    :linenos:
