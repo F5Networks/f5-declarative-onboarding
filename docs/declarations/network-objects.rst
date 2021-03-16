@@ -228,7 +228,7 @@ Configuring BGP Routing in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for BGP routing is available in DO v1.20 and later
+   Support for BGP routing is available in DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP
 
 This example shows how you can configure Border Gateway Protocol (BGP) routing in a Declarative Onboarding declaration. 
 
