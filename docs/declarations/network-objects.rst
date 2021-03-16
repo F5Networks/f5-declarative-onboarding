@@ -234,6 +234,8 @@ This example shows how you can configure Border Gateway Protocol (BGP) routing i
 
 For an excellent overview of BGP, see the F5 Lightboard lesson |bgpvid|.
 
+.. IMPORTANT:: BGP Routing is an experimental (Early Access) feature on the BIG-IP system.
+
 The BGP routing configuration uses the following Declarative Onboarding classes (some of the classes were introduced in previous versions of Declarative Onboarding, but the main **RoutingBGP** class, which is required to use BGP routing, was introduced in DO 1.20). The links go to the Schema Reference for descriptions and DO usage.
 
 - |routingbgp|
