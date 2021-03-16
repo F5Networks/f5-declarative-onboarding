@@ -220,6 +220,34 @@ The following example contains multiple prefix lists, but no other DO configurat
 :ref:`Back to top<networkexamples>`
 
 
+|
+
+.. _bgprouting:
+
+Configuring BGP Routing in a declaration  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for BGP routing is available in DO v1.20 and later
+
+This example shows how you can configure Border Gateway Protocol (BGP) routing in a Declarative Onboarding declaration. 
+
+For an excellent overview of BGP, see the F5 Lightboard lesson |bgpvid|.
+
+The BGP routing configuration uses the following Declarative Onboarding classes (some of the classes were introduced in previous versions of Declarative Onboarding, but the main **RoutingBGP** class, which is required to use BGP routing, was introduced in DO 1.20). The links go to the Schema Reference for descriptions and DO usage.
+
+- |routingbgp|
+- |routingaspath|
+- |prefix|
+- |routemap|
+
+The **RoutingBGP class contains a number of properties used in the following example, so be sure to see |routingbgp| for descriptions and options.
+
+
+.. literalinclude:: ../../examples/bgp.json
+   :language: json
+
+
 .. |br| raw:: html
 
    <br />
@@ -382,5 +410,18 @@ The following example contains multiple prefix lists, but no other DO configurat
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingprefixlist-entries" target="_blank">RoutingPrefixList-Entries</a>
 
+.. |bgpvid| raw:: html
 
+   <a href="https://www.youtube.com/watch?v=_Z29ZzKeZHc" target="_blank">BGP overview video</a>
 
+.. |routingbgp| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingbgp" target="_blank">RoutingBGP</a>
+
+.. |routingaspath| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingaspath" target="_blank">RoutingAsPath</a>
+
+.. |routemap| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routemap" target="_blank">RouteMap</a>

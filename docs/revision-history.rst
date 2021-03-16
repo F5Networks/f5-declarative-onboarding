@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 3.7
+        - Updated the documentation for Declarative Onboarding v1.20.0.  This release contains the following changes: |br| * Added support for BGP Routing (see :ref:`BGP routing<bgprouting>`) |br| |br| Issues Resolved: |br| *  Task status change after restnoded process restarted
+        - 4-6-21
+
       * - 3.6
         - Updated the documentation for Declarative Onboarding v1.19.0.  This release contains the following changes: |br| * Added support for GSLB health monitors (see :ref:`GSLB Monitors<gslbmonitors>`) |br| * Added support for GSLB Prober pools (see :ref:`Prober pools<prober>`) |br| * Added support for GSLB virtual servers (see the updated :ref:`GSLB Server<gslbserver>` example) |br| |br| Issues Resolved: |br| * Improve behavior when tenant is missing, `GitHub Issue 118 <https://github.com/F5Networks/f5-declarative-onboarding/issues/118>`_
         - 2-23-21
