@@ -241,7 +241,7 @@ The BGP routing configuration uses the following Declarative Onboarding classes 
 - |prefix|
 - |routemap|
 
-The **RoutingBGP class contains a number of properties used in the following example, so be sure to see |routingbgp| for descriptions and options.
+The **RoutingBGP** class contains a number of properties used in the following example, so be sure to see |routingbgp| for descriptions and options.
 
 
 .. literalinclude:: ../../examples/bgp.json
@@ -412,7 +412,7 @@ The **RoutingBGP class contains a number of properties used in the following exa
 
 .. |bgpvid| raw:: html
 
-   <a href="https://www.youtube.com/watch?v=_Z29ZzKeZHc" target="_blank">BGP overview video</a>
+   <a href="https://www.youtube.com/watch?v=_Z29ZzKeZHc" target="_blank">BGP overview</a>
 
 .. |routingbgp| raw:: html
 
