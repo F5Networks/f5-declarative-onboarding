@@ -189,14 +189,14 @@ function objectTable(props, rstArray, defName, propName, type) {
         getProperties(props.items, itemProps, defName);
         if (Object.keys(itemProps).length > 0) {
             table += `${defName} ${propName} possible properties when object type\n\n`;
-            table = addTable(itemProps, table);
+            table = addTable(itemProps, table, `${defName}_${propName}`);
             rstArray.push(table);
         }
     } else if (type === 'object') {
         getProperties(props, itemProps, defName);
         if (Object.keys(itemProps).length > 0) {
             table += `${defName} ${propName} possible properties\n\n`;
-            table = addTable(itemProps, table);
+            table = addTable(itemProps, table, `${defName}_${propName}`);
             rstArray.push(table);
         }
     }
