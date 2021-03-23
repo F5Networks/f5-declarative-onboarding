@@ -5,7 +5,9 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 - AUTOTOOL-1991: Added RoutingBGP
 ### Fixed
+- AUTOTOOL-2242: ([GitHub Issue 204](https://github.com/F5Networks/f5-declarative-onboarding/issues/204)): Cannot read property 'applicationData' of undefined 
 - AUTOTOOL-2080: Task status change after restnoded process restarted
+- AUTOTOOL-2215: ([GitHub Issue 198](https://github.com/F5Networks/f5-declarative-onboarding/issues/198)): Allow DeviceGroup owner to be an IPv6 address without having to use a json-pointer.
 ### Changed
 ### Removed
 

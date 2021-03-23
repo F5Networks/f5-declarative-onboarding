@@ -167,7 +167,9 @@
                         "type": "string",
                         "anyOf": [
                             { "format": "hostname" },
-                            { "format": "json-pointer" }
+                            { "format": "json-pointer" },
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
                         ]
                     },
                     "members": {

@@ -23,7 +23,7 @@ include:
 # adds atg_shared_checks_result job to test stage
   - project: automation-toolchain/atg-shared-templates
     file: security/base.gitlab-ci.yml
-    ref: v1.0.1
+    ref: v1.0.2
 
 lint:
     stage: lint

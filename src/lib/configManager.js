@@ -432,12 +432,19 @@ class ConfigManager {
                 }
 
                 const currentDisk = state.currentConfig.Common.Disk;
-                if (currentDisk && currentDisk.applicationData
-                    && currentDisk.applicationData > originalConfig.Common.Disk.applicationData) {
-                    if (!originalConfig.Common.Disk) {
-                        originalConfig.Common.Disk = {};
+
+                if (currentDisk && currentDisk.applicationData && originalConfig.Common) {
+                    // We need to update the originalConfig.applicationData in case of rollback.
+                    // applicationData cannot be reduced in size, so update if DISK information is
+                    // missing or smaller than the currentDisk.
+                    if (!originalConfig.Common.Disk
+                        || currentDisk.applicationData > originalConfig.Common.Disk.applicationData) {
+                        originalConfig.Common = {
+                            Disk: {
+                                applicationData: currentDisk.applicationData
+                            }
+                        };
                     }
-                    originalConfig.Common.Disk.applicationData = currentDisk.applicationData;
                 }
 
                 // Patch GSLB Prober Pool members after they've been dereferenced
