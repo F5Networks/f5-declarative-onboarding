@@ -217,7 +217,7 @@
                                 }
                             }
                         ],
-                        "default": ["all"]
+                        "default": "all"
                     },
                     "authPamIdleTimeout": {
                         "description": "Specifies the number of seconds of inactivity that can elapse before the GUI session is automatically logged out.",

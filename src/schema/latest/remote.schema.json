@@ -119,7 +119,7 @@
                 "snapshotWorkingConfig": {
                     "description": "Whether or not to snapshot the working configuration for current device before the import.",
                     "type": "boolean",
-                    "default": "false"
+                    "default": false
                 },
                 "accessModuleProperties": {
                     "description": "Key/value properties for importing access module. If apm module is not listed in provision section of current declaration, BIG-IQ will only discover/import ltm module.",

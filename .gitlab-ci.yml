@@ -79,6 +79,20 @@ test_node:latest:
         -   npm test
         - fi
 
+test-bigiq-ui:
+  stage: test
+  parallel:
+    matrix:
+      - BIGIQ_BRANCH: [master/quantum]
+  script:
+    - git clone --branch $BIGIQ_BRANCH --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@$CI_SERVER_HOST:$CI_SERVER_PORT/bigiq-mgmt/bigiq-mgmt-test
+    - cd bigiq-mgmt-test/tools/declarativeOnboardSchemaValidator
+    - npm ci
+    - cp -r ../../../src/schema/latest/ schema
+    - node validateDO_UiSchemaTest.js > output
+    - cat output
+    - grep -q "All DO classes schema validations are PASSED" output
+
 coverage:
   image: $DOCKER_URL/node:lts
   stage: test
