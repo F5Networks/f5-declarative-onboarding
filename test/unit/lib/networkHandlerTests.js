@@ -369,6 +369,24 @@ describe('networkHandler', () => {
     });
 
     describe('SelfIp', () => {
+        beforeEach(() => {
+            bigIpMock.list = (path) => {
+                if (path === '/tm/sys/provision') {
+                    return [
+                        {
+                            name: 'afm',
+                            level: 'nominal'
+                        },
+                        {
+                            name: 'asm',
+                            level: 'none'
+                        }
+                    ];
+                }
+                return Promise.resolve();
+            };
+        });
+
         it('should handle fully specified SelfIps', () => {
             const declaration = {
                 Common: {
@@ -378,14 +396,16 @@ describe('networkHandler', () => {
                             vlan: '/Common/vlan1',
                             address: '1.2.3.4',
                             trafficGroup: '/Common/traffic-group-local-only',
-                            allowService: ['tcp:1234', 'tcp:5678']
+                            allowService: ['tcp:1234', 'tcp:5678'],
+                            enforcedFirewallPolicy: 'firewallPolicy'
                         },
                         selfIp2: {
                             name: 'selfIp2',
                             vlan: '/Common/vlan2',
                             address: '5.6.7.8',
                             trafficGroup: '/Common/traffic-group-local-only',
-                            allowService: 'default'
+                            allowService: 'default',
+                            stagedFirewallPolicy: 'firewallPolicy'
                         }
                     }
                 }
@@ -405,6 +425,8 @@ describe('networkHandler', () => {
                         selfIpData[0].allowService, ['tcp:1234', 'tcp:5678']
                     );
                     assert.strictEqual(selfIpData[0].partition, 'Common');
+                    assert.strictEqual(selfIpData[0].fwEnforcedPolicy, '/Common/firewallPolicy');
+                    assert.strictEqual(selfIpData[0].fwStagedPolicy, 'none');
                     assert.strictEqual(selfIpData[1].name, 'selfIp2');
                     assert.strictEqual(selfIpData[1].vlan, '/Common/vlan2');
                     assert.strictEqual(selfIpData[1].address, '5.6.7.8');
@@ -415,6 +437,8 @@ describe('networkHandler', () => {
                         selfIpData[1].allowService, 'default'
                     );
                     assert.strictEqual(selfIpData[1].partition, 'Common');
+                    assert.strictEqual(selfIpData[1].fwEnforcedPolicy, 'none');
+                    assert.strictEqual(selfIpData[1].fwStagedPolicy, '/Common/firewallPolicy');
                 });
         });
 
@@ -437,6 +461,30 @@ describe('networkHandler', () => {
                     assert.strictEqual(
                         selfIpData.vlan, '/Common/vlan1'
                     );
+                });
+        });
+
+        it('should skip setting firewall properties to "none" when AFM is not provisioned', () => {
+            const declaration = {
+                Common: {
+                    SelfIp: {
+                        selfIp1: {
+                            vlan: 'vlan1',
+                            name: 'selfIp1'
+                        }
+                    }
+                }
+            };
+
+            bigIpMock.list = () => Promise.resolve();
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const selfIpData = dataSent[PATHS.SelfIp];
+                    assert.strictEqual(selfIpData[0].name, 'selfIp1');
+                    assert.strictEqual(selfIpData[0].fwEnforcedPolicy, undefined);
+                    assert.strictEqual(selfIpData[0].fwStagedPolicy, undefined);
                 });
         });
 
@@ -546,7 +594,8 @@ describe('networkHandler', () => {
                     vlan: '/Common/vlan1',
                     address: '10.10.0.200/24',
                     trafficGroup: 'traffic-group-1',
-                    allowService: ['default']
+                    allowService: ['default'],
+                    fwEnforcedPolicy: '/Common/firewallPolicy'
                 };
                 const selfIpToKeep = {
                     name: 'non-floater',
@@ -587,7 +636,9 @@ describe('networkHandler', () => {
                                 vlan: '/Common/vlan1',
                                 address: '10.10.0.200/24',
                                 trafficGroup: 'traffic-group-1',
-                                allowService: ['default']
+                                allowService: ['default'],
+                                fwEnforcedPolicy: '/Common/firewallPolicy',
+                                fwStagedPolicy: undefined
                             });
                     });
             });
@@ -2247,6 +2298,95 @@ describe('networkHandler', () => {
                         assert.strictEqual(bigIpMockSpy.delete.callCount, 0);
                     });
             });
+        });
+    });
+
+    describe('FirewallPolicy', () => {
+        it('should handle FirewallPolicy', () => {
+            const declaration = {
+                Common: {
+                    FirewallPolicy: {
+                        firewallPolicyOne: {
+                            name: 'firewallPolicyOne',
+                            rules: []
+                        },
+                        firewallPolicyTwo: {
+                            name: 'firewallPolicyTwo',
+                            remark: 'test firewall policy description',
+                            rules: [
+                                {
+                                    name: 'firewallPolicyRuleOne',
+                                    action: 'accept',
+                                    protocol: 'any',
+                                    loggingEnabled: false,
+                                    source: {}
+                                },
+                                {
+                                    name: 'firewallPolicyRuleTwo',
+                                    remark: 'firewall policy rule two description',
+                                    action: 'reject',
+                                    protocol: 'tcp',
+                                    loggingEnabled: true,
+                                    source: {
+                                        vlans: [
+                                            '/Common/vlan1',
+                                            '/Common/vlan2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const firewallPolicy = dataSent[PATHS.FirewallPolicy];
+                    assert.deepStrictEqual(
+                        firewallPolicy[0],
+                        {
+                            name: 'firewallPolicyOne',
+                            description: 'none',
+                            rules: []
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        firewallPolicy[1],
+                        {
+                            name: 'firewallPolicyTwo',
+                            description: 'test firewall policy description',
+                            rules: [
+                                {
+                                    name: 'firewallPolicyRuleOne',
+                                    description: 'none',
+                                    action: 'accept',
+                                    ipProtocol: 'any',
+                                    log: 'no',
+                                    placeAfter: 'first',
+                                    source: {
+                                        vlans: []
+                                    }
+                                },
+                                {
+                                    name: 'firewallPolicyRuleTwo',
+                                    description: 'firewall policy rule two description',
+                                    action: 'reject',
+                                    ipProtocol: 'tcp',
+                                    log: 'yes',
+                                    placeAfter: 'firewallPolicyRuleOne',
+                                    source: {
+                                        vlans: [
+                                            '/Common/vlan1',
+                                            '/Common/vlan2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    );
+                });
         });
     });
 });

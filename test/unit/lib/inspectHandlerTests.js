@@ -593,14 +593,16 @@ describe('inspectHandler', () => {
                     address: '10.0.0.2/24',
                     vlan: '/Common/internalVlan',
                     trafficGroup: '/Common/traffic-group-local-only',
-                    allowService: 'none'
+                    allowService: 'none',
+                    fwEnforcedPolicy: '/Common/currentFirewallPolicy'
                 },
                 {
                     name: 'externalSelfIp',
                     address: '11.0.0.2/24',
                     vlan: '/Common/externalVlan',
                     trafficGroup: '/Common/traffic-group-local-only',
-                    allowService: 'none'
+                    allowService: 'none',
+                    fwStagedPolicy: '/Common/currentFirewallPolicy'
                 }
             ],
             '/tm/net/route': [
@@ -1319,7 +1321,49 @@ describe('inspectHandler', () => {
                     order: 1
                 }
             ],
-            '/tm/gtm/prober-pool/~Common~currentGSLBProberPoolNoMembers/members': []
+            '/tm/gtm/prober-pool/~Common~currentGSLBProberPoolNoMembers/members': [],
+            '/tm/security/firewall/policy': [
+                {
+                    name: 'currentFirewallPolicy',
+                    description: 'firewall policy description',
+                    rulesReference: {
+                        link: 'https://localhost/mgmt/tm/security/firewall/policy/~Common~currentFirewallPolicy/rules'
+                    }
+                },
+                {
+                    name: 'currentFirewallPolicyNoRules',
+                    rulesReference: {
+                        link: 'https://localhost/mgmt/tm/security/firewall/policy/~Common~currentFirewallPolicyNoRules/rules'
+                    }
+                }
+            ],
+            '/tm/security/firewall/policy/~Common~currentFirewallPolicy/rules': [
+                {
+                    name: 'firewallPolicyRuleOne',
+                    description: 'firewall policy rule one description',
+                    action: 'accept',
+                    ipProtocol: 'any',
+                    log: 'no',
+                    source: {
+                        identity: {}
+                    }
+                },
+                {
+                    name: 'firewallPolicyRuleTwo',
+                    description: 'firewall policy rule two description',
+                    action: 'reject',
+                    ipProtocol: 'tcp',
+                    log: 'yes',
+                    source: {
+                        identity: {},
+                        vlans: [
+                            '/Common/vlan1',
+                            '/Common/vlan2'
+                        ]
+                    }
+                }
+            ],
+            '/tm/security/firewall/policy/~Common~currentFirewallPolicyNoRules/rules': []
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1431,6 +1475,7 @@ describe('inspectHandler', () => {
                             failsafeTimeout: 90
                         },
                         internalSelfIp: {
+                            enforcedFirewallPolicy: 'currentFirewallPolicy',
                             address: '10.0.0.2/24',
                             vlan: 'internalVlan',
                             trafficGroup: 'traffic-group-local-only',
@@ -1438,6 +1483,7 @@ describe('inspectHandler', () => {
                             class: 'SelfIp'
                         },
                         externalSelfIp: {
+                            stagedFirewallPolicy: 'currentFirewallPolicy',
                             address: '11.0.0.2/24',
                             vlan: 'externalVlan',
                             trafficGroup: 'traffic-group-local-only',
@@ -2074,6 +2120,37 @@ describe('inspectHandler', () => {
                             enabled: true,
                             lbMode: 'global-availability',
                             members: []
+                        },
+                        currentFirewallPolicy: {
+                            class: 'FirewallPolicy',
+                            remark: 'firewall policy description',
+                            rules: [
+                                {
+                                    name: 'firewallPolicyRuleOne',
+                                    remark: 'firewall policy rule one description',
+                                    action: 'accept',
+                                    protocol: 'any',
+                                    loggingEnabled: false,
+                                    source: {}
+                                },
+                                {
+                                    name: 'firewallPolicyRuleTwo',
+                                    remark: 'firewall policy rule two description',
+                                    action: 'reject',
+                                    protocol: 'tcp',
+                                    loggingEnabled: true,
+                                    source: {
+                                        vlans: [
+                                            '/Common/vlan1',
+                                            '/Common/vlan2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        currentFirewallPolicyNoRules: {
+                            class: 'FirewallPolicy',
+                            rules: []
                         }
                     }
                 }

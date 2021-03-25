@@ -1523,6 +1523,55 @@ describe('configManager', () => {
             });
     });
 
+    it('should update originalConfig with default empty classes based on provisioned modules', () => {
+        let configItems = [];
+        const expectedConfig = {
+            Analytics: {},
+            FirewallPolicy: {},
+            Provision: {},
+            GSLBServer: {
+                myGSLBServer: {}
+            }
+        };
+
+        state.originalConfig = {
+            Common: {
+                GSLBGlobals: {},
+                GSLBDataCenter: {},
+                GSLBMonitor: {},
+                GSLBProberPool: {},
+                GSLBServer: {
+                    myGSLBServer: {}
+                }
+            }
+        };
+
+        doState.getOriginalConfigByConfigId = () => state.originalConfig;
+
+        listResponses['/tm/sys/provision'] = [
+            { name: 'afm', level: 'nominal' },
+            { name: 'gtm', level: 'none' },
+            { name: 'avr', level: 'nominal' }
+        ];
+
+        configItems = configItems.concat(
+            getConfigItems('GSLBGlobals'),
+            getConfigItems('GSLBDataCenter'),
+            getConfigItems('GSLBMonitor'),
+            getConfigItems('GSLBProberPool'),
+            getConfigItems('GSLBServer'),
+            getConfigItems('FirewallPolicy'),
+            getConfigItems('Analytics'),
+            getConfigItems('Provision')
+        );
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.deepStrictEqual(state.originalConfig.Common, expectedConfig);
+            });
+    });
+
     it('should keep the right order for response items when configItem was skipped', () => {
         const configItems = [
             {
@@ -2621,6 +2670,88 @@ describe('configManager', () => {
                                     getExpected('memberEnabledStringVal'),
                                     getExpected('memberDisabledStringVal'),
                                     getExpected('memberNoVal')
+                                ]
+                            }
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('FirewallPolicy', () => {
+        it('should handle FirewallPolicy', () => {
+            const configItems = getConfigItems('FirewallPolicy');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'afm', level: 'nominal' }
+            ];
+            listResponses['/tm/security/firewall/policy'] = [
+                {
+                    name: 'firewallPolicy',
+                    description: 'firewall policy description',
+                    rulesReference: {
+                        link: 'https://localhost/mgmt/tm/security/firewall/policy/~Common~firewallPolicy/rules'
+                    }
+                }
+            ];
+            listResponses['/tm/security/firewall/policy/~Common~firewallPolicy/rules'] = [
+                {
+                    name: 'firewallPolicyRuleOne',
+                    description: 'firewall policy rule one description',
+                    action: 'accept',
+                    ipProtocol: 'any',
+                    log: 'no',
+                    source: {
+                        identity: {}
+                    }
+                },
+                {
+                    name: 'firewallPolicyRuleTwo',
+                    description: 'firewall policy rule two description',
+                    action: 'reject',
+                    ipProtocol: 'tcp',
+                    log: 'yes',
+                    source: {
+                        identity: {},
+                        vlans: [
+                            '/Common/vlan1',
+                            '/Common/vlan2'
+                        ]
+                    }
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.FirewallPolicy,
+                        {
+                            firewallPolicy: {
+                                name: 'firewallPolicy',
+                                remark: 'firewall policy description',
+                                rules: [
+                                    {
+                                        name: 'firewallPolicyRuleOne',
+                                        remark: 'firewall policy rule one description',
+                                        action: 'accept',
+                                        protocol: 'any',
+                                        loggingEnabled: false,
+                                        source: {}
+                                    },
+                                    {
+                                        name: 'firewallPolicyRuleTwo',
+                                        remark: 'firewall policy rule two description',
+                                        action: 'reject',
+                                        protocol: 'tcp',
+                                        loggingEnabled: true,
+                                        source: {
+                                            vlans: [
+                                                '/Common/vlan1',
+                                                '/Common/vlan2'
+                                            ]
+                                        }
+                                    }
                                 ]
                             }
                         }

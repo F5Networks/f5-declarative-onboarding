@@ -145,6 +145,14 @@
         {
             "if": {
                 "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "FirewallPolicy" } }
+            },
+            "then": { "$ref": "#/definitions/firewallPolicy" }
+        },
+        {
+            "if": {
+                "required": ["class"],
                 "properties": { "class": { "const": "SelfIp" } }
             },
             "then": {
@@ -186,6 +194,14 @@
                             }
                         ],
                         "default": "default"
+                    },
+                    "enforcedFirewallPolicy": {
+                        "description": "Specifies an enforced firewall policy on the self IP.",
+                        "type": "string"
+                    },
+                    "stagedFirewallPolicy": {
+                        "description": "Specifies a staged firewall policy on the self IP.",
+                        "type": "string"
                     }
                 },
                 "additionalProperties": false
@@ -918,5 +934,92 @@
                 "additionalProperties": false
             }
         }
-    ]
+    ],
+    "definitions": {
+        "firewallPolicy": {
+            "description": "Configures firewall policy",
+            "type": "object",
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains firewall policy configuration",
+                    "type": "string",
+                    "const": "FirewallPolicy"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "rules": {
+                    "description": "Specifies the list of firewall policy rules",
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/firewallRule" }
+                }
+            },
+            "additionalProperties": false
+        },
+        "firewallRule": {
+            "description": "Configures a firewall rule.",
+            "type": "object",
+            "required": ["name", "action"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Specifies the name of the firewall rule"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "action": {
+                    "description": "Specifies the action that the firewall rule will take on matching packets",
+                    "type": "string",
+                    "enum": [
+                        "accept",
+                        "drop",
+                        "accept-decisively",
+                        "reject"
+                    ]
+                },
+                "protocol": {
+                    "description": "Specifies the protocol to which the firewall rule applies",
+                    "type": "string",
+                    "enum": [
+                        "any",
+                        "tcp",
+                        "udp"
+                    ],
+                    "default": "any"
+                },
+                "source": {
+                    "$ref": "#/definitions/firewallRuleSource"
+                },
+                "loggingEnabled": {
+                    "description": "Specifies whether the system enables or disables logging for the firewall rule",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "firewallRuleSource": {
+            "description": "Configures the packet sources to which the network firewall rule applies",
+            "type": "object",
+            "properties": {
+                "vlans": {
+                    "type": "array",
+                    "description": "Specifies a list of VLANs against which the packets will be compared",
+                    "items": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        }
+    }
 }

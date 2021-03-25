@@ -611,6 +611,91 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 });
         }));
 
+        describe('Test Firewall', function testFirewall() {
+            this.timeout(1000 * 60 * 30); // 30 minutes
+            let body;
+            let currentState;
+
+            before(() => {
+                const bodyFile = `${BODIES}/firewall.json`;
+                return new Promise((resolve, reject) => {
+                    common.readFile(bodyFile)
+                        .then((fileRead) => {
+                            body = JSON.parse(fileRead);
+                        })
+                        .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
+                        .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
+                            constants.HTTP_SUCCESS))
+                        .then((response) => {
+                            currentState = response.currentConfig.Common;
+                            resolve();
+                        })
+                        .catch(error => logError(error, bigIpAddress, bigIpAuth))
+                        .then((declarationStatus) => {
+                            reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+
+            it('should match self ip', () => {
+                assert.deepStrictEqual(
+                    currentState.SelfIp,
+                    {
+                        mySelfIp: {
+                            name: 'mySelfIp',
+                            address: '10.148.75.46/24',
+                            vlan: 'myVlan',
+                            trafficGroup: 'traffic-group-local-only',
+                            allowService: [
+                                'tcp:80'
+                            ],
+                            enforcedFirewallPolicy: 'myFirewallPolicy',
+                            stagedFirewallPolicy: 'myFirewallPolicy'
+                        }
+                    }
+                );
+            });
+
+            it('should match VLAN', () => {
+                assert.ok(testVlan(body.Common.myVlan, currentState));
+            });
+
+            it('should match FirewallPolicy', () => assert.deepStrictEqual(
+                currentState.FirewallPolicy,
+                {
+                    myFirewallPolicy: {
+                        name: 'myFirewallPolicy',
+                        remark: 'firewall policy description',
+                        rules: [
+                            {
+                                name: 'firewallPolicyRuleOne',
+                                remark: 'firewall policy rule description',
+                                action: 'reject',
+                                protocol: 'tcp',
+                                loggingEnabled: true,
+                                source: {
+                                    vlans: [
+                                        '/Common/myVlan'
+                                    ]
+                                }
+                            },
+                            {
+                                name: 'firewallPolicyRuleTwo',
+                                action: 'accept',
+                                protocol: 'any',
+                                loggingEnabled: false,
+                                source: {}
+                            }
+                        ]
+                    }
+                }
+            ));
+        });
+
         describe('Test GSLB', function testGslb() {
             let currentState;
             let body;

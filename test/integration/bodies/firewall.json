@@ -1,0 +1,58 @@
+{
+    "schemaVersion": "1.0.0",
+    "async": true,
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal",
+            "afm": "nominal"
+        },
+        "myVlan": {
+            "class": "VLAN",
+            "tag": 1234,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ]
+        },
+        "myFirewallPolicy": {
+            "class": "FirewallPolicy",
+            "label": "Example of all firewall policy properties",
+            "remark": "firewall policy description",
+            "rules": [
+                {
+                    "name": "firewallPolicyRuleOne",
+                    "label": "Example of all firewall policy rule properties",
+                    "remark": "firewall policy rule description",
+                    "action": "reject",
+                    "protocol": "tcp",
+                    "loggingEnabled": true,
+                    "source": {
+                        "vlans": [
+                            "myVlan"
+                        ]
+                    }
+                },
+                {
+                    "name": "firewallPolicyRuleTwo",
+                    "action": "accept"
+                }
+            ]
+        },
+        "mySelfIp": {
+            "class": "SelfIp",
+            "address": "10.148.75.46/24",
+            "vlan": "myVlan",
+            "allowService": [
+                "tcp:80"
+            ],
+            "enforcedFirewallPolicy": "/Common/myFirewallPolicy",
+            "stagedFirewallPolicy": "myFirewallPolicy"
+        }
+    }
+}

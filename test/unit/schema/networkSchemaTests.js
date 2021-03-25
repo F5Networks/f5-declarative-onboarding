@@ -27,6 +27,7 @@ const ajv = new Ajv(
         extendRefs: 'fail'
     }
 );
+const defSchema = require('../../../src/schema/latest/definitions.schema.json');
 const networkSchema = require('../../../src/schema/latest/network.schema.json');
 const customFormats = require('../../../src/schema/latest/formats.js');
 
@@ -34,7 +35,9 @@ Object.keys(customFormats).forEach((customFormat) => {
     ajv.addFormat(customFormat, customFormats[customFormat]);
 });
 
-const validate = ajv.compile(networkSchema);
+const validate = ajv
+    .addSchema(defSchema)
+    .compile(networkSchema);
 
 describe('network.schema.json', () => {
     describe('DNS_Resolver', () => {
@@ -320,7 +323,8 @@ describe('network.schema.json', () => {
                     address: '1.2.3.4/32',
                     vlan: 'myVlan',
                     allowService: 'all',
-                    trafficGroup: 'traffic-group-1'
+                    trafficGroup: 'traffic-group-1',
+                    enforcedFirewallPolicy: 'myFirewallPolicy'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -331,7 +335,8 @@ describe('network.schema.json', () => {
                     address: 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329/128',
                     vlan: 'myVlan',
                     allowService: 'all',
-                    trafficGroup: 'traffic-group-1'
+                    trafficGroup: 'traffic-group-1',
+                    stagedFirewallPolicy: 'myFirewallPolicy'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -1758,6 +1763,108 @@ describe('network.schema.json', () => {
                     getErrorString().indexOf('should match format \\"ipWithRequiredPrefix\\"'), -1,
                     `Errored but not because prefix is missing length:\n${getErrorString()}`
                 );
+            });
+        });
+    });
+
+    describe('FirewallPolicy', () => {
+        describe('valid', () => {
+            it('should validate minimal firewall policy properties', () => {
+                const data = {
+                    class: 'FirewallPolicy'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal firewall policy rule properties', () => {
+                const data = {
+                    class: 'FirewallPolicy',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept'
+                    }]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all properties', () => {
+                const data = {
+                    class: 'FirewallPolicy',
+                    label: 'this is a firewall policy test',
+                    remark: 'firewall policy description',
+                    rules: [{
+                        name: 'firewallPolicyRule',
+                        label: 'this is a firewall policy rule test',
+                        remark: 'firewall policy rule description',
+                        action: 'reject',
+                        protocol: 'tcp',
+                        source: {
+                            vlans: [
+                                '/Common/vlan1',
+                                'vlan2'
+                            ]
+                        },
+                        loggingEnabled: true
+                    }]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional firewall policy properties', () => {
+                const data = {
+                    class: 'FirewallPolicy',
+                    foo: 'bar'
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate additional firewall policy rule properties', () => {
+                const data = {
+                    class: 'FirewallPolicy',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept',
+                        foo: 'bar'
+                    }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate additional firewall policy rule source properties', () => {
+                const data = {
+                    class: 'FirewallPolicy',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept',
+                        source: {
+                            foo: 'bar'
+                        }
+                    }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate missing firewall policy rule name property', () => {
+                const data = {
+                    class: 'FirewallPolicy',
+                    rules: [{ action: 'accept' }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'name\''), -1);
+            });
+
+            it('should invalidate missing firewall policy rule action property', () => {
+                const data = {
+                    class: 'FirewallPolicy',
+                    rules: [{ name: 'firewallRule' }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'action\''), -1);
             });
         });
     });

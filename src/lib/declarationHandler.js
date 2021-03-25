@@ -82,7 +82,8 @@ const CLASSES_OF_TRUTH = [
     'GSLBDataCenter',
     'GSLBServer',
     'GSLBMonitor',
-    'GSLBProberPool'
+    'GSLBProberPool',
+    'FirewallPolicy'
 ];
 
 /**
@@ -164,6 +165,8 @@ class DeclarationHandler {
                 applyRouteMapFixes(parsedNewDeclaration);
                 applyRoutingBgpFixes(parsedNewDeclaration);
                 applyGSLBProberPoolFixes(parsedNewDeclaration);
+                applyFirewallPolicyFixes(parsedNewDeclaration);
+                applySelfIpFixes(parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
@@ -743,6 +746,58 @@ function applyGSLBProberPoolFixes(declaration) {
             order: index
         }));
         delete proberPool.label;
+    });
+}
+
+/**
+ * Normalizes the Firewall Policy section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyFirewallPolicyFixes(declaration) {
+    const firewallPolicies = (declaration.Common && declaration.Common.FirewallPolicy) || {};
+    if (Object.keys(firewallPolicies).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'FirewallPolicy', (tenant, firewallPolicy) => {
+        firewallPolicy.rules = (firewallPolicy.rules || []).map((rule) => {
+            const newRule = {
+                name: rule.name,
+                remark: rule.remark,
+                action: rule.action,
+                protocol: rule.protocol,
+                loggingEnabled: rule.loggingEnabled,
+                source: rule.source || {}
+            };
+
+            (newRule.source.vlans || []).forEach((vlan, i) => {
+                applyTenantPrefix(newRule, `source.vlans.${i}`, tenant);
+            });
+
+            return newRule;
+        });
+        delete firewallPolicy.label;
+    });
+}
+
+/**
+ * Normalizes the Self IP section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applySelfIpFixes(declaration) {
+    const selfIps = (declaration.Common && declaration.Common.SelfIp) || {};
+    if (Object.keys(selfIps).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'SelfIp', (tenant, selfIp) => {
+        ['enforcedFirewallPolicy', 'stagedFirewallPolicy'].forEach((policyKey) => {
+            if (selfIp[policyKey] && selfIp[policyKey].startsWith('/')) {
+                selfIp[policyKey] = selfIp[policyKey].split('/').pop();
+            }
+        });
     });
 }
 

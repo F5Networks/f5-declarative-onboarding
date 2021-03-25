@@ -1228,6 +1228,150 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should apply firewall policy fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    FirewallPolicy: {
+                        firewallPolicy: {
+                            label: 'testing firewall policy',
+                            rules: [
+                                {
+                                    name: 'firewallPolicyRuleOne',
+                                    action: 'accept',
+                                    protocol: 'any',
+                                    loggingEnabled: false
+                                },
+                                {
+                                    name: 'firewallPolicyRuleTwo',
+                                    label: 'testing firewall policy rule two',
+                                    remark: 'firewall policy rule two description',
+                                    action: 'reject',
+                                    protocol: 'tcp',
+                                    loggingEnabled: true,
+                                    source: {
+                                        vlans: [
+                                            '/Common/vlan1',
+                                            'vlan2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        firewallPolicyNoMembers: {
+                            label: 'testing firewall policy with no members'
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const firewallPolicy = declarationWithDefaults.Common.FirewallPolicy;
+                    assert.deepStrictEqual(
+                        firewallPolicy,
+                        {
+                            firewallPolicy: {
+                                rules: [
+                                    {
+                                        name: 'firewallPolicyRuleOne',
+                                        remark: undefined,
+                                        action: 'accept',
+                                        protocol: 'any',
+                                        loggingEnabled: false,
+                                        source: {}
+                                    },
+                                    {
+                                        name: 'firewallPolicyRuleTwo',
+                                        remark: 'firewall policy rule two description',
+                                        action: 'reject',
+                                        protocol: 'tcp',
+                                        loggingEnabled: true,
+                                        source: {
+                                            vlans: [
+                                                '/Common/vlan1',
+                                                '/Common/vlan2'
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            firewallPolicyNoMembers: {
+                                rules: []
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should apply self IP fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    SelfIp: {
+                        selfIpOne: {
+                            address: '10.148.75.46/24',
+                            vlan: 'myVlan',
+                            enforcedFirewallPolicy: '/Common/myFirewallPolicy',
+                            stagedFirewallPolicy: '/Common/myFirewallPolicy',
+                            allowService: [
+                                'tcp:80'
+                            ]
+                        },
+                        selfIpTwo: {
+                            address: '192.0.2.10/24',
+                            vlan: 'myVlan'
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const selfIp = declarationWithDefaults.Common.SelfIp;
+                    assert.deepStrictEqual(
+                        selfIp,
+                        {
+                            selfIpOne: {
+                                address: '10.148.75.46/24',
+                                vlan: 'myVlan',
+                                enforcedFirewallPolicy: 'myFirewallPolicy',
+                                stagedFirewallPolicy: 'myFirewallPolicy',
+                                allowService: [
+                                    'tcp:80'
+                                ]
+                            },
+                            selfIpTwo: {
+                                address: '192.0.2.10/24',
+                                vlan: 'myVlan'
+                            }
+                        }
+                    );
+                });
+        });
+
         describe('RoutingBGP fixes', () => {
             let newDeclaration;
             let state;

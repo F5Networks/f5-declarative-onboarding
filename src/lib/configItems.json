@@ -135,7 +135,9 @@
             { "id": "address" },
             { "id": "vlan", "isRef": true },
             { "id": "trafficGroup" },
-            { "id": "allowService" }
+            { "id": "allowService" },
+            { "id": "fwEnforcedPolicy", "newId": "enforcedFirewallPolicy" },
+            { "id": "fwStagedPolicy", "newId": "stagedFirewallPolicy" }
         ]
     },
     {
@@ -807,19 +809,19 @@
         },
         "requiredModule": "gtm",
         "properties": [
-            { "id":"kind" },
-            { "id":"description", "newId": "remark" },
-            { "id":"destination", "newId": "target" },
-            { "id":"interval" },
-            { "id":"timeout" },
-            { "id":"probeTimeout" },
-            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"send" },
-            { "id":"recv", "newId": "receive" },
-            { "id":"cipherlist", "newId": "ciphers" },
-            { "id":"cert", "newId":"clientCertificate" }
+            { "id": "kind" },
+            { "id": "description", "newId": "remark" },
+            { "id": "destination", "newId": "target" },
+            { "id": "interval" },
+            { "id": "timeout" },
+            { "id": "probeTimeout" },
+            { "id": "ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "send" },
+            { "id": "recv", "newId": "receive" },
+            { "id": "cipherlist", "newId": "ciphers" },
+            { "id": "cert", "newId":"clientCertificate" }
         ]
     },
     {
@@ -830,16 +832,16 @@
         },
         "requiredModule": "gtm",
         "properties": [
-            { "id":"kind" },
-            { "id":"description", "newId": "remark" },
-            { "id":"destination", "newId": "target" },
-            { "id":"interval" },
-            { "id":"timeout" },
-            { "id":"probeTimeout" },
-            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"probeInterval" },
-            { "id":"probeAttempts" }
+            { "id": "kind" },
+            { "id": "description", "newId": "remark" },
+            { "id": "destination", "newId": "target" },
+            { "id": "interval" },
+            { "id": "timeout" },
+            { "id": "probeTimeout" },
+            { "id": "ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "probeInterval" },
+            { "id": "probeAttempts" }
         ]
     },
     {
@@ -850,17 +852,17 @@
         },
         "requiredModule": "gtm",
         "properties": [
-            { "id":"kind" },
-            { "id":"description", "newId": "remark" },
-            { "id":"destination", "newId": "target" },
-            { "id":"interval" },
-            { "id":"timeout" },
-            { "id":"probeTimeout" },
-            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"send" },
-            { "id":"recv", "newId": "receive" }
+            { "id": "kind" },
+            { "id": "description", "newId": "remark" },
+            { "id": "destination", "newId": "target" },
+            { "id": "interval" },
+            { "id": "timeout" },
+            { "id": "probeTimeout" },
+            { "id": "ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "send" },
+            { "id": "recv", "newId": "receive" }
         ]
     },
     {
@@ -871,20 +873,20 @@
         },
         "requiredModule": "gtm",
         "properties": [
-            { "id":"kind" },
-            { "id":"description", "newId": "remark" },
-            { "id":"destination", "newId": "target" },
-            { "id":"interval" },
-            { "id":"timeout" },
-            { "id":"probeTimeout" },
-            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"send" },
-            { "id":"recv", "newId": "receive" },
-            { "id":"probeInterval" },
-            { "id":"probeAttempts" },
-            { "id":"debug", "newId": "debugEnabled", "truth": "yes", "falsehood": "no" }
+            { "id": "kind" },
+            { "id": "description", "newId": "remark" },
+            { "id": "destination", "newId": "target" },
+            { "id": "interval" },
+            { "id": "timeout" },
+            { "id": "probeTimeout" },
+            { "id": "ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "send" },
+            { "id": "recv", "newId": "receive" },
+            { "id": "probeInterval" },
+            { "id": "probeAttempts" },
+            { "id": "debug", "newId": "debugEnabled", "truth": "yes", "falsehood": "no" }
         ]
     },
     {
@@ -910,6 +912,25 @@
         "declaration": {
             "customFunctions": [
                 { "id": "formatGSLBProberPool" }
+            ]
+        }
+    },
+    {
+        "path": "/tm/security/firewall/policy",
+        "schemaClass": "FirewallPolicy",
+        "requiredModule": "afm",
+        "properties": [
+            { "id": "description", "newId": "remark" },
+            { "id": "rulesReference" }
+        ],
+        "references": {
+            "rulesReference": [
+                { "id": "name" },
+                { "id": "description", "newId": "remark" },
+                { "id": "action" },
+                { "id": "ipProtocol", "newId": "protocol" },
+                { "id": "log", "newId": "loggingEnabled", "truth": "yes", "falsehood": "no" },
+                { "id": "source" }
             ]
         }
     }

@@ -432,7 +432,6 @@ class ConfigManager {
                 }
 
                 const currentDisk = state.currentConfig.Common.Disk;
-
                 if (currentDisk && currentDisk.applicationData && originalConfig.Common) {
                     // We need to update the originalConfig.applicationData in case of rollback.
                     // applicationData cannot be reduced in size, so update if DISK information is
@@ -445,6 +444,33 @@ class ConfigManager {
                             }
                         };
                     }
+                }
+
+                // update originalConfig class defaults with the current provisioned module state
+                const currentProvision = state.currentConfig.Common.Provision;
+                if (currentProvision && originalConfig.Common) {
+                    const provisionState = Object.keys(currentProvision).reduce((result, module) => {
+                        if (currentProvision[module] === 'none') {
+                            result.deprovisioned.push(module);
+                        } else {
+                            result.provisioned.push(module);
+                        }
+                        return result;
+                    }, { provisioned: [], deprovisioned: [] });
+
+                    this.configItems.forEach((item) => {
+                        if (!item.requiredModule
+                            || provisionState.provisioned.indexOf(item.requiredModule) > -1) {
+                            // add default empty objects for classes that do not exist
+                            originalConfig.Common[item.schemaClass] = originalConfig.Common[item.schemaClass] || {};
+                        } else if (item.requiredModule
+                            && provisionState.deprovisioned.indexOf(item.requiredModule) > -1
+                            && originalConfig.Common[item.schemaClass]
+                            && Object.keys(originalConfig.Common[item.schemaClass]).length === 0) {
+                            // remove default empty objects for classes that require de-provisioned module
+                            delete originalConfig.Common[item.schemaClass];
+                        }
+                    });
                 }
 
                 // Patch GSLB Prober Pool members after they've been dereferenced
@@ -495,6 +521,23 @@ class ConfigManager {
                             if (virtualServer.addressTranslation === 'none') {
                                 delete virtualServer.addressTranslation;
                             }
+                        });
+                    });
+                }
+
+                // Patch Firewall Policy rules after they've been dereferenced
+                const currentFirewallPolicy = state.currentConfig.Common.FirewallPolicy;
+                if (currentFirewallPolicy) {
+                    Object.keys(currentFirewallPolicy).forEach((key) => {
+                        const allowedSourceKeys = ['vlans'];
+
+                        (currentFirewallPolicy[key].rules || []).forEach((rule) => {
+                            rule.source = Object.keys(rule.source)
+                                .filter(sourceKey => allowedSourceKeys.indexOf(sourceKey) > -1)
+                                .reduce((obj, sourceKey) => {
+                                    obj[sourceKey] = rule.source[sourceKey];
+                                    return obj;
+                                }, {});
                         });
                     });
                 }

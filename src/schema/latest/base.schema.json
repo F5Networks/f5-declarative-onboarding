@@ -187,7 +187,8 @@
                             "GSLBDataCenter",
                             "GSLBServer",
                             "GSLBMonitor",
-                            "GSLBProberPool"
+                            "GSLBProberPool",
+                            "FirewallPolicy"
                         ]
                     }
                 },
