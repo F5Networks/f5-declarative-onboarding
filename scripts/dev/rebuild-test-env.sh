@@ -9,10 +9,31 @@ if [[ -n "$1" ]]; then
     OPERATION=$1
 fi
 
+if [[ -z "$TEST_HARNESS_FILE" ]]; then
+    TEST_HARNESS_FILE=test_harness.json
+fi
+
 if [[ $OPERATION != CREATE && $OPERATION != DELETE ]]; then
     echo "OPERATION must be CREATE or DELETE"
     echo "Usage: $0 CREATE (default) | DELETE"
     exit 1
+fi
+
+if [[ $OPERATION == CREATE ]]; then
+    if [[ -z $ARTIFACTORY_URL ]]; then
+        echo "ARTIFACTORY_URL must be set"
+        exit 1
+    fi
+
+    if [[ -z $INTEGRATION_ADMIN_PASSWORD ]]; then
+        echo "INTEGRATION_ADMIN_PASSWORD must be set"
+        exit 1
+    fi
+
+    if [[ -z $INTEGRATION_ROOT_PASSWORD ]]; then
+        echo "INTEGRATION_ROOT_PASSWORD must be set"
+        exit 1
+    fi
 fi
 
 echo "Operation $OPERATION"
@@ -21,19 +42,26 @@ echo
 delete_stack () {
     echo "Deleting stack"
 
-    MAX_TRIES=5
-    currentTry=0
+    local __resultvar="$1"
 
-    stack_id=''
-    while [[ -z $stack_id && $currentTry < $MAX_TRIES ]]; do
-        if RESULT=$(openstack stack --insecure delete -y "$STACK_NAME" 2>/dev/null); then
+    local MAX_TRIES=5
+    local current_try=0
+    local stack_id=''
+    local status=UNKNOWN
+    local poll_result=UNKNOWN
+
+    while [[ $status == UNKNOWN && $current_try < $MAX_TRIES ]]; do
+        if result=$(openstack stack --insecure delete -y "$STACK_NAME" 2>&1); then
             stack_id="$STACK_NAME"
+            status=SUCCESS
         else
-            if [[ "$RESULT" != *"Stack not found"* ]]; then
+            if [[ "$result" != *"Stack not found"* ]]; then
                 echo "Failed attempt to delete."
-                (( currentTry = currentTry + 1 ))
+                (( current_try = current_try + 1 ))
             else
+                echo "Stack not found"
                 stack_id="$STACK_NAME"
+                status=DONE
             fi
         fi
     done
@@ -43,22 +71,32 @@ delete_stack () {
         exit 1
     fi
 
-    poll_status DELETE
+    if [[ $status == DONE ]]; then
+        eval $__resultvar=SUCCESS
+    fi
 
-    stack_id=''
-    echo "Done deleting stack"
+    if [[ $status == SUCCESS ]]; then
+        poll_status "$stack_id" DELETE poll_result
+        eval $__resultvar="'$poll_result'"
+    fi
+
+    if [[ $status == DONE || $poll_result == SUCCESS ]]; then
+        echo "Done deleting stack"
+    else
+        echo "Could not delete stack"
+    fi
 }
 
 create_stack () {
     echo "Creating stack"
 
-    MAX_TRIES=5
-    currentTry=0
+    local MAX_TRIES=5
+    local current_try=0
+    local stack_id=''
+    local poll_result=UNKNOWN
 
-    stack_id=''
-
-    while [[ -z $stack_id && $currentTry < $MAX_TRIES ]]; do
-        if STACK_INFO=$(openstack stack --insecure create \
+    while [[ -z $stack_id && $current_try < $MAX_TRIES ]]; do
+        if stack_info=$(openstack stack --insecure create \
             -f json \
             --template test/integration/env/bigip_stack_pipeline.yaml \
             --timeout 100 \
@@ -68,12 +106,18 @@ create_stack () {
             --parameter bigip_image="$BIGIP_IMAGE" \
             "$STACK_NAME")
         then
-            stack_id=$(echo "$STACK_INFO" | jq -r .id)
+            stack_id=$(echo "$stack_info" | jq -r .id)
             echo "Stack is creating with ID $stack_id"
         else
             echo "Failed attempt to create. Cleaning up..."
-            delete_stack
-            (( currentTry = currentTry + 1 ))
+            sleep 60 # sometimes the stack does not show up right away in this case
+            echo "Starting cleanup..."
+            delete_stack delete_response
+            if [[ $delete_response == FAIL ]]; then
+                echo "Cleanup failed. Giving up."
+                exit 1
+            fi
+            (( current_try = current_try + 1 ))
         fi
     done
 
@@ -82,58 +126,89 @@ create_stack () {
         exit 1
     fi
 
-    poll_status CREATE
-    echo "Done creating stack"
+    poll_status "$stack_id" CREATE poll_result
+    if [[ $poll_result == SUCCESS ]]; then
+        echo "Done creating stack"
+    else
+        echo "Could not create stack"
+        exit 1
+    fi
+}
+
+get_stack_info() {
+    local stack_id="$1"
+    local current_operation="$2"
+    local __resultvar="$3"
+
+    local MAX_TRIES=5
+    local current_try=0
+    local status=UNKNOWN
+
+    while [[ $status != SUCCESS && $current_try < $MAX_TRIES ]]; do
+        if openstack_output=$(openstack stack show $stack_id -f json 2>&1); then
+            status=SUCCESS
+        else
+            if [[ "$current_operation" == DELETE && "$openstack_output" == *"Stack not found"* ]]; then
+                # sometimes the stack disappears quickly, so we have to fake the DELETE_COMPLETE here
+                openstack_output='{"stack_status": "DELETE_COMPLETE"}'
+                status=SUCCESS
+            else
+                echo "Failed to get stack status. Retrying..."
+                (( current_try = current_try + 1 ))
+                sleep 5
+            fi
+        fi
+    done
+
+    if [[ $staus == UNKNOWN ]]; then
+        openstack_output=null
+    fi
+
+    eval $__resultvar="'$openstack_output'"
 }
 
 poll_status () {
-    current_operation="$1"
-    num_tries=0
+    local stack_id="$1"
+    local current_operation="$2"
+    local __resultvar="$3"
+    local num_tries=0
+    local status=UNKNOWN
 
     # Limit to 1 hour
-    MAX_TRIES=360
+    local MAX_TRIES=360
 
     if [[ $current_operation == CREATE ]]; then
-        SUCCESS_VALUES=("CREATE_COMPLETE")
-        FAIL_VALUES=("CREATE_FAILED")
+        SUCCESS_VALUE="CREATE_COMPLETE"
+        FAIL_VALUE="CREATE_FAILED"
     else
-        SUCCESS_VALUES=("DELETE_COMPLETE" "Stack not found")
-        FAIL_VALUES=("DELETE_FAILED")
+        SUCCESS_VALUE="DELETE_COMPLETE"
+        FAIL_VALUE="DELETE_FAILED"
     fi
 
-    status="UNKNOWN"
-    while [[ $status != SUCCESS ]]; do
-        # Grab the raw output, which may be an error rather than json.
-        # If the output is not json, just use the output - we might be deleting
-        # a stack which does not exist which causes the command to error but is normal
-        openstack_output=$((openstack stack show $stack_id -f json) 2>&1)
-        stack_status=$(echo $openstack_output | jq -r .stack_status 2>/dev/null)
-        if [[ -z $stack_status ]]; then
-            stack_status="$openstack_output"
+    while [[ $status == UNKNOWN && $current_try < $MAX_TRIES ]]; do
+        get_stack_info "$stack_id" "$current_operation" stack_info
+
+        if [[ $stack_info == null ]]; then
+            echo "Could not get stack info"
+            exit 1
         fi
 
-        if [[ $(( $num_tries % 10 )) == 0 ]]; then
+        stack_status=$(echo $stack_info | jq -r .stack_status)
+
+        if [[ $(( $num_tries % 6 )) == 0 ]]; then
             echo "$stack_status"
         fi
 
-        # Check for errors on which we should exit
-        is_failure=$(contains_element "$stack_status" "${FAIL_VALUES[@]}")
-        if [[ $is_failure == true ]]; then
+        if [[ $stack_status == $FAIL_VALUE ]]; then
             status=FAIL
-            fail_reason=$(openstack stack show $stack_id -f json | jq -r .stack_status_reason)
+            fail_reason=$(echo $stack_info | jq -r .stack_status_reason)
             echo "Failed to $current_operation stack: $fail_reason"
-            exit 1
-        fi
-
-        if [[ $num_tries == $MAX_TRIES ]]; then
+        elif [[ $num_tries == $MAX_TRIES ]]; then
             status=FAIL
             echo "Max tries reached. Current status: $stack_status"
-            exit 1
         fi
 
-        # Check for success - if not, wait and check again later
-        is_success=$(contains_element "$stack_status" "${SUCCESS_VALUES[@]}")
-        if [[ $is_success == true ]]; then
+        if [[ $stack_status == $SUCCESS_VALUE ]]; then
             status=SUCCESS
         else
             (( num_tries = num_tries + 1 ))
@@ -141,14 +216,15 @@ poll_status () {
         fi
     done
 
+    eval $__resultvar="'$status'"
     echo "$status"
 }
 
 write_output () {
     echo "Getting device IPs"
-    DEVICE_1_IP=$(./scripts/dev/get-host.sh integration_${BIGIP_IMAGE}_1)
-    DEVICE_2_IP=$(./scripts/dev/get-host.sh integration_${BIGIP_IMAGE}_2)
-    DEVICE_3_IP=$(./scripts/dev/get-host.sh integration_${BIGIP_IMAGE}_3)
+    local DEVICE_1_IP=$(./scripts/dev/get-host.sh integration_${BIGIP_IMAGE}_1)
+    local DEVICE_2_IP=$(./scripts/dev/get-host.sh integration_${BIGIP_IMAGE}_2)
+    local DEVICE_3_IP=$(./scripts/dev/get-host.sh integration_${BIGIP_IMAGE}_3)
 
     echo "Writing test harness file"
     cat <<EOF > "$TEST_HARNESS_FILE"
@@ -190,26 +266,29 @@ write_output () {
 EOF
 }
 
-contains_element () {
-    needle=$1
-    shift
-    haystack=("$@")
-
-    found=false
-
-    for i in "${haystack[@]}"
-    do
-        if [[ "$needle" == *"$i"* ]]; then
-            found=true
-        fi
-    done
-
-    echo $found
-}
-
-delete_stack
+# if a server goes into the error state, delete will fail but works on the second try
+delete_stack delete_response
+if [[ $delete_response == FAIL ]]; then
+    echo "Frist attempt to delete failed, retrying..."
+    delete_stack delete_response
+    if [[ $delete_response == FAIL ]]; then
+        echo "Second attempt to delete failed. Giving up."
+        exit 1
+    fi
+fi
 
 if [[ $OPERATION == CREATE ]]; then
-    create_stack
+    should_write=true
+    create_stack create_response
+    if [[ $create_response == FAIL ]]; then
+        echo "Frist attempt to create failed, cleaning and retrying..."
+        delete_stack delete_response
+        create_stack create_response
+        if [[ $create_response == FAIL ]]; then
+            echo "Second attempt to create failed. Cleaning and giving up."
+            delete_stack delete_response
+            exit 1
+        fi
+    fi
     write_output
 fi

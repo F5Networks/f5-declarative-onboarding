@@ -117,7 +117,7 @@ function installRpm(host, adminUsername, adminPassword) {
         constants.HTTP_ACCEPTED,
         'POST',
         60,
-        constants.HTTP_NOTFOUND
+        [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED]
     );
 }
 

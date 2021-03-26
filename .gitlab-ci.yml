@@ -196,12 +196,16 @@ teardown:
         - do-test-docker-executor
     stage: teardown
     rules:
+      - if: '$SKIP_TEARDOWN =~ /true/i'
+        when: never
       - if: '$CI_PIPELINE_SOURCE == "schedule"'
         when: always
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
         when: always
       - when: never
     script:
+        - apt update
+        - apt install -y jq
         - scripts/dev/rebuild-test-env.sh DELETE
 
 build_rpm:

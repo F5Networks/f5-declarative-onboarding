@@ -33,7 +33,7 @@ resources:
             __artifactory_url__: { get_param: artifactory_url }
           template: |
             #!/bin/bash
-            curl -vo initialConfig.sh 'https://__artifactory_url__/artifactory/list/f5-automation-toolchain-generic/f5-declarative-onboarding/test/integration/initialConfig.sh' > /tmp/do_curl_onboard.log 2>&1
+            curl -vo initialConfig.sh --retry 10 'https://__artifactory_url__/artifactory/list/f5-automation-toolchain-generic/f5-declarative-onboarding/test/integration/initialConfig.sh' > /tmp/do_curl_onboard.log 2>&1
             sh ./initialConfig.sh '__root_password__' '__admin_password__' &
 
   device-1:
