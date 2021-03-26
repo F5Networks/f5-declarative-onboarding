@@ -1,0 +1,63 @@
+{
+    "schemaVersion": "1.20.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "provisioning": {
+            "class": "Provision",
+            "afm": "nominal"
+        },
+        "firewallAddressList1": {
+            "class": "FirewallAddressList",
+            "addresses": ["192.0.2.10", "192.1.2.0/24"]
+        },
+        "firewallAddressList2": {
+            "class": "FirewallAddressList",
+            "fqdns": ["www.example.com", "sales.example.com"]
+        },
+        "firewallPortList1": {
+            "class": "FirewallPortList",
+            "ports": [8080, 8888]
+        },
+        "firewallPortList2": {
+            "class": "FirewallPortList",
+            "ports": ["8123", "8234", "8300-8350"]
+        },
+        "firewallPolicy": {
+            "class": "FirewallPolicy",
+            "label": "Example of all firewall policy properties",
+            "remark": "firewall policy description",
+            "rules": [
+                {
+                    "name": "firewallPolicyRule",
+                    "label": "Example of all firewall policy rule properties",
+                    "remark": "firewall policy rule description",
+                    "action": "reject",
+                    "protocol": "tcp",
+                    "loggingEnabled": true,
+                    "source": {
+                        "addressLists": [
+                            "/Common/firewallAddressList1",
+                            "/Common/firewallAddressList2"
+                        ],
+                        "portLists": [
+                            "/Common/firewallPortList1",
+                            "/Common/firewallPortList2"
+                        ]
+                    },
+                    "destination": {
+                        "addressLists": [
+                            "/Common/firewallAddressList1",
+                            "/Common/firewallAddressList2"
+                        ],
+                        "portLists": [
+                            "/Common/firewallPortList1",
+                            "/Common/firewallPortList2"
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

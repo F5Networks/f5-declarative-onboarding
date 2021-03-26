@@ -84,6 +84,7 @@ test-bigiq-ui:
   parallel:
     matrix:
       - BIGIQ_BRANCH: [master/quantum]
+  allow_failure: true
   script:
     - git clone --branch $BIGIQ_BRANCH --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@$CI_SERVER_HOST:$CI_SERVER_PORT/bigiq-mgmt/bigiq-mgmt-test
     - cd bigiq-mgmt-test/tools/declarativeOnboardSchemaValidator

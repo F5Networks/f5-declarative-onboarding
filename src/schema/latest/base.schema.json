@@ -188,7 +188,9 @@
                             "GSLBServer",
                             "GSLBMonitor",
                             "GSLBProberPool",
-                            "FirewallPolicy"
+                            "FirewallPolicy",
+                            "FirewallAddressList",
+                            "FirewallPortList"
                         ]
                     }
                 },

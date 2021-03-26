@@ -1227,6 +1227,87 @@ describe('declarationHandler', () => {
                     );
                 });
         });
+        it('should apply firewall address list fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    FirewallAddressList: {
+                        myFirewallAddressList: {
+                            class: 'FirewallAddressList',
+                            addresses: ['B', 'A'],
+                            fqdns: ['B', 'A'],
+                            geo: ['B', 'A']
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const firewallAddressList = declarationWithDefaults.Common.FirewallAddressList;
+                    assert.deepStrictEqual(
+                        firewallAddressList,
+                        {
+                            myFirewallAddressList: {
+                                class: 'FirewallAddressList',
+                                addresses: ['A', 'B'],
+                                fqdns: ['A', 'B'],
+                                geo: ['A', 'B']
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should apply firewall port list fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    FirewallPortList: {
+                        myFirewallPortList: {
+                            class: 'FirewallPortList',
+                            ports: [8080, 8888]
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const firewallPortList = declarationWithDefaults.Common.FirewallPortList;
+                    assert.deepStrictEqual(
+                        firewallPortList,
+                        {
+                            myFirewallPortList: {
+                                class: 'FirewallPortList',
+                                ports: ['8080', '8888']
+                            }
+                        }
+                    );
+                });
+        });
 
         it('should apply firewall policy fix', () => {
             const newDeclaration = {
@@ -1253,6 +1334,24 @@ describe('declarationHandler', () => {
                                         vlans: [
                                             '/Common/vlan1',
                                             'vlan2'
+                                        ],
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            'addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            'portList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            'addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            'portList2'
                                         ]
                                     }
                                 }
@@ -1290,7 +1389,8 @@ describe('declarationHandler', () => {
                                         action: 'accept',
                                         protocol: 'any',
                                         loggingEnabled: false,
-                                        source: {}
+                                        source: {},
+                                        destination: {}
                                     },
                                     {
                                         name: 'firewallPolicyRuleTwo',
@@ -1302,6 +1402,24 @@ describe('declarationHandler', () => {
                                             vlans: [
                                                 '/Common/vlan1',
                                                 '/Common/vlan2'
+                                            ],
+                                            addressLists: [
+                                                '/Common/addressList1',
+                                                '/Common/addressList2'
+                                            ],
+                                            portLists: [
+                                                '/Common/portList1',
+                                                '/Common/portList2'
+                                            ]
+                                        },
+                                        destination: {
+                                            addressLists: [
+                                                '/Common/addressList1',
+                                                '/Common/addressList2'
+                                            ],
+                                            portLists: [
+                                                '/Common/portList1',
+                                                '/Common/portList2'
                                             ]
                                         }
                                     }

@@ -294,6 +294,10 @@ class ConfigManager {
                                         referencePromises,
                                         referenceInfo
                                     );
+                                } else if (shouldIgnore(item, this.configItems[index].ignore)) {
+                                    if (!currentConfig[schemaClass]) {
+                                        currentConfig[schemaClass] = {};
+                                    }
                                 }
                             });
                         }
@@ -336,24 +340,28 @@ class ConfigManager {
                                 delete patchedItem.include;
                             }
                         }
+
                         if (schemaClass === 'HTTPD') {
                             patchHTTPD.call(
                                 this,
                                 patchedItem
                             );
                         }
+
                         if (schemaClass === 'Disk' && patchedItem.apiRawValues) {
                             patchedItem = patchedItem.apiRawValues;
                             Object.keys(patchedItem).forEach((item) => {
                                 patchedItem[item] = parseInt(patchedItem[item], 10);
                             });
                         }
+
                         if (schemaClass === 'GSLBGlobals') {
                             patchedItem = patchGSLBGlobals.call(
                                 this,
                                 patchedItem
                             );
                         }
+
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(
                             this,
@@ -529,15 +537,19 @@ class ConfigManager {
                 const currentFirewallPolicy = state.currentConfig.Common.FirewallPolicy;
                 if (currentFirewallPolicy) {
                     Object.keys(currentFirewallPolicy).forEach((key) => {
-                        const allowedSourceKeys = ['vlans'];
+                        const allowedSourceKeys = ['vlans', 'addressLists', 'portLists'];
+                        const allowedDestinationKeys = ['addressLists', 'portLists'];
+
+                        const filter = (obj, allowedKeys) => Object.keys(obj)
+                            .filter(objKey => allowedKeys.indexOf(objKey) > -1)
+                            .reduce((newObj, objKey) => {
+                                newObj[objKey] = obj[objKey];
+                                return newObj;
+                            }, {});
 
                         (currentFirewallPolicy[key].rules || []).forEach((rule) => {
-                            rule.source = Object.keys(rule.source)
-                                .filter(sourceKey => allowedSourceKeys.indexOf(sourceKey) > -1)
-                                .reduce((obj, sourceKey) => {
-                                    obj[sourceKey] = rule.source[sourceKey];
-                                    return obj;
-                                }, {});
+                            rule.source = filter(rule.source, allowedSourceKeys);
+                            rule.destination = filter(rule.destination, allowedDestinationKeys);
                         });
                     });
                 }
@@ -653,7 +665,7 @@ function mapProperties(item, configItem) {
 
             if (property.transform) {
                 const transformProperty = function (currentProperty) {
-                    if (Array.isArray(currentProperty)) {
+                    if (Array.isArray(currentProperty) && !property.transformAsArray) {
                         // Iterate through currentProperty to convert subobjects
                         const output = currentProperty.map(prop => transformProperty(prop));
                         return output;
@@ -675,6 +687,14 @@ function mapProperties(item, configItem) {
                             value = match.pop();
                         }
 
+                        if (trans.extract) {
+                            if (property.transformAsArray) {
+                                value = currentProperty.map(prop => prop[trans.extract]);
+                            } else {
+                                value = currentProperty[trans.extract];
+                            }
+                        }
+
                         if (trans.removeKeys) {
                             doUtil.deleteKeys(value, trans.removeKeys);
                         }
@@ -693,7 +713,13 @@ function mapProperties(item, configItem) {
                     return newProperty;
                 };
 
-                mappedItem[property.id] = transformProperty(mappedItem[property.id]);
+                const transformed = transformProperty(mappedItem[property.id]);
+                if (!property.transformAsArray) {
+                    mappedItem[property.id] = transformed;
+                } else {
+                    // when transforming an array, we can only do one property for now
+                    mappedItem[property.id] = transformed[property.transform[0].id];
+                }
             }
             hasVal = true;
         } else if (property.defaultWhenOmitted !== undefined) {

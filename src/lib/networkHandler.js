@@ -56,11 +56,11 @@ class NetworkHandler {
         logger.fine('Checking Trunks.');
         return handleTrunk.call(this)
             .then(() => {
-                logger.fine('Checking VLANs.');
+                logger.fine('Checking VLANs');
                 return handleVlan.call(this);
             })
             .then(() => {
-                logger.fine('Checking RouteDomains.');
+                logger.fine('Checking RouteDomains');
                 return handleRouteDomain.call(this);
             })
             .then(() => {
@@ -72,15 +72,23 @@ class NetworkHandler {
                 return handleTunnel.call(this);
             })
             .then(() => {
-                logger.fine('Checking Firewall Policies.');
+                logger.fine('Checking Firewall Address Lists');
+                return handleFirewallAddressList.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking Firewall Port Lists');
+                return handleFirewallPortList.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking Firewall Policies');
                 return handleFirewallPolicy.call(this);
             })
             .then(() => {
-                logger.fine('Checking SelfIps.');
+                logger.fine('Checking SelfIps');
                 return handleSelfIp.call(this);
             })
             .then(() => {
-                logger.fine('Checking Routes.');
+                logger.fine('Checking Routes');
                 return handleRoute.call(this);
             })
             .then(() => {
@@ -177,6 +185,37 @@ function handleVlan() {
     });
 }
 
+function handleFirewallAddressList() {
+    const promises = [];
+
+    doUtil.forEach(this.declaration, 'FirewallAddressList', (tenant, firewallAddressList) => {
+        if (firewallAddressList && firewallAddressList.name) {
+            const body = {
+                name: firewallAddressList.name,
+                description: firewallAddressList.remark || 'none'
+            };
+
+            if (firewallAddressList.addresses) {
+                body.addresses = firewallAddressList.addresses || [];
+            }
+            if (firewallAddressList.fqdns) {
+                body.fqdns = firewallAddressList.fqdns || [];
+            }
+            if (firewallAddressList.geo) {
+                body.geo = firewallAddressList.geo || [];
+            }
+
+            promises.push(this.bigIp.createOrModify(PATHS.FirewallAddressList, body, null, cloudUtil.MEDIUM_RETRY));
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Firewall Address List: ${err.message}`);
+            throw err;
+        });
+}
+
 function handleFirewallPolicy() {
     const promises = [];
 
@@ -195,7 +234,13 @@ function handleFirewallPolicy() {
                 log: rule.loggingEnabled ? 'yes' : 'no',
                 placeAfter: index === 0 ? 'first' : rules[index - 1].name,
                 source: {
+                    addressLists: rule.source.addressLists || [],
+                    portLists: rule.source.portLists || [],
                     vlans: rule.source.vlans || []
+                },
+                destination: {
+                    addressLists: rule.destination.addressLists || [],
+                    portLists: rule.destination.portLists || []
                 }
             }));
 
@@ -206,6 +251,31 @@ function handleFirewallPolicy() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating Firewall Policies: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleFirewallPortList() {
+    const promises = [];
+
+    doUtil.forEach(this.declaration, 'FirewallPortList', (tenant, firewallPortList) => {
+        if (firewallPortList && firewallPortList.name) {
+            const body = {
+                name: firewallPortList.name,
+                description: firewallPortList.remark || 'none'
+            };
+
+            if (firewallPortList.ports) {
+                body.ports = firewallPortList.ports.map(port => port.toString());
+            }
+
+            promises.push(this.bigIp.createOrModify(PATHS.FirewallPortList, body, null, cloudUtil.MEDIUM_RETRY));
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Firewall Port List: ${err.message}`);
             throw err;
         });
 }

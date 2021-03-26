@@ -79,7 +79,9 @@ module.exports = {
         GSLBServer: '/tm/gtm/server',
         GSLBMonitor: '/tm/gtm/monitor',
         GSLBProberPool: '/tm/gtm/prober-pool',
-        FirewallPolicy: '/tm/security/firewall/policy'
+        FirewallPolicy: '/tm/security/firewall/policy',
+        FirewallAddressList: '/tm/security/firewall/address-list',
+        FirewallPortList: '/tm/security/firewall/port-list'
     },
     STATUS: {
         STATUS_OK: 'OK',

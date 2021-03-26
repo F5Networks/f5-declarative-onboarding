@@ -664,6 +664,29 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 assert.ok(testVlan(body.Common.myVlan, currentState));
             });
 
+            it('should match FirewallPortList', () => assert.deepStrictEqual(
+                currentState.FirewallPortList,
+                {
+                    myFirewallPortList: {
+                        name: 'myFirewallPortList',
+                        remark: 'firewall port list description',
+                        ports: ['8080', '8888']
+                    }
+                }
+            ));
+
+            it('should match FirwallAddressList', () => assert.deepStrictEqual(
+                currentState.FirewallAddressList,
+                {
+                    myFirewallAddressList: {
+                        name: 'myFirewallAddressList',
+                        remark: 'firewall address list description',
+                        addresses: ['10.1.0.1', '10.2.0.0/24'],
+                        geo: ['US:Washington']
+                    }
+                }
+            ));
+
             it('should match FirewallPolicy', () => assert.deepStrictEqual(
                 currentState.FirewallPolicy,
                 {
@@ -680,6 +703,20 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                 source: {
                                     vlans: [
                                         '/Common/myVlan'
+                                    ],
+                                    addressLists: [
+                                        '/Common/myFirewallAddressList'
+                                    ],
+                                    portLists: [
+                                        '/Common/myFirewallPortList'
+                                    ]
+                                },
+                                destination: {
+                                    addressLists: [
+                                        '/Common/myFirewallAddressList'
+                                    ],
+                                    portLists: [
+                                        '/Common/myFirewallPortList'
                                     ]
                                 }
                             },
@@ -688,7 +725,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                 action: 'accept',
                                 protocol: 'any',
                                 loggingEnabled: false,
-                                source: {}
+                                source: {},
+                                destination: {}
                             }
                         ]
                     }

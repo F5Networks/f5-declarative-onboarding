@@ -1799,9 +1799,27 @@ describe('network.schema.json', () => {
                         action: 'reject',
                         protocol: 'tcp',
                         source: {
+                            addressLists: [
+                                '/Common/myAddressList1',
+                                'myAddressList2'
+                            ],
+                            portLists: [
+                                '/Common/myPortList1',
+                                'myPortList2'
+                            ],
                             vlans: [
                                 '/Common/vlan1',
                                 'vlan2'
+                            ]
+                        },
+                        destination: {
+                            addressLists: [
+                                '/Common/myAddressList1',
+                                'myAddressList2'
+                            ],
+                            portLists: [
+                                '/Common/myPortList1',
+                                'myPortList2'
                             ]
                         },
                         loggingEnabled: true
@@ -1849,6 +1867,21 @@ describe('network.schema.json', () => {
                 assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
             });
 
+            it('should invalidate additional firewall policy rule destination properties', () => {
+                const data = {
+                    class: 'FirewallPolicy',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept',
+                        destination: {
+                            foo: 'bar'
+                        }
+                    }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
             it('should invalidate missing firewall policy rule name property', () => {
                 const data = {
                     class: 'FirewallPolicy',
@@ -1865,6 +1898,82 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, '');
                 assert.notStrictEqual(getErrorString().indexOf('should have required property \'action\''), -1);
+            });
+        });
+    });
+
+    describe('FirewallAddressList', () => {
+        describe('valid', () => {
+            it('should validate minimal firewall address list properties', () => {
+                const data = {
+                    class: 'FirewallAddressList',
+                    addresses: ['192.168.0.1']
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all firewall address list properties', () => {
+                const data = {
+                    class: 'FirewallAddressList',
+                    label: 'myLabel',
+                    remark: 'myRemark',
+                    addresses: ['192.168.0.1'],
+                    fqdns: ['www.example.com'],
+                    geo: ['US:Washington']
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate if no addresses are specified', () => {
+                const data = {
+                    class: 'FirewallAddressList'
+                };
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should have required property'), -1);
+            });
+        });
+    });
+
+    describe('FirewallPortList', () => {
+        describe('valid', () => {
+            it('should validate minimal firewall port list properties', () => {
+                const data = {
+                    class: 'FirewallPortList',
+                    ports: [8080]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all firewall port list properties', () => {
+                const data = {
+                    class: 'FirewallPortList',
+                    label: 'myLabel',
+                    remark: 'myRemark',
+                    ports: [8080]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate firewall port list with string port', () => {
+                const data = {
+                    class: 'FirewallPortList',
+                    label: 'myLabel',
+                    remark: 'myRemark',
+                    ports: ['8080']
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate if no ports are specified', () => {
+                const data = {
+                    class: 'FirewallPortList'
+                };
+                assert.strictEqual(validate(data), false);
+                assert.notStrictEqual(getErrorString().indexOf('should have required property'), -1);
             });
         });
     });

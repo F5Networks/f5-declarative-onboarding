@@ -2301,6 +2301,96 @@ describe('networkHandler', () => {
         });
     });
 
+    describe('FirewallAddressList', () => {
+        it('should handle a FirewallAddressList', () => {
+            const declaration = {
+                Common: {
+                    FirewallAddressList: {
+                        fwAddressListOne: {
+                            name: 'fwAddressListOne',
+                            remark: 'test firewall address list one description',
+                            addresses: ['192.168.0.0/32', '10.0.1.0/24'],
+                            fqdns: ['www.example.com', 'example.example.com'],
+                            geo: ['US:Washington', 'US:Oregon']
+                        },
+                        fwAddressListTwo: {
+                            name: 'fwAddressListTwo',
+                            remark: 'test firewall address list two description',
+                            addresses: ['192.168.1.0/32', '10.0.2.0/24']
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const firewallAddressLists = dataSent[PATHS.FirewallAddressList];
+                    assert.deepStrictEqual(
+                        firewallAddressLists[0],
+                        {
+                            name: 'fwAddressListOne',
+                            description: 'test firewall address list one description',
+                            addresses: ['192.168.0.0/32', '10.0.1.0/24'],
+                            fqdns: ['www.example.com', 'example.example.com'],
+                            geo: ['US:Washington', 'US:Oregon']
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        firewallAddressLists[1],
+                        {
+                            name: 'fwAddressListTwo',
+                            description: 'test firewall address list two description',
+                            addresses: ['192.168.1.0/32', '10.0.2.0/24']
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('FirewallPortList', () => {
+        it('should handle a FirewallPortList', () => {
+            const declaration = {
+                Common: {
+                    FirewallPortList: {
+                        fwPortListOne: {
+                            name: 'fwPortListOne',
+                            remark: 'test firewall port list one description',
+                            ports: [8080, 8888]
+                        },
+                        fwPortListTwo: {
+                            name: 'fwPortListTwo',
+                            remark: 'test firewall port list two description',
+                            ports: ['8123', '8124']
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const firewallPortLists = dataSent[PATHS.FirewallPortList];
+                    assert.deepStrictEqual(
+                        firewallPortLists[0],
+                        {
+                            name: 'fwPortListOne',
+                            description: 'test firewall port list one description',
+                            ports: ['8080', '8888']
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        firewallPortLists[1],
+                        {
+                            name: 'fwPortListTwo',
+                            description: 'test firewall port list two description',
+                            ports: ['8123', '8124']
+                        }
+                    );
+                });
+        });
+    });
+
     describe('FirewallPolicy', () => {
         it('should handle FirewallPolicy', () => {
             const declaration = {
@@ -2319,7 +2409,8 @@ describe('networkHandler', () => {
                                     action: 'accept',
                                     protocol: 'any',
                                     loggingEnabled: false,
-                                    source: {}
+                                    source: {},
+                                    destination: {}
                                 },
                                 {
                                     name: 'firewallPolicyRuleTwo',
@@ -2331,6 +2422,24 @@ describe('networkHandler', () => {
                                         vlans: [
                                             '/Common/vlan1',
                                             '/Common/vlan2'
+                                        ],
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
                                         ]
                                     }
                                 }
@@ -2366,7 +2475,13 @@ describe('networkHandler', () => {
                                     log: 'no',
                                     placeAfter: 'first',
                                     source: {
-                                        vlans: []
+                                        vlans: [],
+                                        addressLists: [],
+                                        portLists: []
+                                    },
+                                    destination: {
+                                        addressLists: [],
+                                        portLists: []
                                     }
                                 },
                                 {
@@ -2380,6 +2495,24 @@ describe('networkHandler', () => {
                                         vlans: [
                                             '/Common/vlan1',
                                             '/Common/vlan2'
+                                        ],
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
                                         ]
                                     }
                                 }

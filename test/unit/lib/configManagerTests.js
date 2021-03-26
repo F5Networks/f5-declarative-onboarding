@@ -1396,47 +1396,97 @@ describe('configManager', () => {
         });
     });
 
-    it('should ignore ignored properties', () => {
-        const configItems = [
-            {
-                path: '/tm/cm/device-group',
-                schemaClass: 'DeviceGroup',
-                properties: [
-                    { id: 'type' }
-                ],
-                ignore: [
-                    { name: '^datasync-.+-dg$' },
-                    { name: '^gtm$' }
-                ]
-            }
-        ];
+    describe('should ignore', () => {
+        it('should ignore ignored properties', () => {
+            const configItems = [
+                {
+                    path: '/tm/cm/device-group',
+                    schemaClass: 'DeviceGroup',
+                    properties: [
+                        { id: 'type' }
+                    ],
+                    ignore: [
+                        { name: '^datasync-.+-dg$' },
+                        { name: '^gtm$' }
+                    ]
+                }
+            ];
 
-        listResponses['/tm/cm/device-group'] = [
-            {
-                name: 'myDeviceGroup',
-                members: []
-            },
-            {
-                name: 'datasync-foo-dg',
-                members: []
-            },
-            {
-                name: 'gtm',
-                members: []
-            }
-        ];
+            listResponses['/tm/cm/device-group'] = [
+                {
+                    name: 'myDeviceGroup',
+                    members: []
+                },
+                {
+                    name: 'datasync-foo-dg',
+                    members: []
+                },
+                {
+                    name: 'gtm',
+                    members: []
+                }
+            ];
 
-        const configManager = new ConfigManager(configItems, bigIpMock);
-        return configManager.get({}, state, doState)
-            .then(() => {
-                assert.strictEqual(Object.keys(state.currentConfig.Common.DeviceGroup).length, 1);
-                assert.deepEqual(
-                    state.currentConfig.Common.DeviceGroup.myDeviceGroup,
-                    { name: 'myDeviceGroup', members: [] }
-                );
-            });
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.strictEqual(Object.keys(state.currentConfig.Common.DeviceGroup).length, 1);
+                    assert.deepEqual(
+                        state.currentConfig.Common.DeviceGroup.myDeviceGroup,
+                        { name: 'myDeviceGroup', members: [] }
+                    );
+                });
+        });
+
+        it('should create empty config items for ignored properties', () => {
+            const configItems = [
+                {
+                    path: '/tm/security/firewall/port-list',
+                    schemaClass: 'FirewallPortList',
+                    requiredModule: 'afm',
+                    properties: [
+                        {
+                            id: 'ports',
+                            transformAsArray: true,
+                            transform: [
+                                { id: 'ports', extract: 'name' }
+                            ]
+                        }
+                    ],
+                    ignore: [
+                        { name: '^_sys_self_allow_tcp_defaults$' },
+                        { name: '^_sys_self_allow_udp_defaults$' }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/security/firewall/port-list'] = [
+                {
+                    name: '_sys_self_allow_tcp_defaults',
+                    ports: []
+                },
+                {
+                    name: '_sys_self_allow_udp_defaults',
+                    ports: []
+                }
+            ];
+
+            const declaration = {
+                Common: {
+                    myPortList: {
+                        class: 'FirewallPortList',
+                        ports: [1234]
+                    }
+                }
+            };
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get(declaration, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(state.currentConfig.Common.FirewallPortList, {});
+                    assert.deepStrictEqual(state.originalConfig.Common.FirewallPortList, {});
+                });
+        });
     });
-
     it('should skip unprovisioned modules', () => {
         const configItems = [
             {
@@ -1681,6 +1731,103 @@ describe('configManager', () => {
             return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepStrictEqual(state.currentConfig.Common, expectedConfig);
+                });
+        });
+    });
+
+    describe('extractTransform', () => {
+        it('should transform objects', () => {
+            const configItems = [
+                {
+                    path: '/tm/security/firewall/address-list',
+                    schemaClass: 'FirewallAddressList',
+                    properties: [
+                        {
+                            id: 'addresses',
+                            transform: [
+                                { id: 'addresses', extract: 'name' }
+                            ]
+                        }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/security/firewall/address-list'] = [
+                {
+                    name: 'myFirewallAddressList',
+                    addresses: {
+                        name: '10.1.0.1'
+                    }
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common,
+                        {
+                            FirewallAddressList: {
+                                myFirewallAddressList: {
+                                    name: 'myFirewallAddressList',
+                                    addresses: {
+                                        addresses: '10.1.0.1'
+                                    }
+                                }
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should transform arrays', () => {
+            const configItems = [
+                {
+                    path: '/tm/security/firewall/address-list',
+                    schemaClass: 'FirewallAddressList',
+                    properties: [
+                        {
+                            id: 'addresses',
+                            transformAsArray: true,
+                            transform: [
+                                { id: 'addresses', extract: 'name' }
+                            ]
+                        }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/security/firewall/address-list'] = [
+                {
+                    name: 'myFirewallAddressList',
+                    addresses: [
+                        {
+                            name: '10.1.0.1'
+                        },
+                        {
+                            name: '10.2.0.0/24'
+                        }
+                    ]
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common,
+                        {
+                            FirewallAddressList: {
+                                myFirewallAddressList: {
+                                    name: 'myFirewallAddressList',
+                                    addresses: [
+                                        '10.1.0.1',
+                                        '10.2.0.0/24'
+                                    ]
+                                }
+                            }
+                        }
+                    );
                 });
         });
     });
@@ -2703,7 +2850,8 @@ describe('configManager', () => {
                     log: 'no',
                     source: {
                         identity: {}
-                    }
+                    },
+                    destination: {}
                 },
                 {
                     name: 'firewallPolicyRuleTwo',
@@ -2716,6 +2864,24 @@ describe('configManager', () => {
                         vlans: [
                             '/Common/vlan1',
                             '/Common/vlan2'
+                        ],
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    },
+                    destination: {
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
                         ]
                     }
                 }
@@ -2737,7 +2903,8 @@ describe('configManager', () => {
                                         action: 'accept',
                                         protocol: 'any',
                                         loggingEnabled: false,
-                                        source: {}
+                                        source: {},
+                                        destination: {}
                                     },
                                     {
                                         name: 'firewallPolicyRuleTwo',
@@ -2749,6 +2916,24 @@ describe('configManager', () => {
                                             vlans: [
                                                 '/Common/vlan1',
                                                 '/Common/vlan2'
+                                            ],
+                                            addressLists: [
+                                                '/Common/myAddressList1',
+                                                '/Common/myAddressList2'
+                                            ],
+                                            portLists: [
+                                                '/Common/myPortList1',
+                                                '/Common/myPortList2'
+                                            ]
+                                        },
+                                        destination: {
+                                            addressLists: [
+                                                '/Common/myAddressList1',
+                                                '/Common/myAddressList2'
+                                            ],
+                                            portLists: [
+                                                '/Common/myPortList1',
+                                                '/Common/myPortList2'
                                             ]
                                         }
                                     }

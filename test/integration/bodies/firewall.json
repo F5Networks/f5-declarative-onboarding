@@ -20,6 +20,19 @@
                 }
             ]
         },
+        "myFirewallAddressList": {
+            "class": "FirewallAddressList",
+            "label": "Example firewall address list",
+            "remark": "firewall address list description",
+            "addresses": ["10.1.0.1", "10.2.0.0/24"],
+            "geo": ["US:Washington"]
+        },
+        "myFirewallPortList": {
+            "class": "FirewallPortList",
+            "label": "Example firewall port list",
+            "remark": "firewall port list description",
+            "ports": [8080, 8888]
+        },
         "myFirewallPolicy": {
             "class": "FirewallPolicy",
             "label": "Example of all firewall policy properties",
@@ -33,8 +46,22 @@
                     "protocol": "tcp",
                     "loggingEnabled": true,
                     "source": {
+                        "addressLists": [
+                            "myFirewallAddressList"
+                        ],
+                        "portLists": [
+                            "myFirewallPortList"
+                        ],
                         "vlans": [
                             "myVlan"
+                        ]
+                    },
+                    "destination": {
+                        "addressLists": [
+                            "myFirewallAddressList"
+                        ],
+                        "portLists": [
+                            "myFirewallPortList"
                         ]
                     }
                 },

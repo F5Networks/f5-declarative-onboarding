@@ -930,8 +930,57 @@
                 { "id": "action" },
                 { "id": "ipProtocol", "newId": "protocol" },
                 { "id": "log", "newId": "loggingEnabled", "truth": "yes", "falsehood": "no" },
-                { "id": "source" }
+                { "id": "source" },
+                { "id": "destination" }
             ]
         }
+    },
+    {
+        "path": "/tm/security/firewall/address-list",
+        "schemaClass": "FirewallAddressList",
+        "requiredModule": "afm",
+        "properties": [
+            { "id": "description", "newId": "remark" },
+            {
+                "id": "addresses",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "addresses", "extract": "name" }
+                ]
+            },
+            {
+                "id": "fqdns",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "fqdns", "extract": "name" }
+                ]
+            },
+            {
+                "id": "geo",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "geo", "extract": "name" }
+                ]
+            }
+        ]
+    },
+    {
+        "path": "/tm/security/firewall/port-list",
+        "schemaClass": "FirewallPortList",
+        "requiredModule": "afm",
+        "properties": [
+            { "id": "description", "newId": "remark" },
+            {
+                "id": "ports",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "ports", "extract": "name" }
+                ]
+            }
+        ],
+        "ignore": [
+            { "name": "^_sys_self_allow_tcp_defaults$" },
+            { "name": "^_sys_self_allow_udp_defaults$" }
+        ]
     }
 ]

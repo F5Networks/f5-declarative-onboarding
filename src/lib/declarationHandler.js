@@ -83,7 +83,9 @@ const CLASSES_OF_TRUTH = [
     'GSLBServer',
     'GSLBMonitor',
     'GSLBProberPool',
-    'FirewallPolicy'
+    'FirewallPolicy',
+    'FirewallAddressList',
+    'FirewallPortList'
 ];
 
 /**
@@ -165,6 +167,8 @@ class DeclarationHandler {
                 applyRouteMapFixes(parsedNewDeclaration);
                 applyRoutingBgpFixes(parsedNewDeclaration);
                 applyGSLBProberPoolFixes(parsedNewDeclaration);
+                applyFirewallAddressListFixes(parsedNewDeclaration);
+                applyFirewallPortListFixes(parsedNewDeclaration);
                 applyFirewallPolicyFixes(parsedNewDeclaration);
                 applySelfIpFixes(parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
@@ -266,6 +270,7 @@ class DeclarationHandler {
  */
 function applyDefaults(declaration, state) {
     const commonDeclaration = declaration.Common;
+
     // deep copy original item to avoid modifications of originalConfig.Common in handlers
     const commonOriginal = JSON.parse(JSON.stringify(state.originalConfig.Common || {}));
 
@@ -750,6 +755,51 @@ function applyGSLBProberPoolFixes(declaration) {
 }
 
 /**
+ * Normalizes the Firewall Address List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyFirewallAddressListFixes(declaration) {
+    const firewallAddressLists = (declaration.Common && declaration.Common.FirewallAddressList) || {};
+    if (Object.keys(firewallAddressLists).length === 0) {
+        return;
+    }
+
+    // MCP returns these arrays sorted
+    doUtil.forEach(declaration, 'FirewallAddressList', (tenant, firewallAddressList) => {
+        if (firewallAddressList.addresses) {
+            firewallAddressList.addresses = firewallAddressList.addresses.sort();
+        }
+        if (firewallAddressList.fqdns) {
+            firewallAddressList.fqdns = firewallAddressList.fqdns.sort();
+        }
+        if (firewallAddressList.geo) {
+            firewallAddressList.geo = firewallAddressList.geo.sort();
+        }
+    });
+}
+
+/**
+ * Normalizes the Firewall Port List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyFirewallPortListFixes(declaration) {
+    const firewallPortLists = (declaration.Common && declaration.Common.FirewallPortList) || {};
+    if (Object.keys(firewallPortLists).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'FirewallPortList', (tenant, firewallPortList) => {
+        if (firewallPortList.ports) {
+            // The schema allows for integer or string, so coerce to string since that's
+            // what iControl REST will return for these
+            firewallPortList.ports = firewallPortList.ports.map(port => port.toString());
+        }
+    });
+}
+
+/**
  * Normalizes the Firewall Policy section of a declaration
  *
  * @param {Object} declaration - declaration to fix
@@ -768,11 +818,20 @@ function applyFirewallPolicyFixes(declaration) {
                 action: rule.action,
                 protocol: rule.protocol,
                 loggingEnabled: rule.loggingEnabled,
-                source: rule.source || {}
+                source: rule.source || {},
+                destination: rule.destination || {}
             };
 
-            (newRule.source.vlans || []).forEach((vlan, i) => {
-                applyTenantPrefix(newRule, `source.vlans.${i}`, tenant);
+            Object.keys(newRule.source).forEach((sourceType) => {
+                (newRule.source[sourceType] || []).forEach((source, i) => {
+                    applyTenantPrefix(newRule, `source.${sourceType}.${i}`, tenant);
+                });
+            });
+
+            Object.keys(newRule.destination).forEach((destinationType) => {
+                (newRule.source[destinationType] || []).forEach((dest, i) => {
+                    applyTenantPrefix(newRule, `destination.${destinationType}.${i}`, tenant);
+                });
             });
 
             return newRule;

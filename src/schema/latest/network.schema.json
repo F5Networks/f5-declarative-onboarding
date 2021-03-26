@@ -153,6 +153,22 @@
         {
             "if": {
                 "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "FirewallAddressList" } }
+            },
+            "then": { "$ref": "#/definitions/firewallAddressList" }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "FirewallPortList" } }
+            },
+            "then": { "$ref": "#/definitions/firewallPortList" }
+        },
+        {
+            "if": {
+                "required": ["class"],
                 "properties": { "class": { "const": "SelfIp" } }
             },
             "then": {
@@ -960,6 +976,107 @@
             },
             "additionalProperties": false
         },
+        "firewallAddressList": {
+            "title": "Firewall Address List",
+            "description": "Declares an address-list for use by firewall rules. An address list is a list of IP-address prefixes to compare against the source-IP address and/or destination-IP address in an IP packet",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "title": "Class",
+                    "type": "string",
+                    "const": "FirewallAddressList"
+                },
+                "label": {
+                    "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                    "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "addresses": {
+                    "type": "array",
+                    "description": "A list of IPv4 and IPv6 addresses and address ranges. You can specify a network with CIDR slash notation.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "fqdns": {
+                    "type": "array",
+                    "description": "A list of fully qualified domain names.",
+                    "items": {
+                        "type": "string",
+                        "format": "hostname"
+                    },
+                    "minItems": 1
+                },
+                "geo": {
+                    "type": "array",
+                    "description": "A list of geographic locations (for example, US:Washington).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "class"
+            ],
+            "anyOf": [
+                {
+                    "required": [
+                        "addresses"
+                    ]
+                },
+                {
+                    "required": [
+                        "fqdns"
+                    ]
+                },
+                {
+                    "required": [
+                        "geo"
+                    ]
+                }
+            ]
+        },
+        "firewallPortList": {
+            "title": "Firewall Port List",
+            "description": "Declares a port-list for use by firewall rules. A firewall rule can match a packet's source port or destination port against one of the ports in a port list, and can take some action (such as ACCEPT or DROP) for a matching packet.",
+            "type": "object",
+            "f5modules": [
+                "afm"
+            ],
+            "properties": {
+                "class": {
+                    "title": "Class",
+                    "type": "string",
+                    "const": "FirewallPortList"
+                },
+                "label": {
+                    "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                    "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "ports": {
+                    "type": "array",
+                    "description": "A list of ports and port ranges (for example, 80, \"8080-8090\").",
+                    "items": {
+                        "type": [
+                            "integer",
+                            "string"
+                        ]
+                    },
+                    "minItems": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "class",
+                "ports"
+            ]
+        },
         "firewallRule": {
             "description": "Configures a firewall rule.",
             "type": "object",
@@ -998,6 +1115,9 @@
                 "source": {
                     "$ref": "#/definitions/firewallRuleSource"
                 },
+                "destination": {
+                    "$ref": "#/definitions/firewallRuleSource"
+                },
                 "loggingEnabled": {
                     "description": "Specifies whether the system enables or disables logging for the firewall rule",
                     "type": "boolean",
@@ -1010,9 +1130,48 @@
             "description": "Configures the packet sources to which the network firewall rule applies",
             "type": "object",
             "properties": {
+                "addressLists": {
+                    "type": "array",
+                    "description": "Specifies a list of address lists against which the packet will be compared.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                },
+                "portLists": {
+                    "type": "array",
+                    "description": "Specifies a list of port lists against which the packet will be compared.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                },
                 "vlans": {
                     "type": "array",
                     "description": "Specifies a list of VLANs against which the packets will be compared",
+                    "items": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "firewallRuleDestination": {
+            "description": "Configures the packet destination to which the network firewall rule applies",
+            "type": "object",
+            "properties": {
+                "addressLists": {
+                    "type": "array",
+                    "description": "Specifies a list of address lists against which the packet will be compared.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                },
+                "portLists": {
+                    "type": "array",
+                    "description": "Specifies a list of port lists against which the packet will be compared.",
                     "items": {
                         "type": "string"
                     },

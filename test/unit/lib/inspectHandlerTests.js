@@ -1322,6 +1322,87 @@ describe('inspectHandler', () => {
                 }
             ],
             '/tm/gtm/prober-pool/~Common~currentGSLBProberPoolNoMembers/members': [],
+            '/tm/security/firewall/address-list': [
+                {
+                    name: 'currentFirewallAddressList',
+                    description: 'firewall address list description',
+                    addresses: [
+                        {
+                            name: '10.1.0.1'
+                        },
+                        {
+                            name: '10.2.0.0/24'
+                        }
+                    ],
+                    fqdns: [
+                        {
+                            name: 'www.example.com'
+                        }
+                    ],
+                    geo: [
+                        {
+                            name: 'US:Washington'
+                        }
+                    ]
+                }
+            ],
+            '/tm/security/firewall/port-list': [
+                {
+                    name: '_sys_self_allow_tcp_defaults',
+                    port: [
+                        {
+                            name: '22'
+                        },
+                        {
+                            name: '53'
+                        },
+                        {
+                            name: '161'
+                        },
+                        {
+                            name: '443'
+                        },
+                        {
+                            name: '1029-1043'
+                        },
+                        {
+                            name: '4353'
+                        }
+                    ]
+                },
+                {
+                    name: '_sys_self_allow_udp_defaults',
+                    ports: [
+                        {
+                            name: '53'
+                        },
+                        {
+                            name: '161'
+                        },
+                        {
+                            name: '520'
+                        },
+                        {
+                            name: '1026'
+                        },
+                        {
+                            name: '4353'
+                        }
+                    ]
+                },
+                {
+                    name: 'currentFirewallPortList',
+                    description: 'firewall port list description',
+                    ports: [
+                        {
+                            name: '8080'
+                        },
+                        {
+                            name: '8888'
+                        }
+                    ]
+                }
+            ],
             '/tm/security/firewall/policy': [
                 {
                     name: 'currentFirewallPolicy',
@@ -1346,7 +1427,8 @@ describe('inspectHandler', () => {
                     log: 'no',
                     source: {
                         identity: {}
-                    }
+                    },
+                    destination: {}
                 },
                 {
                     name: 'firewallPolicyRuleTwo',
@@ -1359,6 +1441,24 @@ describe('inspectHandler', () => {
                         vlans: [
                             '/Common/vlan1',
                             '/Common/vlan2'
+                        ],
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    },
+                    destination: {
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
                         ]
                     }
                 }
@@ -2121,6 +2221,18 @@ describe('inspectHandler', () => {
                             lbMode: 'global-availability',
                             members: []
                         },
+                        currentFirewallAddressList: {
+                            class: 'FirewallAddressList',
+                            remark: 'firewall address list description',
+                            addresses: ['10.1.0.1', '10.2.0.0/24'],
+                            fqdns: ['www.example.com'],
+                            geo: ['US:Washington']
+                        },
+                        currentFirewallPortList: {
+                            class: 'FirewallPortList',
+                            remark: 'firewall port list description',
+                            ports: ['8080', '8888']
+                        },
                         currentFirewallPolicy: {
                             class: 'FirewallPolicy',
                             remark: 'firewall policy description',
@@ -2131,7 +2243,8 @@ describe('inspectHandler', () => {
                                     action: 'accept',
                                     protocol: 'any',
                                     loggingEnabled: false,
-                                    source: {}
+                                    source: {},
+                                    destination: {}
                                 },
                                 {
                                     name: 'firewallPolicyRuleTwo',
@@ -2143,6 +2256,24 @@ describe('inspectHandler', () => {
                                         vlans: [
                                             '/Common/vlan1',
                                             '/Common/vlan2'
+                                        ],
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
                                         ]
                                     }
                                 }
