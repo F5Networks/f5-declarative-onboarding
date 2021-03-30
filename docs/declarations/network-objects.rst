@@ -265,9 +265,9 @@ The AFM features we use in this declaration are well-documented in the |afmdocs|
 
 You must have BIG-IP AFM provisioned as shown in the example.
 
-See |fwp| and associated classes in the Schema Reference for descriptions and DO usage.
+See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for descriptions and DO usage.
 
-.. literalinclude:: ../../examples/selfIpFirewallPolicy.json
+.. literalinclude:: ../../examples/firewallPolicy.json
    :language: json
 
 
@@ -456,3 +456,12 @@ See |fwp| and associated classes in the Schema Reference for descriptions and DO
 .. |fwp| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#firewallpolicy" target="_blank">FirewallPolicy</a>
+
+
+.. |fwal| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#firewalladdresslist" target="_blank">FirewallAddressList</a>
+
+.. |fwpl| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#firewallportlist" target="_blank">FirewallPortList</a>
