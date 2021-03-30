@@ -249,6 +249,27 @@ The **RoutingBGP** class contains a number of properties used in the following e
 .. literalinclude:: ../../examples/bgp.json
    :language: json
 
+|
+
+.. _firewallpolicy:
+
+Configuring a Firewall policy in a declaration  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for Firewall policies is available in DO v1.20 and later. You must have BIG-IP AFM licensed.
+
+This example shows how you can configure a firewall policy in a declaration. BIG-IP Network Firewall policies combine one or more rules and apply them as a combined policy to one context, such as a self IP as shown. 
+
+The AFM features we use in this declaration are well-documented in the |afmdocs|.
+
+You must have BIG-IP AFM provisioned as shown in the example.
+
+See |fwp| and associated classes in the Schema Reference for descriptions and DO usage.
+
+.. literalinclude:: ../../examples/selfIpFirewallPolicy.json
+   :language: json
+
 
 .. |br| raw:: html
 
@@ -427,3 +448,11 @@ The **RoutingBGP** class contains a number of properties used in the following e
 .. |routemap| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routemap" target="_blank">RouteMap</a>
+
+.. |afmdocs| raw:: html
+
+   <a href="https://support.f5.com/kb/en-us/products/big-ip-afm/manuals/product/network-firewall-policies-implementations-13-1-0.html" target="_blank">AFM documentation</a>
+
+.. |fwp| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#firewallpolicy" target="_blank">FirewallPolicy</a>
