@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 3.7
-        - Updated the documentation for Declarative Onboarding v1.20.0.  This release contains the following changes: |br| * Added support for BGP Routing (see :ref:`BGP routing<bgprouting>`) |br| |br| Issues Resolved: |br| * Cannot read property 'applicationData' of undefined, `GitHub Issue 204 <https://github.com/F5Networks/f5-declarative-onboarding/issues/204>`_ |br| * Task status change after restnoded process restarted |br| * Allow DeviceGroup owner to be an IPv6 address without having to use a json-pointer, `GitHub Issue 198 <https://github.com/F5Networks/f5-declarative-onboarding/issues/198>`_ |br| * Improve schema compatibility with BIG-IQ UI
+        - Updated the documentation for Declarative Onboarding v1.20.0.  This release contains the following changes: |br| * Added support for BGP Routing (see :ref:`BGP routing<bgprouting>`) |br| * Added support for Firewall Policies in a declaration (see :ref:`Firewall Policy<firewallpolicy>`) |br| |br| Issues Resolved: |br| * Cannot read property 'applicationData' of undefined, `GitHub Issue 204 <https://github.com/F5Networks/f5-declarative-onboarding/issues/204>`_ |br| * Task status change after restnoded process restarted |br| * Allow DeviceGroup owner to be an IPv6 address without having to use a json-pointer, `GitHub Issue 198 <https://github.com/F5Networks/f5-declarative-onboarding/issues/198>`_ |br| * Improve schema compatibility with BIG-IQ UI
         - 4-6-21
 
       * - 3.6
