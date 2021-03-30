@@ -450,3 +450,7 @@ See |fwp| and associated classes in the Schema Reference for descriptions and DO
 .. |afmdocs| raw:: html
 
    <a href="https://support.f5.com/kb/en-us/products/big-ip-afm/manuals/product/network-firewall-policies-implementations-13-1-0.html" target="_blank">AFM documentation</a>
+
+.. |fwp| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#firewallpolicy" target="_blank">FirewallPolicy</a>
