@@ -253,15 +253,17 @@ The **RoutingBGP** class contains a number of properties used in the following e
 
 .. _firewallpolicy:
 
-Configuring a firewall policy in a declaration  
+Configuring a Firewall policy in a declaration  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for firewall policies is available in DO v1.20 and later. You must have BIG-IP AFM licensed.
+   Support for Firewall policies is available in DO v1.20 and later. You must have BIG-IP AFM licensed.
 
-This example shows how you can configure a firewall policy in a declaration. It also shows how you can reference it from self IPs defined in the same declaration.  You must have BIG-IP AFM provisioned as shown in the example.
+This example shows how you can configure a firewall policy in a declaration. BIG-IP Network Firewall policies combine one or more rules and apply them as a combined policy to one context, such as a self IP as shown. 
 
-BIG-IP Network Firewall policies combine one or more rules or rule lists, and apply them as a combined policy to one context, such as a self IP as shown. The AFM features we use in this declaration are well-documented in the |afmdocs|.
+The AFM features we use in this declaration are well-documented in the |afmdocs|.
+
+You must have BIG-IP AFM provisioned as shown in the example.
 
 See |fwp| and associated classes in the Schema Reference for descriptions and DO usage.
 
