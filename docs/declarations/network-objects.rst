@@ -267,7 +267,7 @@ You must have BIG-IP AFM provisioned as shown in the example.
 
 See |fwp| and associated classes in the Schema Reference for descriptions and DO usage.
 
-.. literalinclude:: ../../examples/selfIpFirewallPolicy.json
+.. literalinclude:: ../../examples/firewallPolicy.json
    :language: json
 
 
