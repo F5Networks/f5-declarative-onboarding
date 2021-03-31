@@ -32,10 +32,6 @@
             "class": "FirewallAddressList",
             "addresses": ["192.0.2.10", "192.1.2.0/24"]
         },
-        "firewallAddressList2": {
-            "class": "FirewallAddressList",
-            "fqdns": ["www.example.com", "sales.example.com"]
-        },
         "firewallPortList1": {
             "class": "FirewallPortList",
             "ports": [8080, 8888]
@@ -58,8 +54,7 @@
                     "loggingEnabled": true,
                     "source": {
                         "addressLists": [
-                            "/Common/firewallAddressList1",
-                            "/Common/firewallAddressList2"
+                            "/Common/firewallAddressList1"
                         ],
                         "portLists": [
                             "/Common/firewallPortList1",

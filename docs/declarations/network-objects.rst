@@ -267,6 +267,8 @@ You must have BIG-IP AFM provisioned as shown in the example.
 
 See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for descriptions and DO usage.
 
+.. NOTE:: The **firewallAddressList** class supports using FQDNs, however, FQDNs require a DNS Resolver on the BIG-IP which is not yet configurable using DO.  If you want to use FQDNs, you must manually configure a DNS Resolver before submitting the declaration. See |dnsresolverdocs| for manual configuration information.
+
 .. literalinclude:: ../../examples/firewallPolicy.json
    :language: json
 
@@ -465,3 +467,7 @@ See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for de
 .. |fwpl| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#firewallportlist" target="_blank">FirewallPortList</a>
+
+.. |dnsresolverdocs| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigip-15-1-0/big-ip-dns-services-implementations/configuring-dns-caching.html" target="_blank">DNS Caching documentation</a>
