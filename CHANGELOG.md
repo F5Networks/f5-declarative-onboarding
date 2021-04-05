@@ -1,13 +1,26 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.20.0
+### Added
+- AUTOTOOL-1991: Added RoutingBGP
+- AUTOTOOL-2350: Added FirewallPolicy
+- AUTOTOOL-2351: ([GitHub Issue 203](https://github.com/F5Networks/f5-declarative-onboarding/issues/203)): Added FirewallAddressList and FirewallPortList
+### Fixed
+- AUTOTOOL-2242: ([GitHub Issue 204](https://github.com/F5Networks/f5-declarative-onboarding/issues/204)): Cannot read property 'applicationData' of undefined
+- AUTOTOOL-2080: Task status change after restnoded process restarted
+- AUTOTOOL-2215: ([GitHub Issue 198](https://github.com/F5Networks/f5-declarative-onboarding/issues/198)): Allow DeviceGroup owner to be an IPv6 address without having to use a json-pointer.
+- Improve schema compatibility with BIG-IQ UI
+### Changed
+### Removed
+
 ## 1.19.0
 ### Added
 - AUTOTOOL-1990: Route Map
-- AUTOTOOL-2175: Add support for gslb monitor http
+- AUTOTOOL-2175: Add support for HTTP GSLB monitor
 - AUTOTOOL-2176: GSLB Prober Pool
 - AUTOTOOL-2173: Add support for virtual servers in GSLB server
-- AUTOTOOL-2180: GSLB Monitor (Remaining)
+- AUTOTOOL-2180: GSLB Monitors (Remaining)
 ### Fixed
 ### Changed
 - AUTOTOOL-1238: ([GitHub Issue 118](https://github.com/F5Networks/f5-declarative-onboarding/issues/118)): Improve behavior when tenant is missing

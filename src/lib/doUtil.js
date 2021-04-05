@@ -596,5 +596,28 @@ module.exports = {
         paths.forEach((path) => {
             this.deleteKey(obj, path);
         });
+    },
+
+    /**
+     * Sorts an array of objects by a key value of type string
+     *
+     * @param {Array} array - An array of objects to be sorted.
+     * @param {String} key - The key name to sort by.
+     */
+    sortArrayByValueString(array, key) {
+        (array || []).sort((a, b) => {
+            const stringA = a[key].toUpperCase();
+            const stringB = b[key].toUpperCase();
+
+            if (stringA < stringB) {
+                return -1;
+            }
+
+            if (stringA > stringB) {
+                return 1;
+            }
+
+            return 0;
+        });
     }
 };

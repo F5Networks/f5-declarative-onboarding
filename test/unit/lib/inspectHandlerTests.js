@@ -593,14 +593,16 @@ describe('inspectHandler', () => {
                     address: '10.0.0.2/24',
                     vlan: '/Common/internalVlan',
                     trafficGroup: '/Common/traffic-group-local-only',
-                    allowService: 'none'
+                    allowService: 'none',
+                    fwEnforcedPolicy: '/Common/currentFirewallPolicy'
                 },
                 {
                     name: 'externalSelfIp',
                     address: '11.0.0.2/24',
                     vlan: '/Common/externalVlan',
                     trafficGroup: '/Common/traffic-group-local-only',
-                    allowService: 'none'
+                    allowService: 'none',
+                    fwStagedPolicy: '/Common/currentFirewallPolicy'
                 }
             ],
             '/tm/net/route': [
@@ -699,6 +701,76 @@ describe('inspectHandler', () => {
                             }
                         }
                     }
+                }
+            ],
+            '/tm/net/routing/bgp': [
+                {
+                    name: 'exampleBGP',
+                    addressFamily: [
+                        {
+                            name: 'ipv4',
+                            redistribute: [
+                                {
+                                    name: 'kernel',
+                                    routeMap: '/Common/routeMap1',
+                                    routeMapReference: {
+                                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleBGP?ver=14.1.2.8'
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    gracefulRestart: {
+                        gracefulReset: 'enabled',
+                        restartTime: 120,
+                        stalepathTime: 0
+                    },
+                    holdTime: 35,
+                    keepAlive: 10,
+                    localAs: 65010,
+                    neighborReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~exampleBGP/neighbor?ver=14.1.2.8'
+                    },
+                    peerGroupReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~exampleBGP/peer-group?ver=14.1.2.8'
+                    },
+                    routerId: '10.1.1.1'
+                }
+            ],
+            '/tm/net/routing/bgp/~Common~exampleBGP/neighbor': [
+                {
+                    name: '10.1.1.2',
+                    peerGroup: 'Neighbor_IN',
+                    unwanted: 1
+                }
+            ],
+            '/tm/net/routing/bgp/~Common~exampleBGP/peer-group': [
+                {
+                    name: 'Neighbor_IN',
+                    remoteAs: 65020,
+                    addressFamily: [
+                        {
+                            name: 'ipv4',
+                            routeMap: {
+                                in: '/Common/routeMapIn',
+                                inReference: {
+                                    link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMapIn?ver=14.1.2.8'
+                                },
+                                out: '/Common/routeMapOut',
+                                outReference: {
+                                    link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMapOut?ver=14.1.2.8'
+                                }
+                            },
+                            softReconfigurationInbound: 'enabled',
+                            unwantedProperty: 2
+                        },
+                        {
+                            name: 'ipv6',
+                            routeMap: {},
+                            unwantedProperty: 3
+                        }
+                    ],
+                    unwantedProperty: 4
                 }
             ],
             '/tm/cm/device': [{ name: deviceName, hostname }],
@@ -1249,7 +1321,149 @@ describe('inspectHandler', () => {
                     order: 1
                 }
             ],
-            '/tm/gtm/prober-pool/~Common~currentGSLBProberPoolNoMembers/members': []
+            '/tm/gtm/prober-pool/~Common~currentGSLBProberPoolNoMembers/members': [],
+            '/tm/security/firewall/address-list': [
+                {
+                    name: 'currentFirewallAddressList',
+                    description: 'firewall address list description',
+                    addresses: [
+                        {
+                            name: '10.1.0.1'
+                        },
+                        {
+                            name: '10.2.0.0/24'
+                        }
+                    ],
+                    fqdns: [
+                        {
+                            name: 'www.example.com'
+                        }
+                    ],
+                    geo: [
+                        {
+                            name: 'US:Washington'
+                        }
+                    ]
+                }
+            ],
+            '/tm/security/firewall/port-list': [
+                {
+                    name: '_sys_self_allow_tcp_defaults',
+                    port: [
+                        {
+                            name: '22'
+                        },
+                        {
+                            name: '53'
+                        },
+                        {
+                            name: '161'
+                        },
+                        {
+                            name: '443'
+                        },
+                        {
+                            name: '1029-1043'
+                        },
+                        {
+                            name: '4353'
+                        }
+                    ]
+                },
+                {
+                    name: '_sys_self_allow_udp_defaults',
+                    ports: [
+                        {
+                            name: '53'
+                        },
+                        {
+                            name: '161'
+                        },
+                        {
+                            name: '520'
+                        },
+                        {
+                            name: '1026'
+                        },
+                        {
+                            name: '4353'
+                        }
+                    ]
+                },
+                {
+                    name: 'currentFirewallPortList',
+                    description: 'firewall port list description',
+                    ports: [
+                        {
+                            name: '8080'
+                        },
+                        {
+                            name: '8888'
+                        }
+                    ]
+                }
+            ],
+            '/tm/security/firewall/policy': [
+                {
+                    name: 'currentFirewallPolicy',
+                    description: 'firewall policy description',
+                    rulesReference: {
+                        link: 'https://localhost/mgmt/tm/security/firewall/policy/~Common~currentFirewallPolicy/rules'
+                    }
+                },
+                {
+                    name: 'currentFirewallPolicyNoRules',
+                    rulesReference: {
+                        link: 'https://localhost/mgmt/tm/security/firewall/policy/~Common~currentFirewallPolicyNoRules/rules'
+                    }
+                }
+            ],
+            '/tm/security/firewall/policy/~Common~currentFirewallPolicy/rules': [
+                {
+                    name: 'firewallPolicyRuleOne',
+                    description: 'firewall policy rule one description',
+                    action: 'accept',
+                    ipProtocol: 'any',
+                    log: 'no',
+                    source: {
+                        identity: {}
+                    },
+                    destination: {}
+                },
+                {
+                    name: 'firewallPolicyRuleTwo',
+                    description: 'firewall policy rule two description',
+                    action: 'reject',
+                    ipProtocol: 'tcp',
+                    log: 'yes',
+                    source: {
+                        identity: {},
+                        vlans: [
+                            '/Common/vlan1',
+                            '/Common/vlan2'
+                        ],
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    },
+                    destination: {
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    }
+                }
+            ],
+            '/tm/security/firewall/policy/~Common~currentFirewallPolicyNoRules/rules': []
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1361,6 +1575,7 @@ describe('inspectHandler', () => {
                             failsafeTimeout: 90
                         },
                         internalSelfIp: {
+                            enforcedFirewallPolicy: 'currentFirewallPolicy',
                             address: '10.0.0.2/24',
                             vlan: 'internalVlan',
                             trafficGroup: 'traffic-group-local-only',
@@ -1368,6 +1583,7 @@ describe('inspectHandler', () => {
                             class: 'SelfIp'
                         },
                         externalSelfIp: {
+                            stagedFirewallPolicy: 'currentFirewallPolicy',
                             address: '11.0.0.2/24',
                             vlan: 'externalVlan',
                             trafficGroup: 'traffic-group-local-only',
@@ -1450,6 +1666,56 @@ describe('inspectHandler', () => {
                                     }
                                 }
                             ]
+                        },
+                        exampleBGP: {
+                            class: 'RoutingBGP',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    redistributionList: [
+                                        {
+                                            routingProtocol: 'kernel',
+                                            routeMap: '/Common/routeMap1'
+                                        }
+                                    ]
+                                }
+                            ],
+                            gracefulRestart: {
+                                gracefulResetEnabled: true,
+                                restartTime: 120,
+                                stalePathTime: 0
+                            },
+                            holdTime: 35,
+                            keepAlive: 10,
+                            localAS: 65010,
+                            neighbors: [
+                                {
+                                    address: '10.1.1.2',
+                                    peerGroup: 'Neighbor_IN'
+                                }
+                            ],
+                            peerGroups: [
+                                {
+                                    name: 'Neighbor_IN',
+                                    remoteAS: 65020,
+                                    addressFamilies: [
+                                        {
+                                            internetProtocol: 'ipv4',
+                                            routeMap: {
+                                                in: '/Common/routeMapIn',
+                                                out: '/Common/routeMapOut'
+                                            },
+                                            softReconfigurationInboundEnabled: true
+                                        },
+                                        {
+                                            internetProtocol: 'ipv6',
+                                            routeMap: {},
+                                            softReconfigurationInboundEnabled: false
+                                        }
+                                    ]
+                                }
+                            ],
+                            routerId: '10.1.1.1'
                         },
                         currentConfigSync: {
                             configsyncIp: '10.0.0.2',
@@ -1954,6 +2220,68 @@ describe('inspectHandler', () => {
                             enabled: true,
                             lbMode: 'global-availability',
                             members: []
+                        },
+                        currentFirewallAddressList: {
+                            class: 'FirewallAddressList',
+                            remark: 'firewall address list description',
+                            addresses: ['10.1.0.1', '10.2.0.0/24'],
+                            fqdns: ['www.example.com'],
+                            geo: ['US:Washington']
+                        },
+                        currentFirewallPortList: {
+                            class: 'FirewallPortList',
+                            remark: 'firewall port list description',
+                            ports: ['8080', '8888']
+                        },
+                        currentFirewallPolicy: {
+                            class: 'FirewallPolicy',
+                            remark: 'firewall policy description',
+                            rules: [
+                                {
+                                    name: 'firewallPolicyRuleOne',
+                                    remark: 'firewall policy rule one description',
+                                    action: 'accept',
+                                    protocol: 'any',
+                                    loggingEnabled: false,
+                                    source: {},
+                                    destination: {}
+                                },
+                                {
+                                    name: 'firewallPolicyRuleTwo',
+                                    remark: 'firewall policy rule two description',
+                                    action: 'reject',
+                                    protocol: 'tcp',
+                                    loggingEnabled: true,
+                                    source: {
+                                        vlans: [
+                                            '/Common/vlan1',
+                                            '/Common/vlan2'
+                                        ],
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        currentFirewallPolicyNoRules: {
+                            class: 'FirewallPolicy',
+                            rules: []
                         }
                     }
                 }

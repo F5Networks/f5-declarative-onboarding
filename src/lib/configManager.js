@@ -228,6 +228,10 @@ class ConfigManager {
                                         patchGSLBMonitor.call(this, item);
                                     }
 
+                                    if (schemaClass === 'RoutingBGP') {
+                                        patchRoutingBGP.call(this, item);
+                                    }
+
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties(patchedItem, this.configItems[index]);
 
@@ -290,6 +294,10 @@ class ConfigManager {
                                         referencePromises,
                                         referenceInfo
                                     );
+                                } else if (shouldIgnore(item, this.configItems[index].ignore)) {
+                                    if (!currentConfig[schemaClass]) {
+                                        currentConfig[schemaClass] = {};
+                                    }
                                 }
                             });
                         }
@@ -332,24 +340,28 @@ class ConfigManager {
                                 delete patchedItem.include;
                             }
                         }
+
                         if (schemaClass === 'HTTPD') {
                             patchHTTPD.call(
                                 this,
                                 patchedItem
                             );
                         }
+
                         if (schemaClass === 'Disk' && patchedItem.apiRawValues) {
                             patchedItem = patchedItem.apiRawValues;
                             Object.keys(patchedItem).forEach((item) => {
                                 patchedItem[item] = parseInt(patchedItem[item], 10);
                             });
                         }
+
                         if (schemaClass === 'GSLBGlobals') {
                             patchedItem = patchGSLBGlobals.call(
                                 this,
                                 patchedItem
                             );
                         }
+
                         currentConfig[schemaClass] = patchedItem;
                         getReferencedPaths.call(
                             this,
@@ -428,12 +440,45 @@ class ConfigManager {
                 }
 
                 const currentDisk = state.currentConfig.Common.Disk;
-                if (currentDisk && currentDisk.applicationData
-                    && currentDisk.applicationData > originalConfig.Common.Disk.applicationData) {
-                    if (!originalConfig.Common.Disk) {
-                        originalConfig.Common.Disk = {};
+                if (currentDisk && currentDisk.applicationData && originalConfig.Common) {
+                    // We need to update the originalConfig.applicationData in case of rollback.
+                    // applicationData cannot be reduced in size, so update if DISK information is
+                    // missing or smaller than the currentDisk.
+                    if (!originalConfig.Common.Disk
+                        || currentDisk.applicationData > originalConfig.Common.Disk.applicationData) {
+                        originalConfig.Common = {
+                            Disk: {
+                                applicationData: currentDisk.applicationData
+                            }
+                        };
                     }
-                    originalConfig.Common.Disk.applicationData = currentDisk.applicationData;
+                }
+
+                // update originalConfig class defaults with the current provisioned module state
+                const currentProvision = state.currentConfig.Common.Provision;
+                if (currentProvision && originalConfig.Common) {
+                    const provisionState = Object.keys(currentProvision).reduce((result, module) => {
+                        if (currentProvision[module] === 'none') {
+                            result.deprovisioned.push(module);
+                        } else {
+                            result.provisioned.push(module);
+                        }
+                        return result;
+                    }, { provisioned: [], deprovisioned: [] });
+
+                    this.configItems.forEach((item) => {
+                        if (!item.requiredModule
+                            || provisionState.provisioned.indexOf(item.requiredModule) > -1) {
+                            // add default empty objects for classes that do not exist
+                            originalConfig.Common[item.schemaClass] = originalConfig.Common[item.schemaClass] || {};
+                        } else if (item.requiredModule
+                            && provisionState.deprovisioned.indexOf(item.requiredModule) > -1
+                            && originalConfig.Common[item.schemaClass]
+                            && Object.keys(originalConfig.Common[item.schemaClass]).length === 0) {
+                            // remove default empty objects for classes that require de-provisioned module
+                            delete originalConfig.Common[item.schemaClass];
+                        }
+                    });
                 }
 
                 // Patch GSLB Prober Pool members after they've been dereferenced
@@ -447,6 +492,24 @@ class ConfigManager {
                         (currentGSLBProberPool[key].members || []).sort((a, b) => a.order - b.order);
                     });
                 }
+
+                // Patch RoutingBGP neighbor members after they've been dereferenced
+                const currentRoutingBgp = state.currentConfig.Common.RoutingBGP;
+                Object.keys(currentRoutingBgp || []).forEach((key) => {
+                    doUtil.sortArrayByValueString(currentRoutingBgp[key].neighbor, 'address');
+                    if (currentRoutingBgp[key].neighbor) {
+                        currentRoutingBgp[key].neighbors = JSON.parse(
+                            JSON.stringify(currentRoutingBgp[key].neighbor)
+                        );
+                        delete currentRoutingBgp[key].neighbor;
+                    }
+                    if (currentRoutingBgp[key].peerGroup) {
+                        currentRoutingBgp[key].peerGroups = JSON.parse(
+                            JSON.stringify(currentRoutingBgp[key].peerGroup)
+                        );
+                        delete currentRoutingBgp[key].peerGroup;
+                    }
+                });
 
                 // Patch GSLB Server virtual servers after they've been dereferenced
                 const currentGSLBServer = state.currentConfig.Common.GSLBServer;
@@ -466,6 +529,27 @@ class ConfigManager {
                             if (virtualServer.addressTranslation === 'none') {
                                 delete virtualServer.addressTranslation;
                             }
+                        });
+                    });
+                }
+
+                // Patch Firewall Policy rules after they've been dereferenced
+                const currentFirewallPolicy = state.currentConfig.Common.FirewallPolicy;
+                if (currentFirewallPolicy) {
+                    Object.keys(currentFirewallPolicy).forEach((key) => {
+                        const allowedSourceKeys = ['vlans', 'addressLists', 'portLists'];
+                        const allowedDestinationKeys = ['addressLists', 'portLists'];
+
+                        const filter = (obj, allowedKeys) => Object.keys(obj)
+                            .filter(objKey => allowedKeys.indexOf(objKey) > -1)
+                            .reduce((newObj, objKey) => {
+                                newObj[objKey] = obj[objKey];
+                                return newObj;
+                            }, {});
+
+                        (currentFirewallPolicy[key].rules || []).forEach((rule) => {
+                            rule.source = filter(rule.source, allowedSourceKeys);
+                            rule.destination = filter(rule.destination, allowedDestinationKeys);
                         });
                     });
                 }
@@ -581,7 +665,7 @@ function mapProperties(item, configItem) {
 
             if (property.transform) {
                 const transformProperty = function (currentProperty) {
-                    if (Array.isArray(currentProperty)) {
+                    if (Array.isArray(currentProperty) && !property.transformAsArray) {
                         // Iterate through currentProperty to convert subobjects
                         const output = currentProperty.map(prop => transformProperty(prop));
                         return output;
@@ -603,8 +687,20 @@ function mapProperties(item, configItem) {
                             value = match.pop();
                         }
 
+                        if (trans.extract) {
+                            if (property.transformAsArray) {
+                                value = currentProperty.map(prop => prop[trans.extract]);
+                            } else {
+                                value = currentProperty[trans.extract];
+                            }
+                        }
+
                         if (trans.removeKeys) {
                             doUtil.deleteKeys(value, trans.removeKeys);
+                        }
+
+                        if (trans.truth !== undefined) {
+                            value = mapTruth(currentProperty, trans);
                         }
 
                         // Attempt to convert values
@@ -617,7 +713,13 @@ function mapProperties(item, configItem) {
                     return newProperty;
                 };
 
-                mappedItem[property.id] = transformProperty(mappedItem[property.id]);
+                const transformed = transformProperty(mappedItem[property.id]);
+                if (!property.transformAsArray) {
+                    mappedItem[property.id] = transformed;
+                } else {
+                    // when transforming an array, we can only do one property for now
+                    mappedItem[property.id] = transformed[property.transform[0].id];
+                }
             }
             hasVal = true;
         } else if (property.defaultWhenOmitted !== undefined) {
@@ -977,6 +1079,22 @@ function patchGSLBMonitor(item) {
 function patchGSLBProberPool(patchedItem) {
     patchedItem.enabled = isEnabledGtmObject(patchedItem);
     delete patchedItem.disabled;
+}
+
+/**
+ * Renames deeply nested 'name' property to 'routingProtocol'
+ *
+ * @param {Object} patchedItem - config item that needs patching
+ */
+function patchRoutingBGP(patchedItem) {
+    (patchedItem.addressFamily || []).forEach((family) => {
+        (family.redistribute || []).forEach((redist) => {
+            if (redist.name) {
+                redist.routingProtocol = redist.name;
+                delete redist.name;
+            }
+        });
+    });
 }
 
 /**

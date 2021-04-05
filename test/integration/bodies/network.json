@@ -150,6 +150,49 @@
                     }
                 }
             ]
+        },
+        "testRoutingBGP": {
+            "class": "RoutingBGP",
+            "addressFamilies": [
+                {
+                    "internetProtocol": "ipv4",
+                    "redistributionList": [
+                        {
+                            "routingProtocol": "kernel",
+                            "routeMap": "testRouteMap"
+                        }
+                    ]
+                }
+            ],
+            "gracefulRestart": {
+                "gracefulResetEnabled": true,
+                "restartTime": 120
+            },
+            "holdTime": 35,
+            "keepAlive": 10,
+            "localAS": 50208,
+            "neighbors": [
+                {
+                    "address": "10.1.1.2",
+                    "peerGroup": "Neighbor"
+                }
+            ],
+            "peerGroups": [
+                {
+                    "name": "Neighbor",
+                    "addressFamilies": [
+                        {
+                            "internetProtocol": "ipv4",
+                            "routeMap": {
+                                "out": "testRouteMap"
+                            },
+                            "softReconfigurationInboundEnabled": true
+                        }
+                    ],
+                    "remoteAS": 65020
+                }
+            ],
+            "routerId": "10.1.1.1"
         }
     }
 }

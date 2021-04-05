@@ -38,14 +38,21 @@ If `npx` is available on your system, you can run the locally installed version 
     * To fix this, ssh into the BIG-IP via a terminal and run the following command:
       * `tmsh modify sys sshd include "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,aes192-cbc,aes256-cbc,arcfour,rijndael-cbc@lysator.liu.se"`
       * Note: This command occassionally has issues on 14.1.
-3. To setup the BIG-IPs for testing, run the following command from the root of the DO repo:
+3. Alternatives to setting up BIG-IPs
+  * If you have the openstack client installed, you can use the same method we use to deploy the devices during integration testing:
+    * INTEGRATION_ROOT_PASSWORD=\<root_password\> INTEGRATION_ADMIN_PASSWORD=\<admin_password\> BIGIP_IMAGE=\<big_ip_image_name\> scripts/dev/rebuild-test-env.sh
+    * This will create three devices and write the output to `test_harness.json`. You can set the environment var `TEST_HARNESS_FILE` to change the location.
+    * Devices will be created in your personal VIO project.
+  * Copy one of the existing GitLab schedules and run it (or just run one of the existing schedules).
+    * Devices will be created in the vio-do-testing VIO project.
+4. To setup the BIG-IPs for testing, run the following command from the root of the DO repo:
   * npm run build
   * npm ci
   * `RPM_PACKAGE=$(ls -1t dist/*.rpm | head -1) TEST_HARNESS_FILE=test_harness.json node test/integration/setup.js`
     * RPM_PACKAGE: This is the RPM to be used in the testing.
     * TEST_HARNESS_FILE: This is the PATH to the file created in step 2.
   * Note: This will only install the RPM if there's a name change from what is installed.
-4. Now you are able to run the tests you want.
+5. Now you are able to run the tests you want.
   * `TEST_HARNESS_FILE=test_harness.json BIG_IQ_HOST=10.145.68.175 BIG_IQ_USERNAME=admin BIG_IQ_PASSWORD=admin ARTIFACTORY_BASE_URL=<our_artifactory_url> npm run integration`
     * TEST_HARNESS_FILE: This is the PATH to the file created in step 2.
     * BIG_IQ_HOST: IP address to the BIG-IQ setup in step 1.

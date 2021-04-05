@@ -340,6 +340,64 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }
             }
         ));
+
+        it('should match RoutingBGP', () => assert.deepStrictEqual(
+            currentState.RoutingBGP,
+            {
+                testRoutingBGP: {
+                    name: 'testRoutingBGP',
+                    addressFamilies: [
+                        {
+                            internetProtocol: 'ipv4',
+                            redistributionList: [
+                                {
+                                    routingProtocol: 'kernel',
+                                    routeMap: '/Common/testRouteMap'
+                                }
+                            ]
+                        },
+                        {
+                            internetProtocol: 'ipv6'
+                        }
+                    ],
+                    gracefulRestart: {
+                        gracefulResetEnabled: true,
+                        restartTime: 120,
+                        stalePathTime: 0
+                    },
+                    holdTime: 35,
+                    keepAlive: 10,
+                    localAS: 50208,
+                    neighbors: [
+                        {
+                            address: '10.1.1.2',
+                            peerGroup: 'Neighbor'
+                        }
+                    ],
+                    peerGroups: [
+                        {
+                            name: 'Neighbor',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    routeMap: {
+                                        out: '/Common/testRouteMap'
+                                    },
+                                    softReconfigurationInboundEnabled: true
+                                },
+                                {
+                                    internetProtocol: 'ipv6',
+                                    routeMap: {},
+                                    softReconfigurationInboundEnabled: false
+                                }
+                            ],
+                            remoteAS: 65020
+                        }
+                    ],
+                    routerId: '10.1.1.1'
+                }
+            }
+        ));
     });
 
     describe('Test Experimental Status Codes', function testExperimentalStatusCodes() {
@@ -552,6 +610,129 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     reject(err);
                 });
         }));
+
+        describe('Test Firewall', function testFirewall() {
+            this.timeout(1000 * 60 * 30); // 30 minutes
+            let body;
+            let currentState;
+
+            before(() => {
+                const bodyFile = `${BODIES}/firewall.json`;
+                return new Promise((resolve, reject) => {
+                    common.readFile(bodyFile)
+                        .then((fileRead) => {
+                            body = JSON.parse(fileRead);
+                        })
+                        .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
+                            + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
+                        .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
+                            constants.HTTP_SUCCESS))
+                        .then((response) => {
+                            currentState = response.currentConfig.Common;
+                            resolve();
+                        })
+                        .catch(error => logError(error, bigIpAddress, bigIpAuth))
+                        .then((declarationStatus) => {
+                            reject(new Error(JSON.stringify(declarationStatus, null, 2)));
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
+                });
+            });
+
+            it('should match self ip', () => {
+                assert.deepStrictEqual(
+                    currentState.SelfIp,
+                    {
+                        mySelfIp: {
+                            name: 'mySelfIp',
+                            address: '10.148.75.46/24',
+                            vlan: 'myVlan',
+                            trafficGroup: 'traffic-group-local-only',
+                            allowService: [
+                                'tcp:80'
+                            ],
+                            enforcedFirewallPolicy: 'myFirewallPolicy',
+                            stagedFirewallPolicy: 'myFirewallPolicy'
+                        }
+                    }
+                );
+            });
+
+            it('should match VLAN', () => {
+                assert.ok(testVlan(body.Common.myVlan, currentState));
+            });
+
+            it('should match FirewallPortList', () => assert.deepStrictEqual(
+                currentState.FirewallPortList,
+                {
+                    myFirewallPortList: {
+                        name: 'myFirewallPortList',
+                        remark: 'firewall port list description',
+                        ports: ['8080', '8888']
+                    }
+                }
+            ));
+
+            it('should match FirwallAddressList', () => assert.deepStrictEqual(
+                currentState.FirewallAddressList,
+                {
+                    myFirewallAddressList: {
+                        name: 'myFirewallAddressList',
+                        remark: 'firewall address list description',
+                        addresses: ['10.1.0.1', '10.2.0.0/24'],
+                        geo: ['US:Washington']
+                    }
+                }
+            ));
+
+            it('should match FirewallPolicy', () => assert.deepStrictEqual(
+                currentState.FirewallPolicy,
+                {
+                    myFirewallPolicy: {
+                        name: 'myFirewallPolicy',
+                        remark: 'firewall policy description',
+                        rules: [
+                            {
+                                name: 'firewallPolicyRuleOne',
+                                remark: 'firewall policy rule description',
+                                action: 'reject',
+                                protocol: 'tcp',
+                                loggingEnabled: true,
+                                source: {
+                                    vlans: [
+                                        '/Common/myVlan'
+                                    ],
+                                    addressLists: [
+                                        '/Common/myFirewallAddressList'
+                                    ],
+                                    portLists: [
+                                        '/Common/myFirewallPortList'
+                                    ]
+                                },
+                                destination: {
+                                    addressLists: [
+                                        '/Common/myFirewallAddressList'
+                                    ],
+                                    portLists: [
+                                        '/Common/myFirewallPortList'
+                                    ]
+                                }
+                            },
+                            {
+                                name: 'firewallPolicyRuleTwo',
+                                action: 'accept',
+                                protocol: 'any',
+                                loggingEnabled: false,
+                                source: {},
+                                destination: {}
+                            }
+                        ]
+                    }
+                }
+            ));
+        });
 
         describe('Test GSLB', function testGslb() {
             let currentState;

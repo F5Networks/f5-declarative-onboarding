@@ -657,6 +657,11 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const state = {
             currentConfig: {
                 Common: {
+                    RoutingBGP: {
+                        routinBgpTest: {
+                            asLocal: 1
+                        }
+                    },
                     RouteMap: {
                         routeMapTest: {
                             name: 44,
@@ -712,6 +717,9 @@ describe(('deleteHandler'), function testDeleteHandler() {
 
         const declaration = {
             Common: {
+                RoutingBGP: {
+                    routingBgpTest: {}
+                },
                 RoutingAsPath: {
                     routingAsPathTest: {}
                 },
@@ -854,6 +862,42 @@ describe(('deleteHandler'), function testDeleteHandler() {
             .then(() => {
                 assert.strictEqual(deletedPaths.length, 1);
                 assert.strictEqual(deletedPaths[0], '/tm/gtm/monitor/http/~Common~gslbMonitor');
+            });
+    });
+
+    it('should delete a FirewallPolicy', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    FirewallPolicy: {
+                        firewallPolicy: {
+                            name: 'firewallPolicy',
+                            rules: [
+                                {
+                                    name: 'firewallPolicyRule',
+                                    action: 'accept',
+                                    protocol: 'any',
+                                    loggingEnabled: false
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                FirewallPolicy: {
+                    firewallPolicy: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/security/firewall/policy/~Common~firewallPolicy']);
             });
     });
 });

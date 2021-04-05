@@ -93,6 +93,7 @@ function handleProvision() {
     }
 
     const provision = getProvision.call(this);
+
     return this.bigIp.onboard.provision(provision)
         .then((results) => {
             // If we provisioned something make sure we are active for a while.

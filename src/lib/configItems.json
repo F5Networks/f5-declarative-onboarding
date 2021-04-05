@@ -135,7 +135,9 @@
             { "id": "address" },
             { "id": "vlan", "isRef": true },
             { "id": "trafficGroup" },
-            { "id": "allowService" }
+            { "id": "allowService" },
+            { "id": "fwEnforcedPolicy", "newId": "enforcedFirewallPolicy" },
+            { "id": "fwStagedPolicy", "newId": "stagedFirewallPolicy" }
         ]
     },
     {
@@ -197,6 +199,49 @@
                     { "id": "ipv6", "removeKeys": [ "peer" ] }
                   ]
                 }
+            ]
+        }
+    },
+    {
+        "path": "/tm/net/routing/bgp",
+        "schemaClass": "RoutingBGP",
+        "properties": [
+            { "id": "name" },
+            { "id": "addressFamily", "newId": "addressFamilies",
+                "transform": [
+                    { "id": "name", "newId": "internetProtocol" },
+                    { "id": "redistribute", "newId": "redistributionList" }
+                ]
+            },
+            { "id": "localAs", "newId": "localAS" },
+            { "id": "routerId"},
+            { "id": "gracefulRestart",
+                "transform": [
+                    { "id": "gracefulReset", "newId": "gracefulResetEnabled", "truth": "enabled", "falsehood": "disabled" },
+                    { "id": "restartTime" },
+                    { "id": "stalepathTime", "newId": "stalePathTime" }
+                ]
+            },
+            { "id": "keepAlive" },
+            { "id": "holdTime" },
+            { "id": "peerGroupReference" },
+            { "id": "neighborReference" }
+        ],
+        "references": {
+            "peerGroupReference": [
+                { "id": "name" },
+                { "id": "remoteAs", "newId": "remoteAS" },
+                { "id": "addressFamily", "newId": "addressFamilies",
+                    "transform": [
+                        { "id": "name", "newId": "internetProtocol" },
+                        { "id": "routeMap" },
+                        { "id": "softReconfigurationInbound", "newId": "softReconfigurationInboundEnabled", "truth": "enabled", "falsehood": "disabled" }
+                    ]
+                }
+            ],
+            "neighborReference": [
+                { "id": "name", "newId": "address" },
+                { "id": "peerGroup" }
             ]
         }
     },
@@ -764,19 +809,19 @@
         },
         "requiredModule": "gtm",
         "properties": [
-            { "id":"kind" },
-            { "id":"description", "newId": "remark" },
-            { "id":"destination", "newId": "target" },
-            { "id":"interval" },
-            { "id":"timeout" },
-            { "id":"probeTimeout" },
-            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"send" },
-            { "id":"recv", "newId": "receive" },
-            { "id":"cipherlist", "newId": "ciphers" },
-            { "id":"cert", "newId":"clientCertificate" }
+            { "id": "kind" },
+            { "id": "description", "newId": "remark" },
+            { "id": "destination", "newId": "target" },
+            { "id": "interval" },
+            { "id": "timeout" },
+            { "id": "probeTimeout" },
+            { "id": "ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "send" },
+            { "id": "recv", "newId": "receive" },
+            { "id": "cipherlist", "newId": "ciphers" },
+            { "id": "cert", "newId":"clientCertificate" }
         ]
     },
     {
@@ -787,16 +832,16 @@
         },
         "requiredModule": "gtm",
         "properties": [
-            { "id":"kind" },
-            { "id":"description", "newId": "remark" },
-            { "id":"destination", "newId": "target" },
-            { "id":"interval" },
-            { "id":"timeout" },
-            { "id":"probeTimeout" },
-            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"probeInterval" },
-            { "id":"probeAttempts" }
+            { "id": "kind" },
+            { "id": "description", "newId": "remark" },
+            { "id": "destination", "newId": "target" },
+            { "id": "interval" },
+            { "id": "timeout" },
+            { "id": "probeTimeout" },
+            { "id": "ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "probeInterval" },
+            { "id": "probeAttempts" }
         ]
     },
     {
@@ -807,17 +852,17 @@
         },
         "requiredModule": "gtm",
         "properties": [
-            { "id":"kind" },
-            { "id":"description", "newId": "remark" },
-            { "id":"destination", "newId": "target" },
-            { "id":"interval" },
-            { "id":"timeout" },
-            { "id":"probeTimeout" },
-            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"send" },
-            { "id":"recv", "newId": "receive" }
+            { "id": "kind" },
+            { "id": "description", "newId": "remark" },
+            { "id": "destination", "newId": "target" },
+            { "id": "interval" },
+            { "id": "timeout" },
+            { "id": "probeTimeout" },
+            { "id": "ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "send" },
+            { "id": "recv", "newId": "receive" }
         ]
     },
     {
@@ -828,20 +873,20 @@
         },
         "requiredModule": "gtm",
         "properties": [
-            { "id":"kind" },
-            { "id":"description", "newId": "remark" },
-            { "id":"destination", "newId": "target" },
-            { "id":"interval" },
-            { "id":"timeout" },
-            { "id":"probeTimeout" },
-            { "id":"ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"transparent", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
-            { "id":"send" },
-            { "id":"recv", "newId": "receive" },
-            { "id":"probeInterval" },
-            { "id":"probeAttempts" },
-            { "id":"debug", "newId": "debugEnabled", "truth": "yes", "falsehood": "no" }
+            { "id": "kind" },
+            { "id": "description", "newId": "remark" },
+            { "id": "destination", "newId": "target" },
+            { "id": "interval" },
+            { "id": "timeout" },
+            { "id": "probeTimeout" },
+            { "id": "ignoreDownResponse", "newId": "ignoreDownResponseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "send" },
+            { "id": "recv", "newId": "receive" },
+            { "id": "probeInterval" },
+            { "id": "probeAttempts" },
+            { "id": "debug", "newId": "debugEnabled", "truth": "yes", "falsehood": "no" }
         ]
     },
     {
@@ -869,5 +914,73 @@
                 { "id": "formatGSLBProberPool" }
             ]
         }
+    },
+    {
+        "path": "/tm/security/firewall/policy",
+        "schemaClass": "FirewallPolicy",
+        "requiredModule": "afm",
+        "properties": [
+            { "id": "description", "newId": "remark" },
+            { "id": "rulesReference" }
+        ],
+        "references": {
+            "rulesReference": [
+                { "id": "name" },
+                { "id": "description", "newId": "remark" },
+                { "id": "action" },
+                { "id": "ipProtocol", "newId": "protocol" },
+                { "id": "log", "newId": "loggingEnabled", "truth": "yes", "falsehood": "no" },
+                { "id": "source" },
+                { "id": "destination" }
+            ]
+        }
+    },
+    {
+        "path": "/tm/security/firewall/address-list",
+        "schemaClass": "FirewallAddressList",
+        "requiredModule": "afm",
+        "properties": [
+            { "id": "description", "newId": "remark" },
+            {
+                "id": "addresses",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "addresses", "extract": "name" }
+                ]
+            },
+            {
+                "id": "fqdns",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "fqdns", "extract": "name" }
+                ]
+            },
+            {
+                "id": "geo",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "geo", "extract": "name" }
+                ]
+            }
+        ]
+    },
+    {
+        "path": "/tm/security/firewall/port-list",
+        "schemaClass": "FirewallPortList",
+        "requiredModule": "afm",
+        "properties": [
+            { "id": "description", "newId": "remark" },
+            {
+                "id": "ports",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "ports", "extract": "name" }
+                ]
+            }
+        ],
+        "ignore": [
+            { "name": "^_sys_self_allow_tcp_defaults$" },
+            { "name": "^_sys_self_allow_udp_defaults$" }
+        ]
     }
 ]

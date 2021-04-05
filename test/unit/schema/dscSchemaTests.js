@@ -294,6 +294,24 @@ describe('dsc.schema.json', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
 
+            it('should validate ipv4 owner', () => {
+                const data = {
+                    "class": "DeviceGroup",
+                    "type": "sync-only",
+                    "owner": "10.10.10.10"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate ipv6 owner', () => {
+                const data = {
+                    "class": "DeviceGroup",
+                    "type": "sync-only",
+                    "owner": "f5f5::"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
             it('should validate full device group data', () => {
                 const data = {
                     "class": "DeviceGroup",

@@ -220,6 +220,59 @@ The following example contains multiple prefix lists, but no other DO configurat
 :ref:`Back to top<networkexamples>`
 
 
+|
+
+.. _bgprouting:
+
+Configuring BGP Routing in a declaration  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for BGP routing is available in DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP
+
+This example shows how you can configure Border Gateway Protocol (BGP) routing in a Declarative Onboarding declaration. 
+
+For an excellent overview of BGP, see the F5 Lightboard lesson |bgpvid|.
+
+.. IMPORTANT:: BGP Routing is an experimental (Early Access) feature on the BIG-IP system.
+
+The BGP routing configuration uses the following Declarative Onboarding classes (some of the classes were introduced in previous versions of Declarative Onboarding, but the main **RoutingBGP** class, which is required to use BGP routing, was introduced in DO 1.20). The links go to the Schema Reference for descriptions and DO usage.
+
+- |routingbgp|
+- |routingaspath|
+- |prefix|
+- |routemap|
+
+The **RoutingBGP** class contains a number of properties used in the following example, so be sure to see |routingbgp| for descriptions and options.
+
+
+.. literalinclude:: ../../examples/bgp.json
+   :language: json
+
+|
+
+.. _firewallpolicy:
+
+Configuring a Firewall policy in a declaration  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for Firewall policies is available in DO v1.20 and later. You must have BIG-IP AFM licensed.
+
+This example shows how you can configure a firewall policy in a declaration. BIG-IP Network Firewall policies combine one or more rules and apply them as a combined policy to one context, such as a self IP as shown. 
+
+The AFM features we use in this declaration are well-documented in the |afmdocs|.
+
+You must have BIG-IP AFM provisioned as shown in the example.
+
+See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for descriptions and DO usage.
+
+.. NOTE:: The **firewallAddressList** class supports using FQDNs, however, FQDNs require a DNS Resolver on the BIG-IP which is not yet configurable using DO.  If you want to use FQDNs, you must manually configure a DNS Resolver before submitting the declaration. See |dnsresolverdocs| for manual configuration information.
+
+.. literalinclude:: ../../examples/firewallPolicy.json
+   :language: json
+
+
 .. |br| raw:: html
 
    <br />
@@ -382,5 +435,39 @@ The following example contains multiple prefix lists, but no other DO configurat
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingprefixlist-entries" target="_blank">RoutingPrefixList-Entries</a>
 
+.. |bgpvid| raw:: html
+
+   <a href="https://www.youtube.com/watch?v=_Z29ZzKeZHc" target="_blank">BGP overview</a>
+
+.. |routingbgp| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingbgp" target="_blank">RoutingBGP</a>
+
+.. |routingaspath| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingaspath" target="_blank">RoutingAsPath</a>
+
+.. |routemap| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routemap" target="_blank">RouteMap</a>
+
+.. |afmdocs| raw:: html
+
+   <a href="https://support.f5.com/kb/en-us/products/big-ip-afm/manuals/product/network-firewall-policies-implementations-13-1-0.html" target="_blank">AFM documentation</a>
+
+.. |fwp| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#firewallpolicy" target="_blank">FirewallPolicy</a>
 
 
+.. |fwal| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#firewalladdresslist" target="_blank">FirewallAddressList</a>
+
+.. |fwpl| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#firewallportlist" target="_blank">FirewallPortList</a>
+
+.. |dnsresolverdocs| raw:: html
+
+   <a href="https://techdocs.f5.com/en-us/bigip-15-1-0/big-ip-dns-services-implementations/configuring-dns-caching.html" target="_blank">DNS Caching documentation</a>

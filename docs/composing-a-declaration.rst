@@ -27,6 +27,8 @@ Sample declaration for a standalone BIG-IP
 
 In this section, we show an example of a standalone (non-clustered) declaration which configures some common system and networking components on the BIG-IP system.  To see an example of the parts of a declaration that onboards a cluster of BIG-IPs, see :doc:`clustering`. 
 
+.. TIP:: There may be additional properties available in some of the classes.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for detailed information on each class and their associated properties. 
+
 This example is the entire declaration.  The following sections break down each class of this example declaration. 
 
 
@@ -42,6 +44,8 @@ Components of the declaration
 In this section, we break down the example into each class so you can understand the options when composing your declaration. The tables below the examples contain descriptions and options for the parameters included in the example only.  
 
 If there is a default value, it is shown in bold in the Options column.  
+
+.. TIP:: There may be additional properties available in some of the classes.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for detailed information on each class and their associated properties. 
 
 Use the index in the left pane if you want to go directly to a particular class.
 
@@ -87,7 +91,7 @@ For more information, see |deviceclass| in the Schema Reference.
 
 **Example of the request sent to the webhook**
 
-.. code-block:: json
+.. code-block:: shell
 
     POST / HTTP/1.1
     Content-Type: application/json

@@ -117,7 +117,7 @@ Creating Routes in the LOCAL_ONLY partition
 
    Support for creating routes in the LOCAL_ONLY partition is available in DO v1.15 and later
 
-This example shows how to create a route in a special LOCAL_ONLY partition/tenant using the new **localOnly** property in the Route class. When using this feature, if this partition doesn't exist, Delclarative Onboarding creates it. 
+This example shows how to create a route in a special LOCAL_ONLY partition/tenant using the new **localOnly** property in the Route class. When using this feature, if this partition doesn't exist, Declarative Onboarding creates it. 
 
 This partition is required to configure an Amazon Web Services (AWS) *Across Network* cluster.
 
@@ -134,12 +134,11 @@ See |route| in the Schema Reference for DO usage and options.
 
 |
 
-
 .. _example30:
 
 Warning users the BIG-IP is under AS3 automation  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This example shows how you can use Delclarative Onboarding to discourage unintended configuration changes to a device that is managed by AS3. This example configures an advisory banner using the **DbVariables** class.
+This example shows how you can use Declarative Onboarding to discourage unintended configuration changes to a device that is managed by AS3. This example configures an advisory banner using the **DbVariables** class.
 
 .. literalinclude:: ../../examples/banner.json
    :language: json
@@ -152,7 +151,7 @@ This example shows how you can use Delclarative Onboarding to discourage uninten
 
 Increasing the memory allocated to the restjavad daemon  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This example shows how you can use Delclarative Onboarding to increase the amount of memory allocated to restjavad, using the **DbVariables** class.
+This example shows how you can use Declarative Onboarding to increase the amount of memory allocated to restjavad, using the **DbVariables** class.
   
 See (see :ref:`restjavad`) for reasons you may want to increase this memory allocation.
 
@@ -162,7 +161,7 @@ See (see :ref:`restjavad`) for reasons you may want to increase this memory allo
 :ref:`Back to top<misc-examples>`
 
 
-
+|
 
 .. |br| raw:: html
 
@@ -318,4 +317,5 @@ See (see :ref:`restjavad`) for reasons you may want to increase this memory allo
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mirrorip" target="_blank">MirrorIp</a>
 
-   
+
+

@@ -369,6 +369,24 @@ describe('networkHandler', () => {
     });
 
     describe('SelfIp', () => {
+        beforeEach(() => {
+            bigIpMock.list = (path) => {
+                if (path === '/tm/sys/provision') {
+                    return [
+                        {
+                            name: 'afm',
+                            level: 'nominal'
+                        },
+                        {
+                            name: 'asm',
+                            level: 'none'
+                        }
+                    ];
+                }
+                return Promise.resolve();
+            };
+        });
+
         it('should handle fully specified SelfIps', () => {
             const declaration = {
                 Common: {
@@ -378,14 +396,16 @@ describe('networkHandler', () => {
                             vlan: '/Common/vlan1',
                             address: '1.2.3.4',
                             trafficGroup: '/Common/traffic-group-local-only',
-                            allowService: ['tcp:1234', 'tcp:5678']
+                            allowService: ['tcp:1234', 'tcp:5678'],
+                            enforcedFirewallPolicy: 'firewallPolicy'
                         },
                         selfIp2: {
                             name: 'selfIp2',
                             vlan: '/Common/vlan2',
                             address: '5.6.7.8',
                             trafficGroup: '/Common/traffic-group-local-only',
-                            allowService: 'default'
+                            allowService: 'default',
+                            stagedFirewallPolicy: 'firewallPolicy'
                         }
                     }
                 }
@@ -405,6 +425,8 @@ describe('networkHandler', () => {
                         selfIpData[0].allowService, ['tcp:1234', 'tcp:5678']
                     );
                     assert.strictEqual(selfIpData[0].partition, 'Common');
+                    assert.strictEqual(selfIpData[0].fwEnforcedPolicy, '/Common/firewallPolicy');
+                    assert.strictEqual(selfIpData[0].fwStagedPolicy, 'none');
                     assert.strictEqual(selfIpData[1].name, 'selfIp2');
                     assert.strictEqual(selfIpData[1].vlan, '/Common/vlan2');
                     assert.strictEqual(selfIpData[1].address, '5.6.7.8');
@@ -415,6 +437,8 @@ describe('networkHandler', () => {
                         selfIpData[1].allowService, 'default'
                     );
                     assert.strictEqual(selfIpData[1].partition, 'Common');
+                    assert.strictEqual(selfIpData[1].fwEnforcedPolicy, 'none');
+                    assert.strictEqual(selfIpData[1].fwStagedPolicy, '/Common/firewallPolicy');
                 });
         });
 
@@ -437,6 +461,30 @@ describe('networkHandler', () => {
                     assert.strictEqual(
                         selfIpData.vlan, '/Common/vlan1'
                     );
+                });
+        });
+
+        it('should skip setting firewall properties to "none" when AFM is not provisioned', () => {
+            const declaration = {
+                Common: {
+                    SelfIp: {
+                        selfIp1: {
+                            vlan: 'vlan1',
+                            name: 'selfIp1'
+                        }
+                    }
+                }
+            };
+
+            bigIpMock.list = () => Promise.resolve();
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const selfIpData = dataSent[PATHS.SelfIp];
+                    assert.strictEqual(selfIpData[0].name, 'selfIp1');
+                    assert.strictEqual(selfIpData[0].fwEnforcedPolicy, undefined);
+                    assert.strictEqual(selfIpData[0].fwStagedPolicy, undefined);
                 });
         });
 
@@ -546,7 +594,8 @@ describe('networkHandler', () => {
                     vlan: '/Common/vlan1',
                     address: '10.10.0.200/24',
                     trafficGroup: 'traffic-group-1',
-                    allowService: ['default']
+                    allowService: ['default'],
+                    fwEnforcedPolicy: '/Common/firewallPolicy'
                 };
                 const selfIpToKeep = {
                     name: 'non-floater',
@@ -587,7 +636,9 @@ describe('networkHandler', () => {
                                 vlan: '/Common/vlan1',
                                 address: '10.10.0.200/24',
                                 trafficGroup: 'traffic-group-1',
-                                allowService: ['default']
+                                allowService: ['default'],
+                                fwEnforcedPolicy: '/Common/firewallPolicy',
+                                fwStagedPolicy: undefined
                             });
                     });
             });
@@ -1192,7 +1243,41 @@ describe('networkHandler', () => {
                 });
         });
 
-        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath, RoutingPrefixList, and RouteMap', () => {
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingBGP', () => {
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+
+            const declaration = {
+                Common: {
+                    RoutingBGP: {
+                        routingBGP1: {
+                            name: 'routingBGP1'
+                        },
+                        routingBGP2: {
+                            name: 'routingBGP2'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
+                    assert.deepStrictEqual(data, [{ value: 'enable' }]);
+                });
+        });
+
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath, RoutingPrefixList, RouteMap, and RoutingBGP', () => {
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+
             const declaration = {
                 Common: {
                     RoutingAsPath: {
@@ -1270,11 +1355,16 @@ describe('networkHandler', () => {
                                 }
                             ]
                         }
+                    },
+                    RoutingBGP: {
+                        RoutingBGP1: {
+                            name: 'routingBGP1'
+                        }
                     }
                 }
             };
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
@@ -1282,16 +1372,23 @@ describe('networkHandler', () => {
                 });
         });
 
-        it('should not send out an enable value to the sys/db/...routing endpoint if a declaration lacks RoutingAsPath, RoutingPrefixList, and RouteMap', () => {
+        it('should not send out an enable value to the sys/db/...routing endpoint if a declaration lacks RoutingAsPath, RoutingPrefixList, RouteMap, and RoutingBGP', () => {
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+
             const declaration = {
                 Common: {
                     RoutingAsPath: {},
                     RoutingPrefixList: {},
-                    RouteMap: {}
+                    RouteMap: {},
+                    RoutingBGP: {}
                 }
             };
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
@@ -1645,6 +1742,783 @@ describe('networkHandler', () => {
                         partition: 'Common',
                         entries: {}
                     });
+                });
+        });
+    });
+
+    describe('RoutingBGP', () => {
+        const deletedPaths = [];
+        let bigIpMockSpy;
+
+        beforeEach(() => {
+            deletedPaths.length = 0;
+            bigIpMock.delete = (path) => {
+                deletedPaths.push(path);
+                return Promise.resolve();
+            };
+            bigIpMockSpy = sinon.spy(bigIpMock);
+        });
+
+        it('should handle a fully specified RoutingBGP', () => {
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+
+            const declaration = {
+                Common: {
+                    RoutingBGP: {
+                        routingBgp: {
+                            name: 'routingBgp',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4',
+                                    redistributionList: [
+                                        {
+                                            routingProtocol: 'kernel',
+                                            routeMap: '/Common/routeMap1'
+                                        },
+                                        {
+                                            routingProtocol: 'ospf'
+                                        }
+                                    ]
+                                },
+                                {
+                                    internetProtocol: 'ipv6',
+                                    redistributionList: [
+                                        {
+                                            routingProtocol: 'rip',
+                                            routeMap: 'none'
+                                        },
+                                        {
+                                            routingProtocol: 'static',
+                                            routeMap: '/Common/routeMap2'
+                                        }
+                                    ]
+                                }
+                            ],
+                            gracefulRestart: {
+                                gracefulResetEnabled: true,
+                                restartTime: 120,
+                                stalePathTime: 240
+                            },
+                            holdTime: 35,
+                            keepAlive: 10,
+                            localAS: 65010,
+                            peerGroups: [
+                                {
+                                    name: 'Neighbor_IN',
+                                    addressFamilies: [
+                                        {
+                                            internetProtocol: 'ipv4',
+                                            routeMap: {
+                                                in: 'routeMapIn1',
+                                                out: 'routeMapOut1'
+                                            },
+                                            softReconfigurationInboundEnabled: true
+                                        }
+                                    ],
+                                    remoteAS: 65020
+                                },
+                                {
+                                    name: 'Neighbor_OUT',
+                                    addressFamilies: [
+                                        {
+                                            internetProtocol: 'ipv6',
+                                            routeMap: {
+                                                in: 'routeMapIn2',
+                                                out: 'routeMapOut2'
+                                            },
+                                            softReconfigurationInboundEnabled: false
+                                        }
+                                    ],
+                                    remoteAS: 65040
+                                }
+                            ],
+                            neighbors: [
+                                {
+                                    address: '10.2.2.2',
+                                    peerGroup: 'Neighbor_IN'
+                                },
+                                {
+                                    address: '10.2.2.3',
+                                    peerGroup: 'Neighbor_OUT'
+                                }
+                            ],
+                            routerId: '10.1.1.1'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RoutingBGP];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'routingBgp',
+                        partition: 'Common',
+                        addressFamily: [
+                            {
+                                name: 'ipv4',
+                                redistribute: [
+                                    {
+                                        name: 'kernel',
+                                        routeMap: '/Common/routeMap1'
+                                    },
+                                    {
+                                        name: 'ospf',
+                                        routeMap: 'none'
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'ipv6',
+                                redistribute: [
+                                    {
+                                        name: 'rip',
+                                        routeMap: 'none'
+                                    },
+                                    {
+                                        name: 'static',
+                                        routeMap: '/Common/routeMap2'
+                                    }
+                                ]
+                            }
+                        ],
+                        gracefulRestart: {
+                            gracefulReset: 'enabled',
+                            restartTime: 120,
+                            stalepathTime: 240
+                        },
+                        holdTime: 35,
+                        keepAlive: 10,
+                        localAs: 65010,
+                        neighbor: [
+                            {
+                                name: '10.2.2.2',
+                                peerGroup: 'Neighbor_IN'
+                            },
+                            {
+                                name: '10.2.2.3',
+                                peerGroup: 'Neighbor_OUT'
+                            }
+                        ],
+                        peerGroup: [
+                            {
+                                name: 'Neighbor_IN',
+                                addressFamily: [
+                                    {
+                                        name: 'ipv4',
+                                        routeMap: {
+                                            in: 'routeMapIn1',
+                                            out: 'routeMapOut1'
+                                        },
+                                        softReconfigurationInbound: 'enabled'
+                                    }
+                                ],
+                                remoteAs: 65020
+                            },
+                            {
+                                name: 'Neighbor_OUT',
+                                addressFamily: [
+                                    {
+                                        name: 'ipv6',
+                                        routeMap: {
+                                            in: 'routeMapIn2',
+                                            out: 'routeMapOut2'
+                                        },
+                                        softReconfigurationInbound: 'disabled'
+                                    }
+                                ],
+                                remoteAs: 65040
+                            }
+                        ],
+                        routerId: '10.1.1.1'
+                    });
+                    assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                    assert.strictEqual(bigIpMockSpy.delete.callCount, 0);
+                });
+        });
+
+        it('should handle renaming a RoutingBGP', () => {
+            const state = {
+                currentConfig: {
+                    Common: {
+                        RoutingBGP: {
+                            oldName: {
+                                name: 'oldName'
+                            },
+                            keepMe: {
+                                name: 'keepMe'
+                            }
+                        }
+                    }
+                }
+            };
+
+            const declaration = {
+                Common: {
+                    RoutingBGP: {
+                        newName: {
+                            name: 'newName'
+                        },
+                        keepMe: {
+                            name: 'keepMe'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(deletedPaths.length, 1);
+                    assert.deepStrictEqual(deletedPaths[0], '/tm/net/routing/bgp/~Common~oldName');
+                    assert.deepStrictEqual(dataSent[PATHS.RoutingBGP].length, 2);
+                    assert.deepStrictEqual(dataSent[PATHS.RoutingBGP][0].name, 'newName');
+                    assert.deepStrictEqual(dataSent[PATHS.RoutingBGP][1].name, 'keepMe');
+                });
+        });
+
+        it('should handle a false gracefulResetEnabled', () => {
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+
+            const declaration = {
+                Common: {
+                    RoutingBGP: {
+                        routingBgp: {
+                            name: 'routingBgp',
+                            gracefulRestart: {
+                                gracefulResetEnabled: false
+                            }
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RoutingBGP];
+                    assert.deepStrictEqual(data[0].gracefulRestart.gracefulReset, 'disabled');
+                    assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                    assert.strictEqual(bigIpMockSpy.delete.callCount, 0);
+                });
+        });
+
+        it('should handle an empty peerGroups addressFamilies routeMap', () => {
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+
+            const declaration = {
+                Common: {
+                    RoutingBGP: {
+                        routingBgp: {
+                            name: 'routingBgp',
+                            gracefulRestart: {
+                                gracefulResetEnabled: false,
+                                restartTime: 0,
+                                stalePathTime: 0
+                            },
+                            holdTime: 90,
+                            keepAlive: 30,
+                            localAS: 65010,
+                            peerGroups: [
+                                {
+                                    name: 'Neighbor_IN',
+                                    addressFamilies: [
+                                        {
+                                            internetProtocol: 'ipv4',
+                                            routeMap: {},
+                                            softReconfigurationInboundEnabled: true
+                                        }
+                                    ],
+                                    remoteAS: 65020
+                                }
+                            ],
+                            routerId: 'any6'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RoutingBGP];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'routingBgp',
+                        addressFamily: [],
+                        gracefulRestart: {
+                            gracefulReset: 'disabled',
+                            restartTime: 0,
+                            stalepathTime: 0
+                        },
+                        holdTime: 90,
+                        keepAlive: 30,
+                        localAs: 65010,
+                        partition: 'Common',
+                        neighbor: [],
+                        peerGroup: [
+                            {
+                                name: 'Neighbor_IN',
+                                addressFamily: [
+                                    {
+                                        name: 'ipv4',
+                                        routeMap: {
+                                            in: 'none',
+                                            out: 'none'
+                                        },
+                                        softReconfigurationInbound: 'enabled'
+                                    }
+                                ],
+                                remoteAs: 65020
+                            }
+                        ],
+                        routerId: 'any6'
+                    });
+
+                    assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                    assert.strictEqual(bigIpMockSpy.delete.callCount, 0);
+                });
+        });
+
+        describe('rejections and deletions', () => {
+            it('should reject in the delete phase', () => {
+                const state = {
+                    currentConfig: {
+                        Common: {
+                            RoutingBGP: {
+                                routingBgp: {
+                                    name: 'routingBgp',
+                                    peerGroups: [
+                                        {
+                                            name: 'Neighbor_IN'
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const declaration = {
+                    Common: {
+                        RoutingBGP: {
+                            routingBgp: {
+                                name: 'routingBgp'
+                            }
+                        }
+                    }
+                };
+
+                bigIpMock.delete = () => Promise.reject(new Error('Test generated error'));
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return assert.isRejected(networkHandler.process(), 'Test generated error');
+            });
+
+            it('should reject in the create phase', () => {
+                const state = {
+                    currentConfig: {
+                        Common: {
+                            RoutingBGP: {
+                                routingBgp: {
+                                    name: 'routingBgp',
+                                    peerGroups: [
+                                        {
+                                            name: 'Neighbor_IN'
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const declaration = {
+                    Common: {
+                        RoutingBGP: {
+                            routingBgp: {
+                                name: 'routingBgp'
+                            }
+                        }
+                    }
+                };
+
+                bigIpMock.createOrModify = () => Promise.reject(new Error('Test generated error'));
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return assert.isRejected(networkHandler.process(), 'Test generated error');
+            });
+
+            it('should call delete if RoutingBGP is in decl and current config and current has peerGroups members', () => {
+                const state = {
+                    currentConfig: {
+                        Common: {
+                            RoutingBGP: {
+                                routingBgp: {
+                                    name: 'routingBgp',
+                                    peerGroups: [
+                                        {
+                                            name: 'Neighbor_IN'
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const declaration = {
+                    Common: {
+                        RoutingBGP: {
+                            routingBgp: {
+                                name: 'routingBgp'
+                            }
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(deletedPaths.length, 1);
+                        assert.deepStrictEqual(deletedPaths[0], '/tm/net/routing/bgp/~Common~routingBgp');
+                        assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                        assert.strictEqual(bigIpMockSpy.delete.callCount, 1);
+                    });
+            });
+
+            it('should call delete if RoutingBGP has localAS changes', () => {
+                const state = {
+                    currentConfig: {
+                        Common: {
+                            RoutingBGP: {
+                                routingBgp: {
+                                    name: 'routingBgp',
+                                    localAS: 10
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const declaration = {
+                    Common: {
+                        RoutingBGP: {
+                            routingBgp: {
+                                name: 'routingBgp',
+                                localAS: 20
+                            }
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        const data = dataSent[PATHS.RoutingBGP];
+                        assert.deepStrictEqual(data[0].localAs, 20);
+                        assert.deepStrictEqual(deletedPaths.length, 1);
+                        assert.deepStrictEqual(deletedPaths[0], '/tm/net/routing/bgp/~Common~routingBgp');
+                        assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                        assert.strictEqual(bigIpMockSpy.delete.callCount, 1);
+                    });
+            });
+
+            it('should not call delete if RoutingBGP is in decl and current config and current has no peerGroups members', () => {
+                const state = {
+                    currentConfig: {
+                        Common: {
+                            RoutingBGP: {
+                                routingBgp: {
+                                    name: 'routingBgp',
+                                    peerGroups: []
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const declaration = {
+                    Common: {
+                        RoutingBGP: {
+                            routingBgp: {
+                                name: 'routingBgp'
+                            }
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(deletedPaths.length, 0);
+                        assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                        assert.strictEqual(bigIpMockSpy.delete.callCount, 0);
+                    });
+            });
+
+            it('should not call delete if RoutingBGP is in decl and current config and current has no peerGroups', () => {
+                const state = {
+                    currentConfig: {
+                        Common: {
+                            RoutingBGP: {
+                                routingBgp: {
+                                    name: 'routingBgp'
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const declaration = {
+                    Common: {
+                        RoutingBGP: {
+                            routingBgp: {
+                                name: 'routingBgp'
+                            }
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(deletedPaths.length, 0);
+                        assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                        assert.strictEqual(bigIpMockSpy.delete.callCount, 0);
+                    });
+            });
+        });
+    });
+
+    describe('FirewallAddressList', () => {
+        it('should handle a FirewallAddressList', () => {
+            const declaration = {
+                Common: {
+                    FirewallAddressList: {
+                        fwAddressListOne: {
+                            name: 'fwAddressListOne',
+                            remark: 'test firewall address list one description',
+                            addresses: ['192.168.0.0/32', '10.0.1.0/24'],
+                            fqdns: ['www.example.com', 'example.example.com'],
+                            geo: ['US:Washington', 'US:Oregon']
+                        },
+                        fwAddressListTwo: {
+                            name: 'fwAddressListTwo',
+                            remark: 'test firewall address list two description',
+                            addresses: ['192.168.1.0/32', '10.0.2.0/24']
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const firewallAddressLists = dataSent[PATHS.FirewallAddressList];
+                    assert.deepStrictEqual(
+                        firewallAddressLists[0],
+                        {
+                            name: 'fwAddressListOne',
+                            description: 'test firewall address list one description',
+                            addresses: ['192.168.0.0/32', '10.0.1.0/24'],
+                            fqdns: ['www.example.com', 'example.example.com'],
+                            geo: ['US:Washington', 'US:Oregon']
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        firewallAddressLists[1],
+                        {
+                            name: 'fwAddressListTwo',
+                            description: 'test firewall address list two description',
+                            addresses: ['192.168.1.0/32', '10.0.2.0/24']
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('FirewallPortList', () => {
+        it('should handle a FirewallPortList', () => {
+            const declaration = {
+                Common: {
+                    FirewallPortList: {
+                        fwPortListOne: {
+                            name: 'fwPortListOne',
+                            remark: 'test firewall port list one description',
+                            ports: [8080, 8888]
+                        },
+                        fwPortListTwo: {
+                            name: 'fwPortListTwo',
+                            remark: 'test firewall port list two description',
+                            ports: ['8123', '8124']
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const firewallPortLists = dataSent[PATHS.FirewallPortList];
+                    assert.deepStrictEqual(
+                        firewallPortLists[0],
+                        {
+                            name: 'fwPortListOne',
+                            description: 'test firewall port list one description',
+                            ports: ['8080', '8888']
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        firewallPortLists[1],
+                        {
+                            name: 'fwPortListTwo',
+                            description: 'test firewall port list two description',
+                            ports: ['8123', '8124']
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('FirewallPolicy', () => {
+        it('should handle FirewallPolicy', () => {
+            const declaration = {
+                Common: {
+                    FirewallPolicy: {
+                        firewallPolicyOne: {
+                            name: 'firewallPolicyOne',
+                            rules: []
+                        },
+                        firewallPolicyTwo: {
+                            name: 'firewallPolicyTwo',
+                            remark: 'test firewall policy description',
+                            rules: [
+                                {
+                                    name: 'firewallPolicyRuleOne',
+                                    action: 'accept',
+                                    protocol: 'any',
+                                    loggingEnabled: false,
+                                    source: {},
+                                    destination: {}
+                                },
+                                {
+                                    name: 'firewallPolicyRuleTwo',
+                                    remark: 'firewall policy rule two description',
+                                    action: 'reject',
+                                    protocol: 'tcp',
+                                    loggingEnabled: true,
+                                    source: {
+                                        vlans: [
+                                            '/Common/vlan1',
+                                            '/Common/vlan2'
+                                        ],
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const firewallPolicy = dataSent[PATHS.FirewallPolicy];
+                    assert.deepStrictEqual(
+                        firewallPolicy[0],
+                        {
+                            name: 'firewallPolicyOne',
+                            description: 'none',
+                            rules: []
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        firewallPolicy[1],
+                        {
+                            name: 'firewallPolicyTwo',
+                            description: 'test firewall policy description',
+                            rules: [
+                                {
+                                    name: 'firewallPolicyRuleOne',
+                                    description: 'none',
+                                    action: 'accept',
+                                    ipProtocol: 'any',
+                                    log: 'no',
+                                    placeAfter: 'first',
+                                    source: {
+                                        vlans: [],
+                                        addressLists: [],
+                                        portLists: []
+                                    },
+                                    destination: {
+                                        addressLists: [],
+                                        portLists: []
+                                    }
+                                },
+                                {
+                                    name: 'firewallPolicyRuleTwo',
+                                    description: 'firewall policy rule two description',
+                                    action: 'reject',
+                                    ipProtocol: 'tcp',
+                                    log: 'yes',
+                                    placeAfter: 'firewallPolicyRuleOne',
+                                    source: {
+                                        vlans: [
+                                            '/Common/vlan1',
+                                            '/Common/vlan2'
+                                        ],
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    );
                 });
         });
     });

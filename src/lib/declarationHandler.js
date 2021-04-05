@@ -76,12 +76,16 @@ const CLASSES_OF_TRUTH = [
     'MirrorIp',
     'RoutingAsPath',
     'RoutingPrefixList',
+    'RoutingBGP',
     'RouteMap',
     'GSLBGlobals',
     'GSLBDataCenter',
     'GSLBServer',
     'GSLBMonitor',
-    'GSLBProberPool'
+    'GSLBProberPool',
+    'FirewallPolicy',
+    'FirewallAddressList',
+    'FirewallPortList'
 ];
 
 /**
@@ -161,7 +165,12 @@ class DeclarationHandler {
                 applyHttpdFixes(parsedNewDeclaration);
                 applyGSLBServerFixes(parsedNewDeclaration);
                 applyRouteMapFixes(parsedNewDeclaration);
+                applyRoutingBgpFixes(parsedNewDeclaration);
                 applyGSLBProberPoolFixes(parsedNewDeclaration);
+                applyFirewallAddressListFixes(parsedNewDeclaration);
+                applyFirewallPortListFixes(parsedNewDeclaration);
+                applyFirewallPolicyFixes(parsedNewDeclaration);
+                applySelfIpFixes(parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
@@ -261,6 +270,7 @@ class DeclarationHandler {
  */
 function applyDefaults(declaration, state) {
     const commonDeclaration = declaration.Common;
+
     // deep copy original item to avoid modifications of originalConfig.Common in handlers
     const commonOriginal = JSON.parse(JSON.stringify(state.originalConfig.Common || {}));
 
@@ -592,6 +602,116 @@ function applyRouteMapFixes(declaration) {
     });
 }
 
+/**
+ * Apply fixes to RoutingBGP to align the current config to the desired config.
+ * @param {Object} declaration
+ */
+function applyRoutingBgpFixes(declaration) {
+    /**
+     * Fill in default addressFamilies entries for internet protocols ipv4 and ipv6 with the purpose of aligning current
+     * and desired configs.
+     * @param {Object} containingObj - object that contains the addressFamilies
+     * @param {Object} addressFamiliesDefaults - default values to add in after the entry is created
+     */
+
+    function processAddressFamiliesDefaults(containingObj, addressFamiliesDefaults) {
+        let hasIpv4 = false;
+        let hasIpv6 = false;
+
+        // Fill in addressFamilies defaults that are hard to do within schema
+        containingObj.addressFamilies = containingObj.addressFamilies || [];
+        containingObj.addressFamilies.forEach((family) => {
+            hasIpv4 = family.internetProtocol === 'ipv4' ? true : hasIpv4;
+            hasIpv6 = family.internetProtocol === 'ipv6' ? true : hasIpv6;
+        });
+
+        if (!hasIpv4) {
+            let unshiftObj = {
+                internetProtocol: 'ipv4'
+            };
+            unshiftObj = addressFamiliesDefaults ? Object.assign(unshiftObj, addressFamiliesDefaults) : unshiftObj;
+            containingObj.addressFamilies.unshift(unshiftObj);
+        }
+
+        if (!hasIpv6) {
+            let pushObj = {
+                internetProtocol: 'ipv6'
+            };
+            pushObj = addressFamiliesDefaults ? Object.assign(pushObj, addressFamiliesDefaults) : pushObj;
+            containingObj.addressFamilies.push(pushObj);
+        }
+    }
+
+    const routingBGPs = (declaration.Common && declaration.Common.RoutingBGP) || {};
+    if (Object.keys(routingBGPs).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RoutingBGP', (tenant, bgp) => {
+        if (bgp.addressFamilies) {
+            // add tenant prefix to addressFamilies routeMap property if needed to match current config
+            bgp.addressFamilies.forEach((family) => {
+                (family.redistributionList || []).forEach((redist) => {
+                    applyTenantPrefix(redist, 'routeMap', tenant);
+                });
+                if (family.redistributionList && family.redistributionList.length === 0) {
+                    delete family.redistributionList;
+                }
+            });
+
+            // If the internetProtocol 'all' is specified.  Split it up into 'ipv4' and 'ipv6'.
+            // BIGIP does this and then iControl responds with the split result in the config manager.
+            // Split it now so the current config and desired config will match.
+            if (bgp.addressFamilies.length === 1 && bgp.addressFamilies[0].internetProtocol === 'all') {
+                const ipv4 = JSON.parse(JSON.stringify(bgp.addressFamilies[0]));
+                ipv4.internetProtocol = 'ipv4';
+                const ipv6 = JSON.parse(JSON.stringify(bgp.addressFamilies[0]));
+                ipv6.internetProtocol = 'ipv6';
+                bgp.addressFamilies = [ipv4, ipv6];
+            }
+        }
+
+        // fill in missing addressFamilies defaults that are difficult to specify in schema
+        processAddressFamiliesDefaults(bgp);
+
+        // sort addressFamilies by internetProtocol order ipv4 first
+        doUtil.sortArrayByValueString(bgp.addressFamilies, 'internetProtocol');
+
+        // sort redistributionList array in routingProtocol alphabetical order
+        bgp.addressFamilies.forEach((family) => {
+            doUtil.sortArrayByValueString(family.redistributionList, 'routingProtocol');
+        });
+
+        // sort neighbors array in address alphabetical order
+        doUtil.sortArrayByValueString(bgp.neighbors, 'address');
+
+        // sort peerGroups array in name alphabetical order
+        doUtil.sortArrayByValueString(bgp.peerGroups, 'name');
+
+        // fill in missing peerGroups addressFamilies defaults that are difficult to specify in schema
+        (bgp.peerGroups || []).forEach((peer) => {
+            processAddressFamiliesDefaults(peer, {
+                routeMap: {},
+                softReconfigurationInboundEnabled: false
+            });
+        });
+
+        (bgp.peerGroups || []).forEach((peer) => {
+            if (peer.addressFamilies.length === 0) {
+                delete peer.addressFamilies;
+            } else {
+                // add tenant prefix to peerGroups addressFamilies routeMap if needed to match current config
+                peer.addressFamilies.forEach((family) => {
+                    if (family.routeMap) {
+                        applyTenantPrefix(family.routeMap, 'in', tenant);
+                        applyTenantPrefix(family.routeMap, 'out', tenant);
+                    }
+                });
+            }
+        });
+    });
+}
+
 function applyTenantPrefix(obj, path, tenant) {
     if (!obj || !path) {
         return;
@@ -631,6 +751,112 @@ function applyGSLBProberPoolFixes(declaration) {
             order: index
         }));
         delete proberPool.label;
+    });
+}
+
+/**
+ * Normalizes the Firewall Address List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyFirewallAddressListFixes(declaration) {
+    const firewallAddressLists = (declaration.Common && declaration.Common.FirewallAddressList) || {};
+    if (Object.keys(firewallAddressLists).length === 0) {
+        return;
+    }
+
+    // MCP returns these arrays sorted
+    doUtil.forEach(declaration, 'FirewallAddressList', (tenant, firewallAddressList) => {
+        if (firewallAddressList.addresses) {
+            firewallAddressList.addresses = firewallAddressList.addresses.sort();
+        }
+        if (firewallAddressList.fqdns) {
+            firewallAddressList.fqdns = firewallAddressList.fqdns.sort();
+        }
+        if (firewallAddressList.geo) {
+            firewallAddressList.geo = firewallAddressList.geo.sort();
+        }
+    });
+}
+
+/**
+ * Normalizes the Firewall Port List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyFirewallPortListFixes(declaration) {
+    const firewallPortLists = (declaration.Common && declaration.Common.FirewallPortList) || {};
+    if (Object.keys(firewallPortLists).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'FirewallPortList', (tenant, firewallPortList) => {
+        if (firewallPortList.ports) {
+            // The schema allows for integer or string, so coerce to string since that's
+            // what iControl REST will return for these
+            firewallPortList.ports = firewallPortList.ports.map(port => port.toString());
+        }
+    });
+}
+
+/**
+ * Normalizes the Firewall Policy section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyFirewallPolicyFixes(declaration) {
+    const firewallPolicies = (declaration.Common && declaration.Common.FirewallPolicy) || {};
+    if (Object.keys(firewallPolicies).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'FirewallPolicy', (tenant, firewallPolicy) => {
+        firewallPolicy.rules = (firewallPolicy.rules || []).map((rule) => {
+            const newRule = {
+                name: rule.name,
+                remark: rule.remark,
+                action: rule.action,
+                protocol: rule.protocol,
+                loggingEnabled: rule.loggingEnabled,
+                source: rule.source || {},
+                destination: rule.destination || {}
+            };
+
+            Object.keys(newRule.source).forEach((sourceType) => {
+                (newRule.source[sourceType] || []).forEach((source, i) => {
+                    applyTenantPrefix(newRule, `source.${sourceType}.${i}`, tenant);
+                });
+            });
+
+            Object.keys(newRule.destination).forEach((destinationType) => {
+                (newRule.source[destinationType] || []).forEach((dest, i) => {
+                    applyTenantPrefix(newRule, `destination.${destinationType}.${i}`, tenant);
+                });
+            });
+
+            return newRule;
+        });
+        delete firewallPolicy.label;
+    });
+}
+
+/**
+ * Normalizes the Self IP section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applySelfIpFixes(declaration) {
+    const selfIps = (declaration.Common && declaration.Common.SelfIp) || {};
+    if (Object.keys(selfIps).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'SelfIp', (tenant, selfIp) => {
+        ['enforcedFirewallPolicy', 'stagedFirewallPolicy'].forEach((policyKey) => {
+            if (selfIp[policyKey] && selfIp[policyKey].startsWith('/')) {
+                selfIp[policyKey] = selfIp[policyKey].split('/').pop();
+            }
+        });
     });
 }
 

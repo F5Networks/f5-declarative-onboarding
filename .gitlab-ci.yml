@@ -2,6 +2,7 @@ image: $DOCKER_URL/node:latest
 
 stages:
     - lint
+    - atg-shared-checks
     - test
     - build
     - docs
@@ -14,6 +15,15 @@ variables:
     ESR_PRODUCT: DO
     ESR_TEST_RUN_ID: ${CI_JOB_ID}
     ESR_TEST_RUN_WEB_URL: ${CI_JOB_URL}
+
+# This inherits all the jobs defined in the parent template
+# Override variables in this project as needed
+include:
+# adds atg-shared-checks stage and jobs
+# adds atg_shared_checks_result job to test stage
+  - project: automation-toolchain/atg-shared-templates
+    file: security/base.gitlab-ci.yml
+    ref: v1.0.3
 
 lint:
     stage: lint
@@ -68,6 +78,21 @@ test_node:latest:
         - else
         -   npm test
         - fi
+
+test-bigiq-ui:
+  stage: test
+  parallel:
+    matrix:
+      - BIGIQ_BRANCH: [master/quantum]
+  allow_failure: true
+  script:
+    - git clone --branch $BIGIQ_BRANCH --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@$CI_SERVER_HOST:$CI_SERVER_PORT/bigiq-mgmt/bigiq-mgmt-test
+    - cd bigiq-mgmt-test/tools/declarativeOnboardSchemaValidator
+    - npm ci
+    - cp -r ../../../src/schema/latest/ schema
+    - node validateDO_UiSchemaTest.js > output
+    - cat output
+    - grep -q "All DO classes schema validations are PASSED" output
 
 coverage:
   image: $DOCKER_URL/node:lts
@@ -172,12 +197,16 @@ teardown:
         - do-test-docker-executor
     stage: teardown
     rules:
+      - if: '$SKIP_TEARDOWN =~ /true/i'
+        when: never
       - if: '$CI_PIPELINE_SOURCE == "schedule"'
         when: always
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
         when: always
       - when: never
     script:
+        - apt update
+        - apt install -y jq
         - scripts/dev/rebuild-test-env.sh DELETE
 
 build_rpm:

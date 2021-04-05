@@ -193,7 +193,7 @@ function handleGSLBMonitor() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating Servers: ${err.message}`);
+            logger.severe(`Error creating Monitors: ${err.message}`);
             throw err;
         });
 }

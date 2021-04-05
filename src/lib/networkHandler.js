@@ -56,11 +56,11 @@ class NetworkHandler {
         logger.fine('Checking Trunks.');
         return handleTrunk.call(this)
             .then(() => {
-                logger.fine('Checking VLANs.');
+                logger.fine('Checking VLANs');
                 return handleVlan.call(this);
             })
             .then(() => {
-                logger.fine('Checking RouteDomains.');
+                logger.fine('Checking RouteDomains');
                 return handleRouteDomain.call(this);
             })
             .then(() => {
@@ -72,11 +72,23 @@ class NetworkHandler {
                 return handleTunnel.call(this);
             })
             .then(() => {
-                logger.fine('Checking SelfIps.');
+                logger.fine('Checking Firewall Address Lists');
+                return handleFirewallAddressList.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking Firewall Port Lists');
+                return handleFirewallPortList.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking Firewall Policies');
+                return handleFirewallPolicy.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking SelfIps');
                 return handleSelfIp.call(this);
             })
             .then(() => {
-                logger.fine('Checking Routes.');
+                logger.fine('Checking Routes');
                 return handleRoute.call(this);
             })
             .then(() => {
@@ -98,6 +110,10 @@ class NetworkHandler {
             .then(() => {
                 logger.info('Checking RouteMap');
                 return handleRouteMap.call(this);
+            })
+            .then(() => {
+                logger.info('Checking RoutingBGP');
+                return handleRoutingBGP.call(this);
             })
             .then(() => {
                 logger.info('Done processing network declartion.');
@@ -169,116 +185,235 @@ function handleVlan() {
     });
 }
 
-function handleSelfIp() {
-    return new Promise((resolve, reject) => {
-        const nonFloatingBodies = [];
-        const floatingBodies = [];
-        doUtil.forEach(this.declaration, 'SelfIp', (tenant, selfIp) => {
-            if (selfIp && selfIp.name) {
-                let vlan;
+function handleFirewallAddressList() {
+    const promises = [];
 
-                // If the vlan does not start with '/', assume it is in this tenant
-                if (selfIp.vlan.startsWith('/')) {
-                    vlan = selfIp.vlan;
-                } else {
-                    vlan = `/${tenant}/${selfIp.vlan}`;
-                }
+    doUtil.forEach(this.declaration, 'FirewallAddressList', (tenant, firewallAddressList) => {
+        if (firewallAddressList && firewallAddressList.name) {
+            const body = {
+                name: firewallAddressList.name,
+                description: firewallAddressList.remark || 'none'
+            };
 
-                const selfIpBody = {
-                    vlan,
-                    name: selfIp.name,
-                    partition: tenant,
-                    address: selfIp.address,
-                    trafficGroup: selfIp.trafficGroup,
-                    allowService: selfIp.allowService
-                };
-
-                if (selfIpBody.trafficGroup
-                    && !selfIpBody.trafficGroup.endsWith('traffic-group-local-only')) {
-                    floatingBodies.push(selfIpBody);
-                } else {
-                    nonFloatingBodies.push(selfIpBody);
-                }
+            if (firewallAddressList.addresses) {
+                body.addresses = firewallAddressList.addresses || [];
             }
+            if (firewallAddressList.fqdns) {
+                body.fqdns = firewallAddressList.fqdns || [];
+            }
+            if (firewallAddressList.geo) {
+                body.geo = firewallAddressList.geo || [];
+            }
+
+            promises.push(this.bigIp.createOrModify(PATHS.FirewallAddressList, body, null, cloudUtil.MEDIUM_RETRY));
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Firewall Address List: ${err.message}`);
+            throw err;
         });
+}
 
-        let selfIpsToRecreate = [];
-        let routesToRecreate = [];
+function handleFirewallPolicy() {
+    const promises = [];
 
-        // We can't modify a self IP - we need to delete it and re-add it.
-        // We have to delete floating self IPs before non-floating self IPs
-        deleteExistingSelfIps.call(this, floatingBodies)
-            .then((deletedObjects) => {
-                if (deletedObjects) {
-                    selfIpsToRecreate = deletedObjects.deletedFloatingSelfIps.slice();
-                    routesToRecreate = deletedObjects.deletedRoutes.slice();
+    doUtil.forEach(this.declaration, 'FirewallPolicy', (tenant, firewallPolicy) => {
+        if (firewallPolicy && firewallPolicy.name) {
+            const body = {
+                name: firewallPolicy.name,
+                description: firewallPolicy.remark || 'none'
+            };
+
+            body.rules = firewallPolicy.rules.map((rule, index, rules) => ({
+                name: rule.name,
+                description: rule.remark || 'none',
+                action: rule.action,
+                ipProtocol: rule.protocol,
+                log: rule.loggingEnabled ? 'yes' : 'no',
+                placeAfter: index === 0 ? 'first' : rules[index - 1].name,
+                source: {
+                    addressLists: rule.source.addressLists || [],
+                    portLists: rule.source.portLists || [],
+                    vlans: rule.source.vlans || []
+                },
+                destination: {
+                    addressLists: rule.destination.addressLists || [],
+                    portLists: rule.destination.portLists || []
                 }
-                return deleteExistingSelfIps.call(this, nonFloatingBodies);
-            })
-            .then((deletedObjects) => {
-                selfIpsToRecreate = selfIpsToRecreate.concat(deletedObjects.deletedFloatingSelfIps);
-                routesToRecreate = routesToRecreate.concat(deletedObjects.deletedRoutes);
+            }));
 
-                // We have to create non floating self IPs before floating self IPs
-                const createPromises = [];
-                nonFloatingBodies.forEach((selfIpBody) => {
-                    createPromises.push(
-                        this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
-                    );
-                });
+            promises.push(this.bigIp.createOrModify(PATHS.FirewallPolicy, body, null, cloudUtil.MEDIUM_RETRY));
+        }
+    });
 
-                return Promise.all(createPromises);
-            })
-            .then(() => {
-                const createPromises = [];
-                floatingBodies.forEach((selfIpBody) => {
-                    createPromises.push(
-                        this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
-                    );
-                });
-                return Promise.all(createPromises);
-            })
-            .then(() => {
-                const createPromises = [];
-                selfIpsToRecreate.forEach((selfIp) => {
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Firewall Policies: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleFirewallPortList() {
+    const promises = [];
+
+    doUtil.forEach(this.declaration, 'FirewallPortList', (tenant, firewallPortList) => {
+        if (firewallPortList && firewallPortList.name) {
+            const body = {
+                name: firewallPortList.name,
+                description: firewallPortList.remark || 'none'
+            };
+
+            if (firewallPortList.ports) {
+                body.ports = firewallPortList.ports.map(port => port.toString());
+            }
+
+            promises.push(this.bigIp.createOrModify(PATHS.FirewallPortList, body, null, cloudUtil.MEDIUM_RETRY));
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Firewall Port List: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleSelfIp() {
+    const nonFloatingBodies = [];
+    const floatingBodies = [];
+    let selfIpsToRecreate = [];
+    let routesToRecreate = [];
+
+    if (Object.keys(this.declaration.Common.SelfIp || {}).length === 0) {
+        return Promise.resolve();
+    }
+
+    return Promise.resolve()
+        .then(() => this.bigIp.list('/tm/sys/provision'))
+        .then((provisioning) => {
+            const provisionedModules = (provisioning || [])
+                .filter(module => module.level !== 'none')
+                .map(module => module.name);
+
+            doUtil.forEach(this.declaration, 'SelfIp', (tenant, selfIp) => {
+                if (selfIp && selfIp.name) {
+                    let vlan;
+
+                    /*
+                     * If AFM is not provisioned, BIG-IP will error when defaulting the firewall
+                     * policy to "none". We fix this case by leaving it as undefined. But if a
+                     * user specifies a policy, we want the BIG-IP to error and notify the user
+                     * that they need AFM provisioned to use this property.
+                     */
+                    const normalizeFWPolicy = (key) => {
+                        if (selfIp[key]) {
+                            return `/${tenant}/${selfIp[key]}`;
+                        }
+                        return provisionedModules.indexOf('afm') > -1 ? 'none' : undefined;
+                    };
+
+                    // If the vlan does not start with '/', assume it is in this tenant
+                    if (selfIp.vlan.startsWith('/')) {
+                        vlan = selfIp.vlan;
+                    } else {
+                        vlan = `/${tenant}/${selfIp.vlan}`;
+                    }
+
                     const selfIpBody = {
+                        vlan,
                         name: selfIp.name,
-                        partition: selfIp.partition,
-                        vlan: selfIp.vlan,
+                        partition: tenant,
                         address: selfIp.address,
                         trafficGroup: selfIp.trafficGroup,
-                        allowService: selfIp.allowService
+                        allowService: selfIp.allowService,
+                        fwEnforcedPolicy: normalizeFWPolicy('enforcedFirewallPolicy'),
+                        fwStagedPolicy: normalizeFWPolicy('stagedFirewallPolicy')
                     };
-                    createPromises.push(
-                        this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
-                    );
-                });
-                return Promise.all(createPromises);
-            })
-            .then(() => {
-                const createPromises = [];
-                routesToRecreate.forEach((route) => {
-                    const routeBody = {
-                        name: route.name,
-                        partition: route.partition,
-                        gw: route.gw,
-                        network: route.network,
-                        mtu: route.mtu
-                    };
-                    createPromises.push(
-                        this.bigIp.create(PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY)
-                    );
-                });
-                return Promise.all(createPromises);
-            })
-            .then(() => {
-                resolve();
-            })
-            .catch((err) => {
-                logger.severe(`Error creating self IPs: ${err.message}`);
-                reject(err);
+
+                    if (selfIpBody.trafficGroup
+                        && !selfIpBody.trafficGroup.endsWith('traffic-group-local-only')) {
+                        floatingBodies.push(selfIpBody);
+                    } else {
+                        nonFloatingBodies.push(selfIpBody);
+                    }
+                }
             });
-    });
+
+            // We can't modify a self IP - we need to delete it and re-add it.
+            // We have to delete floating self IPs before non-floating self IPs
+            return deleteExistingSelfIps.call(this, floatingBodies);
+        })
+        .then((deletedObjects) => {
+            if (deletedObjects) {
+                selfIpsToRecreate = deletedObjects.deletedFloatingSelfIps.slice();
+                routesToRecreate = deletedObjects.deletedRoutes.slice();
+            }
+            return deleteExistingSelfIps.call(this, nonFloatingBodies);
+        })
+        .then((deletedObjects) => {
+            selfIpsToRecreate = selfIpsToRecreate.concat(deletedObjects.deletedFloatingSelfIps);
+            routesToRecreate = routesToRecreate.concat(deletedObjects.deletedRoutes);
+
+            // We have to create non floating self IPs before floating self IPs
+            const createPromises = [];
+            nonFloatingBodies.forEach((selfIpBody) => {
+                createPromises.push(
+                    this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
+                );
+            });
+
+            return Promise.all(createPromises);
+        })
+        .then(() => {
+            const createPromises = [];
+            floatingBodies.forEach((selfIpBody) => {
+                createPromises.push(
+                    this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
+                );
+            });
+            return Promise.all(createPromises);
+        })
+        .then(() => {
+            const createPromises = [];
+            selfIpsToRecreate.forEach((selfIp) => {
+                const selfIpBody = {
+                    name: selfIp.name,
+                    partition: selfIp.partition,
+                    vlan: selfIp.vlan,
+                    address: selfIp.address,
+                    trafficGroup: selfIp.trafficGroup,
+                    allowService: selfIp.allowService,
+                    fwEnforcedPolicy: selfIp.fwEnforcedPolicy,
+                    fwStagedPolicy: selfIp.fwStagedPolicy
+                };
+                createPromises.push(
+                    this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
+                );
+            });
+            return Promise.all(createPromises);
+        })
+        .then(() => {
+            const createPromises = [];
+            routesToRecreate.forEach((route) => {
+                const routeBody = {
+                    name: route.name,
+                    partition: route.partition,
+                    gw: route.gw,
+                    network: route.network,
+                    mtu: route.mtu
+                };
+                createPromises.push(
+                    this.bigIp.create(PATHS.Route, routeBody, null, cloudUtil.MEDIUM_RETRY)
+                );
+            });
+            return Promise.all(createPromises);
+        })
+        .catch((err) => {
+            logger.severe(`Error creating self IPs: ${err.message}`);
+            throw err;
+        });
 }
 
 function handleRoute() {
@@ -525,7 +660,7 @@ function handleTunnel() {
 function handleEnableRouting() {
     const promises = [];
     let enabledRouting = false;
-    ['RouteMap', 'RoutingAsPath', 'RoutingPrefixList'].forEach((routingModuleClass) => {
+    ['RoutingBGP', 'RouteMap', 'RoutingAsPath', 'RoutingPrefixList'].forEach((routingModuleClass) => {
         doUtil.forEach(this.declaration, routingModuleClass, () => {
             if (!enabledRouting) {
                 // Enable routing module on the BIG-IP
@@ -644,6 +779,130 @@ function handleRouteMap() {
         .catch((err) => {
             logger.severe(`Error creating RouteMap: ${err.message}`);
             throw err;
+        });
+}
+
+function handleRoutingBGP() {
+    if (!this.declaration.Common.RoutingBGP) {
+        return Promise.resolve();
+    }
+
+    let promises = [];
+    return Promise.resolve()
+        .then(() => {
+            Object.keys(this.state.currentConfig.Common.RoutingBGP || []).forEach((name) => {
+                const declBgp = this.declaration.Common.RoutingBGP[name];
+                if (declBgp) {
+                    // BIGIP has a bug where a peerGroup with any members cannot be set to 'none' or overwritten.
+                    // Get around by preemptively deleting any matches found in current config that are to be modified.
+                    const curBgp = this.state.currentConfig.Common.RoutingBGP[name];
+                    if ((curBgp.peerGroups && curBgp.peerGroups.length > 0) || (curBgp.localAS !== declBgp.localAS)) {
+                        promises.push(
+                            this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
+                        );
+                    }
+                } else {
+                    // Process deletes here instead of in deleteHandler.  Can only have 1 RoutingBGP.  If renamed the
+                    // delete handler is too late.  The new RoutingBGP will already be created.
+                    promises.push(
+                        this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
+                    );
+                }
+            });
+
+            return Promise.all(promises)
+                .catch((err) => {
+                    logger.severe(`Error deleting existing RoutingBGP: ${err.message}`);
+                    throw err;
+                });
+        })
+        .then(() => {
+            promises = [];
+            doUtil.forEach(this.declaration, 'RoutingBGP', (tenant, bgp) => {
+                if (bgp && Object.keys(bgp).length !== 0) {
+                    const addressFamilies = [];
+
+                    if (bgp.addressFamilies) {
+                        bgp.addressFamilies.forEach((family) => {
+                            const familyBody = {};
+                            familyBody.name = family.internetProtocol;
+                            familyBody.redistribute = [];
+                            if (family.redistributionList) {
+                                family.redistributionList.forEach((r) => {
+                                    const entry = {};
+                                    entry.name = r.routingProtocol;
+                                    entry.routeMap = r.routeMap || 'none';
+                                    familyBody.redistribute.push(entry);
+                                });
+                            }
+                            addressFamilies.push(familyBody);
+                        });
+                    }
+
+                    const peerGroup = [];
+                    if (bgp.peerGroups) {
+                        bgp.peerGroups.forEach((peer) => {
+                            const peerBody = {};
+                            peerBody.name = peer.name;
+                            if (peer.addressFamilies) {
+                                const peerAddressFamilies = [];
+                                peer.addressFamilies.forEach((af) => {
+                                    const entry = {};
+                                    entry.name = af.internetProtocol;
+                                    const routeMap = {};
+                                    if (af.routeMap) {
+                                        routeMap.in = af.routeMap.in || 'none';
+                                        routeMap.out = af.routeMap.out || 'none';
+                                    }
+                                    entry.routeMap = routeMap;
+                                    entry.softReconfigurationInbound = af.softReconfigurationInboundEnabled ? 'enabled' : 'disabled';
+                                    peerAddressFamilies.push(entry);
+                                });
+                                peerBody.addressFamily = peerAddressFamilies;
+                            }
+                            peerBody.remoteAs = peer.remoteAS;
+                            peerGroup.push(peerBody);
+                        });
+                    }
+
+                    const neighbor = [];
+                    if (bgp.neighbors) {
+                        bgp.neighbors.forEach((n) => {
+                            const neighborBody = {};
+                            neighborBody.name = n.address;
+                            neighborBody.peerGroup = n.peerGroup;
+                            neighbor.push(neighborBody);
+                        });
+                    }
+
+                    const body = {
+                        name: bgp.name,
+                        partition: tenant,
+                        addressFamily: addressFamilies,
+                        gracefulRestart: bgp.gracefulRestart ? {
+                            gracefulReset: bgp.gracefulRestart.gracefulResetEnabled === true ? 'enabled' : 'disabled',
+                            restartTime: bgp.gracefulRestart.restartTime,
+                            stalepathTime: bgp.gracefulRestart.stalePathTime
+                        } : undefined,
+                        keepAlive: bgp.keepAlive,
+                        holdTime: bgp.holdTime,
+                        localAs: bgp.localAS,
+                        neighbor,
+                        peerGroup,
+                        routerId: bgp.routerId
+                    };
+
+                    promises.push(
+                        this.bigIp.createOrModify(PATHS.RoutingBGP, body, null, cloudUtil.MEDIUM_RETRY)
+                    );
+                }
+            });
+
+            return Promise.all(promises)
+                .catch((err) => {
+                    logger.severe(`Error creating RoutingBGP: ${err.message}`);
+                    throw err;
+                });
         });
 }
 

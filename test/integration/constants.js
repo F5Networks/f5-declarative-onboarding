@@ -21,12 +21,13 @@
 'use strict';
 
 module.exports = Object.freeze({
-    HTTP_ACCEPTED: 202,
-    HTTP_NOTFOUND: 404,
     HTTP_SUCCESS: 200,
-    HTTP_UNAVAILABLE: 503,
-    HTTP_UNPROCESSABLE: 422,
+    HTTP_ACCEPTED: 202,
     HTTP_BAD_REQUEST: 400,
+    HTTP_UNAUTHORIZED: 401,
+    HTTP_NOTFOUND: 404,
+    HTTP_UNPROCESSABLE: 422,
+    HTTP_UNAVAILABLE: 503,
     ICONTROL_API: '/mgmt',
     PORT: 443,
     DO_API: '/mgmt/shared/declarative-onboarding'
