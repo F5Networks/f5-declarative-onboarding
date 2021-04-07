@@ -185,6 +185,7 @@ class DeclarationHandler {
                 const traceManager = new TraceManager(declaration, this.eventEmitter, state);
                 return traceManager.traceConfigs(parsedOldDeclaration, parsedNewDeclaration);
             })
+            .then(() => removeEmptyObjects(updateDeclaration))
             .then(() => this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
             .then(() => {
                 const handlers = [
@@ -533,6 +534,12 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
 function applyHttpdFixes(declaration) {
     const httpdDeclaration = declaration.Common.HTTPD;
     if (httpdDeclaration && httpdDeclaration.allow) {
+        // Older versions of DO did not normalize allow to lower-case so normalize
+        // here in case the user has upgraded.
+        if (Array.isArray(httpdDeclaration.allow)) {
+            httpdDeclaration.allow = httpdDeclaration.allow.map(item => (item === 'All' ? 'all' : item));
+        }
+
         // Schema can handle 'all' as either a single word or in an array. Normalize
         // to an array since that's what BIG-IP uses
         if (httpdDeclaration.allow === 'all') {
@@ -979,6 +986,16 @@ function countAuthenticationTypes(declaration, count) {
     });
 
     return count;
+}
+
+function removeEmptyObjects(declaration) {
+    const common = declaration.Common;
+    Object.keys(common).forEach((key) => {
+        const configItem = common[key];
+        if (Object.keys(configItem).length === 0) {
+            delete common[key];
+        }
+    });
 }
 
 module.exports = DeclarationHandler;

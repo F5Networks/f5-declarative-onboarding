@@ -156,9 +156,9 @@ function handleFailoverMulticast() {
     if (this.declaration.Common.FailoverMulticast) {
         const multicast = this.declaration.Common.FailoverMulticast;
         const body = {};
-        body.multicastInterface = multicast.interface;
-        body.multicastIp = multicast.address;
-        body.multicastPort = multicast.port;
+        body.multicastInterface = multicast.interface || 'none';
+        body.multicastIp = multicast.address || 'any6';
+        body.multicastPort = multicast.port || 0;
 
         return this.bigIp.deviceInfo()
             .then(deviceInfo => this.bigIp.modify(

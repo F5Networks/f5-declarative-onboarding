@@ -93,6 +93,8 @@ describe('declarationHandler', () => {
     });
 
     describe('General testing', () => {
+        let diffHandlerStub;
+
         beforeEach(() => {
             parsedDeclarations = [];
             declarationWithDefaults = {};
@@ -106,7 +108,7 @@ describe('declarationHandler', () => {
                 };
             });
 
-            sinon.stub(DiffHandler.prototype, 'process').callsFake((declaration) => {
+            diffHandlerStub = sinon.stub(DiffHandler.prototype, 'process').callsFake((declaration) => {
                 declarationWithDefaults = declaration;
                 return Promise.resolve(
                     {
@@ -163,6 +165,10 @@ describe('declarationHandler', () => {
                     return Promise.resolve();
                 }
             };
+
+            afterEach(() => {
+                diffHandlerStub.restore();
+            });
         });
 
         it('should parse declarations if not parsed', () => {
@@ -280,6 +286,52 @@ describe('declarationHandler', () => {
                                 configsyncIp: 'configsyncIp1'
                             }
                         });
+                });
+        });
+
+        it('should remove empty objects from parsed declaration', () => {
+            const newDeclaration = {
+                name: 'new'
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
+                }
+            };
+
+            const updatedDeclaration = {
+                Common: {
+                    RemoveThis: {},
+                    DoNotRemoveThis: { property: 'value' },
+                    RemoveThisToo: {}
+                }
+            };
+
+            diffHandlerStub.restore();
+            diffHandlerStub = sinon.stub(DiffHandler.prototype, 'process').callsFake((declaration) => {
+                declarationWithDefaults = declaration;
+                return Promise.resolve(
+                    {
+                        toUpdate: updatedDeclaration,
+                        toDelete: { Common: {} }
+                    }
+                );
+            });
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        updatedDeclaration,
+                        {
+                            Common: {
+                                DoNotRemoveThis: { property: 'value' }
+                            }
+                        }
+                    );
                 });
         });
 
@@ -2164,6 +2216,33 @@ describe('declarationHandler', () => {
                     .then(() => {
                         const httpd = declarationWithDefaults.Common.HTTPD;
                         assert.deepStrictEqual(httpd, { allow: 'none' });
+                    });
+            });
+
+            it('should convert array All to lower case', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        HTTPD: {
+                            allow: ['foo', 'All']
+                        }
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current',
+                        parsed: true,
+                        Common: {}
+                    },
+                    originalConfig: {
+                        Common: {}
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        const httpd = declarationWithDefaults.Common.HTTPD;
+                        assert.deepStrictEqual(httpd, { allow: ['foo', 'all'] });
                     });
             });
         });
