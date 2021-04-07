@@ -163,7 +163,7 @@ function handleTacacs() {
 function handleLdap() {
     const ldap = this.declaration.Common.Authentication.ldap;
 
-    if (!ldap) {
+    if (!ldap || !ldap.servers) {
         return Promise.resolve();
     }
 

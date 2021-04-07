@@ -4,6 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.21.0
 ### Added
 ### Fixed
+- AUTOTOOL-2074: ([GitHub Issue 190](https://github.com/F5Networks/f5-declarative-onboarding/issues/190)): Invalid config after upgrading DO from 1.15.0
 ### Changed
 ### Removed
 

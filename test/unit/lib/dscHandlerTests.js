@@ -234,6 +234,28 @@ describe('dscHandler', () => {
                     assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
                 });
         });
+
+        it('should apply FailoverMulticast defaults', () => {
+            const declaration = {
+                Common: {
+                    FailoverMulticast: {
+                        interface: 'none'
+                    }
+                }
+            };
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(
+                        bodySent,
+                        {
+                            multicastInterface: 'none',
+                            multicastIp: 'any6',
+                            multicastPort: 0
+                        }
+                    );
+                });
+        });
     });
 
     describe('MirrorIp', () => {

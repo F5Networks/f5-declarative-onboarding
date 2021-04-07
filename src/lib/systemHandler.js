@@ -278,7 +278,9 @@ function handleDeviceCertificate() {
                     keyPromise = keyPromise
                         .then(() => doUtil.executeBashCommandIControl(
                             this.bigIp,
-                            `cat ${keyFullPath}`
+                            `cat ${keyFullPath}`,
+                            null,
+                            { silent: true } // keeping it out of the logs because this is the private key
                         ))
                         .then((data) => {
                             originalKey = data.trim();
@@ -851,8 +853,7 @@ function handleTrafficControl() {
 }
 
 function handleHTTPD() {
-    if (this.declaration.Common && this.declaration.Common.HTTPD
-        && Object.keys(this.declaration.Common.HTTPD).length > 0) {
+    if (this.declaration.Common && this.declaration.Common.HTTPD) {
         const httpd = this.declaration.Common.HTTPD;
         // allow defaults to 'All' on BIGIP but can be either 'all' or 'All'.  For consistency with other schema enums
         // and BIGIP's default let's always use 'all' with the user and 'All' with BIGIP.
