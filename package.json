@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@f5devcentral/atg-shared-utilities": "^0.2.0",
+    "@f5devcentral/atg-shared-utilities-dev": "^0.1.1",
     "@f5devcentral/eslint-config-f5-atg": "latest",
     "@stryker-mutator/core": "^4.5.1",
     "@stryker-mutator/mocha-runner": "^4.5.1",
