@@ -37,6 +37,7 @@ At some point in the sprint we create a release branch. This should happen when 
 * git add and commit
 * git push origin
 * Go to the DO schedule in the `atg-build` project.
+  * Ping the Teams "AS3-DO General" channel to not push anything to develop until after pipeline is complete. Additionally, please provide a link to the pipeline as an edit or follow up comment, for other's convenience.
   * Make sure the `gitBranch` CI/CD variable is set to the branch you want to build.
   * Run the schedule. This will:
     * Update and commit the build number in `package.json` and `package-lock.json` and commit those changes.

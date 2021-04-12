@@ -16,7 +16,6 @@
             "description": "Version of Declarative Onboarding schema this declaration uses.",
             "type": "string",
             "enum": [
-                "1.21.0",
                 "1.20.0",
                 "1.19.0",
                 "1.18.0",

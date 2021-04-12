@@ -286,10 +286,6 @@ function handleSelfIp() {
     let selfIpsToRecreate = [];
     let routesToRecreate = [];
 
-    if (Object.keys(this.declaration.Common.SelfIp || {}).length === 0) {
-        return Promise.resolve();
-    }
-
     return Promise.resolve()
         .then(() => this.bigIp.list('/tm/sys/provision'))
         .then((provisioning) => {
