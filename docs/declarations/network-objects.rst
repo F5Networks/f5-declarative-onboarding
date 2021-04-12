@@ -470,4 +470,4 @@ See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for de
 
 .. |dnsresolverdocs| raw:: html
 
-   <a href="https://techdocs.f5.com/en-us/bigip-15-1-0/big-ip-dns-services-implementations/configuring-dns-caching.html" target="_blank">DNS Caching documentation</a>
+   <a href="https://techdocs.f5.com/kb/en-us/products/big-ip-afm/manuals/product/network-firewall-policies-implementations-13-1-0/3.html#GUID-933268A4-7800-405C-868F-FEA4ECEF8FBB" target="_blank">Network Firewall documentation</a>
