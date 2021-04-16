@@ -116,6 +116,15 @@ coverage:
       paths:
         - public
 
+audit:
+  image: $DOCKER_URL/node:lts
+  stage: test
+  allow_failure: true
+  tags:
+      - cm-official-docker-executor
+  script:
+      - npm audit
+
 # the following variables should be defined for deploy, integration-tests and teardown:
 # BIGIP_IMAGE           - BIGIP VIO image name. (e.g. BIGIP-15.1.0.5-0.0.8)
 .deploy_common: &deploy_common
