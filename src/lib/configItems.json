@@ -88,11 +88,11 @@
             { "id": "useIpv4", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
             { "id": "useIpv6", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
             { "id": "useTcp", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
-            { "id": "useUdp", "truth": "yes", "falsehoold": "no", "skipWhenOmitted": true }
+            { "id": "useUdp", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true }
         ],
         "declaration": {
             "customFunctions": [
-                { "id": "remapNamservers" }
+                { "id": "remapNameservers" }
             ]
         }
     },
