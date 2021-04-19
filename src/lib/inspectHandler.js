@@ -357,7 +357,7 @@ function processItemProperty(property, configObject) {
  */
 const customFunctions = {
     // DNS_Resolver item
-    remapNamservers: (configKey, configObject) => {
+    remapNameservers: (configKey, configObject) => {
         if (configObject.forwardZones) {
             configObject.forwardZones.forEach((zone) => {
                 zone.nameservers = zone.nameservers.map(nameserver => nameserver.name);
