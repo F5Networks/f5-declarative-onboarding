@@ -564,14 +564,6 @@ function applyGSLBServerFixes(declaration) {
         if (server.proberPool && server.proberPool.startsWith('/Common/')) {
             server.proberPool = server.proberPool.split('/Common/')[1];
         }
-        server.devices = server.devices.map((device, i) => ({
-            name: `${i}`,
-            remark: device.remark,
-            addresses: [{
-                name: device.address,
-                translation: device.addressTranslation || 'none'
-            }]
-        }));
         if (!server.monitors && server.serverType === 'bigip') {
             server.monitors = ['/Common/bigip'];
         }

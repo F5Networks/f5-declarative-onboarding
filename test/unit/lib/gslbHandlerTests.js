@@ -206,11 +206,8 @@ describe('gslbHandler', () => {
                             dataCenter: 'gslbDataCenter',
                             devices: [
                                 {
-                                    name: '0',
-                                    addresses: [{
-                                        name: '10.0.0.1',
-                                        translation: 'none'
-                                    }]
+                                    address: '10.0.0.1',
+                                    addressTranslation: 'none'
                                 }
                             ],
                             exposeRouteDomainsEnabled: false,
@@ -254,12 +251,9 @@ describe('gslbHandler', () => {
                             dataCenter: 'gslbDataCenter',
                             devices: [
                                 {
-                                    name: '0',
                                     remark: 'test device description',
-                                    addresses: [{
-                                        name: '10.0.0.1',
-                                        translation: '192.0.2.12'
-                                    }]
+                                    address: '10.0.0.1',
+                                    addressTranslation: '192.0.2.12'
                                 }
                             ],
                             exposeRouteDomainsEnabled: true,
@@ -304,11 +298,8 @@ describe('gslbHandler', () => {
                             dataCenter: 'gslbDataCenter',
                             devices: [
                                 {
-                                    name: '0',
-                                    addresses: [{
-                                        name: '10.0.0.1',
-                                        translation: 'none'
-                                    }]
+                                    address: '10.0.0.1',
+                                    addressTranslation: 'none'
                                 }
                             ],
                             exposeRouteDomainsEnabled: false,

@@ -1148,20 +1148,12 @@ describe('declarationHandler', () => {
                             proberPool: 'gslbProberPool',
                             devices: [
                                 {
-                                    name: '0',
                                     remark: 'deviceDescription',
-                                    addresses: [{
-                                        name: '10.0.0.1',
-                                        translation: '192.0.2.12'
-                                    }]
+                                    address: '10.0.0.1',
+                                    addressTranslation: '192.0.2.12'
                                 },
                                 {
-                                    name: '1',
-                                    remark: undefined,
-                                    addresses: [{
-                                        name: '10.0.0.2',
-                                        translation: 'none'
-                                    }]
+                                    address: '10.0.0.2'
                                 }
                             ],
                             monitors: [],
@@ -1196,12 +1188,7 @@ describe('declarationHandler', () => {
                             dataCenter: 'gslbDataCenter',
                             devices: [
                                 {
-                                    name: '0',
-                                    remark: undefined,
-                                    addresses: [{
-                                        name: '10.0.0.3',
-                                        translation: 'none'
-                                    }]
+                                    address: '10.0.0.3'
                                 }
                             ],
                             monitors: [
