@@ -713,6 +713,7 @@
     {
         "path": "/tm/gtm/datacenter",
         "schemaClass": "GSLBDataCenter",
+        "enforceArray": true,
         "requiredModule": "gtm",
         "properties": [
             { "id": "contact" },
@@ -727,6 +728,7 @@
         "path": "/tm/gtm/server",
         "schemaClass": "GSLBServer",
         "requiredModule": "gtm",
+        "enforceArray": true,
         "properties": [
             { "id": "description", "newId": "remark" },
             { "id": "enabled" },
@@ -758,11 +760,12 @@
         "references": {
             "devicesReference": [
                 { "id": "name" },
-                { "id": "addresses",
-                  "transform": [
-                      { "id": "name" },
-                      { "id": "translation" }
-                  ]
+                {
+                    "id": "addresses",
+                    "transform": [
+                        { "id": "name" },
+                        { "id": "translation" }
+                    ]
                 },
                 { "id": "description", "newId": "remark" }
             ],
@@ -775,11 +778,6 @@
                 { "id": "translationAddress", "newId": "addressTranslation" },
                 { "id": "translationPort", "newId": "addressTranslationPort" },
                 { "id": "monitor", "newId": "monitors", "retainCommon": true }
-            ]
-        },
-        "declaration": {
-            "customFunctions": [
-                { "id": "formatGSLBServer" }
             ]
         }
     },
@@ -804,6 +802,7 @@
     {
         "path": "/tm/gtm/monitor/https",
         "schemaClass": "GSLBMonitor",
+        "enforceArray": true,
         "schemaMerge": {
             "action": "add"
         },
@@ -892,6 +891,7 @@
     {
         "path": "/tm/gtm/prober-pool",
         "schemaClass": "GSLBProberPool",
+        "enforceArray": true,
         "requiredModule": "gtm",
         "properties": [
             { "id": "description", "newId": "remark" },

@@ -2502,20 +2502,14 @@ describe('configManager', () => {
                                 dataCenter: 'gslbDataCenter',
                                 devices: [
                                     {
-                                        name: '0',
                                         remark: 'deviceDescription1',
-                                        addresses: [{
-                                            name: '10.0.0.1',
-                                            translation: '192.0.2.12'
-                                        }]
+                                        address: '10.0.0.1',
+                                        addressTranslation: '192.0.2.12'
                                     },
                                     {
-                                        name: '1',
                                         remark: 'deviceDescription2',
-                                        addresses: [{
-                                            name: '10.0.0.2',
-                                            translation: '192.0.2.13'
-                                        }]
+                                        address: '10.0.0.2',
+                                        addressTranslation: '192.0.2.13'
                                     }
                                 ],
                                 virtualServers: [
@@ -2549,6 +2543,24 @@ describe('configManager', () => {
                                 ]
                             }
                         }
+                    );
+                });
+        });
+
+        it('should handle GSLBServer when there are no items', () => {
+            const configItems = getConfigItems('GSLBServer');
+
+            listResponses['/tm/sys/provision'] = [
+                { name: 'gtm', level: 'nominal' }
+            ];
+            listResponses['/tm/gtm/server'] = undefined;
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.GSLBServer,
+                        {}
                     );
                 });
         });
@@ -2588,7 +2600,8 @@ describe('configManager', () => {
                 ppsLimitEnabled: false,
                 serviceCheckProbeEnabled: false,
                 snmpProbeEnabled: false,
-                monitors: []
+                monitors: [],
+                devices: []
             });
 
             const configManager = new ConfigManager(configItems, bigIpMock);
