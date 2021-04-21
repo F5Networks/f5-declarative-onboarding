@@ -76,6 +76,7 @@ class ConfigManager {
      *         },
      *         singleValue: <true_if_we_want_single_key_value_vs_whole_object_(Provision, for example)>,
      *         nameless: <true_if_we_do_not_want_the_name_property_in_the_result>,
+     *         enforceArray: <true_if_we_require_this_object_to_always_be_an_array>,
      *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>,
      *         ignore: [
      *             { <key_to_possibly_ignore>: <regex_for_value_to_ignore> }
@@ -194,6 +195,12 @@ class ConfigManager {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
                     const schemaClass = this.configItems[index].schemaClass;
+                    if (this.configItems[index].enforceArray && !Array.isArray(currentItem)) {
+                        // Older versions of BIG-IP do not always return an empty array
+                        // We love you BIG-IP
+                        currentItem = [];
+                    }
+
                     // looks like configItem was skipped in previous step
                     if (currentItem === false) {
                         if (!currentConfig[schemaClass] && classPresent(declaration, schemaClass)) {
@@ -515,6 +522,11 @@ class ConfigManager {
                 const currentGSLBServer = state.currentConfig.Common.GSLBServer;
                 if (currentGSLBServer) {
                     Object.keys(currentGSLBServer).forEach((key) => {
+                        currentGSLBServer[key].devices = (currentGSLBServer[key].devices || []).map(device => ({
+                            address: device.addresses[0].name,
+                            addressTranslation: device.addresses[0].translation,
+                            remark: device.remark
+                        }));
                         (currentGSLBServer[key].virtualServers || []).forEach((virtualServer) => {
                             const splitDestination = virtualServer.destination.split(/(\.|:)(?=[^.:]*$)/);
 

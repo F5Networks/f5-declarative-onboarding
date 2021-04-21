@@ -797,14 +797,9 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     remark: 'GSLB server description',
                     devices: [
                         {
-                            name: '0',
                             remark: 'GSLB server device description',
-                            addresses: [
-                                {
-                                    name: '10.10.10.10',
-                                    translation: '192.0.2.12'
-                                }
-                            ]
+                            address: '10.10.10.10',
+                            addressTranslation: '192.0.2.12'
                         }
                     ],
                     dataCenter: 'myDataCenter',

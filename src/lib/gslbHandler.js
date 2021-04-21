@@ -249,11 +249,14 @@ function handleGSLBServer() {
                     monitor: mapMonitors(vs)
                 }))
             };
-
-            body.devices.forEach((device) => {
-                device.description = device.remark || 'none';
-                delete device.remark;
-            });
+            body.devices = body.devices.map((device, i) => ({
+                name: `${i}`,
+                addresses: [{
+                    name: device.address,
+                    translation: device.addressTranslation || 'none'
+                }],
+                description: device.remark || 'none'
+            }));
 
             let method = 'create';
             if (this.state.currentConfig.Common.GSLBServer
