@@ -22,7 +22,6 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
-const dns = require('dns');
 const sinon = require('sinon');
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
@@ -38,7 +37,7 @@ describe('dscHandler', () => {
     let bigIpMock;
 
     beforeEach(() => {
-        sinon.stub(dns, 'lookup').callsArg(1);
+        sinon.stub(doUtil, 'checkDnsResolution').resolves();
         bigIpMock = {
             deviceInfo() {
                 return Promise.resolve({ hostname });
@@ -477,8 +476,9 @@ describe('dscHandler', () => {
         });
 
         it('should reject with an invalid remoteHost and we are not the remote', () => {
-            dns.lookup.restore();
-            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
+            doUtil.checkDnsResolution.restore();
+            sinon.stub(doUtil, 'checkDnsResolution')
+                .callsFake((bigIp, address) => Promise.reject(new Error(`Unable to resolve host ${address}`)));
             const testCase = 'example.cant';
             const declaration = {
                 Common: {
@@ -698,8 +698,9 @@ describe('dscHandler', () => {
         });
 
         it('should reject if the remoteHost has an invalid hostname', () => {
-            dns.lookup.restore();
-            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
+            doUtil.checkDnsResolution.restore();
+            sinon.stub(doUtil, 'checkDnsResolution')
+                .callsFake((bigIp, address) => Promise.reject(new Error(`Unable to resolve host ${address}`)));
             const testCase = 'example.cant';
 
             sinon.stub(doUtil, 'getBigIp').resolves(bigIpMock);

@@ -23,7 +23,6 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 const EventEmitter = require('events');
-const dns = require('dns');
 const sinon = require('sinon');
 
 const doUtilMock = require('../../../src/lib/doUtil');
@@ -106,7 +105,8 @@ describe('systemHandler', () => {
         };
         doUtilGetCurrentPlatformStub = sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
         doUtilExecuteBashCommandStub = sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves('');
-        sinon.stub(dns, 'lookup').callsArg(1);
+        sinon.stub(doUtilMock, 'checkDnsResolution').resolves();
+
         sinon.stub(cloudUtil, 'MEDIUM_RETRY').value(cloudUtil.NO_RETRY);
     });
 
@@ -387,12 +387,17 @@ describe('systemHandler', () => {
         });
 
         it('should reject NTP if bad hostname is sent', () => {
-            dns.lookup.restore();
-            sinon.stub(dns, 'lookup').callsArgWith(1, new Error('bad hostname'));
+            doUtilMock.checkDnsResolution.restore();
+            sinon.stub(doUtilMock, 'checkDnsResolution')
+                .callsFake((bigIp, address) => {
+                    if (address === '10.56.48.3') {
+                        return Promise.resolve();
+                    }
+                    return Promise.reject(new Error(`Unable to resolve host ${address}`));
+                });
 
             const testServers = [
                 'example.cant',
-                'www.google.com',
                 '10.56.48.3'
             ];
             const declaration = {
@@ -406,8 +411,7 @@ describe('systemHandler', () => {
 
             const systemHandler = new SystemHandler(declaration, bigIpMock);
             return assert.isRejected(systemHandler.process(),
-                'Unable to resolve host www.google.com: '
-                + 'Unable to resolve host example.cant: bad hostname',
+                'Unable to resolve host example.cant',
                 `All of these ${JSON.stringify(testServers)} exist, and one should NOT`);
         });
 
@@ -419,11 +423,10 @@ describe('systemHandler', () => {
                 }
                 return Promise.resolve();
             });
-            dns.lookup.restore();
-            sinon.stub(dns, 'lookup').callsFake((address, callback) => {
+            doUtilMock.checkDnsResolution.restore();
+            sinon.stub(doUtilMock, 'checkDnsResolution').callsFake(() => {
                 const message = 'DNS must be configured before NTP, so server hostnames can be checked';
                 assert.strictEqual(isDnsConfigured, true, message);
-                callback();
             });
 
             const testServers = [
@@ -1170,8 +1173,9 @@ describe('systemHandler', () => {
     });
 
     it('should reject if the bigIqHost is given a bad hostname', () => {
-        dns.lookup.restore();
-        sinon.stub(dns, 'lookup').callsArgWith(1, new Error('bad hostname'));
+        doUtilMock.checkDnsResolution.restore();
+        sinon.stub(doUtilMock, 'checkDnsResolution')
+            .callsFake((bigIp, address) => Promise.reject(new Error(`Unable to resolve host ${address}`)));
 
         const testCase = 'example.cant';
         const declaration = {
@@ -1192,7 +1196,7 @@ describe('systemHandler', () => {
 
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return assert.isRejected(systemHandler.process(),
-            'Unable to resolve host example.cant: bad hostname',
+            'Unable to resolve host example.cant',
             'example.cant is reported to exist and it should not');
     });
 
