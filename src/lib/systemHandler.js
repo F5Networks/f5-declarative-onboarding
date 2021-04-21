@@ -85,16 +85,16 @@ class SystemHandler {
                 return handleDhcpOptions.call(this);
             })
             .then(() => {
+                logger.fine('Checking ManagementRoute.');
+                return handleManagementRoute.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking DNS.');
                 return handleDNS.call(this);
             })
             .then(() => {
                 logger.fine('Checking NTP.');
                 return handleNTP.call(this);
-            })
-            .then(() => {
-                logger.fine('Checking ManagementRoute.');
-                return handleManagementRoute.call(this);
             })
             .then(() => {
                 logger.fine('Checking DeviceCertificate.');
@@ -181,7 +181,7 @@ function handleDhcpOptions() {
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        const promises = (ntp.servers || []).map(server => doUtil.checkDnsResolution(server));
+        const promises = (ntp.servers || []).map(server => doUtil.checkDnsResolution(this.bigIp, server));
 
         return Promise.all(promises)
             .then(() => this.bigIp.replace(
@@ -486,7 +486,7 @@ function handleLicensePool(license) {
 
     let promise = Promise.resolve();
     if (license.bigIqHost) {
-        promise = promise.then(() => doUtil.checkDnsResolution(license.bigIqHost));
+        promise = promise.then(() => doUtil.checkDnsResolution(this.bigIp, license.bigIqHost));
     }
 
     return promise
@@ -1021,7 +1021,7 @@ function createOrUpdateUser(username, data) {
 }
 
 function disableDhcpOptions(optionsToDisable) {
-    let requiresDhcpRestart;
+    let requiresDhcpRestart = false;
 
     return this.bigIp.list(
         '/tm/sys/management-dhcp/sys-mgmt-dhcp-config'
@@ -1046,18 +1046,11 @@ function disableDhcpOptions(optionsToDisable) {
                 }
             );
         })
-        .then(() => this.bigIp.list('/tm/sys/global-settings'))
-        .then((globalSettings) => {
-            // If DHCP is disabled on the device do NOT attempt to restart it
-            if (globalSettings && globalSettings.mgmtDhcp === 'disabled') {
-                requiresDhcpRestart = false;
-            }
-        })
         .then(() => {
-            if (!requiresDhcpRestart) {
-                return Promise.resolve();
+            if (requiresDhcpRestart) {
+                return restartDhcp.call(this);
             }
-            return restartService.call(this, 'dhclient');
+            return Promise.resolve();
         });
 }
 
@@ -1070,6 +1063,18 @@ function getBigIqManagementPort(currentPlatform, license) {
         bigIqMgmtPort = 8100;
     }
     return bigIqMgmtPort;
+}
+
+function restartDhcp() {
+    // If DHCP is disabled on the device do NOT attempt to restart it
+    return this.bigIp.list('/tm/sys/global-settings')
+        .then(globalSettings => globalSettings && globalSettings.mgmtDhcp === 'enabled')
+        .then((canRestartDhcp) => {
+            if (canRestartDhcp) {
+                return restartService.call(this, 'dhclient');
+            }
+            return Promise.resolve();
+        });
 }
 
 function restartService(service) {
