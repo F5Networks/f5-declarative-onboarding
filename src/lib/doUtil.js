@@ -19,7 +19,6 @@
 const fs = require('fs');
 const net = require('net');
 const exec = require('child_process').exec;
-const dns = require('dns');
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
@@ -477,33 +476,30 @@ module.exports = {
 
     /**
      * Checks if hostname exists
+     * @param {BigIp} bigIp - BigIp object
      * @param {String} address - URL address
      * @returns {boolean} found - Returns if the hostname was found
      */
-    checkDnsResolution(address) {
+    checkDnsResolution(bigIp, address) {
         function checkDns(addrToCheck) {
-            return new Promise((resolve, reject) => {
-                if (ipF5(addrToCheck)) {
-                    resolve(true);
-                    return;
-                }
-                try {
-                    dns.lookup(addrToCheck, (error) => {
-                        if (error) {
-                            error.message = `Unable to resolve host ${addrToCheck}: ${error.message}`;
-                            error.code = 424;
-                            reject(error);
-                            return;
-                        }
-                        resolve(true);
-                    });
-                } catch (error) {
-                    // if DNS.resolve errors it throws an exception instead of rejecting
-                    error.message = `Unable to resolve host ${addrToCheck}: ${error.message}`;
-                    error.code = 424;
-                    reject(error);
-                }
-            });
+            if (ipF5(addrToCheck)) {
+                return Promise.resolve();
+            }
+            return bigIp.create(
+                '/tm/util/dig',
+                {
+                    command: 'run',
+                    utilCmdArgs: address
+                },
+                null,
+                cloudUtil.NO_RETRY
+            )
+                .then((result) => {
+                    if (result.commandResult && result.commandResult.indexOf('status: NOERROR') >= 0) {
+                        return Promise.resolve();
+                    }
+                    return Promise.reject(new Error(`Unable to resolve host ${addrToCheck}`));
+                });
         }
 
         return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, checkDns, [address]);

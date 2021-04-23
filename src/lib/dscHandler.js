@@ -250,7 +250,7 @@ function handleJoinCluster(convertedMembers, deviceGroup) {
 
         this.bigIp.user = deviceTrust.localUsername;
         this.bigIp.password = deviceTrust.localPassword;
-        return doUtil.checkDnsResolution(deviceTrust.remoteHost)
+        return doUtil.checkDnsResolution(this.bigIp, deviceTrust.remoteHost)
             .then(() => this.bigIp.cluster.joinCluster(
                 deviceGroup.name,
                 deviceTrust.remoteHost,
@@ -290,7 +290,7 @@ function handleDeviceTrust() {
             }
 
             // If we are not the remote, check to see if we need to request to be added
-            return doUtil.checkDnsResolution(deviceTrust.remoteHost)
+            return doUtil.checkDnsResolution(this.bigIp, deviceTrust.remoteHost)
                 .then(() => doUtil.getBigIp(
                     logger,
                     {

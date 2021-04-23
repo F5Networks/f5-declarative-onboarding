@@ -23,7 +23,6 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 const fs = require('fs');
-const dns = require('dns');
 const netMock = require('net');
 const sinon = require('sinon');
 
@@ -377,51 +376,40 @@ describe('doUtil', () => {
     });
 
     describe('checkDnsResolution', () => {
+        let bigIpMock;
+
         beforeEach(() => {
-            sinon.stub(dns, 'lookup').callsArg(1);
+            bigIpMock = new BigIpMock();
             sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value(cloudUtilMock.NO_RETRY);
         });
 
-        it('should reject if undefined, invalid ip, or hostname does not exist', () => {
-            dns.lookup.restore();
-            sinon.stub(dns, 'lookup').callsArgWith(1, new Error());
-
-            return assert.isRejected(
-                doUtil.checkDnsResolution(undefined), 'Cannot read property \'toLowerCase\' of undefined'
-            )
-                .then(() => assert.isRejected(
-                    doUtil.checkDnsResolution('260.84.18.2'), 'Unable to resolve host 260.84.18.2'
-                ))
-                .then(() => assert.isRejected(
-                    doUtil.checkDnsResolution('example.cant'), 'Unable to resolve host example.cant'
-                ));
-        });
-
-        it('should resolve true if dns.lookup returns the address', () => assert.isFulfilled(
-            doUtil.checkDnsResolution('www.google.com', true)
-        ));
-
-        it('should provide a better error message on uncaught exceptions', () => {
-            dns.lookup.restore();
-            sinon.stub(dns, 'lookup').throws(new Error('Hello world!'));
-
-            return assert.isRejected(doUtil.checkDnsResolution('test'), 'Unable to resolve host test: Hello world!');
-        });
-
-        it('should retry if an error occurs', () => {
-            dns.lookup.restore();
-            sinon.stub(dns, 'lookup').callsFake(() => {
-                // Set dns lookup to work the next time it is called
-                dns.lookup.restore();
-                sinon.stub(dns, 'lookup').callsArg(1);
-                const errorMessage = 'Hello world!';
-                throw new Error(errorMessage);
+        it('should reject if invalid ip is given', () => {
+            bigIpMock.create = () => Promise.resolve({
+                commandResult: 'status: NXDOMAIN'
             });
 
-            sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value({ maxRetries: 1, retryIntervalMs: 10 });
+            return assert.isRejected(doUtil.checkDnsResolution(bigIpMock, '260.84.18.2'), 'Unable to resolve host 260.84.18.2');
+        });
 
-            return assert.becomes(doUtil.checkDnsResolution('test'), true,
-                'This test should have errored only once and then succeeded returning true');
+        it('should resolve true if a valid ip is given', () => {
+            bigIpMock.create = () => Promise.resolve({
+                commandResult: 'status: NOERROR'
+            });
+            return assert.isFulfilled(doUtil.checkDnsResolution(bigIpMock, '160.84.18.2', true));
+        });
+
+        it('should resolve true if dig returns the address', () => {
+            bigIpMock.create = () => Promise.resolve({
+                commandResult: 'status: NOERROR'
+            });
+            return assert.isFulfilled(doUtil.checkDnsResolution(bigIpMock, 'www.google.com', true));
+        });
+
+        it('should provide a better error message on uncaught exceptions', () => {
+            bigIpMock.create = () => Promise.resolve({
+                commandResult: 'status: NXDOMAIN'
+            });
+            return assert.isRejected(doUtil.checkDnsResolution(bigIpMock, 'test'), 'Unable to resolve host test');
         });
     });
 
