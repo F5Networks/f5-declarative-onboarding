@@ -44,3 +44,23 @@ The following is another example using a declaration for use in a container, but
 
 
 :ref:`Back to top<basic-examples>`
+
+|
+
+.. _example4:
+
+User class
+^^^^^^^^^^
+The following is an example of the :ref:`User Class<user-class>`.  The User class creates (or modifies) the users and their associated roles and access control. For more information, see |userclass| in the Schema Reference.
+
+In the following declaration, we show only the User class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+.. literalinclude:: ../../examples/user.json
+   :language: json
+
+
+:ref:`Back to top<basic-examples>`
+
+.. |userclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#user" target="_blank">User Class</a>
