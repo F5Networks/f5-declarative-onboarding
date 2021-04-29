@@ -353,3 +353,17 @@ Build/publish makes heavy use of GitLab and [.gitlab-ci.yml](../.gitlab-ci.yml).
 - When ready for release:
     - RPM should be manually copied into dist and pushed back up to GitLab. Please let's stop doing this.
     - RPM should be manually added to the F5 CDN. Please let's automate this.
+
+---
+### GitLab Push Rules
+
+To prevent the releasing of private or sensative information we automatically prevent certain strings from being included in commit messages.
+
+If modifications are necessary open the GitLab GUI, then Settings -> Repository -> Push Rules -> "Commit message negative match".
+
+When you attempt to push a commit message that contains sensitive information, you will see the following error: `Commit message contains the forbidden pattern`
+
+We check for the following:
+- Email addresses
+- IP addresses
+- Generic credential keywords
