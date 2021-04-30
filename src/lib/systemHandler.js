@@ -944,7 +944,9 @@ function handleDisk() {
     let promise = Promise.resolve();
 
     Object.keys(this.declaration.Common.Disk).forEach((directory) => {
-        if (this.declaration.Common.Disk[directory] <= this.state.originalConfig.Common.Disk[directory]) {
+        if (this.state.currentConfig.Common.Disk
+            && this.state.currentConfig.Common.Disk[directory]
+            && this.declaration.Common.Disk[directory] <= this.state.currentConfig.Common.Disk[directory]) {
             throw new Error('Disk size must be larger than current size.');
         }
 

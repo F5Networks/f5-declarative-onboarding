@@ -2350,13 +2350,20 @@ describe('configManager', () => {
             };
 
             const expectedConfig = {
+                ExistingClass: {
+                    foo: 'bar'
+                },
                 Disk: {
                     applicationData: 12345
                 }
             };
 
             state.originalConfig = {
-                Common: {}
+                Common: {
+                    ExistingClass: {
+                        foo: 'bar'
+                    }
+                }
             };
 
             const configManager = new ConfigManager(configItems, bigIpMock);

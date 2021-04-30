@@ -124,6 +124,7 @@ class RestWorker {
         });
 
         this.eventEmitter.on(EVENTS.REBOOT_NOW, (taskId) => {
+            logger.info(`handling REBOOT_NOW event for task: ${taskId}`);
             this.state.doState.setRebootRequired(taskId, true);
             return save.call(this)
                 .then(() => prepForRebootResumeOrRevoke.call(this, taskId, STATUS.STATUS_REBOOTING_AND_RESUMING))
@@ -436,7 +437,7 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
                 this.bigIps[originalDoId] = this.bigIps[taskId];
             }
 
-            logger.fine('Getting and saving current configuration');
+            logger.fine(`Getting and saving current configuration for task: ${taskId}`);
             return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId);
         })
         .then(() => {
@@ -758,6 +759,8 @@ function handleStartupState(success, error) {
                 return;
             }
 
+            logger.info(`Handling startup state for task: ${currentTaskId}`);
+
             switch (this.state.doState.getStatus(currentTaskId)) {
             case STATUS.STATUS_REBOOTING:
                 updateStateAfterReboot.call(this, currentTaskId, success, error);
@@ -774,7 +777,7 @@ function handleStartupState(success, error) {
                     // In this case, we should be running locally on a BIG-IP since
                     // revoking the BIG-IP license will not restart our restnoded in
                     // other environments (ASG, for example)
-                    logger.fine('Onboard resuming.');
+                    logger.fine(`Onboard resuming for task: ${currentTaskId}`);
                     this.state.doState.updateResult(currentTaskId, 202, STATUS.STATUS_RUNNING, 'processing');
                     save.call(this);
 
