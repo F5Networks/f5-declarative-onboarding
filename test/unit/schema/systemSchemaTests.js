@@ -1182,7 +1182,7 @@ describe('system.schema.json', () => {
             it('should validate with all properties', () => {
                 const data = {
                     "class": "Disk",
-                    "applicationData": 12345
+                    "applicationData": 4096
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -1192,7 +1192,7 @@ describe('system.schema.json', () => {
             it('should invalidate additional properties', () => {
                 const data = {
                     "class": "Disk",
-                    "newData": "12345"
+                    "newData": 12345
                 };
                 assert.strictEqual(validate(data), false, 'there should not be additional properties');
                 assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
@@ -1201,12 +1201,19 @@ describe('system.schema.json', () => {
             it('should invalidate invalid applicationData', () => {
                 const data = {
                     "class": "Disk",
-                    "applicationData": {
-                        "data": "hello"
-                    }
+                    "applicationData": "hello"
                 };
                 assert.strictEqual(validate(data), false, 'should be type integer');
                 assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
+            });
+
+            it('should invalidate non-multiples of 4k', () => {
+                const data = {
+                    "class": "Disk",
+                    "applicationData": 1025
+                };
+                assert.strictEqual(validate(data), false, 'should be multiple of 4096');
+                assert.notStrictEqual(getErrorString().indexOf('should be multiple of 4096'), -1);
             });
         });
     });

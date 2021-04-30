@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2074: ([GitHub Issue 190](https://github.com/F5Networks/f5-declarative-onboarding/issues/190)): Invalid config after upgrading DO from 1.15.0
 - AUTOTOOL-2041: ([GitHub Issue 125](https://github.com/F5Networks/f5-declarative-onboarding/issues/125)): Declaration containing NTP servers by dns name failing in certain cases
 - AUTOTOOL-2224: ([GitHub Issue 201](https://github.com/F5Networks/f5-declarative-onboarding/issues/201)): Pre-DO GTM Server preventing DO declaration from running
+- AUTOTOOL-2448: ([GitHub Issue 177](https://github.com/F5Networks/f5-declarative-onboarding/issues/177)): Disk class causes errors on declaration update
 ### Changed
 ### Removed
 

@@ -2093,7 +2093,7 @@ describe('systemHandler', () => {
             };
             const state = {
                 id: 'stateId',
-                originalConfig: {
+                currentConfig: {
                     Common: {
                         Disk: {
                             applicationData: 26128384
@@ -2107,6 +2107,29 @@ describe('systemHandler', () => {
                 .then(() => {
                     assert.equal(eventCalled, true);
                 });
+        });
+
+        it('should reject if new size is not greater than current size', () => {
+            const declaration = {
+                Common: {
+                    Disk: {
+                        applicationData: 130985984
+                    }
+                }
+            };
+            const state = {
+                id: 'stateId',
+                currentConfig: {
+                    Common: {
+                        Disk: {
+                            applicationData: 130985984
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
+            return assert.isRejected(systemHandler.process());
         });
     });
 });

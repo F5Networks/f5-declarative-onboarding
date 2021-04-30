@@ -453,10 +453,8 @@ class ConfigManager {
                     // missing or smaller than the currentDisk.
                     if (!originalConfig.Common.Disk
                         || currentDisk.applicationData > originalConfig.Common.Disk.applicationData) {
-                        originalConfig.Common = {
-                            Disk: {
-                                applicationData: currentDisk.applicationData
-                            }
+                        originalConfig.Common.Disk = {
+                            applicationData: currentDisk.applicationData
                         };
                     }
                 }
