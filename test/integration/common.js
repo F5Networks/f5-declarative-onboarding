@@ -148,15 +148,20 @@ module.exports = {
                 module.exports.sendRequest(options)
                     .then((response) => {
                         const statusCode = response.response.statusCode;
-                        logger.debug(`current status: ${statusCode}, waiting for ${expectedCode}`);
-                        if (statusCode === expectedCode) {
-                            let parsedResponse;
-                            try {
-                                parsedResponse = JSON.parse(response.body);
-                            } catch (err) {
-                                parsedResponse = response.body;
-                            }
 
+                        let parsedResponse;
+                        try {
+                            parsedResponse = JSON.parse(response.body);
+                        } catch (err) {
+                            parsedResponse = response.body;
+                        }
+
+                        logger.debug(`current status: ${statusCode}, waiting for ${expectedCode}`);
+                        if ([constants.HTTP_SUCCESS, constants.HTTP_ACCEPTED].indexOf(statusCode) < 0) {
+                            logger.debug(JSON.stringify(parsedResponse.result, null, 2));
+                        }
+
+                        if (statusCode === expectedCode) {
                             // 'experimental' statusCode will always return 200, response.code may differ.
                             if (queryObj.statusCodes === 'experimental' && !parsedResponse.code) {
                                 reject(new Error(parsedResponse.result.code));
@@ -172,6 +177,53 @@ module.exports = {
             });
         };
         return module.exports.tryOften(func, trials, timeInterval, null, false);
+    },
+
+    /**
+     * testOriginalConfig - Tests if original config can be successfully applied by DO. This is
+     *                      done by resetting the original config to match the current machine state
+     *                      and then sending an empty declaration.
+     * @ipAddress {String} - BIG-IP address for DO call
+     * @auth {Object} : authorization dictionary with (username, password) or F5 token
+     * Returns a Promise with response/error
+    */
+    testOriginalConfig(ipAddress, auth) {
+        const url = `${this.hostname(ipAddress, constants.PORT)}${constants.DO_API}`;
+
+        logger.debug('Testing original config');
+
+        return this.testRequest(null, `${url}/config`, auth, constants.HTTP_SUCCESS, 'GET',
+            null, [constants.HTTP_NOTFOUND])
+            .then((body) => {
+                const promises = JSON.parse(body).map((config) => {
+                    logger.debug(`Deleting original config ${config.id}`);
+                    return this.sendRequest(
+                        this.buildBody(`${url}/config/${config.id}`, null, auth, 'DELETE'),
+                        {
+                            trials: 5,
+                            timeInterval: 1000
+                        }
+                    );
+                });
+                return Promise.all(promises);
+            })
+            .then(() => {
+                const body = {
+                    schemaVersion: '1.0.0',
+                    class: 'Device',
+                    async: true,
+                    controls: {
+                        trace: true,
+                        traceResponse: true
+                    },
+                    Common: {
+                        class: 'Tenant'
+                    }
+                };
+                logger.debug('Generating and applying new original config');
+                return this.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST');
+            })
+            .then(() => this.testGetStatus(60, 30 * 1000, ipAddress, auth, constants.HTTP_SUCCESS));
     },
 
     /**

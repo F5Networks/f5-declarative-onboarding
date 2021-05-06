@@ -71,36 +71,38 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         before(() => {
             const thisMachine = machines[0];
             const bigIpAddress = thisMachine.ip;
-            return new Promise((resolve, reject) => {
-                const bodyFile = `${BODIES}/onboard.json`;
-                const bigIpAuth = {
-                    username: thisMachine.adminUsername,
-                    password: thisMachine.adminPassword
-                };
-                return common.readFile(bodyFile)
-                    .then(JSON.parse)
-                    .then((readBody) => {
-                        body = readBody;
-                    })
-                    .then(() => common.testRequest(
-                        body,
-                        `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`, bigIpAuth,
-                        constants.HTTP_ACCEPTED, 'POST'
-                    ))
-                    .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                        constants.HTTP_SUCCESS))
-                    .then((response) => {
-                        currentState = response.currentConfig.Common;
-                        resolve();
-                    })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            const bodyFile = `${BODIES}/onboard.json`;
+            const bigIpAuth = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
+            return common.readFile(bodyFile)
+                .then(JSON.parse)
+                .then((readBody) => {
+                    body = readBody;
+                })
+                .then(() => common.testRequest(
+                    body,
+                    `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`, bigIpAuth,
+                    constants.HTTP_ACCEPTED, 'POST'
+                ))
+                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
+                    constants.HTTP_SUCCESS))
+                .then((response) => {
+                    currentState = response.currentConfig.Common;
+                })
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+        });
+
+        after(() => {
+            const thisMachine = machines[0];
+            const bigIpAddress = thisMachine.ip;
+            const bigIpAuth = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
+            return common.testOriginalConfig(bigIpAddress, bigIpAuth)
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
         });
 
         it('should match the hostname', () => {
@@ -193,27 +195,26 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             const bigIpAddress = thisMachine.ip;
             const bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
             const bodyFile = `${BODIES}/network.json`;
-            return new Promise((resolve, reject) => {
-                common.readFile(bodyFile)
-                    .then((fileRead) => {
-                        body = JSON.parse(fileRead);
-                    })
-                    .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
-                        + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                    .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                        constants.HTTP_SUCCESS))
-                    .then((response) => {
-                        currentState = response.currentConfig.Common;
-                        resolve();
-                    })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            return common.readFile(bodyFile)
+                .then((fileRead) => {
+                    body = JSON.parse(fileRead);
+                })
+                .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
+                    + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
+                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
+                    constants.HTTP_SUCCESS))
+                .then((response) => {
+                    currentState = response.currentConfig.Common;
+                })
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+        });
+
+        after(() => {
+            const thisMachine = machines[1];
+            const bigIpAddress = thisMachine.ip;
+            const bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
+            return common.testOriginalConfig(bigIpAddress, bigIpAuth)
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
         });
 
         it('should match self ip', () => {
@@ -450,27 +451,26 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             const bigIpAddress = thisMachine.ip;
             const bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
             const bodyFile = `${BODIES}/auth.json`;
-            return new Promise((resolve, reject) => {
-                common.readFile(bodyFile)
-                    .then((fileRead) => {
-                        body = JSON.parse(fileRead);
-                    })
-                    .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
-                        + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                    .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                        constants.HTTP_SUCCESS))
-                    .then((response) => {
-                        currentState = response.currentConfig.Common;
-                        resolve();
-                    })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            return common.readFile(bodyFile)
+                .then((fileRead) => {
+                    body = JSON.parse(fileRead);
+                })
+                .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
+                    + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
+                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
+                    constants.HTTP_SUCCESS))
+                .then((response) => {
+                    currentState = response.currentConfig.Common;
+                })
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+        });
+
+        after(() => {
+            const thisMachine = machines[2];
+            const bigIpAddress = thisMachine.ip;
+            const bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
+            return common.testOriginalConfig(bigIpAddress, bigIpAuth)
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
         });
 
         it('should configure main auth settings', () => {
@@ -521,59 +521,42 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 username: thisMachine.adminUsername,
                 password: thisMachine.adminPassword
             };
-            return new Promise((resolve, reject) => {
-                common.readFile(bodyFileLicensing)
-                    .then(JSON.parse)
-                    .then((body) => {
-                        // need to replace credentials and ip address for BIG-IQ in the
-                        // declaration by those we got from environment
-                        body.Common.myLicense.bigIqHost = bigIqAddress;
-                        body.Common.myLicense.bigIqUsername = bigIqAuth.username;
-                        body.Common.myLicense.bigIqPassword = bigIqAuth.password;
-                        // also update BIG-IP credentials
-                        body.Common.myLicense.bigIpUsername = bigIpAuth.username;
-                        body.Common.myLicense.bigIpPassword = bigIpAuth.password;
-                        return body;
-                    })
-                    .then(body => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
-                        + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                    .then(() => common.testGetStatus(20, 60 * 1000, bigIpAddress, bigIpAuth,
-                        constants.HTTP_SUCCESS))
-                    .then(() => {
-                        resolve();
-                    })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            return common.readFile(bodyFileLicensing)
+                .then(JSON.parse)
+                .then((body) => {
+                    // need to replace credentials and ip address for BIG-IQ in the
+                    // declaration by those we got from environment
+                    body.Common.myLicense.bigIqHost = bigIqAddress;
+                    body.Common.myLicense.bigIqUsername = bigIqAuth.username;
+                    body.Common.myLicense.bigIqPassword = bigIqAuth.password;
+                    // also update BIG-IP credentials
+                    body.Common.myLicense.bigIpUsername = bigIpAuth.username;
+                    body.Common.myLicense.bigIpPassword = bigIpAuth.password;
+                    return body;
+                })
+                .then(body => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
+                    + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
+                .then(() => common.testGetStatus(20, 60 * 1000, bigIpAddress, bigIpAuth,
+                    constants.HTTP_SUCCESS))
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
         });
+
+        after(() => common.testOriginalConfig(bigIpAddress, bigIpAuth)
+            .catch(error => logError(error, bigIpAddress, bigIpAuth)));
 
         it('should have licensed', () => {
             logTestTitle(this.ctx.test.title);
-            return new Promise((resolve, reject) => {
-                getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth)
-                    .then((auditLink) => {
-                        logger.info(`auditLink: ${auditLink}`);
-                        // save the licensing link to compare against later
-                        oldAuditLink = auditLink;
-                        assert.ok(auditLink);
-                        resolve();
-                    })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            return getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth)
+                .then((auditLink) => {
+                    logger.info(`auditLink: ${auditLink}`);
+                    // save the licensing link to compare against later
+                    oldAuditLink = auditLink;
+                    assert.ok(auditLink);
+                })
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
         });
 
-        it('should have re-licensed with new pool', () => new Promise((resolve, reject) => {
+        it('should have re-licensed with new pool', () => {
             logTestTitle(this.ctx.test.title);
             const bodyFileRevokingRelicensing = `${BODIES}/revoking_relicensing_big_iq.json`;
             // now revoke and re-license using another license pool
@@ -599,17 +582,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     assert.notStrictEqual(oldAuditLink, auditLink);
                     newAuditLink = auditLink;
                 })
-                .then(() => {
-                    resolve();
-                })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                .then((declarationStatus) => {
-                    reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        }));
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+        });
 
         describe('Test Firewall', function testFirewall() {
             this.timeout(1000 * 60 * 30); // 30 minutes
@@ -618,28 +592,22 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
             before(() => {
                 const bodyFile = `${BODIES}/firewall.json`;
-                return new Promise((resolve, reject) => {
-                    common.readFile(bodyFile)
-                        .then((fileRead) => {
-                            body = JSON.parse(fileRead);
-                        })
-                        .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                        .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                            constants.HTTP_SUCCESS))
-                        .then((response) => {
-                            currentState = response.currentConfig.Common;
-                            resolve();
-                        })
-                        .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                        .then((declarationStatus) => {
-                            reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                        })
-                        .catch((err) => {
-                            reject(err);
-                        });
-                });
+                return common.readFile(bodyFile)
+                    .then((fileRead) => {
+                        body = JSON.parse(fileRead);
+                    })
+                    .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
+                        + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
+                    .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
+                        constants.HTTP_SUCCESS))
+                    .then((response) => {
+                        currentState = response.currentConfig.Common;
+                    })
+                    .catch(error => logError(error, bigIpAddress, bigIpAuth));
             });
+
+            after(() => common.testOriginalConfig(bigIpAddress, bigIpAuth)
+                .catch(error => logError(error, bigIpAddress, bigIpAuth)));
 
             it('should match self ip', () => {
                 assert.deepStrictEqual(
@@ -738,7 +706,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             let currentState;
             let body;
 
-            before(() => new Promise((resolve, reject) => {
+            before(() => {
                 const bodyFile = `${BODIES}/gslb.json`;
                 // send out gslb declaration
                 return common.readFile(bodyFile)
@@ -755,16 +723,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         constants.HTTP_SUCCESS))
                     .then((response) => {
                         currentState = response.currentConfig.Common;
-                        resolve();
                     })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            }));
+                    .catch(error => logError(error, bigIpAddress, bigIpAuth));
+            });
+
+            after(() => common.testOriginalConfig(bigIpAddress, bigIpAuth)
+                .catch(error => logError(error, bigIpAddress, bigIpAuth)));
 
             it('should have updated GSLB global-settings', () => assert.deepStrictEqual(
                 currentState.GSLBGlobals,
@@ -998,9 +962,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         resolve();
                     })
                     .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
                     .catch((err) => {
                         reject(err);
                     }));
@@ -1079,9 +1040,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         resolve();
                     })
                     .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
                     .catch((err) => {
                         reject(err);
                     });
@@ -1104,34 +1062,25 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             };
             const query = { statusCodes: 'experimental' };
 
-            return new Promise((resolve, reject) => {
-                // get current configuration to compare against later
-                common.testGetStatus(1, 1, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS)
-                    .then((response) => {
-                        body = response.currentConfig.Common;
-                    })
-                    // send out request with invalid config declaration
-                    .then(() => common.readFile(bodyFile))
-                    .then((fileRead) => {
-                        const bodyRequest = JSON.parse(fileRead);
-                        return common.testRequest(bodyRequest,
-                            `${common.hostname(bigIpAddress, constants.PORT)}`
-                            + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST');
-                    })
-                    .then(() => common.testGetStatus(3, 60 * 1000, bigIpAddress, bigIpAuth,
-                        constants.HTTP_SUCCESS, query))
-                    .then((response) => {
-                        currentState = response.currentConfig.Common;
-                        resolve();
-                    })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
-                    .then((declarationStatus) => {
-                        reject(new Error(JSON.stringify(declarationStatus, null, 2)));
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            });
+            // get current configuration to compare against later
+            return common.testGetStatus(1, 1, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS)
+                .then((response) => {
+                    body = response.currentConfig.Common;
+                })
+                // send out request with invalid config declaration
+                .then(() => common.readFile(bodyFile))
+                .then((fileRead) => {
+                    const bodyRequest = JSON.parse(fileRead);
+                    return common.testRequest(bodyRequest,
+                        `${common.hostname(bigIpAddress, constants.PORT)}`
+                        + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST');
+                })
+                .then(() => common.testGetStatus(3, 60 * 1000, bigIpAddress, bigIpAuth,
+                    constants.HTTP_SUCCESS, query))
+                .then((response) => {
+                    currentState = response.currentConfig.Common;
+                })
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
         });
 
         it('should have rollback status', () => {
@@ -1277,7 +1226,8 @@ function logTestTitle(testTitle) {
 function logError(error, bigIpAddress, bigIpAuth) {
     console.log(error);
     logger.info(error);
-    return common.dumpDeclaration(bigIpAddress, bigIpAuth);
+    return common.dumpDeclaration(bigIpAddress, bigIpAuth)
+        .then(declarationStatus => Promise.reject(new Error(JSON.stringify(declarationStatus, null, 2))));
 }
 
 /**
