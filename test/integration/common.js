@@ -193,7 +193,7 @@ module.exports = {
         logger.debug('Testing original config');
 
         return this.testRequest(null, `${url}/config`, auth, constants.HTTP_SUCCESS, 'GET',
-            null, [constants.HTTP_NOTFOUND])
+            null, [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED])
             .then((body) => {
                 const promises = JSON.parse(body).map((config) => {
                     logger.debug(`Deleting original config ${config.id}`);
