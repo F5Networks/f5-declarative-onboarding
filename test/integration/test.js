@@ -25,6 +25,7 @@
 'use strict';
 
 const assert = require('assert');
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const constants = require('./constants.js');
 const common = require('./common.js');
 const logger = require('./logger').getInstance();
@@ -1453,15 +1454,20 @@ function testRadiusAuth(target, response) {
 
 function testLdapAuth(target, response) {
     const ldapResp = response.Authentication.ldap;
+    const strings = [
+        'bindDn', 'bindTimeout', 'checkBindPassword', 'checkRemoteRole', 'filter', 'groupDn',
+        'groupMemberAttribute', 'idleTimeout', 'ignoreAuthInfoUnavailable',
+        'ignoreUnknownUser', 'loginAttribute', 'port', 'searchScope', 'searchBaseDn',
+        'searchTimeout', 'servers', 'ssl', 'sslCheckPeer', 'sslCiphers', 'userTemplate', 'version'
+    ];
+    const currentBigIpVersion = process.env.BIGIP_IMAGE.split('-')[1];
+    if (cloudUtil.versionCompare('15.1', currentBigIpVersion) <= 0) {
+        strings.push('referrals');
+    }
     return compareSimple(
         target,
         ldapResp,
-        [
-            'bindDn', 'bindTimeout', 'checkBindPassword', 'checkRemoteRole', 'filter', 'groupDn',
-            'groupMemberAttribute', 'idleTimeout', 'ignoreAuthInfoUnavailable',
-            'ignoreUnknownUser', 'loginAttribute', 'port', 'searchScope', 'searchBaseDn',
-            'searchTimeout', 'servers', 'ssl', 'sslCheckPeer', 'sslCiphers', 'userTemplate', 'version'
-        ]
+        strings
     );
 }
 

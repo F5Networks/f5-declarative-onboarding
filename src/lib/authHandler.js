@@ -186,6 +186,7 @@ function handleLdap() {
         ignoreUnknownUser: ldap.ignoreUnknownUser ? 'enabled' : 'disabled',
         loginAttribute: ldap.loginAttribute || 'none',
         port: ldap.port,
+        referrals: ldap.referrals ? 'yes' : 'no',
         scope: ldap.searchScope,
         searchBaseDn: ldap.searchBaseDn || 'none',
         searchTimeout: ldap.searchTimeout,

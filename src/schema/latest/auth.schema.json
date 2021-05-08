@@ -446,6 +446,11 @@
                     "maximum": 65535,
                     "default": 389
                 },
+                "referrals": {
+                    "description": "Specifies whether automatic referral chasing should be enabled. This is for BIG-IP 15.1+",
+                    "type": "boolean",
+                    "default": true
+                },
                 "searchScope": {
                     "description": "Level of remote server's directory to search for user authentication, either base object, one level, or subtree",
                     "type": "string",

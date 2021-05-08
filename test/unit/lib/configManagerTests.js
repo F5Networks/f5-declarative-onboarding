@@ -30,6 +30,7 @@ const ConfigItems = require('../../../src/lib/configItems.json');
 describe('configManager', () => {
     const hostname = 'myhost.bigip.com';
     const deviceName = 'device1';
+    const version = '15.1';
 
     let listResponses;
     let bigIpMock;
@@ -64,7 +65,7 @@ describe('configManager', () => {
         };
         bigIpMock = {
             deviceInfo() {
-                return Promise.resolve({ hostname });
+                return Promise.resolve({ hostname, version });
             },
             list(path) {
                 // The path name here does not have a domain, but does include
@@ -2960,6 +2961,77 @@ describe('configManager', () => {
                                 ]
                             }
                         }
+                    );
+                });
+        });
+    });
+
+    describe('minVersion', () => {
+        it('should add to currentConfig if minVersion is met', () => {
+            const configItems = [
+                {
+                    path: '/tm/auth/ldap',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['ldap'],
+                        skipWhenOmitted: true
+                    },
+                    properties: [
+                        {
+                            id: 'referrals',
+                            truth: 'yes',
+                            falsehood: 'no',
+                            minVersion: '15.1'
+                        }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/auth/ldap'] = { referrals: 'yes' };
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.Authentication,
+                        {
+                            ldap: {
+                                referrals: true
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should not add to currentConfig if minVersion is greater', () => {
+            const configItems = [
+                {
+                    path: '/tm/auth/ldap',
+                    schemaClass: 'Authentication',
+                    schemaMerge: {
+                        path: ['ldap'],
+                        skipWhenOmitted: true
+                    },
+                    properties: [
+                        {
+                            id: 'referrals',
+                            truth: 'yes',
+                            falsehood: 'no',
+                            minVersion: '15.1'
+                        }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/auth/ldap'] = {};
+            bigIpMock.deviceInfo = () => Promise.resolve({ hostname, version: '13.1' });
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.Authentication,
+                        {}
                     );
                 });
         });

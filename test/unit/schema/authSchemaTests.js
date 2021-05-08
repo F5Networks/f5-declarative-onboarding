@@ -401,6 +401,7 @@ describe('auth.schema.json', () => {
                         ignoreUnknownUser: true,
                         loginAttribute: 'attributeToLogin',
                         port: 654,
+                        referrals: true,
                         searchScope: 'base',
                         searchBaseDn: 'searchName',
                         searchTimeout: 687,
