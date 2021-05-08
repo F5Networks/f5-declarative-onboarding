@@ -515,6 +515,7 @@
             { "id": "ignoreUnknownUser", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "loginAttribute" },
             { "id": "port" },
+            { "id": "referrals", "truth": "yes", "falsehood": "no", "minVersion": "15.1" },
             { "id": "scope", "newId": "searchScope" },
             { "id": "searchBaseDn" },
             { "id": "searchTimeout" },

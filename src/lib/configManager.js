@@ -68,9 +68,10 @@ class ConfigManager {
      *                 transform: [<id_newId_to_apply_to_arrays_and_subobjects>],
      *                 capture: <regex_to_capture>,
      *                 captureProperty: <property_to_capture_from>,
-     *                 stringToInt: <boolean_to_convert_int_to_string>
+     *                 stringToInt: <boolean_to_convert_int_to_string>,
+     *                 minVersion: <minimum_big-ip_version_for_property>
      *             }
-     *         ]
+     *         ],
      *         references: {
      *             <name_of_reference>: ['properties', 'that', 'we', 'are', 'interested', 'in']
      *         },
@@ -85,7 +86,7 @@ class ConfigManager {
      *           path: <array_containing_property_path>,
      *           action: <override_if_not_direct_assign_of_value>
      *           skipWhenOmitted: <do_not_add_to_parent_when_missing>
-     *         }
+     *         },
      *         partitions: ['partition(s)', 'to', 'check']
      *     }
      * ]
@@ -152,6 +153,7 @@ class ConfigManager {
             .then(() => this.bigIp.deviceInfo())
             .then((deviceInfo) => {
                 this.configId = deviceInfo.machineId;
+                this.bigIpVersion = deviceInfo.version;
                 return getTokenMap.call(this, deviceInfo);
             })
             .then((tokenMap) => {
@@ -240,7 +242,8 @@ class ConfigManager {
                                     }
 
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
-                                    patchedItem = mapProperties(patchedItem, this.configItems[index]);
+                                    patchedItem = mapProperties(patchedItem,
+                                        this.configItems[index], this.bigIpVersion);
 
                                     let name = item.name;
 
@@ -316,7 +319,7 @@ class ConfigManager {
                             currentItem,
                             this.configItems[index].nameless
                         );
-                        patchedItem = mapProperties(patchedItem, this.configItems[index]);
+                        patchedItem = mapProperties(patchedItem, this.configItems[index], this.bigIpVersion);
                         if (schemaClass === 'Authentication') {
                             patchedItem = patchAuth.call(
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
@@ -403,7 +406,7 @@ class ConfigManager {
 
                     const patchReferences = (reference) => {
                         let patchedItem = removeUnusedKeys.call(this, reference);
-                        patchedItem = mapProperties(patchedItem, refConfigItem);
+                        patchedItem = mapProperties(patchedItem, refConfigItem, this.bigIpVersion);
                         return patchedItem;
                     };
 
@@ -640,8 +643,9 @@ function getPropertiesOfInterest(initialProperties) {
  *
  * @param {Object} item - The item (typically the item is coming from bigip) whose properties to map
  * @param {Object} configItem - The configItem object that contains the properties to map
+ * @param {String} bigIpVersion - The current BIG-IP version
  */
-function mapProperties(item, configItem) {
+function mapProperties(item, configItem, bigIpVersion) {
     const mappedItem = {};
     Object.assign(mappedItem, item);
 
@@ -652,6 +656,11 @@ function mapProperties(item, configItem) {
 
     configItem.properties.forEach((property) => {
         let hasVal = false;
+
+        if (property.minVersion && cloudUtil.versionCompare(property.minVersion, bigIpVersion) > 0) {
+            return;
+        }
+
         // map truth/falsehood (enabled/disabled, for example) to booleans
         if (property.truth !== undefined) {
             // for certain items we don't want to add prop with default falsehood value if prop doesn't exist

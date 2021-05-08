@@ -420,9 +420,10 @@ describe('inspectHandler', () => {
         const pathsToIgnore = configItems.filter(item => item.declaration === false).map(item => item.path);
         const deviceName = 'device1';
         const hostname = 'myhost.bigip.com';
+        const version = '15.1';
         const bigIpMock = {
             deviceInfo() {
-                return Promise.resolve({ hostname });
+                return Promise.resolve({ hostname, version });
             },
             list(path) {
                 // The path name here does not have a domain, but does include
@@ -773,7 +774,7 @@ describe('inspectHandler', () => {
                     unwantedProperty: 4
                 }
             ],
-            '/tm/cm/device': [{ name: deviceName, hostname }],
+            '/tm/cm/device': [{ name: deviceName, hostname, version }],
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
                 mirrorIp: '10.0.0.2',
@@ -974,6 +975,7 @@ describe('inspectHandler', () => {
                 ignoreUnknownUser: 'disabled',
                 loginAttribute: 'loginAttribute',
                 port: 636,
+                referrals: 'no',
                 scope: 'sub',
                 searchBaseDn: 'testTree',
                 searchTimeout: 30,
@@ -1922,6 +1924,7 @@ describe('inspectHandler', () => {
                                 ignoreUnknownUser: false,
                                 loginAttribute: 'loginAttribute',
                                 port: 636,
+                                referrals: false,
                                 searchScope: 'sub',
                                 searchBaseDn: 'testTree',
                                 searchTimeout: 30,
