@@ -1,9 +1,0 @@
-{
-    "packageManager": "npm",
-    "reporters": ["html", "clear-text", "progress"],
-    "testRunner": "mocha",
-    "coverageAnalysis": "perTest",
-    "mochaOptions": {
-        "spec": ["test/unit/**/*.js"]
-    }
-}
