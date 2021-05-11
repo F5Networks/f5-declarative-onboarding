@@ -317,7 +317,7 @@ pages:
         - if [ "$TRIGGER_MUTATION_TEST" = "true" ]; then
         -   cp -R reports/mutation/* ${MUTATION_DOCS}
         - elif [ -d "prev_content/${MUTATION_DOCS}" ]; then
-        -   cp -R prev_content/${MUTATION_DOCS}/* ${MUTATION_DOCS}
+        -   cp -RT prev_content/${MUTATION_DOCS} ${MUTATION_DOCS}
         - fi
         ## place code contribution docs (includes presentation) under: /contribute-docs ##
         - CONTRIBUTE_DOCS=${PUBLIC_DIR}/contribute-docs
