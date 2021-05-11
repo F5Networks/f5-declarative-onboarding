@@ -291,7 +291,7 @@ pages:
         - mutation
     script:
         # get previous content
-        - $(curl --fail $CI_PAGES_URL/content.tar.gz -O prev_content.tar.gz || exit 0;);
+        - $(curl --fail $CI_PAGES_URL/content.tar.gz -o prev_content.tar.gz || exit 0;);
         - if [ -f prev_content.tar.gz ]; then
         -   tar -xzf prev_content.tar.gz prev_content/
         - fi
