@@ -31,22 +31,19 @@ In this example, we are adding public SSH keys to the root user and a guestUser.
 
 Configuring BIG-IP authentication methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   The ability to enable SSL for LDAP is available in DO 1.13 and later
-
-In this example, we show how to configure RADIUS, LDAP, and TACACS authentication in a Declarative Onboarding declaration using the **Authentication** class. The authentication class can (but does not have to) contain multiple authentication method subclasses but only one can be enabled at a time using the **enableSourceType** property (which matches the BIG-IP UI behavior).
+In this example, we show how to configure RADIUS, LDAP, and TACACS authentication in a Declarative Onboarding declaration using the **Authentication** class. The authentication class can (but does not have to) contain multiple authentication method subclasses, but only one can be enabled at a time using the **enableSourceType** property (which matches the BIG-IP UI behavior).
 
 This example declaration contains all three authentication methods with the **enableSourceType** property set to **radius**. It also includes the SSL options for LDAP introduced in DO 1.13.
 
 For more information on options and DO usage, see |auth| and the subsequent entries in the Schema Reference.
 
-.. NOTE:: We updated this example in DO 1.17 to include a CA certificate for LDAP using the new **sslCaCert** property in the |authldap| class.
+.. NOTE:: We updated this example for the following: |br| - DO 1.17 includes a CA certificate for LDAP using the new **sslCaCert** property. |br| - DO 1.21 includes the ability to enable or disable LDAP referral chasing using the new **referrals** Boolean (BIG-IP 15.1 and later only). |br| See |authldap| in the Schema Reference for DO information and DO usage. |br| **IMPORTANT** If you attempt to use the example declaration on a previous version that does not include one of these features, it will fail.  You can remove the lines highlighted in yellow for previous versions of DO.
 
 In the following declaration snippet we show only the classes related to authentication.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
 .. literalinclude:: ../../examples/authMethods.json
    :language: json
+   :emphasize-lines: 46, 56-60
 
 :ref:`Back to top<auth-examples>`
 
