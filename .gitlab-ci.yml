@@ -313,11 +313,11 @@ pages:
         - cp -R coverage/* ${COVERAGE_DOCS}
         # place mutation docs under: /mutation-docs
         - MUTATION_DOCS=${PUBLIC_DIR}/mutation-docs
-        - mkdir -p ${MUTATION_DOCS}
         - if [ "$TRIGGER_MUTATION_TEST" = "true" ]; then
+        -   mkdir -p ${MUTATION_DOCS}
         -   cp -R reports/mutation/* ${MUTATION_DOCS}
         - elif [ -d "prev_content/${MUTATION_DOCS}" ]; then
-        -   cp -RT prev_content/${MUTATION_DOCS} ${MUTATION_DOCS}
+        -   cp -R prev_content/${MUTATION_DOCS} ${PUBLIC_DIR}
         - fi
         ## place code contribution docs (includes presentation) under: /contribute-docs ##
         - CONTRIBUTE_DOCS=${PUBLIC_DIR}/contribute-docs
