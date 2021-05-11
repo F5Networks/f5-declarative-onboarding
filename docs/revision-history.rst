@@ -12,7 +12,7 @@ Document Revision History
         - Date
              
       * - 1.21
-        - Updated the documentation for Declarative Onboarding v1.21.0.  This release contains the following changes: |br| * Modified this revision history so that the Release column aligns with the DO release |br| |br| Issues Resolved: |br| * Invalid config after upgrading DO from 1.15.0, `GitHub Issue 190 <https://github.com/F5Networks/f5-declarative-onboarding/issues/190>`_ |br| * Pre-DO GTM Server preventing DO declaration from running `GitHub Issue 201 <https://github.com/F5Networks/f5-declarative-onboarding/issues/201>`_
+        - Updated the documentation for Declarative Onboarding v1.21.0.  This release contains the following changes: |br| * Modified this revision history so that the Release column aligns with the DO release |br| * Added support for enabling or disabling LDAP referral chasing (see :ref:`Authentication Methods<authmethods>`) |br| |br| Issues Resolved: |br| * Invalid config after upgrading DO from 1.15.0, `GitHub Issue 190 <https://github.com/F5Networks/f5-declarative-onboarding/issues/190>`_ |br| * Pre-DO GTM Server preventing DO declaration from running `GitHub Issue 201 <https://github.com/F5Networks/f5-declarative-onboarding/issues/201>`_
         - 5-18-21
 
       * - 1.20
