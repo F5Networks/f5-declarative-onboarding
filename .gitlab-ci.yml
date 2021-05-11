@@ -293,7 +293,8 @@ pages:
         # get previous content
         - $(curl --fail $CI_PAGES_URL/content.tar.gz -o prev_content.tar.gz || exit 0;);
         - if [ -f prev_content.tar.gz ]; then
-        -   tar -xzf prev_content.tar.gz prev_content/
+        -   mkdir -p prev_content
+        -   tar -xzf prev_content.tar.gz -C prev_content
         - fi
         # create public directory
         - PUBLIC_DIR='./public'
@@ -311,12 +312,12 @@ pages:
         - mkdir -p ${COVERAGE_DOCS}
         - cp -R coverage/* ${COVERAGE_DOCS}
         # place mutation docs under: /mutation-docs
+        - MUTATION_DOCS=${PUBLIC_DIR}/mutation-docs
+        - mkdir -p ${MUTATION_DOCS}
         - if [ "$TRIGGER_MUTATION_TEST" = "true" ]; then
-        -   MUTATION_DOCS=${PUBLIC_DIR}/mutation-docs
-        -   mkdir -p ${MUTATION_DOCS}
         -   cp -R reports/mutation/* ${MUTATION_DOCS}
-        - elif [ -d "prev_content/reports/mutation" ]; then
-        -   cp -R prev_content/reports/mutation/* ${MUTATION_DOCS}
+        - elif [ -d "prev_content/${MUTATION_DOCS}" ]; then
+        -   cp -R prev_content/${MUTATION_DOCS}/* ${MUTATION_DOCS}
         - fi
         ## place code contribution docs (includes presentation) under: /contribute-docs ##
         - CONTRIBUTE_DOCS=${PUBLIC_DIR}/contribute-docs
