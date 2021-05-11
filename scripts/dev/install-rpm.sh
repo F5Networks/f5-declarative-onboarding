@@ -65,7 +65,15 @@ done
 
 #Upload new f5-declarative-onboarding RPM to target
 echo "Uploading RPM to https://$TARGET/mgmt/shared/file-transfer/uploads/$RPM_NAME"
-LEN=$(wc -c $TARGET_RPM | cut -f 1 -d " ")
+
+# Mac output is a little different. Figure out correct field
+FIELD=1
+OS=$(uname)
+if [[ $OS == Darwin ]]; then
+    FIELD=2
+fi
+
+LEN=$(wc -c $TARGET_RPM | cut -f $FIELD -d " ")
 RANGE_SIZE=5000000
 CHUNKS=$(( $LEN / $RANGE_SIZE))
 for i in $(seq 0 $CHUNKS); do
