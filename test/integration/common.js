@@ -189,11 +189,12 @@ module.exports = {
     */
     testOriginalConfig(ipAddress, auth) {
         const url = `${this.hostname(ipAddress, constants.PORT)}${constants.DO_API}`;
+        const retryErrors = [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED];
 
         logger.debug('Testing original config');
 
-        return this.testRequest(null, `${url}/config`, auth, constants.HTTP_SUCCESS, 'GET',
-            null, [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED])
+        return this.testRequest(null, `${url}/config`, auth, constants.HTTP_SUCCESS, 'GET', null,
+            retryErrors)
             .then((body) => {
                 const promises = JSON.parse(body).map((config) => {
                     logger.debug(`Deleting original config ${config.id}`);
@@ -221,7 +222,8 @@ module.exports = {
                     }
                 };
                 logger.debug('Generating and applying new original config');
-                return this.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST');
+                return this.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST', null,
+                    retryErrors);
             })
             .then(() => this.testGetStatus(60, 30 * 1000, ipAddress, auth, constants.HTTP_SUCCESS));
     },
