@@ -36,6 +36,7 @@ describe('configManager', () => {
     let bigIpMock;
     let state;
     let doState;
+    let optionsReceived;
 
     const getConfigItems = function (schemaClass) {
         if (typeof schemaClass === 'undefined' || schemaClass === '') {
@@ -49,6 +50,7 @@ describe('configManager', () => {
     };
 
     beforeEach(() => {
+        optionsReceived = {};
         listResponses = {
             '/tm/cm/device': [
                 {
@@ -67,10 +69,12 @@ describe('configManager', () => {
             deviceInfo() {
                 return Promise.resolve({ hostname, version });
             },
-            list(path) {
+            list(path, iControlOptions, retryOptions, options) {
                 // The path name here does not have a domain, but does include
                 // a query. listResponses are set up with just the pathname part.
                 const pathname = URL.parse(path, 'https://foo').pathname;
+                optionsReceived[path] = {};
+                Object.assign(optionsReceived[path], options);
                 return Promise.resolve(listResponses[pathname] || {});
             }
         };
@@ -564,6 +568,56 @@ describe('configManager', () => {
                             ]
                         }
                     }
+                );
+            });
+    });
+
+    it('should pass on required fields property', () => {
+        const configItems = [
+            {
+                path: '/tm/sys/disk/directory',
+                schemaClass: 'Disk',
+                properties: [
+                    {
+                        id: 'apiRawValues',
+                        transform: [
+                            {
+                                id: 'applicationData',
+                                capture: 'appdata\\s+([0-9]+)',
+                                captureProperty: 'apiAnonymous'
+                            }
+                        ],
+                        required: true
+                    }
+                ],
+                nameless: true
+            },
+            {
+                path: '/tm/net/tunnels/tunnel',
+                schemaClass: 'Tunnel',
+                properties: [
+                    { id: 'autoLasthop', newId: 'autoLastHop' },
+                    { id: 'mtu' },
+                    { id: 'profile', newId: 'tunnelType' },
+                    { id: 'tos', newId: 'typeOfService' },
+                    { id: 'usePmtu', truth: 'enabled', falsehood: 'disabled' }
+                ]
+            }
+        ];
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                const diskPath = '/tm/sys/disk/directory?%24filter=partition%20eq%20Common&%24select=apiRawValues%2Cname';
+                assert.deepStrictEqual(
+                    optionsReceived[diskPath],
+                    {
+                        requiredFields: ['apiRawValues']
+                    }
+                );
+                assert.deepStrictEqual(
+                    optionsReceived['/tm/net/tunnels/tunnel?%24filter=partition%20eq%20Common&%24select=autoLasthop%2Cmtu%2Cprofile%2Ctos%2CusePmtu%2Cname'],
+                    {}
                 );
             });
     });

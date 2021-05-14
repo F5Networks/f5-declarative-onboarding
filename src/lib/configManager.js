@@ -190,6 +190,16 @@ class ConfigManager {
                             options.silent = configItem.silent;
                         }
 
+                        const requiredFields = configItem.properties
+                            .filter(property => property.required)
+                            .reduce((accumulator, current) => {
+                                accumulator.push(current.id);
+                                return accumulator;
+                            }, []);
+                        if (requiredFields.length > 0) {
+                            options.requiredFields = requiredFields;
+                        }
+
                         return this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options);
                     }));
             })

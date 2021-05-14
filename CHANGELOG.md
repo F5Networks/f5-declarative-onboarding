@@ -4,6 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.22.0
 ### Added
 ### Fixed
+- AUTOTOOL-2476: ([GitHub Issue 227](https://github.com/F5Networks/f5-declarative-onboarding/issues/227)): DO might reboot BIGIP system when same configurations/declaration posted
 ### Changed
 ### Removed
 

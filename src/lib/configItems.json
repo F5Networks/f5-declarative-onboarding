@@ -694,7 +694,8 @@
                         "capture": "appdata\\s+([0-9]+)",
                         "captureProperty": "apiAnonymous"
                     }
-                ]
+                ],
+                "required": true
             }
         ],
         "nameless": true
