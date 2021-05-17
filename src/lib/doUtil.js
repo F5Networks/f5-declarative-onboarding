@@ -485,11 +485,12 @@ module.exports = {
             if (ipF5(addrToCheck)) {
                 return Promise.resolve();
             }
+
             return bigIp.create(
                 '/tm/util/dig',
                 {
                     command: 'run',
-                    utilCmdArgs: address
+                    utilCmdArgs: `+nocookie ${address}`
                 },
                 null,
                 cloudUtil.NO_RETRY
