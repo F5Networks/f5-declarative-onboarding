@@ -17,6 +17,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2224: ([GitHub Issue 201](https://github.com/F5Networks/f5-declarative-onboarding/issues/201)): Pre-DO GTM Server preventing DO declaration from running
 - AUTOTOOL-2448: ([GitHub Issue 177](https://github.com/F5Networks/f5-declarative-onboarding/issues/177)): Disk class causes errors on declaration update
 ### Changed
+- AUTOTOOL-2506: Utilize +nocookie option with dig commands
 ### Removed
 
 ## 1.20.0
