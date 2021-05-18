@@ -1,0 +1,202 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/remote.schema.json",
+    "title": "F5 Declarative Onboarding request declaration",
+    "description": "Wrapper for remote onboarding of a BIG-IP device using F5 Declarative Onboarding",
+    "type": "object",
+    "required": ["class", "declaration"],
+    "if": {
+        "required": ["targetPassphrase"]
+    },
+    "then": {
+        "dependencies": {
+            "targetSshKey": {
+                "not": {}
+            }
+        }
+    },
+    "else": {
+        "if": {
+            "required": ["targetSshKey"]
+        },
+        "then": {
+            "dependencies": {
+                "targetPassphrase": {
+                    "not": {}
+                }
+            }
+        }
+    },
+    "properties": {
+        "class": {
+            "description": "Indicates that this is a Declarative Onboarding request",
+            "type": "string",
+            "const": "DO"
+        },
+        "$schema": {
+            "description": "URL of schema against which to validate. Used by validation in your local environment only (via Visual Studio Code, for example)",
+            "type": "string",
+            "format": "uri"
+        },
+        "targetHost": {
+            "description": "Hostname or IP address of ADC to which request applies (default localhost)",
+            "type": "string",
+            "anyOf": [
+                { "format": "ipv4" },
+                { "format": "ipv6" },
+                { "format": "hostname" }
+            ],
+            "default": "localhost"
+        },
+        "targetPort": {
+            "description": "TCP port number of management service on targetHost; default 0 means try common ports",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535,
+            "default": 0
+        },
+        "targetUsername": {
+            "description": "Username of principal authorized to modify configuration of targetHost (may not include the character ':').  NOTE:  this is generally not required to configure 'localhost' because client authentication and authorization precede invocation of DO.  It is also not required for any targetHost if you populate targetTokens",
+            "type": "string",
+            "anyOf": [
+                { "format": "json-pointer" },
+                { "pattern": "^[^:]{0,254}$" }
+            ]
+        },
+        "targetPassphrase": {
+            "description": "Passphrase for targetUsername account.  This is generally not required to configure 'localhost' and is not required when you populate targetTokens",
+            "type": "string",
+            "anyOf": [
+                { "format": "json-pointer" },
+                { "pattern": "^.{0,254}$" }
+            ]
+        },
+        "targetSshKey": {
+            "description": "Private key for use in ssh operations. Corresponding public key must be in the targetUsername's ~/.ssh/authorized_keys file on the targetHost. This is only used to do initial account creation in environments where that is necessary. If this value is present, DO will look in the declaration for a user matching targetUsername and set its password via ssh.",
+            "type": "object",
+            "required": ["path"],
+            "properties": {
+                "path": {
+                    "description": "Full path to private ssh key. File must be owned by restnoded.",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "targetTokens": {
+            "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the targetHost management service as authentication/authorization tokens",
+            "oneOf": [
+                {
+                    "description": "Pointer to tokens in a format that matches the 'object' schema below",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "json-pointer" }
+                    ]
+                },
+                {
+                    "type": "object",
+                    "patternProperties": {
+                        "^[^\\x00-\\x20:\\x7f-\\xff]{1,254}$": {
+                            "type": "string",
+                            "pattern": "^[^\\x00-\\x1f\\x7f-\\xff]{0,8192}$"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "targetTimeout": {
+            "description": "Maximum delay allowed while communicating with targetHost device (seconds, default 900)",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900,
+            "default": 900
+        },
+        "bigIqSettings": {
+            "description": "Settings for the management of a BIG-IP which is onboarded via a BIG-IQ.",
+            "type": "object",
+            "properties": {
+                "snapshotWorkingConfig": {
+                    "description": "Whether or not to snapshot the working configuration for current device before the import.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "accessModuleProperties": {
+                    "description": "Key/value properties for importing access module. If apm module is not listed in provision section of current declaration, BIG-IQ will only discover/import ltm module.",
+                    "type": "object",
+                    "propertyNames": {
+                        "description": "The name of the access module property."
+                    },
+                    "additionalProperties": {
+                        "description": "The value to set for the access module property."
+                    }
+                },
+                "failImportOnConflict": {
+                    "description": "Whether or not to fail import task on conflicts.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "conflictPolicy": {
+                    "description": "Conflict policy for shared objects. For Access, a shared import will Accept/USE_BIGIP for all shared and device-specific objects.",
+                    "type": "string",
+                    "enum": ["NONE", "USE_BIGIP", "USE_BIGIQ", "KEEP_VERSION"]
+                },
+                "deviceConflictPolicy": {
+                    "description": "Conflict policy for device-specific objects. For Access, a device-specific import will Accept/USE_BIGIP for all device-specific objects. If value not provided the value  will be the same as conflictPolicy.",
+                    "type": "string",
+                    "enum": ["NONE", "USE_BIGIP", "USE_BIGIQ", "KEEP_VERSION"]
+                },
+                "versionedConflictPolicy": {
+                    "description": "Conflict policy for version-specific objects. This is used for all the devices for which device specific versionedConflictPolicy is not specified. If value not provided the value will be the same as conflictPolicy.",
+                    "type": "string",
+                    "enum": ["NONE", "USE_BIGIP", "USE_BIGIQ", "KEEP_VERSION"]
+                },
+                "clusterName": {
+                    "description": "Cluster display name on BIG-IQ.",
+                    "type": "string"
+                },
+                "useBigiqSync": {
+                    "description": "Instead of using the BIG-IP cluster sync to synchronize cluster devices configuration, use BIG-IQ to push changes to cluster devices during deployment.",
+                    "type": "boolean"
+                },
+                "deployWhenDscChangesPending": {
+                    "description": "Deploy when there are pending DSC changes on BIG-IP.",
+                    "type": "boolean"
+                },
+                "statsConfig": {
+                    "description": "Options for configuring http analytics/avr on BIG-IQ.",
+                    "type": "object",
+                    "required": ["enabled"],
+                    "properties": {
+                        "enabled": {
+                            "description": "Whether or not to enable collecting statistics for this device",
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "zone": {
+                            "description": "User-defined names that associate BIG-IP devices with one or more data collection device (DCD) systems to provide optimal routing for statistics traffic.",
+                            "type": "string",
+                            "default": "default"
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "required": ["failImportOnConflict"],
+                        "properties": { "failImportOnConflict": { "const": false }}
+                    },
+                    "then": {
+                        "required": ["conflictPolicy"]
+                    }
+                }
+            ]
+        },
+        "declaration": {
+            "description": "Declaration to deploy to targetHost",
+            "$ref": "base.schema.json#"
+        }
+    },
+    "additionalProperties": false
+}
