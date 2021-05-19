@@ -252,6 +252,23 @@ describe('system.schema.json', () => {
                     assert.ok(validate(data), getErrorString(validate));
                 });
 
+                it('should validate unreachable with HEX hypervisor bit', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "licensePool": "myPool",
+                        "skuKeyword1": "key1",
+                        "skuKeyword2": "key2",
+                        "unitOfMeasure": "hourly",
+                        "reachable": false,
+                        "hypervisor": "0x0100001A"
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
                 it('should validate full reachable data', () => {
                     const data = {
                         "class": "License",
@@ -365,6 +382,27 @@ describe('system.schema.json', () => {
                         validate(data),
                         false,
                         'if reachable is false, hypervisor should be required'
+                    );
+                });
+
+                it('should invalidate reachable false with bogus hypervisor bit', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "licensePool",
+                        "bigIqHost": "1.2.3.4",
+                        "bigIqUsername": "admin",
+                        "bigIqPassword": "foofoo",
+                        "licensePool": "myPool",
+                        "skuKeyword1": "key1",
+                        "skuKeyword2": "key2",
+                        "unitOfMeasure": "hourly",
+                        "reachable": false,
+                        "hypervisor": "0100001A"
+                    };
+                    assert.strictEqual(
+                        validate(data),
+                        false,
+                        'if reachable is false, hypervisor should be required and should be valid'
                     );
                 });
 

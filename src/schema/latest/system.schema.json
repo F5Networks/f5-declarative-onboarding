@@ -1296,7 +1296,10 @@
                 "hypervisor": {
                     "description": "Hypervisor which is running the BIG-IP. Required by BIG-IQ if 'reachable' is false.",
                     "type": "string",
-                    "enum": ["aws", "azure", "gce", "vmware", "hyperv", "kvm", "xen"]
+                    "oneOf": [
+                        { "enum": ["aws", "azure", "gce", "vmware", "hyperv", "kvm", "xen", "alibaba"] },
+                        { "pattern": "0x[0-9a-zA-Z]*" }
+                    ]
                 },
                 "bigIpUsername": {
                     "description": "An admin user on the BIG-IP. Used by BIG-IQ to login to BIG-IP if 'reachable' is true.",
