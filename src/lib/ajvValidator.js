@@ -28,7 +28,7 @@ const authSchema = require('../schema/latest/auth.schema.json');
 const definitionsSchema = require('../schema/latest/definitions.schema.json');
 const gslbSchema = require('../schema/latest/gslb.schema.json');
 
-const customFormats = require('../schema/latest/formats.js');
+const customFormats = require('../schema/latest/formats');
 
 class AjvValidator {
     constructor() {

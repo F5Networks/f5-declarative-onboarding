@@ -26,8 +26,8 @@
 
 const assert = require('assert');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
-const constants = require('./constants.js');
-const common = require('./common.js');
+const constants = require('./constants');
+const common = require('./common');
 const logger = require('./logger').getInstance();
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';

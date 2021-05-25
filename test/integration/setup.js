@@ -22,8 +22,8 @@
 
 const path = require('path');
 const NodeSSH = require('node-ssh').NodeSSH;
-const constants = require('./constants.js');
-const common = require('./common.js');
+const constants = require('./constants');
+const common = require('./common');
 // directory on the BIG-IPs to copy rpm package to
 const REMOTE_DIR = '/var/config/rest/downloads';
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';

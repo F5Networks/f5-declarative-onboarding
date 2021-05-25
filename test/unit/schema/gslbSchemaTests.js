@@ -29,7 +29,7 @@ const ajv = new Ajv(
 );
 const defSchema = require('../../../src/schema/latest/definitions.schema.json');
 const gslbSchema = require('../../../src/schema/latest/gslb.schema.json');
-const customFormats = require('../../../src/schema/latest/formats.js');
+const customFormats = require('../../../src/schema/latest/formats');
 
 Object.keys(customFormats).forEach((customFormat) => {
     ajv.addFormat(customFormat, customFormats[customFormat]);

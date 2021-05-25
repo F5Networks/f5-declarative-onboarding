@@ -20,7 +20,7 @@ const fs = require('fs');
 const qs = require('querystring');
 const request = require('request');
 const util = require('util');
-const constants = require('./constants.js');
+const constants = require('./constants');
 const logger = require('./logger').getInstance();
 
 module.exports = {

@@ -25,7 +25,7 @@ const networkSchema = require('../../../src/schema/latest/network.schema.json');
 const dscSchema = require('../../../src/schema/latest/dsc.schema.json');
 const analyticsSchema = require('../../../src/schema/latest/analytics.schema.json');
 const authSchema = require('../../../src/schema/latest/auth.schema.json');
-const customFormats = require('../../../src/schema/latest/formats.js');
+const customFormats = require('../../../src/schema/latest/formats');
 const defSchema = require('../../../src/schema/latest/definitions.schema.json');
 const gslbSchema = require('../../../src/schema/latest/gslb.schema.json');
 
