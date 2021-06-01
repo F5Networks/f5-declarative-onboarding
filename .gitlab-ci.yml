@@ -128,6 +128,7 @@ audit:
 
 mutation:
   stage: mutation-test
+  timeout: 2 hours
   rules:
     - if: '$TRIGGER_MUTATION_TEST =~ /true/i'
   tags:
