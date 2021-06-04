@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 1.22
+        - Updated the documentation for Declarative Onboarding v1.21.0.  This release contains the following changes: |br| * |br| * Properties in the 'traces', 'currentConfig', and 'originalConfig' sections of the response to a request now match what is sent to iControl REST rather than what is in the declaration |br| |br| Issues Resolved: |br| * DO might reboot the BIG-IP system when the same configurations/declaration posted, `GitHub Issue 227 <https://github.com/F5Networks/f5-declarative-onboarding/issues/227>`_ |br| * Match the accepted **hypervisor** list on DO with what is accepted by BIG-IQ, `GitHub Issue 216 <https://github.com/F5Networks/f5-declarative-onboarding/issues/216>`_
+        - 6-29-21
+
       * - 1.21
         - Updated the documentation for Declarative Onboarding v1.21.0.  This release contains the following changes: |br| * Modified this revision history so the Release column aligns with the DO release |br| * Added support for enabling or disabling LDAP referral chasing (see :ref:`Authentication Methods<authmethods>`) |br| * Dig commands now use +nocookie option to improve compatibility with BIG-IQ 8.0 |br| |br| Issues Resolved: |br| * Invalid config after upgrading DO from 1.15.0, `GitHub Issue 190 <https://github.com/F5Networks/f5-declarative-onboarding/issues/190>`_ |br| * Declaration containing NTP servers by dns name failing in certain cases, `GitHub Issue 125 <https://github.com/F5Networks/f5-declarative-onboarding/issues/125>`_ |br| * Pre-DO GTM Server preventing DO declaration from running, `GitHub Issue 201 <https://github.com/F5Networks/f5-declarative-onboarding/issues/201>`_ |br| * Disk class causes errors on declaration update, `GitHub Issue 177 <https://github.com/F5Networks/f5-declarative-onboarding/issues/177>`_
         - 5-18-21
