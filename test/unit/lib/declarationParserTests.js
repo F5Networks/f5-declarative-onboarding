@@ -214,6 +214,96 @@ describe('declarationParser', () => {
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, 'my provided name');
     });
 
+    describe('newId', () => {
+        it('should map newId to id', () => {
+            const declaration = {
+                "schemaVersion": "1.0.0",
+                "class": "Device",
+                "Common": {
+                    "class": "Tenant",
+                    "commonSelfIp": {
+                        "class": "SelfIp",
+                        "enforcedFirewallPolicy": "myEnforcedFirewallPolicy",
+                        "stagedFirewallPolicy": "myStagedFirewallPolicy"
+                    }
+                }
+            };
+
+            const declarationParser = new DeclarationParser(declaration);
+            const parsed = declarationParser.parse();
+            const parsedDeclaration = parsed.parsedDeclaration;
+
+            assert.strictEqual(parsedDeclaration.Common.SelfIp.commonSelfIp.fwEnforcedPolicy, 'myEnforcedFirewallPolicy');
+            assert.strictEqual(parsedDeclaration.Common.SelfIp.commonSelfIp.enforcedFirewallPolicy, undefined);
+            assert.strictEqual(parsedDeclaration.Common.SelfIp.commonSelfIp.fwStagedPolicy, 'myStagedFirewallPolicy');
+            assert.strictEqual(parsedDeclaration.Common.SelfIp.commonSelfIp.stagedFirewallPolicy, undefined);
+        });
+
+        it('should handle newId of "name"', () => {
+            const declaration = {
+                "schemaVersion": "1.0.0",
+                "class": "Device",
+                "Common": {
+                    "class": "Tenant",
+                    "snmpCommunityWithSpecialChar": {
+                        "class": "SnmpCommunity",
+                        "name": "special!community",
+                        "ipv6": false,
+                        "source": "all",
+                        "oid": ".1",
+                        "access": "ro"
+                    },
+                    "nothingSpecial": {
+                        "class": "SnmpCommunity",
+                        "ipv6": false,
+                        "source": "all",
+                        "oid": ".1",
+                        "access": "ro"
+                    }
+                }
+            };
+
+            const declarationParser = new DeclarationParser(declaration);
+            const parsed = declarationParser.parse();
+            const parsedDeclaration = parsed.parsedDeclaration;
+
+            assert.strictEqual(parsedDeclaration.Common.SnmpCommunity.snmpCommunityWithSpecialChar.communityName, 'special!community');
+            assert.strictEqual(parsedDeclaration.Common.SnmpCommunity.snmpCommunityWithSpecialChar.name, 'snmpCommunityWithSpecialChar');
+            assert.strictEqual(parsedDeclaration.Common.SnmpCommunity.nothingSpecial.communityName, 'nothingSpecial');
+            assert.strictEqual(parsedDeclaration.Common.SnmpCommunity.nothingSpecial.name, 'nothingSpecial');
+        });
+
+        it('should handle dotted newIds', () => {
+            const declaration = {
+                "schemaVersion": "1.0.0",
+                "class": "Device",
+                "Common": {
+                    "class": "Tenant",
+                    "snmpUser1": {
+                        "class": "SnmpUser",
+                        "authentication": {
+                            "protocol": "sha",
+                            "password": "pass1W0rd!"
+                        }
+                    }
+                }
+            };
+
+            const declarationParser = new DeclarationParser(declaration);
+            const parsed = declarationParser.parse();
+            const parsedDeclaration = parsed.parsedDeclaration;
+
+            assert.strictEqual(parsedDeclaration.Common.SnmpUser.snmpUser1.authProtocol, 'sha');
+            assert.strictEqual(parsedDeclaration.Common.SnmpUser.snmpUser1.authPassword, 'pass1W0rd!');
+            assert.strictEqual(
+                Object.prototype.hasOwnProperty.call(
+                    parsedDeclaration.Common.SnmpUser.snmpUser1, 'authentication'
+                ),
+                false
+            );
+        });
+    });
+
     it('should dereference pointers', () => {
         const declaration = {
             "Credentials": [
@@ -264,7 +354,7 @@ describe('declarationParser', () => {
         assert.strictEqual(parsedDeclaration.Common.ConfigSync.configsyncIp, '1.2.3.4');
         assert.strictEqual(parsedDeclaration.Common.License.bigIpUsername, 'myUser');
         assert.strictEqual(parsedDeclaration.Common.License.bigIqUsername, 'myOtherUser');
-        assert.strictEqual(parsedDeclaration.Common.FailoverUnicast.addressPorts[0].address, '1.2.3.4');
+        assert.strictEqual(parsedDeclaration.Common.FailoverUnicast.unicastAddress[0].ip, '1.2.3.4');
 
         // If we get a pointer that does not de-reference, we should just get back the
         // original pointer

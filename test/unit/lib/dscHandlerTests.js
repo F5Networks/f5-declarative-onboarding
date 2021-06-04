@@ -138,13 +138,13 @@ describe('dscHandler', () => {
             };
         });
 
-        it('should process a FailoverUnicast with addressPorts', () => {
+        it('should process a FailoverUnicast with unicastAddress', () => {
             const declaration = {
                 Common: {
                     FailoverUnicast: {
-                        addressPorts: [
-                            { address: `${address}/24`, port },
-                            { address: '5.6.7.8', port: 3456 }
+                        unicastAddress: [
+                            { ip: `${address}/24`, port },
+                            { ip: '5.6.7.8', port: 3456 }
                         ]
                     }
                 }
@@ -162,13 +162,13 @@ describe('dscHandler', () => {
                 });
         });
 
-        it('should strip CIDR from addressPorts.address', () => {
+        it('should strip CIDR from unicastAddress.address', () => {
             const declaration = {
                 Common: {
                     FailoverUnicast: {
-                        addressPorts: [
+                        unicastAddress: [
                             {
-                                address: `${address}/24`,
+                                ip: `${address}/24`,
                                 port
                             }
                         ]
@@ -215,9 +215,9 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     FailoverMulticast: {
-                        interface: 'exampleInterface',
-                        address: '1.2.3.4',
-                        port: 765
+                        multicastInterface: 'exampleInterface',
+                        multicastIp: '1.2.3.4',
+                        multicastPort: 765
                     }
                 }
             };
@@ -238,7 +238,7 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     FailoverMulticast: {
-                        interface: 'none'
+                        multicastInterface: 'none'
                     }
                 }
             };
@@ -271,8 +271,8 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        primaryIp: 'any6',
-                        secondaryIp: 'any6'
+                        mirrorIp: 'any6',
+                        mirrorSecondaryIp: 'any6'
                     }
                 }
             };
@@ -290,8 +290,8 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        primaryIp: '1.0.0.0',
-                        secondaryIp: 'any6'
+                        mirrorIp: '1.0.0.0',
+                        mirrorSecondaryIp: 'any6'
                     }
                 }
             };
@@ -309,8 +309,8 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        primaryIp: 'any6',
-                        secondaryIp: '1.0.0.0'
+                        mirrorIp: 'any6',
+                        mirrorSecondaryIp: '1.0.0.0'
                     }
                 }
             };
@@ -328,8 +328,8 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        primaryIp: '1.0.0.0',
-                        secondaryIp: '2.0.0.0'
+                        mirrorIp: '1.0.0.0',
+                        mirrorSecondaryIp: '2.0.0.0'
                     }
                 }
             };

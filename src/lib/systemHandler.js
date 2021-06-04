@@ -355,8 +355,8 @@ function handleSystem() {
             promises.push(this.bigIp.modify(PATHS.System,
                 { consoleInactivityTimeout: system.consoleInactivityTimeout }));
         }
-        if (typeof system.cliInactivityTimeout !== 'undefined') {
-            promises.push(this.bigIp.modify(PATHS.CLI, { idleTimeout: system.cliInactivityTimeout / 60 }));
+        if (typeof system.idleTimeout !== 'undefined') {
+            promises.push(this.bigIp.modify(PATHS.CLI, { idleTimeout: system.idleTimeout / 60 }));
         }
         if (typeof system.autoPhonehome !== 'undefined') {
             const autoPhonehome = system.autoPhonehome ? 'enabled' : 'disabled';
@@ -366,17 +366,17 @@ function handleSystem() {
             const autoCheck = system.autoCheck ? 'enabled' : 'disabled';
             promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoCheck }));
         }
-        if (typeof system.tmshAuditLog !== 'undefined') {
-            const audit = system.tmshAuditLog ? 'enabled' : 'disabled';
+        if (typeof system.audit !== 'undefined') {
+            const audit = system.audit ? 'enabled' : 'disabled';
             promises.push(this.bigIp.modify(PATHS.CLI, { audit }));
         }
         if (typeof system.mcpAuditLog !== 'undefined') {
             const value = system.mcpAuditLog;
             promises.push(this.bigIp.modify('/tm/sys/db/config.auditing', { value }));
         }
-        if (typeof system.guiAuditLog !== 'undefined'
+        if (typeof system.guiAudit !== 'undefined'
             && cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
-            const guiAudit = system.guiAuditLog ? 'enabled' : 'disabled';
+            const guiAudit = system.guiAudit ? 'enabled' : 'disabled';
             promises.push(this.bigIp.modify(PATHS.System, { guiAudit }));
         }
     }
@@ -662,7 +662,7 @@ function handleManagementRoute() {
                     const routeBody = {
                         name: managementRoute.name,
                         partition: tenant,
-                        gateway: managementRoute.gw,
+                        gateway: managementRoute.gateway,
                         network: managementRoute.network,
                         mtu: managementRoute.mtu
                     };
@@ -700,9 +700,9 @@ function handleSnmp() {
         promise = promise.then(() => this.bigIp.modify(
             PATHS.SnmpAgent,
             {
-                sysContact: agent.contact || '',
-                sysLocation: agent.location || '',
-                allowedAddresses: agent.allowList || []
+                sysContact: agent.sysContact || '',
+                sysLocation: agent.sysLocation || '',
+                allowedAddresses: agent.allowedAddresses || []
             }
         ));
     }
@@ -711,9 +711,9 @@ function handleSnmp() {
         promise = promise.then(() => this.bigIp.modify(
             PATHS.SnmpTrapEvents,
             {
-                agentTrap: trapEvents.agentStartStop ? 'enabled' : 'disabled',
-                authTrap: trapEvents.authentication ? 'enabled' : 'disabled',
-                bigipTraps: trapEvents.device ? 'enabled' : 'disabled'
+                agentTrap: trapEvents.agentTrap ? 'enabled' : 'disabled',
+                authTrap: trapEvents.authTrap ? 'enabled' : 'disabled',
+                bigipTraps: trapEvents.bigipTraps ? 'enabled' : 'disabled'
             }
         ));
     }
@@ -722,23 +722,8 @@ function handleSnmp() {
         const transformedUsers = JSON.parse(JSON.stringify(users));
         Object.keys(transformedUsers).forEach((username) => {
             const user = transformedUsers[username];
-            user.username = user.name;
-            user.oidSubset = user.oid;
-            delete user.oid;
-
-            user.authProtocol = 'none';
-            if (user.authentication) {
-                user.authPassword = user.authentication.password;
-                user.authProtocol = user.authentication.protocol;
-                delete user.authentication;
-            }
-
-            user.privacyProtocol = 'none';
-            if (user.privacy) {
-                user.privacyPassword = user.privacy.password;
-                user.privacyProtocol = user.privacy.protocol;
-                delete user.privacy;
-            }
+            user.authProtocol = user.authProtocol || 'none';
+            user.privacyProtocol = user.privacyProtocol || 'none';
         });
 
         promise = promise.then(() => this.bigIp.modify(
@@ -751,10 +736,7 @@ function handleSnmp() {
         const transformedComms = JSON.parse(JSON.stringify(communities));
         Object.keys(transformedComms).forEach((communityName) => {
             const community = transformedComms[communityName];
-            community.communityName = community.name;
-            community.oidSubset = community.oid;
             community.ipv6 = community.ipv6 ? 'enabled' : 'disabled';
-            delete community.oid;
         });
 
         promise = promise.then(() => this.bigIp.modify(
@@ -767,22 +749,15 @@ function handleSnmp() {
         const transformedDestinations = JSON.parse(JSON.stringify(trapDestinations));
         Object.keys(transformedDestinations).forEach((destinationName) => {
             const destination = transformedDestinations[destinationName];
-            destination.host = destination.destination;
-            delete destination.destination;
 
-            if (destination.authentication) {
-                destination.authPassword = destination.authentication.password;
-                destination.authProtocol = destination.authentication.protocol;
+            if (destination.authPassword) {
                 destination.securityLevel = 'auth-no-privacy';
-                delete destination.authentication;
             }
 
-            if (destination.privacy) {
-                destination.privacyPassword = destination.privacy.password;
-                destination.privacyProtocol = destination.privacy.protocol;
+            if (destination.privacyPassword) {
                 destination.securityLevel = 'auth-privacy';
-                delete destination.privacy;
             }
+
             if (destination.network !== 'mgmt') {
                 destination.network = (destination.network === 'management') ? 'mgmt' : 'other';
             }
@@ -831,8 +806,8 @@ function handleTrafficControl() {
         allowIpSourceRoute: trafficCtrl.allowIpSourceRoute ? 'enabled' : 'disabled',
         continueMatching: trafficCtrl.continueMatching ? 'enabled' : 'disabled',
         maxIcmpRate: trafficCtrl.maxIcmpRate,
-        portFindLinear: trafficCtrl.maxPortFindLinear,
-        portFindRandom: trafficCtrl.maxPortFindRandom,
+        portFindLinear: trafficCtrl.portFindLinear,
+        portFindRandom: trafficCtrl.portFindRandom,
         maxRejectRate: trafficCtrl.maxRejectRate,
         maxRejectRateTimeout: trafficCtrl.maxRejectRateTimeout,
         minPathMtu: trafficCtrl.minPathMtu,
@@ -921,8 +896,8 @@ function handleSSHD() {
 
     const sshdObj = {
         allow: sshd.allow,
-        banner: sshd.banner ? 'enabled' : 'disabled',
-        bannerText: sshd.banner,
+        banner: sshd.bannerText ? 'enabled' : 'disabled',
+        bannerText: sshd.bannerText,
         include: includeString,
         inactivityTimeout: sshd.inactivityTimeout
     };

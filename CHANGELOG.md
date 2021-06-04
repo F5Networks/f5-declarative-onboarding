@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2476: ([GitHub Issue 227](https://github.com/F5Networks/f5-declarative-onboarding/issues/227)): DO might reboot BIGIP system when same configurations/declaration posted
 - AUTOTOOL-2415: ([GitHub Issue 216](https://github.com/F5Networks/f5-declarative-onboarding/issues/216)): Match the accepted "hypervisor" list on DO with what is accepted by BIG-IQ
 ### Changed
+- AUTOTOOL-531: Properties in the 'traces', 'currentConfig', and 'originalConfig' sections of the response to a request now match what is sent to iControl REST rather than what is in the declaration
 ### Removed
 
 ## 1.21.0

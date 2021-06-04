@@ -300,11 +300,11 @@ describe('authHandler', () => {
                             checkHostAttr: false,
                             checkRolesGroup: false,
                             idleTimeout: 3600,
-                            ignoreAuthInfoUnavailable: false,
+                            ignoreAuthInfoUnavail: false,
                             ignoreUnknownUser: false,
                             port: 389,
                             referrals: false,
-                            searchScope: 'sub',
+                            scope: 'sub',
                             searchTimeout: 30,
                             servers: [
                                 'my.host.com',
@@ -371,20 +371,20 @@ describe('authHandler', () => {
                         fallback: true,
                         ldap: {
                             bindDn: 'searchingName',
-                            bindPassword: 'test',
+                            bindPw: 'test',
                             bindTimeout: 40,
-                            checkBindPassword: true,
-                            checkRemoteRole: true,
+                            checkHostAttr: true,
+                            checkRolesGroup: true,
                             filter: 'filter',
                             groupDn: 'groupName',
                             groupMemberAttribute: 'attribute',
                             idleTimeout: 20,
-                            ignoreAuthInfoUnavailable: true,
+                            ignoreAuthInfoUnavail: true,
                             ignoreUnknownUser: true,
                             loginAttribute: 'attributeToLogin',
                             port: 654,
                             referrals: true,
-                            searchScope: 'base',
+                            scope: 'base',
                             searchBaseDn: 'searchName',
                             searchTimeout: 687,
                             servers: [
@@ -393,7 +393,7 @@ describe('authHandler', () => {
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'tls-start',
-                            sslCaCert: {
+                            sslCaCertFile: {
                                 name: 'do_ldapCaCert.crt',
                                 partition: 'Common',
                                 checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10',
@@ -542,11 +542,11 @@ describe('authHandler', () => {
                             checkHostAttr: false,
                             checkRolesGroup: false,
                             idleTimeout: 3600,
-                            ignoreAuthInfoUnavailable: false,
+                            ignoreAuthInfoUnavail: false,
                             ignoreUnknownUser: false,
                             port: 389,
                             referrals: true,
-                            searchScope: 'sub',
+                            scope: 'sub',
                             searchTimeout: 30,
                             servers: [
                                 'my.host.com',
@@ -554,7 +554,7 @@ describe('authHandler', () => {
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'disabled',
-                            sslCaCert: {
+                            sslCaCertFile: {
                                 name: 'do_ldapCaCert.crt',
                                 partition: 'Common',
                                 checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10'
@@ -629,7 +629,7 @@ describe('authHandler', () => {
                         exampleGroupName: {
                             attribute: 'attributeValue',
                             console: 'tmsh',
-                            remoteAccess: true,
+                            deny: true,
                             lineOrder: 1050,
                             role: 'guest',
                             userPartition: 'all'
@@ -637,7 +637,7 @@ describe('authHandler', () => {
                         anotherGroupName: {
                             attribute: 'attributeValue',
                             console: false,
-                            remoteAccess: false,
+                            deny: false,
                             lineOrder: 984,
                             role: 'admin',
                             userPartition: 'all'
@@ -664,9 +664,9 @@ describe('authHandler', () => {
                     Authentication: {
                         enabledSourceType: 'local',
                         remoteUsersDefaults: {
-                            role: 'operator',
-                            partitionAccess: 'Common',
-                            terminalAccess: 'tmsh'
+                            defaultRole: 'operator',
+                            defaultPartition: 'Common',
+                            remoteConsoleAccess: 'tmsh'
                         }
                     }
                 }

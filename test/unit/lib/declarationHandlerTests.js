@@ -1077,13 +1077,13 @@ describe('declarationHandler', () => {
                     GSLBServer: {
                         gslbServer: {
                             label: 'testing gslb server',
-                            dataCenter: '/Common/gslbDataCenter',
+                            datacenter: '/Common/gslbDataCenter',
                             proberPool: '/Common/gslbProberPool',
                             devices: [
                                 {
                                     address: '10.0.0.1',
-                                    addressTranslation: '192.0.2.12',
-                                    remark: 'deviceDescription'
+                                    translationAddress: '192.0.2.12',
+                                    description: 'deviceDescription'
                                 },
                                 {
                                     address: '10.0.0.2'
@@ -1095,18 +1095,18 @@ describe('declarationHandler', () => {
                                     enabled: true,
                                     address: '10.0.20.1',
                                     port: 0,
-                                    addressTranslationPort: 0
+                                    translationPort: 0
                                 },
                                 {
                                     name: 'testVirtualServer',
                                     label: 'virtual server with all properties',
-                                    remark: 'test virtual server description',
+                                    description: 'test virtual server description',
                                     enabled: false,
                                     address: 'a989:1c34:009c:0000:0000:b099:c1c7:8bfe',
                                     port: 8080,
-                                    addressTranslation: '1:0:1:0:0:0:0:0',
-                                    addressTranslationPort: 80,
-                                    monitors: [
+                                    translationAddress: '1:0:1:0:0:0:0:0',
+                                    translationPort: 80,
+                                    monitor: [
                                         '/Common/tcp',
                                         '/Common/http'
                                     ]
@@ -1115,13 +1115,13 @@ describe('declarationHandler', () => {
                         },
                         gslbServerBigip: {
                             label: 'testing bigip gslb server',
-                            dataCenter: '/Common/gslbDataCenter',
+                            datacenter: '/Common/gslbDataCenter',
                             devices: [
                                 {
                                     address: '10.0.0.3'
                                 }
                             ],
-                            serverType: 'bigip'
+                            product: 'bigip'
                         }
                     }
                 }
@@ -1144,37 +1144,37 @@ describe('declarationHandler', () => {
                     assert.deepStrictEqual(
                         gslbServer,
                         {
-                            dataCenter: 'gslbDataCenter',
+                            datacenter: 'gslbDataCenter',
                             proberPool: 'gslbProberPool',
                             devices: [
                                 {
-                                    remark: 'deviceDescription',
+                                    description: 'deviceDescription',
                                     address: '10.0.0.1',
-                                    addressTranslation: '192.0.2.12'
+                                    translationAddress: '192.0.2.12'
                                 },
                                 {
                                     address: '10.0.0.2'
                                 }
                             ],
-                            monitors: [],
+                            monitor: [],
                             virtualServers: [
                                 {
                                     name: '0',
                                     enabled: true,
                                     address: '10.0.20.1',
                                     port: 0,
-                                    addressTranslationPort: 0,
-                                    monitors: []
+                                    translationPort: 0,
+                                    monitor: []
                                 },
                                 {
                                     name: 'testVirtualServer',
-                                    remark: 'test virtual server description',
+                                    description: 'test virtual server description',
                                     enabled: false,
                                     address: 'a989:1c34:9c::b099:c1c7:8bfe',
                                     port: 8080,
-                                    addressTranslation: '1:0:1::',
-                                    addressTranslationPort: 80,
-                                    monitors: [
+                                    translationAddress: '1:0:1::',
+                                    translationPort: 80,
+                                    monitor: [
                                         '/Common/tcp',
                                         '/Common/http'
                                     ]
@@ -1185,16 +1185,16 @@ describe('declarationHandler', () => {
                     assert.deepStrictEqual(
                         declarationWithDefaults.Common.GSLBServer.gslbServerBigip,
                         {
-                            dataCenter: 'gslbDataCenter',
+                            datacenter: 'gslbDataCenter',
                             devices: [
                                 {
                                     address: '10.0.0.3'
                                 }
                             ],
-                            monitors: [
+                            monitor: [
                                 '/Common/bigip'
                             ],
-                            serverType: 'bigip',
+                            product: 'bigip',
                             virtualServers: []
                         }
                     );
@@ -1210,11 +1210,11 @@ describe('declarationHandler', () => {
                             label: 'testing gslb prober pool',
                             members: [
                                 {
-                                    server: '/Common/gslbServerOne',
+                                    name: '/Common/gslbServerOne',
                                     label: 'testing monitor one'
                                 },
                                 {
-                                    server: 'gslbServerTwo',
+                                    name: 'gslbServerTwo',
                                     label: 'testing monitor two'
                                 }
                             ]
@@ -1246,14 +1246,14 @@ describe('declarationHandler', () => {
                             gslbProberPool: {
                                 members: [
                                     {
-                                        server: 'gslbServerOne',
-                                        remark: undefined,
+                                        name: 'gslbServerOne',
+                                        description: undefined,
                                         enabled: undefined,
                                         order: 0
                                     },
                                     {
-                                        server: 'gslbServerTwo',
-                                        remark: undefined,
+                                        name: 'gslbServerTwo',
+                                        description: undefined,
                                         enabled: undefined,
                                         order: 1
                                     }
@@ -1359,16 +1359,16 @@ describe('declarationHandler', () => {
                                 {
                                     name: 'firewallPolicyRuleOne',
                                     action: 'accept',
-                                    protocol: 'any',
-                                    loggingEnabled: false
+                                    ipProtocol: 'any',
+                                    log: false
                                 },
                                 {
                                     name: 'firewallPolicyRuleTwo',
                                     label: 'testing firewall policy rule two',
-                                    remark: 'firewall policy rule two description',
+                                    description: 'firewall policy rule two description',
                                     action: 'reject',
-                                    protocol: 'tcp',
-                                    loggingEnabled: true,
+                                    ipProtocol: 'tcp',
+                                    log: true,
                                     source: {
                                         vlans: [
                                             '/Common/vlan1',
@@ -1424,19 +1424,19 @@ describe('declarationHandler', () => {
                                 rules: [
                                     {
                                         name: 'firewallPolicyRuleOne',
-                                        remark: undefined,
+                                        description: undefined,
                                         action: 'accept',
-                                        protocol: 'any',
-                                        loggingEnabled: false,
+                                        ipProtocol: 'any',
+                                        log: false,
                                         source: {},
                                         destination: {}
                                     },
                                     {
                                         name: 'firewallPolicyRuleTwo',
-                                        remark: 'firewall policy rule two description',
+                                        description: 'firewall policy rule two description',
                                         action: 'reject',
-                                        protocol: 'tcp',
-                                        loggingEnabled: true,
+                                        ipProtocol: 'tcp',
+                                        log: true,
                                         source: {
                                             vlans: [
                                                 '/Common/vlan1',
@@ -1480,8 +1480,8 @@ describe('declarationHandler', () => {
                         selfIpOne: {
                             address: '10.148.75.46/24',
                             vlan: 'myVlan',
-                            enforcedFirewallPolicy: '/Common/myFirewallPolicy',
-                            stagedFirewallPolicy: '/Common/myFirewallPolicy',
+                            fwEnforcedPolicy: '/Common/myFirewallPolicy',
+                            fwStagedPolicy: '/Common/myFirewallPolicy',
                             allowService: [
                                 'tcp:80'
                             ]
@@ -1514,8 +1514,8 @@ describe('declarationHandler', () => {
                             selfIpOne: {
                                 address: '10.148.75.46/24',
                                 vlan: 'myVlan',
-                                enforcedFirewallPolicy: 'myFirewallPolicy',
-                                stagedFirewallPolicy: 'myFirewallPolicy',
+                                fwEnforcedPolicy: 'myFirewallPolicy',
+                                fwStagedPolicy: 'myFirewallPolicy',
                                 allowService: [
                                     'tcp:80'
                                 ]
@@ -1556,12 +1556,12 @@ describe('declarationHandler', () => {
                 };
             });
 
-            describe('addressFamilies.internetProtocol', () => {
-                it('should split addressFamilies when internetProtocol is all', () => {
-                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+            describe('addressFamilies.name', () => {
+                it('should split addressFamilies when internetProtocol (name) is all', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamily = [
                         {
-                            internetProtocol: 'all',
-                            redistributionList: [
+                            name: 'all',
+                            redistribute: [
                                 {
                                     routingProtocol: 'static',
                                     routeMap: 'routeMap1'
@@ -1574,11 +1574,11 @@ describe('declarationHandler', () => {
                     return declarationHandler.process(newDeclaration, state)
                         .then(() => {
                             assert.deepStrictEqual(
-                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
                                 [
                                     {
-                                        internetProtocol: 'ipv4',
-                                        redistributionList: [
+                                        name: 'ipv4',
+                                        redistribute: [
                                             {
                                                 routingProtocol: 'static',
                                                 routeMap: '/Common/routeMap1'
@@ -1586,8 +1586,8 @@ describe('declarationHandler', () => {
                                         ]
                                     },
                                     {
-                                        internetProtocol: 'ipv6',
-                                        redistributionList: [
+                                        name: 'ipv6',
+                                        redistribute: [
                                             {
                                                 routingProtocol: 'static',
                                                 routeMap: '/Common/routeMap1'
@@ -1600,10 +1600,10 @@ describe('declarationHandler', () => {
                 });
 
                 it('should fill in unspecified addressFamilies ipv6 internetProtocol', () => {
-                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamily = [
                         {
-                            internetProtocol: 'ipv4',
-                            redistributionList: [
+                            name: 'ipv4',
+                            redistribute: [
                                 {
                                     routingProtocol: 'static',
                                     routeMap: 'routeMap1'
@@ -1616,11 +1616,11 @@ describe('declarationHandler', () => {
                     return declarationHandler.process(newDeclaration, state)
                         .then(() => {
                             assert.deepStrictEqual(
-                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
                                 [
                                     {
-                                        internetProtocol: 'ipv4',
-                                        redistributionList: [
+                                        name: 'ipv4',
+                                        redistribute: [
                                             {
                                                 routingProtocol: 'static',
                                                 routeMap: '/Common/routeMap1'
@@ -1628,18 +1628,18 @@ describe('declarationHandler', () => {
                                         ]
                                     },
                                     {
-                                        internetProtocol: 'ipv6'
+                                        name: 'ipv6'
                                     }
                                 ]
                             );
                         });
                 });
 
-                it('should fill in unspecified addressFamilies ipv4 internetProtocol', () => {
-                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                it('should fill in unspecified addressFamily ipv4 internetProtocol (name)', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamily = [
                         {
-                            internetProtocol: 'ipv6',
-                            redistributionList: [
+                            name: 'ipv6',
+                            redistribute: [
                                 {
                                     routingProtocol: 'static',
                                     routeMap: 'routeMap1'
@@ -1652,14 +1652,14 @@ describe('declarationHandler', () => {
                     return declarationHandler.process(newDeclaration, state)
                         .then(() => {
                             assert.deepStrictEqual(
-                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
                                 [
                                     {
-                                        internetProtocol: 'ipv4'
+                                        name: 'ipv4'
                                     },
                                     {
-                                        internetProtocol: 'ipv6',
-                                        redistributionList: [
+                                        name: 'ipv6',
+                                        redistribute: [
                                             {
                                                 routingProtocol: 'static',
                                                 routeMap: '/Common/routeMap1'
@@ -1671,49 +1671,49 @@ describe('declarationHandler', () => {
                         });
                 });
 
-                it('should fill in both unspecified ipv4 and ipv6 internetProtocol with empty addressFamilies', () => {
-                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [];
+                it('should fill in both unspecified ipv4 and ipv6 internetProtocol (name) with empty addressFamilies', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamily = [];
 
                     const declarationHandler = new DeclarationHandler(bigIpMock);
                     return declarationHandler.process(newDeclaration, state)
                         .then(() => {
                             assert.deepStrictEqual(
-                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
                                 [
                                     {
-                                        internetProtocol: 'ipv4'
+                                        name: 'ipv4'
                                     },
                                     {
-                                        internetProtocol: 'ipv6'
+                                        name: 'ipv6'
                                     }
                                 ]
                             );
                         });
                 });
 
-                it('should fill in both unspecified ipv4 and ipv6 internetProtocol with no addressFamilies', () => {
+                it('should fill in both unspecified ipv4 and ipv6 internetProtocol (name) with no addressFamilies', () => {
                     const declarationHandler = new DeclarationHandler(bigIpMock);
                     return declarationHandler.process(newDeclaration, state)
                         .then(() => {
                             assert.deepStrictEqual(
-                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
                                 [
                                     {
-                                        internetProtocol: 'ipv4'
+                                        name: 'ipv4'
                                     },
                                     {
-                                        internetProtocol: 'ipv6'
+                                        name: 'ipv6'
                                     }
                                 ]
                             );
                         });
                 });
 
-                it('should sort addressFamilies by internetProtocol ipv4 first', () => {
-                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                it('should sort addressFamily by internetProtocol (name) ipv4 first', () => {
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamily = [
                         {
-                            internetProtocol: 'ipv6',
-                            redistributionList: [
+                            name: 'ipv6',
+                            redistribute: [
                                 {
                                     routingProtocol: 'static',
                                     routeMap: 'routeMap2'
@@ -1721,8 +1721,8 @@ describe('declarationHandler', () => {
                             ]
                         },
                         {
-                            internetProtocol: 'ipv4',
-                            redistributionList: [
+                            name: 'ipv4',
+                            redistribute: [
                                 {
                                     routingProtocol: 'static',
                                     routeMap: 'routeMap1'
@@ -1735,11 +1735,11 @@ describe('declarationHandler', () => {
                     return declarationHandler.process(newDeclaration, state)
                         .then(() => {
                             assert.deepStrictEqual(
-                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
                                 [
                                     {
-                                        internetProtocol: 'ipv4',
-                                        redistributionList: [
+                                        name: 'ipv4',
+                                        redistribute: [
                                             {
                                                 routingProtocol: 'static',
                                                 routeMap: '/Common/routeMap1'
@@ -1747,8 +1747,8 @@ describe('declarationHandler', () => {
                                         ]
                                     },
                                     {
-                                        internetProtocol: 'ipv6',
-                                        redistributionList: [
+                                        name: 'ipv6',
+                                        redistribute: [
                                             {
                                                 routingProtocol: 'static',
                                                 routeMap: '/Common/routeMap2'
@@ -1763,10 +1763,10 @@ describe('declarationHandler', () => {
 
             describe('addressFamilies.redistributionList', () => {
                 it('should sort redistributionList by routingProtocol', () => {
-                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamily = [
                         {
-                            internetProtocol: 'ipv6',
-                            redistributionList: [
+                            name: 'ipv6',
+                            redistribute: [
                                 {
                                     routingProtocol: 'static',
                                     routeMap: 'routeMap6'
@@ -1799,14 +1799,14 @@ describe('declarationHandler', () => {
                     return declarationHandler.process(newDeclaration, state)
                         .then(() => {
                             assert.deepStrictEqual(
-                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
                                 [
                                     {
-                                        internetProtocol: 'ipv4'
+                                        name: 'ipv4'
                                     },
                                     {
-                                        internetProtocol: 'ipv6',
-                                        redistributionList: [
+                                        name: 'ipv6',
+                                        redistribute: [
                                             {
                                                 routingProtocol: 'connected',
                                                 routeMap: '/Common/routeMap1'
@@ -1839,10 +1839,10 @@ describe('declarationHandler', () => {
                 });
 
                 it('should add tenant prefix to redistributionList routeMap only if mising', () => {
-                    newDeclaration.Common.RoutingBGP.bgp1.addressFamilies = [
+                    newDeclaration.Common.RoutingBGP.bgp1.addressFamily = [
                         {
-                            internetProtocol: 'ipv6',
-                            redistributionList: [
+                            name: 'ipv6',
+                            redistribute: [
                                 {
                                     routingProtocol: 'rip',
                                     routeMap: 'routeMap1'
@@ -1859,14 +1859,14 @@ describe('declarationHandler', () => {
                     return declarationHandler.process(newDeclaration, state)
                         .then(() => {
                             assert.deepStrictEqual(
-                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamilies,
+                                declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
                                 [
                                     {
-                                        internetProtocol: 'ipv4'
+                                        name: 'ipv4'
                                     },
                                     {
-                                        internetProtocol: 'ipv6',
-                                        redistributionList: [
+                                        name: 'ipv6',
+                                        redistribute: [
                                             {
                                                 routingProtocol: 'rip',
                                                 routeMap: '/Common/routeMap1'
@@ -1883,15 +1883,15 @@ describe('declarationHandler', () => {
                 });
             });
 
-            describe('addressFamilies.internetProtocol', () => {
-                it('should fill in unspecified addressFamilies ipv6 internetProtocol', () => {
+            describe('addressFamily.name', () => {
+                it('should fill in unspecified addressFamilies ipv6 name', () => {
                     newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
                         {
-                            addressFamilies: [
+                            addressFamily: [
                                 {
-                                    internetProtocol: 'ipv4',
+                                    name: 'ipv4',
                                     routeMap: {},
-                                    softReconfigurationInboundEnabled: false
+                                    softReconfigurationInbound: false
                                 }
                             ]
                         }
@@ -1904,16 +1904,16 @@ describe('declarationHandler', () => {
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
                                 [
                                     {
-                                        addressFamilies: [
+                                        addressFamily: [
                                             {
-                                                internetProtocol: 'ipv4',
+                                                name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInboundEnabled: false
+                                                softReconfigurationInbound: false
                                             },
                                             {
-                                                internetProtocol: 'ipv6',
+                                                name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInboundEnabled: false
+                                                softReconfigurationInbound: false
                                             }
                                         ]
                                     }
@@ -1922,14 +1922,14 @@ describe('declarationHandler', () => {
                         });
                 });
 
-                it('should fill in unspecified addressFamilies ipv4 internetProtocol', () => {
+                it('should fill in unspecified addressFamilies ipv4 internetProtocol (name)', () => {
                     newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
                         {
-                            addressFamilies: [
+                            addressFamily: [
                                 {
-                                    internetProtocol: 'ipv6',
+                                    name: 'ipv6',
                                     routeMap: {},
-                                    softReconfigurationInboundEnabled: false
+                                    softReconfigurationInbound: false
                                 }
                             ]
                         }
@@ -1942,16 +1942,16 @@ describe('declarationHandler', () => {
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
                                 [
                                     {
-                                        addressFamilies: [
+                                        addressFamily: [
                                             {
-                                                internetProtocol: 'ipv4',
+                                                name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInboundEnabled: false
+                                                softReconfigurationInbound: false
                                             },
                                             {
-                                                internetProtocol: 'ipv6',
+                                                name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInboundEnabled: false
+                                                softReconfigurationInbound: false
                                             }
                                         ]
                                     }
@@ -1960,10 +1960,10 @@ describe('declarationHandler', () => {
                         });
                 });
 
-                it('should fill in both unspecified ipv4 and ipv6 internetProtocol with empty addressFamilies', () => {
+                it('should fill in both unspecified ipv4 and ipv6 internetProtocol (name) with empty addressFamilies', () => {
                     newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
                         {
-                            addressFamilies: []
+                            addressFamily: []
                         }
                     ];
 
@@ -1974,16 +1974,16 @@ describe('declarationHandler', () => {
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
                                 [
                                     {
-                                        addressFamilies: [
+                                        addressFamily: [
                                             {
-                                                internetProtocol: 'ipv4',
+                                                name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInboundEnabled: false
+                                                softReconfigurationInbound: false
                                             },
                                             {
-                                                internetProtocol: 'ipv6',
+                                                name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInboundEnabled: false
+                                                softReconfigurationInbound: false
                                             }
                                         ]
                                     }
@@ -1992,7 +1992,7 @@ describe('declarationHandler', () => {
                         });
                 });
 
-                it('should fill in both unspecified ipv4 and ipv6 internetProtocol with no addressFamilies', () => {
+                it('should fill in both unspecified ipv4 and ipv6 internetProtocol (name) with no addressFamilies', () => {
                     newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
                         {}
                     ];
@@ -2004,16 +2004,16 @@ describe('declarationHandler', () => {
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
                                 [
                                     {
-                                        addressFamilies: [
+                                        addressFamily: [
                                             {
-                                                internetProtocol: 'ipv4',
+                                                name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInboundEnabled: false
+                                                softReconfigurationInbound: false
                                             },
                                             {
-                                                internetProtocol: 'ipv6',
+                                                name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInboundEnabled: false
+                                                softReconfigurationInbound: false
                                             }
                                         ]
                                     }
@@ -2051,18 +2051,18 @@ describe('declarationHandler', () => {
                         });
                 });
 
-                it('should add tenant prefix to addressFamilies routeMap only if mising', () => {
+                it('should add tenant prefix to addressFamily routeMap only if mising', () => {
                     newDeclaration.Common.RoutingBGP.bgp1.peerGroups = [
                         {
-                            addressFamilies: [
+                            addressFamily: [
                                 {
-                                    internetProtocol: 'ipv4',
+                                    name: 'ipv4',
                                     routeMap: {
                                         in: 'routeMapIn'
                                     }
                                 },
                                 {
-                                    internetProtocol: 'ipv6',
+                                    name: 'ipv6',
                                     routeMap: {
                                         in: 'routeMapIn2',
                                         out: 'routeMapOut2'
@@ -2079,15 +2079,15 @@ describe('declarationHandler', () => {
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
                                 [
                                     {
-                                        addressFamilies: [
+                                        addressFamily: [
                                             {
-                                                internetProtocol: 'ipv4',
+                                                name: 'ipv4',
                                                 routeMap: {
                                                     in: '/Common/routeMapIn'
                                                 }
                                             },
                                             {
-                                                internetProtocol: 'ipv6',
+                                                name: 'ipv6',
                                                 routeMap: {
                                                     in: '/Common/routeMapIn2',
                                                     out: '/Common/routeMapOut2'
@@ -2240,7 +2240,7 @@ describe('declarationHandler', () => {
                 Common: {
                     Authentication: {
                         ldap: {
-                            sslCaCert: {
+                            sslCaCertFile: {
                                 certificate: {
                                     base64: 'ZjVmYWtlY2VydA=='
                                 }
@@ -2275,7 +2275,7 @@ describe('declarationHandler', () => {
                     assert.deepStrictEqual(
                         ldap,
                         {
-                            sslCaCert: {
+                            sslCaCertFile: {
                                 name: 'do_ldapCaCert.crt',
                                 checksum: 'SHA1:10:aeddad55dd9aac6894c94e2abf1f4d8e38cf9b77',
                                 partition: 'Common'
@@ -2311,7 +2311,7 @@ describe('declarationHandler', () => {
                     parsed: true,
                     Common: {
                         Analytics: {
-                            interval: 60
+                            avrdInterval: 60
                         },
                         Provision: {
                             ltm: 'nominal'
@@ -2324,7 +2324,7 @@ describe('declarationHandler', () => {
             return assert.isRejected(handler.process(declaration, state), /This is an error/);
         });
 
-        it('should convert the declaration to an array of addressPorts', () => {
+        it('should convert the declaration to an array of unicastAddress', () => {
             const declaration = {
                 parsed: true,
                 Common: {
@@ -2344,7 +2344,7 @@ describe('declarationHandler', () => {
                     Common: {
                         myFailoverUnicast: {
                             class: 'FailoverUnicast',
-                            addressPorts: [
+                            unicastAddress: [
                                 {
                                     address: '10.0.0.2',
                                     port: 1026
@@ -2362,7 +2362,7 @@ describe('declarationHandler', () => {
             return handler.process(declaration, state)
                 .then(() => {
                     assert.deepStrictEqual(declarationWithDefaults.Common.FailoverUnicast, {
-                        addressPorts: [
+                        unicastAddress: [
                             {
                                 address: '10.1.1.8',
                                 port: 12
@@ -2372,12 +2372,12 @@ describe('declarationHandler', () => {
                 });
         });
 
-        it('should error if the declaration has both address and addressPorts', () => {
+        it('should error if the declaration has both address and unicastAddress', () => {
             const declaration = {
                 parsed: true,
                 Common: {
                     FailoverUnicast: {
-                        addressPorts: [
+                        unicastAddress: [
                             {
                                 address: '10.0.0.2',
                                 port: 1026
@@ -2478,7 +2478,7 @@ describe('declarationHandler', () => {
                 parsed: true,
                 Common: {
                     Analytics: {
-                        interval: 60
+                        avrdInterval: 60
                     },
                     Provision: {
                         avr: 'nominal'
@@ -2521,7 +2521,7 @@ describe('declarationHandler', () => {
                     parsed: true,
                     Common: {
                         Analytics: {
-                            interval: 60
+                            avrdInterval: 60
                         },
                         Provision: {
                             avr: 'nominal'

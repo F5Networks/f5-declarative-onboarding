@@ -134,13 +134,13 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         it('should match failover unicast address', () => assert.deepStrictEqual(
             currentState.FailoverUnicast,
             {
-                addressPorts: [
+                unicastAddress: [
                     {
-                        address: '10.148.75.46',
+                        ip: '10.148.75.46',
                         port: 1026
                     },
                     {
-                        address: '10.148.75.46',
+                        ip: '10.148.75.46',
                         port: 126
                     }
                 ]
@@ -150,9 +150,9 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         it('should match failover multicast', () => assert.deepStrictEqual(
             currentState.FailoverMulticast,
             {
-                interface: 'eth0',
-                address: '224.0.0.100',
-                port: 123
+                multicastInterface: 'eth0',
+                multicastIp: '224.0.0.100',
+                multicastPort: 123
             }
         ));
 
@@ -182,6 +182,30 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 failoverMethod: 'ha-order',
                 haLoadFactor: 1,
                 haOrder: ['/Common/f5.example.com']
+            }
+        ));
+
+        it('should match SnmpCommunity without special character', () => assert.deepStrictEqual(
+            currentState.SnmpCommunity.mySnmpCommunityWithoutSpecialCharacter,
+            {
+                name: '/Common/mySnmpCommunityWithoutSpecialCharacter',
+                access: 'ro',
+                communityName: 'mySnmpCommunityWithoutSpecialCharacter',
+                ipv6: false,
+                oidSubset: '.1',
+                source: 'all'
+            }
+        ));
+
+        it('should match SnmpCommunity with special character', () => assert.deepStrictEqual(
+            currentState.SnmpCommunity.mySnmpCommunityWithSpecialCharacter,
+            {
+                name: '/Common/mySnmpCommunityWithSpecialCharacter',
+                access: 'ro',
+                communityName: 'special!community',
+                ipv6: false,
+                oidSubset: '.1',
+                source: 'all'
             }
         ));
     });
@@ -243,7 +267,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     mtu: 0,
                     network: 'default',
                     localOnly: true,
-                    target: 'myVlan'
+                    tmInterface: 'myVlan'
                 }
             );
         });
@@ -253,8 +277,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match ip mirroring', () => {
-            assert.strictEqual(currentState.MirrorIp.primaryIp, body.Common.myMirror.primaryIp);
-            assert.strictEqual(currentState.MirrorIp.secondaryIp, body.Common.myMirror.secondaryIp);
+            assert.strictEqual(currentState.MirrorIp.mirrorIp, body.Common.myMirror.primaryIp);
+            assert.strictEqual(currentState.MirrorIp.mirrorSecondaryIp, body.Common.myMirror.secondaryIp);
         });
 
         it('should match RoutingAsPath', () => assert.deepStrictEqual(
@@ -295,7 +319,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             name: 10,
                             action: 'permit',
                             prefix: '1111:2222::/127',
-                            prefixLengthRange: 128
+                            prefixLenRange: 128
                         }
                     ]
                 },
@@ -306,7 +330,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             name: 20,
                             action: 'permit',
                             prefix: '10.3.3.0/24',
-                            prefixLengthRange: 32
+                            prefixLenRange: 32
                         }
                     ]
                 }
@@ -348,10 +372,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             {
                 testRoutingBGP: {
                     name: 'testRoutingBGP',
-                    addressFamilies: [
+                    addressFamily: [
                         {
-                            internetProtocol: 'ipv4',
-                            redistributionList: [
+                            name: 'ipv4',
+                            redistribute: [
                                 {
                                     routingProtocol: 'kernel',
                                     routeMap: '/Common/testRouteMap'
@@ -359,41 +383,41 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             ]
                         },
                         {
-                            internetProtocol: 'ipv6'
+                            name: 'ipv6'
                         }
                     ],
                     gracefulRestart: {
-                        gracefulResetEnabled: true,
+                        gracefulReset: true,
                         restartTime: 120,
-                        stalePathTime: 0
+                        stalepathTime: 0
                     },
                     holdTime: 35,
                     keepAlive: 10,
-                    localAS: 50208,
+                    localAs: 50208,
                     neighbors: [
                         {
-                            address: '10.1.1.2',
+                            name: '10.1.1.2',
                             peerGroup: 'Neighbor'
                         }
                     ],
                     peerGroups: [
                         {
                             name: 'Neighbor',
-                            addressFamilies: [
+                            addressFamily: [
                                 {
-                                    internetProtocol: 'ipv4',
+                                    name: 'ipv4',
                                     routeMap: {
                                         out: '/Common/testRouteMap'
                                     },
-                                    softReconfigurationInboundEnabled: true
+                                    softReconfigurationInbound: true
                                 },
                                 {
-                                    internetProtocol: 'ipv6',
+                                    name: 'ipv6',
                                     routeMap: {},
-                                    softReconfigurationInboundEnabled: false
+                                    softReconfigurationInbound: false
                                 }
                             ],
-                            remoteAS: 65020
+                            remoteAs: 65020
                         }
                     ],
                     routerId: '10.1.1.1'
@@ -479,7 +503,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should configure remoteUsersDefaults', () => {
-            assert.ok(testRemoteUsersDefaults(body.Common.myAuth.remoteUsersDefaults, currentState));
+            const actual = currentState.Authentication.remoteUsersDefaults;
+            const expected = body.Common.myAuth.remoteUsersDefaults;
+            assert.strictEqual(actual.remoteConsoleAccess, expected.terminalAccess);
+            assert.strictEqual(actual.defaultPartition, expected.partitionAccess);
+            assert.strictEqual(actual.defaultRole, expected.role);
         });
 
         it('should configure radius', () => {
@@ -487,7 +515,35 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should configure ldap', () => {
-            assert.ok(testLdapAuth(body.Common.myAuth.ldap, currentState));
+            const actual = currentState.Authentication.ldap;
+            const expected = body.Common.myAuth.ldap;
+            assert.strictEqual(actual.bindDn, expected.bindDn);
+            assert.ok(actual.bindPw.startsWith('$M$'));
+            assert.strictEqual(actual.bindTimeout, expected.bindTimeout);
+            assert.strictEqual(actual.checkHostAttr, expected.checkBindPassword);
+            assert.strictEqual(actual.checkRolesGroup, expected.checkRemoteRole);
+            assert.strictEqual(actual.filter, expected.filter);
+            assert.strictEqual(actual.groupDn, expected.groupDn);
+            assert.strictEqual(actual.groupMemberAttribute, expected.groupMemberAttribute);
+            assert.strictEqual(actual.idleTimeout, expected.idleTimeout);
+            assert.strictEqual(actual.ignoreAuthInfoUnavail, expected.ignoreAuthInfoUnavailable);
+            assert.strictEqual(actual.ignoreUnknownUser, expected.ignoreUnknownUser);
+            assert.strictEqual(actual.loginAttribute, expected.loginAttribute);
+            assert.strictEqual(actual.port, expected.port);
+            assert.strictEqual(actual.scope, expected.searchScope);
+            assert.strictEqual(actual.searchBaseDn, expected.searchBaseDn);
+            assert.strictEqual(actual.searchTimeout, expected.searchTimeout);
+            assert.deepStrictEqual(actual.servers, expected.servers);
+            assert.strictEqual(actual.ssl, expected.ssl);
+            assert.strictEqual(actual.sslCheckPeer, expected.sslCheckPeer);
+            assert.deepStrictEqual(actual.sslCiphers, expected.sslCiphers);
+            assert.strictEqual(actual.userTemplate, expected.userTemplate);
+            assert.strictEqual(actual.version, expected.version);
+
+            const currentBigIpVersion = process.env.BIGIP_IMAGE.split('-')[1];
+            if (cloudUtil.versionCompare('15.1', currentBigIpVersion) <= 0) {
+                assert.strictEqual(actual.referrals, expected.referrals);
+            }
         });
 
         it('should configure tacacs', () => {
@@ -495,7 +551,14 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should configure remoteAuthRole', () => {
-            assert.ok(testRemoteAuthRole(body.Common.remoteAuthRole, currentState));
+            const actual = currentState.RemoteAuthRole.remoteAuthRole;
+            const expected = body.Common.remoteAuthRole;
+            assert.strictEqual(actual.attribute, expected.attribute);
+            assert.strictEqual(actual.console, expected.console);
+            assert.strictEqual(actual.lineOrder, expected.lineOrder);
+            assert.strictEqual(actual.deny, expected.remoteAccess);
+            assert.strictEqual(actual.role, expected.role);
+            assert.strictEqual(actual.userPartition, expected.userPartition);
         });
     });
 
@@ -622,8 +685,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             allowService: [
                                 'tcp:80'
                             ],
-                            enforcedFirewallPolicy: 'myFirewallPolicy',
-                            stagedFirewallPolicy: 'myFirewallPolicy'
+                            fwEnforcedPolicy: 'myFirewallPolicy',
+                            fwStagedPolicy: 'myFirewallPolicy'
                         }
                     }
                 );
@@ -638,7 +701,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 {
                     myFirewallPortList: {
                         name: 'myFirewallPortList',
-                        remark: 'firewall port list description',
+                        description: 'firewall port list description',
                         ports: ['8080', '8888']
                     }
                 }
@@ -649,7 +712,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 {
                     myFirewallAddressList: {
                         name: 'myFirewallAddressList',
-                        remark: 'firewall address list description',
+                        description: 'firewall address list description',
                         addresses: ['10.1.0.1', '10.2.0.0/24'],
                         geo: ['US:Washington']
                     }
@@ -661,14 +724,14 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 {
                     myFirewallPolicy: {
                         name: 'myFirewallPolicy',
-                        remark: 'firewall policy description',
+                        description: 'firewall policy description',
                         rules: [
                             {
                                 name: 'firewallPolicyRuleOne',
-                                remark: 'firewall policy rule description',
+                                description: 'firewall policy rule description',
                                 action: 'reject',
-                                protocol: 'tcp',
-                                loggingEnabled: true,
+                                ipProtocol: 'tcp',
+                                log: true,
                                 source: {
                                     vlans: [
                                         '/Common/myVlan'
@@ -692,8 +755,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             {
                                 name: 'firewallPolicyRuleTwo',
                                 action: 'accept',
-                                protocol: 'any',
-                                loggingEnabled: false,
+                                ipProtocol: 'any',
+                                log: false,
                                 source: {},
                                 destination: {}
                             }
@@ -735,7 +798,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 currentState.GSLBGlobals,
                 {
                     general: {
-                        synchronizationEnabled: true,
+                        synchronization: true,
                         synchronizationGroupName: 'newGroup',
                         synchronizationTimeTolerance: 123,
                         synchronizationTimeout: 12345
@@ -751,7 +814,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     contact: 'dataCenterContact',
                     location: 'dataCenterLocation',
                     proberFallback: 'outside-datacenter',
-                    proberPreferred: 'inside-datacenter'
+                    proberPreference: 'inside-datacenter'
                 }
             ));
 
@@ -759,36 +822,36 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 currentState.GSLBServer.myGSLBServer,
                 {
                     name: 'myGSLBServer',
-                    remark: 'GSLB server description',
+                    description: 'GSLB server description',
                     devices: [
                         {
-                            remark: 'GSLB server device description',
-                            address: '10.10.10.10',
-                            addressTranslation: '192.0.2.12'
+                            description: 'GSLB server device description',
+                            name: '10.10.10.10',
+                            translation: '192.0.2.12'
                         }
                     ],
-                    dataCenter: 'myDataCenter',
-                    serverType: 'bigip',
+                    datacenter: 'myDataCenter',
+                    product: 'bigip',
                     enabled: false,
-                    proberPreferred: 'pool',
+                    proberPreference: 'pool',
                     proberFallback: 'any-available',
                     proberPool: 'myGSLBProberPool',
-                    bpsLimit: 10,
-                    bpsLimitEnabled: true,
-                    ppsLimit: 10,
-                    ppsLimitEnabled: true,
-                    connectionsLimit: 10,
-                    connectionsLimitEnabled: true,
-                    serviceCheckProbeEnabled: false,
-                    pathProbeEnabled: false,
-                    snmpProbeEnabled: false,
-                    virtualServerDiscoveryMode: 'enabled',
-                    exposeRouteDomainsEnabled: true,
-                    cpuUsageLimit: 10,
-                    cpuUsageLimitEnabled: true,
-                    memoryLimit: 10,
-                    memoryLimitEnabled: true,
-                    monitors: [
+                    limitMaxBps: 10,
+                    limitMaxBpsStatus: true,
+                    limitMaxPps: 10,
+                    limitMaxPpsStatus: true,
+                    limitMaxConnections: 10,
+                    limitMaxConnectionsStatus: true,
+                    iqAllowServiceCheck: false,
+                    iqAllowPath: false,
+                    iqAllowSnmp: false,
+                    virtualServerDiscovery: 'enabled',
+                    exposeRouteDomains: true,
+                    limitCpuUsage: 10,
+                    limitCpuUsageStatus: true,
+                    limitMemAvail: 10,
+                    limitMemAvailStatus: true,
+                    monitor: [
                         '/Common/http',
                         '/Common/myGSLBMonitorHTTP',
                         '/Common/myGSLBMonitorHTTPS',
@@ -802,18 +865,18 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             address: '10.0.20.1',
                             port: 80,
                             enabled: true,
-                            addressTranslationPort: 0,
-                            monitors: []
+                            translationPort: 0,
+                            monitor: []
                         },
                         {
                             name: 'virtualServer',
-                            remark: 'GSLB server virtual server description',
+                            description: 'GSLB server virtual server description',
                             enabled: false,
                             address: 'a989:1c34:9c::b099:c1c7:8bfe',
                             port: 8080,
-                            addressTranslation: '1:0:1::',
-                            addressTranslationPort: 80,
-                            monitors: [
+                            translationAddress: '1:0:1::',
+                            translationPort: 80,
+                            monitor: [
                                 '/Common/tcp',
                                 '/Common/http'
                             ]
@@ -826,14 +889,14 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 currentState.GSLBProberPool.myGSLBProberPool,
                 {
                     name: 'myGSLBProberPool',
-                    remark: 'GSLB prober pool description',
-                    lbMode: 'round-robin',
+                    description: 'GSLB prober pool description',
+                    loadBalancingMode: 'round-robin',
                     enabled: false,
                     members: [
                         {
                             order: 0,
-                            server: 'myGSLBServer',
-                            remark: 'GSLB prober pool member description',
+                            name: 'myGSLBServer',
+                            description: 'GSLB prober pool member description',
                             enabled: false
                         }
                     ]
@@ -850,11 +913,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     timeout: 1000,
                     transparent: true,
                     monitorType: 'http',
-                    remark: 'description',
-                    target: '1.1.1.1:80',
-                    ignoreDownResponseEnabled: true,
-                    reverseEnabled: true,
-                    receive: 'HTTP'
+                    description: 'description',
+                    destination: '1.1.1.1:80',
+                    ignoreDownResponse: true,
+                    reverse: true,
+                    recv: 'HTTP'
                 }
             ));
 
@@ -868,13 +931,13 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     timeout: 1000,
                     transparent: true,
                     monitorType: 'https',
-                    remark: 'description',
-                    target: '2.2.2.2:80',
-                    ignoreDownResponseEnabled: true,
-                    reverseEnabled: true,
-                    receive: 'HTTP',
-                    ciphers: 'DEFAULT',
-                    clientCertificate: 'default.crt'
+                    description: 'description',
+                    destination: '2.2.2.2:80',
+                    ignoreDownResponse: true,
+                    reverse: true,
+                    recv: 'HTTP',
+                    cipherlist: 'DEFAULT',
+                    cert: 'default.crt'
                 }
             ));
 
@@ -887,9 +950,9 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     timeout: 1000,
                     transparent: true,
                     monitorType: 'gateway-icmp',
-                    remark: 'description',
-                    target: '3.3.3.3:80',
-                    ignoreDownResponseEnabled: true,
+                    description: 'description',
+                    destination: '3.3.3.3:80',
+                    ignoreDownResponse: true,
                     probeInterval: 1,
                     probeAttempts: 3
                 }
@@ -904,11 +967,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     timeout: 1000,
                     transparent: true,
                     monitorType: 'tcp',
-                    remark: 'description',
-                    target: '4.4.4.4:80',
-                    ignoreDownResponseEnabled: true,
-                    reverseEnabled: true,
-                    receive: 'example receive',
+                    description: 'description',
+                    destination: '4.4.4.4:80',
+                    ignoreDownResponse: true,
+                    reverse: true,
+                    recv: 'example receive',
                     send: 'example send'
                 }
             ));
@@ -923,12 +986,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     timeout: 1000,
                     transparent: true,
                     monitorType: 'udp',
-                    remark: 'description',
-                    target: '5.5.5.5:80',
-                    ignoreDownResponseEnabled: true,
-                    reverseEnabled: true,
-                    receive: 'udp receive',
-                    debugEnabled: true,
+                    description: 'description',
+                    destination: '5.5.5.5:80',
+                    ignoreDownResponse: true,
+                    reverse: true,
+                    recv: 'udp receive',
+                    debug: true,
                     probeInterval: 1,
                     probeAttempts: 3
                 }
@@ -1128,7 +1191,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             const currentAuth = declaration.declaration.Common.currentAuthentication;
             if (typeof currentAuth !== 'undefined') {
                 if (typeof currentAuth.ldap !== 'undefined') {
-                    currentAuth.ldap.bindPassword = '';
+                    currentAuth.ldap.bindPw = '';
                 }
                 if (typeof currentAuth.radius !== 'undefined'
                     && typeof currentAuth.radius.servers !== 'undefined') {
@@ -1431,11 +1494,6 @@ function testMainAuth(target, response) {
     return compareSimple(target, response.Authentication, ['enabledSourceType', 'fallback']);
 }
 
-function testRemoteUsersDefaults(target, response) {
-    const remoteResp = response.Authentication.remoteUsersDefaults;
-    return compareSimple(target, remoteResp, ['partitionAccess', 'terminalAccess', 'role']);
-}
-
 function testRadiusAuth(target, response) {
     const radiusResp = response.Authentication.radius;
     const serviceTypeCheck = compareSimple(target, radiusResp, ['serviceType']);
@@ -1452,25 +1510,6 @@ function testRadiusAuth(target, response) {
     return serviceTypeCheck && serverPrimaryCheck && serverSecondaryCheck;
 }
 
-function testLdapAuth(target, response) {
-    const ldapResp = response.Authentication.ldap;
-    const strings = [
-        'bindDn', 'bindTimeout', 'checkBindPassword', 'checkRemoteRole', 'filter', 'groupDn',
-        'groupMemberAttribute', 'idleTimeout', 'ignoreAuthInfoUnavailable',
-        'ignoreUnknownUser', 'loginAttribute', 'port', 'searchScope', 'searchBaseDn',
-        'searchTimeout', 'servers', 'ssl', 'sslCheckPeer', 'sslCiphers', 'userTemplate', 'version'
-    ];
-    const currentBigIpVersion = process.env.BIGIP_IMAGE.split('-')[1];
-    if (cloudUtil.versionCompare('15.1', currentBigIpVersion) <= 0) {
-        strings.push('referrals');
-    }
-    return compareSimple(
-        target,
-        ldapResp,
-        strings
-    );
-}
-
 function testTacacsAuth(target, response) {
     const tacacsResp = response.Authentication.tacacs;
     return compareSimple(
@@ -1479,17 +1518,6 @@ function testTacacsAuth(target, response) {
         [
             'accounting', 'authentication', 'debug', 'encryption', 'protocol',
             'servers', 'service'
-        ]
-    );
-}
-
-function testRemoteAuthRole(target, response) {
-    const remoteAuthRoleResp = response.RemoteAuthRole.remoteAuthRole;
-    return compareSimple(
-        target,
-        remoteAuthRoleResp,
-        [
-            'attribute', 'console', 'lineOrder', 'remoteAccess', 'role', 'userPartition'
         ]
     );
 }

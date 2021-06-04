@@ -58,15 +58,15 @@ describe('analyticsHandler', () => {
         };
     }
 
-    it('should translate debugEnabled', () => {
-        const assertTranslate = makeAssertTranslate('debugEnabled', 'avrd-debug-mode');
+    it('should translate avrdDebugMode', () => {
+        const assertTranslate = makeAssertTranslate('avrdDebugMode', 'avrd-debug-mode');
         return Promise.resolve()
             .then(() => assertTranslate(true, 'enabled'))
             .then(() => assertTranslate(false, 'disabled'));
     });
 
-    it('should translate interval', () => {
-        const assertTranslate = makeAssertTranslate('interval', 'avrd-interval');
+    it('should translate avrdInterval', () => {
+        const assertTranslate = makeAssertTranslate('avrdInterval', 'avrd-interval');
         return assertTranslate(60, 60);
     });
 
@@ -93,8 +93,8 @@ describe('analyticsHandler', () => {
             .then(() => assertTranslate(undefined, 0));
     });
 
-    it('should translate offboxEnabled', () => {
-        const assertTranslate = makeAssertTranslate('offboxEnabled', 'use-offbox');
+    it('should translate useOffbox', () => {
+        const assertTranslate = makeAssertTranslate('useOffbox', 'use-offbox');
         return Promise.resolve()
             .then(() => assertTranslate(true, 'enabled'))
             .then(() => assertTranslate(false, 'disabled'));

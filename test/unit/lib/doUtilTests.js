@@ -602,6 +602,196 @@ describe('doUtil', () => {
         });
     });
 
+    describe('getDeepValue', () => {
+        it('should handle a straight forward search', () => {
+            const searchObject = {
+                tenant: {
+                    application: {
+                        service: {
+                            extraData: 12345
+                        }
+                    }
+                }
+            };
+            assert.deepStrictEqual(
+                doUtil.getDeepValue(searchObject, 'tenant.application.service'),
+                {
+                    extraData: 12345
+                }
+            );
+            assert.strictEqual(
+                doUtil.getDeepValue(searchObject, 'tenant.application.service.extraData'),
+                12345
+            );
+        });
+
+        it('should handle items that are not present', () => {
+            const searchObject = {
+                tenant: {
+                    application: {
+                        service: {
+                            extraData: 12345
+                        }
+                    }
+                }
+            };
+
+            assert.strictEqual(
+                doUtil.getDeepValue(searchObject, 'tenant.application.foo'),
+                undefined
+            );
+        });
+
+        it('should handle path components with periods', () => {
+            const searchObject = {
+                'test.tenant.name-with-dots-and-dashes-': {
+                    application: {
+                        service: {
+                            '.extraData': 12345
+                        }
+                    }
+                }
+            };
+            assert.deepStrictEqual(
+                doUtil.getDeepValue(searchObject, 'test.tenant.name-with-dots-and-dashes-/application/service/.extraData', '/'),
+                12345
+            );
+        });
+
+        it('should skip empty path components', () => {
+            const searchObject = {
+                'test.tenant.name-with-dots-and-dashes-': {
+                    application: {
+                        service: {
+                            '.extraData': 12345
+                        }
+                    }
+                }
+            };
+            assert.deepStrictEqual(
+                doUtil.getDeepValue(searchObject, '/test.tenant.name-with-dots-and-dashes-//application/service/.extraData/', '/'),
+                12345
+            );
+        });
+    });
+
+    describe('setDeepValue', () => {
+        it('should create sub-objects in path', () => {
+            assert.deepStrictEqual(
+                doUtil.setDeepValue({}, 'tenant.application.service.extraData', 12345),
+                {
+                    tenant: {
+                        application: {
+                            service: {
+                                extraData: 12345
+                            }
+                        }
+                    }
+                }
+            );
+        });
+
+        it('should create sub-arrays in path', () => {
+            assert.deepStrictEqual(
+                doUtil.setDeepValue({}, 'tenant.application.service.virtualAddresses.0.extraData', 12345),
+                {
+                    tenant: {
+                        application: {
+                            service: {
+                                virtualAddresses: [
+                                    { extraData: 12345 }
+                                ]
+                            }
+                        }
+                    }
+                }
+            );
+        });
+
+        it('should handle arrays at end of path', () => {
+            assert.deepStrictEqual(
+                doUtil.setDeepValue({}, 'tenant.application.service.virtualAddresses.0', 12345),
+                {
+                    tenant: {
+                        application: {
+                            service: {
+                                virtualAddresses: [12345]
+                            }
+                        }
+                    }
+                }
+            );
+        });
+
+        it('should handle sparse arrays', () => {
+            assert.deepStrictEqual(
+                doUtil.setDeepValue({}, 'tenant.application.service.virtualAddresses.1.extraData', 12345),
+                {
+                    tenant: {
+                        application: {
+                            service: {
+                                virtualAddresses: [
+                                    undefined,
+                                    { extraData: 12345 }
+                                ]
+                            }
+                        }
+                    }
+                }
+            );
+        });
+
+        it('should handle populated objects', () => {
+            const obj = {
+                tenant: {
+                    application: {
+                        service: {
+                            virtualAddresses: [
+                                { bigip: '/Common/Shared/address' },
+                                { bigip: '/Common/Shared/otherAddress' }
+                            ],
+                            enable: true
+                        },
+                        otherService: {}
+                    }
+                }
+            };
+
+            assert.deepStrictEqual(
+                doUtil.setDeepValue(obj, 'tenant.application.service.virtualAddresses.1.extraData', 12345),
+                {
+                    tenant: {
+                        application: {
+                            service: {
+                                virtualAddresses: [
+                                    { bigip: '/Common/Shared/address' },
+                                    {
+                                        bigip: '/Common/Shared/otherAddress',
+                                        extraData: 12345
+                                    }
+                                ],
+                                enable: true
+                            },
+                            otherService: {}
+                        }
+                    }
+                }
+            );
+        });
+
+        it('should throw if path is empty', () => {
+            assert.throws(() => doUtil.setDeepValue({}, '', 12345));
+        });
+
+        it('should throw if path starts with a dot', () => {
+            assert.throws(() => doUtil.setDeepValue({}, '.a', 12345));
+        });
+
+        it('should throw if path ends with a dot', () => {
+            assert.throws(() => doUtil.setDeepValue({}, 'a.', 12345));
+        });
+    });
+
     describe('sortArrayByValueString', () => {
         const data = [
             {

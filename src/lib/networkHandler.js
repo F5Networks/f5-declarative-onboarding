@@ -155,7 +155,7 @@ function handleVlan() {
                     name: vlan.name,
                     partition: tenant,
                     cmpHash: vlan.cmpHash,
-                    failsafe: vlan.failsafeEnabled ? 'enabled' : 'disabled',
+                    failsafe: vlan.failsafe ? 'enabled' : 'disabled',
                     failsafeAction: vlan.failsafeAction,
                     failsafeTimeout: vlan.failsafeTimeout
                 };
@@ -192,7 +192,7 @@ function handleFirewallAddressList() {
         if (firewallAddressList && firewallAddressList.name) {
             const body = {
                 name: firewallAddressList.name,
-                description: firewallAddressList.remark || 'none'
+                description: firewallAddressList.description || 'none'
             };
 
             if (firewallAddressList.addresses) {
@@ -223,15 +223,15 @@ function handleFirewallPolicy() {
         if (firewallPolicy && firewallPolicy.name) {
             const body = {
                 name: firewallPolicy.name,
-                description: firewallPolicy.remark || 'none'
+                description: firewallPolicy.description || 'none'
             };
 
             body.rules = firewallPolicy.rules.map((rule, index, rules) => ({
                 name: rule.name,
-                description: rule.remark || 'none',
+                description: rule.description || 'none',
                 action: rule.action,
-                ipProtocol: rule.protocol,
-                log: rule.loggingEnabled ? 'yes' : 'no',
+                ipProtocol: rule.ipProtocol,
+                log: rule.log ? 'yes' : 'no',
                 placeAfter: index === 0 ? 'first' : rules[index - 1].name,
                 source: {
                     addressLists: rule.source.addressLists || [],
@@ -262,7 +262,7 @@ function handleFirewallPortList() {
         if (firewallPortList && firewallPortList.name) {
             const body = {
                 name: firewallPortList.name,
-                description: firewallPortList.remark || 'none'
+                description: firewallPortList.description || 'none'
             };
 
             if (firewallPortList.ports) {
@@ -324,8 +324,8 @@ function handleSelfIp() {
                         address: selfIp.address,
                         trafficGroup: selfIp.trafficGroup,
                         allowService: selfIp.allowService,
-                        fwEnforcedPolicy: normalizeFWPolicy('enforcedFirewallPolicy'),
-                        fwStagedPolicy: normalizeFWPolicy('stagedFirewallPolicy')
+                        fwEnforcedPolicy: normalizeFWPolicy('fwEnforcedPolicy'),
+                        fwStagedPolicy: normalizeFWPolicy('fwStagedPolicy')
                     };
 
                     if (selfIpBody.trafficGroup
@@ -466,11 +466,11 @@ function handleRoute() {
                         mtu: route.mtu
                     };
 
-                    if (route.target) {
-                        if (route.target.startsWith('/')) {
-                            routeBody.interface = route.target;
+                    if (route.tmInterface) {
+                        if (route.tmInterface.startsWith('/')) {
+                            routeBody.interface = route.tmInterface;
                         } else {
-                            routeBody.interface = `/${tenant}/${route.target}`;
+                            routeBody.interface = `/${tenant}/${route.tmInterface}`;
                         }
                     } else {
                         routeBody.gw = route.gw;
@@ -552,12 +552,12 @@ function handleTrunk() {
                 name: trunk.name,
                 distributionHash: trunk.distributionHash,
                 interfaces: trunk.interfaces,
-                lacp: trunk.lacpEnabled ? 'enabled' : 'disabled',
+                lacp: trunk.lacp ? 'enabled' : 'disabled',
                 lacpMode: trunk.lacpMode,
                 lacpTimeout: trunk.lacpTimeout,
                 linkSelectPolicy: trunk.linkSelectPolicy,
                 qinqEthertype: trunk.qinqEthertype,
-                stp: trunk.spanningTreeEnabled ? 'enabled' : 'disabled'
+                stp: trunk.stp ? 'enabled' : 'disabled'
             };
 
             promises.push(
@@ -582,15 +582,15 @@ function handleRouteDomain() {
                 id: routeDomain.id,
                 parent: routeDomain.parent || 'none',
                 connectionLimit: routeDomain.connectionLimit,
-                bwcPolicy: routeDomain.bandwidthControllerPolicy,
+                bwcPolicy: routeDomain.bwcPolicy,
                 flowEvictionPolicy: routeDomain.flowEvictionPolicy,
-                fwEnforcedPolicy: routeDomain.enforcedFirewallPolicy,
-                fwStagedPolicy: routeDomain.stagedFirewallPolicy,
+                fwEnforcedPolicy: routeDomain.fwEnforcedPolicy,
+                fwStagedPolicy: routeDomain.fwStagedPolicy,
                 ipIntelligencePolicy: routeDomain.ipIntelligencePolicy,
                 securityNatPolicy: routeDomain.securityNatPolicy,
                 servicePolicy: routeDomain.servicePolicy,
                 strict: routeDomain.strict ? 'enabled' : 'disabled',
-                routingProtocol: routeDomain.routingProtocols,
+                routingProtocol: routeDomain.routingProtocol,
                 vlans: routeDomain.vlans
             };
             let method = 'create';
@@ -617,7 +617,7 @@ function handleRouteDomain() {
 function handleDagGlobals() {
     if (this.declaration.Common && this.declaration.Common.DagGlobals) {
         const body = {
-            dagIpv6PrefixLen: this.declaration.Common.DagGlobals.ipv6PrefixLength,
+            dagIpv6PrefixLen: this.declaration.Common.DagGlobals.dagIpv6PrefixLen,
             icmpHash: this.declaration.Common.DagGlobals.icmpHash,
             roundRobinMode: this.declaration.Common.DagGlobals.roundRobinMode
         };
@@ -629,14 +629,14 @@ function handleDagGlobals() {
 function handleTunnel() {
     const promises = [];
     doUtil.forEach(this.declaration, 'Tunnel', (tenant, tunnel) => {
-        if (tunnel && tunnel.name && tunnel.tunnelType) {
+        if (tunnel && tunnel.name && tunnel.profile) {
             const tunnelBody = {
                 name: tunnel.name,
                 partition: tenant,
-                autoLasthop: tunnel.autoLastHop,
+                autoLasthop: tunnel.autoLasthop,
                 mtu: tunnel.mtu,
-                profile: `/Common/${tunnel.tunnelType}`,
-                tos: tunnel.typeOfService,
+                profile: `/Common/${tunnel.profile}`,
+                tos: tunnel.tos,
                 usePmtu: tunnel.usePmtu ? 'enabled' : 'disabled'
             };
 
@@ -720,7 +720,7 @@ function handleRoutingPrefixList() {
                     entries[entry.name] = {
                         action: entry.action,
                         prefix: entry.prefix,
-                        prefixLenRange: entry.prefixLengthRange
+                        prefixLenRange: entry.prefixLenRange
                     };
                 });
             }
@@ -792,7 +792,7 @@ function handleRoutingBGP() {
                     // BIGIP has a bug where a peerGroup with any members cannot be set to 'none' or overwritten.
                     // Get around by preemptively deleting any matches found in current config that are to be modified.
                     const curBgp = this.state.currentConfig.Common.RoutingBGP[name];
-                    if ((curBgp.peerGroups && curBgp.peerGroups.length > 0) || (curBgp.localAS !== declBgp.localAS)) {
+                    if ((curBgp.peerGroups && curBgp.peerGroups.length > 0) || (curBgp.localAs !== declBgp.localAs)) {
                         promises.push(
                             this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
                         );
@@ -818,13 +818,13 @@ function handleRoutingBGP() {
                 if (bgp && Object.keys(bgp).length !== 0) {
                     const addressFamilies = [];
 
-                    if (bgp.addressFamilies) {
-                        bgp.addressFamilies.forEach((family) => {
+                    if (bgp.addressFamily) {
+                        bgp.addressFamily.forEach((family) => {
                             const familyBody = {};
-                            familyBody.name = family.internetProtocol;
+                            familyBody.name = family.name;
                             familyBody.redistribute = [];
-                            if (family.redistributionList) {
-                                family.redistributionList.forEach((r) => {
+                            if (family.redistribute) {
+                                family.redistribute.forEach((r) => {
                                     const entry = {};
                                     entry.name = r.routingProtocol;
                                     entry.routeMap = r.routeMap || 'none';
@@ -840,23 +840,23 @@ function handleRoutingBGP() {
                         bgp.peerGroups.forEach((peer) => {
                             const peerBody = {};
                             peerBody.name = peer.name;
-                            if (peer.addressFamilies) {
+                            if (peer.addressFamily) {
                                 const peerAddressFamilies = [];
-                                peer.addressFamilies.forEach((af) => {
+                                peer.addressFamily.forEach((af) => {
                                     const entry = {};
-                                    entry.name = af.internetProtocol;
+                                    entry.name = af.name;
                                     const routeMap = {};
                                     if (af.routeMap) {
                                         routeMap.in = af.routeMap.in || 'none';
                                         routeMap.out = af.routeMap.out || 'none';
                                     }
                                     entry.routeMap = routeMap;
-                                    entry.softReconfigurationInbound = af.softReconfigurationInboundEnabled ? 'enabled' : 'disabled';
+                                    entry.softReconfigurationInbound = af.softReconfigurationInbound ? 'enabled' : 'disabled';
                                     peerAddressFamilies.push(entry);
                                 });
                                 peerBody.addressFamily = peerAddressFamilies;
                             }
-                            peerBody.remoteAs = peer.remoteAS;
+                            peerBody.remoteAs = peer.remoteAs;
                             peerGroup.push(peerBody);
                         });
                     }
@@ -865,7 +865,7 @@ function handleRoutingBGP() {
                     if (bgp.neighbors) {
                         bgp.neighbors.forEach((n) => {
                             const neighborBody = {};
-                            neighborBody.name = n.address;
+                            neighborBody.name = n.name;
                             neighborBody.peerGroup = n.peerGroup;
                             neighbor.push(neighborBody);
                         });
@@ -876,13 +876,13 @@ function handleRoutingBGP() {
                         partition: tenant,
                         addressFamily: addressFamilies,
                         gracefulRestart: bgp.gracefulRestart ? {
-                            gracefulReset: bgp.gracefulRestart.gracefulResetEnabled === true ? 'enabled' : 'disabled',
+                            gracefulReset: bgp.gracefulRestart.gracefulReset === true ? 'enabled' : 'disabled',
                             restartTime: bgp.gracefulRestart.restartTime,
-                            stalepathTime: bgp.gracefulRestart.stalePathTime
+                            stalepathTime: bgp.gracefulRestart.stalepathTime
                         } : undefined,
                         keepAlive: bgp.keepAlive,
                         holdTime: bgp.holdTime,
-                        localAs: bgp.localAS,
+                        localAs: bgp.localAs,
                         neighbor,
                         peerGroup,
                         routerId: bgp.routerId

@@ -100,7 +100,7 @@ function handleGSLBGlobals() {
     if (gslbGlobals.general) {
         const gslbGeneral = gslbGlobals.general;
         const body = {
-            synchronization: gslbGeneral.synchronizationEnabled ? 'yes' : 'no',
+            synchronization: gslbGeneral.synchronization ? 'yes' : 'no',
             synchronizationGroupName: gslbGeneral.synchronizationGroupName,
             synchronizationTimeTolerance: gslbGeneral.synchronizationTimeTolerance,
             synchronizationTimeout: gslbGeneral.synchronizationTimeout
@@ -126,7 +126,7 @@ function handleGSLBDataCenter() {
                 enabled: dataCenter.enabled,
                 location: dataCenter.location,
                 proberFallback: dataCenter.proberFallback,
-                proberPreference: dataCenter.proberPreferred
+                proberPreference: dataCenter.proberPreference
             };
 
             if (dataCenter.proberPool) {
@@ -157,24 +157,24 @@ function handleGSLBMonitor() {
         if (monitor && monitor.name) {
             const body = {
                 name: monitor.name,
-                description: monitor.remark || 'none',
-                destination: monitor.target,
+                description: monitor.description || 'none',
+                destination: monitor.destination,
                 interval: monitor.interval,
                 timeout: monitor.timeout,
                 probeTimeout: monitor.probeTimeout,
-                ignoreDownResponse: (monitor.ignoreDownResponseEnabled) ? 'enabled' : 'disabled',
+                ignoreDownResponse: (monitor.ignoreDownResponse) ? 'enabled' : 'disabled',
                 transparent: (monitor.transparent) ? 'enabled' : 'disabled'
             };
 
             if (monitor.monitorType !== 'gateway-icmp') {
-                body.reverse = (monitor.reverseEnabled) ? 'enabled' : 'disabled';
+                body.reverse = (monitor.reverse) ? 'enabled' : 'disabled';
                 body.send = monitor.send || 'none';
-                body.recv = monitor.receive || 'none';
+                body.recv = monitor.recv || 'none';
             }
 
             if (monitor.monitorType === 'https') {
-                body.cipherlist = monitor.ciphers || 'none';
-                body.cert = monitor.clientCertificate || 'none';
+                body.cipherlist = monitor.cipherlist || 'none';
+                body.cert = monitor.cert || 'none';
             }
 
             if (monitor.monitorType === 'gateway-icmp' || monitor.monitorType === 'udp') {
@@ -183,7 +183,7 @@ function handleGSLBMonitor() {
             }
 
             if (monitor.monitorType === 'udp') {
-                body.debug = (monitor.debugEnabled) ? 'yes' : 'no';
+                body.debug = (monitor.debug) ? 'yes' : 'no';
             }
 
             const monPath = `${PATHS.GSLBMonitor}/${monitor.monitorType}`;
@@ -202,9 +202,9 @@ function handleGSLBServer() {
     const commands = [];
 
     function mapMonitors(server) {
-        if (server.monitors && server.monitors.length > 0) {
+        if (server.monitor && server.monitor.length > 0) {
             // The monitor property is a string with the monitors connected by ands, instead of an array
-            return server.monitors.join(' and ');
+            return server.monitor.join(' and ');
         }
         return '';
     }
@@ -213,49 +213,49 @@ function handleGSLBServer() {
         if (server && server.name) {
             const body = {
                 name: server.name,
-                description: server.remark || 'none',
+                description: server.description || 'none',
                 enabled: server.enabled,
                 disabled: !server.enabled,
-                product: server.serverType,
-                proberPreference: server.proberPreferred,
+                product: server.product,
+                proberPreference: server.proberPreference,
                 proberFallback: server.proberFallback,
                 proberPool: server.proberPool || 'none',
-                limitMaxBps: server.bpsLimit,
-                limitMaxBpsStatus: server.bpsLimitEnabled ? 'enabled' : 'disabled',
-                limitMaxPps: server.ppsLimit,
-                limitMaxPpsStatus: server.ppsLimitEnabled ? 'enabled' : 'disabled',
-                limitMaxConnections: server.connectionsLimit,
-                limitMaxConnectionsStatus: server.connectionsLimitEnabled ? 'enabled' : 'disabled',
-                limitCpuUsage: server.cpuUsageLimit,
-                limitCpuUsageStatus: server.cpuUsageLimitEnabled ? 'enabled' : 'disabled',
-                limitMemAvail: server.memoryLimit,
-                limitMemAvailStatus: server.memoryLimitEnabled ? 'enabled' : 'disabled',
-                iqAllowServiceCheck: server.serviceCheckProbeEnabled ? 'yes' : 'no',
-                iqAllowPath: server.pathProbeEnabled ? 'yes' : 'no',
-                iqAllowSnmp: server.snmpProbeEnabled ? 'yes' : 'no',
-                datacenter: server.dataCenter,
+                limitMaxBps: server.limitMaxBps,
+                limitMaxBpsStatus: server.limitMaxBpsStatus ? 'enabled' : 'disabled',
+                limitMaxPps: server.limitMaxPps,
+                limitMaxPpsStatus: server.limitMaxPpsStatus ? 'enabled' : 'disabled',
+                limitMaxConnections: server.limitMaxConnections,
+                limitMaxConnectionsStatus: server.limitMaxConnectionsStatus ? 'enabled' : 'disabled',
+                limitCpuUsage: server.limitCpuUsage,
+                limitCpuUsageStatus: server.limitCpuUsageStatus ? 'enabled' : 'disabled',
+                limitMemAvail: server.limitMemAvail,
+                limitMemAvailStatus: server.limitMemAvailStatus ? 'enabled' : 'disabled',
+                iqAllowServiceCheck: server.iqAllowServiceCheck ? 'yes' : 'no',
+                iqAllowPath: server.iqAllowPath ? 'yes' : 'no',
+                iqAllowSnmp: server.iqAllowSnmp ? 'yes' : 'no',
+                datacenter: server.datacenter,
                 devices: server.devices,
-                exposeRouteDomains: server.exposeRouteDomainsEnabled ? 'yes' : 'no',
-                virtualServerDiscovery: server.virtualServerDiscoveryMode,
+                exposeRouteDomains: server.exposeRouteDomains ? 'yes' : 'no',
+                virtualServerDiscovery: server.virtualServerDiscovery,
                 monitor: mapMonitors(server),
                 virtualServers: server.virtualServers.map(vs => ({
                     name: vs.name,
-                    description: vs.remark || 'none',
+                    description: vs.description || 'none',
                     destination: `${vs.address}${vs.address.indexOf(':') > -1 ? '.' : ':'}${vs.port}`,
                     enabled: vs.enabled,
                     disabled: !vs.enabled,
-                    translationAddress: vs.addressTranslation || 'none',
-                    translationPort: vs.addressTranslationPort,
+                    translationAddress: vs.translationAddress || 'none',
+                    translationPort: vs.translationPort,
                     monitor: mapMonitors(vs)
                 }))
             };
             body.devices = body.devices.map((device, i) => ({
                 name: `${i}`,
                 addresses: [{
-                    name: device.address,
-                    translation: device.addressTranslation || 'none'
+                    name: device.name,
+                    translation: device.translation || 'none'
                 }],
-                description: device.remark || 'none'
+                description: device.description || 'none'
             }));
 
             let method = 'create';
@@ -282,15 +282,15 @@ function handleGSLBProberPool() {
         if (proberPool && proberPool.name) {
             const body = {
                 name: proberPool.name,
-                description: proberPool.remark || 'none',
+                description: proberPool.description || 'none',
                 enabled: proberPool.enabled,
                 disabled: !proberPool.enabled,
-                loadBalancingMode: proberPool.lbMode
+                loadBalancingMode: proberPool.loadBalancingMode
             };
 
             body.members = proberPool.members.map(member => ({
-                name: member.server,
-                description: member.remark || 'none',
+                name: member.name,
+                description: member.description || 'none',
                 enabled: member.enabled,
                 disabled: !member.enabled,
                 order: member.order

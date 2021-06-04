@@ -19,13 +19,17 @@
 const Logger = require('./logger');
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 const doUtil = require('./doUtil');
+const parserUtil = require('./parserUtil');
+const configItems = require('./configItems.json');
 
 const logger = new Logger(module);
 
 /**
  * Parses a declaration into sub-components by class (DNS, License, etc).
  *
- * Also ignores the name property if it is not relevant
+ *     - Ignores the name property if it is not relevant
+ *     - For properties in configItems.json that have 'newId', renames those properties
+ *       to 'id'. This is so that handler classes do not have to do this.
  *
  * For example, given the declaration
  *
@@ -59,7 +63,8 @@ const logger = new Logger(module);
  *                         "name": "1.1",
  *                         "tagged": true
  *                     }
- *                 ]
+ *                 ],
+ *                 failsafeEnabled: true
  *             }
  *         },
  *         "Tenant1": {
@@ -111,7 +116,8 @@ const logger = new Logger(module);
  *                             "name": "1.1",
  *                             "tagged": true
  *                         }
- *                     ]
+ *                     ],
+ *                     "failsafe": "enabled"
  *                 }
  *             }
  *         },
@@ -206,18 +212,15 @@ class DeclarationParser {
                         }
 
                         // If the config object does not get a name property, just assign
-                        // the object directly. Otherwise, put create a named sub property
+                        // the object directly. Otherwise, create a named sub property
                         if (NAMELESS_CLASSES.indexOf(propertyClass) !== -1) {
                             property = assignDefaults(propertyClass, property, this.modules);
+                            property = parserUtil.updateIds(configItems, propertyClass, property);
                             Object.assign(parsed[tenantName][propertyClass], property);
                         } else {
-                            property = assignDefaults(propertyClass, property, this.modules);
+                            property = assignDefaults(propertyClass, property, this.modules, propertyName);
+                            property = parserUtil.updateIds(configItems, propertyClass, property, propertyName);
                             parsed[tenantName][propertyClass][propertyName] = {};
-                            // Some classes (SnmpCommunity, for example) allow the user to assign the 'name' property
-                            // so do not override it. This allows for special characters in names.
-                            if (!property.name) {
-                                property.name = propertyName;
-                            }
                             Object.assign(parsed[tenantName][propertyClass][propertyName], property);
                         }
                     }
@@ -245,8 +248,9 @@ class DeclarationParser {
  * @param {String} propertyClass - The property class (DNS, NTP, etc).
  * @param {Object} property - The property to assign defaults to.
  * @param {Array.<String>} - The names of the modules on the target BIG-IP
+ * @param {String} [propertyName] - Optional property name to insert if missing
  */
-function assignDefaults(propertyClass, property, modules) {
+function assignDefaults(propertyClass, property, modules, propertyName) {
     switch (propertyClass) {
     case 'Provision':
         modules.forEach((module) => {
@@ -258,6 +262,12 @@ function assignDefaults(propertyClass, property, modules) {
         break;
     default:
         // Nothing to do here
+    }
+
+    // Some classes allow the user to assign the 'name' property
+    // so do not override it. This allows for special characters in names.
+    if (!property.name && propertyName) {
+        property.name = propertyName;
     }
 
     return property;

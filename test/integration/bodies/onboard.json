@@ -117,6 +117,21 @@
             "haOrder": [
                 "f5.example.com"
             ]
+        },
+        "mySnmpCommunityWithSpecialCharacter": {
+            "class": "SnmpCommunity",
+            "name": "special!community",
+            "ipv6": false,
+            "source": "all",
+            "oid": ".1",
+            "access": "ro"
+        },
+        "mySnmpCommunityWithoutSpecialCharacter": {
+            "class": "SnmpCommunity",
+            "ipv6": false,
+            "source": "all",
+            "oid": ".1",
+            "access": "ro"
         }
     }
 }

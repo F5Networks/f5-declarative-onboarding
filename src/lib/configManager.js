@@ -22,6 +22,7 @@ const querystring = require('querystring');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 const RADIUS = require('./sharedConstants').RADIUS;
+const PATHS = require('./sharedConstants').PATHS;
 const doUtil = require('./doUtil');
 
 const logger = new Logger(module);
@@ -100,15 +101,23 @@ class ConfigManager {
      * @param {Object} declaration - The delcaration we are processing
      * @param {Object} state - The state of the current task. See {@link State}.
      * @param {State} doState - The doState object.
+     * @param {Object} [options] - Optional parameters
+     * @param {Boolean} [options.translateToNewId] - Set property names to the value in 'newId' if there is one.
+     *                                               Default false.
      *
      * @returns {Promise} A promise which is resolved when the operation is complete
      *                    or rejected if an error occurs.
      */
-    get(declaration, state, doState) {
+    get(declaration, state, doState, options) {
         const currentCurrentConfig = state.currentConfig || {};
         const currentConfig = {};
         const referencePromises = [];
         const referenceInfo = []; // info needed to tie reference result to config item
+
+        const optionDefaults = {
+            translateToNewId: false
+        };
+        const configOptions = Object.assign(optionDefaults, options);
 
         // Get the list of db variables that we really want. This includes
         // whatever is in the declaration plus what is in the current config.
@@ -179,7 +188,7 @@ class ConfigManager {
                             query.$select = `${query.$select},partition`;
                         }
                         const encodedQuery = querystring.stringify(query);
-                        const options = {};
+                        const listOptions = {};
                         let path = `${configItem.path}?${encodedQuery}`;
 
                         // do any replacements
@@ -187,7 +196,7 @@ class ConfigManager {
                         path = path.replace(deviceNameRegex, tokenMap.deviceName);
 
                         if (configItem.silent) {
-                            options.silent = configItem.silent;
+                            listOptions.silent = configItem.silent;
                         }
 
                         const requiredFields = configItem.properties
@@ -197,10 +206,10 @@ class ConfigManager {
                                 return accumulator;
                             }, []);
                         if (requiredFields.length > 0) {
-                            options.requiredFields = requiredFields;
+                            listOptions.requiredFields = requiredFields;
                         }
 
-                        return this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options);
+                        return this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, listOptions);
                     }));
             })
             .then((results) => {
@@ -252,8 +261,12 @@ class ConfigManager {
                                     }
 
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
-                                    patchedItem = mapProperties(patchedItem,
-                                        this.configItems[index], this.bigIpVersion);
+                                    patchedItem = mapProperties(
+                                        patchedItem,
+                                        this.configItems[index],
+                                        this.bigIpVersion,
+                                        configOptions
+                                    );
 
                                     let name = item.name;
 
@@ -293,7 +306,7 @@ class ConfigManager {
                                     }
 
                                     if (schemaClass === 'GSLBServer') {
-                                        patchGSLBServer.call(this, patchedItem);
+                                        patchGSLBServer.call(this, patchedItem, configOptions);
                                     }
 
                                     if (schemaClass === 'GSLBProberPool') {
@@ -312,7 +325,8 @@ class ConfigManager {
                                         item,
                                         index,
                                         referencePromises,
-                                        referenceInfo
+                                        referenceInfo,
+                                        configOptions
                                     );
                                 } else if (shouldIgnore(item, this.configItems[index].ignore)) {
                                     if (!currentConfig[schemaClass]) {
@@ -329,7 +343,12 @@ class ConfigManager {
                             currentItem,
                             this.configItems[index].nameless
                         );
-                        patchedItem = mapProperties(patchedItem, this.configItems[index], this.bigIpVersion);
+                        patchedItem = mapProperties(
+                            patchedItem,
+                            this.configItems[index],
+                            this.bigIpVersion,
+                            configOptions
+                        );
                         if (schemaClass === 'Authentication') {
                             patchedItem = patchAuth.call(
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
@@ -337,7 +356,7 @@ class ConfigManager {
                         }
                         if (schemaClass === 'System') {
                             patchedItem = patchSys.call(
-                                this, schemaMerge, currentConfig[schemaClass], patchedItem
+                                this, schemaMerge, currentConfig[schemaClass], patchedItem, configOptions
                             );
                         }
                         if (schemaClass === 'SyslogRemoteServer') {
@@ -388,7 +407,8 @@ class ConfigManager {
                             currentItem,
                             index,
                             referencePromises,
-                            referenceInfo
+                            referenceInfo,
+                            configOptions
                         );
                     }
                 });
@@ -416,7 +436,7 @@ class ConfigManager {
 
                     const patchReferences = (reference) => {
                         let patchedItem = removeUnusedKeys.call(this, reference);
-                        patchedItem = mapProperties(patchedItem, refConfigItem, this.bigIpVersion);
+                        patchedItem = mapProperties(patchedItem, refConfigItem, this.bigIpVersion, configOptions);
                         return patchedItem;
                     };
 
@@ -513,8 +533,9 @@ class ConfigManager {
 
                 // Patch RoutingBGP neighbor members after they've been dereferenced
                 const currentRoutingBgp = state.currentConfig.Common.RoutingBGP;
+                const nameId = getMappedId(PATHS.RoutingBGP, 'references.neighborReference', 'name', this.configItems, configOptions);
                 Object.keys(currentRoutingBgp || []).forEach((key) => {
-                    doUtil.sortArrayByValueString(currentRoutingBgp[key].neighbor, 'address');
+                    doUtil.sortArrayByValueString(currentRoutingBgp[key].neighbor, nameId);
                     if (currentRoutingBgp[key].neighbor) {
                         currentRoutingBgp[key].neighbors = JSON.parse(
                             JSON.stringify(currentRoutingBgp[key].neighbor)
@@ -532,25 +553,33 @@ class ConfigManager {
                 // Patch GSLB Server virtual servers after they've been dereferenced
                 const currentGSLBServer = state.currentConfig.Common.GSLBServer;
                 if (currentGSLBServer) {
+                    const devicesOptions = Object.assign({}, configOptions, { transformId: 'addresses' });
+                    const devicesNameId = getMappedId(PATHS.GSLBServer, 'references.devicesReference', 'name', this.configItems, devicesOptions);
+                    const devicesTranslationId = getMappedId(PATHS.GSLBServer, 'references.devicesReference', 'translation', this.configItems, devicesOptions);
+                    const serverTranslationId = getMappedId(PATHS.GSLBServer, 'references.virtualServersReference', 'translationAddress', this.configItems, configOptions);
+                    const descriptionId = getMappedId(PATHS.GSLBServer, 'references.virtualServersReference', 'description', this.configItems, configOptions);
+                    const monitorId = getMappedId(PATHS.GSLBServer, 'references.virtualServersReference', 'monitor', this.configItems, configOptions);
                     Object.keys(currentGSLBServer).forEach((key) => {
-                        currentGSLBServer[key].devices = (currentGSLBServer[key].devices || []).map(device => ({
-                            address: device.addresses[0].name,
-                            addressTranslation: device.addresses[0].translation,
-                            remark: device.remark
-                        }));
+                        currentGSLBServer[key].devices = (currentGSLBServer[key].devices || []).map((device) => {
+                            const patchedDevice = {};
+                            patchedDevice[devicesNameId] = device.addresses[0][devicesNameId];
+                            patchedDevice[devicesTranslationId] = device.addresses[0][devicesTranslationId];
+                            patchedDevice[descriptionId] = device[descriptionId];
+                            return patchedDevice;
+                        });
                         (currentGSLBServer[key].virtualServers || []).forEach((virtualServer) => {
                             const splitDestination = virtualServer.destination.split(/(\.|:)(?=[^.:]*$)/);
 
                             virtualServer.address = splitDestination[0];
                             virtualServer.port = parseInt(splitDestination[2], 10);
-                            virtualServer.monitors = getGtmMonitorArray(virtualServer.monitors);
+                            virtualServer[monitorId] = getGtmMonitorArray(virtualServer[monitorId]);
                             virtualServer.enabled = isEnabledGtmObject(virtualServer);
 
                             delete virtualServer.disabled;
                             delete virtualServer.destination;
 
-                            if (virtualServer.addressTranslation === 'none') {
-                                delete virtualServer.addressTranslation;
+                            if (virtualServer[serverTranslationId] === 'none') {
+                                delete virtualServer[serverTranslationId];
                             }
                         });
                     });
@@ -654,8 +683,11 @@ function getPropertiesOfInterest(initialProperties) {
  * @param {Object} item - The item (typically the item is coming from bigip) whose properties to map
  * @param {Object} configItem - The configItem object that contains the properties to map
  * @param {String} bigIpVersion - The current BIG-IP version
+ * @param {Object} [options] - Optional parameters
+ * @param {Boolean} [options.translateToNewId] - Set property names to the value in 'newId' if there is one.
+ *                                               Default false.
  */
-function mapProperties(item, configItem, bigIpVersion) {
+function mapProperties(item, configItem, bigIpVersion, options) {
     const mappedItem = {};
     Object.assign(mappedItem, item);
 
@@ -732,8 +764,7 @@ function mapProperties(item, configItem, bigIpVersion) {
                             value = mapTruth(currentProperty, trans);
                         }
 
-                        // Attempt to convert values
-                        if (trans.newId) {
+                        if (options.translateToNewId && trans.newId) {
                             newProperty[trans.newId] = value;
                         } else {
                             newProperty[trans.id] = value;
@@ -760,7 +791,7 @@ function mapProperties(item, configItem, bigIpVersion) {
             mappedItem[property.id] = parseInt(mappedItem[property.id], 10);
         }
 
-        if (hasVal && property.newId !== undefined) {
+        if (options.translateToNewId && hasVal && property.newId !== undefined) {
             mapNewId(mappedItem, property.id, property.newId);
         }
     });
@@ -878,7 +909,7 @@ function mapSchemaMerge(obj, value, opts) {
 
 // given an item and its index in configItems, construct a path based the properties we want
 // and on the link given to us in the reference in the iControl REST object
-function getReferencedPaths(item, index, referencePromises, referenceInfo) {
+function getReferencedPaths(item, index, referencePromises, referenceInfo, options) {
     Object.keys(item).forEach((property) => {
         const configItem = this.configItems[index];
         if (configItem.references && configItem.references[property] && item[property].link) {
@@ -897,7 +928,10 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
             // trim off 'Reference' from the property name to get the name for the unreferenced property
             const regex = /^(.+)Reference$/;
             const trimmedPropertyName = regex.exec(property)[1];
-            const newId = (configItem.properties.find(obj => obj.id === trimmedPropertyName) || {}).newId;
+            let newId;
+            if (options.translateToNewId) {
+                newId = (configItem.properties.find(obj => obj.id === trimmedPropertyName) || {}).newId;
+            }
             referencePromises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
             referenceInfo.push(
                 {
@@ -1025,7 +1059,7 @@ function patchAuth(schemaMerge, authClass, authItem) {
     return patchedClass;
 }
 
-function patchSys(schemaMerge, sysClass, sysItem) {
+function patchSys(schemaMerge, sysClass, sysItem, options) {
     let patchedClass = {};
 
     // mapping the first object in configItems.json which should not have schemaMerge defined
@@ -1038,10 +1072,11 @@ function patchSys(schemaMerge, sysClass, sysItem) {
     const sysClassCopy = !sysClass ? {} : JSON.parse(JSON.stringify(sysClass));
     const patchedItem = Object.assign({}, sysItem);
     patchedClass = mapSchemaMerge.call(this, sysClassCopy, patchedItem, schemaMerge);
-    if (sysItem.cliInactivityTimeout === 'disabled') {
-        patchedClass.cliInactivityTimeout = 0;
-    } else if (typeof sysItem.cliInactivityTimeout !== 'undefined') {
-        patchedClass.cliInactivityTimeout = parseInt(patchedClass.cliInactivityTimeout, 10) * 60;
+    const idleTimeoutId = getMappedId(PATHS.CLI, 'properties', 'idleTimeout', this.configItems, options);
+    if (sysItem[idleTimeoutId] === 'disabled') {
+        patchedClass[idleTimeoutId] = 0;
+    } else if (typeof sysItem[idleTimeoutId] !== 'undefined') {
+        patchedClass[idleTimeoutId] = parseInt(patchedClass[idleTimeoutId], 10) * 60;
     }
     return patchedClass;
 }
@@ -1088,14 +1123,17 @@ function patchHTTPD(patchedItem) {
 
 function patchGSLBGlobals(patchedItem) {
     // Will eventually want schemaMerge for global-settings not in /general.
+    // Update: configItems has schemaMerge for this class but it's not used in configManager yet,
+    // only in parserUtil
     const patchedClass = {};
     patchedClass.general = {};
     Object.assign(patchedClass.general, patchedItem);
     return patchedClass;
 }
 
-function patchGSLBServer(patchedItem) {
-    patchedItem.monitors = getGtmMonitorArray(patchedItem.monitors);
+function patchGSLBServer(patchedItem, options) {
+    const monitorId = getMappedId(PATHS.GSLBServer, 'references.virtualServersReference', 'monitor', this.configItems, options);
+    patchedItem[monitorId] = getGtmMonitorArray(patchedItem[monitorId]);
     patchedItem.enabled = isEnabledGtmObject(patchedItem);
     delete patchedItem.disabled;
 }
@@ -1184,6 +1222,50 @@ function inPartitions(item, partitionList) {
 function classPresent(declaration, className) {
     return declaration.Common
         && Object.keys(declaration.Common).find(key => declaration.Common[key].class === className);
+}
+
+/**
+ * Returns 'newId' field for a config item property if present and asked for in options
+ *
+ * @param {String} configPath - The path of the config item
+ * @param {String} propertyPath - The path to the property in the config item
+ *                                (for example, 'properties' or 'references.someRef')
+ * @param {String} id - The id of the property
+ * @param {Object} configItems - The configItems data
+ * @param {Object} options - Options for getting the id
+ * @param {Boolean} [options.translateToNewId] - Whether or not to return the 'id' or 'newId'
+ * @param {String} [options.transformId] - Properties to find are inside a property with id === transformId
+ *                                         in a field called 'transform'
+ */
+function getMappedId(configPath, propertyPath, id, configItems, options) {
+    if (!options.translateToNewId) {
+        return id;
+    }
+
+    const configItem = configItems.find(ci => ci.path === configPath);
+    if (!configItem) {
+        return id;
+    }
+
+    let properties = doUtil.getDeepValue(configItem, propertyPath);
+    if (!properties) {
+        return id;
+    }
+
+    if (options.transformId) {
+        properties = properties.find(prop => prop.id === options.transformId).transform;
+    }
+
+    const property = properties.find(prop => prop.id === id);
+    if (!property) {
+        return id;
+    }
+
+    if (!property.newId) {
+        return id;
+    }
+
+    return property.newId;
 }
 
 module.exports = ConfigManager;

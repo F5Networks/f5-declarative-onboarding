@@ -223,12 +223,12 @@ describe('networkHandler', () => {
                                 '1.1',
                                 '1.2'
                             ],
-                            lacpEnabled: true,
+                            lacp: true,
                             lacpMode: 'active',
                             lacpTimeout: 'long',
                             linkSelectPolicy: 'auto',
                             qinqEthertype: '0xAF09',
-                            spanningTreeEnabled: true
+                            stp: true
                         }
                     }
                 }
@@ -273,7 +273,7 @@ describe('networkHandler', () => {
                                 }
                             ],
                             cmpHash: 'dst-ip',
-                            failsafeEnabled: true,
+                            failsafe: true,
                             failsafeAction: 'reboot',
                             failsafeTimeout: 3600
                         },
@@ -397,7 +397,7 @@ describe('networkHandler', () => {
                             address: '1.2.3.4',
                             trafficGroup: '/Common/traffic-group-local-only',
                             allowService: ['tcp:1234', 'tcp:5678'],
-                            enforcedFirewallPolicy: 'firewallPolicy'
+                            fwEnforcedPolicy: 'firewallPolicy'
                         },
                         selfIp2: {
                             name: 'selfIp2',
@@ -405,7 +405,7 @@ describe('networkHandler', () => {
                             address: '5.6.7.8',
                             trafficGroup: '/Common/traffic-group-local-only',
                             allowService: 'default',
-                            stagedFirewallPolicy: 'firewallPolicy'
+                            fwStagedPolicy: 'firewallPolicy'
                         }
                     }
                 }
@@ -758,7 +758,7 @@ describe('networkHandler', () => {
                         },
                         localRoute: {
                             name: 'localRoute',
-                            target: 'targetVLAN',
+                            tmInterface: 'targetVLAN',
                             network: '50.60.70.81',
                             mtu: 1120,
                             localOnly: true
@@ -807,14 +807,14 @@ describe('networkHandler', () => {
                         },
                         route3: {
                             name: 'route3',
-                            target: 'targetTunnel',
+                            tmInterface: 'targetTunnel',
                             network: '1.2.3.4',
                             mtu: 100,
                             localOnly: false
                         },
                         routeLocalOnly: {
                             name: 'routeLocalOnly',
-                            target: 'targetVLAN',
+                            tmInterface: 'targetVLAN',
                             network: 'default-inet6',
                             mtu: 1120,
                             localOnly: true
@@ -945,16 +945,16 @@ describe('networkHandler', () => {
                         rd1: {
                             name: 'rd1',
                             id: 123,
-                            bandwidthControllerPolicy: 'bandwidthControllerPolicy',
+                            bwcPolicy: 'bandwidthControllerPolicy',
                             connectionLimit: 1000000,
                             flowEvictionPolicy: 'flowEvictionPolicy',
                             ipIntelligencePolicy: 'ipIntelligencePolicy',
-                            enforcedFirewallPolicy: 'enforcedFirewallPolicy',
-                            stagedFirewallPolicy: 'stagedFirewallPolicy',
+                            fwEnforcedPolicy: 'enforcedFirewallPolicy',
+                            fwStagedPolicy: 'stagedFirewallPolicy',
                             securityNatPolicy: 'securityNatPolicy',
                             servicePolicy: 'servicePolicy',
                             strict: false,
-                            routingProtocols: [
+                            routingProtocol: [
                                 'RIP'
                             ],
                             vlans: [
@@ -1047,7 +1047,7 @@ describe('networkHandler', () => {
             const declaration = {
                 Common: {
                     DagGlobals: {
-                        ipv6PrefixLength: 120,
+                        dagIpv6PrefixLen: 120,
                         icmpHash: 'ipicmp',
                         roundRobinMode: 'local'
                     }
@@ -1072,19 +1072,19 @@ describe('networkHandler', () => {
                     Tunnel: {
                         tunnel1: {
                             name: 'tunnel1',
-                            tunnelType: 'tcp-forward',
+                            profile: 'tcp-forward',
                             mtu: 0,
                             usePmtu: true,
-                            typeOfService: 'preserve',
-                            autoLastHop: 'default'
+                            tos: 'preserve',
+                            autoLasthop: 'default'
                         },
                         tunnel2: {
                             name: 'tunnel2',
-                            tunnelType: 'tcp-forward',
+                            profile: 'tcp-forward',
                             mtu: 1000,
                             usePmtu: false,
-                            typeOfService: 12,
-                            autoLastHop: 'enabled'
+                            tos: 12,
+                            autoLasthop: 'enabled'
                         }
                     }
                 }
@@ -1160,7 +1160,7 @@ describe('networkHandler', () => {
                                     name: 10,
                                     action: 'permit',
                                     prefix: '10.2.2.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLenRange: 32
                                 }
                             ]
                         },
@@ -1171,13 +1171,13 @@ describe('networkHandler', () => {
                                     name: 20,
                                     action: 'permit',
                                     prefix: '10.3.3.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLenRange: 32
                                 },
                                 {
                                     name: 30,
                                     action: 'deny',
                                     prefix: '10.4.4.0/23',
-                                    prefixLengthRange: 24
+                                    prefixLenRange: 24
                                 }
                             ]
                         }
@@ -1312,7 +1312,7 @@ describe('networkHandler', () => {
                                     name: 10,
                                     action: 'permit',
                                     prefix: '10.2.2.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLenRange: 32
                                 }
                             ]
                         },
@@ -1323,13 +1323,13 @@ describe('networkHandler', () => {
                                     name: 20,
                                     action: 'permit',
                                     prefix: '10.3.3.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLenRange: 32
                                 },
                                 {
                                     name: 30,
                                     action: 'deny',
                                     prefix: '10.4.4.0/23',
-                                    prefixLengthRange: 24
+                                    prefixLenRange: 24
                                 }
                             ]
                         }
@@ -1496,7 +1496,7 @@ describe('networkHandler', () => {
                                     name: 10,
                                     action: 'permit',
                                     prefix: '10.2.2.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLenRange: 32
                                 }
                             ]
                         },
@@ -1507,13 +1507,13 @@ describe('networkHandler', () => {
                                     name: 20,
                                     action: 'permit',
                                     prefix: '10.3.3.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLenRange: 32
                                 },
                                 {
                                     name: 30,
                                     action: 'deny',
                                     prefix: '10.4.4.0/23',
-                                    prefixLengthRange: 24
+                                    prefixLenRange: 24
                                 }
                             ]
                         }
@@ -1771,10 +1771,10 @@ describe('networkHandler', () => {
                     RoutingBGP: {
                         routingBgp: {
                             name: 'routingBgp',
-                            addressFamilies: [
+                            addressFamily: [
                                 {
-                                    internetProtocol: 'ipv4',
-                                    redistributionList: [
+                                    name: 'ipv4',
+                                    redistribute: [
                                         {
                                             routingProtocol: 'kernel',
                                             routeMap: '/Common/routeMap1'
@@ -1785,8 +1785,8 @@ describe('networkHandler', () => {
                                     ]
                                 },
                                 {
-                                    internetProtocol: 'ipv6',
-                                    redistributionList: [
+                                    name: 'ipv6',
+                                    redistribute: [
                                         {
                                             routingProtocol: 'rip',
                                             routeMap: 'none'
@@ -1799,50 +1799,50 @@ describe('networkHandler', () => {
                                 }
                             ],
                             gracefulRestart: {
-                                gracefulResetEnabled: true,
+                                gracefulReset: true,
                                 restartTime: 120,
-                                stalePathTime: 240
+                                stalepathTime: 240
                             },
                             holdTime: 35,
                             keepAlive: 10,
-                            localAS: 65010,
+                            localAs: 65010,
                             peerGroups: [
                                 {
                                     name: 'Neighbor_IN',
-                                    addressFamilies: [
+                                    addressFamily: [
                                         {
-                                            internetProtocol: 'ipv4',
+                                            name: 'ipv4',
                                             routeMap: {
                                                 in: 'routeMapIn1',
                                                 out: 'routeMapOut1'
                                             },
-                                            softReconfigurationInboundEnabled: true
+                                            softReconfigurationInbound: true
                                         }
                                     ],
-                                    remoteAS: 65020
+                                    remoteAs: 65020
                                 },
                                 {
                                     name: 'Neighbor_OUT',
-                                    addressFamilies: [
+                                    addressFamily: [
                                         {
-                                            internetProtocol: 'ipv6',
+                                            name: 'ipv6',
                                             routeMap: {
                                                 in: 'routeMapIn2',
                                                 out: 'routeMapOut2'
                                             },
-                                            softReconfigurationInboundEnabled: false
+                                            softReconfigurationInbound: false
                                         }
                                     ],
-                                    remoteAS: 65040
+                                    remoteAs: 65040
                                 }
                             ],
                             neighbors: [
                                 {
-                                    address: '10.2.2.2',
+                                    name: '10.2.2.2',
                                     peerGroup: 'Neighbor_IN'
                                 },
                                 {
-                                    address: '10.2.2.3',
+                                    name: '10.2.2.3',
                                     peerGroup: 'Neighbor_OUT'
                                 }
                             ],
@@ -1995,7 +1995,7 @@ describe('networkHandler', () => {
                         routingBgp: {
                             name: 'routingBgp',
                             gracefulRestart: {
-                                gracefulResetEnabled: false
+                                gracefulReset: false
                             }
                         }
                     }
@@ -2012,7 +2012,7 @@ describe('networkHandler', () => {
                 });
         });
 
-        it('should handle an empty peerGroups addressFamilies routeMap', () => {
+        it('should handle an empty peerGroups addressFamily routeMap', () => {
             const state = {
                 currentConfig: {
                     Common: {}
@@ -2025,24 +2025,24 @@ describe('networkHandler', () => {
                         routingBgp: {
                             name: 'routingBgp',
                             gracefulRestart: {
-                                gracefulResetEnabled: false,
+                                gracefulReset: false,
                                 restartTime: 0,
-                                stalePathTime: 0
+                                stalepathTime: 0
                             },
                             holdTime: 90,
                             keepAlive: 30,
-                            localAS: 65010,
+                            localAs: 65010,
                             peerGroups: [
                                 {
                                     name: 'Neighbor_IN',
-                                    addressFamilies: [
+                                    addressFamily: [
                                         {
-                                            internetProtocol: 'ipv4',
+                                            name: 'ipv4',
                                             routeMap: {},
-                                            softReconfigurationInboundEnabled: true
+                                            softReconfigurationInbound: true
                                         }
                                     ],
-                                    remoteAS: 65020
+                                    remoteAs: 65020
                                 }
                             ],
                             routerId: 'any6'
@@ -2197,14 +2197,14 @@ describe('networkHandler', () => {
                     });
             });
 
-            it('should call delete if RoutingBGP has localAS changes', () => {
+            it('should call delete if RoutingBGP has localAs changes', () => {
                 const state = {
                     currentConfig: {
                         Common: {
                             RoutingBGP: {
                                 routingBgp: {
                                     name: 'routingBgp',
-                                    localAS: 10
+                                    localAs: 10
                                 }
                             }
                         }
@@ -2216,7 +2216,7 @@ describe('networkHandler', () => {
                         RoutingBGP: {
                             routingBgp: {
                                 name: 'routingBgp',
-                                localAS: 20
+                                localAs: 20
                             }
                         }
                     }
@@ -2308,14 +2308,14 @@ describe('networkHandler', () => {
                     FirewallAddressList: {
                         fwAddressListOne: {
                             name: 'fwAddressListOne',
-                            remark: 'test firewall address list one description',
+                            description: 'test firewall address list one description',
                             addresses: ['192.168.0.0/32', '10.0.1.0/24'],
                             fqdns: ['www.example.com', 'example.example.com'],
                             geo: ['US:Washington', 'US:Oregon']
                         },
                         fwAddressListTwo: {
                             name: 'fwAddressListTwo',
-                            remark: 'test firewall address list two description',
+                            description: 'test firewall address list two description',
                             addresses: ['192.168.1.0/32', '10.0.2.0/24']
                         }
                     }
@@ -2355,12 +2355,12 @@ describe('networkHandler', () => {
                     FirewallPortList: {
                         fwPortListOne: {
                             name: 'fwPortListOne',
-                            remark: 'test firewall port list one description',
+                            description: 'test firewall port list one description',
                             ports: [8080, 8888]
                         },
                         fwPortListTwo: {
                             name: 'fwPortListTwo',
-                            remark: 'test firewall port list two description',
+                            description: 'test firewall port list two description',
                             ports: ['8123', '8124']
                         }
                     }
@@ -2402,22 +2402,22 @@ describe('networkHandler', () => {
                         },
                         firewallPolicyTwo: {
                             name: 'firewallPolicyTwo',
-                            remark: 'test firewall policy description',
+                            description: 'test firewall policy description',
                             rules: [
                                 {
                                     name: 'firewallPolicyRuleOne',
                                     action: 'accept',
-                                    protocol: 'any',
-                                    loggingEnabled: false,
+                                    ipProtocol: 'any',
+                                    log: false,
                                     source: {},
                                     destination: {}
                                 },
                                 {
                                     name: 'firewallPolicyRuleTwo',
-                                    remark: 'firewall policy rule two description',
+                                    description: 'firewall policy rule two description',
                                     action: 'reject',
-                                    protocol: 'tcp',
-                                    loggingEnabled: true,
+                                    ipProtocol: 'tcp',
+                                    log: true,
                                     source: {
                                         vlans: [
                                             '/Common/vlan1',

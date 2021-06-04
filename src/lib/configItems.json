@@ -116,7 +116,7 @@
         "properties": [
             { "id": "mtu" },
             { "id": "tag" },
-            { "id": "interfacesReference" },
+            { "id": "interfacesReference", "dereferenceId": "interfaces" },
             { "id": "cmpHash" },
             { "id": "failsafe", "newId": "failsafeEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "failsafeAction" },
@@ -156,7 +156,7 @@
         "schemaClass": "RoutingAsPath",
         "properties": [
             { "id": "name" },
-            { "id": "entriesReference" }
+            { "id": "entriesReference", "dereferenceId": "entries" }
         ],
         "references": {
             "entriesReference": [
@@ -170,7 +170,7 @@
         "schemaClass": "RoutingPrefixList",
         "properties": [
             { "id": "name" },
-            { "id": "entriesReference"}
+            { "id": "entriesReference", "dereferenceId": "entries" }
         ],
         "references": {
             "entriesReference": [
@@ -185,8 +185,8 @@
         "path": "/tm/net/routing/route-map",
         "schemaClass": "RouteMap",
         "properties": [
-            { "id": "name"},
-            { "id": "entriesReference"}
+            { "id": "name" },
+            { "id": "entriesReference", "dereferenceId": "entries" }
         ],
         "references": {
             "entriesReference": [
@@ -224,8 +224,8 @@
             },
             { "id": "keepAlive" },
             { "id": "holdTime" },
-            { "id": "peerGroupReference" },
-            { "id": "neighborReference" }
+            { "id": "peerGroupReference", "dereferenceId": "peerGroups" },
+            { "id": "neighborReference", "dereferenceId": "neighbors" }
         ],
         "references": {
             "peerGroupReference": [
@@ -704,13 +704,21 @@
         "path": "/tm/gtm/global-settings/general",
         "schemaClass": "GSLBGlobals",
         "requiredModule": "gtm",
+        "schemaMerge": {
+            "path": ["general"]
+        },
         "properties": [
             { "id": "synchronization", "truth": "yes", "falsehood": "no", "newId": "synchronizationEnabled" },
             { "id": "synchronizationGroupName" },
             { "id": "synchronizationTimeTolerance" },
             { "id": "synchronizationTimeout" }
         ],
-        "nameless": true
+        "nameless": true,
+        "declaration": {
+            "customFunctions": [
+                { "id": "remapGSLBGlobals" }
+            ]
+        }
     },
     {
         "path": "/tm/gtm/datacenter",
@@ -753,9 +761,9 @@
             { "id": "iqAllowPath", "newId": "pathProbeEnabled", "truth": "yes", "falsehood": "no" },
             { "id": "iqAllowSnmp", "newId": "snmpProbeEnabled", "truth": "yes", "falsehood": "no" },
             { "id": "datacenter", "newId": "dataCenter" },
-            { "id": "devicesReference" },
+            { "id": "devicesReference", "dereferenceId": "devices" },
             { "id": "exposeRouteDomains", "newId": "exposeRouteDomainsEnabled", "truth": "yes", "falsehood": "no" },
-            { "id": "virtualServersReference" },
+            { "id": "virtualServersReference", "dereferenceId": "virtualServers" },
             { "id": "virtualServerDiscovery", "newId": "virtualServerDiscoveryMode" },
             { "id": "monitor", "newId": "monitors", "retainCommon": true }
         ],
@@ -765,9 +773,10 @@
                 {
                     "id": "addresses",
                     "transform": [
-                        { "id": "name" },
-                        { "id": "translation" }
-                    ]
+                        { "id": "name", "newId": "address" },
+                        { "id": "translation", "newId": "addressTranslation" }
+                    ],
+                    "upLevel": 1
                 },
                 { "id": "description", "newId": "remark" }
             ],
@@ -900,7 +909,7 @@
             { "id": "enabled" },
             { "id": "disabled" },
             { "id": "loadBalancingMode", "newId": "lbMode" },
-            { "id": "membersReference" }
+            { "id": "membersReference", "dereferenceId": "members" }
         ],
         "references": {
             "membersReference": [
@@ -923,7 +932,7 @@
         "requiredModule": "afm",
         "properties": [
             { "id": "description", "newId": "remark" },
-            { "id": "rulesReference" }
+            { "id": "rulesReference", "dereferenceId": "rules" }
         ],
         "references": {
             "rulesReference": [
