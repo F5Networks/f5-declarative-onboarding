@@ -1013,6 +1013,44 @@ describe('dscHandler', () => {
                         [['do.test.1', 'do.test.2', 'bigip1.example.com'], ['do.test.2', 'do.test.3'], []]);
                 });
         });
+
+        it('should handle minimizing IP when converting to hostname', () => {
+            sinon.stub(doUtil, 'getBigIp').resolves(bigIpMock);
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['fdc3:eaf2:d8b9:123a:0000:0000:0000:0001', 'fdc3:eaf2:d8b9:123a:0000:0000:0000:0002'],
+                            owner: 'fdc3:eaf2:d8b9:123a:0000:0000:0000:0001'
+                        }
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
+                    return Promise.resolve(deviceList);
+                }
+                if (path === '/tm/cm/device') {
+                    return Promise.resolve([
+                        {
+                            name: 'my.bigip.com',
+                            configsyncIp: 'fdc3:eaf2:d8b9:123a::1',
+                            managementIp: '1.2.3.4'
+                        }
+                    ]);
+                }
+                return Promise.reject(new Error(`Unexpected path: ${path}`));
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
+                });
+        });
     });
 
     describe('MAC_Masquerade', () => {
