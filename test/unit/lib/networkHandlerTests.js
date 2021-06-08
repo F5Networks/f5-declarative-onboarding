@@ -731,6 +731,31 @@ describe('networkHandler', () => {
                     });
             });
         });
+
+        it('should retry on ioctl failed: No such device exception', () => {
+            const declaration = {
+                Common: {
+                    SelfIp: {
+                        selfIp: {
+                            name: 'selfIp',
+                            vlan: '/Common/vlan',
+                            address: '1.2.3.4',
+                            allowService: 'default',
+                            trafficGroup: '/Common/traffic-group-local-only'
+                        }
+                    }
+                }
+            };
+
+            const bigIpStub = sinon.stub(bigIpMock, 'create');
+            bigIpStub.callsFake((path, body, icontrol, retry) => {
+                assert.strictEqual(retry.continueOnErrorMessage,
+                    'ioctl failed: No such device');
+            });
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process();
+        });
     });
 
     describe('Route', () => {
