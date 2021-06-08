@@ -531,6 +531,7 @@ function convertToHostnames(deviceGroupMembers, deviceGroupOwner) {
                     return address;
                 }
 
+                address = doUtil.minimizeIP(address);
                 const found = deviceResults.find((device) => {
                     if (device.configsyncIp === address || device.managementIp === address) {
                         return true;

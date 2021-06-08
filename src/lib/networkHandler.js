@@ -286,6 +286,11 @@ function handleSelfIp() {
     let selfIpsToRecreate = [];
     let routesToRecreate = [];
 
+    // In case of creating SelfIP in non default routedomain, we'd ignore
+    // "ioctl failed: No such device" error and continue retrying.
+    const selfIpRetry = cloudUtil.MEDIUM_RETRY;
+    selfIpRetry.continueOnErrorMessage = 'ioctl failed: No such device';
+
     return Promise.resolve()
         .then(() => this.bigIp.list('/tm/sys/provision'))
         .then((provisioning) => {
@@ -356,7 +361,7 @@ function handleSelfIp() {
             const createPromises = [];
             nonFloatingBodies.forEach((selfIpBody) => {
                 createPromises.push(
-                    this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
+                    this.bigIp.create(PATHS.SelfIp, selfIpBody, null, selfIpRetry)
                 );
             });
 
@@ -366,7 +371,7 @@ function handleSelfIp() {
             const createPromises = [];
             floatingBodies.forEach((selfIpBody) => {
                 createPromises.push(
-                    this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
+                    this.bigIp.create(PATHS.SelfIp, selfIpBody, null, selfIpRetry)
                 );
             });
             return Promise.all(createPromises);
@@ -385,7 +390,7 @@ function handleSelfIp() {
                     fwStagedPolicy: selfIp.fwStagedPolicy
                 };
                 createPromises.push(
-                    this.bigIp.create(PATHS.SelfIp, selfIpBody, null, cloudUtil.MEDIUM_RETRY)
+                    this.bigIp.create(PATHS.SelfIp, selfIpBody, null, selfIpRetry)
                 );
             });
             return Promise.all(createPromises);
