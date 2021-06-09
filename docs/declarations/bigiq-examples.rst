@@ -227,6 +227,27 @@ To use this property in your declaration, you must have an existing authenticati
 
 :ref:`Back to top<iqexamples>`
 
+|
+
+.. _bigiqhex:
+
+Onboarding a BIG-IP in Alibaba via BIG-IQ
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for specifying Alibaba hypervisor is available in DO v1.21 and later.  
+
+In this example, we show how to specify the Alibaba hypervisor in a Declarative Onboarding declaration via BIG-IQ (no route). BIG-IQ itself uses the hex value **0x01000013** for Alibaba to work around a known issue. DO v1.21 adds the ability to specify this hex value in the **hypervisor** property when licensing using a BIG-IQ pool.
+
+
+.. literalinclude:: ../../examples/licenseViaBigIqPoolUnreachableHEXHypervisor.json
+   :language: json
+   :emphasize-lines: 18
+
+
+:ref:`Back to top<iqexamples>`
+
+
 
 
 
