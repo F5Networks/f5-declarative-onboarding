@@ -243,7 +243,13 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match self ip', () => {
-            assert.ok(testSelfIp(body.Common.mySelfIp, currentState));
+            assert.ok(testSelfIp(body.Common.mySelfIp, currentState, 'mySelfIp'));
+        });
+
+        it('should match ipv6 self ip', () => {
+            const expected = Object.assign({}, body.Common.myIpv6SelfIp);
+            expected.address = '::ffff:10.148.85.46/32';
+            assert.ok(testSelfIp(expected, currentState, 'myIpv6SelfIp'));
         });
 
         it('should match VLAN', () => {
@@ -277,8 +283,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match ip mirroring', () => {
-            assert.strictEqual(currentState.MirrorIp.mirrorIp, body.Common.myMirror.primaryIp);
-            assert.strictEqual(currentState.MirrorIp.mirrorSecondaryIp, body.Common.myMirror.secondaryIp);
+            assert.strictEqual(currentState.MirrorIp.mirrorIp, '::ffff:10.148.85.46');
+            assert.strictEqual(currentState.MirrorIp.mirrorSecondaryIp, 'any6');
         });
 
         it('should match RoutingAsPath', () => assert.deepStrictEqual(
@@ -1407,12 +1413,13 @@ function testProvisioning(target, response, provisionModules) {
 /**
  * testSelfIp - test a selfIp configuration pattern from a DO status call
  *              against a target object schemed on a declaration
- * @target {Object} : object to be tested against
- * @response {Object} : object from status response to compare with target
+ * @param {Object} target - object to be tested against
+ * @param {Object} response - object from status response to compare with target
+ * @param {String} name - name of the selfIp
  * Returns Promise true/false
 */
-function testSelfIp(target, response) {
-    return compareSimple(target, response.SelfIp.mySelfIp, ['address', 'allowService']);
+function testSelfIp(target, response, name) {
+    return compareSimple(target, response.SelfIp[name], ['vlan', 'address', 'allowService']);
 }
 
 /**
@@ -1474,14 +1481,20 @@ function testRoute(target, response, targetName) {
 /**
  * testDnsResolver - test a DNS resolver configuration pattern from a DO status call
  *                   against a target object schemed on a declaration
- * @target {Object} : object to be tested against
- * @response {Object} : object from status response to compare with target
+ * @param {Object} target - object to be tested against
+ * @param {Object} response - object from status response to compare with target
  * Returns Promise true/false
 */
 function testDnsResolver(target, response) {
-    const validName = target.forwardZones[0].name === 'forward.net';
-    const validNameserver = target.forwardZones[0].nameservers[0] === '10.10.10.10:53';
-    return validName && validNameserver && compareSimple(target, response.DNS_Resolver.myResolver, ['routeDomain']);
+    const responseResolver = response.DNS_Resolver.myResolver;
+    const responseForwardZone = responseResolver.forwardZones[0];
+    const validName = responseForwardZone.name === 'forward.net';
+    const validNameserver = responseForwardZone.nameservers[0].name === '10.10.10.10:53';
+    const validIpv6Nameserver = responseForwardZone.nameservers[1].name === '20.20.20.20:53';
+    return validName
+        && validNameserver
+        && validIpv6Nameserver
+        && compareSimple(target, responseResolver, ['routeDomain']);
 }
 
 function testConfigSyncIp(target, response) {
