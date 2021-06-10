@@ -37,7 +37,8 @@
                     "name": "1.1",
                     "tagged": true
                 }
-            ]
+            ],
+            "autoLastHop": "enabled"
         },
         "internal": {
             "class": "VLAN",
@@ -48,7 +49,8 @@
                     "name": "1.1",
                     "tagged": false
                 }
-            ]
+            ],
+            "autoLastHop": "disabled"
         },
         "mySelfIp": {
             "class": "SelfIp",

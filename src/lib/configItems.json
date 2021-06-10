@@ -117,6 +117,7 @@
             { "id": "mtu" },
             { "id": "tag" },
             { "id": "interfacesReference", "dereferenceId": "interfaces" },
+            { "id": "autoLasthop", "newId": "autoLastHop" },
             { "id": "cmpHash" },
             { "id": "failsafe", "newId": "failsafeEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "failsafeAction" },

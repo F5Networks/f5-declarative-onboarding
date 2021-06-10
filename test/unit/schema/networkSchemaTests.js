@@ -231,6 +231,7 @@ describe('network.schema.json', () => {
                     ],
                     mtu: 1500,
                     tag: 1234,
+                    autoLastHop: 'disabled',
                     cmpHash: 'dst-ip',
                     failsafeEnabled: true,
                     failsafeAction: 'reboot',

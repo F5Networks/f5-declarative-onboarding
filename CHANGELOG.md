@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.22.0
 ### Added
+- AUTOTOOL-2509: ([GitHub Issue 220](https://github.com/F5Networks/f5-declarative-onboarding/issues/220)): autoLastHop property to "VLAN" class
 ### Fixed
 - AUTOTOOL-2476: ([GitHub Issue 227](https://github.com/F5Networks/f5-declarative-onboarding/issues/227)): DO might reboot BIGIP system when same configurations/declaration posted
 - AUTOTOOL-2415: ([GitHub Issue 216](https://github.com/F5Networks/f5-declarative-onboarding/issues/216)): Match the accepted "hypervisor" list on DO with what is accepted by BIG-IQ

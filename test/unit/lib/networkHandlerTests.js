@@ -272,6 +272,7 @@ describe('networkHandler', () => {
                                     tagged: false
                                 }
                             ],
+                            autoLasthop: 'enabled',
                             cmpHash: 'dst-ip',
                             failsafe: true,
                             failsafeAction: 'reboot',
@@ -287,6 +288,7 @@ describe('networkHandler', () => {
                                     tagged: true
                                 }
                             ],
+                            autoLasthop: 'disabled',
                             cmpHash: 'src-ip'
                         }
                     }
@@ -307,12 +309,14 @@ describe('networkHandler', () => {
                     assert.strictEqual(vlanData[0].interfaces[1].tagged, false);
                     assert.strictEqual(vlanData[0].partition, 'Common');
                     assert.strictEqual(vlanData[0].cmpHash, 'dst-ip');
+                    assert.strictEqual(vlanData[0].autoLasthop, 'enabled');
                     assert.strictEqual(vlanData[0].failsafe, 'enabled');
                     assert.strictEqual(vlanData[0].failsafeAction, 'reboot');
                     assert.strictEqual(vlanData[1].name, 'vlan2');
                     assert.strictEqual(vlanData[1].tag, 4093);
                     assert.strictEqual(vlanData[1].mtu, 1400);
                     assert.strictEqual(vlanData[1].partition, 'Common');
+                    assert.strictEqual(vlanData[1].autoLasthop, 'disabled');
                     assert.strictEqual(vlanData[1].cmpHash, 'src-ip');
                     assert.strictEqual(vlanData[1].failsafe, 'disabled');
                 });

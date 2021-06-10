@@ -114,6 +114,12 @@
                             "additionalProperties": false
                         }
                     },
+                    "autoLastHop": {
+                        "description": "When enabled, allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route.  Settings are default (inherited global setting), enabled, and disabled.",
+                        "type": "string",
+                        "enum": ["default", "enabled", "disabled"],
+                        "default": "default"
+                    },
                     "cmpHash": {
                         "description": "Specifies how the traffic on the VLAN will be disaggregated.",
                         "type": "string",

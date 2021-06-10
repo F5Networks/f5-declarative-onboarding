@@ -124,7 +124,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match VLAN', () => {
-            assert.ok(testVlan(body.Common.myVlan, currentState));
+            assert.ok(testVlan(body.Common.myVlan, currentState, 'myVlan'));
+            assert.ok(testVlan(body.Common.internal, currentState, 'internal'));
         });
 
         it('should match routing', () => {
@@ -253,7 +254,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match VLAN', () => {
-            assert.ok(testVlan(body.Common.myVlan, currentState));
+            assert.ok(testVlan(body.Common.myVlan, currentState, 'myVlan'));
+            const expected = JSON.parse(JSON.stringify(body.Common.internal));
+            expected.mtu = 1500;
+            assert.ok(testVlan(expected, currentState, 'internal'));
         });
 
         it('should match routing', () => {
@@ -699,7 +703,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             });
 
             it('should match VLAN', () => {
-                assert.ok(testVlan(body.Common.myVlan, currentState));
+                assert.ok(testVlan(body.Common.myVlan, currentState, 'myVlan'));
             });
 
             it('should match FirewallPortList', () => assert.deepStrictEqual(
@@ -1164,7 +1168,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should match VLAN', () => {
             logTestTitle(this.ctx.test.title);
-            assert.ok(testVlan(body.VLAN.myVlan, currentState));
+            assert.ok(testVlan(body.VLAN.myVlan, currentState, 'myVlan'));
         });
 
         it('should match routing', () => {
@@ -1458,12 +1462,25 @@ function testNtp(target, response) {
 /**
  * testVlan - test a vlan configuration pattern from a DO status call
  *            against a target object schemed on a declaration
- * @target {Object} : object to be tested against
- * @response {Object} : object from status response to compare with target
+ * @param {Object} target : object to be tested against
+ * @param {Object} response : object from status response to compare with target
+ * @param {String} name - name of the VLAN
  * Returns Promise true/false
 */
-function testVlan(target, response) {
-    return compareSimple(target, response.VLAN.myVlan, ['tag', 'mtu', 'interfaces']);
+function testVlan(target, response, name) {
+    // map any autoLasthop to autoLastHop
+    const testResponse = JSON.parse(JSON.stringify(response));
+    if (testResponse.VLAN[name].autoLasthop) {
+        testResponse.VLAN[name].autoLastHop = testResponse.VLAN[name].autoLasthop;
+        delete testResponse.VLAN[name].autoLasthop;
+    }
+    const testTarget = JSON.parse(JSON.stringify(target));
+    if (testTarget.autoLasthop) {
+        testTarget.autoLastHop = testTarget.autoLasthop;
+        delete testTarget.autoLasthop;
+    }
+
+    return compareSimple(testTarget, testResponse.VLAN[name], ['tag', 'mtu', 'interfaces', 'autoLastHop']);
 }
 
 /**

@@ -154,6 +154,7 @@ function handleVlan() {
                     interfaces,
                     name: vlan.name,
                     partition: tenant,
+                    autoLasthop: vlan.autoLasthop,
                     cmpHash: vlan.cmpHash,
                     failsafe: vlan.failsafe ? 'enabled' : 'disabled',
                     failsafeAction: vlan.failsafeAction,
