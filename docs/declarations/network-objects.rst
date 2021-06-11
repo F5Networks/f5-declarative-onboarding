@@ -280,7 +280,7 @@ Configuring Auto Last Hop on VLANs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-    Support for Firewall policies is available in DO v1.20 and later. You must have BIG-IP AFM licensed.
+    Support for Auto Last Hop on VLANs is available in DO 1.21 and later.
 
 This example shows how you can configure Auto Last Hop on VLANs in a Declarative Onboarding declaration.  Auto Last Hop allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route. 
 
