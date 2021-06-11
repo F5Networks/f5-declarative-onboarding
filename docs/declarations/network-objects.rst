@@ -276,13 +276,13 @@ See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for de
 
 .. _firewallpolicy:
 
-Configuring Auto Last Hop on a VLAN  
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Configuring Auto Last Hop on VLANs 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
     Support for Firewall policies is available in DO v1.20 and later. You must have BIG-IP AFM licensed.
 
-This example shows how you can configure Auto Last Hop on a VLAN in a Declarative Onboarding declaration.  Auto Last Hop allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route. 
+This example shows how you can configure Auto Last Hop on VLANs in a Declarative Onboarding declaration.  Auto Last Hop allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route. 
 
 There are three possible values for the **autoLastHop** property: **enabled**, **disabled**, and **default**, which inherits the value from the global settings.
 
