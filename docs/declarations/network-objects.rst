@@ -274,7 +274,7 @@ See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for de
 
 |
 
-.. _firewallpolicy:
+.. _alhvlan:
 
 Configuring Auto Last Hop on VLANs 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
