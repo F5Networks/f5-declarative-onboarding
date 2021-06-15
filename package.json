@@ -19,7 +19,7 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
-    "@f5devcentral/f5-cloud-libs": "^4.25.0",
+    "@f5devcentral/f5-cloud-libs": "^4.25.1",
     "@f5devcentral/f5-teem": "^1.5.0",
     "ajv": "6.12.6",
     "deep-diff": "^1.0.2",
