@@ -198,6 +198,35 @@ describe('dscHandler', () => {
                     assert.strictEqual(bodySent.unicastAddress, 'none');
                 });
         });
+
+        it('should handle a single unicast address', () => {
+            const declaration = {
+                Common: {
+                    FailoverUnicast: {
+                        unicastAddress: [
+                            {
+                                ip: '224.0.0.100',
+                                port: 1026
+                            }
+                        ]
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(
+                        bodySent.unicastAddress,
+                        [
+                            {
+                                port: 1026,
+                                ip: '224.0.0.100'
+                            }
+                        ]
+                    );
+                });
+        });
     });
 
     describe('FailoverMulticast', () => {

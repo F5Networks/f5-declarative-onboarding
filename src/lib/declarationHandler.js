@@ -326,7 +326,7 @@ function applyFailoverUnicastFixes(declaration) {
 
         declaration.Common.FailoverUnicast.unicastAddress = [
             {
-                address: declaration.Common.FailoverUnicast.address,
+                ip: declaration.Common.FailoverUnicast.address,
                 port: declaration.Common.FailoverUnicast.port
             }
         ];

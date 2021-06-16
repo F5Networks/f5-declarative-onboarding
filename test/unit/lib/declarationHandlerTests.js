@@ -2346,11 +2346,11 @@ describe('declarationHandler', () => {
                             class: 'FailoverUnicast',
                             unicastAddress: [
                                 {
-                                    address: '10.0.0.2',
+                                    ip: '10.0.0.2',
                                     port: 1026
                                 },
                                 {
-                                    address: '10.1.1.8',
+                                    ip: '10.1.1.8',
                                     port: 12
                                 }
                             ]
@@ -2364,7 +2364,7 @@ describe('declarationHandler', () => {
                     assert.deepStrictEqual(declarationWithDefaults.Common.FailoverUnicast, {
                         unicastAddress: [
                             {
-                                address: '10.1.1.8',
+                                ip: '10.1.1.8',
                                 port: 12
                             }
                         ]
@@ -2379,7 +2379,7 @@ describe('declarationHandler', () => {
                     FailoverUnicast: {
                         unicastAddress: [
                             {
-                                address: '10.0.0.2',
+                                ip: '10.0.0.2',
                                 port: 1026
                             }
                         ],

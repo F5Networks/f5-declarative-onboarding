@@ -125,13 +125,13 @@ function handleFailoverUnicast() {
             body.unicastAddress = unicastAddresses.map((unicastAddress) => {
                 // address may have been a json pointer to something with a CIDR
                 // so strip that off
-                let address = unicastAddress.ip;
-                if (address.indexOf('/') !== -1) {
-                    address = address.substring(0, address.indexOf('/'));
+                let ip = unicastAddress.ip;
+                if (ip.indexOf('/') !== -1) {
+                    ip = ip.substring(0, ip.indexOf('/'));
                 }
                 return {
                     port: unicastAddress.port,
-                    ip: address
+                    ip
                 };
             });
         }
