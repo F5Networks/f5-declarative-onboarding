@@ -180,6 +180,33 @@ module.exports = {
     },
 
     /**
+     * deleteOriginalConfig - Deletes DO's original config so that it can be regenerated from
+     *                        the current machine state
+     * @doUrl {String} - URL to call DO from
+     * @auth {Object} - authorization dictionary with (username, password) or F5 token
+     * Returns a Promise with response/error
+    */
+    deleteOriginalConfig(doUrl, auth) {
+        const retryErrors = [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED];
+
+        return this.testRequest(null, `${doUrl}/config`, auth, constants.HTTP_SUCCESS, 'GET', null,
+            retryErrors)
+            .then((body) => {
+                const promises = JSON.parse(body).map((config) => {
+                    logger.debug(`Deleting original config ${config.id}`);
+                    return this.sendRequest(
+                        this.buildBody(`${doUrl}/config/${config.id}`, null, auth, 'DELETE'),
+                        {
+                            trials: 5,
+                            timeInterval: 1000
+                        }
+                    );
+                });
+                return Promise.all(promises);
+            });
+    },
+
+    /**
      * testOriginalConfig - Tests if original config can be successfully applied by DO. This is
      *                      done by resetting the original config to match the current machine state
      *                      and then sending an empty declaration.
@@ -193,21 +220,7 @@ module.exports = {
 
         logger.debug('Testing original config');
 
-        return this.testRequest(null, `${url}/config`, auth, constants.HTTP_SUCCESS, 'GET', null,
-            retryErrors)
-            .then((body) => {
-                const promises = JSON.parse(body).map((config) => {
-                    logger.debug(`Deleting original config ${config.id}`);
-                    return this.sendRequest(
-                        this.buildBody(`${url}/config/${config.id}`, null, auth, 'DELETE'),
-                        {
-                            trials: 5,
-                            timeInterval: 1000
-                        }
-                    );
-                });
-                return Promise.all(promises);
-            })
+        return this.deleteOriginalConfig(url, auth)
             .then(() => {
                 const body = {
                     schemaVersion: '1.0.0',
