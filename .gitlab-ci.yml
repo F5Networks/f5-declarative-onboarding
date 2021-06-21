@@ -247,8 +247,9 @@ build_rpm:
         # setup node environment
         - apt-get update && apt-get install -y rpm --no-install-recommends
         - scripts/build/buildRpm.sh
-        # ensure latest copyrights
-        - node scripts/dev/write-copyright.js "cicd"
+        # ensure latest copyrights, requires dev dependencies
+        - npm ci
+        - node node_modules/@f5devcentral/atg-shared-utilities-dev/scripts/dev/write-copyright.js -c -p scripts/dev/copyright.txt
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
