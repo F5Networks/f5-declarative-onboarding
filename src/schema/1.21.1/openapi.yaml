@@ -1,0 +1,318 @@
+openapi: 3.0.3
+info:
+  title: Draft DO API Specification
+  description: F5 Declarative Onboarding
+  version: 1.13.0
+  contact:
+    name: Declarative Onboarding
+    email: solutionsfeedback@f5.com
+    url: 'https://github.com/F5Networks/f5-declarative-onboarding'
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+paths:
+  /:
+    get:
+      summary: Return status of configuration
+      description: Retrieve the status of the most recently deployed configuration
+      operationId: getDeclaration
+      tags:
+        - Declare
+      parameters:
+        - name: show
+          in: query
+          required: false
+          description: Retrive original and current configuration
+          schema:
+            type : string
+            enum:
+              - full
+        - name: statusCodes
+          in: query
+          required: false
+          description: Determines how DO returns HTTP status codes. Legacy returns any errors as the HTTP status. Experimental returns a 200 HTTP status code unless there is an actual error with the request. The result in the body of the response contains the status of the task.
+          schema:
+            type : string
+            enum:
+              - legacy
+              - experimental
+            default: legacy
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+    post:
+      summary: Declare a configuration
+      description: Upload a declaration and deploy the specified configuration
+      operationId: postDeclaration
+      tags:
+        - Declare
+      requestBody:
+        description: DO Declaration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /config:
+    get:
+      summary: Return all original configurations
+      description: Retrieve the original configuration of all devices
+      operationId: getAllConfigs
+      tags:
+        - Config
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/Config'
+  /config/{machineId}:
+    get:
+      summary: Return original configuration by machine ID
+      description: Retrieve the original configuration of a device by machine ID
+      operationId: getConfig
+      tags:
+        - Config
+      parameters:
+        - name: machineId
+          in: path
+          required: true
+          description: The machine ID
+          schema:
+            type : string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Config'
+  /inspect:
+    get:
+      summary: Return current configuration
+      description: Retrieve the current configuration of a device
+      operationId: getInspect
+      tags:
+        - Inspect
+      parameters:
+        - name: targetHost
+          in: query
+          required: false
+          description: The IP address or domain name of the host from which to retrieve the current configuration
+          schema:
+            type : string
+            default: localhost
+        - name: targetPort
+          in: query
+          required: false
+          description: The port that is used with the targetHost to establish a connection to the device. By default, DO tries to establish a connection to the device using ports 443 and 8443.
+          schema:
+            type : integer
+            minimum: 0
+            maximum: 65535
+        - name: targetUsername
+          in: query
+          required: false
+          description: The username for the targetHost
+          schema:
+            type : string
+            default: admin
+        - name: targetPassword 
+          in: query
+          required: false
+          description: The password for the targetHost
+          schema:
+            type : string
+            default: admin
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inspect'
+  /task:
+    get:
+      summary: Return status of all configurations
+      description: Retrieve the status of all previously deployed configurations
+      operationId: getAllTasks
+      tags:
+        - Task
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/Task'
+  /task/{taskId}:
+    get:
+      summary: Return status of configuration by task ID
+      description: Retrieve the status of a previously deployed configuration by task ID
+      operationId: getTask
+      tags:
+        - Task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: The task ID
+          schema:
+            type : string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+components:
+  schemas:
+    Config:
+      title: Config
+      description: The original configuration of a device
+      type: object
+      allOf:
+        - properties:
+            id:
+              type: string
+              format: uuid
+            selfLink:
+              type: string
+              format: uri
+            result:
+              type: object
+              properties:
+                class:
+                  type: string
+                  enum:
+                    - Result
+                code:
+                  type: integer
+                  enum:
+                    - 200
+                status:
+                  type: string
+                  enum:
+                    - OK
+                message:
+                  type: string
+                  enum:
+                    - ''
+                errors:
+                  type: array
+                  items:
+                    type: string
+                  maxLength: 0
+                  example: []
+        - $ref: '#/components/schemas/ConfigObject'
+    ConfigObject:
+      title: Config Object
+      type: object
+      properties:
+        Common:
+          type: object
+          description: A collection of sub-objects that describe the configuration state of a device
+          additionalProperties: true
+    Device:
+      $ref: base.schema.json
+    Inspect:
+      title: Inspect
+      description: The current configuration of a device
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        selfLink:
+          type: string
+          format: uri
+        result:
+          type: object
+          properties:
+            class:
+              type: string
+              enum:
+                - Result
+            code:
+              type: integer
+            status:
+              type: string
+              enum:
+                - OK
+                - ERROR
+            message:
+              type: string
+              enum:
+                - ''
+                - 'failed'
+            errors:
+              type: array
+              items:
+                type: string
+        declaration:
+          type: object
+          properties:
+            class:
+              type: string
+              enum:
+                - DO
+            declaration:
+              $ref: '#/components/schemas/Device'
+    Task:
+      title: Task
+      description: The configuration status and associated declaration
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        selfLink:
+          type: string
+          format: uri
+        result:
+          type: object
+          properties:
+            class:
+              type: string
+              enum:
+                - Result
+            code:
+              type: integer
+            status:
+              type: string
+              enum:
+                - OK
+                - ERROR
+                - ROLLING_BACK
+                - RUNNING
+                - REBOOTING
+                - REVOKING
+            message:
+              type: string
+        declaration:
+          $ref: '#/components/schemas/Device'
+        currentConfig:
+          $ref: '#/components/schemas/ConfigObject'
+        originalConfig:
+          $ref: '#/components/schemas/ConfigObject'
