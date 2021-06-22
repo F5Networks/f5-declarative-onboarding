@@ -22,6 +22,7 @@ At some point in the sprint we create a release branch. This should happen when 
   * Create and checkout a branch off of develop
   * Edit package.json and package-lock.json to update the minor release number to the next version and reset the build number to 0. For example if you just created release branch 1.13.0, update to 1.14.0-0
   * Add the next version (without the build number) to the `schemaVersion` array in `base.schema.json`
+  * Adding a new block to `CHANGELOG.md`
   * git add and commit
   * Submit an MR for these changes and wait for approval.
 

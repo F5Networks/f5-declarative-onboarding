@@ -1,6 +1,12 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.23.0
+### Added
+### Fixed
+### Changed
+### Removed
+
 ## 1.22.0
 ### Added
 - AUTOTOOL-2509: ([GitHub Issue 220](https://github.com/F5Networks/f5-declarative-onboarding/issues/220)): autoLastHop property to "VLAN" class
