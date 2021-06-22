@@ -1,6 +1,12 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.21.1
+### Added
+### Fixed
+### Changed
+### Removed
+
 ## 1.21.0
 ### Added
 - AUTOTOOL-2433: ([GitHub Issue 221](https://github.com/F5Networks/f5-declarative-onboarding/issues/221)): Configure LDAP referrals
