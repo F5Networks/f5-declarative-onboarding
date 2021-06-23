@@ -19,14 +19,16 @@
 const fs = require('fs');
 const net = require('net');
 const exec = require('child_process').exec;
+
+const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
+
 const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 const Logger = require('./logger');
 const ipF5 = require('../schema/latest/formats').f5ip;
-const promiseUtil = require('./promiseUtil');
 
 const logger = new Logger(module);
 

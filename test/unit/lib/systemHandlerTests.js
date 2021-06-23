@@ -25,10 +25,10 @@ const assert = chai.assert;
 const EventEmitter = require('events');
 const sinon = require('sinon');
 
-const doUtilMock = require('../../../src/lib/doUtil');
-const promiseUtil = require('../../../src/lib/promiseUtil');
-const cryptoUtil = require('../../../src/lib/cryptoUtil');
+const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
 
+const doUtilMock = require('../../../src/lib/doUtil');
+const cryptoUtil = require('../../../src/lib/cryptoUtil');
 const cloudUtil = require('../../../node_modules/@f5devcentral/f5-cloud-libs').util;
 
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;

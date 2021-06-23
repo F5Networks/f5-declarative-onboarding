@@ -19,6 +19,7 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
+    "@f5devcentral/atg-shared-utilities": "^0.2.1",
     "@f5devcentral/f5-cloud-libs": "^4.25.1",
     "@f5devcentral/f5-teem": "^1.5.0",
     "ajv": "6.12.6",
@@ -27,7 +28,6 @@
     "uuid": "3.4.0"
   },
   "devDependencies": {
-    "@f5devcentral/atg-shared-utilities": "^0.2.1",
     "@f5devcentral/atg-shared-utilities-dev": "^0.2.0",
     "@f5devcentral/eslint-config-f5-atg": "latest",
     "@stryker-mutator/core": "^4.6.0",

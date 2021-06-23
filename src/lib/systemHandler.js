@@ -18,9 +18,10 @@
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
+const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
+
 const doUtil = require('./doUtil');
 const cryptoUtil = require('./cryptoUtil');
-const promiseUtil = require('./promiseUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const EVENTS = require('./sharedConstants').EVENTS;
