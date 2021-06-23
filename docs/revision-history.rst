@@ -11,8 +11,12 @@ Document Revision History
         - Description
         - Date
              
+      * - 1.21.1
+        - Released AS3 1.21.1 as a LTS (Long Term Support) version. See the AS3 |supportmd| for information about the Declarative Onboarding support policy.
+        - 6-23-21
+      
       * - 1.21
-        - Updated the documentation for Declarative Onboarding v1.21.0.  This release contains the following changes: |br| * Modified this revision history so the Release column aligns with the DO release |br| * Added support for enabling or disabling LDAP referral chasing (see :ref:`Authentication Methods<authmethods>`) |br| * Dig commands now use +nocookie option to improve compatibility with BIG-IQ 8.0 |br| |br| Issues Resolved: |br| * Invalid config after upgrading DO from 1.15.0, `GitHub Issue 190 <https://github.com/F5Networks/f5-declarative-onboarding/issues/190>`_ |br| * Declaration containing NTP servers by dns name failing in certain cases, `GitHub Issue 125 <https://github.com/F5Networks/f5-declarative-onboarding/issues/125>`_ |br| * Pre-DO GTM Server preventing DO declaration from running, `GitHub Issue 201 <https://github.com/F5Networks/f5-declarative-onboarding/issues/201>`_ |br| * Disk class causes errors on declaration update, `GitHub Issue 177 <https://github.com/F5Networks/f5-declarative-onboarding/issues/177>`_
+        - Updated the documentation for Declarative Onboarding v1.21.0.  This release contains the following changes: |br| * Modified this revision history so that the Release column aligns with the DO release |br| * Added support for enabling or disabling LDAP referral chasing (see :ref:`Authentication Methods<authmethods>`) |br| |br| Issues Resolved: |br| * Invalid config after upgrading DO from 1.15.0, `GitHub Issue 190 <https://github.com/F5Networks/f5-declarative-onboarding/issues/190>`_ |br| * Declaration containing NTP servers by dns name failing in certain cases, `GitHub Issue 125 <https://github.com/F5Networks/f5-declarative-onboarding/issues/125>`_|br| * Pre-DO GTM Server preventing DO declaration from running, `GitHub Issue 201 <https://github.com/F5Networks/f5-declarative-onboarding/issues/201>`_ |br| * Disk class causes errors on declaration update, `GitHub Issue 177 <https://github.com/F5Networks/f5-declarative-onboarding/issues/177>`_
         - 5-18-21
 
       * - 1.20
@@ -145,6 +149,6 @@ Document Revision History
   
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#trunk" target="_blank">Trunk Class</a>
 
+.. |supportmd| raw:: html
 
-
- 
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/SUPPORT.md" target="_blank">Support page on GitHub</a>
