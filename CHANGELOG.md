@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 ### Fixed
 ### Changed
+- Promoted to LTS
 ### Removed
 
 ## 1.21.0
