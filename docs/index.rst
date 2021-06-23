@@ -3,11 +3,13 @@ F5 Declarative Onboarding Documentation
 
 Welcome to the F5 Declarative Onboarding documentation.
 
+.. IMPORTANT:: This the documentation for the **latest** version of Declarative Onboarding, if you want to see the documentation for a long term support (LTS) version, use the version selector on the top left (for details, see |supportmd|). 
+
 F5 Declarative onboarding uses a |declare| model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.  If you want to use a declarative model to configure applications and services on a BIG-IP device that already has these initial settings, see the |as3| documentation.
 
 A declarative model means you provide a JSON declaration rather than a set of imperative commands. The declaration represents the configuration which Declarative Onboarding is responsible for creating on a BIG-IP system.  You send a declaration file using a single Rest API call.
 
-.. NOTE:: The DO RPM, Postman collection, and checksum files can be found on the |release|, as **Assets**. |br| For information on supported versions of DO, see |supportmd|.
+.. NOTE:: The DO RPM, Postman collection, and checksum files can be found on the |release|, as **Assets**. 
 
 You can use Microsoft Visual Studio Code to validate your declarations, see :doc:`validate` for information.
 
@@ -62,5 +64,3 @@ To provide feedback on this documentation, you can file a GitHub Issue or email 
 .. |supportmd| raw:: html
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/SUPPORT.md" target="_blank">Support information on GitHub</a>
-
-
