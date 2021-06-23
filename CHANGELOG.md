@@ -21,6 +21,13 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2532: ([GitHub Issue 242](https://github.com/F5Networks/f5-declarative-onboarding/issues/242)): Pull MAC address from management interface instead of the host device MAC address.
 ### Removed
 
+## 1.21.1
+### Added
+### Fixed
+### Changed
+- Promoted to LTS
+### Removed
+
 ## 1.21.0
 ### Added
 - AUTOTOOL-2433: ([GitHub Issue 221](https://github.com/F5Networks/f5-declarative-onboarding/issues/221)): Configure LDAP referrals
