@@ -678,6 +678,76 @@ describe('declarationHandler', () => {
                 });
         });
 
+        describe('ManagementIp fix', () => {
+            it('should apply fix for ManagementIp', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        ManagementIp: {
+                            myManagementIp: {
+                                name: '1.2.3.4/5'
+                            }
+                        }
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current'
+                    },
+                    originalConfig: {
+                        Common: {}
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            declarationWithDefaults.Common.ManagementIp,
+                            {
+                                '1.2.3.4/5': {
+                                    name: '1.2.3.4/5'
+                                }
+                            }
+                        );
+                    });
+            });
+
+            it('should leave ManagementIp intact in original but not declaration', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        ManagementIp: {}
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current'
+                    },
+                    originalConfig: {
+                        Common: {
+                            ManagementIp: {
+                                '1.2.3.4/5': {
+                                    name: '1.2.3.4/5'
+                                }
+                            }
+                        }
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            declarationWithDefaults.Common.ManagementIp,
+                            {
+                                '1.2.3.4/5': {
+                                    name: '1.2.3.4/5'
+                                }
+                            }
+                        );
+                    });
+            });
+        });
+
         it('should apply fix for Default Route Domain - no Route Domains in declaration', () => {
             const newDeclaration = {
                 parsed: true,

@@ -752,6 +752,33 @@
         {
             "if": {
                 "required": ["class"],
+                "properties": { "class": { "const": "ManagementIp" } }
+            },
+            "then": {
+                "required": ["class", "address"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates this property contains management IP configuration. Note that if you set this you will have to poll for status on the new address.",
+                        "type": "string",
+                        "const": "ManagementIp"
+                    },
+                    "address": {
+                        "description": "IP address.",
+                        "type": "string",
+                        "format": "ipWithRequiredPrefix"
+                    },
+                    "remark": {
+                        "description": "To handle rollback to a dynamically configured address, do not set this to 'configured-by-dhcp'",
+                        "$ref": "definitions.schema.json#/definitions/Remark",
+                        "default": "configured-statically by DO"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
                 "properties": { "class": { "const": "ManagementRoute" } }
             },
             "then": {

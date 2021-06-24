@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.23.0
 ### Added
+- AUTOTOOL-2473: ([GitHub Issue 224](https://github.com/F5Networks/f5-declarative-onboarding/issues/224)): Support management IP configuration
 ### Fixed
 ### Changed
 ### Removed

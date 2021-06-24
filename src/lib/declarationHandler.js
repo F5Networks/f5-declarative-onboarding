@@ -56,6 +56,7 @@ const CLASSES_OF_TRUTH = [
     'FailoverUnicast',
     'FailoverMulticast',
     'Analytics',
+    'ManagementIp',
     'ManagementRoute',
     'RouteDomain',
     'Authentication',
@@ -160,6 +161,7 @@ class DeclarationHandler {
             })
             .then(() => {
                 applyDefaults(parsedNewDeclaration, state);
+                applyManagementIpFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
@@ -294,6 +296,33 @@ function applyDefaults(declaration, state) {
             }
         }
     });
+}
+
+/**
+ * ManagementIp fixes
+ *
+ * Management IPs are listed in a property that matches their address like
+ * {
+ *     "ip_address/mask": {
+ *         "name": "ip_address/mask"
+ *     }
+ * }
+ * So we have to set the property name in the declaration to match the address
+ * field (which as the property name 'name')
+ *
+ * @param {Object} declaration    - declaration
+ */
+function applyManagementIpFixes(declaration) {
+    if (declaration.Common.ManagementIp) {
+        Object.keys(declaration.Common.ManagementIp).forEach((name) => {
+            const ipAddress = declaration.Common.ManagementIp[name].name;
+            if (name !== ipAddress) {
+                declaration.Common.ManagementIp[ipAddress] = {};
+                Object.assign(declaration.Common.ManagementIp[ipAddress], declaration.Common.ManagementIp[name]);
+                delete declaration.Common.ManagementIp[name];
+            }
+        });
+    }
 }
 
 /**

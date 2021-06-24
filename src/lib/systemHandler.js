@@ -86,6 +86,10 @@ class SystemHandler {
                 return handleDhcpOptions.call(this);
             })
             .then(() => {
+                logger.fine('Checking ManagementIp. Hold on to your hats.');
+                return handleManagementIp.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking ManagementRoute.');
                 return handleManagementRoute.call(this);
             })
@@ -343,7 +347,7 @@ function handleSystem() {
     if (hostname) {
         promises.push(this.bigIp.onboard.hostname(hostname));
     } else {
-        promises.push(this.bigIp.list(PATHS.System)
+        promises.push(this.bigIp.list(PATHS.SysGlobalSettings)
             .then((globalSettings) => {
                 if (globalSettings && globalSettings.hostname) {
                     this.bigIp.onboard.hostname(globalSettings.hostname);
@@ -353,7 +357,7 @@ function handleSystem() {
 
     if (system) {
         if (typeof system.consoleInactivityTimeout !== 'undefined') {
-            promises.push(this.bigIp.modify(PATHS.System,
+            promises.push(this.bigIp.modify(PATHS.SysGlobalSettings,
                 { consoleInactivityTimeout: system.consoleInactivityTimeout }));
         }
         if (typeof system.idleTimeout !== 'undefined') {
@@ -378,7 +382,7 @@ function handleSystem() {
         if (typeof system.guiAudit !== 'undefined'
             && cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
             const guiAudit = system.guiAudit ? 'enabled' : 'disabled';
-            promises.push(this.bigIp.modify(PATHS.System, { guiAudit }));
+            promises.push(this.bigIp.modify(PATHS.SysGlobalSettings, { guiAudit }));
         }
     }
 
@@ -631,6 +635,74 @@ function handleLicensePool(license) {
             return this.bigIp.active();
         })
         .catch(err => Promise.reject(err));
+}
+
+function handleManagementIp() {
+    if (this.declaration.Common.ManagementIp) {
+        // If there are two entries, the one w/ a name property is the new one. The other entry
+        // is the old management-ip and should be empty because to ajv it looks like a delete
+        const names = Object.keys(this.declaration.Common.ManagementIp);
+        const newName = names.find(name => this.declaration.Common.ManagementIp[name].name);
+        if (newName) {
+            const mgmtIpInfo = this.declaration.Common.ManagementIp[newName];
+            const address = mgmtIpInfo.name;
+            let desiredMgmtDhcp;
+            return Promise.resolve()
+                .then(() => {
+                    // Rollback of the mgmt-dhcp setting is tricky. There is no metadata on
+                    // a management-ip, so it is hard to know whether we are rolling back to
+                    // a management-ip that was static or dynamic. We use the description field
+                    // to make our best guess. DO defaults the description to something else,
+                    // so as long as a user didn't put 'configured-by-dhcp' in their own description
+                    // this should work.
+                    desiredMgmtDhcp = mgmtIpInfo.description ? mgmtIpInfo.description.indexOf('configured-by-dhcp') !== -1 : true;
+                    if (this.state.currentConfig.Common.System.mgmtDhcp !== desiredMgmtDhcp) {
+                        return this.bigIp.modify(
+                            PATHS.SysGlobalSettings,
+                            {
+                                mgmtDhcp: desiredMgmtDhcp ? 'enabled' : 'disabled'
+                            }
+                        );
+                    }
+                    return Promise.resolve();
+                })
+                .then(() => {
+                    // If we are only changing the mask and on localhost, delete the managementIp first.
+                    // This allows for just changing the mask - otherwise, MCP complains that the address
+                    // already exists. But if we're not on localhost, we can't pre-delete as we won't be
+                    // able to send the next request, so error on that.
+                    const currentAddress = getCurrentManagementAddress(
+                        this.state.currentConfig.Common.ManagementIp
+                    );
+                    if (!desiredMgmtDhcp && isMaskChangeOnly(currentAddress, address)) {
+                        if (this.bigIp.host === 'localhost') {
+                            return this.bigIp.delete(`${PATHS.ManagementIp}/${currentAddress.replace('/', '~')}`);
+                        }
+                        return Promise.reject(new Error('Changing just the management IP mask is not supported unless running locally on a BIG-IP'));
+                    }
+                    return Promise.resolve();
+                })
+                .then(() => {
+                    if (!desiredMgmtDhcp) {
+                        return this.bigIp.create(
+                            PATHS.ManagementIp,
+                            {
+                                name: address,
+                                description: mgmtIpInfo.description
+                            }
+                        );
+                    }
+                    return Promise.resolve();
+                })
+                .then(() => {
+                    if (this.bigIp.host !== 'localhost') {
+                        return this.bigIp.setHost(address.split('/')[0]);
+                    }
+                    return Promise.resolve();
+                });
+        }
+    }
+    return Promise.resolve();
 }
 
 function handleManagementRoute() {
@@ -1002,7 +1074,7 @@ function disableDhcpOptions(optionsToDisable) {
     let requiresDhcpRestart = false;
 
     return this.bigIp.list(
-        '/tm/sys/management-dhcp/sys-mgmt-dhcp-config'
+        PATHS.ManagementDHCPConfig
     )
         .then((dhcpOptions) => {
             if (!dhcpOptions || !dhcpOptions.requestOptions) {
@@ -1018,7 +1090,7 @@ function disableDhcpOptions(optionsToDisable) {
 
             requiresDhcpRestart = true;
             return this.bigIp.modify(
-                '/tm/sys/management-dhcp/sys-mgmt-dhcp-config',
+                PATHS.ManagementDHCPConfig,
                 {
                     requestOptions: newOptions
                 }
@@ -1045,7 +1117,7 @@ function getBigIqManagementPort(currentPlatform, license) {
 
 function restartDhcp() {
     // If DHCP is disabled on the device do NOT attempt to restart it
-    return this.bigIp.list('/tm/sys/global-settings')
+    return this.bigIp.list(PATHS.SysGlobalSettings)
         .then(globalSettings => globalSettings && globalSettings.mgmtDhcp === 'enabled')
         .then((canRestartDhcp) => {
             if (canRestartDhcp) {
@@ -1279,6 +1351,19 @@ function areFilesDifferent(fileA, fileB) {
             }
             return Promise.resolve(false);
         });
+}
+
+function getCurrentManagementAddress(managementIpInfo) {
+    return Object.keys(managementIpInfo)[0];
+}
+
+function isMaskChangeOnly(oldAddress, newAddress) {
+    const oldIp = oldAddress.split('/')[0];
+    const oldMask = oldAddress.split('/')[1];
+    const newIp = newAddress.split('/')[0];
+    const newMask = newAddress.split('/')[1];
+
+    return (oldIp === newIp) && (oldMask !== newMask);
 }
 
 module.exports = SystemHandler;

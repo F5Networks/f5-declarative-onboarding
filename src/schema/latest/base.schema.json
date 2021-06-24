@@ -160,6 +160,7 @@
                             "HTTPD",
                             "License",
                             "MAC_Masquerade",
+                            "ManagementIp",
                             "ManagementRoute",
                             "MirrorIp",
                             "NTP",

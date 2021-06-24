@@ -468,7 +468,8 @@ describe('inspectHandler', () => {
             '/tm/sys/global-settings': {
                 hostname,
                 consoleInactivityTimeout: 0,
-                guiAudit: 'disabled'
+                guiAudit: 'disabled',
+                mgmtDhcp: 'enabled'
             },
             '/tm/cli/global-settings': {
                 idleTimeout: 'disabled',
@@ -796,6 +797,12 @@ describe('inspectHandler', () => {
                 sourceId: 'souceId',
                 tenantId: 'tenantId'
             },
+            '/tm/sys/management-ip': [
+                {
+                    name: '1.2.3.4/5',
+                    description: 'configured-statically by DO'
+                }
+            ],
             '/tm/sys/management-route': [
                 {
                     name: 'mgmt-route-forward',
@@ -1752,6 +1759,11 @@ describe('inspectHandler', () => {
                             debugEnabled: false,
                             interval: 300,
                             offboxEnabled: true
+                        },
+                        currentManagementIp: {
+                            class: 'ManagementIp',
+                            address: '1.2.3.4/5',
+                            remark: 'configured-statically by DO'
                         },
                         'default-mgmt-route': {
                             class: 'ManagementRoute',

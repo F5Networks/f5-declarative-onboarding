@@ -5,9 +5,19 @@
         "properties": [
             { "id": "hostname" },
             { "id": "consoleInactivityTimeout" },
-            { "id": "guiAudit", "newId": "guiAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
+            { "id": "guiAudit", "newId": "guiAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "mgmtDhcp", "truth": "enabled", "falsehood": "disabled" }
         ],
-        "nameless": true
+        "nameless": true,
+        "declaration": {
+            "properties": [
+                {
+                    "$comment": "We need to know this value for rollback but it is not in the schema",
+                    "id": "mgmtDhcp",
+                    "remove": true
+                }
+            ]
+        }
     },
     {
         "path": "/tm/cli/global-settings",
@@ -42,6 +52,19 @@
         "singleValue": true,
         "silent": true,
         "declaration": false
+    },
+    {
+        "path": "/tm/sys/management-ip",
+        "schemaClass": "ManagementIp",
+        "properties": [
+            { "id": "name", "newId": "address" },
+            { "id": "description", "newId": "remark" }
+        ],
+        "declaration": {
+            "customFunctions": [
+                { "id": "remapManagementIp" }
+            ]
+        }
     },
     {
         "path": "/tm/sys/provision",
