@@ -93,7 +93,7 @@ test-bigiq-ui:
     - cp -r ../../../src/schema/latest/ schema
     - node validateDO_UiSchemaTest.js > output
     - cat output
-    - grep -q "All DO classes schema validations are PASSED" output
+    - 'grep -q "Total Failures :  0" output'
 
 coverage:
   image: $DOCKER_URL/node:lts
