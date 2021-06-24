@@ -5,6 +5,6 @@
     "url": "/products/extensions/f5-declarative-onboarding/latest/"
   },
   "otherVersions": [
-    { "name": "1.21.1 (LTS)", "url": "/products/extensions/f5-declarative-onboarding/1.21.1/"}
+    { "name": "1.21.1 (LTS)", "url": "/products/extensions/f5-declarative-onboarding/1.21/"}
   ]
 }
