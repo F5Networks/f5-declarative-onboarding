@@ -16,7 +16,7 @@ Document Revision History
         - 6-28-21
 
       * - 1.21.1
-        - Released AS3 1.21.1 as a LTS (Long Term Support) version. See the Declarative Onboarding |supportmd| for information about the Declarative Onboarding support policy.
+        - Released Declarative Onboarding 1.21.1 as a LTS (Long Term Support) version. See the Declarative Onboarding |supportmd| for information about the Declarative Onboarding support policy.
         - 6-23-21
       
       * - 1.21
