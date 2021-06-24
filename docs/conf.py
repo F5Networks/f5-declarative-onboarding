@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 
 import f5_sphinx_theme
-
+import re
 
 
 # -- General configuration ------------------------------------------------
@@ -126,7 +126,13 @@ html_theme_path = f5_sphinx_theme.get_html_theme_path()
 # documentation.
 #
 html_theme_options = {
-    'next_prev_link': True}
+    'next_prev_link': True,
+    'version_selector': True}
+
+html_context = {
+ 'version_meta_path': '/products/extensions/f5-declarative-onboarding/versions.json',
+ 'project_safe': re.sub('[^A-Za-z0-9]+', '', project)
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
