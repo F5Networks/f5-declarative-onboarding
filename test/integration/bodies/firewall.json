@@ -18,7 +18,8 @@
                     "name": "1.1",
                     "tagged": true
                 }
-            ]
+            ],
+            "autoLastHop": "default"
         },
         "myFirewallAddressList": {
             "class": "FirewallAddressList",

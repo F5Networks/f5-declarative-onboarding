@@ -29,7 +29,7 @@ const ajv = new Ajv(
 );
 const defSchema = require('../../../src/schema/latest/definitions.schema.json');
 const networkSchema = require('../../../src/schema/latest/network.schema.json');
-const customFormats = require('../../../src/schema/latest/formats.js');
+const customFormats = require('../../../src/schema/latest/formats');
 
 Object.keys(customFormats).forEach((customFormat) => {
     ajv.addFormat(customFormat, customFormats[customFormat]);
@@ -231,6 +231,7 @@ describe('network.schema.json', () => {
                     ],
                     mtu: 1500,
                     tag: 1234,
+                    autoLastHop: 'disabled',
                     cmpHash: 'dst-ip',
                     failsafeEnabled: true,
                     failsafeAction: 'reboot',

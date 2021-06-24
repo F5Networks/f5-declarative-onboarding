@@ -280,7 +280,10 @@ function fetchCurrentConfiguration(targetDevice) {
     return doUtil.getBigIp(logger, targetDevice)
         .then((bigIp) => {
             const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
-            return configManager.get({}, state, doState);
+            const configOptions = {
+                translateToNewId: true
+            };
+            return configManager.get({}, state, doState, configOptions);
         })
         .then(() => {
             const originalConfig = state.originalConfig || {};
@@ -411,7 +414,10 @@ const customFunctions = {
             delete member.order;
         });
         return [configKey, configObject];
-    }
+    },
+    // GSLB Globals - really this is just a way not to skip GSLB Globals which
+    // have a schemaMerge but should be processed by processItem anyway
+    remapGSLBGlobals: (configKey, configObject) => [configKey, configObject]
 };
 
 /**
@@ -474,9 +480,10 @@ function processItem(configItem, declItem, configKey, configObject) {
  * @param {Function(String, Object)} callback          - callback to call when config object processed
  */
 function processConfigItem(configItem, tenantConfig, callback) {
-    let declItem = configItem.declaration;
+    let declItem = typeof configItem.declaration !== 'undefined' ? configItem.declaration : {};
     // item excluded from declaration or is part of another item (ignore items with schemaMerge for now)
-    if (declItem === false || typeof configItem.schemaMerge !== 'undefined') {
+    if (declItem === false
+        || (!declItem.customFunctions && typeof configItem.schemaMerge !== 'undefined')) {
         return;
     }
     // deep copy if object or create new

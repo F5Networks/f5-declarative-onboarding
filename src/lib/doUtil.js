@@ -596,6 +596,53 @@ module.exports = {
     },
 
     /**
+     * Gets a property specified by a dotted string path from an object
+     *
+     * @param {Object} obj - The object to search
+     * @param {String} propertyPath - Dotted string path
+     * @param {String} [pathDelimeter] - Path delimiter. Default '.'
+     *
+     * @returns {Object} - The property found or null
+     */
+    getDeepValue(obj, propertyPath, pathDelimeter) {
+        pathDelimeter = pathDelimeter || '.';
+        const pathComponents = propertyPath.split(pathDelimeter);
+
+        if (!obj) {
+            return undefined;
+        }
+
+        const nextSource = pathComponents[0] === '' ? obj : obj[pathComponents[0]];
+
+        if (pathComponents.length === 1) {
+            return nextSource;
+        }
+
+        const nextPath = pathComponents.slice(1).join(pathDelimeter);
+        return this.getDeepValue(nextSource, nextPath, pathDelimeter);
+    },
+
+    setDeepValue(obj, propertyPath, val) {
+        const pathComponents = propertyPath.split('.');
+
+        if (pathComponents[0] === '' || pathComponents[pathComponents.length - 1] === '') {
+            throw new Error('propertyPath must not be empty, or start/end with a \'.\'');
+        }
+
+        pathComponents.reduce((subObj, prop, idx, array) => {
+            if (typeof subObj[prop] === 'undefined' && idx < pathComponents.length - 1) {
+                // create array instead of object if the next property is a positive whole number
+                subObj[prop] = /^\d+$/.test(array[idx + 1]) ? [] : {};
+            } else if (idx === pathComponents.length - 1) {
+                subObj[prop] = val;
+            }
+            return subObj[prop];
+        }, obj);
+
+        return obj;
+    },
+
+    /**
      * Sorts an array of objects by a key value of type string
      *
      * @param {Array} array - An array of objects to be sorted.

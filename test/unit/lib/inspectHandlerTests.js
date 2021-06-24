@@ -562,6 +562,7 @@ describe('inspectHandler', () => {
                     interfacesReference: {
                         link: 'https://localhost/mgmt/tm/net/vlan/~Common~internalVlan/interfaces'
                     },
+                    autoLasthop: 'disabled',
                     cmpHash: 'default',
                     failsafe: 'enabled',
                     failsafeAction: 'reboot',
@@ -574,6 +575,7 @@ describe('inspectHandler', () => {
                     interfacesReference: {
                         link: 'https://localhost/mgmt/tm/net/vlan/~Common~externalVlan/interfaces'
                     },
+                    autoLasthop: 'default',
                     cmpHash: 'src-ip',
                     failsafe: 'disabled',
                     failsafeAction: 'failover-restart-tm',
@@ -1558,6 +1560,7 @@ describe('inspectHandler', () => {
                                 { name: '2.2', tagged: false }
                             ],
                             class: 'VLAN',
+                            autoLastHop: 'disabled',
                             cmpHash: 'default',
                             failsafeEnabled: true,
                             failsafeAction: 'reboot',
@@ -1571,6 +1574,7 @@ describe('inspectHandler', () => {
                                 { name: '1.2', tagged: false }
                             ],
                             class: 'VLAN',
+                            autoLastHop: 'default',
                             cmpHash: 'src-ip',
                             failsafeEnabled: false,
                             failsafeAction: 'failover-restart-tm',

@@ -92,17 +92,17 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 
 .. _example21:
 
-Configuring MAC Masquerading on Traffic Groups 
+Configuring MAC Masquerading on Traffic Groups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for MAC Masquerade on Traffic Groups is available in DO v1.13 and later
 
-In this example, we show how you can configure MAC Masquerading on Traffic Groups.  This is a part of the new **MAC_Masquerade** class.  
+In this example, we show how you can configure MAC Masquerading on Traffic Groups.  This is a part of the new **MAC_Masquerade** class.
 
 For detailed information about Mac Masquerade on the BIG-IP, see |mmkb|.
 
-See |macm| in the Schema Reference for DO usage and options. 
+See |macm| in the Schema Reference for DO usage and options.
 
 
 .. literalinclude:: ../../examples/macMasquerade.json
@@ -114,7 +114,7 @@ See |macm| in the Schema Reference for DO usage and options.
 
 .. _example22:
 
-Configuring VLAN Failsafe 
+Configuring VLAN Failsafe
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
@@ -124,7 +124,7 @@ In this example, we show how you can configure VLAN Failsafe settings in a Decla
 
 For detailed information about VLAN Failsafe on the BIG-IP, see |vlanfs|.
 
-See |cmpref| in the Schema Reference for DO usage and options. 
+See |cmpref| in the Schema Reference for DO usage and options.
 
 
 .. literalinclude:: ../../examples/vlanFailsafe.json
@@ -137,15 +137,15 @@ See |cmpref| in the Schema Reference for DO usage and options.
 
 .. _example23:
 
-Configuring a DNS Resolver 
+Configuring a DNS Resolver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for DNS Resolvers is available in DO v1.14 and later
 
-In this example, we show how you create a DNS Resolver in a Declarative Onboarding declaration using the |dnsresolver| class introduced in DO 1.14. The DNS Resolver is the internal DNS resolver the BIG-IP system uses to fetch the internal proxy response. 
+In this example, we show how you create a DNS Resolver in a Declarative Onboarding declaration using the |dnsresolver| class introduced in DO 1.14. The DNS Resolver is the internal DNS resolver the BIG-IP system uses to fetch the internal proxy response.
 
-See |dnsresolver| in the Schema Reference for DO usage and options. 
+See |dnsresolver| in the Schema Reference for DO usage and options.
 
 For detailed information about the DNS Resolver, see |dnsdoc| on AskF5.
 
@@ -157,17 +157,17 @@ For detailed information about the DNS Resolver, see |dnsdoc| on AskF5.
 
 .. _example24:
 
-Configuring a TCP Forward Tunnel 
+Configuring a TCP Forward Tunnel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for TCP Forward Tunnels is available in DO v1.14 and later
 
-In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class introduced in DO 1.14. 
+In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class introduced in DO 1.14.
 
 Currently, **tcp_forward** is the only profile (**tunnelType**) Declarative Onboarding supports.  The tcp_forward profile specifies a tunnel used for forward proxy connections.
 
-See |tunnel| in the Schema Reference for DO usage and options. 
+See |tunnel| in the Schema Reference for DO usage and options.
 
 
 .. literalinclude:: ../../examples/tcpForwardTunnel.json
@@ -179,7 +179,7 @@ See |tunnel| in the Schema Reference for DO usage and options.
 
 .. _example25:
 
-Configuring Traffic Groups 
+Configuring Traffic Groups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
@@ -187,7 +187,7 @@ Configuring Traffic Groups
 
 This example shows how to create Traffic Groups using Declarative Onboarding 1.14 and later. A traffic group is a group of configuration objects on a BIG-IP which is able to float to another device in a device group in case of failure.  For more information, see :ref:`trafficgroup` on the Clustering page, and |tgdoc|.
 
-See |tg| in the Schema Reference for DO usage and options.  
+See |tg| in the Schema Reference for DO usage and options.
 
 .. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br| |br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
 
@@ -201,7 +201,7 @@ See |tg| in the Schema Reference for DO usage and options.
 
 .. _example26:
 
-Configuring routing prefix lists 
+Configuring routing prefix lists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
@@ -209,7 +209,7 @@ Configuring routing prefix lists
 
 This example shows how you can create network routing prefix lists using Declarative Onboarding 1.18 and later. These prefix lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for each prefix address.
 
-See |prefix| and |prefixentry| in the Schema Reference for DO usage and options.  
+See |prefix| and |prefixentry| in the Schema Reference for DO usage and options.
 
 The following example contains multiple prefix lists, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
@@ -224,13 +224,13 @@ The following example contains multiple prefix lists, but no other DO configurat
 
 .. _bgprouting:
 
-Configuring BGP Routing in a declaration  
+Configuring BGP Routing in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for BGP routing is available in DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP
 
-This example shows how you can configure Border Gateway Protocol (BGP) routing in a Declarative Onboarding declaration. 
+This example shows how you can configure Border Gateway Protocol (BGP) routing in a Declarative Onboarding declaration.
 
 For an excellent overview of BGP, see the F5 Lightboard lesson |bgpvid|.
 
@@ -253,13 +253,13 @@ The **RoutingBGP** class contains a number of properties used in the following e
 
 .. _firewallpolicy:
 
-Configuring a Firewall policy in a declaration  
+Configuring a Firewall policy in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for Firewall policies is available in DO v1.20 and later. You must have BIG-IP AFM licensed.
 
-This example shows how you can configure a firewall policy in a declaration. BIG-IP Network Firewall policies combine one or more rules and apply them as a combined policy to one context, such as a self IP as shown. 
+This example shows how you can configure a firewall policy in a declaration. BIG-IP Network Firewall policies combine one or more rules and apply them as a combined policy to one context, such as a self IP as shown.
 
 The AFM features we use in this declaration are well-documented in the |afmdocs|.
 
@@ -271,6 +271,28 @@ See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for de
 
 .. literalinclude:: ../../examples/firewallPolicy.json
    :language: json
+
+|
+
+.. _alhvlan:
+
+Configuring Auto Last Hop on VLANs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+    Support for Auto Last Hop on VLANs is available in DO 1.22 and later.
+
+This example shows how you can configure Auto Last Hop on VLANs in a Declarative Onboarding declaration.  Auto Last Hop allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route.
+
+There are three possible values for the **autoLastHop** property: **enabled**, **disabled**, and **default**, which inherits the value from the global settings.
+
+For detailed information on Auto Last Hop, see |alh| on AskF5.
+
+See |cmpref| for description and DO usage.
+
+
+.. literalinclude:: ../../examples/vlanAutoLastHop.json
+    :language: json
 
 
 .. |br| raw:: html
@@ -471,3 +493,9 @@ See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for de
 .. |dnsresolverdocs| raw:: html
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip-afm/manuals/product/network-firewall-policies-implementations-13-1-0/3.html#GUID-933268A4-7800-405C-868F-FEA4ECEF8FBB" target="_blank">Network Firewall documentation</a>
+
+.. |alh| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K13876" target="_blank">Overview of the Auto Last Hop setting</a>
+
+

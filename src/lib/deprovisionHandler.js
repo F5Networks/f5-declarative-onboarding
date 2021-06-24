@@ -16,7 +16,7 @@
 
 'use strict';
 
-const ProvisionHandler = require('./provisionHandler.js');
+const ProvisionHandler = require('./provisionHandler');
 /**
  * Handles provisioning parts of a declaration.
  *

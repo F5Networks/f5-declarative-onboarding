@@ -21,7 +21,7 @@ on a BIG-IP, as well as from BIG-IQ and the Application Services Gateway contain
 
 How does the project handle a typical `POST` request?
 
-`POST /mgmt/shared/telemetry/declare`
+`POST /mgmt/shared/declarative-onboarding`
 
 ```json
 {

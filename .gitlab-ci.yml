@@ -128,6 +128,7 @@ audit:
 
 mutation:
   stage: mutation-test
+  timeout: 2 hours
   rules:
     - if: '$TRIGGER_MUTATION_TEST =~ /true/i'
   tags:
@@ -246,8 +247,9 @@ build_rpm:
         # setup node environment
         - apt-get update && apt-get install -y rpm --no-install-recommends
         - scripts/build/buildRpm.sh
-        # ensure latest copyrights
-        - node scripts/dev/write-copyright.js "cicd"
+        # ensure latest copyrights, requires dev dependencies
+        - npm ci
+        - node node_modules/@f5devcentral/atg-shared-utilities-dev/scripts/dev/write-copyright.js -c -p scripts/dev/copyright.txt
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
@@ -358,5 +360,6 @@ publish docs to production:
     script:
         # Publish docs to clouddocs.f5.com (live site).
         - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
+        - aws s3 cp versions.json s3://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/versions.json
         # create invalidation to clear cloudfront cache
         - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding

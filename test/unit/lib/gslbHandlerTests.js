@@ -89,7 +89,7 @@ describe('gslbHandler', () => {
                 Common: {
                     GSLBGlobals: {
                         general: {
-                            synchronizationEnabled: true,
+                            synchronization: true,
                             synchronizationGroupName: 'newGroupName',
                             synchronizationTimeTolerance: 123,
                             synchronizationTimeout: 100
@@ -128,7 +128,7 @@ describe('gslbHandler', () => {
                             location: 'location0',
                             proberFallback: 'pool',
                             proberPool: '/Common/proberPool',
-                            proberPreferred: 'pool'
+                            proberPreference: 'pool'
                         },
                         dataCenter1: {
                             name: 'dataCenter1',
@@ -136,7 +136,7 @@ describe('gslbHandler', () => {
                             enabled: false,
                             location: 'location1',
                             proberFallback: 'outside-datacenter',
-                            proberPreferred: 'any-available'
+                            proberPreference: 'any-available'
                         }
                     }
                 }
@@ -187,32 +187,32 @@ describe('gslbHandler', () => {
                         gslbServer1: {
                             name: 'gslbServer1',
                             enabled: true,
-                            serverType: 'bigip',
-                            proberPreferred: 'inherit',
+                            product: 'bigip',
+                            proberPreference: 'inherit',
                             proberFallback: 'inherit',
-                            bpsLimit: 0,
-                            bpsLimitEnabled: false,
-                            ppsLimit: 0,
-                            ppsLimitEnabled: false,
-                            connectionsLimit: 0,
-                            connectionsLimitEnabled: false,
-                            cpuUsageLimit: 0,
-                            cpuUsageLimitEnabled: false,
-                            memoryLimit: 0,
-                            memoryLimitEnabled: false,
-                            serviceCheckProbeEnabled: true,
-                            pathProbeEnabled: true,
-                            snmpProbeEnabled: true,
-                            dataCenter: 'gslbDataCenter',
+                            limitMaxBps: 0,
+                            limitMaxBpsStatus: false,
+                            limitMaxPps: 0,
+                            limitMaxPpsStatus: false,
+                            limitMaxConnections: 0,
+                            limitMaxConnectionsStatus: false,
+                            limitCpuUsage: 0,
+                            limitCpuUsageStatus: false,
+                            limitMemAvail: 0,
+                            limitMemAvailStatus: false,
+                            iqAllowServiceCheck: true,
+                            iqAllowPath: true,
+                            iqAllowSnmp: true,
+                            datacenter: 'gslbDataCenter',
                             devices: [
                                 {
-                                    address: '10.0.0.1',
-                                    addressTranslation: 'none'
+                                    name: '10.0.0.1',
+                                    translation: 'none'
                                 }
                             ],
-                            exposeRouteDomainsEnabled: false,
-                            virtualServerDiscoveryMode: 'disabled',
-                            monitors: [
+                            exposeRouteDomains: false,
+                            virtualServerDiscovery: 'disabled',
+                            monitor: [
                                 '/Common/GSLBmonitor',
                                 '/Common/otherMonitor'
                             ],
@@ -222,53 +222,53 @@ describe('gslbHandler', () => {
                                     enabled: true,
                                     address: '10.0.20.1',
                                     port: 0,
-                                    addressTranslationPort: 0,
-                                    monitors: []
+                                    translationPort: 0,
+                                    monitor: []
                                 }
                             ]
                         },
                         gslbServer2: {
                             name: 'gslbServer2',
-                            remark: 'test description',
+                            description: 'test description',
                             enabled: false,
-                            serverType: 'generic-host',
-                            proberPreferred: 'pool',
+                            product: 'generic-host',
+                            proberPreference: 'pool',
                             proberFallback: 'any-available',
                             proberPool: 'gslbProberPool',
-                            bpsLimit: 50,
-                            bpsLimitEnabled: true,
-                            ppsLimit: 60,
-                            ppsLimitEnabled: true,
-                            connectionsLimit: 70,
-                            connectionsLimitEnabled: true,
-                            cpuUsageLimit: 10,
-                            cpuUsageLimitEnabled: true,
-                            memoryLimit: 12,
-                            memoryLimitEnabled: true,
-                            serviceCheckProbeEnabled: false,
-                            pathProbeEnabled: false,
-                            snmpProbeEnabled: false,
-                            dataCenter: 'gslbDataCenter',
+                            limitMaxBps: 50,
+                            limitMaxBpsStatus: true,
+                            limitMaxPps: 60,
+                            limitMaxPpsStatus: true,
+                            limitMaxConnections: 70,
+                            limitMaxConnectionsStatus: true,
+                            limitCpuUsage: 10,
+                            limitCpuUsageStatus: true,
+                            limitMemAvail: 12,
+                            limitMemAvailStatus: true,
+                            iqAllowServiceCheck: false,
+                            iqAllowPath: false,
+                            iqAllowSnmp: false,
+                            datacenter: 'gslbDataCenter',
                             devices: [
                                 {
-                                    remark: 'test device description',
-                                    address: '10.0.0.1',
-                                    addressTranslation: '192.0.2.12'
+                                    description: 'test device description',
+                                    name: '10.0.0.1',
+                                    translation: '192.0.2.12'
                                 }
                             ],
-                            exposeRouteDomainsEnabled: true,
-                            virtualServerDiscoveryMode: 'enabled',
-                            monitors: [],
+                            exposeRouteDomains: true,
+                            virtualServerDiscovery: 'enabled',
+                            monitor: [],
                             virtualServers: [
                                 {
                                     name: 'testVirtualServer',
-                                    remark: 'test virtual server description',
+                                    description: 'test virtual server description',
                                     enabled: false,
                                     address: 'a989:1c34:9c::b099:c1c7:8bfe',
                                     port: 8080,
-                                    addressTranslation: '1:0:1::',
-                                    addressTranslationPort: 80,
-                                    monitors: [
+                                    translationAddress: '1:0:1::',
+                                    translationPort: 80,
+                                    monitor: [
                                         '/Common/tcp',
                                         '/Common/http'
                                     ]
@@ -278,33 +278,33 @@ describe('gslbHandler', () => {
                         gslbServer3: {
                             name: 'gslbServer3',
                             enabled: true,
-                            serverType: 'bigip',
-                            proberPreferred: 'inherit',
+                            product: 'bigip',
+                            proberPreference: 'inherit',
                             proberFallback: 'inherit',
                             proberPool: 'none',
-                            bpsLimit: 0,
-                            bpsLimitEnabled: false,
-                            ppsLimit: 0,
-                            ppsLimitEnabled: false,
-                            connectionsLimit: 0,
-                            connectionsLimitEnabled: false,
-                            cpuUsageLimit: 0,
-                            cpuUsageLimitEnabled: false,
-                            memoryLimit: 0,
-                            memoryLimitEnabled: false,
-                            serviceCheckProbeEnabled: true,
-                            pathProbeEnabled: true,
-                            snmpProbeEnabled: true,
-                            dataCenter: 'gslbDataCenter',
+                            limitMaxBps: 0,
+                            limitMaxBpsStatus: false,
+                            limitMaxPps: 0,
+                            limitMaxPpsStatus: false,
+                            limitMaxConnections: 0,
+                            limitMaxConnectionsStatus: false,
+                            limitCpuUsage: 0,
+                            limitCpuUsageStatus: false,
+                            limitMemAvail: 0,
+                            limitMemAvailStatus: false,
+                            iqAllowServiceCheck: true,
+                            iqAllowPath: true,
+                            iqAllowSnmp: true,
+                            datacenter: 'gslbDataCenter',
                             devices: [
                                 {
-                                    address: '10.0.0.1',
-                                    addressTranslation: 'none'
+                                    name: '10.0.0.1',
+                                    translation: 'none'
                                 }
                             ],
-                            exposeRouteDomainsEnabled: false,
-                            virtualServerDiscoveryMode: 'disabled',
-                            monitors: ['/Common/bigip'],
+                            exposeRouteDomains: false,
+                            virtualServerDiscovery: 'disabled',
+                            monitor: ['/Common/bigip'],
                             virtualServers: []
                         }
                     }
@@ -477,21 +477,21 @@ describe('gslbHandler', () => {
                     GSLBMonitor: {
                         gslbMonitor1: {
                             name: 'gslbMonitor1',
-                            remark: 'description',
-                            target: '1.1.1.1:80',
+                            description: 'description',
+                            destination: '1.1.1.1:80',
                             interval: 100,
                             timeout: 1000,
                             probeTimeout: 110,
-                            ignoreDownResponseEnabled: true,
+                            ignoreDownResponse: true,
                             transparent: true
                         },
                         gslbMonitor2: {
                             name: 'gslbMonitor2',
-                            target: '*:*',
+                            destination: '*:*',
                             interval: 30,
                             timeout: 120,
                             probeTimeout: 5,
-                            ignoreDownResponseEnabled: false,
+                            ignoreDownResponse: false,
                             transparent: false
                         }
                     }
@@ -503,9 +503,9 @@ describe('gslbHandler', () => {
             it('should handle GSLB monitor http', () => {
                 declaration.Common.GSLBMonitor.gslbMonitor1.monitorType = 'http';
                 declaration.Common.GSLBMonitor.gslbMonitor2.monitorType = 'http';
-                declaration.Common.GSLBMonitor.gslbMonitor1.reverseEnabled = true;
+                declaration.Common.GSLBMonitor.gslbMonitor1.reverse = true;
                 declaration.Common.GSLBMonitor.gslbMonitor1.send = 'HEAD / HTTP/1.0\\r\\n';
-                declaration.Common.GSLBMonitor.gslbMonitor1.receive = 'HTTP';
+                declaration.Common.GSLBMonitor.gslbMonitor1.recv = 'HTTP';
                 const gslbHandler = new GSLBHandler(declaration, bigIpMock);
                 return gslbHandler.process()
                     .then(() => {
@@ -549,11 +549,11 @@ describe('gslbHandler', () => {
             it('should handle GSLB monitor https', () => {
                 declaration.Common.GSLBMonitor.gslbMonitor1.monitorType = 'https';
                 declaration.Common.GSLBMonitor.gslbMonitor2.monitorType = 'https';
-                declaration.Common.GSLBMonitor.gslbMonitor1.ciphers = 'DEFAULT';
-                declaration.Common.GSLBMonitor.gslbMonitor1.clientCertificate = '/Common/default.crt';
+                declaration.Common.GSLBMonitor.gslbMonitor1.cipherlist = 'DEFAULT';
+                declaration.Common.GSLBMonitor.gslbMonitor1.cert = '/Common/default.crt';
                 declaration.Common.GSLBMonitor.gslbMonitor1.send = 'HEAD / HTTP/1.0\\r\\n';
-                declaration.Common.GSLBMonitor.gslbMonitor1.receive = 'HTTP';
-                declaration.Common.GSLBMonitor.gslbMonitor1.reverseEnabled = true;
+                declaration.Common.GSLBMonitor.gslbMonitor1.recv = 'HTTP';
+                declaration.Common.GSLBMonitor.gslbMonitor1.reverse = true;
                 const gslbHandler = new GSLBHandler(declaration, bigIpMock);
                 return gslbHandler.process()
                     .then(() => {
@@ -646,9 +646,9 @@ describe('gslbHandler', () => {
             it('should handle GSLB monitor tcp', () => {
                 declaration.Common.GSLBMonitor.gslbMonitor1.monitorType = 'tcp';
                 declaration.Common.GSLBMonitor.gslbMonitor2.monitorType = 'tcp';
-                declaration.Common.GSLBMonitor.gslbMonitor1.reverseEnabled = true;
+                declaration.Common.GSLBMonitor.gslbMonitor1.reverse = true;
                 declaration.Common.GSLBMonitor.gslbMonitor1.send = 'example send';
-                declaration.Common.GSLBMonitor.gslbMonitor1.receive = 'example receive';
+                declaration.Common.GSLBMonitor.gslbMonitor1.recv = 'example receive';
                 const gslbHandler = new GSLBHandler(declaration, bigIpMock);
                 return gslbHandler.process()
                     .then(() => {
@@ -692,12 +692,12 @@ describe('gslbHandler', () => {
             it('should handle GSLB monitor udp', () => {
                 declaration.Common.GSLBMonitor.gslbMonitor1.monitorType = 'udp';
                 declaration.Common.GSLBMonitor.gslbMonitor2.monitorType = 'udp';
-                declaration.Common.GSLBMonitor.gslbMonitor1.debugEnabled = true;
+                declaration.Common.GSLBMonitor.gslbMonitor1.debug = true;
                 declaration.Common.GSLBMonitor.gslbMonitor1.probeInterval = 5;
                 declaration.Common.GSLBMonitor.gslbMonitor1.probeAttempts = 3;
                 declaration.Common.GSLBMonitor.gslbMonitor1.send = 'default send string';
-                declaration.Common.GSLBMonitor.gslbMonitor1.receive = 'example receive';
-                declaration.Common.GSLBMonitor.gslbMonitor1.reverseEnabled = true;
+                declaration.Common.GSLBMonitor.gslbMonitor1.recv = 'example receive';
+                declaration.Common.GSLBMonitor.gslbMonitor1.reverse = true;
                 declaration.Common.GSLBMonitor.gslbMonitor2.probeInterval = 15;
                 declaration.Common.GSLBMonitor.gslbMonitor2.probeAttempts = 5;
                 const gslbHandler = new GSLBHandler(declaration, bigIpMock);
@@ -754,21 +754,21 @@ describe('gslbHandler', () => {
                         gslbProberPool1: {
                             name: 'gslbProberPool1',
                             enabled: true,
-                            lbMode: 'global-availability',
+                            loadBalancingMode: 'global-availability',
                             members: []
                         },
                         gslbProberPool2: {
                             name: 'gslbProberPool2',
                             enabled: true,
-                            lbMode: 'global-availability',
+                            loadBalancingMode: 'global-availability',
                             members: [
                                 {
-                                    server: 'gslbServer1',
+                                    name: 'gslbServer1',
                                     enabled: true,
                                     order: 0
                                 },
                                 {
-                                    server: 'gslbServer2',
+                                    name: 'gslbServer2',
                                     enabled: true,
                                     order: 1
                                 }
@@ -776,12 +776,12 @@ describe('gslbHandler', () => {
                         },
                         gslbProberPool3: {
                             name: 'gslbProberPool3',
-                            remark: 'test description',
+                            description: 'test description',
                             enabled: false,
-                            lbMode: 'round-robin',
+                            loadBalancingMode: 'round-robin',
                             members: [{
-                                server: 'gslbServer1',
-                                remark: 'test member description',
+                                name: 'gslbServer1',
+                                description: 'test member description',
                                 enabled: false,
                                 order: 0
                             }]

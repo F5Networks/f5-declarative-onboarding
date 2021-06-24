@@ -648,13 +648,13 @@ describe('systemHandler', () => {
                 });
         });
 
-        it('should handle consoleInactivityTimeout and cliInactivityTimeout', () => {
+        it('should handle consoleInactivityTimeout and idleTimeout', () => {
             // these props are posted to separate paths
             const declaration = {
                 Common: {
                     System: {
                         consoleInactivityTimeout: 50,
-                        cliInactivityTimeout: 1200
+                        idleTimeout: 1200
                     }
                 }
             };
@@ -667,13 +667,13 @@ describe('systemHandler', () => {
                 });
         });
 
-        it('should handle cliInactivityTimeout equal to 0', () => {
+        it('should handle idleTimeout equal to 0', () => {
             // these props are posted to separate paths
             const declaration = {
                 Common: {
                     System: {
                         consoleInactivityTimeout: 50,
-                        cliInactivityTimeout: 0
+                        idleTimeout: 0
                     }
                 }
             };
@@ -719,11 +719,11 @@ describe('systemHandler', () => {
             });
     });
 
-    it('should handle tmshAuditLog', () => {
+    it('should handle audit', () => {
         const declaration = {
             Common: {
                 System: {
-                    tmshAuditLog: true
+                    audit: true
                 }
             }
         };
@@ -735,11 +735,11 @@ describe('systemHandler', () => {
             });
     });
 
-    it('should handle guiAuditLog', () => {
+    it('should handle guiAudit', () => {
         const declaration = {
             Common: {
                 System: {
-                    guiAuditLog: true
+                    guiAudit: true
                 }
             }
         };
@@ -751,13 +751,13 @@ describe('systemHandler', () => {
             });
     });
 
-    it('should ignore guiAuditLog if version < 14.0', () => {
+    it('should ignore guiAudit if version < 14.0', () => {
         sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1.3' });
         const declaration = {
             Common: {
                 System: {
-                    tmshAuditLog: true,
-                    guiAuditLog: true
+                    audit: true,
+                    guiAudit: true
                 }
             }
         };
@@ -766,7 +766,7 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                // note guiAuditLog info is absent, only tmshAuditLog info is present
+                // note guiAudit info is absent, only audit info is present
                 assert.deepStrictEqual(dataSent, expected);
             });
     });
@@ -1390,14 +1390,14 @@ describe('systemHandler', () => {
                     ManagementRoute: {
                         managementRoute1: {
                             name: 'managementRoute1',
-                            gw: '1.1.1.1',
+                            gateway: '1.1.1.1',
                             network: 'default-inet6',
                             mtu: 1234,
                             type: 'interface'
                         },
                         managementRoute2: {
                             name: 'managementRoute1',
-                            gw: '1.2.3.4',
+                            gateway: '1.2.3.4',
                             network: '4.3.2.1',
                             mtu: 1
                         }
@@ -1434,7 +1434,7 @@ describe('systemHandler', () => {
                 ManagementRoute: {
                     theManagementRoute: {
                         name: 'theManagementRoute',
-                        gw: '4.3.2.1',
+                        gateway: '4.3.2.1',
                         network: '1.2.3.4',
                         mtu: 123
                     }
@@ -1447,7 +1447,7 @@ describe('systemHandler', () => {
                     ManagementRoute: {
                         theManagementRoute: {
                             name: 'theManagementRoute',
-                            gw: '4.3.2.1',
+                            gateway: '4.3.2.1',
                             network: '10.20.30.40',
                             mtu: 123
                         }
@@ -1516,9 +1516,9 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 SnmpAgent: {
-                    contact: 'Op Center <ops@example.com>',
-                    location: 'Seattle, WA',
-                    allowList: [
+                    sysContact: 'Op Center <ops@example.com>',
+                    sysLocation: 'Seattle, WA',
+                    allowedAddresses: [
                         '10.30.100.0/23',
                         '10.40.100.0/23',
                         '10.8.100.0/32',
@@ -1567,16 +1567,12 @@ describe('systemHandler', () => {
             Common: {
                 SnmpUser: {
                     myFirstSnmpUser: {
-                        name: 'my!name!withspecials',
-                        authentication: {
-                            protocol: 'sha',
-                            password: 'pass1W0rd!'
-                        },
-                        privacy: {
-                            protocol: 'aes',
-                            password: 'P@ssW0rd'
-                        },
-                        oid: '.1',
+                        username: 'my!name!withspecials',
+                        authProtocol: 'sha',
+                        authPassword: 'pass1W0rd!',
+                        privacyProtocol: 'aes',
+                        privacyPassword: 'P@ssW0rd',
+                        oidSubset: '.1',
                         access: 'rw'
                     }
                 }
@@ -1648,10 +1644,10 @@ describe('systemHandler', () => {
             Common: {
                 SnmpCommunity: {
                     myFirstSnmpCommunity: {
-                        name: 'special!community',
+                        communityName: 'special!community',
                         ipv6: false,
                         source: 'all',
-                        oid: '.1',
+                        oidSubset: '.1',
                         access: 'ro'
                     }
                 }
@@ -1681,7 +1677,7 @@ describe('systemHandler', () => {
             Common: {
                 SnmpCommunity: {
                     myFirstSnmpCommunity: {
-                        name: 'myFirstSnmpCommunity'
+                        communityName: 'myFirstSnmpCommunity'
                     }
                 }
             }
@@ -1704,9 +1700,9 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 SnmpTrapEvents: {
-                    agentStartStop: true,
-                    authentication: false,
-                    device: true
+                    agentTrap: true,
+                    authTrap: false,
+                    bigipTraps: true
                 }
             }
         };
@@ -1726,17 +1722,13 @@ describe('systemHandler', () => {
                 SnmpTrapDestination: {
                     myDestination: {
                         version: '3',
-                        destination: '10.0.10.100',
+                        host: '10.0.10.100',
                         port: 80,
                         network: 'other',
-                        authentication: {
-                            protocol: 'sha',
-                            password: 'P@ssW0rd'
-                        },
-                        privacy: {
-                            protocol: 'aes',
-                            password: 'P@ssW0rd'
-                        },
+                        authProtocol: 'sha',
+                        authPassword: 'P@ssW0rd1',
+                        privacyProtocol: 'aes',
+                        privacyPassword: 'P@ssW0rd2',
                         engineId: '0x80001f8880c6b6067fdacfb558'
                     }
                 }
@@ -1748,7 +1740,7 @@ describe('systemHandler', () => {
             .then(() => {
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.authPassword,
-                    'P@ssW0rd'
+                    'P@ssW0rd1'
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.authProtocol,
@@ -1756,7 +1748,7 @@ describe('systemHandler', () => {
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.privacyPassword,
-                    'P@ssW0rd'
+                    'P@ssW0rd2'
                 );
                 assert.strictEqual(
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.privacyProtocol,
@@ -1770,6 +1762,10 @@ describe('systemHandler', () => {
                     dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.engineId,
                     '0x80001f8880c6b6067fdacfb558'
                 );
+                assert.strictEqual(
+                    dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.host,
+                    '10.0.10.100'
+                );
             });
     });
 
@@ -1778,10 +1774,8 @@ describe('systemHandler', () => {
             Common: {
                 SnmpTrapDestination: {
                     myDestination: {
-                        authentication: {
-                            protocol: 'sha',
-                            password: 'P@ssW0rd'
-                        }
+                        authProtocol: 'sha',
+                        authPassword: 'P@ssW0rd'
                     }
                 }
             }
@@ -1875,8 +1869,8 @@ describe('systemHandler', () => {
                         allowIpSourceRoute: true,
                         continueMatching: true,
                         maxIcmpRate: 867,
-                        maxPortFindLinear: 867,
-                        maxPortFindRandom: 867,
+                        portFindLinear: 867,
+                        portFindRandom: 867,
                         maxRejectRate: 867,
                         maxRejectRateTimeout: 200,
                         minPathMtu: 867,
@@ -1971,7 +1965,7 @@ describe('systemHandler', () => {
                             '192.168.*.*',
                             '1.2.3.4/32'
                         ],
-                        banner: 'Text for banner',
+                        bannerText: 'Text for banner',
                         inactivityTimeout: 12345,
                         ciphers: [
                             'aes128-ctr',
@@ -2017,7 +2011,7 @@ describe('systemHandler', () => {
                 Common: {
                     SSHD: {
                         allow: 'all',
-                        banner: 'Text for banner',
+                        bannerText: 'Text for banner',
                         inactivityTimeout: 12345
                     }
                 }
@@ -2043,7 +2037,7 @@ describe('systemHandler', () => {
                 Common: {
                     SSHD: {
                         allow: 'none',
-                        banner: 'Text for banner',
+                        bannerText: 'Text for banner',
                         inactivityTimeout: 12345
                     }
                 }

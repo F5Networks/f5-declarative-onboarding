@@ -28,7 +28,7 @@ const ajv = new Ajv(
     }
 );
 const dscSchema = require('../../../src/schema/latest/dsc.schema.json');
-const customFormats = require('../../../src/schema/latest/formats.js');
+const customFormats = require('../../../src/schema/latest/formats');
 
 Object.keys(customFormats).forEach((customFormat) => {
     ajv.addFormat(customFormat, customFormats[customFormat]);

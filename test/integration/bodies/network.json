@@ -13,7 +13,8 @@
                     "name": "1.1",
                     "tagged": true
                 }
-            ]
+            ],
+            "autoLastHop": "enabled"
         },
         "internal": {
             "class": "VLAN",
@@ -23,7 +24,8 @@
                     "name": "1.1",
                     "tagged": false
                 }
-            ]
+            ],
+            "autoLastHop": "default"
         },
         "mySelfIp": {
             "class": "SelfIp",
@@ -32,6 +34,15 @@
             "allowService": [
                 "tcp:80"
             ]
+        },
+        "myIpv6SelfIp": {
+            "class": "SelfIp",
+            "address": "::ffff:0a94:552e/ffff:ffff:0:0:0:0:0:0",
+            "vlan": "myVlan",
+            "allowService": [
+                "tcp:80"
+            ],
+            "trafficGroup": "traffic-group-local-only"
         },
         "myRoute": {
             "class": "Route",
@@ -75,14 +86,15 @@
                 {
                     "name": "forward.net",
                     "nameservers": [
-                        "10.10.10.10:53"
+                        "10.10.10.10:53",
+                        "::ffff:1414:1414.53"
                     ]
                 }
             ]
         },
-        "myMirror": {
+        "myIpv6Mirror": {
             "class": "MirrorIp",
-            "primaryIp": "10.148.75.46",
+            "primaryIp": "::ffff:0a94:552e",
             "secondaryIp": "any6"
         },
         "testRoutingAsPath1": {
