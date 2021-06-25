@@ -117,7 +117,7 @@ function handleFailoverUnicast() {
     if (this.declaration.Common.FailoverUnicast) {
         let body = {};
 
-        const unicastAddresses = this.declaration.Common.FailoverUnicast.addressPorts || [];
+        const unicastAddresses = this.declaration.Common.FailoverUnicast.unicastAddress || [];
         if (unicastAddresses.length === 0) {
             // There are no addresses to add so send none
             body = { unicastAddress: 'none' };
@@ -125,13 +125,13 @@ function handleFailoverUnicast() {
             body.unicastAddress = unicastAddresses.map((unicastAddress) => {
                 // address may have been a json pointer to something with a CIDR
                 // so strip that off
-                let address = unicastAddress.address;
-                if (address.indexOf('/') !== -1) {
-                    address = address.substring(0, address.indexOf('/'));
+                let ip = unicastAddress.ip;
+                if (ip.indexOf('/') !== -1) {
+                    ip = ip.substring(0, ip.indexOf('/'));
                 }
                 return {
                     port: unicastAddress.port,
-                    ip: address
+                    ip
                 };
             });
         }
@@ -156,9 +156,9 @@ function handleFailoverMulticast() {
     if (this.declaration.Common.FailoverMulticast) {
         const multicast = this.declaration.Common.FailoverMulticast;
         const body = {};
-        body.multicastInterface = multicast.interface || 'none';
-        body.multicastIp = multicast.address || 'any6';
-        body.multicastPort = multicast.port || 0;
+        body.multicastInterface = multicast.multicastInterface || 'none';
+        body.multicastIp = multicast.multicastIp || 'any6';
+        body.multicastPort = multicast.multicastPort || 0;
 
         return this.bigIp.deviceInfo()
             .then(deviceInfo => this.bigIp.modify(
@@ -531,6 +531,7 @@ function convertToHostnames(deviceGroupMembers, deviceGroupOwner) {
                     return address;
                 }
 
+                address = doUtil.minimizeIP(address);
                 const found = deviceResults.find((device) => {
                     if (device.configsyncIp === address || device.managementIp === address) {
                         return true;
@@ -641,8 +642,8 @@ function handleMacMasquerade() {
 function handleMirrorIp() {
     if (this.declaration.Common && this.declaration.Common.MirrorIp) {
         const body = {
-            mirrorIp: this.declaration.Common.MirrorIp.primaryIp || 'any6',
-            mirrorSecondaryIp: this.declaration.Common.MirrorIp.secondaryIp || 'any6'
+            mirrorIp: this.declaration.Common.MirrorIp.mirrorIp || 'any6',
+            mirrorSecondaryIp: this.declaration.Common.MirrorIp.mirrorSecondaryIp || 'any6'
         };
 
         return this.bigIp.deviceInfo()

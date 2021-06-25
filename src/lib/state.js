@@ -18,6 +18,10 @@
 
 const uuidv4 = require('uuid/v4');
 const doUtil = require('./doUtil');
+const parserUtil = require('./parserUtil');
+const configItems = require('./configItems.json');
+
+const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 
 const TASK_RETENTION_DAYS = 7;
 
@@ -532,19 +536,23 @@ class State {
  */
 function copyAndUpgradeState(existingState) {
     if (!existingState.tasks) {
-        const state = {
-            tasks: {}
-        };
+        const existingStateCopy = JSON.parse(JSON.stringify(existingState));
+        existingState.tasks = {};
         const taskId = uuidv4();
-        state.tasks[taskId] = JSON.parse(JSON.stringify(existingState));
-        state.tasks[taskId].lastUpdate = new Date();
-        state.tasks[taskId].id = taskId;
-        state.mostRecentTask = taskId;
-        return state;
+        existingState.tasks[taskId] = existingStateCopy;
+        existingState.tasks[taskId].lastUpdate = new Date();
+        existingState.tasks[taskId].id = taskId;
+        existingState.mostRecentTask = taskId;
     }
+
     if (!existingState.originalConfig) {
         existingState.originalConfig = {};
     }
+
+    // Upgrade from versions prior to 1.22 when we switched to using property.id rather than property.newId
+    // in all processing for configManager and handlers
+    updateNewIdToId(existingState);
+
     return JSON.parse(JSON.stringify(existingState));
 }
 
@@ -554,6 +562,32 @@ function cleanupOldTasks(tasks) {
     Object.keys(tasks).forEach((taskId) => {
         if (now - tasks[taskId].lastUpdate > maxAge) {
             delete tasks[taskId];
+        }
+    });
+}
+
+function updateNewIdToId(existingState) {
+    Object.keys(existingState.originalConfig).forEach((configId) => {
+        const originalConfig = existingState.originalConfig[configId].Common;
+        if (originalConfig) {
+            Object.keys(originalConfig).forEach((schemaClass) => {
+                const config = originalConfig[schemaClass];
+
+                if (NAMELESS_CLASSES.indexOf(schemaClass) !== -1) {
+                    // If it's a nameless class, the config to update is the whole 'config' object
+                    originalConfig[schemaClass] = parserUtil.updateIds(configItems, schemaClass, config);
+                } else {
+                    // If it's a named class, iterate through each named object in the 'config' container
+                    Object.keys(config).forEach((itemName) => {
+                        originalConfig[schemaClass][itemName] = parserUtil.updateIds(
+                            configItems,
+                            schemaClass,
+                            config[itemName],
+                            itemName
+                        );
+                    });
+                }
+            });
         }
     });
 }

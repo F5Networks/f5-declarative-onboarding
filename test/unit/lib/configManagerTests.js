@@ -36,6 +36,7 @@ describe('configManager', () => {
     let bigIpMock;
     let state;
     let doState;
+    let optionsReceived;
 
     const getConfigItems = function (schemaClass) {
         if (typeof schemaClass === 'undefined' || schemaClass === '') {
@@ -49,6 +50,7 @@ describe('configManager', () => {
     };
 
     beforeEach(() => {
+        optionsReceived = {};
         listResponses = {
             '/tm/cm/device': [
                 {
@@ -67,10 +69,12 @@ describe('configManager', () => {
             deviceInfo() {
                 return Promise.resolve({ hostname, version });
             },
-            list(path) {
+            list(path, iControlOptions, retryOptions, options) {
                 // The path name here does not have a domain, but does include
                 // a query. listResponses are set up with just the pathname part.
                 const pathname = URL.parse(path, 'https://foo').pathname;
+                optionsReceived[path] = {};
+                Object.assign(optionsReceived[path], options);
                 return Promise.resolve(listResponses[pathname] || {});
             }
         };
@@ -118,7 +122,7 @@ describe('configManager', () => {
                             network: 'default'
                         },
                         route1: {
-                            target: 'myVlan',
+                            tmInterface: 'myVlan',
                             mtu: 1500,
                             name: 'route1',
                             network: '5.5.5.5',
@@ -435,7 +439,7 @@ describe('configManager', () => {
                     {
                         ldap: {
                             name: 'system-auth',
-                            sslCaCert: {
+                            sslCaCertFile: {
                                 name: 'do_ldapClientCert.crt',
                                 checksum: 'SHA1:1431:ad6c15a66e4386a2fd82bc1e156f3b1650eb9762',
                                 partition: 'Common'
@@ -465,6 +469,13 @@ describe('configManager', () => {
                     { id: 'gateway', newId: 'gw' },
                     { id: 'myProp1', newId: 'myObject.prop1' },
                     { id: 'myProp2', newId: 'myObject.prop2.prop' },
+                    {
+                        id: 'myPropWithAttributes',
+                        transform: [
+                            { id: 'attrWithNewId', newId: 'theNewId' },
+                            { id: 'attrWithoutNewId' }
+                        ]
+                    },
                     { id: 'network' },
                     { id: 'mtu' },
                     { id: 'type' }
@@ -479,12 +490,16 @@ describe('configManager', () => {
                 network: 'default',
                 mtu: 0,
                 myProp1: 'my property 1',
-                myProp2: 'my property 2'
+                myProp2: 'my property 2',
+                myPropWithAttributes: {
+                    attrWithNewId: 'attrNewIdVal',
+                    attrWithoutNewId: 'attrNoNewIdVal'
+                }
             }
         ];
 
         const configManager = new ConfigManager(configItems, bigIpMock);
-        return configManager.get({}, state, doState)
+        return configManager.get({}, state, doState, { translateToNewId: true })
             .then(() => {
                 assert.strictEqual(
                     state.currentConfig.Common.ManagementRoute.default.gw,
@@ -502,10 +517,18 @@ describe('configManager', () => {
                     state.currentConfig.Common.ManagementRoute.default.myObject.prop2.prop,
                     'my property 2'
                 );
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.myPropWithAttributes.theNewId,
+                    'attrNewIdVal'
+                );
+                assert.strictEqual(
+                    state.currentConfig.Common.ManagementRoute.default.myPropWithAttributes.attrWithoutNewId,
+                    'attrNoNewIdVal'
+                );
             });
     });
 
-    it('should handle references containing stringToInt and newId property mappings', () => {
+    it('should handle references containing stringToInt', () => {
         const configItems = [
             {
                 path: '/tm/net/routing/prefix-list',
@@ -516,10 +539,7 @@ describe('configManager', () => {
                 ],
                 references: {
                     entriesReference: [
-                        { id: 'name', stringToInt: true },
-                        { id: 'prefixLenRange', newId: 'prefixLengthRange', stringToInt: true },
-                        { id: 'myProp1', newId: 'myObject.prop1' },
-                        { id: 'myProp2', newId: 'myObject.prop2.prop' }
+                        { id: 'name', stringToInt: true }
                     ]
                 }
             }
@@ -533,12 +553,10 @@ describe('configManager', () => {
                 }
             }
         ];
+
         listResponses['/tm/net/routing/prefix-list/~Common~examplePrefixList/entries'] = [
             {
-                name: '20',
-                prefixLenRange: '16',
-                myProp1: 'my property 1',
-                myProp2: 'my property 2'
+                name: '20'
             }
         ];
 
@@ -552,18 +570,61 @@ describe('configManager', () => {
                             name: 'examplePrefixList',
                             entries: [
                                 {
-                                    name: 20,
-                                    prefixLengthRange: 16,
-                                    myObject: {
-                                        prop1: 'my property 1',
-                                        prop2: {
-                                            prop: 'my property 2'
-                                        }
-                                    }
+                                    name: 20
                                 }
                             ]
                         }
                     }
+                );
+            });
+    });
+
+    it('should pass on required fields property', () => {
+        const configItems = [
+            {
+                path: '/tm/sys/disk/directory',
+                schemaClass: 'Disk',
+                properties: [
+                    {
+                        id: 'apiRawValues',
+                        transform: [
+                            {
+                                id: 'applicationData',
+                                capture: 'appdata\\s+([0-9]+)',
+                                captureProperty: 'apiAnonymous'
+                            }
+                        ],
+                        required: true
+                    }
+                ],
+                nameless: true
+            },
+            {
+                path: '/tm/net/tunnels/tunnel',
+                schemaClass: 'Tunnel',
+                properties: [
+                    { id: 'autoLasthop', newId: 'autoLastHop' },
+                    { id: 'mtu' },
+                    { id: 'profile', newId: 'tunnelType' },
+                    { id: 'tos', newId: 'typeOfService' },
+                    { id: 'usePmtu', truth: 'enabled', falsehood: 'disabled' }
+                ]
+            }
+        ];
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                const diskPath = '/tm/sys/disk/directory?%24filter=partition%20eq%20Common&%24select=apiRawValues%2Cname';
+                assert.deepStrictEqual(
+                    optionsReceived[diskPath],
+                    {
+                        requiredFields: ['apiRawValues']
+                    }
+                );
+                assert.deepStrictEqual(
+                    optionsReceived['/tm/net/tunnels/tunnel?%24filter=partition%20eq%20Common&%24select=autoLasthop%2Cmtu%2Cprofile%2Ctos%2CusePmtu%2Cname'],
+                    {}
                 );
             });
     });
@@ -580,13 +641,13 @@ describe('configManager', () => {
             return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepStrictEqual(
-                        state.currentConfig.Common.FailoverUnicast.addressPorts,
+                        state.currentConfig.Common.FailoverUnicast.unicastAddress,
                         'none'
                     );
                 });
         });
 
-        it('should map to the correct value when using addressPorts', () => {
+        it('should map to the correct value when using unicastAddress', () => {
             listResponses[`/tm/cm/device/~Common~${deviceName}`] = {
                 name: deviceName,
                 unicastAddress: [
@@ -610,13 +671,13 @@ describe('configManager', () => {
                     assert.deepStrictEqual(
                         state.currentConfig.Common.FailoverUnicast,
                         {
-                            addressPorts: [
+                            unicastAddress: [
                                 {
-                                    address: '1.1.1.106',
+                                    ip: '1.1.1.106',
                                     port: 1026
                                 },
                                 {
-                                    address: '1.1.1.2',
+                                    ip: '1.1.1.2',
                                     port: 777
                                 }
                             ]
@@ -737,13 +798,13 @@ describe('configManager', () => {
                         {
                             hostname: 'host.org',
                             consoleInactivityTimeout: 60,
-                            cliInactivityTimeout: 1800 // minutes converted to seconds
+                            idleTimeout: 1800 // minutes converted to seconds
                         }
                     );
                 });
         });
 
-        it('should map cliInactivityTimeout to 0 if disabled', () => {
+        it('should map idleTimeout to 0 if disabled', () => {
             const configItems = [
                 {
                     path: '/tm/sys/global-settings',
@@ -777,7 +838,7 @@ describe('configManager', () => {
                         {
                             hostname: 'host.org',
                             consoleInactivityTimeout: 60,
-                            cliInactivityTimeout: 0
+                            idleTimeout: 0
                         }
                     );
                 });
@@ -816,7 +877,7 @@ describe('configManager', () => {
                     assert.deepEqual(
                         state.currentConfig.Common.System,
                         {
-                            cliInactivityTimeout: 1800 // minutes converted to seconds
+                            idleTimeout: 1800 // minutes converted to seconds
                         }
                     );
                 });
@@ -1847,7 +1908,7 @@ describe('configManager', () => {
                     },
                     holdTime: 35,
                     keepAlive: 10,
-                    localAS: 65010,
+                    localAs: 65010,
                     routerId: '10.1.1.1',
                     addressFamily: [
                         {
@@ -1934,7 +1995,7 @@ describe('configManager', () => {
             listResponses['/tm/net/routing/bgp/~Common~peerGroup/peer-group'] = [
                 {
                     name: 'Neighbor_IN',
-                    remoteAS: 65020,
+                    remoteAs: 65020,
                     addressFamily: [
                         {
                             name: 'ipv4',
@@ -1976,18 +2037,18 @@ describe('configManager', () => {
                         exampleBGP: {
                             name: 'exampleBGP',
                             gracefulRestart: {
-                                gracefulResetEnabled: true,
+                                gracefulReset: true,
                                 restartTime: 120,
-                                stalePathTime: 0
+                                stalepathTime: 0
                             },
                             holdTime: 35,
                             keepAlive: 10,
-                            localAS: 65010,
+                            localAs: 65010,
                             routerId: '10.1.1.1',
-                            addressFamilies: [
+                            addressFamily: [
                                 {
-                                    internetProtocol: 'ipv4',
-                                    redistributionList: [
+                                    name: 'ipv4',
+                                    redistribute: [
                                         {
                                             routeMap: '/Common/routeMap1',
                                             routingProtocol: 'kernel'
@@ -1999,8 +2060,8 @@ describe('configManager', () => {
                                     ]
                                 },
                                 {
-                                    internetProtocol: 'ipv6',
-                                    redistributionList: [
+                                    name: 'ipv6',
+                                    redistribute: [
                                         {
                                             routeMap: '/Common/routeMap1',
                                             routingProtocol: 'kernel'
@@ -2014,50 +2075,50 @@ describe('configManager', () => {
                             ],
                             neighbors: [
                                 {
-                                    address: '10.1.1.2',
+                                    name: '10.1.1.2',
                                     peerGroup: 'Neighbor_IN'
                                 },
                                 {
-                                    address: '10.1.1.3',
+                                    name: '10.1.1.3',
                                     peerGroup: 'Neighbor_OUT'
                                 },
                                 {
-                                    address: '10.1.1.4',
+                                    name: '10.1.1.4',
                                     peerGroup: 'Neighbor_IN'
                                 },
                                 {
-                                    address: '10.1.1.5',
+                                    name: '10.1.1.5',
                                     peerGroup: 'Neighbor_OUT'
                                 }
                             ],
                             peerGroups: [
                                 {
                                     name: 'Neighbor_IN',
-                                    remoteAS: 65020,
-                                    addressFamilies: [
+                                    remoteAs: 65020,
+                                    addressFamily: [
                                         {
-                                            internetProtocol: 'ipv4',
+                                            name: 'ipv4',
                                             routeMap: {
                                                 in: '/Common/routeMap1',
                                                 out: '/Common/routeMap1'
                                             },
-                                            softReconfigurationInboundEnabled: true
+                                            softReconfigurationInbound: true
                                         },
                                         {
-                                            internetProtocol: 'ipv6',
+                                            name: 'ipv6',
                                             routeMap: {},
-                                            softReconfigurationInboundEnabled: false
+                                            softReconfigurationInbound: false
                                         }
                                     ]
                                 },
                                 {
                                     name: 'Neighbor_OUT',
-                                    remoteAS: 65030,
-                                    addressFamilies: [
+                                    remoteAs: 65030,
+                                    addressFamily: [
                                         {
-                                            internetProtocol: 'ipv4',
+                                            name: 'ipv4',
                                             routeMap: {},
-                                            softReconfigurationInboundEnabled: false
+                                            softReconfigurationInbound: false
                                         }
                                     ]
                                 }
@@ -2261,13 +2322,13 @@ describe('configManager', () => {
                                     name: 20,
                                     action: 'permit',
                                     prefix: '10.3.3.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLenRange: 32
                                 },
                                 {
                                     name: 30,
                                     action: 'deny',
                                     prefix: '1111:2222:3333:4444::/64',
-                                    prefixLengthRange: 24
+                                    prefixLenRange: 24
                                 }
                             ]
                         }
@@ -2396,7 +2457,7 @@ describe('configManager', () => {
                         state.currentConfig.Common.GSLBGlobals,
                         {
                             general: {
-                                synchronizationEnabled: true,
+                                synchronization: true,
                                 synchronizationGroupName: 'syncGroup',
                                 synchronizationTimeTolerance: 123,
                                 synchronizationTimeout: 100
@@ -2488,48 +2549,48 @@ describe('configManager', () => {
                         {
                             gslbServer: {
                                 name: 'gslbServer',
-                                remark: 'description',
+                                description: 'description',
                                 enabled: false,
-                                serverType: 'generic-host',
-                                proberPreferred: 'pool',
+                                product: 'generic-host',
+                                proberPreference: 'pool',
                                 proberFallback: 'any-available',
                                 proberPool: 'gslbProberPool',
-                                bpsLimit: 50,
-                                bpsLimitEnabled: true,
-                                ppsLimit: 60,
-                                ppsLimitEnabled: true,
-                                connectionsLimit: 70,
-                                connectionsLimitEnabled: true,
-                                cpuUsageLimit: 10,
-                                cpuUsageLimitEnabled: true,
-                                memoryLimit: 12,
-                                memoryLimitEnabled: true,
-                                serviceCheckProbeEnabled: false,
-                                pathProbeEnabled: false,
-                                snmpProbeEnabled: false,
-                                dataCenter: 'gslbDataCenter',
+                                limitMaxBps: 50,
+                                limitMaxBpsStatus: true,
+                                limitMaxPps: 60,
+                                limitMaxPpsStatus: true,
+                                limitMaxConnections: 70,
+                                limitMaxConnectionsStatus: true,
+                                limitCpuUsage: 10,
+                                limitCpuUsageStatus: true,
+                                limitMemAvail: 12,
+                                limitMemAvailStatus: true,
+                                iqAllowServiceCheck: false,
+                                iqAllowPath: false,
+                                iqAllowSnmp: false,
+                                datacenter: 'gslbDataCenter',
                                 devices: [
                                     {
-                                        remark: 'deviceDescription1',
-                                        address: '10.0.0.1',
-                                        addressTranslation: '192.0.2.12'
+                                        description: 'deviceDescription1',
+                                        name: '10.0.0.1',
+                                        translation: '192.0.2.12'
                                     },
                                     {
-                                        remark: 'deviceDescription2',
-                                        address: '10.0.0.2',
-                                        addressTranslation: '192.0.2.13'
+                                        description: 'deviceDescription2',
+                                        name: '10.0.0.2',
+                                        translation: '192.0.2.13'
                                     }
                                 ],
                                 virtualServers: [
                                     {
                                         name: 'virtualServer1',
-                                        remark: 'virtual server description one',
+                                        description: 'virtual server description one',
                                         enabled: false,
                                         address: '192.0.10.20',
                                         port: 443,
-                                        addressTranslation: '10.10.0.10',
-                                        addressTranslationPort: 23,
-                                        monitors: [
+                                        translationAddress: '10.10.0.10',
+                                        translationPort: 23,
+                                        monitor: [
                                             '/Common/bigip',
                                             '/Common/tcp'
                                         ]
@@ -2539,13 +2600,13 @@ describe('configManager', () => {
                                         enabled: true,
                                         address: 'a989:1c34:9c::b099:c1c7:8bfe',
                                         port: 0,
-                                        addressTranslationPort: 0,
-                                        monitors: []
+                                        translationPort: 0,
+                                        monitor: []
                                     }
                                 ],
-                                exposeRouteDomainsEnabled: true,
-                                virtualServerDiscoveryMode: 'enabled',
-                                monitors: [
+                                exposeRouteDomains: true,
+                                virtualServerDiscovery: 'enabled',
+                                monitor: [
                                     '/Common/http',
                                     '/Common/http_head_f5'
                                 ]
@@ -2599,16 +2660,16 @@ describe('configManager', () => {
             const getExpected = name => ({
                 name,
                 enabled: true,
-                bpsLimitEnabled: false,
-                connectionsLimitEnabled: false,
-                cpuUsageLimitEnabled: false,
-                exposeRouteDomainsEnabled: false,
-                memoryLimitEnabled: false,
-                pathProbeEnabled: false,
-                ppsLimitEnabled: false,
-                serviceCheckProbeEnabled: false,
-                snmpProbeEnabled: false,
-                monitors: [],
+                limitMaxBpsStatus: false,
+                limitMaxConnectionsStatus: false,
+                limitCpuUsageStatus: false,
+                exposeRouteDomains: false,
+                limitMemAvailStatus: false,
+                iqAllowPath: false,
+                limitMaxPpsStatus: false,
+                iqAllowServiceCheck: false,
+                iqAllowSnmp: false,
+                monitor: [],
                 devices: []
             });
 
@@ -2668,15 +2729,15 @@ describe('configManager', () => {
                                     defaultsFrom: '/Common/http',
                                     fullPath: '/Common/GSLBmonitor',
                                     generation: 0,
-                                    ignoreDownResponseEnabled: true,
+                                    ignoreDownResponse: true,
                                     interval: 100,
                                     monitorType: 'http',
                                     probeTimeout: 110,
-                                    receive: 'HTTP',
-                                    remark: 'description',
-                                    reverseEnabled: true,
+                                    recv: 'HTTP',
+                                    description: 'description',
+                                    reverse: true,
                                     send: 'HEAD / HTTP/1.0\\r\\n',
-                                    target: '1.1.1.1:80',
+                                    destination: '1.1.1.1:80',
                                     timeout: 1000,
                                     transparent: true
                                 }
@@ -2730,19 +2791,19 @@ describe('configManager', () => {
                         {
                             gslbProberPool: {
                                 name: 'gslbProberPool',
-                                remark: 'description',
+                                description: 'description',
                                 enabled: false,
-                                lbMode: 'round-robin',
+                                loadBalancingMode: 'round-robin',
                                 members: [
                                     {
-                                        server: 'serverTwo',
-                                        remark: 'member description two',
+                                        name: 'serverTwo',
+                                        description: 'member description two',
                                         enabled: true,
                                         order: 0
                                     },
                                     {
-                                        server: 'serverOne',
-                                        remark: 'member description one',
+                                        name: 'serverOne',
+                                        description: 'member description one',
                                         enabled: false,
                                         order: 1
                                     }
@@ -2820,8 +2881,8 @@ describe('configManager', () => {
                 }
             ];
 
-            const getExpected = server => ({
-                server,
+            const getExpected = name => ({
+                name,
                 enabled: true
             });
 
@@ -2916,23 +2977,23 @@ describe('configManager', () => {
                         {
                             firewallPolicy: {
                                 name: 'firewallPolicy',
-                                remark: 'firewall policy description',
+                                description: 'firewall policy description',
                                 rules: [
                                     {
                                         name: 'firewallPolicyRuleOne',
-                                        remark: 'firewall policy rule one description',
+                                        description: 'firewall policy rule one description',
                                         action: 'accept',
-                                        protocol: 'any',
-                                        loggingEnabled: false,
+                                        ipProtocol: 'any',
+                                        log: false,
                                         source: {},
                                         destination: {}
                                     },
                                     {
                                         name: 'firewallPolicyRuleTwo',
-                                        remark: 'firewall policy rule two description',
+                                        description: 'firewall policy rule two description',
                                         action: 'reject',
-                                        protocol: 'tcp',
-                                        loggingEnabled: true,
+                                        ipProtocol: 'tcp',
+                                        log: true,
                                         source: {
                                             vlans: [
                                                 '/Common/vlan1',

@@ -51,8 +51,8 @@ describe('state', () => {
             mostRecentTask: 1234
         };
 
-        const state = new State(existingState);
-        assert.deepEqual(state,
+        const state = JSON.parse(JSON.stringify(new State(existingState)));
+        assert.deepStrictEqual(state,
             {
                 originalConfig: {
                     ABCD: {
@@ -108,35 +108,9 @@ describe('state', () => {
         assert.ok(state.tasks['5678']);
     });
 
-    it('should upgrade a state from an older version', () => {
-        const existingState = {
-            result: {
-                foo: 'bar'
-            },
-            internalDeclaration: {
-                hello: 'world'
-            },
-            currentConfig: {
-                DNS: '1234'
-            },
-            originalConfig: {
-                NTP: '5678'
-            }
-        };
-
-        const state = new State(existingState);
-        assert.ok(state.tasks);
-        assert.ok(state.mostRecentTask);
-        const mostRecentTask = state.mostRecentTask;
-        existingState.id = mostRecentTask;
-        assert.ok(state.tasks[mostRecentTask].lastUpdate);
-        delete state.tasks[mostRecentTask].lastUpdate;
-
-        // The task gets a new id
-        const id = state.tasks[mostRecentTask].id;
-        assert.deepEqual(state.tasks[mostRecentTask],
-            {
-                id,
+    describe('upgrade', () => {
+        it('should add tasks and originalConfig if missing', () => {
+            const existingState = {
                 result: {
                     foo: 'bar'
                 },
@@ -149,7 +123,116 @@ describe('state', () => {
                 originalConfig: {
                     NTP: '5678'
                 }
-            });
+            };
+
+            const state = new State(existingState);
+            assert.ok(state.tasks);
+            assert.ok(state.mostRecentTask);
+            const mostRecentTask = state.mostRecentTask;
+            existingState.id = mostRecentTask;
+            assert.ok(state.tasks[mostRecentTask].lastUpdate);
+            delete state.tasks[mostRecentTask].lastUpdate;
+
+            // The task gets a new id
+            const id = state.tasks[mostRecentTask].id;
+            assert.deepStrictEqual(JSON.parse(JSON.stringify(state.tasks[mostRecentTask])),
+                {
+                    id,
+                    result: {
+                        foo: 'bar'
+                    },
+                    internalDeclaration: {
+                        hello: 'world'
+                    },
+                    currentConfig: {
+                        DNS: '1234'
+                    },
+                    originalConfig: {
+                        NTP: '5678'
+                    }
+                });
+        });
+
+        it('should replace configItems properties newIds with ids in originalConfig', () => {
+            const existingState = {
+                result: {
+                    foo: 'bar'
+                },
+                internalDeclaration: {
+                    hello: 'world'
+                },
+                currentConfig: {
+                    DNS: '1234'
+                },
+                tasks: {},
+                originalConfig: {
+                    myConfigId: {
+                        Common: {
+                            NTP: {
+                                servers: ['server1']
+                            },
+                            VLAN: {
+                                myVlan: {
+                                    mtu: 1400,
+                                    failsafeEnabled: true
+                                }
+                            },
+                            SnmpCommunity: {
+                                nothingSpecial: {
+                                    name: 'nothingSpecial',
+                                    access: 'ro',
+                                    ipv6: false,
+                                    source: 'all',
+                                    oid: '.1'
+                                },
+                                snmpCommunityWithSpecialChar: {
+                                    name: 'special!community',
+                                    access: 'ro',
+                                    ipv6: false,
+                                    source: 'all',
+                                    oid: '.1'
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            const state = new State(existingState);
+            const originalConfig = state.originalConfig.myConfigId;
+            assert.deepStrictEqual(
+                originalConfig.Common,
+                {
+                    NTP: {
+                        servers: ['server1']
+                    },
+                    VLAN: {
+                        myVlan: {
+                            mtu: 1400,
+                            failsafe: true
+                        }
+                    },
+                    SnmpCommunity: {
+                        nothingSpecial: {
+                            name: 'nothingSpecial',
+                            communityName: 'nothingSpecial',
+                            access: 'ro',
+                            ipv6: false,
+                            source: 'all',
+                            oidSubset: '.1'
+                        },
+                        snmpCommunityWithSpecialChar: {
+                            name: 'snmpCommunityWithSpecialChar',
+                            communityName: 'special!community',
+                            access: 'ro',
+                            ipv6: false,
+                            source: 'all',
+                            oidSubset: '.1'
+                        }
+                    }
+                }
+            );
+        });
     });
 
     it('should set the result properties', () => {
@@ -169,7 +252,7 @@ describe('state', () => {
         assert.strictEqual(state.getCode(taskId), 1);
         assert.strictEqual(state.getMessage(taskId), 'foo');
         assert.strictEqual(state.getStatus(taskId), 'bar');
-        assert.deepEqual(state.getErrors(taskId), ['my', 'list', 'of', 'errors']);
+        assert.deepStrictEqual(state.getErrors(taskId), ['my', 'list', 'of', 'errors']);
     });
 
     it('should set internalDeclaration', () => {
@@ -185,7 +268,7 @@ describe('state', () => {
         const taskId = state.addTask();
 
         state.setDeclaration(taskId, declaration);
-        assert.deepEqual(state.getDeclaration(taskId),
+        assert.deepStrictEqual(state.getDeclaration(taskId),
             {
                 foo: {
                     bar: {
@@ -207,7 +290,7 @@ describe('state', () => {
 
         const taskId = state.addTask();
         state.setCurrentConfig(taskId, currentConfig);
-        assert.deepEqual(state.getCurrentConfig(taskId),
+        assert.deepStrictEqual(state.getCurrentConfig(taskId),
             {
                 foo: {
                     bar: {
@@ -229,7 +312,7 @@ describe('state', () => {
 
         const taskId = state.addTask();
         state.tasks[taskId].originalConfig = originalConfig;
-        assert.deepEqual(state.getOriginalConfigByTaskId(taskId),
+        assert.deepStrictEqual(state.getOriginalConfigByTaskId(taskId),
             {
                 foo: {
                     bar: {
@@ -250,7 +333,7 @@ describe('state', () => {
         };
 
         state.setOriginalConfigByConfigId('1234', originalConfig);
-        assert.deepEqual(state.getOriginalConfigByConfigId('1234'),
+        assert.deepStrictEqual(state.getOriginalConfigByConfigId('1234'),
             {
                 foo: {
                     bar: {
@@ -272,7 +355,7 @@ describe('state', () => {
 
         state.setOriginalConfigByConfigId('1234', originalConfig);
         state.deleteOriginalConfigByConfigId('1234', originalConfig);
-        assert.deepEqual(state.getOriginalConfigByConfigId('1234'), undefined);
+        assert.strictEqual(state.getOriginalConfigByConfigId('1234'), null);
     });
 
     it('should mask passwords', () => {
@@ -338,7 +421,7 @@ describe('state', () => {
         assert.strictEqual(state.getCode(taskId), 1);
         assert.strictEqual(state.getMessage(taskId), 'foo');
         assert.strictEqual(state.getStatus(taskId), 'bar');
-        assert.deepEqual(state.getErrors(taskId), ['my', 'list', 'of', 'errors']);
+        assert.deepStrictEqual(state.getErrors(taskId), ['my', 'list', 'of', 'errors']);
     });
 
     it('should retrieve task by id', () => {
@@ -361,6 +444,6 @@ describe('state', () => {
             query: {}
         };
         state.setRequestOptions(taskId, reqOpts);
-        assert.deepEqual(state.getRequestOptions(taskId), reqOpts);
+        assert.deepStrictEqual(state.getRequestOptions(taskId), reqOpts);
     });
 });

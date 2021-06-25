@@ -36,6 +36,7 @@ const TaskResponse = require('../lib/taskResponse');
 const State = require('../lib/state');
 const SshUtil = require('../lib/sshUtil');
 const Validator = require('../lib/validator');
+const configItems = require('../lib/configItems.json');
 
 const STATUS = require('../lib/sharedConstants').STATUS;
 const EVENTS = require('../lib/sharedConstants').EVENTS;
@@ -441,7 +442,7 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
             return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId);
         })
         .then(() => {
-            declarationHandler = new DeclarationHandler(this.bigIps[taskId], this.eventEmitter);
+            declarationHandler = new DeclarationHandler(this.bigIps[taskId], this.eventEmitter, configItems);
             return declarationHandler.process(declaration, this.state.doState.getTask(taskId));
         })
         .then((status) => {
@@ -687,7 +688,7 @@ function pollTcw(tcwId, taskId, incomingRestOp) {
 function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
-    const configManager = new ConfigManager(`${__dirname}/../lib/configItems.json`, bigIp);
+    const configManager = new ConfigManager(configItems, bigIp);
     return configManager.get(declaration, this.state.doState.getTask(taskId), this.state.doState)
         .then(() => save.call(this));
 }

@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
              
+      * - 1.22
+        - Updated the documentation for Declarative Onboarding v1.22.0.  This release contains the following changes: |br| * Added support for Auto Last Hop on VLANs (see :ref:`Auto Last Hop<alhvlan>`) |br| * Properties in the 'traces', 'currentConfig', and 'originalConfig' sections of the response to a request now match what is sent to iControl REST rather than what is in the declaration |br| |br| Issues Resolved: |br| * DO might reboot the BIG-IP system when the same configurations/declaration posted, `GitHub Issue 227 <https://github.com/F5Networks/f5-declarative-onboarding/issues/227>`_ |br| * Match the accepted **hypervisor** list on DO with what is accepted by BIG-IQ, `GitHub Issue 216 <https://github.com/F5Networks/f5-declarative-onboarding/issues/216>`_ |br| * DeviceGroup does not work with IPv6, `GitHub Issue 233 <https://github.com/F5Networks/f5-declarative-onboarding/issues/233>`_ |br| * Race condition when creating self-ip on non-default route-domain, `GitHub Issue 234 <https://github.com/F5Networks/f5-declarative-onboarding/issues/234>`_ |br| * Failover Unicast "cannot read property indexOf of undefined"
+        - 6-28-21
+
       * - 1.21.1
         - Released Declarative Onboarding 1.21.1 as a LTS (Long Term Support) version. See the Declarative Onboarding |supportmd| for information about the Declarative Onboarding support policy.
         - 6-23-21

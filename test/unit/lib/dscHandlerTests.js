@@ -138,13 +138,13 @@ describe('dscHandler', () => {
             };
         });
 
-        it('should process a FailoverUnicast with addressPorts', () => {
+        it('should process a FailoverUnicast with unicastAddress', () => {
             const declaration = {
                 Common: {
                     FailoverUnicast: {
-                        addressPorts: [
-                            { address: `${address}/24`, port },
-                            { address: '5.6.7.8', port: 3456 }
+                        unicastAddress: [
+                            { ip: `${address}/24`, port },
+                            { ip: '5.6.7.8', port: 3456 }
                         ]
                     }
                 }
@@ -162,13 +162,13 @@ describe('dscHandler', () => {
                 });
         });
 
-        it('should strip CIDR from addressPorts.address', () => {
+        it('should strip CIDR from unicastAddress.address', () => {
             const declaration = {
                 Common: {
                     FailoverUnicast: {
-                        addressPorts: [
+                        unicastAddress: [
                             {
-                                address: `${address}/24`,
+                                ip: `${address}/24`,
                                 port
                             }
                         ]
@@ -198,6 +198,35 @@ describe('dscHandler', () => {
                     assert.strictEqual(bodySent.unicastAddress, 'none');
                 });
         });
+
+        it('should handle a single unicast address', () => {
+            const declaration = {
+                Common: {
+                    FailoverUnicast: {
+                        unicastAddress: [
+                            {
+                                ip: '224.0.0.100',
+                                port: 1026
+                            }
+                        ]
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(
+                        bodySent.unicastAddress,
+                        [
+                            {
+                                port: 1026,
+                                ip: '224.0.0.100'
+                            }
+                        ]
+                    );
+                });
+        });
     });
 
     describe('FailoverMulticast', () => {
@@ -215,9 +244,9 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     FailoverMulticast: {
-                        interface: 'exampleInterface',
-                        address: '1.2.3.4',
-                        port: 765
+                        multicastInterface: 'exampleInterface',
+                        multicastIp: '1.2.3.4',
+                        multicastPort: 765
                     }
                 }
             };
@@ -238,7 +267,7 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     FailoverMulticast: {
-                        interface: 'none'
+                        multicastInterface: 'none'
                     }
                 }
             };
@@ -271,8 +300,8 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        primaryIp: 'any6',
-                        secondaryIp: 'any6'
+                        mirrorIp: 'any6',
+                        mirrorSecondaryIp: 'any6'
                     }
                 }
             };
@@ -290,8 +319,8 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        primaryIp: '1.0.0.0',
-                        secondaryIp: 'any6'
+                        mirrorIp: '1.0.0.0',
+                        mirrorSecondaryIp: 'any6'
                     }
                 }
             };
@@ -309,8 +338,8 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        primaryIp: 'any6',
-                        secondaryIp: '1.0.0.0'
+                        mirrorIp: 'any6',
+                        mirrorSecondaryIp: '1.0.0.0'
                     }
                 }
             };
@@ -328,8 +357,8 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        primaryIp: '1.0.0.0',
-                        secondaryIp: '2.0.0.0'
+                        mirrorIp: '1.0.0.0',
+                        mirrorSecondaryIp: '2.0.0.0'
                     }
                 }
             };
@@ -1011,6 +1040,44 @@ describe('dscHandler', () => {
                         'Should remove old device from device group');
                     assert.deepStrictEqual(joinClusterMembers,
                         [['do.test.1', 'do.test.2', 'bigip1.example.com'], ['do.test.2', 'do.test.3'], []]);
+                });
+        });
+
+        it('should handle minimizing IP when converting to hostname', () => {
+            sinon.stub(doUtil, 'getBigIp').resolves(bigIpMock);
+
+            const declaration = {
+                Common: {
+                    DeviceGroup: {
+                        failoverGroup: {
+                            type: 'sync-failover',
+                            members: ['fdc3:eaf2:d8b9:123a:0000:0000:0000:0001', 'fdc3:eaf2:d8b9:123a:0000:0000:0000:0002'],
+                            owner: 'fdc3:eaf2:d8b9:123a:0000:0000:0000:0001'
+                        }
+                    }
+                }
+            };
+
+            bigIpMock.list = (path) => {
+                if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
+                    return Promise.resolve(deviceList);
+                }
+                if (path === '/tm/cm/device') {
+                    return Promise.resolve([
+                        {
+                            name: 'my.bigip.com',
+                            configsyncIp: 'fdc3:eaf2:d8b9:123a::1',
+                            managementIp: '1.2.3.4'
+                        }
+                    ]);
+                }
+                return Promise.reject(new Error(`Unexpected path: ${path}`));
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
                 });
         });
     });

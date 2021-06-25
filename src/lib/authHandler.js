@@ -78,7 +78,8 @@ function handleRemoteAuthRoles() {
         rr.attribute = decl.attribute;
         rr.console = decl.console;
         // deny is equivalent to denyRemoteAccess, thus remoteAccess === true is equivalent to deny === false
-        rr.deny = (decl.remoteAccess) ? 'disabled' : 'enabled';
+        // and remoteAccess in the original declaration is deny in the parsed declaration
+        rr.deny = (decl.deny) ? 'disabled' : 'enabled';
         rr.lineOrder = decl.lineOrder;
         rr.role = decl.role;
         rr.userPartition = decl.userPartition;
@@ -174,25 +175,25 @@ function handleLdap() {
         name: AUTH.SUBCLASSES_NAME,
         partition: 'Common',
         bindDn: ldap.bindDn || 'none',
-        bindPw: ldap.bindPassword || 'none',
+        bindPw: ldap.bindPw || 'none',
         bindTimeout: ldap.bindTimeout,
-        checkHostAttr: ldap.checkBindPassword ? 'enabled' : 'disabled',
-        checkRolesGroup: ldap.checkRemoteRole ? 'enabled' : 'disabled',
+        checkHostAttr: ldap.checkHostAttr ? 'enabled' : 'disabled',
+        checkRolesGroup: ldap.checkRolesGroup ? 'enabled' : 'disabled',
         filter: ldap.filter || 'none',
         groupDn: ldap.groupDn || 'none',
         groupMemberAttribute: ldap.groupMemberAttribute || 'none',
         idleTimeout: ldap.idleTimeout,
-        ignoreAuthInfoUnavail: ldap.ignoreAuthInfoUnavailable ? 'yes' : 'no',
+        ignoreAuthInfoUnavail: ldap.ignoreAuthInfoUnavail ? 'yes' : 'no',
         ignoreUnknownUser: ldap.ignoreUnknownUser ? 'enabled' : 'disabled',
         loginAttribute: ldap.loginAttribute || 'none',
         port: ldap.port,
         referrals: ldap.referrals ? 'yes' : 'no',
-        scope: ldap.searchScope,
+        scope: ldap.scope,
         searchBaseDn: ldap.searchBaseDn || 'none',
         searchTimeout: ldap.searchTimeout,
         servers: ldap.servers,
         ssl: ldap.ssl,
-        sslCaCertFile: ldap.sslCaCert ? getCertPath(ldap.sslCaCert) : 'none',
+        sslCaCertFile: ldap.sslCaCertFile ? getCertPath(ldap.sslCaCertFile) : 'none',
         sslCheckPeer: ldap.sslCheckPeer ? 'enabled' : 'disabled',
         sslCiphers: ldap.sslCiphers ? ldap.sslCiphers.join(':') : '',
         sslClientCert: ldap.sslClientCert ? getCertPath(ldap.sslClientCert) : 'none',
@@ -203,9 +204,9 @@ function handleLdap() {
 
     const options = ldapObj.bindPw ? { silent: true } : {};
 
-    if (ldap.sslCaCert && ldap.sslCaCert.base64) {
+    if (ldap.sslCaCertFile && ldap.sslCaCertFile.base64) {
         certPromises.push(
-            handleCert.call(this, 'do_ldapCaCert.crt', ldap.sslCaCert, PATHS.SSLCert)
+            handleCert.call(this, 'do_ldapCaCert.crt', ldap.sslCaCertFile, PATHS.SSLCert)
         );
     }
     if (ldap.sslClientCert && ldap.sslClientCert.base64) {
@@ -256,9 +257,9 @@ function handleRemoteUsersDefaults() {
     return this.bigIp.modify(
         PATHS.AuthRemoteUser,
         {
-            defaultPartition: authDefaults.partitionAccess,
-            defaultRole: authDefaults.role,
-            remoteConsoleAccess: authDefaults.terminalAccess
+            defaultPartition: authDefaults.defaultPartition,
+            defaultRole: authDefaults.defaultRole,
+            remoteConsoleAccess: authDefaults.remoteConsoleAccess
         }
     );
 }

@@ -309,14 +309,14 @@ function applyRouteDomainFixes(declaration, currentConfig) {
 }
 
 /**
- * Convert FailoverUnicasts to use addressPorts immediately
+ * Convert FailoverUnicasts to use unicastAddress immediately
  *
  * @param {Object} declaration - User provided declaration
  */
 function applyFailoverUnicastFixes(declaration) {
     if (declaration.Common.FailoverUnicast && declaration.Common.FailoverUnicast.address) {
-        if (declaration.Common.FailoverUnicast.addressPorts) {
-            // If there is both and address and addressPorts at this point
+        if (declaration.Common.FailoverUnicast.unicastAddress) {
+            // If there is both and address and unicastAddress at this point
             // then the user supplied two different Failover Unicast objects.
             // DO cannot guarantee which to use, thus we need to throw an error.
             const message = 'Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort.';
@@ -324,9 +324,9 @@ function applyFailoverUnicastFixes(declaration) {
             throw new Error(message);
         }
 
-        declaration.Common.FailoverUnicast.addressPorts = [
+        declaration.Common.FailoverUnicast.unicastAddress = [
             {
-                address: declaration.Common.FailoverUnicast.address,
+                ip: declaration.Common.FailoverUnicast.address,
                 port: declaration.Common.FailoverUnicast.port
             }
         ];
@@ -558,26 +558,26 @@ function applyGSLBServerFixes(declaration) {
 
     Object.keys(gslbServers).forEach((name) => {
         const server = gslbServers[name];
-        if (server.dataCenter.startsWith('/Common/')) {
-            server.dataCenter = server.dataCenter.split('/Common/')[1];
+        if (server.datacenter.startsWith('/Common/')) {
+            server.datacenter = server.datacenter.split('/Common/')[1];
         }
         if (server.proberPool && server.proberPool.startsWith('/Common/')) {
             server.proberPool = server.proberPool.split('/Common/')[1];
         }
-        if (!server.monitors && server.serverType === 'bigip') {
-            server.monitors = ['/Common/bigip'];
+        if (!server.monitor && server.product === 'bigip') {
+            server.monitor = ['/Common/bigip'];
         }
         server.virtualServers = server.virtualServers || [];
         server.virtualServers.forEach((virtualServer, i) => {
             virtualServer.name = virtualServer.name || `${i}`;
             virtualServer.address = doUtil.minimizeIP(virtualServer.address);
-            virtualServer.monitors = virtualServer.monitors || [];
-            if (virtualServer.addressTranslation) {
-                virtualServer.addressTranslation = doUtil.minimizeIP(virtualServer.addressTranslation);
+            virtualServer.monitor = virtualServer.monitor || [];
+            if (virtualServer.translationAddress) {
+                virtualServer.translationAddress = doUtil.minimizeIP(virtualServer.translationAddress);
             }
             delete virtualServer.label;
         });
-        server.monitors = server.monitors || [];
+        server.monitor = server.monitor || [];
         delete server.label;
     });
 }
@@ -607,9 +607,9 @@ function applyRouteMapFixes(declaration) {
  */
 function applyRoutingBgpFixes(declaration) {
     /**
-     * Fill in default addressFamilies entries for internet protocols ipv4 and ipv6 with the purpose of aligning current
+     * Fill in default addressFamily entries for internet protocols ipv4 and ipv6 with the purpose of aligning current
      * and desired configs.
-     * @param {Object} containingObj - object that contains the addressFamilies
+     * @param {Object} containingObj - object that contains the addressFamily
      * @param {Object} addressFamiliesDefaults - default values to add in after the entry is created
      */
 
@@ -617,27 +617,27 @@ function applyRoutingBgpFixes(declaration) {
         let hasIpv4 = false;
         let hasIpv6 = false;
 
-        // Fill in addressFamilies defaults that are hard to do within schema
-        containingObj.addressFamilies = containingObj.addressFamilies || [];
-        containingObj.addressFamilies.forEach((family) => {
-            hasIpv4 = family.internetProtocol === 'ipv4' ? true : hasIpv4;
-            hasIpv6 = family.internetProtocol === 'ipv6' ? true : hasIpv6;
+        // Fill in addressFamily defaults that are hard to do within schema
+        containingObj.addressFamily = containingObj.addressFamily || [];
+        containingObj.addressFamily.forEach((family) => {
+            hasIpv4 = family.name === 'ipv4' ? true : hasIpv4;
+            hasIpv6 = family.name === 'ipv6' ? true : hasIpv6;
         });
 
         if (!hasIpv4) {
             let unshiftObj = {
-                internetProtocol: 'ipv4'
+                name: 'ipv4'
             };
             unshiftObj = addressFamiliesDefaults ? Object.assign(unshiftObj, addressFamiliesDefaults) : unshiftObj;
-            containingObj.addressFamilies.unshift(unshiftObj);
+            containingObj.addressFamily.unshift(unshiftObj);
         }
 
         if (!hasIpv6) {
             let pushObj = {
-                internetProtocol: 'ipv6'
+                name: 'ipv6'
             };
             pushObj = addressFamiliesDefaults ? Object.assign(pushObj, addressFamiliesDefaults) : pushObj;
-            containingObj.addressFamilies.push(pushObj);
+            containingObj.addressFamily.push(pushObj);
         }
     }
 
@@ -647,38 +647,38 @@ function applyRoutingBgpFixes(declaration) {
     }
 
     doUtil.forEach(declaration, 'RoutingBGP', (tenant, bgp) => {
-        if (bgp.addressFamilies) {
+        if (bgp.addressFamily) {
             // add tenant prefix to addressFamilies routeMap property if needed to match current config
-            bgp.addressFamilies.forEach((family) => {
-                (family.redistributionList || []).forEach((redist) => {
+            bgp.addressFamily.forEach((family) => {
+                (family.redistribute || []).forEach((redist) => {
                     applyTenantPrefix(redist, 'routeMap', tenant);
                 });
-                if (family.redistributionList && family.redistributionList.length === 0) {
-                    delete family.redistributionList;
+                if (family.redistribute && family.redistribute.length === 0) {
+                    delete family.redistribute;
                 }
             });
 
             // If the internetProtocol 'all' is specified.  Split it up into 'ipv4' and 'ipv6'.
             // BIGIP does this and then iControl responds with the split result in the config manager.
             // Split it now so the current config and desired config will match.
-            if (bgp.addressFamilies.length === 1 && bgp.addressFamilies[0].internetProtocol === 'all') {
-                const ipv4 = JSON.parse(JSON.stringify(bgp.addressFamilies[0]));
-                ipv4.internetProtocol = 'ipv4';
-                const ipv6 = JSON.parse(JSON.stringify(bgp.addressFamilies[0]));
-                ipv6.internetProtocol = 'ipv6';
-                bgp.addressFamilies = [ipv4, ipv6];
+            if (bgp.addressFamily.length === 1 && bgp.addressFamily[0].name === 'all') {
+                const ipv4 = JSON.parse(JSON.stringify(bgp.addressFamily[0]));
+                ipv4.name = 'ipv4';
+                const ipv6 = JSON.parse(JSON.stringify(bgp.addressFamily[0]));
+                ipv6.name = 'ipv6';
+                bgp.addressFamily = [ipv4, ipv6];
             }
         }
 
-        // fill in missing addressFamilies defaults that are difficult to specify in schema
+        // fill in missing addressFamily defaults that are difficult to specify in schema
         processAddressFamiliesDefaults(bgp);
 
-        // sort addressFamilies by internetProtocol order ipv4 first
-        doUtil.sortArrayByValueString(bgp.addressFamilies, 'internetProtocol');
+        // sort addressFamilies by name order ipv4 first
+        doUtil.sortArrayByValueString(bgp.addressFamily, 'name');
 
         // sort redistributionList array in routingProtocol alphabetical order
-        bgp.addressFamilies.forEach((family) => {
-            doUtil.sortArrayByValueString(family.redistributionList, 'routingProtocol');
+        bgp.addressFamily.forEach((family) => {
+            doUtil.sortArrayByValueString(family.redistribute, 'routingProtocol');
         });
 
         // sort neighbors array in address alphabetical order
@@ -687,20 +687,20 @@ function applyRoutingBgpFixes(declaration) {
         // sort peerGroups array in name alphabetical order
         doUtil.sortArrayByValueString(bgp.peerGroups, 'name');
 
-        // fill in missing peerGroups addressFamilies defaults that are difficult to specify in schema
+        // fill in missing peerGroups addressFamily defaults that are difficult to specify in schema
         (bgp.peerGroups || []).forEach((peer) => {
             processAddressFamiliesDefaults(peer, {
                 routeMap: {},
-                softReconfigurationInboundEnabled: false
+                softReconfigurationInbound: false
             });
         });
 
         (bgp.peerGroups || []).forEach((peer) => {
-            if (peer.addressFamilies.length === 0) {
-                delete peer.addressFamilies;
+            if (peer.addressFamily.length === 0) {
+                delete peer.addressFamily;
             } else {
-                // add tenant prefix to peerGroups addressFamilies routeMap if needed to match current config
-                peer.addressFamilies.forEach((family) => {
+                // add tenant prefix to peerGroups addressFamily routeMap if needed to match current config
+                peer.addressFamily.forEach((family) => {
                     if (family.routeMap) {
                         applyTenantPrefix(family.routeMap, 'in', tenant);
                         applyTenantPrefix(family.routeMap, 'out', tenant);
@@ -744,8 +744,8 @@ function applyGSLBProberPoolFixes(declaration) {
     Object.keys(gslbProberPool).forEach((name) => {
         const proberPool = gslbProberPool[name];
         proberPool.members = (proberPool.members || []).map((member, index) => ({
-            server: member.server.startsWith('/Common/') ? member.server.split('/Common/')[1] : member.server,
-            remark: member.remark,
+            name: member.name.startsWith('/Common/') ? member.name.split('/Common/')[1] : member.name,
+            description: member.description,
             enabled: member.enabled,
             order: index
         }));
@@ -813,10 +813,10 @@ function applyFirewallPolicyFixes(declaration) {
         firewallPolicy.rules = (firewallPolicy.rules || []).map((rule) => {
             const newRule = {
                 name: rule.name,
-                remark: rule.remark,
+                description: rule.description,
                 action: rule.action,
-                protocol: rule.protocol,
-                loggingEnabled: rule.loggingEnabled,
+                ipProtocol: rule.ipProtocol,
+                log: rule.log,
                 source: rule.source || {},
                 destination: rule.destination || {}
             };
@@ -851,7 +851,7 @@ function applySelfIpFixes(declaration) {
     }
 
     doUtil.forEach(declaration, 'SelfIp', (tenant, selfIp) => {
-        ['enforcedFirewallPolicy', 'stagedFirewallPolicy'].forEach((policyKey) => {
+        ['fwEnforcedPolicy', 'fwStagedPolicy'].forEach((policyKey) => {
             if (selfIp[policyKey] && selfIp[policyKey].startsWith('/')) {
                 selfIp[policyKey] = selfIp[policyKey].split('/').pop();
             }
@@ -880,19 +880,20 @@ function applyLdapCertFixes(declaration) {
         origData[targetKey] = { base64: data };
         data = Buffer.from(data, 'base64').toString().trim();
         hash.update(data);
+        // we strip off 'File' in the new name for backwards compatibility
         auth.ldap[targetKey] = {
-            name: `${key.replace(/^ssl/, 'do_ldap')}.${ext}`,
+            name: `${key.replace(/^ssl/, 'do_ldap').replace('File', '')}.${ext}`,
             partition: 'Common',
             checksum: `SHA1:${data.length}:${hash.digest('hex')}`
         };
     };
 
     if (auth && auth.ldap) {
-        ['sslCaCert', 'sslClientCert'].forEach((key) => {
+        ['sslCaCertFile', 'sslClientCert'].forEach((key) => {
             if (!auth.ldap[key]) { return; }
 
             // privateKey needs to be patched before certificate to avoid overwriting orig data
-            patchItem(key, 'privateKey', key.replace(/Cert$/, 'Key'), 'key');
+            patchItem(key, 'privateKey', key.replace(/Cert(File)?$/, 'Key'), 'key');
             patchItem(key, 'certificate', key, 'crt');
         });
     }

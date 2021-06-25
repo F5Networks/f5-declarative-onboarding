@@ -629,7 +629,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
                                     name: 20,
                                     action: 'permit',
                                     prefix: '10.3.3.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLenRange: 32
                                 }
                             ]
                         }
@@ -706,7 +706,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
                                     name: 20,
                                     action: 'permit',
                                     prefix: '10.3.3.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLenRange: 32
                                 }
                             ]
                         }
@@ -757,7 +757,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
                     GSLBServer: {
                         gslbServer: {
                             name: 'gslbServer',
-                            dataCenter: '/Common/gslbDataCenter',
+                            datacenter: '/Common/gslbDataCenter',
                             devices: [{
                                 address: '10.0.0.1'
                             }]
@@ -876,8 +876,8 @@ describe(('deleteHandler'), function testDeleteHandler() {
                                 {
                                     name: 'firewallPolicyRule',
                                     action: 'accept',
-                                    protocol: 'any',
-                                    loggingEnabled: false
+                                    ipProtocol: 'any',
+                                    log: false
                                 }
                             ]
                         }

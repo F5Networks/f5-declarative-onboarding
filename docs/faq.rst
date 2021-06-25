@@ -68,6 +68,13 @@ DO requires TMOS 13.1+
 
 |
 
+**Does Declarative Onboarding support hardware platforms?**
+
+Declarative Onboarding is intended for use with Cloud and Virtual Edition images, but it will also run on and configure hardware platforms.
+Features specific to hardware platforms, such as creating vCMP guests and setting TurboFlex profiles are not on the Declarative Onboarding roadmap.
+
+|
+
 **What is a "DO Declaration"?**
 
 - DO uses a declarative model, meaning you provide a JSON declaration rather than a set of imperative commands 

@@ -1,6 +1,20 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.22.0
+### Added
+- AUTOTOOL-2509: ([GitHub Issue 220](https://github.com/F5Networks/f5-declarative-onboarding/issues/220)): autoLastHop property to "VLAN" class
+### Fixed
+- AUTOTOOL-2476: ([GitHub Issue 227](https://github.com/F5Networks/f5-declarative-onboarding/issues/227)): DO might reboot BIGIP system when same configurations/declaration posted
+- AUTOTOOL-2415: ([GitHub Issue 216](https://github.com/F5Networks/f5-declarative-onboarding/issues/216)): Match the accepted "hypervisor" list on DO with what is accepted by BIG-IQ
+- AUTOTOOL-2502: ([GitHub Issue 233](https://github.com/F5Networks/f5-declarative-onboarding/issues/233)): DeviceGroup does not work with IPv6
+- AUTOTOOL-2497: ([GitHub Issue 234](https://github.com/F5Networks/f5-declarative-onboarding/issues/234)): Race condition when creating self-ip on non-default route-domain
+- AUTOTOOL-2571: Failover Unicast "cannot read property indexOf of undefined"
+### Changed
+- AUTOTOOL-531: Properties in the 'traces', 'currentConfig', and 'originalConfig' sections of the response to a request now match what is sent to iControl REST rather than what is in the declaration
+- AUTOTOOL-2532: ([GitHub Issue 242](https://github.com/F5Networks/f5-declarative-onboarding/issues/242)): Pull MAC address from management interface instead of the host device MAC address.
+### Removed
+
 ## 1.21.0
 ### Added
 - AUTOTOOL-2433: ([GitHub Issue 221](https://github.com/F5Networks/f5-declarative-onboarding/issues/221)): Configure LDAP referrals

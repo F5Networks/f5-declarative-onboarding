@@ -272,7 +272,29 @@ See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for de
 .. literalinclude:: ../../examples/firewallPolicy.json
    :language: json
 
+|
 
+.. _alhvlan:
+
+Configuring Auto Last Hop on VLANs 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+    Support for Auto Last Hop on VLANs is available in DO 1.22 and later.
+
+This example shows how you can configure Auto Last Hop on VLANs in a Declarative Onboarding declaration.  Auto Last Hop allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route. 
+
+There are three possible values for the **autoLastHop** property: **enabled**, **disabled**, and **default**, which inherits the value from the global settings.
+
+For detailed information on Auto Last Hop, see |alh| on AskF5.
+
+See |cmpref| for description and DO usage.
+
+
+.. literalinclude:: ../../examples/vlanAutoLastHop.json
+    :language: json
+
+    
 .. |br| raw:: html
 
    <br />
@@ -471,3 +493,9 @@ See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for de
 .. |dnsresolverdocs| raw:: html
 
    <a href="https://techdocs.f5.com/kb/en-us/products/big-ip-afm/manuals/product/network-firewall-policies-implementations-13-1-0/3.html#GUID-933268A4-7800-405C-868F-FEA4ECEF8FBB" target="_blank">Network Firewall documentation</a>
+
+.. |alh| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K13876" target="_blank">Overview of the Auto Last Hop setting</a>
+
+   

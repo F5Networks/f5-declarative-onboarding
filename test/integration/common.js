@@ -20,7 +20,7 @@ const fs = require('fs');
 const qs = require('querystring');
 const request = require('request');
 const util = require('util');
-const constants = require('./constants.js');
+const constants = require('./constants');
 const logger = require('./logger').getInstance();
 
 module.exports = {
@@ -180,6 +180,33 @@ module.exports = {
     },
 
     /**
+     * deleteOriginalConfig - Deletes DO's original config so that it can be regenerated from
+     *                        the current machine state
+     * @doUrl {String} - URL to call DO from
+     * @auth {Object} - authorization dictionary with (username, password) or F5 token
+     * Returns a Promise with response/error
+    */
+    deleteOriginalConfig(doUrl, auth) {
+        const retryErrors = [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED];
+
+        return this.testRequest(null, `${doUrl}/config`, auth, constants.HTTP_SUCCESS, 'GET', null,
+            retryErrors)
+            .then((body) => {
+                const promises = JSON.parse(body).map((config) => {
+                    logger.debug(`Deleting original config ${config.id}`);
+                    return this.sendRequest(
+                        this.buildBody(`${doUrl}/config/${config.id}`, null, auth, 'DELETE'),
+                        {
+                            trials: 5,
+                            timeInterval: 1000
+                        }
+                    );
+                });
+                return Promise.all(promises);
+            });
+    },
+
+    /**
      * testOriginalConfig - Tests if original config can be successfully applied by DO. This is
      *                      done by resetting the original config to match the current machine state
      *                      and then sending an empty declaration.
@@ -189,24 +216,11 @@ module.exports = {
     */
     testOriginalConfig(ipAddress, auth) {
         const url = `${this.hostname(ipAddress, constants.PORT)}${constants.DO_API}`;
+        const retryErrors = [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED];
 
         logger.debug('Testing original config');
 
-        return this.testRequest(null, `${url}/config`, auth, constants.HTTP_SUCCESS, 'GET',
-            null, [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED])
-            .then((body) => {
-                const promises = JSON.parse(body).map((config) => {
-                    logger.debug(`Deleting original config ${config.id}`);
-                    return this.sendRequest(
-                        this.buildBody(`${url}/config/${config.id}`, null, auth, 'DELETE'),
-                        {
-                            trials: 5,
-                            timeInterval: 1000
-                        }
-                    );
-                });
-                return Promise.all(promises);
-            })
+        return this.deleteOriginalConfig(url, auth)
             .then(() => {
                 const body = {
                     schemaVersion: '1.0.0',
@@ -221,7 +235,8 @@ module.exports = {
                     }
                 };
                 logger.debug('Generating and applying new original config');
-                return this.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST');
+                return this.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST', null,
+                    retryErrors);
             })
             .then(() => this.testGetStatus(60, 30 * 1000, ipAddress, auth, constants.HTTP_SUCCESS));
     },
