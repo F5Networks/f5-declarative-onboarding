@@ -4,7 +4,6 @@ stages:
     - lint
     - atg-shared-checks
     - test
-    - mutation-test
     - build
     - docs
     - deploy
@@ -126,23 +125,6 @@ audit:
   script:
       - npm audit
 
-mutation:
-  stage: mutation-test
-  timeout: 2 hours
-  rules:
-    - if: '$TRIGGER_MUTATION_TEST =~ /true/i'
-  tags:
-    - cm-official-docker-executor
-  script:
-    - npm ci
-    - npm install git+https://gitlab-ci-token:${CI_JOB_TOKEN}@$CI_SERVER_HOST:$CI_SERVER_PORT/automation-toolchain/stryker-mutator-badge-reporter
-    # run mutation testing with 4 threads
-    # default concurrency creates too many threads and causes all tests to hang
-    - npm run test-mutation -- --concurrency 4
-  artifacts:
-    paths:
-      - reports
-
 # the following variables should be defined for deploy, integration-tests and teardown:
 # BIGIP_IMAGE           - BIGIP VIO image name. (e.g. BIGIP-15.1.0.5-0.0.8)
 .deploy_common: &deploy_common
@@ -174,7 +156,7 @@ mutation:
 
 deploy_for_this_project:
     rules:
-        - if: '$CI_PIPELINE_SOURCE == "schedule" && $TRIGGER_MUTATION_TEST !~ /true/i'
+        - if: '$CI_PIPELINE_SOURCE == "schedule"'
     <<: *deploy_common
     needs:
         - job: build_rpm
@@ -194,7 +176,7 @@ integration-test:
     tags:
         - do-test-docker-executor
     rules:
-      - if: '$CI_PIPELINE_SOURCE == "schedule" && $TRIGGER_MUTATION_TEST !~ /true/i'
+      - if: '$CI_PIPELINE_SOURCE == "schedule"'
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
     stage: integration-test
     timeout: 3 hours
@@ -226,7 +208,7 @@ teardown:
     rules:
       - if: '$SKIP_TEARDOWN =~ /true/i'
         when: never
-      - if: '$CI_PIPELINE_SOURCE == "schedule" && $TRIGGER_MUTATION_TEST !~ /true/i'
+      - if: '$CI_PIPELINE_SOURCE == "schedule"'
         when: always
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
         when: always
@@ -290,14 +272,7 @@ pages:
         - cm-official-docker-executor
     dependencies:
         - create docs
-        - mutation
     script:
-        # get previous content
-        - $(curl --fail $CI_PAGES_URL/content.tar.gz -o prev_content.tar.gz || exit 0;);
-        - if [ -f prev_content.tar.gz ]; then
-        -   mkdir -p prev_content
-        -   tar -xzf prev_content.tar.gz -C prev_content
-        - fi
         # create public directory
         - PUBLIC_DIR='./public'
         - mkdir -p ${PUBLIC_DIR}
@@ -313,14 +288,6 @@ pages:
         - COVERAGE_DOCS=${PUBLIC_DIR}/coverage-docs
         - mkdir -p ${COVERAGE_DOCS}
         - cp -R coverage/* ${COVERAGE_DOCS}
-        # place mutation docs under: /mutation-docs
-        - MUTATION_DOCS=${PUBLIC_DIR}/mutation-docs
-        - if [ "$TRIGGER_MUTATION_TEST" = "true" ]; then
-        -   mkdir -p ${MUTATION_DOCS}
-        -   cp -R reports/mutation/* ${MUTATION_DOCS}
-        - elif [ -d "prev_content/${MUTATION_DOCS}" ]; then
-        -   cp -R prev_content/${MUTATION_DOCS} ${PUBLIC_DIR}
-        - fi
         ## place code contribution docs (includes presentation) under: /contribute-docs ##
         - CONTRIBUTE_DOCS=${PUBLIC_DIR}/contribute-docs
         - CONTRIBUTE_DIR=contributing
@@ -332,9 +299,6 @@ pages:
         - README=${CONTRIBUTE_DOCS}/README.md
         # make absolute URL(s) for relative URL(s) outside current directory '../'
         - sed -i -E 's/\[.*\]\(\.\./&SED_TEMP/' ${README} && sed -i "s|..SED_TEMP|${BASE_URL_FOR_LINKS}..|" ${README}
-        # package public content and place in public dir
-        - tar -zcf content.tar.gz ${PUBLIC_DIR}
-        - cp content.tar.gz ${PUBLIC_DIR}/.
     artifacts:
         paths:
             - public
