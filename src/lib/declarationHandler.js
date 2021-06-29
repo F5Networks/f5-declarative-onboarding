@@ -166,6 +166,7 @@ class DeclarationHandler {
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
                 applyGSLBServerFixes(parsedNewDeclaration);
+                applyRoutingPrefixListFixes(parsedNewDeclaration);
                 applyRouteMapFixes(parsedNewDeclaration);
                 applyRoutingBgpFixes(parsedNewDeclaration);
                 applyGSLBProberPoolFixes(parsedNewDeclaration);
@@ -625,6 +626,21 @@ function applyRouteMapFixes(declaration) {
                 applyTenantPrefix(entry, 'match.ipv4.nextHop.prefixList', tenant);
                 applyTenantPrefix(entry, 'match.ipv6.address.prefixList', tenant);
                 applyTenantPrefix(entry, 'match.ipv6.nextHop.prefixList', tenant);
+            });
+        }
+    });
+}
+
+/**
+ * Apply fixes to RoutingPrefixList prefixLenRange to align the current config to the desired config.
+ * @param {Object} declaration
+ */
+function applyRoutingPrefixListFixes(declaration) {
+    doUtil.forEach(declaration, 'RoutingPrefixList', (tenant, list) => {
+        if (list.entries) {
+            list.entries.forEach((entry) => {
+                entry.prefixLenRange = entry.prefixLenRange.startsWith(':') ? `0${entry.prefixLenRange}` : entry.prefixLenRange;
+                entry.prefixLenRange = entry.prefixLenRange.endsWith(':') ? `${entry.prefixLenRange}0` : entry.prefixLenRange;
             });
         }
     });

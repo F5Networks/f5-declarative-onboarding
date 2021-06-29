@@ -201,7 +201,7 @@
                 { "id": "name", "stringToInt": true },
                 { "id": "action" },
                 { "id": "prefix" },
-                { "id": "prefixLenRange", "newId": "prefixLengthRange", "stringToInt": true }
+                { "id": "prefixLenRange", "newId": "prefixLengthRange" }
             ]
         }
     },

@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 - AUTOTOOL-2473: ([GitHub Issue 224](https://github.com/F5Networks/f5-declarative-onboarding/issues/224)): Support management IP configuration
 ### Fixed
+- AUTOTOOL-2524: ([GitHub Issue 237](https://github.com/F5Networks/f5-declarative-onboarding/issues/237)): RoutingPrefixList prefixLengthRange does not support strings
 ### Changed
 ### Removed
 

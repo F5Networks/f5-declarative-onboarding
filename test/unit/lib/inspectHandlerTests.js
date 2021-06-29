@@ -665,13 +665,13 @@ describe('inspectHandler', () => {
                     name: '20',
                     action: 'permit',
                     prefix: '10.3.3.0/24',
-                    prefixLenRange: '32'
+                    prefixLenRange: '30:32'
                 },
                 {
                     name: '30',
                     action: 'deny',
                     prefix: '1111:2222:3333:4444::/64',
-                    prefixLenRange: '24'
+                    prefixLenRange: '24:28'
                 }
             ],
             '/tm/net/routing/route-map': [
@@ -1642,13 +1642,13 @@ describe('inspectHandler', () => {
                                     name: 20,
                                     action: 'permit',
                                     prefix: '10.3.3.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLengthRange: '30:32'
                                 },
                                 {
                                     name: 30,
                                     action: 'deny',
                                     prefix: '1111:2222:3333:4444::/64',
-                                    prefixLengthRange: 24
+                                    prefixLengthRange: '24:28'
                                 }
                             ]
                         },

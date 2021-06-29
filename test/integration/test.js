@@ -329,7 +329,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             name: 10,
                             action: 'permit',
                             prefix: '1111:2222::/127',
-                            prefixLenRange: 128
+                            prefixLenRange: '128'
                         }
                     ]
                 },
@@ -340,7 +340,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             name: 20,
                             action: 'permit',
                             prefix: '10.3.3.0/24',
-                            prefixLenRange: 32
+                            prefixLenRange: '30:32'
                         }
                     ]
                 }

@@ -1599,6 +1599,87 @@ describe('declarationHandler', () => {
                 });
         });
 
+        describe('RoutingPrefixList fixes', () => {
+            let newDeclaration;
+            let state;
+
+            beforeEach(() => {
+                newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        RoutingPrefixList: {
+                            list1: {
+                                name: 'list1'
+                            }
+                        }
+                    }
+                };
+
+                state = {
+                    originalConfig: {
+                        Common: {}
+                    },
+                    currentConfig: {
+                        parsed: true,
+                        Common: {}
+                    }
+                };
+            });
+
+            describe('prefixLenRange', () => {
+                it('should prepend 0 if length greater than 1 and starts with colon', () => {
+                    newDeclaration.Common.RoutingPrefixList.list1.entries = [
+                        {
+                            name: '20',
+                            action: 'deny',
+                            prefix: '10.3.3.0/24',
+                            prefixLenRange: ':25'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.equal(declarationWithDefaults.Common.RoutingPrefixList.list1.entries[0].prefixLenRange, '0:25');
+                        });
+                });
+
+                it('should append 0 if length greater than 1 and ends with colon', () => {
+                    newDeclaration.Common.RoutingPrefixList.list1.entries = [
+                        {
+                            name: '25',
+                            action: 'deny',
+                            prefix: '10.4.4.0/24',
+                            prefixLenRange: '25:'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.equal(declarationWithDefaults.Common.RoutingPrefixList.list1.entries[0].prefixLenRange, '25:0');
+                        });
+                });
+
+                it('should not modify if anything else', () => {
+                    newDeclaration.Common.RoutingPrefixList.list1.entries = [
+                        {
+                            name: '35',
+                            action: 'deny',
+                            prefix: '10.6.6.0/24',
+                            prefixLenRange: '25:26'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.equal(declarationWithDefaults.Common.RoutingPrefixList.list1.entries[0].prefixLenRange, '25:26');
+                        });
+                });
+            });
+        });
+
         describe('RoutingBGP fixes', () => {
             let newDeclaration;
             let state;

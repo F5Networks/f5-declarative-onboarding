@@ -39,15 +39,45 @@ class RoutingPrefixListValidator {
         Object.keys(routingPrefixListWrapper).forEach((name) => {
             if (routingPrefixListWrapper[name].entries) {
                 routingPrefixListWrapper[name].entries.forEach((entry) => {
-                    if (entry.prefix !== undefined && entry.prefixLengthRange !== undefined) {
-                        if (typeof entry.prefix === 'string' && entry.prefix.includes('/')) {
-                            if (entry.prefix.includes('.') && entry.prefixLengthRange > 32) {
+                    if (typeof entry.prefixLengthRange === 'string') {
+                        let start;
+                        let end;
+                        if (entry.prefixLengthRange === ':' || entry.prefixLengthRange === '') {
+                            // should not be just ':' or ''
+                            isValid = false;
+                            errors.push(`RoutingPrefixList '${name}' entry '${entry.name}' prefixLengthRange cannot be ':' or ''`);
+                        } else {
+                            const splitString = entry.prefixLengthRange.split(':');
+                            start = parseInt(splitString[0], 10);
+                            end = splitString.length === 2 ? parseInt(splitString[1], 10) : end;
+                            const startIsInteger = Number.isInteger(start);
+                            const endIsInteger = Number.isInteger(end);
+                            if (startIsInteger && endIsInteger && end !== 0 && start > end) {
+                                // if start and end present then start cannot be greater than end unless end is 0
                                 isValid = false;
-                                errors.push('RoutingPrefixList prefixLengthRange must be <= 32 for IPv4 prefix');
+                                errors.push(`RoutingPrefixList '${name}' entry '${entry.name}' prefixLengthRange start value must not be greater than end value`);
                             }
-                            if (entry.prefixLengthRange !== 0 && entry.prefixLengthRange <= parseInt(entry.prefix.split('/')[1], 10)) {
-                                isValid = false;
-                                errors.push(`RoutingPrefixList prefixLengthRange (${entry.prefixLengthRange}) must be 0 or greater than prefix (${entry.prefix}) length`);
+
+                            if (entry.prefix !== undefined) {
+                                if (typeof entry.prefix === 'string' && entry.prefix.includes('/')) {
+                                    if (entry.prefix.includes('.') && ((startIsInteger && start > 32) || (endIsInteger && end > 32))) {
+                                        // ipv4 start and end cannot be greater than 32 if present
+                                        isValid = false;
+                                        errors.push(`RoutingPrefixList '${name}' entry '${entry.name}' prefixLengthRange must be <= 32 for IPv4 prefix`);
+                                    }
+                                    if (entry.prefix.includes(':') && ((startIsInteger && start > 128) || (endIsInteger && end > 128))) {
+                                        // ipv6 start and end cannot be greater than 128 if present
+                                        isValid = false;
+                                        errors.push(`RoutingPrefixList '${name}' entry '${entry.name}' prefixLengthRange must be <= 128 for IPv6 prefix`);
+                                    }
+                                    const prefix = parseInt(entry.prefix.split('/')[1], 10);
+                                    if ((startIsInteger && start !== 0 && start <= prefix)
+                                        || (endIsInteger && end !== 0 && end <= prefix)) {
+                                        // start and end must be 0 or greater than the prefix if present
+                                        isValid = false;
+                                        errors.push(`RoutingPrefixList '${name}' entry '${entry.name}' prefixLengthRange must be 0 or greater than prefix (${entry.prefix}) length of ${prefix}`);
+                                    }
+                                }
                             }
                         }
                     }

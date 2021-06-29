@@ -1655,6 +1655,56 @@ describe('network.schema.json', () => {
                             name: 20,
                             action: 'permit',
                             prefix: '10.3.3.0/24',
+                            prefixLengthRange: '1:32'
+                        },
+                        {
+                            name: 30,
+                            action: 'deny',
+                            prefix: '1111:2222:3333:4444::/64',
+                            prefixLengthRange: '1:128'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate a variety of prefixLengthRange specifications', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '10.3.3.0/24',
+                            prefixLengthRange: '1:32'
+                        },
+                        {
+                            name: 21,
+                            action: 'permit',
+                            prefix: '10.4.4.0/24',
+                            prefixLengthRange: '1:'
+                        },
+                        {
+                            name: 21,
+                            action: 'permit',
+                            prefix: '10.5.5.0/24',
+                            prefixLengthRange: ':32'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate coerced integer prefixLengthRange', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '10.3.3.0/24',
                             prefixLengthRange: 32
                         },
                         {
@@ -1691,6 +1741,7 @@ describe('network.schema.json', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
         });
+
         describe('invalid', () => {
             it('should fail if no name is provided', () => {
                 const data = {
@@ -1699,7 +1750,7 @@ describe('network.schema.json', () => {
                         {
                             action: 'permit',
                             prefix: '10.4.4.0/23',
-                            prefixLengthRange: 24
+                            prefixLengthRange: '24'
                         }
                     ]
                 };
@@ -1717,7 +1768,7 @@ describe('network.schema.json', () => {
                         {
                             name: 20,
                             prefix: '10.4.4.0/23',
-                            prefixLengthRange: 24
+                            prefixLengthRange: '24'
                         }
                     ]
                 };
@@ -1736,7 +1787,7 @@ describe('network.schema.json', () => {
                             name: 20,
                             action: 'permit',
                             prefix: '10.4.4.0',
-                            prefixLengthRange: 24
+                            prefixLengthRange: '24'
                         }
                     ]
                 };
@@ -1755,7 +1806,7 @@ describe('network.schema.json', () => {
                             name: 20,
                             action: 'permit',
                             prefix: '1111:2222:3333:4444:5555:6666::8888',
-                            prefixLengthRange: 24
+                            prefixLengthRange: '24'
                         }
                     ]
                 };
@@ -1763,6 +1814,63 @@ describe('network.schema.json', () => {
                 assert.notStrictEqual(
                     getErrorString().indexOf('should match format \\"ipWithRequiredPrefix\\"'), -1,
                     `Errored but not because prefix is missing length:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if prefixLengthRange contains a letter', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '10.3.3.0/24',
+                            prefixLengthRange: '1a:32'
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if prefixLengthRange contains a letter');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should match pattern \\"^\\\\d*:?\\\\d*$\\"'), -1,
+                    `Errored but not because prefixLengthRange is invalid format:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if prefixLengthRange contains an extra consecutive colon', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '10.3.3.0/24',
+                            prefixLengthRange: '1::32'
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if prefixLengthRange contains an extra consecutive colon');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should match pattern \\"^\\\\d*:?\\\\d*$\\"'), -1,
+                    `Errored but not because prefixLengthRange is invalid format:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if prefixLengthRange contains an extra random colon', () => {
+                const data = {
+                    class: 'RoutingPrefixList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            prefix: '10.3.3.0/24',
+                            prefixLengthRange: '1:3:2'
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if prefixLengthRange contains an extra random colon');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should match pattern \\"^\\\\d*:?\\\\d*$\\"'), -1,
+                    `Errored but not because prefixLengthRange is invalid format:\n${getErrorString()}`
                 );
             });
         });

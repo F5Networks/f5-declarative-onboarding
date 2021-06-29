@@ -623,11 +623,10 @@
                                     "default": "::/0"
                                 },
                                 "prefixLengthRange": {
-                                    "type": "integer",
-                                    "description": "Prefix length range start.  Must be 0 or greater than the length on the prefix property.",
-                                    "minimum": 0,
-                                    "maximum": 128,
-                                    "default": 0
+                                    "type": "string",
+                                    "description": "Prefix length range. Examples: Specify '1:32' for greater than or equal to 1 and less than or equal to 32. Specify '1:' for greater than or equal to 1. Specify ':32' for less than or equal to 32. Specify '32' for equal to 32.  Must be 0 or greater than the length on the prefix property.",
+                                    "pattern": "^\\d*:?\\d*$",
+                                    "default": "0"
                                 }
                             },
                             "required": ["name", "action"],
