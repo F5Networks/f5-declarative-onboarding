@@ -798,7 +798,10 @@ describe('system.schema.json', () => {
                         "all-partitions": {
                             "role": "guest"
                         }
-                    }
+                    },
+                    "keys": [
+                        "ssh-rsa RsaKeyGoBrrrrrrrrrr"
+                    ]
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });

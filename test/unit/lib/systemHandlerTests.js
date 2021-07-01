@@ -884,6 +884,48 @@ describe('systemHandler', () => {
             });
     });
 
+    it('should handle root users with no keys', () => {
+        const bashCmds = [];
+        doUtilExecuteBashCommandStub.restore();
+        sinon.stub(doUtilMock, 'executeBashCommandIControl').callsFake((bigIp, bashCmd) => {
+            bashCmds.push(bashCmd);
+            return Promise.resolve(superuserKey);
+        });
+
+        const declaration = {
+            Common: {
+                User: {
+                    root: {
+                        userType: 'root',
+                        oldPassword: 'foo',
+                        newPassword: 'bar'
+                    }
+                }
+            }
+        };
+
+        let userSent;
+        let newPasswordSent;
+        let oldPasswordSent;
+        bigIpMock.onboard = {
+            password(user, newPassword, oldPassword) {
+                userSent = user;
+                newPasswordSent = newPassword;
+                oldPasswordSent = oldPassword;
+                return Promise.resolve();
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(userSent, 'root');
+                assert.strictEqual(newPasswordSent, 'bar');
+                assert.strictEqual(oldPasswordSent, 'foo');
+                assert.strictEqual(bashCmds.length, 8); // Should only be the 8 default commands
+            });
+    });
+
     it('should handle non-root users with & without keys', () => {
         const bashCmds = [];
         doUtilExecuteBashCommandStub.restore();
@@ -900,6 +942,15 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 User: {
+                    user0: {
+                        userType: 'regular',
+                        partitionAccess: {
+                            Common: {
+                                role: 'guest'
+                            }
+                        },
+                        shell: 'bash'
+                    },
                     user1: {
                         userType: 'regular',
                         password: 'foofoo',
@@ -941,7 +992,7 @@ describe('systemHandler', () => {
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(pathSent, '/tm/auth/user');
-                assert.strictEqual(bodiesSent.length, 2);
+                assert.strictEqual(bodiesSent.length, 3);
                 assert.deepEqual(
                     bodiesSent[0]['partition-access'],
                     [
@@ -952,11 +1003,18 @@ describe('systemHandler', () => {
                 assert.deepEqual(
                     bodiesSent[1]['partition-access'],
                     [
+                        { name: 'Common', role: 'guest' }
+                    ]
+                );
+                assert.deepEqual(bodiesSent[1].shell, 'bash');
+                assert.deepEqual(
+                    bodiesSent[2]['partition-access'],
+                    [
                         { name: 'all-partitions', role: 'guest' },
                         { name: 'Common', role: 'admin' }
                     ]
                 );
-                assert.deepEqual(bodiesSent[1].shell, 'tmsh');
+                assert.deepEqual(bodiesSent[2].shell, 'tmsh');
                 assert.strictEqual(bashCmds[8],
                     [
                         ` mkdir -p ${sshPaths[0]}; `,

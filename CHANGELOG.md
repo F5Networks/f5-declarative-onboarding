@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 - AUTOTOOL-2524: ([GitHub Issue 237](https://github.com/F5Networks/f5-declarative-onboarding/issues/237)): RoutingPrefixList prefixLengthRange does not support strings
 ### Changed
+- AUTOTOOL-1157: ([GitHub Issue 101](https://github.com/F5Networks/f5-declarative-onboarding/issues/101)): Preserve user authorization keys if no keys were provided in declaration
 ### Removed
 
 ## 1.22.0
