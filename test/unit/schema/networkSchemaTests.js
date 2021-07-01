@@ -467,6 +467,16 @@ describe('network.schema.json', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
 
+            it('should validate targets', () => {
+                const data = {
+                    class: 'Route',
+                    network: 'default',
+                    mtu: 1234,
+                    target: 'external'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
             it('should allow route domains', () => {
                 const data = {
                     class: 'Route',

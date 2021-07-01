@@ -747,12 +747,9 @@ function handleManagementRoute() {
                         partition: tenant,
                         gateway: managementRoute.gateway,
                         network: managementRoute.network,
-                        mtu: managementRoute.mtu
+                        mtu: managementRoute.mtu,
+                        type: managementRoute.type
                     };
-
-                    if (managementRoute.type) {
-                        routeBody.type = managementRoute.type;
-                    }
 
                     promise = promise.then(() => this.bigIp.createOrModify(
                         PATHS.ManagementRoute, routeBody, null, cloudUtil.MEDIUM_RETRY

@@ -806,7 +806,6 @@ describe('inspectHandler', () => {
             '/tm/sys/management-route': [
                 {
                     name: 'mgmt-route-forward',
-                    gateway: '10.0.0.2',
                     network: '255.255.255.254/32',
                     type: 'blackhole',
                     mtu: 0
@@ -815,7 +814,6 @@ describe('inspectHandler', () => {
                     name: 'default-mgmt-route',
                     gateway: '192.168.1.1',
                     network: 'default',
-                    type: 'interface',
                     mtu: 0
                 }
             ],
@@ -1769,12 +1767,10 @@ describe('inspectHandler', () => {
                             class: 'ManagementRoute',
                             gw: '192.168.1.1',
                             mtu: 0,
-                            network: 'default',
-                            type: 'interface'
+                            network: 'default'
                         },
                         'mgmt-route-forward': {
                             class: 'ManagementRoute',
-                            gw: '10.0.0.2',
                             mtu: 0,
                             network: '255.255.255.254/32',
                             type: 'blackhole'

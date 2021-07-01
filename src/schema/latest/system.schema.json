@@ -820,18 +820,39 @@
                     }
                 },
                 "additionalProperties": false,
-                "if": {
-                    "properties": {
-                        "network": {
-                            "not": {
-                                "enum": ["default", "default-inet6"]
+                "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "network": {
+                                    "not": {
+                                        "enum": ["default", "default-inet6"]
+                                    }
+                                },
+                                "type": {
+                                    "not": {
+                                        "enum": ["interface", "blackhole"]
+                                    }
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": ["gw"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "required": ["type"]
+                        },
+                        "then": {
+                            "dependencies": {
+                                "gw": {
+                                    "not": {}
+                                }
                             }
                         }
                     }
-                },
-                "then": {
-                    "required": ["gw"]
-                }
+                ]
             }
         },
         {

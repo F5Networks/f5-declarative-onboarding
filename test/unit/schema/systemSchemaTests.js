@@ -895,8 +895,7 @@ describe('system.schema.json', () => {
                     class: 'ManagementRoute',
                     gw: '1.2.3.4',
                     network: '4.3.2.1',
-                    mtu: 1000,
-                    type: 'interface'
+                    mtu: 1000
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -909,19 +908,35 @@ describe('system.schema.json', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
 
+            it('should validate with only a type', () => {
+                const data = {
+                    class: 'ManagementRoute',
+                    type: 'interface'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate with a non-default network and a type but no gw', () => {
+                const data = {
+                    class: 'ManagementRoute',
+                    network: '4.3.2.1/8',
+                    type: 'interface'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
             it('should validate without network', () => {
                 const data = {
                     class: 'ManagementRoute',
                     gw: '10.10.10.10',
-                    mtu: 10000,
-                    type: 'blackhole'
+                    mtu: 10000
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
         });
 
         describe('invalid', () => {
-            it('should invalidate when only network and not default or default-inet6', () => {
+            it('should invalidate when only non-default network', () => {
                 const data = {
                     class: 'ManagementRoute',
                     network: '9.9.9.9'
@@ -967,6 +982,16 @@ describe('system.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'must be f5ip, \'default\', or \'default-inet6\'');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate with both gw and type', () => {
+                const data = {
+                    class: 'ManagementRoute',
+                    gw: '10.10.10.10',
+                    type: 'blackhole'
+                };
+                assert.strictEqual(validate(data), false, 'gw and type should not both be allowed');
+                assert.notStrictEqual(getErrorString().indexOf('dependencies/gw/not'), -1);
             });
         });
     });
