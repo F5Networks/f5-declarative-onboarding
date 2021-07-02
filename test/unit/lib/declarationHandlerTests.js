@@ -2554,6 +2554,116 @@ describe('declarationHandler', () => {
             const handler = new DeclarationHandler(bigIpMock);
             return assert.isRejected(handler.process(declaration, state), /Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort./);
         });
+
+        it('should add DHCP Management Routes when preserveOrigDhcpRoutes is true', () => {
+            const declaration = {
+                parsed: true,
+                Common: {
+                    System: {
+                        preserveOrigDhcpRoutes: true
+                    },
+                    ManagementRoute: {
+                        newManagementRoute: {
+                            name: 'newManagementRoute',
+                            network: '1.2.3.4',
+                            gw: '4.3.2.1',
+                            mtu: 0
+                        }
+                    }
+                }
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current',
+                    parsed: true,
+                    Common: {
+                        ManagementRoute: {
+                            default: {
+                                name: 'default',
+                                description: 'configured-by-dhcp',
+                                network: 'default',
+                                gw: '10.20.30.40',
+                                mtu: 0
+                            }
+                        }
+                    }
+                },
+                originalConfig: {
+                    Common: {
+                        ManagementRoute: {
+                            default: {
+                                name: 'default',
+                                description: 'configured-by-dhcp',
+                                network: 'default',
+                                gw: '10.20.30.40',
+                                mtu: 0
+                            }
+                        }
+                    }
+                }
+            };
+            const handler = new DeclarationHandler(bigIpMock);
+            return handler.process(declaration, state)
+                .then(() => {
+                    const actualManagementRoutes = diffHandlerStub.args[0][0].Common.ManagementRoute;
+                    assert.deepStrictEqual(Object.keys(actualManagementRoutes), ['newManagementRoute', 'default']);
+                });
+        });
+
+        it('should not add DHCP Management Routes when preserveOrigDhcpRoutes is false', () => {
+            const declaration = {
+                parsed: true,
+                Common: {
+                    System: {
+                        preserveOrigDhcpRoutes: false
+                    },
+                    ManagementRoute: {
+                        newManagementRoute: {
+                            name: 'newManagementRoute',
+                            network: '1.2.3.4',
+                            gw: '4.3.2.1',
+                            mtu: 0
+                        }
+                    }
+                }
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current',
+                    parsed: true,
+                    Common: {
+                        ManagementRoute: {
+                            default: {
+                                name: 'default',
+                                description: 'configured-by-dhcp',
+                                network: 'default',
+                                gw: '10.20.30.40',
+                                mtu: 0
+                            }
+                        }
+                    }
+                },
+                originalConfig: {
+                    Common: {
+                        ManagementRoute: {
+                            default: {
+                                name: 'default',
+                                description: 'configured-by-dhcp',
+                                network: 'default',
+                                gw: '10.20.30.40',
+                                mtu: 0
+                            }
+                        }
+                    }
+                }
+            };
+            const handler = new DeclarationHandler(bigIpMock);
+            return handler.process(declaration, state)
+                .then(() => {
+                    const actualManagementRoutes = diffHandlerStub.args[0][0].Common.ManagementRoute;
+                    assert.deepStrictEqual(Object.keys(actualManagementRoutes), ['newManagementRoute']);
+                });
+        });
     });
 
     describe('AVR dependencies', () => {

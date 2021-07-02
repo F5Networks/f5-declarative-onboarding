@@ -893,6 +893,7 @@ describe('system.schema.json', () => {
             it('should validate management route with network and gw', () => {
                 const data = {
                     class: 'ManagementRoute',
+                    remark: 'Example description',
                     gw: '1.2.3.4',
                     network: '4.3.2.1',
                     mtu: 1000
@@ -1032,7 +1033,8 @@ describe('system.schema.json', () => {
                     "class": "System",
                     "hostname": "bigip.example.com",
                     "consoleInactivityTimeout": 50,
-                    "cliInactivityTimeout": 60
+                    "cliInactivityTimeout": 60,
+                    "preserveOrigDhcpRoutes": true
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });

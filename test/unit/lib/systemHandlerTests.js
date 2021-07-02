@@ -1637,8 +1637,42 @@ describe('systemHandler', () => {
     });
 
     describe('ManagementRoute', () => {
+        let declaration;
+        let state;
         const deletedPaths = [];
         beforeEach(() => {
+            declaration = {
+                Common: {
+                    System: {
+                        mgmtDhcp: true
+                    },
+                    ManagementRoute: {
+                        theManagementRoute: {
+                            name: 'theManagementRoute',
+                            gateway: '4.3.2.1',
+                            network: '1.2.3.4',
+                            mtu: 123
+                        }
+                    }
+                }
+            };
+            state = {
+                currentConfig: {
+                    Common: {
+                        System: {
+                            mgmtDhcp: true
+                        },
+                        ManagementRoute: {
+                            theManagementRoute: {
+                                name: 'theManagementRoute',
+                                gateway: '4.3.2.1',
+                                network: '10.20.30.40',
+                                mtu: 123
+                            }
+                        }
+                    }
+                }
+            };
             deletedPaths.length = 0;
             bigIpMock.delete = (path) => {
                 deletedPaths.push(path);
@@ -1647,28 +1681,20 @@ describe('systemHandler', () => {
         });
 
         it('should handle the ManagementRoutes', () => {
-            const declaration = {
-                Common: {
-                    ManagementRoute: {
-                        managementRoute1: {
-                            name: 'managementRoute1',
-                            gateway: '1.1.1.1',
-                            network: 'default-inet6',
-                            mtu: 1234,
-                            type: 'interface'
-                        },
-                        managementRoute2: {
-                            name: 'managementRoute1',
-                            gateway: '1.2.3.4',
-                            network: '4.3.2.1',
-                            mtu: 1
-                        }
-                    }
-                }
-            };
-            const state = {
-                currentConfig: {
-                    Common: {}
+            declaration.Common.ManagementRoute = {
+                managementRoute1: {
+                    name: 'managementRoute1',
+                    description: 'Example description',
+                    gateway: '1.1.1.1',
+                    network: 'default-inet6',
+                    mtu: 1234,
+                    type: 'interface'
+                },
+                managementRoute2: {
+                    name: 'managementRoute1',
+                    gateway: '1.2.3.4',
+                    network: '4.3.2.1',
+                    mtu: 1
                 }
             };
 
@@ -1678,6 +1704,7 @@ describe('systemHandler', () => {
                     const managementRouteData = dataSent[PATHS.ManagementRoute];
                     assert.deepEqual(deletedPaths, []);
                     assert.strictEqual(managementRouteData[0].name, 'managementRoute1');
+                    assert.strictEqual(managementRouteData[0].description, 'Example description');
                     assert.strictEqual(managementRouteData[0].partition, 'Common');
                     assert.strictEqual(managementRouteData[0].gateway, '1.1.1.1');
                     assert.strictEqual(managementRouteData[0].network, 'default-inet6');
@@ -1690,33 +1717,6 @@ describe('systemHandler', () => {
                     assert.strictEqual(managementRouteData[1].mtu, 1);
                 });
         });
-
-        const declaration = {
-            Common: {
-                ManagementRoute: {
-                    theManagementRoute: {
-                        name: 'theManagementRoute',
-                        gateway: '4.3.2.1',
-                        network: '1.2.3.4',
-                        mtu: 123
-                    }
-                }
-            }
-        };
-        const state = {
-            currentConfig: {
-                Common: {
-                    ManagementRoute: {
-                        theManagementRoute: {
-                            name: 'theManagementRoute',
-                            gateway: '4.3.2.1',
-                            network: '10.20.30.40',
-                            mtu: 123
-                        }
-                    }
-                }
-            }
-        };
 
         it('should delete and recreate ManagementRoute if network updated', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
@@ -1758,18 +1758,93 @@ describe('systemHandler', () => {
         });
 
         it('should not do anything with an empty ManagementRoute', () => {
-            const theDeclaration = {
-                Common: {
-                    ManagementRoute: {
-                        theManagementRoute: {}
-                    }
-                }
+            declaration.Common.ManagementRoute = {
+                theManagementRoute: {}
             };
-            const systemHandler = new SystemHandler(theDeclaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.deepEqual(deletedPaths, []);
                     assert.deepEqual(dataSent, null);
+                });
+        });
+
+        it('should set mgmtDhcp to false when not preserving original ManagementRoutes', () => {
+            declaration.Common.System = {
+                preserveOrigDhcpRoutes: false
+            };
+            state.currentConfig.Common.System.mgmtDhcp = true;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcp = dataSent['/tm/sys/global-settings'];
+                    assert.deepStrictEqual(
+                        mgmtDhcp,
+                        [
+                            {
+                                mgmtDhcp: 'disabled'
+                            }
+                        ]
+                    );
+                });
+        });
+
+        it('should not modify mgmtDhcp when mgmtDhcp matches the desired value', () => {
+            declaration.Common.System.preserveOrigDhcpRoutes = true;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(
+                        dataSent,
+                        {
+                            '/tm/sys/management-route': [
+                                {
+                                    description: 'none',
+                                    gateway: '4.3.2.1',
+                                    mtu: 123,
+                                    name: 'theManagementRoute',
+                                    network: '1.2.3.4/32',
+                                    partition: 'Common',
+                                    type: undefined
+                                }
+                            ]
+                        }
+                    );
+                });
+        });
+
+        it('should set mgmtDhcp to true when preserving DHCP ManagementRoutes', () => {
+            state.currentConfig.Common.System.mgmtDhcp = false;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcp = dataSent['/tm/sys/global-settings'];
+                    assert.deepStrictEqual(
+                        mgmtDhcp,
+                        [
+                            {
+                                mgmtDhcp: 'enabled'
+                            }
+                        ]
+                    );
+                });
+        });
+
+        it('should set mgmtDhcp to true when no System is in declaration', () => {
+            delete declaration.Common.System;
+            state.currentConfig.Common.System.mgmtDhcp = false;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcp = dataSent['/tm/sys/global-settings'];
+                    assert.deepStrictEqual(
+                        mgmtDhcp,
+                        [
+                            {
+                                mgmtDhcp: 'enabled'
+                            }
+                        ]
+                    );
                 });
         });
     });

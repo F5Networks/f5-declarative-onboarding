@@ -209,6 +209,23 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 source: 'all'
             }
         ));
+
+        it('should match DO ManagementRoute', () => assert.deepStrictEqual(
+            currentState.ManagementRoute.myManagementRoute,
+            {
+                name: 'myManagementRoute',
+                description: 'not-configured-by-dhcp',
+                gateway: '4.3.2.1',
+                mtu: 0,
+                network: '1.2.3.4/32'
+            }
+        ));
+
+        it('should have preserved DHCP ManagementRoutes', () => {
+            const dhcpManagementRoutes = Object.keys(currentState.ManagementRoute)
+                .filter(managementRoute => currentState.ManagementRoute[managementRoute].description === 'configured-by-dhcp');
+            assert(dhcpManagementRoutes.length > 0);
+        });
     });
 
     describe('Test Networking', function testNetworking() {

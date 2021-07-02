@@ -716,55 +716,72 @@ function handleManagementIp() {
 }
 
 function handleManagementRoute() {
-    return doUtil.getCurrentPlatform()
-        .then((platform) => {
-            const promises = [];
-            doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
-                let promise = Promise.resolve();
-                if (managementRoute && managementRoute.name) {
-                    const mask = managementRoute.network.includes(':') ? 128 : 32;
-                    managementRoute.network = managementRoute.network !== 'default'
-                        && managementRoute.network !== 'default-inet6' && !managementRoute.network.includes('/')
-                        ? `${managementRoute.network}/${mask}` : managementRoute.network;
-                    // Need to do a delete if the network property is updated
-                    if (this.state.currentConfig.Common.ManagementRoute
-                        && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
-                        && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
-                            .network !== managementRoute.network) {
-                        if (platform !== 'BIG-IP') {
-                            throw new Error('Cannot update network property when running remotely');
+    if (this.declaration.Common.ManagementRoute) {
+        return doUtil.getCurrentPlatform()
+            .then((platform) => {
+                const promises = [];
+
+                const desiredMgmtDhcp = !this.declaration.Common.System
+                    || typeof this.declaration.Common.System.preserveOrigDhcpRoutes === 'undefined'
+                    ? true : this.declaration.Common.System.preserveOrigDhcpRoutes;
+                if (this.state.currentConfig.Common.System.mgmtDhcp !== desiredMgmtDhcp) {
+                    promises.push(this.bigIp.modify(
+                        PATHS.SysGlobalSettings,
+                        {
+                            mgmtDhcp: desiredMgmtDhcp ? 'enabled' : 'disabled'
                         }
-                        promise = promise.then(() => this.bigIp.delete(
-                            `${PATHS.ManagementRoute}/~Common~${managementRoute.name}`,
-                            null,
-                            null,
-                            cloudUtil.NO_RETRY
-                        ));
-                    }
-
-                    const routeBody = {
-                        name: managementRoute.name,
-                        partition: tenant,
-                        gateway: managementRoute.gateway,
-                        network: managementRoute.network,
-                        mtu: managementRoute.mtu,
-                        type: managementRoute.type
-                    };
-
-                    promise = promise.then(() => this.bigIp.createOrModify(
-                        PATHS.ManagementRoute, routeBody, null, cloudUtil.MEDIUM_RETRY
                     ));
                 }
 
-                promises.push(promise);
-            });
+                doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
+                    let promise = Promise.resolve();
+                    if (managementRoute && managementRoute.name) {
+                        const mask = managementRoute.network.includes(':') ? 128 : 32;
+                        managementRoute.network = managementRoute.network !== 'default'
+                            && managementRoute.network !== 'default-inet6' && !managementRoute.network.includes('/')
+                            ? `${managementRoute.network}/${mask}` : managementRoute.network;
+                        // Need to do a delete if the network property is updated
+                        if (this.state.currentConfig.Common.ManagementRoute
+                            && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
+                            && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
+                                .network !== managementRoute.network) {
+                            if (platform !== 'BIG-IP') {
+                                throw new Error('Cannot update network property when running remotely');
+                            }
+                            promise = promise.then(() => this.bigIp.delete(
+                                `${PATHS.ManagementRoute}/~Common~${managementRoute.name}`,
+                                null,
+                                null,
+                                cloudUtil.NO_RETRY
+                            ));
+                        }
 
-            return Promise.all(promises)
-                .catch((err) => {
-                    logger.severe(`Error creating management routes: ${err.message}`);
-                    throw err;
+                        const routeBody = {
+                            name: managementRoute.name,
+                            description: managementRoute.description || 'none',
+                            partition: tenant,
+                            gateway: managementRoute.gateway,
+                            network: managementRoute.network,
+                            mtu: managementRoute.mtu,
+                            type: managementRoute.type
+                        };
+
+                        promise = promise.then(() => this.bigIp.createOrModify(
+                            PATHS.ManagementRoute, routeBody, null, cloudUtil.MEDIUM_RETRY
+                        ));
+                    }
+
+                    promises.push(promise);
                 });
-        });
+
+                return Promise.all(promises)
+                    .catch((err) => {
+                        logger.severe(`Error creating management routes: ${err.message}`);
+                        throw err;
+                    });
+            });
+    }
+    return Promise.resolve();
 }
 
 function handleSnmp() {

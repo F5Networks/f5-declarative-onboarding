@@ -787,6 +787,9 @@
                         "type": "string",
                         "const": "ManagementRoute"
                     },
+                    "remark": {
+                        "$ref": "definitions.schema.json#/definitions/Remark"
+                    },
                     "gw": {
                         "description": "Gateway for the management route.",
                         "type": "string",
@@ -954,6 +957,11 @@
                             "verbose",
                             "all"
                         ]
+                    },
+                    "preserveOrigDhcpRoutes": {
+                        "description": "Determines if DHCP ManagementRoute objects are preserved.",
+                        "type": "boolean",
+                        "default": false
                     }
                 },
                 "additionalProperties": false

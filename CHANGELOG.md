@@ -4,6 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.23.0
 ### Added
 - AUTOTOOL-2473: ([GitHub Issue 224](https://github.com/F5Networks/f5-declarative-onboarding/issues/224)): Support management IP configuration
+- AUTOTOOL-2491: ([GitHub Issue 226](https://github.com/F5Networks/f5-declarative-onboarding/issues/226)): Preserve DHCP routes
 ### Fixed
 - AUTOTOOL-2471: ([GitHub Issue 225](https://github.com/F5Networks/f5-declarative-onboarding/issues/225)): Ability to create type interface routes
 - AUTOTOOL-2524: ([GitHub Issue 237](https://github.com/F5Networks/f5-declarative-onboarding/issues/237)): RoutingPrefixList prefixLengthRange does not support strings

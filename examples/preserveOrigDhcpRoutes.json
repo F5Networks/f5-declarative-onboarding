@@ -1,0 +1,17 @@
+{
+    "class": "Device",
+    "async": true,
+    "schemaVersion": "1.23.0",
+    "Common": {
+        "class": "Tenant",
+        "system": {
+            "class": "System",
+            "preserveOrigDhcpRoutes": true
+        },
+        "newManagementRoute": {
+            "class": "ManagementRoute",
+            "network": "1.2.3.4",
+            "gw": "4.3.2.1"
+        }
+    }
+}

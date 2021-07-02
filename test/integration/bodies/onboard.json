@@ -95,7 +95,8 @@
             "autoPhonehome": false,
             "tmshAuditLog": false,
             "guiAuditLog": true,
-            "mcpAuditLog": "verbose"
+            "mcpAuditLog": "verbose",
+            "preserveOrigDhcpRoutes": true
         },
         "myFailoverGroup": {
             "class": "DeviceGroup",
@@ -134,6 +135,13 @@
             "source": "all",
             "oid": ".1",
             "access": "ro"
+        },
+        "myManagementRoute": {
+            "class": "ManagementRoute",
+            "remark": "not-configured-by-dhcp",
+            "network": "1.2.3.4",
+            "gw": "4.3.2.1",
+            "mtu": 0
         }
     }
 }

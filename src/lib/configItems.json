@@ -385,6 +385,7 @@
         "path": "/tm/sys/management-route",
         "schemaClass": "ManagementRoute",
         "properties": [
+            { "id": "description", "newId": "remark" },
             { "id": "gateway", "newId": "gw" },
             { "id": "network" },
             { "id": "mtu" },

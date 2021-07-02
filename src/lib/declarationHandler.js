@@ -174,6 +174,7 @@ class DeclarationHandler {
                 applyFirewallPortListFixes(parsedNewDeclaration);
                 applyFirewallPolicyFixes(parsedNewDeclaration);
                 applySelfIpFixes(parsedNewDeclaration);
+                applyManagementRouteFixes(parsedNewDeclaration, state.originalConfig);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
@@ -943,6 +944,31 @@ function applyLdapCertFixes(declaration) {
         });
     }
     return origData;
+}
+
+/**
+ * Add original DHCP ManagementRoute objects to the declaration if we are preserving them.
+ *
+ * @param {Object} declaration - user provided declaration
+ * @param {Object} originalConfig - the original DO config
+ */
+function applyManagementRouteFixes(declaration, originalConfig) {
+    const ManagementRoutes = declaration.Common.ManagementRoute;
+    const origManagementRoutes = originalConfig.Common.ManagementRoute;
+
+    if (!origManagementRoutes || !ManagementRoutes || !declaration.Common.System
+        || !declaration.Common.System.preserveOrigDhcpRoutes) {
+        return;
+    }
+
+    Object.keys(origManagementRoutes).forEach((managementRoute) => {
+        if (origManagementRoutes[managementRoute].description === 'configured-by-dhcp'
+            && Object.keys(ManagementRoutes).indexOf(managementRoute) === -1) {
+            declaration.Common.ManagementRoute[managementRoute] = JSON.parse(
+                JSON.stringify(origManagementRoutes[managementRoute])
+            );
+        }
+    });
 }
 
 /**
