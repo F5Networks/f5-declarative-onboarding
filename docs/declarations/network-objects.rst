@@ -316,7 +316,7 @@ When using **ManagementIp**, you must keep in mind the following:
 - No response is returned if running in synchronous mode. Always use asynchronous mode when changing the management IP address (see |bc|).
 - To handle rollback to a dynamically configured IP, do not set the remark for the ManagementIp to 'configured-by-dhcp'. The default value is fine.
 
-See |mip| for description and DO usage.
+See |mip| for DO usage.
 
 
 .. literalinclude:: ../../examples/managementIp.json
