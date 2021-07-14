@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.23
-        - Updated the documentation for Declarative Onboarding v1.22.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Ability to create routes with the Type of Interface, `GitHub Issue 225 <https://github.com/F5Networks/f5-declarative-onboarding/issues/225>`_ |br| * RoutingPrefixList prefixLengthRange does not support strings, `GitHub Issue 237 <https://github.com/F5Networks/f5-declarative-onboarding/issues/237>`_
+        - Updated the documentation for Declarative Onboarding v1.22.0.  This release contains the following changes: |br| * Added support for specifying a static management IP address (see :ref:`Static management IP<manip>`) |br| |br| Issues Resolved: |br| * Ability to create routes with the Type of Interface, `GitHub Issue 225 <https://github.com/F5Networks/f5-declarative-onboarding/issues/225>`_ |br| * RoutingPrefixList prefixLengthRange does not support strings, `GitHub Issue 237 <https://github.com/F5Networks/f5-declarative-onboarding/issues/237>`_
         - 8-17-21
 
       * - 1.22
