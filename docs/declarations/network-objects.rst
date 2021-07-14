@@ -295,6 +295,34 @@ See |cmpref| for description and DO usage.
     :language: json
 
 
+|
+
+.. _manip:
+
+Specifying a static management IP address in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+    Support for specifying a management IP address is available in DO 1.23 and later.
+
+This example shows how you can specify a management IP address in a Declarative Onboarding declaration using the **ManagementIp** class introduced in DO 1.23. The ability to set a static management IP address is useful in scenarios such as updating the BIG-IP after a NIC swap in the Google Cloud Platform.
+
+When using **ManagementIp**, you must keep in mind the following:
+
+- You must also update the ManagementRoute for the new management IP.  See |mr|.
+- If running remotely (on BIG-IQ), the remote device must be able to route to the new management IP.
+- When polling for DO status, use the new management IP.
+- If you are *only* changing the mask, DO must delete the existing management IP address. This means it will only work when DO is running on the device being configured (not from BIG-IQ). This is a system limitation not a DO limitation.
+- No response is returned if running in synchronous mode. Always use asynchronous mode when changing the management IP address (see |bc|).
+- To handle rollback to a dynamically configured IP, do not set the remark for the ManagementIp to 'configured-by-dhcp'. The default value is fine.
+
+See |mip| for description and DO usage.
+
+
+.. literalinclude:: ../../examples/managementIp.json
+    :language: json
+
+
 .. |br| raw:: html
 
    <br />
@@ -498,4 +526,14 @@ See |cmpref| for description and DO usage.
 
    <a href="https://support.f5.com/csp/article/K13876" target="_blank">Overview of the Auto Last Hop setting</a>
 
+.. |mr| raw:: html
 
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/composing-a-declaration.html#management-route-class" target="_blank">Management Route class</a>
+
+.. |bc| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/composing-a-declaration.html#base-components" target="_blank">Base Components</a>
+
+.. |mip| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementip" target="_blank">ManagementIp</a>
