@@ -334,7 +334,7 @@ Preserving DHCP routes when adding new routes
 
 This example shows how DO can preserve DHCP Management routes when you are adding new routes in a DO declaration using 1.23 or later. By default, management routes are assigned by DHCP. In previous versions of DO, when you specified a new route, DO would remove the route assigned by DHCP.  
 
-This feature provides the ability to preserve those DHCP routes using the new **preserveOrigDhcpRoutes** property in the |system| class.
+This feature provides the ability to preserve those DHCP routes using the new **preserveOrigDhcpRoutes** property set to **true** in the |sysclass| class.
 
 .. IMPORTANT:: If you do not configure DO to preserve management routes (the default) but specify management routes in the declaration, DO disables DHCP for management routes. If you configure DO to preserve management routes, DHCP for management routes remains enabled. 
 
