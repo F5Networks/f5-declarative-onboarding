@@ -326,13 +326,13 @@ See |mip| for DO usage.
 
 .. _dhcpresv:
 
-Preserving DHCP routes when adding new routes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Preserving DHCP routes when adding new management routes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
     Support for preserving DHCP routes is available in DO 1.23 and later.
 
-This example shows how DO can preserve DHCP Management routes when you are adding new routes in a DO declaration using 1.23 or later. By default, management routes are assigned by DHCP. In previous versions of DO, when you specified a new route, DO would remove the route assigned by DHCP.  
+This example shows how DO can preserve DHCP Management routes when you are adding new management routes in a DO declaration using 1.23 or later. By default, management routes are assigned by DHCP. In previous versions of DO, when you specified a new management route, DO would remove the route assigned by DHCP.  
 
 This feature provides the ability to preserve those DHCP routes using the new **preserveOrigDhcpRoutes** property set to **true** in the |sysclass| class.
 
