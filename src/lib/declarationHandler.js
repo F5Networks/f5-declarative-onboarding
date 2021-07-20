@@ -728,7 +728,7 @@ function applyRoutingBgpFixes(declaration) {
         });
 
         // sort neighbors array in address alphabetical order
-        doUtil.sortArrayByValueString(bgp.neighbors, 'address');
+        doUtil.sortArrayByValueString(bgp.neighbors, 'name');
 
         // sort peerGroups array in name alphabetical order
         doUtil.sortArrayByValueString(bgp.peerGroups, 'name');

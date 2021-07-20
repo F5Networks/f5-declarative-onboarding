@@ -2256,19 +2256,19 @@ describe('declarationHandler', () => {
                 it('should sort neighbors by ip address', () => {
                     newDeclaration.Common.RoutingBGP.bgp1.neighbors = [
                         {
-                            address: '10.1.1.4',
+                            name: '10.1.1.4',
                             peerGroup: 'Neighbor_IN'
                         },
                         {
-                            address: '10.1.1.5',
+                            name: '10.1.1.5',
                             peerGroup: 'Neighbor_OUT'
                         },
                         {
-                            address: '10.1.1.2',
+                            name: '10.1.1.2',
                             peerGroup: 'Neighbor_IN'
                         },
                         {
-                            address: '10.1.1.3',
+                            name: '10.1.1.3',
                             peerGroup: 'Neighbor_OUT'
                         }
                     ];
@@ -2280,19 +2280,19 @@ describe('declarationHandler', () => {
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.neighbors,
                                 [
                                     {
-                                        address: '10.1.1.2',
+                                        name: '10.1.1.2',
                                         peerGroup: 'Neighbor_IN'
                                     },
                                     {
-                                        address: '10.1.1.3',
+                                        name: '10.1.1.3',
                                         peerGroup: 'Neighbor_OUT'
                                     },
                                     {
-                                        address: '10.1.1.4',
+                                        name: '10.1.1.4',
                                         peerGroup: 'Neighbor_IN'
                                     },
                                     {
-                                        address: '10.1.1.5',
+                                        name: '10.1.1.5',
                                         peerGroup: 'Neighbor_OUT'
                                     }
                                 ]
