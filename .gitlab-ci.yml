@@ -1,8 +1,8 @@
 image: $DOCKER_URL/node:latest
 
 stages:
-    - lint
     - atg-shared-checks
+    - lint
     - test
     - build
     - docs
@@ -23,10 +23,11 @@ include:
 # adds atg_shared_checks_result job to test stage
   - project: automation-toolchain/atg-shared-templates
     file: security/base.gitlab-ci.yml
-    ref: v1.0.3
+    ref: v1.0.6
 
 lint:
     stage: lint
+    needs: []
     tags:
         - cm-official-docker-executor
     script:
@@ -36,6 +37,7 @@ lint:
 test_node:4:
     image: $DOCKER_URL/node:4
     stage: test
+    needs: []
     tags:
         - do-test-docker-executor
     script:
@@ -47,6 +49,7 @@ test_node:4:
 test_node:6:
     image: $DOCKER_URL/node:6
     stage: test
+    needs: []
     tags:
         - do-test-docker-executor
     script:
@@ -57,6 +60,7 @@ test_node:6:
 test_node:8:
     image: $DOCKER_URL/node:8
     stage: test
+    needs: []
     tags:
         - do-test-docker-executor
     script:
@@ -66,6 +70,7 @@ test_node:8:
 
 test_node:latest:
     stage: test
+    needs: []
     tags:
         - do-test-docker-executor
     script:
@@ -81,6 +86,7 @@ test_node:latest:
 
 test-bigiq-ui:
   stage: test
+  needs: []
   parallel:
     matrix:
       - BIGIQ_BRANCH: [master/quantum]
@@ -97,6 +103,7 @@ test-bigiq-ui:
 coverage:
   image: $DOCKER_URL/node:lts
   stage: test
+  needs: []
   tags:
       - cm-official-docker-executor
   script:
@@ -118,12 +125,57 @@ coverage:
 
 audit:
   image: $DOCKER_URL/node:lts
+  needs: []
   stage: test
   allow_failure: true
   tags:
       - cm-official-docker-executor
   script:
       - npm audit
+
+build_rpm:
+    image: $DOCKER_URL/node:12
+    stage: build
+    needs: []
+    tags:
+        - cm-official-docker-executor
+    except:
+        - pipelines
+    script:
+        # setup node environment
+        - apt-get update && apt-get install -y rpm --no-install-recommends
+        - scripts/build/buildRpm.sh
+        # ensure latest copyrights, requires dev dependencies
+        - npm ci
+        - node node_modules/@f5devcentral/atg-shared-utilities-dev/scripts/dev/write-copyright.js -c -p scripts/dev/copyright.txt
+    artifacts:
+        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
+        paths:
+            - dist/
+        expire_in: 1 week
+
+create docs:
+    image: ${CONTAINTHEDOCS_IMAGE}
+    stage: build
+    needs: []
+    allow_failure: true
+    script:
+        - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
+        -   rm -rf docs/_templates
+        - fi
+        - make html
+        - echo "Checking grammar and style"
+        # Runs the grammar check on everything except the /docs/drafts directory
+        - vale --glob='*.rst' .
+        - echo "Checking links"
+        - make linkcheck
+    tags:
+        - cm-official-docker-executor
+    artifacts:
+        expire_in: 1 week
+        name: sphinx-docs_$CI_COMMIT_SHA
+        paths:
+            - docs/_build/html
 
 # the following variables should be defined for deploy, integration-tests and teardown:
 # BIGIP_IMAGE           - BIGIP VIO image name. (e.g. BIGIP-15.1.0.5-0.0.8)
@@ -218,48 +270,6 @@ teardown:
         - apt install -y jq
         - scripts/dev/rebuild-test-env.sh DELETE
 
-build_rpm:
-    image: $DOCKER_URL/node:12
-    stage: build
-    tags:
-        - cm-official-docker-executor
-    except:
-        - pipelines
-    script:
-        # setup node environment
-        - apt-get update && apt-get install -y rpm --no-install-recommends
-        - scripts/build/buildRpm.sh
-        # ensure latest copyrights, requires dev dependencies
-        - npm ci
-        - node node_modules/@f5devcentral/atg-shared-utilities-dev/scripts/dev/write-copyright.js -c -p scripts/dev/copyright.txt
-    artifacts:
-        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
-        paths:
-            - dist/
-        expire_in: 1 week
-
-create docs:
-    image: ${CONTAINTHEDOCS_IMAGE}
-    stage: build
-    allow_failure: true
-    script:
-        - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
-        -   rm -rf docs/_templates
-        - fi
-        - make html
-        - echo "Checking grammar and style"
-        # Runs the grammar check on everything except the /docs/drafts directory
-        - vale --glob='*.rst' .
-        - echo "Checking links"
-        - make linkcheck
-    tags:
-        - cm-official-docker-executor
-    artifacts:
-        expire_in: 1 week
-        name: sphinx-docs_$CI_COMMIT_SHA
-        paths:
-            - docs/_build/html
-
 # Deploy docs to Pages for review
 # Docs are staged on this projects pages site
 pages:
@@ -270,7 +280,7 @@ pages:
         url: https://${CI_PROJECT_NAMESPACE}.${PAGES_DOMAIN}/${CI_PROJECT_NAME}/
     tags:
         - cm-official-docker-executor
-    dependencies:
+    needs:
         - create docs
     script:
         # create public directory
@@ -319,7 +329,7 @@ publish docs to production:
         - docs-latest@automation-toolchain/f5-declarative-onboarding
     tags:
         - cm-official-docker-executor
-    dependencies:
+    needs:
         - create docs
     script:
         # Publish docs to clouddocs.f5.com (live site).
