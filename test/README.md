@@ -63,7 +63,6 @@ If `npx` is available on your system, you can run the locally installed version 
   * Note: The tests in test.js are not independent and do require a functional BIG-IQ to run successfully.
   * Note: Debug logs from the test run are written to test/logs and are available as an artifact from the CI/CD job.
 
-
 ### Example Harness file
 ```json
 [
@@ -101,4 +100,10 @@ If `npx` is available on your system, you can run the locally installed version 
         }
     }
 ]
+
+## Property testing
+* Property tests are run against 1 BIG-IP
+* To run property tests
+```
+DO_HOST=<ip> DO_USERNAME=<admin_username> DO_PASSWORD=<admin_password> npm run property
 ```

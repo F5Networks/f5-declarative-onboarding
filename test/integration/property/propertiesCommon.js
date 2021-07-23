@@ -47,9 +47,6 @@ const DEFAULT_OPTIONS = {
     maxMcpRetries: 0 // -1 will poll mcp indefinitely, until success or timeout
 };
 
-let machines;
-let thisMachine;
-let bigIpAddress;
 let bigIpAuth;
 let bigIpUrl;
 let testInfo;
@@ -903,17 +900,10 @@ function mkdirPromise(path) {
 
 before(function setup() {
     this.timeout(180000);
-    return common.readFile(process.env.TEST_HARNESS_FILE)
-        .then(file => JSON.parse(file))
-        .then((deployedMachines) => {
-            machines = deployedMachines.map(deployedMachine => ({
-                ip: deployedMachine.admin_ip,
-                adminUsername: deployedMachine.f5_rest_user.username,
-                adminPassword: deployedMachine.f5_rest_user.password
-            }));
-            thisMachine = machines[3];
-            bigIpAddress = thisMachine.ip;
-            bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
+    return Promise.resolve()
+        .then(() => {
+            const bigIpAddress = process.env.DO_HOST;
+            bigIpAuth = { username: process.env.DO_USERNAME, password: process.env.DO_PASSWORD };
             bigIpUrl = common.hostname(bigIpAddress, constants.PORT);
         })
         .then(() => getProvisionedModulesAsync())
