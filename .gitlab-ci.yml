@@ -232,6 +232,9 @@ integration-test:
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
     stage: integration-test
     timeout: 3 hours
+    before_script:
+        - apt-get update
+        - apt-get install -y jq
     script:
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
@@ -239,10 +242,15 @@ integration-test:
         - export GIT_SSL_NO_VERIFY=1
         - npm install
         - echo BIGIP_VERSION $ESR_BIG_IP_VERSION
-        - npm run integration -- --reporter @f5devcentral/atg-shared-utilities-dev/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
+        - if [[ $PROPERTY_TEST == true ]]; then
+        -     export DO_HOST=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].admin_ip')
+        -     export DO_USERNAME=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].f5_rest_user.username')
+        -     export DO_PASSWORD=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].f5_rest_user.password')
+        -     npm run property
+        - else
+        -     npm run integration -- --reporter @f5devcentral/atg-shared-utilities-dev/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
+        - fi
     after_script:
-        - apt-get update
-        - apt-get install -y jq
         - apt-get install -y expect
         - scripts/dev/collectRemoteIntegrationTestLogs.sh ${TEST_HARNESS_FILE}
     artifacts:
