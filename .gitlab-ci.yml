@@ -185,24 +185,27 @@ create docs:
         - do-test-docker-executor
     stage: deploy
     timeout: 2 hours
+    before_script:
+        - apk update
+        # Need to add bash, because included sh doen't support arrays
+        # used in build_harness_file.sh script to get IP addresses.
+        - apk add bash
     script:
-        - if [[ $CI_PIPELINE_SOURCE == "pipeline" ]]; then
-        -     echo using RPM from cross-project pipeline
-        -     export RPM_PACKAGE=$(ls ${UPSTREAM_RPM_PATH}/*.rpm)
-        - else
-        -     echo using RPM from our pipeline
-        -     export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
-        - fi
-        - apt update
-        - curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
-        - /bin/bash nodesource_setup.sh
-        - apt install -y nodejs
-        - apt install -y jq
-        - scripts/dev/rebuild-test-env.sh CREATE
-        - npm install
-        - node test/integration/setup.js
+        - cd test/env/terraform/plans/openstack
+        - terraform init
+        - terraform apply -var nic_count="$NIC_COUNT"
+                          -var bigip_count="$BIGIP_COUNT"
+                          -var admin_password="$INTEGRATION_ADMIN_PASSWORD"
+                          -var root_password="$INTEGRATION_ROOT_PASSWORD"
+                          -var bigip_image="$BIGIP_IMAGE"
+                          -auto-approve
+        - export BIGIPS_ADDRESSES=$(terraform output --json admin_ip | jq -rc .[])
+        - cd -
+        - scripts/dev/build_harness_file.sh > $TEST_HARNESS_FILE
     artifacts:
+      when: always
       paths:
+        - ${CI_PROJECT_DIR}/test/env/terraform/plans/openstack/terraform.tfstate*
         - ${TEST_HARNESS_FILE}
       expire_in: 1 day
 
@@ -235,13 +238,25 @@ integration-test:
     before_script:
         - apt-get update
         - apt-get install -y jq
-    script:
+        - if [[ $CI_PIPELINE_SOURCE == "pipeline" ]]; then
+        -     echo using RPM from cross-project pipeline
+        -     export RPM_PACKAGE=$(ls ${UPSTREAM_RPM_PATH}/*.rpm)
+        - else
+        -     echo using RPM from our pipeline
+        -     export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
+        - fi
+        - curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
+        - /bin/bash nodesource_setup.sh
+        - apt install -y nodejs jq
+        - npm install
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
         - export ESR_BIG_IP_VERSION=$(echo $BIGIP_IMAGE | cut -d '-' -f 2)
         - export GIT_SSL_NO_VERIFY=1
-        - npm install
         - echo BIGIP_VERSION $ESR_BIG_IP_VERSION
+        - node test/integration/setup.js
+        - sleep 30
+    script:
         - if [[ $PROPERTY_TEST == true ]]; then
         -     export DO_HOST=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].admin_ip')
         -     export DO_USERNAME=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].f5_rest_user.username')
@@ -274,9 +289,14 @@ teardown:
         when: always
       - when: never
     script:
-        - apt update
-        - apt install -y jq
-        - scripts/dev/rebuild-test-env.sh DELETE
+        - cd test/env/terraform/plans/openstack
+        - terraform init
+        - terraform destroy -var admin_password="$INTEGRATION_ADMIN_PASSWORD"
+                            -var root_password="$INTEGRATION_ROOT_PASSWORD"
+                            -auto-approve
+    artifacts:
+        paths:
+          - ${CI_PROJECT_DIR}/test/env/terraform/plans/openstack/terraform.tfstate*
 
 # Deploy docs to Pages for review
 # Docs are staged on this projects pages site

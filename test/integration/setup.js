@@ -122,6 +122,24 @@ function installRpm(host, adminUsername, adminPassword) {
 }
 
 /**
+ * waitForMcpd - checks for MCPD to be in running state
+ * @ssh {Object} : Passing ssh object
+*/
+function waitForMcpd(ssh) {
+    console.log('Waiting for MCPD');
+    return new Promise((resolve, reject) => {
+        ssh.execCommand('tmsh -a show sys mcp-state field-fmt | grep -q running')
+            .then((result) => {
+                if (result.code === null) {
+                    resolve();
+                } else {
+                    reject(new Error('MCPD is not up yet'));
+                }
+            });
+    });
+}
+
+/**
  * scpRpm - tries to secure copy the RPM package to a target BIG-IP until we run
  *          out of attempts
  * @host {String} : BIG-IP's ip address
@@ -143,6 +161,7 @@ function scpRpm(host, username, password) {
                     }
                 }
             })
+                .then(() => waitForMcpd(ssh))
                 .then(() => ssh.putFile(RPM_PACKAGE, `${REMOTE_DIR}/${path.basename(RPM_PACKAGE)}`))
                 .then(() => {
                     resolve('copied');
