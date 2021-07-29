@@ -228,6 +228,55 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
     });
 
+    describe('Test dry run', function testDryRun() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        let body;
+        let originalDns;
+        let currentState;
+        let result;
+
+        before(() => {
+            const thisMachine = machines[0];
+            const bigIpAddress = thisMachine.ip;
+            const bodyFile = `${BODIES}/onboard.json`;
+            const bigIpAuth = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
+            return common.readFile(bodyFile)
+                .then(JSON.parse)
+                .then((readBody) => {
+                    body = readBody;
+                    body.controls = {
+                        dryRun: true
+                    };
+
+                    originalDns = JSON.parse(JSON.stringify(body.Common.myDns));
+                    body.Common.myDns.nameServers = [];
+                })
+                .then(() => common.testRequest(
+                    body,
+                    `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`, bigIpAuth,
+                    constants.HTTP_ACCEPTED, 'POST'
+                ))
+                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
+                    constants.HTTP_SUCCESS))
+                .then((response) => {
+                    result = response.result;
+                    currentState = response.currentConfig.Common;
+                })
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+        });
+
+        it('should indicate that it was a dry run', () => {
+            assert.ok(result.dryRun);
+        });
+
+        it('should not have changed the DNS nameServers', () => {
+            assert.ok(testDns(originalDns, currentState));
+        });
+    });
+
     describe('Test Networking', function testNetworking() {
         this.timeout(1000 * 60 * 30); // 30 minutes
         let body;

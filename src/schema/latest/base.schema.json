@@ -219,6 +219,11 @@
                     "type": "string",
                     "const": "Controls"
                 },
+                "dryRun": {
+                    "description": "Boolean that indicates if this declaration will be run as a dry-run. If true, the declaration will NOT make any changes to the system, but will respond with whether or not it would.",
+                    "type": "boolean",
+                    "default": false
+                },
                 "trace": {
                     "description": "If true, create a detailed trace of the configuration process for subsequent analysis (default false).  Warning:  trace files may contain sensitive configuration data.",
                     "type": "boolean",

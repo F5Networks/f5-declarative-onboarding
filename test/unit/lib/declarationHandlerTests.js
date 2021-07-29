@@ -371,6 +371,33 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should not call handlers if dry run', () => {
+            const newDeclaration = {
+                name: 'new',
+                parsed: true,
+                controls: {
+                    dryRun: true
+                },
+                Common: {}
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
+                }
+            };
+
+            handlersCalled.length = 0;
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.strictEqual(handlersCalled.length, 0);
+                });
+        });
+
         it('should send TEEM report', () => {
             const newDeclaration = {
                 name: 'new',
@@ -403,12 +430,6 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const assetInfo = {
-                name: 'Declarative Onboarding',
-                version: '1.2.3'
-            };
-            const teemDevice = new TeemDevice(assetInfo);
-
             const isAddClassCountCalled = sinon.spy(TeemRecord.prototype, 'addClassCount');
             const isAddPlatformInfoCalled = sinon.spy(TeemRecord.prototype, 'addPlatformInfo');
             const isAddRegKeyCalled = sinon.spy(TeemRecord.prototype, 'addRegKey');
@@ -417,16 +438,15 @@ describe('declarationHandler', () => {
             const isAddJsonObjectCalled = sinon.spy(TeemRecord.prototype, 'addJsonObject');
 
             // report should not be called
-            const isReportCalled = sinon.stub(teemDevice, 'report').rejects();
+            const isReportCalled = sinon.stub(TeemDevice.prototype, 'report').rejects();
 
             // check the record sent to reportRecord
             let record;
-            sinon.stub(teemDevice, 'reportRecord').callsFake((recordIn) => {
+            sinon.stub(TeemDevice.prototype, 'reportRecord').callsFake((recordIn) => {
                 record = recordIn;
             });
 
             const declarationHandler = new DeclarationHandler(bigIpMock);
-            declarationHandler.teemDevice = teemDevice;
             return declarationHandler.process(newDeclaration, state)
                 .then(() => {
                     // Check that each class was called
@@ -500,20 +520,13 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const assetInfo = {
-                name: 'Declarative Onboarding',
-                version: '1.2.3'
-            };
-            const teemDevice = new TeemDevice(assetInfo);
-
             // check the record sent to reportRecord
             let record;
-            sinon.stub(teemDevice, 'reportRecord').callsFake((recordIn) => {
+            sinon.stub(TeemDevice.prototype, 'reportRecord').callsFake((recordIn) => {
                 record = recordIn;
             });
 
             const declarationHandler = new DeclarationHandler(bigIpMock);
-            declarationHandler.teemDevice = teemDevice;
             return declarationHandler.process(newDeclaration, state)
                 .then(() => {
                     // Check that the record body object was filled with input
@@ -551,15 +564,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const assetInfo = {
-                name: 'Declarative Onboarding',
-                version: '1.2.3'
-            };
-            const teemDevice = new TeemDevice(assetInfo);
-
-            sinon.stub(teemDevice, 'reportRecord').rejects();
+            sinon.stub(TeemDevice.prototype, 'reportRecord').rejects();
             const declarationHandler = new DeclarationHandler(bigIpMock);
-            declarationHandler.teemDevice = teemDevice;
             return declarationHandler.process(newDeclaration, state);
         });
 

@@ -1066,6 +1066,27 @@ describe('restWorker', () => {
             }
         }));
 
+        it('should not save sys config if dry run', () => new Promise((resolve, reject) => {
+            declaration = {
+                schemaVersion: '1.0.0',
+                class: 'Device',
+                controls: {
+                    dryRun: true
+                },
+                Common: {}
+            };
+            restOperationMock.complete = () => {
+                assert.strictEqual(saveCalled, false);
+                resolve();
+            };
+
+            try {
+                restWorker.onPost(restOperationMock);
+            } catch (err) {
+                reject(err);
+            }
+        }));
+
         it('should save state', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
                 assert.ok(saveStateCalled, 'State should have been saved');

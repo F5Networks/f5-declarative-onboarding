@@ -101,11 +101,6 @@ class DeclarationHandler {
     constructor(bigIp, eventEmitter) {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
-        const assetInfo = {
-            name: 'Declarative Onboarding',
-            version: doUtil.getDoVersion().VERSION
-        };
-        this.teemDevice = new TeemDevice(assetInfo);
     }
 
     /**
@@ -128,6 +123,7 @@ class DeclarationHandler {
         Object.assign(oldDeclaration, state.currentConfig);
         let updateDeclaration;
         let deleteDeclaration;
+        let status;
 
         // modules available on the target BIG-IP
         const modules = [];
@@ -189,74 +185,25 @@ class DeclarationHandler {
                 const traceManager = new TraceManager(declaration, this.eventEmitter, state);
                 return traceManager.traceConfigs(parsedOldDeclaration, parsedNewDeclaration);
             })
-            .then(() => removeEmptyObjects(updateDeclaration))
-            .then(() => this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
             .then(() => {
-                const handlers = [
-                    [SystemHandler, updateDeclaration],
-                    [AuthHandler, updateDeclaration],
-                    [ProvisionHandler, updateDeclaration],
-                    [NetworkHandler, updateDeclaration],
-                    [DscHandler, updateDeclaration],
-                    [AnalyticsHandler, updateDeclaration],
-                    [GSLBHandler, updateDeclaration],
-                    [DeleteHandler, deleteDeclaration],
-                    [DeprovisionHandler, updateDeclaration]
-                ];
-
-                const handlerStatuses = [];
-                return processHandlers(
-                    handlers,
-                    handlerStatuses,
+                if (declaration.controls && declaration.controls.dryRun) {
+                    logger.info('dryRun requested. Skipping updates.');
+                    return Promise.resolve();
+                }
+                return makeUpdates(
                     this.bigIp,
                     this.eventEmitter,
+                    declaration,
+                    updateDeclaration,
+                    deleteDeclaration,
                     state
                 );
             })
-            .then((handlerStatuses) => {
-                const status = {
-                    rollbackInfo: {}
-                };
-                handlerStatuses.forEach((handlerStatus) => {
-                    if (handlerStatus.rebootRequired === true) {
-                        status.rebootRequired = true;
-                    }
-                    if (handlerStatus.rollbackInfo) {
-                        Object.keys(handlerStatus.rollbackInfo).forEach((key) => {
-                            status.rollbackInfo[key] = JSON.parse(JSON.stringify(handlerStatus.rollbackInfo[key]));
-                        });
-                    }
-                });
-                logger.info('Done processing declaration.');
-                if (!declaration.parsed) {
-                    // gather/calculate extra fields
-                    const extraFields = {};
-                    if (declaration.controls) {
-                        extraFields.userAgent = declaration.controls.userAgent;
-                    }
-                    if (declaration.Common) {
-                        extraFields.authenticationType = countAuthenticationTypes(
-                            declaration.Common,
-                            { ldap: 0, radius: 0, tacacs: 0 }
-                        );
-                    }
-
-                    const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
-                    return Promise.resolve()
-                        .then(() => record.calculateAssetId())
-                        .then(() => record.addRegKey())
-                        .then(() => record.addPlatformInfo())
-                        .then(() => record.addProvisionedModules())
-                        .then(() => record.addClassCount(declaration))
-                        .then(() => record.addJsonObject(extraFields))
-                        .then(() => this.teemDevice.reportRecord(record))
-                        .catch((err) => {
-                            logger.warning(`Unable to send device report: ${err.message}`);
-                        })
-                        .then(() => status);
-                }
-                return Promise.resolve(status);
+            .then((result) => {
+                status = result || {};
+                return handleTeemReport(declaration);
             })
+            .then(() => status)
             .catch((err) => {
                 logger.severe(`Error processing declaration: ${err.message}`);
                 return Promise.reject(err);
@@ -1062,4 +1009,84 @@ function removeEmptyObjects(declaration) {
     });
 }
 
+function makeUpdates(bigIp, eventEmitter, declaration, updateDeclaration, deleteDeclaration, state) {
+    return Promise.resolve()
+        .then(() => removeEmptyObjects(updateDeclaration))
+        .then(() => bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
+        .then(() => {
+            const handlers = [
+                [SystemHandler, updateDeclaration],
+                [AuthHandler, updateDeclaration],
+                [ProvisionHandler, updateDeclaration],
+                [NetworkHandler, updateDeclaration],
+                [DscHandler, updateDeclaration],
+                [AnalyticsHandler, updateDeclaration],
+                [GSLBHandler, updateDeclaration],
+                [DeleteHandler, deleteDeclaration],
+                [DeprovisionHandler, updateDeclaration]
+            ];
+
+            const handlerStatuses = [];
+            return processHandlers(
+                handlers,
+                handlerStatuses,
+                bigIp,
+                eventEmitter,
+                state
+            );
+        })
+        .then((handlerStatuses) => {
+            const status = {
+                rollbackInfo: {}
+            };
+            handlerStatuses.forEach((handlerStatus) => {
+                if (handlerStatus.rebootRequired === true) {
+                    status.rebootRequired = true;
+                }
+                if (handlerStatus.rollbackInfo) {
+                    Object.keys(handlerStatus.rollbackInfo).forEach((key) => {
+                        status.rollbackInfo[key] = JSON.parse(JSON.stringify(handlerStatus.rollbackInfo[key]));
+                    });
+                }
+            });
+            logger.info('Done processing declaration.');
+            return Promise.resolve(status);
+        });
+}
+
+function handleTeemReport(declaration) {
+    if (!declaration.parsed) {
+        const assetInfo = {
+            name: 'Declarative Onboarding',
+            version: doUtil.getDoVersion().VERSION
+        };
+        const teemDevice = new TeemDevice(assetInfo);
+
+        // gather/calculate extra fields
+        const extraFields = {};
+        if (declaration.controls) {
+            extraFields.userAgent = declaration.controls.userAgent;
+        }
+        if (declaration.Common) {
+            extraFields.authenticationType = countAuthenticationTypes(
+                declaration.Common,
+                { ldap: 0, radius: 0, tacacs: 0 }
+            );
+        }
+
+        const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
+        return Promise.resolve()
+            .then(() => record.calculateAssetId())
+            .then(() => record.addRegKey())
+            .then(() => record.addPlatformInfo())
+            .then(() => record.addProvisionedModules())
+            .then(() => record.addClassCount(declaration))
+            .then(() => record.addJsonObject(extraFields))
+            .then(() => teemDevice.reportRecord(record))
+            .catch((err) => {
+                logger.warning(`Unable to send device report: ${err.message}`);
+            });
+    }
+    return Promise.resolve();
+}
 module.exports = DeclarationHandler;

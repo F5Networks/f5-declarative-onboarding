@@ -84,6 +84,11 @@ class TaskResponse {
         }
         return data;
     }
+
+    getDryRun(id) {
+        const declaration = this.state.getDeclaration(id);
+        return declaration && declaration.controls && declaration.controls.dryRun;
+    }
 }
 
 module.exports = TaskResponse;
