@@ -245,9 +245,6 @@ integration-test:
         -     echo using RPM from our pipeline
         -     export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
         - fi
-        - curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
-        - /bin/bash nodesource_setup.sh
-        - apt install -y nodejs jq
         - npm install
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
