@@ -32,4 +32,9 @@ resource "openstack_compute_instance_v2" "openstack-instance" {
       name = network.value.name
     }
   }
+
+  timeouts {
+    create = "2h"
+    delete = "2h"
+  }
 }
