@@ -52,6 +52,22 @@ return common.readFile(process.env.TEST_HARNESS_FILE)
 
 /* eslint-enable no-undef */
 
+/**
+ * waitForDo - wait for DO to respond after install.
+ * @host {String} : BIG-IP's ip address
+ * @adminUsername {String} : BIG-IP's admin username
+ * @adminPassword {String} : BIG-IP's admin password
+*/
+function waitForDo(host, adminUsername, adminPassword) {
+    console.log('Checking for DO');
+    return common.testGetStatus(
+        600,
+        10,
+        host,
+        { username: adminUsername, password: adminPassword },
+        constants.HTTP_SUCCESS
+    );
+}
 
 /**
  * getMachines - copies the DO rpm package to each deployed machine, and installs package
@@ -75,6 +91,7 @@ function setupMachines(harnessInfo) {
                     .then(JSON.parse)
                     .then((response) => {
                         if (response.status === 'CREATED') {
+                            waitForDo(ipAddress, adminUsername, adminPassword);
                             resolve();
                         } else {
                             reject(new Error(`failed : ${response.status}`));
