@@ -1,0 +1,14 @@
+{
+    "schemaVersion": "1.23.0",
+    "class": "Device",
+	"async": true,
+    "Common": {
+    	"class": "Tenant",
+        "hostname": "bigip.example.com",
+        "myManagementRoute": {
+            "class": "ManagementRoute",
+            "network": "10.10.10.1/32",
+            "type": "interface"
+        }
+    }
+}

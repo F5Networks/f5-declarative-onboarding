@@ -468,7 +468,8 @@ describe('inspectHandler', () => {
             '/tm/sys/global-settings': {
                 hostname,
                 consoleInactivityTimeout: 0,
-                guiAudit: 'disabled'
+                guiAudit: 'disabled',
+                mgmtDhcp: 'enabled'
             },
             '/tm/cli/global-settings': {
                 idleTimeout: 'disabled',
@@ -664,13 +665,13 @@ describe('inspectHandler', () => {
                     name: '20',
                     action: 'permit',
                     prefix: '10.3.3.0/24',
-                    prefixLenRange: '32'
+                    prefixLenRange: '30:32'
                 },
                 {
                     name: '30',
                     action: 'deny',
                     prefix: '1111:2222:3333:4444::/64',
-                    prefixLenRange: '24'
+                    prefixLenRange: '24:28'
                 }
             ],
             '/tm/net/routing/route-map': [
@@ -796,19 +797,25 @@ describe('inspectHandler', () => {
                 sourceId: 'souceId',
                 tenantId: 'tenantId'
             },
+            '/tm/sys/management-ip': [
+                {
+                    name: '1.2.3.4/5',
+                    description: 'configured-statically by DO'
+                }
+            ],
             '/tm/sys/management-route': [
                 {
                     name: 'mgmt-route-forward',
-                    gateway: '10.0.0.2',
+                    description: 'Example description 0',
                     network: '255.255.255.254/32',
-                    type: 'blackhole',
-                    mtu: 0
+                    mtu: 0,
+                    type: 'interface'
                 },
                 {
                     name: 'default-mgmt-route',
+                    description: 'Example description 1',
                     gateway: '192.168.1.1',
                     network: 'default',
-                    type: 'interface',
                     mtu: 0
                 }
             ],
@@ -1635,13 +1642,13 @@ describe('inspectHandler', () => {
                                     name: 20,
                                     action: 'permit',
                                     prefix: '10.3.3.0/24',
-                                    prefixLengthRange: 32
+                                    prefixLengthRange: '30:32'
                                 },
                                 {
                                     name: 30,
                                     action: 'deny',
                                     prefix: '1111:2222:3333:4444::/64',
-                                    prefixLengthRange: 24
+                                    prefixLengthRange: '24:28'
                                 }
                             ]
                         },
@@ -1753,19 +1760,24 @@ describe('inspectHandler', () => {
                             interval: 300,
                             offboxEnabled: true
                         },
+                        currentManagementIp: {
+                            class: 'ManagementIp',
+                            address: '1.2.3.4/5',
+                            remark: 'configured-statically by DO'
+                        },
                         'default-mgmt-route': {
                             class: 'ManagementRoute',
+                            remark: 'Example description 1',
                             gw: '192.168.1.1',
                             mtu: 0,
-                            network: 'default',
-                            type: 'interface'
+                            network: 'default'
                         },
                         'mgmt-route-forward': {
                             class: 'ManagementRoute',
-                            gw: '10.0.0.2',
+                            remark: 'Example description 0',
                             mtu: 0,
                             network: '255.255.255.254/32',
-                            type: 'blackhole'
+                            type: 'interface'
                         },
                         rd0: {
                             bandWidthControllerPolicy: 'bwcPolicy',

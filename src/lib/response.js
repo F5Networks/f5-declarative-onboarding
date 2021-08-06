@@ -67,10 +67,15 @@ function getResponse(id, responder, options) {
                 id,
                 selfLink: responder.getSelfLink(id)
             };
+
+            // mandatory methods
             const code = responder.getCode(id);
             const status = responder.getStatus(id);
             const message = responder.getMessage(id);
             const errors = responder.getErrors(id);
+
+            // optional methods
+            const dryRun = responder.getDryRun && responder.getDryRun(id);
 
             // For error statuses, restnoded requires message at the top level
             // Other items at the top level for backwards compatibility
@@ -80,7 +85,7 @@ function getResponse(id, responder, options) {
                 });
             }
             response.result = {
-                class: 'Result', code, status, message, errors
+                class: 'Result', code, status, dryRun, message, errors
             };
             Object.assign(response, data);
             return Promise.resolve(response);

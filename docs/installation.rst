@@ -32,7 +32,7 @@ If you are using BIG-IP 14.0 or later, the |14| is enforced. As mentioned in the
 Uploading Declarative Onboarding using SCP
 ``````````````````````````````````````````
 
-You can use SCP to upload the RPM file to the BIG-IP system.  Note that even if you use SCP to upload the RPM file,  you still have to use cURL command to install the package.
+You can use SCP to upload the RPM file to the BIG-IP system.  Even if you use SCP to upload the RPM file,  you still have to use cURL command to install the package.
 
 #. Open your SCP client, and use the management IP address of your BIG-IP system.
 #. Use the **root** account to authenticate to the BIG-IP.  The initial root password is **default**.  We strongly recommend you change this password after you install Declarative Onboarding (you can change this password using a Declarative Onboarding declaration as shown in :doc:`examples`).  If using 14.0 or later, you may be forced to change the password.

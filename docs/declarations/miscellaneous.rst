@@ -163,6 +163,32 @@ See (see :ref:`restjavad`) for reasons you may want to increase this memory allo
 
 |
 
+.. _example32:
+
+Using the dryRun Controls property to test the declaration without deploying it
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for **dryRun** is available in DO v1.23 and later
+
+In this example, we show how you can use the **dryRun** property in the |controls| class. 
+
+When **dryRun** is set to **true** (the default is **false**) Declarative Onboarding sends the declaration through all validation checks but does not attempt to deploy the configuration on the target device. The response contains information on what would have been deployed (a diff between the existing configuration and what the declaration would deploy). This can be useful for testing and debugging declarations.
+
+.. NOTE:: Declarative Onboarding does not report information (diffs) on items such as licensing, users, or device trust.
+
+
+See |controls| in the Schema Reference for more information.
+
+
+.. literalinclude:: ../../examples/dryRun.json
+   :language: json
+
+:ref:`Back to top<misc-examples>`
+
+
+|
+
 .. |br| raw:: html
 
    <br />

@@ -199,6 +199,22 @@ describe('dscHandler', () => {
                 });
         });
 
+        it('should return none if unicastAddress is none', () => {
+            const declaration = {
+                Common: {
+                    FailoverUnicast: {
+                        unicastAddress: 'none'
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.strictEqual(bodySent.unicastAddress, 'none');
+                });
+        });
+
         it('should handle a single unicast address', () => {
             const declaration = {
                 Common: {

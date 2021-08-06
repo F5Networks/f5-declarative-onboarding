@@ -25,10 +25,10 @@ const assert = chai.assert;
 const EventEmitter = require('events');
 const sinon = require('sinon');
 
-const doUtilMock = require('../../../src/lib/doUtil');
-const promiseUtil = require('../../../src/lib/promiseUtil');
-const cryptoUtil = require('../../../src/lib/cryptoUtil');
+const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
 
+const doUtilMock = require('../../../src/lib/doUtil');
+const cryptoUtil = require('../../../src/lib/cryptoUtil');
 const cloudUtil = require('../../../node_modules/@f5devcentral/f5-cloud-libs').util;
 
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;
@@ -53,6 +53,7 @@ describe('systemHandler', () => {
     ].join('');
 
     let pathSent;
+    let deletePathSent;
     let dataSent;
     let bigIpMock;
     let doUtilGetCurrentPlatformStub;
@@ -61,9 +62,11 @@ describe('systemHandler', () => {
 
     beforeEach(() => {
         pathSent = null;
+        deletePathSent = null;
         dataSent = null;
         activeCalled = false;
         bigIpMock = {
+            host: undefined,
             replace(path, data) {
                 pathSent = path;
                 dataSent = data;
@@ -73,8 +76,18 @@ describe('systemHandler', () => {
                 activeCalled = true;
                 return Promise.resolve();
             },
-            create() {
+            create(path, data) {
+                if (!dataSent) {
+                    dataSent = {};
+                }
+                if (!dataSent[path]) {
+                    dataSent[path] = [];
+                }
+                dataSent[path].push(data);
                 return Promise.resolve();
+            },
+            delete(path) {
+                deletePathSent = path;
             },
             list() {
                 return Promise.resolve();
@@ -101,6 +114,9 @@ describe('systemHandler', () => {
             },
             deviceInfo() {
                 return Promise.resolve({ version: '15.1.0.1' });
+            },
+            setHost() {
+                return Promise.resolve();
             }
         };
         doUtilGetCurrentPlatformStub = sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
@@ -662,7 +678,7 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock);
             return systemHandler.process()
                 .then(() => {
-                    assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
+                    assert.deepStrictEqual(dataSent[PATHS.SysGlobalSettings][0], { consoleInactivityTimeout: 50 });
                     assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 20 }); // seconds converted to minutes
                 });
         });
@@ -681,7 +697,7 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock);
             return systemHandler.process()
                 .then(() => {
-                    assert.deepStrictEqual(dataSent[PATHS.System][0], { consoleInactivityTimeout: 50 });
+                    assert.deepStrictEqual(dataSent[PATHS.SysGlobalSettings][0], { consoleInactivityTimeout: 50 });
                     assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 0 });
                 });
         });
@@ -747,7 +763,7 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.deepStrictEqual(dataSent[PATHS.System][0], { guiAudit: 'enabled' });
+                assert.deepStrictEqual(dataSent[PATHS.SysGlobalSettings][0], { guiAudit: 'enabled' });
             });
     });
 
@@ -868,6 +884,48 @@ describe('systemHandler', () => {
             });
     });
 
+    it('should handle root users with no keys', () => {
+        const bashCmds = [];
+        doUtilExecuteBashCommandStub.restore();
+        sinon.stub(doUtilMock, 'executeBashCommandIControl').callsFake((bigIp, bashCmd) => {
+            bashCmds.push(bashCmd);
+            return Promise.resolve(superuserKey);
+        });
+
+        const declaration = {
+            Common: {
+                User: {
+                    root: {
+                        userType: 'root',
+                        oldPassword: 'foo',
+                        newPassword: 'bar'
+                    }
+                }
+            }
+        };
+
+        let userSent;
+        let newPasswordSent;
+        let oldPasswordSent;
+        bigIpMock.onboard = {
+            password(user, newPassword, oldPassword) {
+                userSent = user;
+                newPasswordSent = newPassword;
+                oldPasswordSent = oldPassword;
+                return Promise.resolve();
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(userSent, 'root');
+                assert.strictEqual(newPasswordSent, 'bar');
+                assert.strictEqual(oldPasswordSent, 'foo');
+                assert.strictEqual(bashCmds.length, 8); // Should only be the 8 default commands
+            });
+    });
+
     it('should handle non-root users with & without keys', () => {
         const bashCmds = [];
         doUtilExecuteBashCommandStub.restore();
@@ -884,6 +942,15 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 User: {
+                    user0: {
+                        userType: 'regular',
+                        partitionAccess: {
+                            Common: {
+                                role: 'guest'
+                            }
+                        },
+                        shell: 'bash'
+                    },
                     user1: {
                         userType: 'regular',
                         password: 'foofoo',
@@ -925,7 +992,7 @@ describe('systemHandler', () => {
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(pathSent, '/tm/auth/user');
-                assert.strictEqual(bodiesSent.length, 2);
+                assert.strictEqual(bodiesSent.length, 3);
                 assert.deepEqual(
                     bodiesSent[0]['partition-access'],
                     [
@@ -936,11 +1003,18 @@ describe('systemHandler', () => {
                 assert.deepEqual(
                     bodiesSent[1]['partition-access'],
                     [
+                        { name: 'Common', role: 'guest' }
+                    ]
+                );
+                assert.deepEqual(bodiesSent[1].shell, 'bash');
+                assert.deepEqual(
+                    bodiesSent[2]['partition-access'],
+                    [
                         { name: 'all-partitions', role: 'guest' },
                         { name: 'Common', role: 'admin' }
                     ]
                 );
-                assert.deepEqual(bodiesSent[1].shell, 'tmsh');
+                assert.deepEqual(bodiesSent[2].shell, 'tmsh');
                 assert.strictEqual(bashCmds[8],
                     [
                         ` mkdir -p ${sshPaths[0]}; `,
@@ -1374,9 +1448,231 @@ describe('systemHandler', () => {
         });
     });
 
+    describe('ManagementIp', () => {
+        let state;
+        let hostSet;
+        beforeEach(() => {
+            hostSet = undefined;
+
+            state = {
+                currentConfig: {
+                    Common: {
+                        System: {},
+                        ManagementIp: {
+                            '4.5.6.7/8': {
+                                name: '4.5.6.7/8',
+                                description: 'configured-by-dhcp'
+                            }
+                        }
+                    }
+                }
+            };
+
+            sinon.stub(bigIpMock, 'setHost').callsFake((host) => {
+                hostSet = host;
+                return Promise.resolve();
+            });
+        });
+
+        it('should handle the ManagementIp', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'this is my description'
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const managementIpData = dataSent[PATHS.ManagementIp][0];
+                    const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
+                    assert.deepStrictEqual(
+                        managementIpData,
+                        {
+                            name: '1.2.3.4/5',
+                            description: 'this is my description'
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        mgmtDhcpData,
+                        {
+                            mgmtDhcp: 'disabled'
+                        }
+                    );
+                    assert.strictEqual(hostSet, '1.2.3.4');
+                });
+        });
+
+        it('should not set host if using localhost', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'this is my description'
+                        }
+                    }
+                }
+            };
+
+            bigIpMock.host = 'localhost';
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(hostSet, undefined);
+                });
+        });
+
+        it('should delete the current management ip if using localhost and only changing mask', () => {
+            // Note: the beforeAll hook sets the IP to '4.5.6.7/8'. So this test
+            // is changing just the mask and looking for a delete call.
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '4.5.6.7/9': {
+                            name: '4.5.6.7/9',
+                            description: 'this is my description'
+                        }
+                    }
+                }
+            };
+
+            bigIpMock.host = 'localhost';
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(deletePathSent, `${PATHS.ManagementIp}/4.5.6.7~8`);
+                });
+        });
+
+        it('should not delete the current management ip if using localhost and changing ip', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'this is my description'
+                        }
+                    }
+                }
+            };
+
+            bigIpMock.host = 'localhost';
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(deletePathSent, null);
+                });
+        });
+
+
+        it('should error if using not using localhost and only changing mask', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '4.5.6.7/9': {
+                            name: '4.5.6.7/9',
+                            description: 'this is my description'
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return assert.isRejected(systemHandler.process(), /not supported/);
+        });
+
+        it('should not delete the current management ip if not using local host', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'this is my description'
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(deletePathSent, null);
+                });
+        });
+
+        it('should enable mgmt-dhcp if management-ip is configured dynamically', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'configured-by-dhcp'
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
+                    assert.deepStrictEqual(
+                        mgmtDhcpData,
+                        {
+                            mgmtDhcp: 'enabled'
+                        }
+                    );
+                    assert.strictEqual(hostSet, '1.2.3.4');
+                });
+        });
+    });
+
     describe('ManagementRoute', () => {
+        let declaration;
+        let state;
         const deletedPaths = [];
         beforeEach(() => {
+            declaration = {
+                Common: {
+                    System: {
+                        mgmtDhcp: true
+                    },
+                    ManagementRoute: {
+                        theManagementRoute: {
+                            name: 'theManagementRoute',
+                            gateway: '4.3.2.1',
+                            network: '1.2.3.4',
+                            mtu: 123
+                        }
+                    }
+                }
+            };
+            state = {
+                currentConfig: {
+                    Common: {
+                        System: {
+                            mgmtDhcp: true
+                        },
+                        ManagementRoute: {
+                            theManagementRoute: {
+                                name: 'theManagementRoute',
+                                gateway: '4.3.2.1',
+                                network: '10.20.30.40',
+                                mtu: 123
+                            }
+                        }
+                    }
+                }
+            };
             deletedPaths.length = 0;
             bigIpMock.delete = (path) => {
                 deletedPaths.push(path);
@@ -1385,28 +1681,20 @@ describe('systemHandler', () => {
         });
 
         it('should handle the ManagementRoutes', () => {
-            const declaration = {
-                Common: {
-                    ManagementRoute: {
-                        managementRoute1: {
-                            name: 'managementRoute1',
-                            gateway: '1.1.1.1',
-                            network: 'default-inet6',
-                            mtu: 1234,
-                            type: 'interface'
-                        },
-                        managementRoute2: {
-                            name: 'managementRoute1',
-                            gateway: '1.2.3.4',
-                            network: '4.3.2.1',
-                            mtu: 1
-                        }
-                    }
-                }
-            };
-            const state = {
-                currentConfig: {
-                    Common: {}
+            declaration.Common.ManagementRoute = {
+                managementRoute1: {
+                    name: 'managementRoute1',
+                    description: 'Example description',
+                    gateway: '1.1.1.1',
+                    network: 'default-inet6',
+                    mtu: 1234,
+                    type: 'interface'
+                },
+                managementRoute2: {
+                    name: 'managementRoute1',
+                    gateway: '1.2.3.4',
+                    network: '4.3.2.1',
+                    mtu: 1
                 }
             };
 
@@ -1416,6 +1704,7 @@ describe('systemHandler', () => {
                     const managementRouteData = dataSent[PATHS.ManagementRoute];
                     assert.deepEqual(deletedPaths, []);
                     assert.strictEqual(managementRouteData[0].name, 'managementRoute1');
+                    assert.strictEqual(managementRouteData[0].description, 'Example description');
                     assert.strictEqual(managementRouteData[0].partition, 'Common');
                     assert.strictEqual(managementRouteData[0].gateway, '1.1.1.1');
                     assert.strictEqual(managementRouteData[0].network, 'default-inet6');
@@ -1428,33 +1717,6 @@ describe('systemHandler', () => {
                     assert.strictEqual(managementRouteData[1].mtu, 1);
                 });
         });
-
-        const declaration = {
-            Common: {
-                ManagementRoute: {
-                    theManagementRoute: {
-                        name: 'theManagementRoute',
-                        gateway: '4.3.2.1',
-                        network: '1.2.3.4',
-                        mtu: 123
-                    }
-                }
-            }
-        };
-        const state = {
-            currentConfig: {
-                Common: {
-                    ManagementRoute: {
-                        theManagementRoute: {
-                            name: 'theManagementRoute',
-                            gateway: '4.3.2.1',
-                            network: '10.20.30.40',
-                            mtu: 123
-                        }
-                    }
-                }
-            }
-        };
 
         it('should delete and recreate ManagementRoute if network updated', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
@@ -1496,18 +1758,93 @@ describe('systemHandler', () => {
         });
 
         it('should not do anything with an empty ManagementRoute', () => {
-            const theDeclaration = {
-                Common: {
-                    ManagementRoute: {
-                        theManagementRoute: {}
-                    }
-                }
+            declaration.Common.ManagementRoute = {
+                theManagementRoute: {}
             };
-            const systemHandler = new SystemHandler(theDeclaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.deepEqual(deletedPaths, []);
                     assert.deepEqual(dataSent, null);
+                });
+        });
+
+        it('should set mgmtDhcp to false when not preserving original ManagementRoutes', () => {
+            declaration.Common.System = {
+                preserveOrigDhcpRoutes: false
+            };
+            state.currentConfig.Common.System.mgmtDhcp = true;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcp = dataSent['/tm/sys/global-settings'];
+                    assert.deepStrictEqual(
+                        mgmtDhcp,
+                        [
+                            {
+                                mgmtDhcp: 'disabled'
+                            }
+                        ]
+                    );
+                });
+        });
+
+        it('should not modify mgmtDhcp when mgmtDhcp matches the desired value', () => {
+            declaration.Common.System.preserveOrigDhcpRoutes = true;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(
+                        dataSent,
+                        {
+                            '/tm/sys/management-route': [
+                                {
+                                    description: 'none',
+                                    gateway: '4.3.2.1',
+                                    mtu: 123,
+                                    name: 'theManagementRoute',
+                                    network: '1.2.3.4/32',
+                                    partition: 'Common',
+                                    type: undefined
+                                }
+                            ]
+                        }
+                    );
+                });
+        });
+
+        it('should set mgmtDhcp to true when preserving DHCP ManagementRoutes', () => {
+            state.currentConfig.Common.System.mgmtDhcp = false;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcp = dataSent['/tm/sys/global-settings'];
+                    assert.deepStrictEqual(
+                        mgmtDhcp,
+                        [
+                            {
+                                mgmtDhcp: 'enabled'
+                            }
+                        ]
+                    );
+                });
+        });
+
+        it('should set mgmtDhcp to true when no System is in declaration', () => {
+            delete declaration.Common.System;
+            state.currentConfig.Common.System.mgmtDhcp = false;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcp = dataSent['/tm/sys/global-settings'];
+                    assert.deepStrictEqual(
+                        mgmtDhcp,
+                        [
+                            {
+                                mgmtDhcp: 'enabled'
+                            }
+                        ]
+                    );
                 });
         });
     });

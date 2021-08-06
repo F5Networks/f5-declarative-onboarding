@@ -118,7 +118,7 @@ function handleFailoverUnicast() {
         let body = {};
 
         const unicastAddresses = this.declaration.Common.FailoverUnicast.unicastAddress || [];
-        if (unicastAddresses.length === 0) {
+        if (unicastAddresses.length === 0 || unicastAddresses === 'none') {
             // There are no addresses to add so send none
             body = { unicastAddress: 'none' };
         } else {

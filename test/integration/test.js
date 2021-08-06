@@ -209,6 +209,72 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 source: 'all'
             }
         ));
+
+        it('should match DO ManagementRoute', () => assert.deepStrictEqual(
+            currentState.ManagementRoute.myManagementRoute,
+            {
+                name: 'myManagementRoute',
+                description: 'not-configured-by-dhcp',
+                gateway: '4.3.2.1',
+                mtu: 0,
+                network: '1.2.3.4/32'
+            }
+        ));
+
+        it('should have preserved DHCP ManagementRoutes', () => {
+            const dhcpManagementRoutes = Object.keys(currentState.ManagementRoute)
+                .filter(managementRoute => currentState.ManagementRoute[managementRoute].description === 'configured-by-dhcp');
+            assert(dhcpManagementRoutes.length > 0);
+        });
+    });
+
+    describe('Test dry run', function testDryRun() {
+        this.timeout(1000 * 60 * 30); // 30 minutes
+        let body;
+        let originalDns;
+        let currentState;
+        let result;
+
+        before(() => {
+            const thisMachine = machines[0];
+            const bigIpAddress = thisMachine.ip;
+            const bodyFile = `${BODIES}/onboard.json`;
+            const bigIpAuth = {
+                username: thisMachine.adminUsername,
+                password: thisMachine.adminPassword
+            };
+            return common.readFile(bodyFile)
+                .then(JSON.parse)
+                .then((readBody) => {
+                    body = readBody;
+                    body.controls = {
+                        dryRun: true
+                    };
+
+                    originalDns = JSON.parse(JSON.stringify(body.Common.myDns));
+                    body.Common.myDns.nameServers = [];
+                })
+                .then(() => common.testRequest(
+                    body,
+                    `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`, bigIpAuth,
+                    constants.HTTP_ACCEPTED, 'POST'
+                ))
+                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
+                    constants.HTTP_SUCCESS))
+                .then((response) => {
+                    result = response.result;
+                    currentState = response.currentConfig.Common;
+                })
+                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+        });
+
+        it('should indicate that it was a dry run', () => {
+            assert.ok(result.dryRun);
+        });
+
+        it('should not have changed the DNS nameServers', () => {
+            assert.ok(testDns(originalDns, currentState));
+        });
     });
 
     describe('Test Networking', function testNetworking() {
@@ -329,7 +395,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             name: 10,
                             action: 'permit',
                             prefix: '1111:2222::/127',
-                            prefixLenRange: 128
+                            prefixLenRange: '128'
                         }
                     ]
                 },
@@ -340,7 +406,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             name: 20,
                             action: 'permit',
                             prefix: '10.3.3.0/24',
-                            prefixLenRange: 32
+                            prefixLenRange: '30:32'
                         }
                     ]
                 }

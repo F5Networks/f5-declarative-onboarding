@@ -359,6 +359,11 @@ function processItemProperty(property, configObject) {
  *                               should be removed from declaration.
  */
 const customFunctions = {
+    // ManagementIp
+    remapManagementIp: (configKey, configObject) => {
+        configKey = 'currentManagementIp';
+        return [configKey, configObject];
+    },
     // DNS_Resolver item
     remapNameservers: (configKey, configObject) => {
         if (configObject.forwardZones) {

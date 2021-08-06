@@ -1,6 +1,20 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.23.0
+### Added
+- AUTOTOOL-2473: ([GitHub Issue 224](https://github.com/F5Networks/f5-declarative-onboarding/issues/224)): Support management IP configuration
+- AUTOTOOL-2491: ([GitHub Issue 226](https://github.com/F5Networks/f5-declarative-onboarding/issues/226)): Preserve DHCP routes
+- AUTOTOOL-2495: ([GitHub Issue 230](https://github.com/F5Networks/f5-declarative-onboarding/issues/230)): Dry-run support
+### Fixed
+- AUTOTOOL-2471: ([GitHub Issue 225](https://github.com/F5Networks/f5-declarative-onboarding/issues/225)): Ability to create type interface routes
+- AUTOTOOL-2524: ([GitHub Issue 237](https://github.com/F5Networks/f5-declarative-onboarding/issues/237)): RoutingPrefixList prefixLengthRange does not support strings
+- AUTOTOOL-2595: Fix FailoverUnicast unicastAddresses.map is not a function
+- AUTOTOOL-2616: ([GitHub Issue 249](https://github.com/F5Networks/f5-declarative-onboarding/issues/249)): RoutingBGP 'toUpperCase' undefined error
+### Changed
+- AUTOTOOL-1157: ([GitHub Issue 101](https://github.com/F5Networks/f5-declarative-onboarding/issues/101)): Preserve user authorization keys if no keys were provided in declaration
+### Removed
+
 ## 1.22.0
 ### Added
 - AUTOTOOL-2509: ([GitHub Issue 220](https://github.com/F5Networks/f5-declarative-onboarding/issues/220)): autoLastHop property to "VLAN" class
@@ -13,6 +27,13 @@ Changes to this project are documented in this file. More detail and links can b
 ### Changed
 - AUTOTOOL-531: Properties in the 'traces', 'currentConfig', and 'originalConfig' sections of the response to a request now match what is sent to iControl REST rather than what is in the declaration
 - AUTOTOOL-2532: ([GitHub Issue 242](https://github.com/F5Networks/f5-declarative-onboarding/issues/242)): Pull MAC address from management interface instead of the host device MAC address.
+### Removed
+
+## 1.21.1
+### Added
+### Fixed
+### Changed
+- Promoted to LTS
 ### Removed
 
 ## 1.21.0

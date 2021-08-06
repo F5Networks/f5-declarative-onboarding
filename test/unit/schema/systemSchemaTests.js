@@ -798,7 +798,10 @@ describe('system.schema.json', () => {
                         "all-partitions": {
                             "role": "guest"
                         }
-                    }
+                    },
+                    "keys": [
+                        "ssh-rsa RsaKeyGoBrrrrrrrrrr"
+                    ]
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -864,43 +867,80 @@ describe('system.schema.json', () => {
         });
     });
 
-    describe('ManagementRoute', () => {
+    describe('ManagementIp', () => {
         describe('valid', () => {
-            it('should validate management route with network and gw', () => {
+            it('should validate management ip with address and netmask', () => {
                 const data = {
-                    "class": "ManagementRoute",
-                    "gw": "1.2.3.4",
-                    "network": "4.3.2.1",
-                    "mtu": 1000,
-                    "type": "interface"
-                };
-                assert.ok(validate(data), getErrorString(validate));
-            });
-
-            it('should validate with only network while set to default', () => {
-                const data = {
-                    "class": "ManagementRoute",
-                    "network": "default"
-                };
-                assert.ok(validate(data), getErrorString(validate));
-            });
-
-            it('should validate without network', () => {
-                const data = {
-                    "class": "ManagementRoute",
-                    "gw": "10.10.10.10",
-                    "mtu": 10000,
-                    "type": "blackhole"
+                    class: 'ManagementIp',
+                    address: '1.2.3.4/24'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
         });
 
         describe('invalid', () => {
-            it('should invalidate when only network and not default or default-inet6', () => {
+            const data = {
+                class: 'ManagementIp',
+                address: '1.2.3.4'
+            };
+            assert.strictEqual(validate(data), false, 'Should not accept IP without prefix');
+            assert.notStrictEqual(getErrorString().indexOf('ipWithRequiredPrefix'), -1);
+        });
+    });
+
+    describe('ManagementRoute', () => {
+        describe('valid', () => {
+            it('should validate management route with network and gw', () => {
                 const data = {
-                    "class": "ManagementRoute",
-                    "network": "9.9.9.9"
+                    class: 'ManagementRoute',
+                    remark: 'Example description',
+                    gw: '1.2.3.4',
+                    network: '4.3.2.1',
+                    mtu: 1000
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate with only network while set to default', () => {
+                const data = {
+                    class: 'ManagementRoute',
+                    network: 'default'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate with only a type', () => {
+                const data = {
+                    class: 'ManagementRoute',
+                    type: 'interface'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate with a non-default network and a type but no gw', () => {
+                const data = {
+                    class: 'ManagementRoute',
+                    network: '4.3.2.1/8',
+                    type: 'interface'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate without network', () => {
+                const data = {
+                    class: 'ManagementRoute',
+                    gw: '10.10.10.10',
+                    mtu: 10000
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate when only non-default network', () => {
+                const data = {
+                    class: 'ManagementRoute',
+                    network: '9.9.9.9'
                 };
                 assert.strictEqual(validate(data), false, 'Missing required property gw');
                 assert.notStrictEqual(getErrorString().indexOf('should have required property \'.gw\''), -1);
@@ -908,9 +948,9 @@ describe('system.schema.json', () => {
 
             it('should invalidate when mtu is out of range', () => {
                 const data = {
-                    "class": "ManagementRoute",
-                    "network": "default-inet6",
-                    "mtu": 65536
+                    class: 'ManagementRoute',
+                    network: 'default-inet6',
+                    mtu: 65536
                 };
                 assert.strictEqual(validate(data), false, 'mtu is out of range');
                 assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
@@ -918,9 +958,9 @@ describe('system.schema.json', () => {
 
             it('should invalidate when invalid type', () => {
                 const data = {
-                    "class": "ManagementRoute",
-                    "network": "default-inet6",
-                    "type": "New Type"
+                    class: 'ManagementRoute',
+                    network: 'default-inet6',
+                    type: 'New Type'
                 };
                 assert.strictEqual(validate(data), false, 'not a valid type');
                 assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
@@ -928,9 +968,9 @@ describe('system.schema.json', () => {
 
             it('should invalidate incorrect gw format', () => {
                 const data = {
-                    "class": "ManagementRoute",
-                    "network": "100.100.200.200",
-                    "gw": "theGateway"
+                    class: 'ManagementRoute',
+                    network: '100.100.200.200',
+                    gw: 'theGateway'
                 };
                 assert.strictEqual(validate(data), false, 'must be ipv4 or ipv6');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"ipv4\\"'), -1);
@@ -938,11 +978,21 @@ describe('system.schema.json', () => {
 
             it('should invalidate incorrect format or value for network', () => {
                 const data = {
-                    "class": "ManagementRoute",
-                    "network": "theNetwork"
+                    class: 'ManagementRoute',
+                    network: 'theNetwork'
                 };
                 assert.strictEqual(validate(data), false, 'must be f5ip, \'default\', or \'default-inet6\'');
                 assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+            });
+
+            it('should invalidate with both gw and type', () => {
+                const data = {
+                    class: 'ManagementRoute',
+                    gw: '10.10.10.10',
+                    type: 'blackhole'
+                };
+                assert.strictEqual(validate(data), false, 'gw and type should not both be allowed');
+                assert.notStrictEqual(getErrorString().indexOf('dependencies/gw/not'), -1);
             });
         });
     });
@@ -983,7 +1033,8 @@ describe('system.schema.json', () => {
                     "class": "System",
                     "hostname": "bigip.example.com",
                     "consoleInactivityTimeout": 50,
-                    "cliInactivityTimeout": 60
+                    "cliInactivityTimeout": 60,
+                    "preserveOrigDhcpRoutes": true
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });

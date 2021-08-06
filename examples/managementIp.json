@@ -1,0 +1,14 @@
+{
+    "schemaVersion": "1.23.0",
+    "class": "Device",
+	"async": true,
+    "Common": {
+    	"class": "Tenant",
+        "hostname": "bigip.example.com",
+        "myManagementIp": {
+            "class": "ManagementIp",
+            "address": "10.10.10.1/18",
+            "remark": "this is my management ip"
+        }
+    }
+}

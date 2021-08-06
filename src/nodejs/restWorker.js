@@ -330,7 +330,7 @@ class RestWorker {
                                     .then(() => {
                                         if (this.bigIps[taskId]) {
                                             logger.fine('Onboard configuration complete. Saving sys config.');
-                                            return this.bigIps[taskId].save();
+                                            return saveConfig(this.bigIps[taskId], declaration);
                                         }
                                         logger.fine('No device.');
                                         return undefined;
@@ -449,7 +449,7 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
             this.state.doState.setRebootRequired(taskId, status.rebootRequired);
             this.state.doState.setRollbackInfo(taskId, status.rollbackInfo);
             logger.fine('Saving sys config.');
-            return this.bigIps[taskId].save();
+            return saveConfig(this.bigIps[taskId], declaration);
         })
         .then(() => {
             logger.fine('Onboard configuration complete. Checking for reboot.');
@@ -1342,6 +1342,13 @@ function prepForRebootResumeOrRevoke(taskId, status, bigIpPassword, bigIqPasswor
             );
             return save.call(this);
         });
+}
+
+function saveConfig(bigIp, declaration) {
+    if (declaration.controls && declaration.controls.dryRun) {
+        return Promise.resolve();
+    }
+    return bigIp.save();
 }
 
 module.exports = RestWorker;

@@ -371,6 +371,33 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should not call handlers if dry run', () => {
+            const newDeclaration = {
+                name: 'new',
+                parsed: true,
+                controls: {
+                    dryRun: true
+                },
+                Common: {}
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current'
+                },
+                originalConfig: {
+                    Common: {}
+                }
+            };
+
+            handlersCalled.length = 0;
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.strictEqual(handlersCalled.length, 0);
+                });
+        });
+
         it('should send TEEM report', () => {
             const newDeclaration = {
                 name: 'new',
@@ -403,12 +430,6 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const assetInfo = {
-                name: 'Declarative Onboarding',
-                version: '1.2.3'
-            };
-            const teemDevice = new TeemDevice(assetInfo);
-
             const isAddClassCountCalled = sinon.spy(TeemRecord.prototype, 'addClassCount');
             const isAddPlatformInfoCalled = sinon.spy(TeemRecord.prototype, 'addPlatformInfo');
             const isAddRegKeyCalled = sinon.spy(TeemRecord.prototype, 'addRegKey');
@@ -417,16 +438,15 @@ describe('declarationHandler', () => {
             const isAddJsonObjectCalled = sinon.spy(TeemRecord.prototype, 'addJsonObject');
 
             // report should not be called
-            const isReportCalled = sinon.stub(teemDevice, 'report').rejects();
+            const isReportCalled = sinon.stub(TeemDevice.prototype, 'report').rejects();
 
             // check the record sent to reportRecord
             let record;
-            sinon.stub(teemDevice, 'reportRecord').callsFake((recordIn) => {
+            sinon.stub(TeemDevice.prototype, 'reportRecord').callsFake((recordIn) => {
                 record = recordIn;
             });
 
             const declarationHandler = new DeclarationHandler(bigIpMock);
-            declarationHandler.teemDevice = teemDevice;
             return declarationHandler.process(newDeclaration, state)
                 .then(() => {
                     // Check that each class was called
@@ -500,20 +520,13 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const assetInfo = {
-                name: 'Declarative Onboarding',
-                version: '1.2.3'
-            };
-            const teemDevice = new TeemDevice(assetInfo);
-
             // check the record sent to reportRecord
             let record;
-            sinon.stub(teemDevice, 'reportRecord').callsFake((recordIn) => {
+            sinon.stub(TeemDevice.prototype, 'reportRecord').callsFake((recordIn) => {
                 record = recordIn;
             });
 
             const declarationHandler = new DeclarationHandler(bigIpMock);
-            declarationHandler.teemDevice = teemDevice;
             return declarationHandler.process(newDeclaration, state)
                 .then(() => {
                     // Check that the record body object was filled with input
@@ -551,15 +564,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const assetInfo = {
-                name: 'Declarative Onboarding',
-                version: '1.2.3'
-            };
-            const teemDevice = new TeemDevice(assetInfo);
-
-            sinon.stub(teemDevice, 'reportRecord').rejects();
+            sinon.stub(TeemDevice.prototype, 'reportRecord').rejects();
             const declarationHandler = new DeclarationHandler(bigIpMock);
-            declarationHandler.teemDevice = teemDevice;
             return declarationHandler.process(newDeclaration, state);
         });
 
@@ -676,6 +682,76 @@ describe('declarationHandler', () => {
                 .then(() => {
                     assert.strictEqual(declarationWithDefaults.Common.System.hostname, undefined);
                 });
+        });
+
+        describe('ManagementIp fix', () => {
+            it('should apply fix for ManagementIp', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        ManagementIp: {
+                            myManagementIp: {
+                                name: '1.2.3.4/5'
+                            }
+                        }
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current'
+                    },
+                    originalConfig: {
+                        Common: {}
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            declarationWithDefaults.Common.ManagementIp,
+                            {
+                                '1.2.3.4/5': {
+                                    name: '1.2.3.4/5'
+                                }
+                            }
+                        );
+                    });
+            });
+
+            it('should leave ManagementIp intact in original but not declaration', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        ManagementIp: {}
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current'
+                    },
+                    originalConfig: {
+                        Common: {
+                            ManagementIp: {
+                                '1.2.3.4/5': {
+                                    name: '1.2.3.4/5'
+                                }
+                            }
+                        }
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            declarationWithDefaults.Common.ManagementIp,
+                            {
+                                '1.2.3.4/5': {
+                                    name: '1.2.3.4/5'
+                                }
+                            }
+                        );
+                    });
+            });
         });
 
         it('should apply fix for Default Route Domain - no Route Domains in declaration', () => {
@@ -1529,6 +1605,87 @@ describe('declarationHandler', () => {
                 });
         });
 
+        describe('RoutingPrefixList fixes', () => {
+            let newDeclaration;
+            let state;
+
+            beforeEach(() => {
+                newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        RoutingPrefixList: {
+                            list1: {
+                                name: 'list1'
+                            }
+                        }
+                    }
+                };
+
+                state = {
+                    originalConfig: {
+                        Common: {}
+                    },
+                    currentConfig: {
+                        parsed: true,
+                        Common: {}
+                    }
+                };
+            });
+
+            describe('prefixLenRange', () => {
+                it('should prepend 0 if length greater than 1 and starts with colon', () => {
+                    newDeclaration.Common.RoutingPrefixList.list1.entries = [
+                        {
+                            name: '20',
+                            action: 'deny',
+                            prefix: '10.3.3.0/24',
+                            prefixLenRange: ':25'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.equal(declarationWithDefaults.Common.RoutingPrefixList.list1.entries[0].prefixLenRange, '0:25');
+                        });
+                });
+
+                it('should append 0 if length greater than 1 and ends with colon', () => {
+                    newDeclaration.Common.RoutingPrefixList.list1.entries = [
+                        {
+                            name: '25',
+                            action: 'deny',
+                            prefix: '10.4.4.0/24',
+                            prefixLenRange: '25:'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.equal(declarationWithDefaults.Common.RoutingPrefixList.list1.entries[0].prefixLenRange, '25:0');
+                        });
+                });
+
+                it('should not modify if anything else', () => {
+                    newDeclaration.Common.RoutingPrefixList.list1.entries = [
+                        {
+                            name: '35',
+                            action: 'deny',
+                            prefix: '10.6.6.0/24',
+                            prefixLenRange: '25:26'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.equal(declarationWithDefaults.Common.RoutingPrefixList.list1.entries[0].prefixLenRange, '25:26');
+                        });
+                });
+            });
+        });
+
         describe('RoutingBGP fixes', () => {
             let newDeclaration;
             let state;
@@ -2105,19 +2262,19 @@ describe('declarationHandler', () => {
                 it('should sort neighbors by ip address', () => {
                     newDeclaration.Common.RoutingBGP.bgp1.neighbors = [
                         {
-                            address: '10.1.1.4',
+                            name: '10.1.1.4',
                             peerGroup: 'Neighbor_IN'
                         },
                         {
-                            address: '10.1.1.5',
+                            name: '10.1.1.5',
                             peerGroup: 'Neighbor_OUT'
                         },
                         {
-                            address: '10.1.1.2',
+                            name: '10.1.1.2',
                             peerGroup: 'Neighbor_IN'
                         },
                         {
-                            address: '10.1.1.3',
+                            name: '10.1.1.3',
                             peerGroup: 'Neighbor_OUT'
                         }
                     ];
@@ -2129,19 +2286,19 @@ describe('declarationHandler', () => {
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.neighbors,
                                 [
                                     {
-                                        address: '10.1.1.2',
+                                        name: '10.1.1.2',
                                         peerGroup: 'Neighbor_IN'
                                     },
                                     {
-                                        address: '10.1.1.3',
+                                        name: '10.1.1.3',
                                         peerGroup: 'Neighbor_OUT'
                                     },
                                     {
-                                        address: '10.1.1.4',
+                                        name: '10.1.1.4',
                                         peerGroup: 'Neighbor_IN'
                                     },
                                     {
-                                        address: '10.1.1.5',
+                                        name: '10.1.1.5',
                                         peerGroup: 'Neighbor_OUT'
                                     }
                                 ]
@@ -2402,6 +2559,116 @@ describe('declarationHandler', () => {
             };
             const handler = new DeclarationHandler(bigIpMock);
             return assert.isRejected(handler.process(declaration, state), /Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort./);
+        });
+
+        it('should add DHCP Management Routes when preserveOrigDhcpRoutes is true', () => {
+            const declaration = {
+                parsed: true,
+                Common: {
+                    System: {
+                        preserveOrigDhcpRoutes: true
+                    },
+                    ManagementRoute: {
+                        newManagementRoute: {
+                            name: 'newManagementRoute',
+                            network: '1.2.3.4',
+                            gw: '4.3.2.1',
+                            mtu: 0
+                        }
+                    }
+                }
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current',
+                    parsed: true,
+                    Common: {
+                        ManagementRoute: {
+                            default: {
+                                name: 'default',
+                                description: 'configured-by-dhcp',
+                                network: 'default',
+                                gw: '10.20.30.40',
+                                mtu: 0
+                            }
+                        }
+                    }
+                },
+                originalConfig: {
+                    Common: {
+                        ManagementRoute: {
+                            default: {
+                                name: 'default',
+                                description: 'configured-by-dhcp',
+                                network: 'default',
+                                gw: '10.20.30.40',
+                                mtu: 0
+                            }
+                        }
+                    }
+                }
+            };
+            const handler = new DeclarationHandler(bigIpMock);
+            return handler.process(declaration, state)
+                .then(() => {
+                    const actualManagementRoutes = diffHandlerStub.args[0][0].Common.ManagementRoute;
+                    assert.deepStrictEqual(Object.keys(actualManagementRoutes), ['newManagementRoute', 'default']);
+                });
+        });
+
+        it('should not add DHCP Management Routes when preserveOrigDhcpRoutes is false', () => {
+            const declaration = {
+                parsed: true,
+                Common: {
+                    System: {
+                        preserveOrigDhcpRoutes: false
+                    },
+                    ManagementRoute: {
+                        newManagementRoute: {
+                            name: 'newManagementRoute',
+                            network: '1.2.3.4',
+                            gw: '4.3.2.1',
+                            mtu: 0
+                        }
+                    }
+                }
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current',
+                    parsed: true,
+                    Common: {
+                        ManagementRoute: {
+                            default: {
+                                name: 'default',
+                                description: 'configured-by-dhcp',
+                                network: 'default',
+                                gw: '10.20.30.40',
+                                mtu: 0
+                            }
+                        }
+                    }
+                },
+                originalConfig: {
+                    Common: {
+                        ManagementRoute: {
+                            default: {
+                                name: 'default',
+                                description: 'configured-by-dhcp',
+                                network: 'default',
+                                gw: '10.20.30.40',
+                                mtu: 0
+                            }
+                        }
+                    }
+                }
+            };
+            const handler = new DeclarationHandler(bigIpMock);
+            return handler.process(declaration, state)
+                .then(() => {
+                    const actualManagementRoutes = diffHandlerStub.args[0][0].Common.ManagementRoute;
+                    assert.deepStrictEqual(Object.keys(actualManagementRoutes), ['newManagementRoute']);
+                });
         });
     });
 

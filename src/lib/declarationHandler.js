@@ -56,6 +56,7 @@ const CLASSES_OF_TRUTH = [
     'FailoverUnicast',
     'FailoverMulticast',
     'Analytics',
+    'ManagementIp',
     'ManagementRoute',
     'RouteDomain',
     'Authentication',
@@ -100,11 +101,6 @@ class DeclarationHandler {
     constructor(bigIp, eventEmitter) {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
-        const assetInfo = {
-            name: 'Declarative Onboarding',
-            version: doUtil.getDoVersion().VERSION
-        };
-        this.teemDevice = new TeemDevice(assetInfo);
     }
 
     /**
@@ -127,6 +123,7 @@ class DeclarationHandler {
         Object.assign(oldDeclaration, state.currentConfig);
         let updateDeclaration;
         let deleteDeclaration;
+        let status;
 
         // modules available on the target BIG-IP
         const modules = [];
@@ -160,10 +157,12 @@ class DeclarationHandler {
             })
             .then(() => {
                 applyDefaults(parsedNewDeclaration, state);
+                applyManagementIpFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
                 applyGSLBServerFixes(parsedNewDeclaration);
+                applyRoutingPrefixListFixes(parsedNewDeclaration);
                 applyRouteMapFixes(parsedNewDeclaration);
                 applyRoutingBgpFixes(parsedNewDeclaration);
                 applyGSLBProberPoolFixes(parsedNewDeclaration);
@@ -171,6 +170,7 @@ class DeclarationHandler {
                 applyFirewallPortListFixes(parsedNewDeclaration);
                 applyFirewallPolicyFixes(parsedNewDeclaration);
                 applySelfIpFixes(parsedNewDeclaration);
+                applyManagementRouteFixes(parsedNewDeclaration, state.originalConfig);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
 
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
@@ -185,74 +185,25 @@ class DeclarationHandler {
                 const traceManager = new TraceManager(declaration, this.eventEmitter, state);
                 return traceManager.traceConfigs(parsedOldDeclaration, parsedNewDeclaration);
             })
-            .then(() => removeEmptyObjects(updateDeclaration))
-            .then(() => this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
             .then(() => {
-                const handlers = [
-                    [SystemHandler, updateDeclaration],
-                    [AuthHandler, updateDeclaration],
-                    [ProvisionHandler, updateDeclaration],
-                    [NetworkHandler, updateDeclaration],
-                    [DscHandler, updateDeclaration],
-                    [AnalyticsHandler, updateDeclaration],
-                    [GSLBHandler, updateDeclaration],
-                    [DeleteHandler, deleteDeclaration],
-                    [DeprovisionHandler, updateDeclaration]
-                ];
-
-                const handlerStatuses = [];
-                return processHandlers(
-                    handlers,
-                    handlerStatuses,
+                if (declaration.controls && declaration.controls.dryRun) {
+                    logger.info('dryRun requested. Skipping updates.');
+                    return Promise.resolve();
+                }
+                return makeUpdates(
                     this.bigIp,
                     this.eventEmitter,
+                    declaration,
+                    updateDeclaration,
+                    deleteDeclaration,
                     state
                 );
             })
-            .then((handlerStatuses) => {
-                const status = {
-                    rollbackInfo: {}
-                };
-                handlerStatuses.forEach((handlerStatus) => {
-                    if (handlerStatus.rebootRequired === true) {
-                        status.rebootRequired = true;
-                    }
-                    if (handlerStatus.rollbackInfo) {
-                        Object.keys(handlerStatus.rollbackInfo).forEach((key) => {
-                            status.rollbackInfo[key] = JSON.parse(JSON.stringify(handlerStatus.rollbackInfo[key]));
-                        });
-                    }
-                });
-                logger.info('Done processing declaration.');
-                if (!declaration.parsed) {
-                    // gather/calculate extra fields
-                    const extraFields = {};
-                    if (declaration.controls) {
-                        extraFields.userAgent = declaration.controls.userAgent;
-                    }
-                    if (declaration.Common) {
-                        extraFields.authenticationType = countAuthenticationTypes(
-                            declaration.Common,
-                            { ldap: 0, radius: 0, tacacs: 0 }
-                        );
-                    }
-
-                    const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
-                    return Promise.resolve()
-                        .then(() => record.calculateAssetId())
-                        .then(() => record.addRegKey())
-                        .then(() => record.addPlatformInfo())
-                        .then(() => record.addProvisionedModules())
-                        .then(() => record.addClassCount(declaration))
-                        .then(() => record.addJsonObject(extraFields))
-                        .then(() => this.teemDevice.reportRecord(record))
-                        .catch((err) => {
-                            logger.warning(`Unable to send device report: ${err.message}`);
-                        })
-                        .then(() => status);
-                }
-                return Promise.resolve(status);
+            .then((result) => {
+                status = result || {};
+                return handleTeemReport(declaration);
             })
+            .then(() => status)
             .catch((err) => {
                 logger.severe(`Error processing declaration: ${err.message}`);
                 return Promise.reject(err);
@@ -294,6 +245,33 @@ function applyDefaults(declaration, state) {
             }
         }
     });
+}
+
+/**
+ * ManagementIp fixes
+ *
+ * Management IPs are listed in a property that matches their address like
+ * {
+ *     "ip_address/mask": {
+ *         "name": "ip_address/mask"
+ *     }
+ * }
+ * So we have to set the property name in the declaration to match the address
+ * field (which as the property name 'name')
+ *
+ * @param {Object} declaration    - declaration
+ */
+function applyManagementIpFixes(declaration) {
+    if (declaration.Common.ManagementIp) {
+        Object.keys(declaration.Common.ManagementIp).forEach((name) => {
+            const ipAddress = declaration.Common.ManagementIp[name].name;
+            if (name !== ipAddress) {
+                declaration.Common.ManagementIp[ipAddress] = {};
+                Object.assign(declaration.Common.ManagementIp[ipAddress], declaration.Common.ManagementIp[name]);
+                delete declaration.Common.ManagementIp[name];
+            }
+        });
+    }
 }
 
 /**
@@ -602,6 +580,21 @@ function applyRouteMapFixes(declaration) {
 }
 
 /**
+ * Apply fixes to RoutingPrefixList prefixLenRange to align the current config to the desired config.
+ * @param {Object} declaration
+ */
+function applyRoutingPrefixListFixes(declaration) {
+    doUtil.forEach(declaration, 'RoutingPrefixList', (tenant, list) => {
+        if (list.entries) {
+            list.entries.forEach((entry) => {
+                entry.prefixLenRange = entry.prefixLenRange.startsWith(':') ? `0${entry.prefixLenRange}` : entry.prefixLenRange;
+                entry.prefixLenRange = entry.prefixLenRange.endsWith(':') ? `${entry.prefixLenRange}0` : entry.prefixLenRange;
+            });
+        }
+    });
+}
+
+/**
  * Apply fixes to RoutingBGP to align the current config to the desired config.
  * @param {Object} declaration
  */
@@ -682,7 +675,7 @@ function applyRoutingBgpFixes(declaration) {
         });
 
         // sort neighbors array in address alphabetical order
-        doUtil.sortArrayByValueString(bgp.neighbors, 'address');
+        doUtil.sortArrayByValueString(bgp.neighbors, 'name');
 
         // sort peerGroups array in name alphabetical order
         doUtil.sortArrayByValueString(bgp.peerGroups, 'name');
@@ -901,6 +894,31 @@ function applyLdapCertFixes(declaration) {
 }
 
 /**
+ * Add original DHCP ManagementRoute objects to the declaration if we are preserving them.
+ *
+ * @param {Object} declaration - user provided declaration
+ * @param {Object} originalConfig - the original DO config
+ */
+function applyManagementRouteFixes(declaration, originalConfig) {
+    const ManagementRoutes = declaration.Common.ManagementRoute;
+    const origManagementRoutes = originalConfig.Common.ManagementRoute;
+
+    if (!origManagementRoutes || !ManagementRoutes || !declaration.Common.System
+        || !declaration.Common.System.preserveOrigDhcpRoutes) {
+        return;
+    }
+
+    Object.keys(origManagementRoutes).forEach((managementRoute) => {
+        if (origManagementRoutes[managementRoute].description === 'configured-by-dhcp'
+            && Object.keys(ManagementRoutes).indexOf(managementRoute) === -1) {
+            declaration.Common.ManagementRoute[managementRoute] = JSON.parse(
+                JSON.stringify(origManagementRoutes[managementRoute])
+            );
+        }
+    });
+}
+
+/**
  * Combine new LDAP SSL cert properties with original data from user declaration.
  *
  * @param {Object} declaration - Update declaration
@@ -991,4 +1009,84 @@ function removeEmptyObjects(declaration) {
     });
 }
 
+function makeUpdates(bigIp, eventEmitter, declaration, updateDeclaration, deleteDeclaration, state) {
+    return Promise.resolve()
+        .then(() => removeEmptyObjects(updateDeclaration))
+        .then(() => bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
+        .then(() => {
+            const handlers = [
+                [SystemHandler, updateDeclaration],
+                [AuthHandler, updateDeclaration],
+                [ProvisionHandler, updateDeclaration],
+                [NetworkHandler, updateDeclaration],
+                [DscHandler, updateDeclaration],
+                [AnalyticsHandler, updateDeclaration],
+                [GSLBHandler, updateDeclaration],
+                [DeleteHandler, deleteDeclaration],
+                [DeprovisionHandler, updateDeclaration]
+            ];
+
+            const handlerStatuses = [];
+            return processHandlers(
+                handlers,
+                handlerStatuses,
+                bigIp,
+                eventEmitter,
+                state
+            );
+        })
+        .then((handlerStatuses) => {
+            const status = {
+                rollbackInfo: {}
+            };
+            handlerStatuses.forEach((handlerStatus) => {
+                if (handlerStatus.rebootRequired === true) {
+                    status.rebootRequired = true;
+                }
+                if (handlerStatus.rollbackInfo) {
+                    Object.keys(handlerStatus.rollbackInfo).forEach((key) => {
+                        status.rollbackInfo[key] = JSON.parse(JSON.stringify(handlerStatus.rollbackInfo[key]));
+                    });
+                }
+            });
+            logger.info('Done processing declaration.');
+            return Promise.resolve(status);
+        });
+}
+
+function handleTeemReport(declaration) {
+    if (!declaration.parsed) {
+        const assetInfo = {
+            name: 'Declarative Onboarding',
+            version: doUtil.getDoVersion().VERSION
+        };
+        const teemDevice = new TeemDevice(assetInfo);
+
+        // gather/calculate extra fields
+        const extraFields = {};
+        if (declaration.controls) {
+            extraFields.userAgent = declaration.controls.userAgent;
+        }
+        if (declaration.Common) {
+            extraFields.authenticationType = countAuthenticationTypes(
+                declaration.Common,
+                { ldap: 0, radius: 0, tacacs: 0 }
+            );
+        }
+
+        const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
+        return Promise.resolve()
+            .then(() => record.calculateAssetId())
+            .then(() => record.addRegKey())
+            .then(() => record.addPlatformInfo())
+            .then(() => record.addProvisionedModules())
+            .then(() => record.addClassCount(declaration))
+            .then(() => record.addJsonObject(extraFields))
+            .then(() => teemDevice.reportRecord(record))
+            .catch((err) => {
+                logger.warning(`Unable to send device report: ${err.message}`);
+            });
+    }
+    return Promise.resolve();
+}
 module.exports = DeclarationHandler;

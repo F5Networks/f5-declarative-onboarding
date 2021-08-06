@@ -19,7 +19,8 @@
 const fs = require('fs');
 const assert = require('assert');
 const parseUrl = require('url').parse;
-const promiseUtils = require('@f5devcentral/atg-shared-utilities').promiseUtils;
+
+const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 
 const schema = require('../../../src/schema/latest/base.schema.json');
@@ -46,9 +47,6 @@ const DEFAULT_OPTIONS = {
     maxMcpRetries: 0 // -1 will poll mcp indefinitely, until success or timeout
 };
 
-let machines;
-let thisMachine;
-let bigIpAddress;
 let bigIpAuth;
 let bigIpUrl;
 let testInfo;
@@ -193,7 +191,7 @@ function _waitForCompleteStatus(id) {
             // If result still has a code of 0, the request is still processing
             const result = response.body.result;
             if (result.code === 202) {
-                return promiseUtils.delay(1000).then(() => _waitForCompleteStatus(id));
+                return promiseUtil.delay(1000).then(() => _waitForCompleteStatus(id));
             }
             return response.body;
         });
@@ -294,7 +292,7 @@ function createTransaction() {
     return sendRequest(reqOpts, { trials: 3, timeInterval: 500 })
         // Transaction response does not always mean that it's ready.
         // Wait a couple seconds to avoid race condition.
-        .then(response => promiseUtils.delay(2000).then(() => response.body.transId))
+        .then(response => promiseUtil.delay(2000).then(() => response.body.transId))
         .catch((error) => {
             error.message = `Unable to POST transaction: ${error}`;
             throw error;
@@ -325,7 +323,7 @@ function waitForCompleteTransaction(transId) {
     return sendRequest(reqOpts, { trials: 3, timeInterval: 500 })
         .then((response) => {
             if (response.body.state === 'VALIDATING') {
-                return promiseUtils.delay(1000).then(() => waitForCompleteTransaction(transId));
+                return promiseUtil.delay(1000).then(() => waitForCompleteTransaction(transId));
             }
             if (response.body.state === 'COMPLETED') {
                 return Promise.resolve();
@@ -335,7 +333,7 @@ function waitForCompleteTransaction(transId) {
         })
         .catch((error) => {
             if (error.message.indexOf('TimeoutException') > -1) {
-                return promiseUtils.delay(1000).then(() => waitForCompleteTransaction(transId));
+                return promiseUtil.delay(1000).then(() => waitForCompleteTransaction(transId));
             }
             error.message = `Unable to complete transaction: ${error}`;
             throw error;
@@ -350,7 +348,7 @@ function postBigipItems(items, useTransaction) {
     }
 
     return (useTransaction ? createTransaction().then((id) => { transId = id; }) : Promise.resolve())
-        .then(() => promiseUtils.series(
+        .then(() => promiseUtil.series(
             items.map(item => () => {
                 const url = `${bigIpUrl}${constants.ICONTROL_API}${item.endpoint}`;
                 const reqOpts = common.buildBody(url, item.data, getAuth(), 'POST');
@@ -409,7 +407,7 @@ function deleteDeclaration() {
 }
 
 function deleteBigipItems(items) {
-    return promiseUtils.series(items
+    return promiseUtil.series(items
         .filter(item => !item.skipDelete)
         .map(item => () => {
             if (item.endpoint.indexOf('file-transfer/uploads') > -1) {
@@ -701,7 +699,7 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
                     delay: 10000,
                     retries: 2.5 * 60 * 1000 / 10000
                 };
-                return promiseUtils.retryPromise((decl, info) => postDeclaration(decl, info)
+                return promiseUtil.retryPromise((decl, info) => postDeclaration(decl, info)
                     .then((result) => {
                         if (result.result.code === 503) {
                             throw new Error('Target is busy');
@@ -729,7 +727,7 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
             );
         })
         .then(() => getPreFetchFunctions(properties, index))
-        .then(() => promiseUtils.delay(fullOptions.getMcpValueDelay))
+        .then(() => promiseUtil.delay(fullOptions.getMcpValueDelay))
         .then(() => {
             const assertMcp = () => getMcpValue(targetClass, properties, index, fullOptions)
                 .then(result => checkMcpValue(result, properties, index));
@@ -737,7 +735,7 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
                 delay: 1000,
                 retries: fullOptions.maxMcpRetries
             };
-            return promiseUtils.retryPromise(assertMcp, options, []);
+            return promiseUtil.retryPromise(assertMcp, options, []);
         })
         .then(() => {
             if (fullOptions.skipIdempotentCheck) {
@@ -902,17 +900,10 @@ function mkdirPromise(path) {
 
 before(function setup() {
     this.timeout(180000);
-    return common.readFile(process.env.TEST_HARNESS_FILE)
-        .then(file => JSON.parse(file))
-        .then((deployedMachines) => {
-            machines = deployedMachines.map(deployedMachine => ({
-                ip: deployedMachine.admin_ip,
-                adminUsername: deployedMachine.f5_rest_user.username,
-                adminPassword: deployedMachine.f5_rest_user.password
-            }));
-            thisMachine = machines[3];
-            bigIpAddress = thisMachine.ip;
-            bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
+    return Promise.resolve()
+        .then(() => {
+            const bigIpAddress = process.env.DO_HOST;
+            bigIpAuth = { username: process.env.DO_USERNAME, password: process.env.DO_PASSWORD };
             bigIpUrl = common.hostname(bigIpAddress, constants.PORT);
         })
         .then(() => getProvisionedModulesAsync())
