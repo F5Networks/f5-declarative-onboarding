@@ -13,7 +13,6 @@ The following are prerequisites for using F5 Declarative Onboarding:
 - The BIG-IP must be running version 13.1 or later.  
   Declarative Onboarding is not intended to work on BIG-IP versions that have reached End of Life.
   See `here <https://support.f5.com/csp/article/K5903>`_ for more information about BIG-IP versions supported by F5.
-
    .. IMPORTANT:: Due to changes in TMOS v13.1.1.5 and v13.1.3.x, the Declarative Onboarding (DO) Extension is not compatible with this specific TMOS version. Versions before and after 13.1.1.5 are compatible.
 
 - You must have an existing user account with the Administrator role. If you are using 13.1.x, the BIG-IP contains an admin user by default. If you are using 14.x, you **must** reset the admin password before installing Declarative Onboarding. See :ref:`14andlater` for instructions.  
