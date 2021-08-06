@@ -92,3 +92,7 @@ See |sysclass| in the Schema Reference for DO usage and options. For detailed in
 .. |slref| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#syslogremoteserver" target="_blank">SyslogRemoteServer Class</a>
+
+.. |sldocs| raw:: html
+
+    <a href="https://techdocs.f5.com/en-us/bigip-14-0-0/external-monitoring-of-big-ip-systems-implementations-14-0-0/about-logging.html" target="_blank">External Monitoring</a>
