@@ -344,8 +344,19 @@ This feature provides the ability to preserve those DHCP routes using the new **
 
 .. IMPORTANT:: If you do not configure DO to preserve management routes (the default) but specify management routes in the declaration, DO disables DHCP for management routes. If you configure DO to preserve management routes, DHCP for management routes remains enabled. 
 
-See |system| for more information and DO usage.
+See |sysclass| for more information and DO usage.
 
+
+.. literalinclude:: ../../examples/preserveOrigDhcpRoutes.json
+    :language: json
+
+|
+
+.. _interfaceroutes:
+
+Configuring interface routes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This example shows how you can specify multiple route of different types in a DO declaration. This functionality previously existed, however an issue existed in DO prior to v1.23 that would not allow a type of **interface** on Management routes.   
 
 .. literalinclude:: ../../examples/preserveOrigDhcpRoutes.json
     :language: json
