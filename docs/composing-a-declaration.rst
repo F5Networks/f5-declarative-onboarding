@@ -354,7 +354,7 @@ If you are modifying the root password, you must supply the existing root passwo
 
 .. IMPORTANT:: The following examples include passwords that may not be valid for BIG-IP v14.0 and later.  See |pass| for specific requirements.
 
-Note that the **keys** property is not included in the example at the top of this page, so the line numbers for this section will not line up with that example.
+The **keys** property is not included in the example at the top of this page, so the line numbers for this section will not line up with that example.
 
 
 
