@@ -344,7 +344,7 @@ This feature provides the ability to preserve those DHCP routes using the new **
 
 .. IMPORTANT:: If you do not configure DO to preserve management routes (the default) but specify management routes in the declaration, DO disables DHCP for management routes. If you configure DO to preserve management routes, DHCP for management routes remains enabled. 
 
-See |system| for more information and DO usage.
+See |sysclass| for more information and DO usage.
 
 
 .. literalinclude:: ../../examples/preserveOrigDhcpRoutes.json
