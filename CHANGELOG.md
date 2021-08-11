@@ -5,6 +5,10 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 ### Fixed
 ### Changed
+- Update f5-cloud-libs to 4.26.1
+  - Add failOnErrorMessages and failOnErrorCodes which are arrays of strings/regexes and integers, respectively. That prevent the retry logic from running. Effectively allowing for an early exit of specific failures.
+  - Add option to provision BIG-IP modules using a transaction
+- AUTOTOOL-2680: Use Transactions for provisioning
 ### Removed
 
 ## 1.23.0
