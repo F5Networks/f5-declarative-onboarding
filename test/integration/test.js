@@ -473,6 +473,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     neighbors: [
                         {
                             name: '10.1.1.2',
+                            ebgpMultihop: 2,
                             peerGroup: 'Neighbor'
                         }
                     ],

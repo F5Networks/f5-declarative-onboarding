@@ -878,6 +878,13 @@
                                     "type": "string",
                                     "format": "f5ip"
                                 },
+                                "ebgpMultihop": {
+                                    "description": "Allow external BGP members not on directly connected networks",
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 255,
+                                    "default": 1
+                                },
                                 "peerGroup": {
                                     "description": "Peer group",
                                     "type": "string"

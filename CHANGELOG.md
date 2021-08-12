@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.24.0
 ### Added
+- AUTOTOOL-2668: ([GitHub Issue 236](https://github.com/F5Networks/f5-declarative-onboarding/issues/236)): Added ebgpMultihop to RoutingBGP class
 ### Fixed
 ### Changed
 - Update f5-cloud-libs to 4.26.1

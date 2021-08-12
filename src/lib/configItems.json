@@ -265,6 +265,7 @@
             ],
             "neighborReference": [
                 { "id": "name", "newId": "address" },
+                { "id": "ebgpMultihop" },
                 { "id": "peerGroup" }
             ]
         }

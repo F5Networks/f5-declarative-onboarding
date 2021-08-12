@@ -107,10 +107,12 @@
             "neighbors": [
                 {
                     "address": "10.1.1.2",
+                    "ebgpMultihop": 2,
                     "peerGroup": "Neighbor"
                 },
                 {
                     "address": "10.1.1.3",
+                    "ebgpMultihop": 3,
                     "peerGroup": "Neighbor"
                 }
             ],

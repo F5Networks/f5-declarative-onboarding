@@ -744,6 +744,7 @@ describe('inspectHandler', () => {
             '/tm/net/routing/bgp/~Common~exampleBGP/neighbor': [
                 {
                     name: '10.1.1.2',
+                    ebgpMultihop: 2,
                     peerGroup: 'Neighbor_IN',
                     unwanted: 1
                 }
@@ -1704,6 +1705,7 @@ describe('inspectHandler', () => {
                             neighbors: [
                                 {
                                     address: '10.1.1.2',
+                                    ebgpMultihop: 2,
                                     peerGroup: 'Neighbor_IN'
                                 }
                             ],
