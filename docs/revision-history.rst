@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.24
+        - Updated the documentation for Declarative Onboarding v1.24.0.  This release contains the following changes: |br| * Added support for the **ebgpMultihop** property for BGP neighbors (see the updated :ref:`BGP example<bgprouting>`) |br| |br| Issues Resolved: |br| * 
+        - 9-28-21
+
       * - 1.23
         - Updated the documentation for Declarative Onboarding v1.22.0.  This release contains the following changes: |br| * Added support for specifying a static management IP address (see :ref:`Static management IP<manip>`) |br| * Added support for preserving DHCP management routes (see :ref:`Preserve DHCP routes<dhcpresv>`) |br| * Added support for the **dryRun** Controls property to test the declaration without deploying it (see :ref:`dryRun<example32>`) |br| * DO now preserves user authorization keys if no keys were provided in declaration, `GitHub Issue 101 <https://github.com/F5Networks/f5-declarative-onboarding/issues/101>`_ |br| |br| Issues Resolved: |br| * Ability to create routes with the Type of Interface, `GitHub Issue 225 <https://github.com/F5Networks/f5-declarative-onboarding/issues/225>`_ |br| * RoutingPrefixList prefixLengthRange does not support strings, `GitHub Issue 237 <https://github.com/F5Networks/f5-declarative-onboarding/issues/237>`_ (see the updated :ref:`Routing Prefix lists<example26>`) |br| * Fix FailoverUnicast unicastAddresses.map is not a function |br| * RoutingBGP 'toUpperCase' undefined error, `GitHub Issue 249 <https://github.com/F5Networks/f5-declarative-onboarding/issues/249>`_ 
         - 8-9-21
