@@ -234,8 +234,8 @@ Configuring BGP Routing in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for BGP routing is available in DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP
-
+   Support for BGP routing is available in DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP. |br| Support for the **ebgpMultihop** property is available in DO 1.24 and later.
+   
 This example shows how you can configure Border Gateway Protocol (BGP) routing in a Declarative Onboarding declaration.
 
 For an excellent overview of BGP, see the F5 Lightboard lesson |bgpvid|.
@@ -251,9 +251,15 @@ The BGP routing configuration uses the following Declarative Onboarding classes 
 
 The **RoutingBGP** class contains a number of properties used in the following example, so be sure to see |routingbgp| for descriptions and options.
 
+**New in DO 1.24** |br|
+Declarative Onboarding 1.24 introduced the **ebgpMultihop** property for BGP neighbors. This property allows you to specify between 1 and 255 external BGP members that are not on directly connected networks (the default is **1**). See |ebgp| in the Schema Reference for more information.
+
+.. IMPORTANT:: If you try to use the following example with a version prior to 1.24, it will fail.  For previous versions, remove the lines in yellow.
+
 
 .. literalinclude:: ../../examples/bgp.json
    :language: json
+   :emphasize-lines: 110, 115
 
 |
 
@@ -577,3 +583,9 @@ This example shows how you can specify multiple route of different types in a DO
 .. |mip| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementip" target="_blank">ManagementIp</a>
+
+.. |ebgp| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingbgp-neighbors" target="_blank">RoutingBGP_neighbors</a>
+
+   
