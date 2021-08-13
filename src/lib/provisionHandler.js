@@ -94,7 +94,7 @@ function handleProvision() {
 
     const provision = getProvision.call(this);
 
-    return this.bigIp.onboard.provision(provision)
+    return this.bigIp.onboard.provision(provision, { useTransaction: true })
         .then((results) => {
             // If we provisioned something make sure we are active for a while.
             // BIG-IP has a way of reporting active after provisioning, but then

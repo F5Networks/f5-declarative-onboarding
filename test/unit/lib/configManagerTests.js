@@ -1976,18 +1976,22 @@ describe('configManager', () => {
             listResponses['/tm/net/routing/bgp/~Common~peerGroup/neighbor'] = [
                 {
                     name: '10.1.1.4',
+                    ebgpMultihop: 1,
                     peerGroup: 'Neighbor_IN'
                 },
                 {
                     name: '10.1.1.5',
+                    ebgpMultihop: 2,
                     peerGroup: 'Neighbor_OUT'
                 },
                 {
                     name: '10.1.1.2',
+                    ebgpMultihop: 3,
                     peerGroup: 'Neighbor_IN'
                 },
                 {
                     name: '10.1.1.3',
+                    ebgpMultihop: 4,
                     peerGroup: 'Neighbor_OUT'
                 }
             ];
@@ -2076,18 +2080,22 @@ describe('configManager', () => {
                             neighbors: [
                                 {
                                     name: '10.1.1.2',
+                                    ebgpMultihop: 3,
                                     peerGroup: 'Neighbor_IN'
                                 },
                                 {
                                     name: '10.1.1.3',
+                                    ebgpMultihop: 4,
                                     peerGroup: 'Neighbor_OUT'
                                 },
                                 {
                                     name: '10.1.1.4',
+                                    ebgpMultihop: 1,
                                     peerGroup: 'Neighbor_IN'
                                 },
                                 {
                                     name: '10.1.1.5',
+                                    ebgpMultihop: 2,
                                     peerGroup: 'Neighbor_OUT'
                                 }
                             ],

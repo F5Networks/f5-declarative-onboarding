@@ -899,6 +899,7 @@ describe('network.schema.json', () => {
                     neighbors: [
                         {
                             address: '10.2.2.2',
+                            ebgpMultihop: 2,
                             peerGroup: 'Neighbor_IN'
                         }
                     ],
@@ -946,6 +947,7 @@ describe('network.schema.json', () => {
                     neighbors: [
                         {
                             address: '10.2.2.2',
+                            ebgpMultihop: 2,
                             peerGroup: 'Neighbor_IN'
                         }
                     ],

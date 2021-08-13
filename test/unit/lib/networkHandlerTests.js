@@ -1868,10 +1868,12 @@ describe('networkHandler', () => {
                             neighbors: [
                                 {
                                     name: '10.2.2.2',
+                                    ebgpMultihop: 1,
                                     peerGroup: 'Neighbor_IN'
                                 },
                                 {
                                     name: '10.2.2.3',
+                                    ebgpMultihop: 2,
                                     peerGroup: 'Neighbor_OUT'
                                 }
                             ],
@@ -1927,10 +1929,12 @@ describe('networkHandler', () => {
                         neighbor: [
                             {
                                 name: '10.2.2.2',
+                                ebgpMultihop: 1,
                                 peerGroup: 'Neighbor_IN'
                             },
                             {
                                 name: '10.2.2.3',
+                                ebgpMultihop: 2,
                                 peerGroup: 'Neighbor_OUT'
                             }
                         ],
