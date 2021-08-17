@@ -1128,7 +1128,7 @@
                     "$ref": "#/definitions/firewallRuleSource"
                 },
                 "destination": {
-                    "$ref": "#/definitions/firewallRuleSource"
+                    "$ref": "#/definitions/firewallRuleDestination"
                 },
                 "loggingEnabled": {
                     "description": "Specifies whether the system enables or disables logging for the firewall rule",

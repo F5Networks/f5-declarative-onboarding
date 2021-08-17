@@ -6,6 +6,8 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2668: ([GitHub Issue 236](https://github.com/F5Networks/f5-declarative-onboarding/issues/236)): Added ebgpMultihop to RoutingBGP class
 
 ### Fixed
+- AUTOTOOL-2692: FirewallPolicy incorrectly allows VLANs to be included in the destination schema object
+
 ### Changed
 - Update f5-cloud-libs to 4.26.1
   - Add failOnErrorMessages and failOnErrorCodes which are arrays of strings/regexes and integers, respectively. That prevent the retry logic from running. Effectively allowing for an early exit of specific failures.
