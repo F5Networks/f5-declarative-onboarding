@@ -1,7 +1,11 @@
 #!/bin/bash
 
+# Colors
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 if [ -z "$1" ]; then
-    echo "Target machine name is required"
+    echo -e "${RED}Target machine name is required${NC}"
     exit 1
 fi
 
