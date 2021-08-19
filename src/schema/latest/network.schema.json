@@ -502,10 +502,13 @@
                         "type": "string",
                         "const": "Tunnel"
                     },
+                    "remark": {
+                        "$ref": "definitions.schema.json#/definitions/Remark"
+                    },
                     "tunnelType": {
                         "description": "Specifies the profile that you want to associate with the Tunnel.",
                         "type": "string",
-                        "enum": ["tcp-forward"]
+                        "enum": ["geneve", "gre", "tcp-forward"]
                     },
                     "mtu": {
                         "description": "Specifies the maximum transmission unit of the Tunnel.",
@@ -543,9 +546,82 @@
                             "disabled"
                         ],
                         "default": "default"
+                    },
+                    "key": {
+                        "description": "When applied to a GRE tunnel, this value specifies an optional field in the GRE header, used to authenticate the source of the packet. When applied to a VXLAN or Geneve tunnel, this value specifies the Virtual Network Identifier (VNI). When applied to an NVGRE tunnel, this value specifies the Virtual Subnet Identifier (VSID).",
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0
+                    },
+                    "localAddress": {
+                        "description": "Specifies the IP address of the local endpoint of the tunnel.",
+                        "type": "string",
+                        "anyOf": [
+                            { "enum": ["any", "any6"] },
+                            { "format": "f5ip" }
+                        ],
+                        "default": "any6"
+                    },
+                    "remoteAddress": {
+                        "description": "Specifies the IP address of the remote endpoint of the tunnel.",
+                        "type": "string",
+                        "anyOf": [
+                            { "enum": ["any", "any6"] },
+                            { "format": "f5ip" }
+                        ],
+                        "default": "any6"
+                    },
+                    "secondaryAddress": {
+                        "description": "Specifies a non-floating IP address for the tunnel, to be used with host-initiated traffic.",
+                        "type": "string",
+                        "anyOf": [
+                            { "enum": ["any", "any6"] },
+                            { "format": "f5ip" }
+                        ],
+                        "default": "any6"
+                    },
+                    "mode": {
+                        "description": "Specifies how the tunnel carries traffic.",
+                        "type": "string",
+                        "enum": ["bidirectional", "inbound", "outbound"],
+                        "default": "bidirectional"
+                    },
+                    "transparent": {
+                        "description": "Specifies that the tunnel operates in transparent mode. When enabled, you can inspect and manipulate the encapsulated traffic flowing through the BIG-IP system.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "trafficGroup": {
+                        "description": "Specifies the traffic group to associate with the tunnel.",
+                        "type": "string",
+                        "default": "none"
                     }
                 },
-                "additionalProperties": false
+                "allOf": [
+                    {
+                        "if": {
+                            "required": ["transparent", "trafficGroup"],
+                            "properties": { "transparent": { "const": true } }
+                        },
+                        "then": {
+                            "properties": {
+                                "trafficGroup": { "const": "none" }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "required": ["tunnelType"],
+                            "properties": { "tunnelType": { "const": "geneve" } }
+                        },
+                        "then": {
+                            "properties": {
+                                "mode": { "const": "bidirectional" },
+                                "remoteAddress": { "enum": ["any", "any6"] }
+                            }
+                        }
+                    }
+                ]
             }
         },
         {

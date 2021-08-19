@@ -634,17 +634,38 @@ function handleDagGlobals() {
 
 function handleTunnel() {
     const promises = [];
+    const deletePromises = [];
+
     doUtil.forEach(this.declaration, 'Tunnel', (tenant, tunnel) => {
         if (tunnel && tunnel.name && tunnel.profile) {
             const tunnelBody = {
                 name: tunnel.name,
+                description: tunnel.description,
                 partition: tenant,
                 autoLasthop: tunnel.autoLasthop,
                 mtu: tunnel.mtu,
                 profile: `/Common/${tunnel.profile}`,
                 tos: tunnel.tos,
-                usePmtu: tunnel.usePmtu ? 'enabled' : 'disabled'
+                usePmtu: tunnel.usePmtu ? 'enabled' : 'disabled',
+                localAddress: tunnel.localAddress,
+                remoteAddress: tunnel.remoteAddress,
+                secondaryAddress: tunnel.secondaryAddress,
+                key: tunnel.key,
+                mode: tunnel.mode,
+                transparent: tunnel.transparent ? 'enabled' : 'disabled',
+                trafficGroup: tunnel.trafficGroup
             };
+
+            // if we are changing the profile or trafficGroup, we first have to delete the tunnel
+            // (but we can't delete http-tunnel or socks-tunnel)
+            if (tunnel.name !== 'http-tunnel'
+                && tunnel.name !== 'socks-tunnel'
+                && this.state.currentConfig[tenant].Tunnel[tunnel.name]) {
+                if (tunnel.profile !== this.state.currentConfig[tenant].Tunnel[tunnel.name].profile
+                    || tunnel.trafficGroup !== this.state.currentConfig[tenant].Tunnel[tunnel.name].trafficGroup) {
+                    deletePromises.push(this.bigIp.delete(`${PATHS.Tunnel}/${tunnel.name}`));
+                }
+            }
 
             promises.push(
                 this.bigIp.createOrModify(PATHS.Tunnel, tunnelBody, null, cloudUtil.MEDIUM_RETRY)
@@ -652,7 +673,8 @@ function handleTunnel() {
         }
     });
 
-    return Promise.all(promises)
+    return Promise.all(deletePromises)
+        .then(() => Promise.all(promises))
         .catch((err) => {
             logger.severe(`Error creating Tunnels: ${err.message}`);
             throw err;
@@ -1082,7 +1104,7 @@ function findMatchingRoutes(selfIpsToDelete) {
 
             existingRoutes.forEach((route) => {
                 selfIpsToDelete.forEach((selfIp) => {
-                    if (isInSubnet(route.gw, selfIp.address)) {
+                    if (route.gw && isInSubnet(route.gw, selfIp.address)) {
                         if (matchingRoutes.findIndex(elementMatches, route) === -1) {
                             matchingRoutes.push(route);
                         }

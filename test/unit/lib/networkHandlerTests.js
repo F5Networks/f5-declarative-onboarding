@@ -1105,7 +1105,14 @@ describe('networkHandler', () => {
                             mtu: 0,
                             usePmtu: true,
                             tos: 'preserve',
-                            autoLasthop: 'default'
+                            autoLasthop: 'default',
+                            key: 0,
+                            localAddress: '10.10.10.10',
+                            remoteAddress: '20.20.20.10',
+                            secondaryAddress: '30.30.30.10',
+                            mode: 'bidirectional',
+                            transparent: false,
+                            trafficGroup: 'traffic-group-local-only'
                         },
                         tunnel2: {
                             name: 'tunnel2',
@@ -1113,13 +1120,28 @@ describe('networkHandler', () => {
                             mtu: 1000,
                             usePmtu: false,
                             tos: 12,
-                            autoLasthop: 'enabled'
+                            autoLasthop: 'enabled',
+                            key: 1,
+                            localAddress: '10.10.10.20',
+                            remoteAddress: '20.20.20.20',
+                            secondaryAddress: '30.30.30.20',
+                            mode: 'inbound',
+                            transparent: true,
+                            trafficGroup: 'none'
                         }
                     }
                 }
             };
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            const state = {
+                currentConfig: {
+                    Common: {
+                        Tunnel: {}
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const tunnels = dataSent[PATHS.Tunnel];
@@ -1129,13 +1151,133 @@ describe('networkHandler', () => {
                     assert.strictEqual(tunnels[0].usePmtu, 'enabled');
                     assert.strictEqual(tunnels[0].tos, 'preserve');
                     assert.strictEqual(tunnels[0].autoLasthop, 'default');
+                    assert.strictEqual(tunnels[0].key, 0);
+                    assert.strictEqual(tunnels[0].localAddress, '10.10.10.10');
+                    assert.strictEqual(tunnels[0].remoteAddress, '20.20.20.10');
+                    assert.strictEqual(tunnels[0].secondaryAddress, '30.30.30.10');
+                    assert.strictEqual(tunnels[0].mode, 'bidirectional');
+                    assert.strictEqual(tunnels[0].transparent, 'disabled');
+                    assert.strictEqual(tunnels[0].trafficGroup, 'traffic-group-local-only');
                     assert.strictEqual(tunnels[1].name, 'tunnel2');
                     assert.strictEqual(tunnels[1].profile, '/Common/tcp-forward');
                     assert.strictEqual(tunnels[1].mtu, 1000);
                     assert.strictEqual(tunnels[1].usePmtu, 'disabled');
                     assert.strictEqual(tunnels[1].tos, 12);
                     assert.strictEqual(tunnels[1].autoLasthop, 'enabled');
+                    assert.strictEqual(tunnels[1].key, 1);
+                    assert.strictEqual(tunnels[1].localAddress, '10.10.10.20');
+                    assert.strictEqual(tunnels[1].remoteAddress, '20.20.20.20');
+                    assert.strictEqual(tunnels[1].secondaryAddress, '30.30.30.20');
+                    assert.strictEqual(tunnels[1].mode, 'inbound');
+                    assert.strictEqual(tunnels[1].transparent, 'enabled');
+                    assert.strictEqual(tunnels[1].trafficGroup, 'none');
                 });
+        });
+
+        describe('pre-delete', () => {
+            let deletedPaths;
+
+            const state = {
+                currentConfig: {
+                    Common: {
+                        Tunnel: {
+                            tunnel1: {
+                                profile: 'originalProfile',
+                                trafficGroup: 'originalTrafficGroup'
+                            }
+                        }
+                    }
+                }
+            };
+
+            beforeEach(() => {
+                deletedPaths = [];
+                sinon.stub(bigIpMock, 'delete').callsFake((path) => {
+                    deletedPaths.push(path);
+                });
+            });
+
+            it('should delete existing tunnel if changing the trafficGroup', () => {
+                const declaration = {
+                    Common: {
+                        Tunnel: {
+                            tunnel1: {
+                                name: 'tunnel1',
+                                profile: 'originalProfile',
+                                trafficGroup: 'newTrafficGroup'
+                            }
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deletedPaths.length, 1);
+                        assert.strictEqual(deletedPaths[0], '/tm/net/tunnels/tunnel/tunnel1');
+                    });
+            });
+
+            it('should not delete existing tunnel if not changing the trafficGroup', () => {
+                const declaration = {
+                    Common: {
+                        Tunnel: {
+                            tunnel1: {
+                                name: 'tunnel1',
+                                profile: 'originalProfile',
+                                trafficGroup: 'originalTrafficGroup'
+                            }
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deletedPaths.length, 0);
+                    });
+            });
+
+            it('should delete existing tunnel if changing the profile', () => {
+                const declaration = {
+                    Common: {
+                        Tunnel: {
+                            tunnel1: {
+                                name: 'tunnel1',
+                                profile: 'newProfile',
+                                trafficGroup: 'originalTrafficGroup'
+                            }
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deletedPaths.length, 1);
+                        assert.strictEqual(deletedPaths[0], '/tm/net/tunnels/tunnel/tunnel1');
+                    });
+            });
+
+            it('should not delete existing tunnel if not changing the profile', () => {
+                const declaration = {
+                    Common: {
+                        Tunnel: {
+                            tunnel1: {
+                                name: 'tunnel1',
+                                profile: 'originalProfile',
+                                trafficGroup: 'originalTrafficGroup'
+                            }
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deletedPaths.length, 0);
+                    });
+            });
         });
     });
 

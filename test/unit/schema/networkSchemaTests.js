@@ -698,96 +698,168 @@ describe('network.schema.json', () => {
     });
 
     describe('Tunnel', () => {
-        describe('valid', () => {
-            it('should validate minimal schema', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward'
-                };
-                assert.ok(validate(data), getErrorString(validate));
+        describe('all', () => {
+            describe('valid', () => {
+                it('should validate minimal schema', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate with all properties', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        mtu: 5,
+                        usePmtu: false,
+                        typeOfService: 10,
+                        autoLastHop: 'enabled'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
             });
 
-            it('should validate with all properties', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    mtu: 5,
-                    usePmtu: false,
-                    typeOfService: 10,
-                    autoLastHop: 'enabled'
-                };
-                assert.ok(validate(data), getErrorString(validate));
+            describe('invalid', () => {
+                it('should invalidate invalid tunnelType', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'InvalidTunnelType'
+                    };
+                    assert.strictEqual(validate(data), false, 'tunnelType should match one of the enum values');
+                    assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                });
+
+                it('should invalidate invalid mtu value', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        mtu: 70000
+                    };
+                    assert.strictEqual(validate(data), false, 'mtu is out of range');
+                    assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+                });
+
+                it('should invalidate invalid usePmtu value', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        usePmtu: 'yes'
+                    };
+                    assert.strictEqual(validate(data), false, 'usePmtu should be a boolean');
+                    assert.notStrictEqual(getErrorString().indexOf('should be boolean'), -1);
+                });
+
+                it('should invalidate invalid enum value for typeOfService', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        typeOfService: 'newType'
+                    };
+                    assert.strictEqual(validate(data), false, 'typeOfService should match one of the enum values');
+                    assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                });
+
+                it('should invalidate invalid integer value for typeOfService', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        typeOfService: 300
+                    };
+                    assert.strictEqual(validate(data), false, 'typeOfService should be in the 0-255 range');
+                    assert.notStrictEqual(getErrorString().indexOf('should be <= 255'), -1);
+                });
+
+                it('should invalidate invalid enum value for autoLastHop', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        autoLastHop: 'auto'
+                    };
+                    assert.strictEqual(validate(data), false, 'autoLastHop should match one of the enum values');
+                    assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                });
+
+                it('should invalidate transparent if traffic group is not none', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        trafficGroup: 'traffic-group-local-only',
+                        transparent: true
+                    };
+                    assert.strictEqual(validate(data), false, 'traffic group must be none if transparent is true');
+                    assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".trafficGroup"'), -1);
+                    assert.notStrictEqual(getErrorString().indexOf('"allowedValue": "none"'), -1);
+                });
             });
         });
 
-        describe('invalid', () => {
-            it('should invalidate invalid tunnelType', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'InvalidTunnelType'
-                };
-                assert.strictEqual(validate(data), false, 'tunnelType should match one of the enum values');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+        describe('GRE', () => {
+            describe('valid', () => {
+                it('should validate minimal GRE declaration', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'gre',
+                        localAddress: '10.10.10.10'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate a full GRE declaration', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'gre',
+                        localAddress: '10.10.10.10',
+                        remoteAddress: '10.10.10.20',
+                        secondaryAddress: '10.10.10.30',
+                        key: 1,
+                        mode: 'inbound',
+                        transparent: true,
+                        trafficGroup: 'none'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+            });
+        });
+
+        describe('geneve', () => {
+            describe('valid', () => {
+                it('should validate bidirectonal mode', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'geneve',
+                        localAddress: '10.10.10.10',
+                        mode: 'bidirectional'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
             });
 
-            it('should invalidate additional properties', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    newProperty: 'helloThere'
-                };
-                assert.strictEqual(validate(data), false, 'can\'t have additional properties');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
-            });
+            describe('invalid', () => {
+                it('should invalidate non-any remote address', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'geneve',
+                        localAddress: '10.10.10.10',
+                        remoteAddress: '10.10.10.20'
+                    };
+                    assert.strictEqual(validate(data), false, 'geneve tunnel must use bidirectional mode');
+                    assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".remoteAddress"'), -1);
+                    assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                });
 
-            it('should invalidate invalid mtu value', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    mtu: 70000
-                };
-                assert.strictEqual(validate(data), false, 'mtu is out of range');
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
-            });
-
-            it('should invalidate invalid usePmtu value', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    usePmtu: 'yes'
-                };
-                assert.strictEqual(validate(data), false, 'usePmtu should be a boolean');
-                assert.notStrictEqual(getErrorString().indexOf('should be boolean'), -1);
-            });
-
-            it('should invalidate invalid enum value for typeOfService', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    typeOfService: 'newType'
-                };
-                assert.strictEqual(validate(data), false, 'typeOfService should match one of the enum values');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
-            });
-
-            it('should invalidate invalid integer value for typeOfService', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    typeOfService: 300
-                };
-                assert.strictEqual(validate(data), false, 'typeOfService should be in the 0-255 range');
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 255'), -1);
-            });
-
-            it('should invalidate invalid enum value for autoLastHop', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    autoLastHop: 'auto'
-                };
-                assert.strictEqual(validate(data), false, 'autoLastHop should match one of the enum values');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                it('should invalidate non-bidirectional mode', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'geneve',
+                        localAddress: '10.10.10.10',
+                        mode: 'inbound'
+                    };
+                    assert.strictEqual(validate(data), false, 'geneve tunnel must use bidirectional mode');
+                    assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".mode"'), -1);
+                    assert.notStrictEqual(getErrorString().indexOf('"allowedValue": "bidirectional"'), -1);
+                });
             });
         });
     });
