@@ -1084,11 +1084,19 @@ describe('inspectHandler', () => {
             '/tm/net/tunnels/tunnel': [
                 {
                     name: 'tunnel',
+                    description: 'this is my tunnel',
                     mtu: 0,
                     profile: '/Common/tcp-forward',
                     tos: 'preserve',
                     usePmtu: 'enabled',
-                    autoLasthop: 'default'
+                    autoLasthop: 'default',
+                    localAddress: 'any6',
+                    remoteAddress: 'any6',
+                    secondaryAddress: 'any6',
+                    key: 0,
+                    mode: 'bidirectional',
+                    transparent: 'disabled',
+                    trafficGroup: 'none'
                 }
             ],
             '/tm/sys/disk/directory': {
@@ -2047,11 +2055,19 @@ describe('inspectHandler', () => {
                         },
                         tunnel: {
                             class: 'Tunnel',
+                            remark: 'this is my tunnel',
                             tunnelType: 'tcp-forward',
                             mtu: 0,
                             usePmtu: true,
                             typeOfService: 'preserve',
-                            autoLastHop: 'default'
+                            autoLastHop: 'default',
+                            transparent: false,
+                            localAddress: 'any6',
+                            remoteAddress: 'any6',
+                            secondaryAddress: 'any6',
+                            key: 0,
+                            mode: 'bidirectional',
+                            trafficGroup: 'none'
                         },
                         currentDisk: {
                             class: 'Disk',

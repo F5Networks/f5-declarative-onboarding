@@ -309,6 +309,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .catch(error => logError(error, bigIpAddress, bigIpAuth));
         });
 
+        it('should match tunnel', () => {
+            assert.ok(testTunnel(body.Common.myGreTunnel, currentState, 'myGreTunnel'));
+        });
+
         it('should match self ip', () => {
             assert.ok(testSelfIp(body.Common.mySelfIp, currentState, 'mySelfIp'));
         });
@@ -317,6 +321,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             const expected = Object.assign({}, body.Common.myIpv6SelfIp);
             expected.address = '::ffff:10.148.85.46/32';
             assert.ok(testSelfIp(expected, currentState, 'myIpv6SelfIp'));
+        });
+
+        it('should match self ip on tunnel', () => {
+            assert.ok(testSelfIp(body.Common.myGreTunnelSelf, currentState, 'myGreTunnelSelf'));
         });
 
         it('should match VLAN', () => {
@@ -346,6 +354,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     tmInterface: 'myVlan'
                 }
             );
+        });
+
+        it('should match routing with tunnel', () => {
+            assert.ok(testRoute(body.Common.myGreTunnelRoute, currentState, 'myGreTunnelRoute'));
         });
 
         it('should match dns resolver', () => {
@@ -1479,6 +1491,21 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
 */
 function testProvisioning(target, response, provisionModules) {
     return compareSimple(target, response.Provision, provisionModules);
+}
+
+/**
+ * testSelfIp - test a selfIp configuration pattern from a DO status call
+ *              against a target object schemed on a declaration
+ * @param {Object} target - object to be tested against
+ * @param {Object} response - object from status response to compare with target
+ * @param {String} name - name of the selfIp
+ * Returns Promise true/false
+*/
+function testTunnel(target, response, name) {
+    const mappedTarget = JSON.parse(JSON.stringify(target));
+    mappedTarget.profile = mappedTarget.tunnelType;
+    delete mappedTarget.tunnelType;
+    return compareSimple(mappedTarget, response.Tunnel[name], ['profile', 'localAddress', 'mode']);
 }
 
 /**

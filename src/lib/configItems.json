@@ -701,11 +701,19 @@
         "path": "/tm/net/tunnels/tunnel",
         "schemaClass": "Tunnel",
         "properties": [
+            { "id": "description", "newId": "remark" },
             { "id": "autoLasthop", "newId": "autoLastHop" },
             { "id": "mtu" },
             { "id": "profile", "newId": "tunnelType" },
             { "id": "tos", "newId": "typeOfService" },
-            { "id": "usePmtu", "truth": "enabled", "falsehood": "disabled" }
+            { "id": "usePmtu", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "localAddress" },
+            { "id": "remoteAddress" },
+            { "id": "secondaryAddress" },
+            { "id": "key" },
+            { "id": "mode" },
+            { "id": "transparent", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "trafficGroup", "defaultWhenOmitted": "none" }
         ]
     },
     {
