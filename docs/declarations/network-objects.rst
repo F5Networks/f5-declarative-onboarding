@@ -161,14 +161,13 @@ Configuring a TCP Forward Tunnel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for TCP Forward Tunnels is available in DO v1.14 and later
+   Support for tunnel types **gre** and **geneve** is  available in DO v1.24 and later
 
-In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class introduced in DO 1.14.
+In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class.
 
-Currently, **tcp_forward** is the only profile (**tunnelType**) Declarative Onboarding supports.  The tcp_forward profile specifies a tunnel used for forward proxy connections.
+Declarative Onboarding 1.24 adds two tunnel types: **gre** and **geneve**.  In previous versions, **tcp_forward**, for forward proxy connections, was the only supported type of tunnel.  
 
-See |tunnel| in the Schema Reference for DO usage and options.
-
+See |tunnel| in the Schema Reference for DO usage and options.  The following example only shows the **tcp_forward** tunnel type.
 
 .. literalinclude:: ../../examples/tcpForwardTunnel.json
    :language: json
