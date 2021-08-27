@@ -20,7 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@f5devcentral/atg-shared-utilities": "^0.2.1",
-    "@f5devcentral/f5-cloud-libs": "^4.26.3",
+    "@f5devcentral/f5-cloud-libs": "^4.26.4",
     "@f5devcentral/f5-teem": "^1.5.0",
     "ajv": "6.12.6",
     "deep-diff": "^1.0.2",

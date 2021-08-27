@@ -586,7 +586,8 @@ function handleLicensePool(license) {
                             bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, licenseInfo),
                             passwordIsUri: !!options.bigIqPasswordUri,
                             authProvider: license.bigIqAuthProvider,
-                            noUnreachable: !!license.reachable
+                            noUnreachable: !!license.reachable,
+                            chargebackTag: license.chargebackTag
                         }
                     ))
                     .then(() => {
@@ -627,6 +628,7 @@ function handleLicensePool(license) {
                         skuKeyword2: license.skuKeyword2,
                         unitOfMeasure: license.unitOfMeasure,
                         noUnreachable: !!license.reachable,
+                        chargebackTag: license.chargebackTag,
                         overwrite: !!license.overwrite,
                         autoApiType: true,
                         tenant: license.tenant

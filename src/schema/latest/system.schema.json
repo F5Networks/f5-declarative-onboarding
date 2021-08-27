@@ -1371,6 +1371,10 @@
                         { "pattern": "^.{0,254}$" }
                     ]
                 },
+                "chargebackTag": {
+                    "description": "An optional text string which can be used as a charge back tag.",
+                    "type": "string"
+                },
                 "overwrite": {
                     "description": "Whether or not to overwrite the license if the device is already licensed.",
                     "type": "boolean",

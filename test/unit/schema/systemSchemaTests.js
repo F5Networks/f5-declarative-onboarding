@@ -247,7 +247,8 @@ describe('system.schema.json', () => {
                         "skuKeyword2": "key2",
                         "unitOfMeasure": "hourly",
                         "reachable": false,
-                        "hypervisor": "vmware"
+                        "hypervisor": "vmware",
+                        "chargebackTag": "foo-bar"
                     };
                     assert.ok(validate(data), getErrorString(validate));
                 });
@@ -264,7 +265,8 @@ describe('system.schema.json', () => {
                         "skuKeyword2": "key2",
                         "unitOfMeasure": "hourly",
                         "reachable": false,
-                        "hypervisor": "0x0100001A"
+                        "hypervisor": "0x0100001A",
+                        "chargebackTag": "foo-bar"
                     };
                     assert.ok(validate(data), getErrorString(validate));
                 });
@@ -282,7 +284,8 @@ describe('system.schema.json', () => {
                         "unitOfMeasure": "hourly",
                         "reachable": true,
                         "bigIpUsername": "admine",
-                        "bigIpPassword": "barbar"
+                        "bigIpPassword": "barbar",
+                        "chargebackTag": "foo-bar"
                     };
                     assert.ok(validate(data), getErrorString(validate));
                 });

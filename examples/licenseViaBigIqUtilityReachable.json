@@ -18,7 +18,8 @@
             "unitOfMeasure": "hourly",
             "reachable": true,
             "bigIpUsername": "admin",
-            "bigIpPassword": "asdfjkl"
+            "bigIpPassword": "asdfjkl",
+            "chargebackTag": "foo-bar"
         },
         "myDns": {
             "class": "DNS",
