@@ -85,7 +85,7 @@ module.exports = {
                     }
                 }
                 if (trials === 0) {
-                    throw new Error(`number of trials exhasted: ${error.message}`);
+                    throw new Error(`number of trials exhausted: ${error.message}`);
                 }
                 return module.exports.delayPromise(timeInterval)
                     .then(() => module.exports.tryOften(

@@ -23,6 +23,7 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 const sinon = require('sinon');
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;
+const Logger = require('../../../src/lib/logger');
 
 const NetworkHandler = require('../../../src/lib/networkHandler');
 
@@ -2580,7 +2581,7 @@ describe('networkHandler', () => {
                             description: 'test firewall policy description',
                             rules: [
                                 {
-                                    name: 'firewallPolicyRuleOne',
+                                    name: 'firewallRuleOne',
                                     action: 'accept',
                                     ipProtocol: 'any',
                                     log: false,
@@ -2588,8 +2589,8 @@ describe('networkHandler', () => {
                                     destination: {}
                                 },
                                 {
-                                    name: 'firewallPolicyRuleTwo',
-                                    description: 'firewall policy rule two description',
+                                    name: 'firewallRuleTwo',
+                                    description: 'firewall rule two description',
                                     action: 'reject',
                                     ipProtocol: 'tcp',
                                     log: true,
@@ -2643,7 +2644,7 @@ describe('networkHandler', () => {
                             description: 'test firewall policy description',
                             rules: [
                                 {
-                                    name: 'firewallPolicyRuleOne',
+                                    name: 'firewallRuleOne',
                                     description: 'none',
                                     action: 'accept',
                                     ipProtocol: 'any',
@@ -2660,12 +2661,12 @@ describe('networkHandler', () => {
                                     }
                                 },
                                 {
-                                    name: 'firewallPolicyRuleTwo',
-                                    description: 'firewall policy rule two description',
+                                    name: 'firewallRuleTwo',
+                                    description: 'firewall rule two description',
                                     action: 'reject',
                                     ipProtocol: 'tcp',
                                     log: 'yes',
-                                    placeAfter: 'firewallPolicyRuleOne',
+                                    placeAfter: 'firewallRuleOne',
                                     source: {
                                         vlans: [
                                             '/Common/vlan1',
@@ -2694,6 +2695,153 @@ describe('networkHandler', () => {
                             ]
                         }
                     );
+                });
+        });
+    });
+
+    describe('ManagementIpFirewall', () => {
+        it('should handle ManagementIpFirewall', () => {
+            const declaration = {
+                Common: {
+                    ManagementIpFirewall: {
+                        description: 'test management IP firewall description',
+                        rules: [
+                            {
+                                name: 'firewallRuleOne',
+                                action: 'accept',
+                                ipProtocol: 'any',
+                                log: false,
+                                source: {},
+                                destination: {}
+                            },
+                            {
+                                name: 'firewallRuleTwo',
+                                description: 'firewall rule two description',
+                                action: 'reject',
+                                ipProtocol: 'tcp',
+                                log: true,
+                                source: {
+                                    addressLists: [
+                                        '/Common/addressList1',
+                                        '/Common/addressList2'
+                                    ],
+                                    portLists: [
+                                        '/Common/portList1',
+                                        '/Common/portList2'
+                                    ]
+                                },
+                                destination: {
+                                    addressLists: [
+                                        '/Common/addressList1',
+                                        '/Common/addressList2'
+                                    ],
+                                    portLists: [
+                                        '/Common/portList1',
+                                        '/Common/portList2'
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(
+                        dataSent[PATHS.ManagementIpFirewall][0],
+                        {
+                            description: 'test management IP firewall description',
+                            rules: [
+                                {
+                                    name: 'firewallRuleOne',
+                                    description: 'none',
+                                    action: 'accept',
+                                    ipProtocol: 'any',
+                                    log: 'no',
+                                    placeAfter: 'first',
+                                    source: {
+                                        addressLists: [],
+                                        portLists: []
+                                    },
+                                    destination: {
+                                        addressLists: [],
+                                        portLists: []
+                                    }
+                                },
+                                {
+                                    name: 'firewallRuleTwo',
+                                    description: 'firewall rule two description',
+                                    action: 'reject',
+                                    ipProtocol: 'tcp',
+                                    log: 'yes',
+                                    placeAfter: 'firewallRuleOne',
+                                    source: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    );
+                });
+        });
+
+        it('should handle ManagementIpFirewall with no rules', () => {
+            const declaration = {
+                Common: {
+                    ManagementIpFirewall: {
+                        rules: []
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(
+                        dataSent[PATHS.ManagementIpFirewall][0],
+                        {
+                            description: 'none',
+                            rules: []
+                        }
+                    );
+                });
+        });
+
+        it('should log error with ManagementIpFirewall specific message', () => {
+            const severeLogSpy = sinon.spy(Logger.prototype, 'severe');
+            const declaration = {
+                Common: {
+                    ManagementIpFirewall: {
+                        rules: []
+                    }
+                }
+            };
+
+            bigIpMock.modify = () => Promise.reject(new Error('test error'));
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return assert.isRejected(networkHandler.process(), /test error/, 'should fail')
+                .then(() => {
+                    assert.strictEqual(severeLogSpy.args[0][0], 'Error creating Management IP Firewall: test error');
                 });
         });
     });

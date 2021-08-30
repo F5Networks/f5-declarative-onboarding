@@ -6,6 +6,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-1156: ([GitHub Issue 98](https://github.com/F5Networks/f5-declarative-onboarding/issues/98), [GitHub Issue 206](https://github.com/F5Networks/f5-declarative-onboarding/issues/206)): GRE and Geneve Tunnel Support
 - AUTOTOOL-2668: ([GitHub Issue 236](https://github.com/F5Networks/f5-declarative-onboarding/issues/236)): Added ebgpMultihop to RoutingBGP class
 - AUTOTOOL-2675: ([GitHub Issue 241](https://github.com/F5Networks/f5-declarative-onboarding/issues/241)): Add chargeBackTag to License class
+- AUTOTOOL-2676: ([GitHub Issue 218](https://github.com/F5Networks/f5-declarative-onboarding/issues/218)): Support for configuring management-ip-rules with ManagementIpFirewall class
 
 ### Fixed
 - AUTOTOOL-2692: FirewallPolicy incorrectly allows VLANs to be included in the destination schema object

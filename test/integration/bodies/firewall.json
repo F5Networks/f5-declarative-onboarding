@@ -25,8 +25,7 @@
             "class": "FirewallAddressList",
             "label": "Example firewall address list",
             "remark": "firewall address list description",
-            "addresses": ["10.1.0.1", "10.2.0.0/24"],
-            "geo": ["US:Washington"]
+            "addresses": ["10.1.0.1", "10.2.0.0/24"]
         },
         "myFirewallPortList": {
             "class": "FirewallPortList",
@@ -81,6 +80,41 @@
             ],
             "enforcedFirewallPolicy": "/Common/myFirewallPolicy",
             "stagedFirewallPolicy": "myFirewallPolicy"
+        },
+        "myManagementIpFirewall": {
+            "class": "ManagementIpFirewall",
+            "label": "Example of all management IP firewall properties",
+            "remark": "management IP firewall description",
+            "rules": [
+                {
+                    "name": "firewallRuleOne",
+                    "label": "Example of all firewall rule properties",
+                    "remark": "firewall rule description",
+                    "action": "reject",
+                    "protocol": "tcp",
+                    "loggingEnabled": true,
+                    "source": {
+                        "addressLists": [
+                            "myFirewallAddressList"
+                        ],
+                        "portLists": [
+                            "myFirewallPortList"
+                        ]
+                    },
+                    "destination": {
+                        "addressLists": [
+                            "myFirewallAddressList"
+                        ],
+                        "portLists": [
+                            "myFirewallPortList"
+                        ]
+                    }
+                },
+                {
+                    "name": "firewallRuleTwo",
+                    "action": "accept"
+                }
+            ]
         }
     }
 }

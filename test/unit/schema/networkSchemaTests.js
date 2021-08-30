@@ -2045,21 +2045,6 @@ describe('network.schema.json', () => {
                 assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
             });
 
-            it('should invalidate additional firewall policy rule source properties', () => {
-                const data = {
-                    class: 'FirewallPolicy',
-                    rules: [{
-                        name: 'firewallRule',
-                        action: 'accept',
-                        source: {
-                            foo: 'bar'
-                        }
-                    }]
-                };
-                assert.strictEqual(validate(data), false, '');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
-            });
-
             it('should invalidate additional firewall policy rule destination properties', () => {
                 const data = {
                     class: 'FirewallPolicy',
@@ -2087,6 +2072,122 @@ describe('network.schema.json', () => {
             it('should invalidate missing firewall policy rule action property', () => {
                 const data = {
                     class: 'FirewallPolicy',
+                    rules: [{ name: 'firewallRule' }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'action\''), -1);
+            });
+        });
+    });
+
+    describe('ManagementIpFirewall', () => {
+        describe('valid', () => {
+            it('should validate minimal management IP firewall properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal management IP firewall rule properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept'
+                    }]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    label: 'this is a management IP firewall test',
+                    remark: 'management IP firewall description',
+                    rules: [{
+                        name: 'firewallRule',
+                        label: 'this is a firewall rule test',
+                        remark: 'firewall rule description',
+                        action: 'reject',
+                        protocol: 'tcp',
+                        source: {
+                            addressLists: [
+                                '/Common/myAddressList1',
+                                'myAddressList2'
+                            ],
+                            portLists: [
+                                '/Common/myPortList1',
+                                'myPortList2'
+                            ]
+                        },
+                        destination: {
+                            addressLists: [
+                                '/Common/myAddressList1',
+                                'myAddressList2'
+                            ],
+                            portLists: [
+                                '/Common/myPortList1',
+                                'myPortList2'
+                            ]
+                        },
+                        loggingEnabled: true
+                    }]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional management IP firewall properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    foo: 'bar'
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate additional management IP firewall rule properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept',
+                        foo: 'bar'
+                    }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate additional management IP firewall rule destination properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept',
+                        destination: {
+                            foo: 'bar'
+                        }
+                    }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate missing management IP firewall rule name property', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    rules: [{ action: 'accept' }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'name\''), -1);
+            });
+
+            it('should invalidate missing management IP firewall rule action property', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
                     rules: [{ name: 'firewallRule' }]
                 };
                 assert.strictEqual(validate(data), false, '');

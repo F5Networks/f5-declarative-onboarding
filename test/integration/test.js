@@ -802,8 +802,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     myFirewallAddressList: {
                         name: 'myFirewallAddressList',
                         description: 'firewall address list description',
-                        addresses: ['10.1.0.1', '10.2.0.0/24'],
-                        geo: ['US:Washington']
+                        addresses: ['10.1.0.1', '10.2.0.0/24']
                     }
                 }
             ));
@@ -851,6 +850,46 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             }
                         ]
                     }
+                }
+            ));
+
+            it('should match ManagementIpFirewall', () => assert.deepStrictEqual(
+                currentState.ManagementIpFirewall,
+                {
+                    description: 'management IP firewall description',
+                    rules: [
+                        {
+                            name: 'firewallRuleOne',
+                            description: 'firewall rule description',
+                            action: 'reject',
+                            ipProtocol: 'tcp',
+                            log: true,
+                            source: {
+                                addressLists: [
+                                    '/Common/myFirewallAddressList'
+                                ],
+                                portLists: [
+                                    '/Common/myFirewallPortList'
+                                ]
+                            },
+                            destination: {
+                                addressLists: [
+                                    '/Common/myFirewallAddressList'
+                                ],
+                                portLists: [
+                                    '/Common/myFirewallPortList'
+                                ]
+                            }
+                        },
+                        {
+                            name: 'firewallRuleTwo',
+                            action: 'accept',
+                            ipProtocol: 'any',
+                            log: false,
+                            source: {},
+                            destination: {}
+                        }
+                    ]
                 }
             ));
         });

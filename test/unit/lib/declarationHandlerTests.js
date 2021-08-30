@@ -1342,6 +1342,7 @@ describe('declarationHandler', () => {
                     );
                 });
         });
+
         it('should apply firewall address list fix', () => {
             const newDeclaration = {
                 parsed: true,
@@ -1433,15 +1434,15 @@ describe('declarationHandler', () => {
                             label: 'testing firewall policy',
                             rules: [
                                 {
-                                    name: 'firewallPolicyRuleOne',
+                                    name: 'firewallRuleOne',
                                     action: 'accept',
                                     ipProtocol: 'any',
                                     log: false
                                 },
                                 {
-                                    name: 'firewallPolicyRuleTwo',
-                                    label: 'testing firewall policy rule two',
-                                    description: 'firewall policy rule two description',
+                                    name: 'firewallRuleTwo',
+                                    label: 'testing firewall rule two',
+                                    description: 'firewall rule two description',
                                     action: 'reject',
                                     ipProtocol: 'tcp',
                                     log: true,
@@ -1499,7 +1500,7 @@ describe('declarationHandler', () => {
                             firewallPolicy: {
                                 rules: [
                                     {
-                                        name: 'firewallPolicyRuleOne',
+                                        name: 'firewallRuleOne',
                                         description: undefined,
                                         action: 'accept',
                                         ipProtocol: 'any',
@@ -1508,8 +1509,8 @@ describe('declarationHandler', () => {
                                         destination: {}
                                     },
                                     {
-                                        name: 'firewallPolicyRuleTwo',
-                                        description: 'firewall policy rule two description',
+                                        name: 'firewallRuleTwo',
+                                        description: 'firewall rule two description',
                                         action: 'reject',
                                         ipProtocol: 'tcp',
                                         log: true,
@@ -1543,6 +1544,148 @@ describe('declarationHandler', () => {
                             firewallPolicyNoMembers: {
                                 rules: []
                             }
+                        }
+                    );
+                });
+        });
+        it('should apply management IP firewall fix with rules', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    ManagementIpFirewall: {
+                        label: 'testing management IP firewall',
+                        description: 'management IP firewall description',
+                        rules: [
+                            {
+                                name: 'firewallRuleOne',
+                                action: 'accept',
+                                ipProtocol: 'any',
+                                log: false
+                            },
+                            {
+                                name: 'firewallRuleTwo',
+                                label: 'testing firewall rule two',
+                                description: 'firewall rule two description',
+                                action: 'reject',
+                                ipProtocol: 'tcp',
+                                log: true,
+                                source: {
+                                    addressLists: [
+                                        '/Common/addressList1',
+                                        'addressList2'
+                                    ],
+                                    portLists: [
+                                        '/Common/portList1',
+                                        'portList2'
+                                    ]
+                                },
+                                destination: {
+                                    addressLists: [
+                                        '/Common/addressList1',
+                                        'addressList2'
+                                    ],
+                                    portLists: [
+                                        '/Common/portList1',
+                                        'portList2'
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const managementIpFirewall = declarationWithDefaults.Common.ManagementIpFirewall;
+                    assert.deepStrictEqual(
+                        managementIpFirewall,
+                        {
+                            description: 'management IP firewall description',
+                            rules: [
+                                {
+                                    name: 'firewallRuleOne',
+                                    description: undefined,
+                                    action: 'accept',
+                                    ipProtocol: 'any',
+                                    log: false,
+                                    source: {},
+                                    destination: {}
+                                },
+                                {
+                                    name: 'firewallRuleTwo',
+                                    description: 'firewall rule two description',
+                                    action: 'reject',
+                                    ipProtocol: 'tcp',
+                                    log: true,
+                                    source: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    );
+                });
+        });
+
+        it('should apply management IP firewall fix with no rules', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    ManagementIpFirewall: {
+                        label: 'testing management IP firewall',
+                        description: 'management IP firewall description'
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const managementIpFirewall = declarationWithDefaults.Common.ManagementIpFirewall;
+                    assert.deepStrictEqual(
+                        managementIpFirewall,
+                        {
+                            description: 'management IP firewall description',
+                            rules: []
                         }
                     );
                 });

@@ -57,6 +57,7 @@ const CLASSES_OF_TRUTH = [
     'FailoverMulticast',
     'Analytics',
     'ManagementIp',
+    'ManagementIpFirewall',
     'ManagementRoute',
     'RouteDomain',
     'Authentication',
@@ -158,6 +159,7 @@ class DeclarationHandler {
             .then(() => {
                 applyDefaults(parsedNewDeclaration, state);
                 applyManagementIpFixes(parsedNewDeclaration, parsedOldDeclaration);
+                applyManagementIpFirewallFixes(parsedNewDeclaration);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
@@ -272,6 +274,21 @@ function applyManagementIpFixes(declaration) {
             }
         });
     }
+}
+
+/**
+ * Normalizes the Management IP Firewall section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyManagementIpFirewallFixes(declaration) {
+    const mgmtIpFirewall = declaration.Common.ManagementIpFirewall;
+    if (!mgmtIpFirewall) {
+        return;
+    }
+
+    mgmtIpFirewall.rules = applyFirewallRuleFixes(mgmtIpFirewall.rules, 'Common');
+    delete mgmtIpFirewall.label;
 }
 
 /**
@@ -792,6 +809,42 @@ function applyFirewallPortListFixes(declaration) {
 }
 
 /**
+ * Normalize the firewall rules section of a class in a declaration
+ *
+ * @param {Object[]} rules - rules to fix
+ * @param {string} tenant - tenant that rules belong to
+ *
+ * @returns {Object[]} - normalized firewall rules
+ */
+function applyFirewallRuleFixes(rules, tenant) {
+    return (rules || []).map((rule) => {
+        const newRule = {
+            name: rule.name,
+            description: rule.description,
+            action: rule.action,
+            ipProtocol: rule.ipProtocol,
+            log: rule.log,
+            source: rule.source || {},
+            destination: rule.destination || {}
+        };
+
+        Object.keys(newRule.source).forEach((sourceType) => {
+            (newRule.source[sourceType] || []).forEach((source, i) => {
+                applyTenantPrefix(newRule, `source.${sourceType}.${i}`, tenant);
+            });
+        });
+
+        Object.keys(newRule.destination).forEach((destinationType) => {
+            (newRule.source[destinationType] || []).forEach((dest, i) => {
+                applyTenantPrefix(newRule, `destination.${destinationType}.${i}`, tenant);
+            });
+        });
+
+        return newRule;
+    });
+}
+
+/**
  * Normalizes the Firewall Policy section of a declaration
  *
  * @param {Object} declaration - declaration to fix
@@ -803,31 +856,7 @@ function applyFirewallPolicyFixes(declaration) {
     }
 
     doUtil.forEach(declaration, 'FirewallPolicy', (tenant, firewallPolicy) => {
-        firewallPolicy.rules = (firewallPolicy.rules || []).map((rule) => {
-            const newRule = {
-                name: rule.name,
-                description: rule.description,
-                action: rule.action,
-                ipProtocol: rule.ipProtocol,
-                log: rule.log,
-                source: rule.source || {},
-                destination: rule.destination || {}
-            };
-
-            Object.keys(newRule.source).forEach((sourceType) => {
-                (newRule.source[sourceType] || []).forEach((source, i) => {
-                    applyTenantPrefix(newRule, `source.${sourceType}.${i}`, tenant);
-                });
-            });
-
-            Object.keys(newRule.destination).forEach((destinationType) => {
-                (newRule.source[destinationType] || []).forEach((dest, i) => {
-                    applyTenantPrefix(newRule, `destination.${destinationType}.${i}`, tenant);
-                });
-            });
-
-            return newRule;
-        });
+        firewallPolicy.rules = applyFirewallRuleFixes(firewallPolicy.rules, tenant);
         delete firewallPolicy.label;
     });
 }

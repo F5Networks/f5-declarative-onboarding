@@ -44,6 +44,7 @@ module.exports = {
         Analytics: '/tm/analytics/global-settings',
         ManagementDHCPConfig: '/tm/sys/management-dhcp/sys-mgmt-dhcp-config',
         ManagementIp: '/tm/sys/management-ip',
+        ManagementIpFirewall: '/tm/security/firewall/management-ip-rules',
         ManagementRoute: '/tm/sys/management-route',
         RouteDomain: '/tm/net/route-domain',
         AuthRadius: '/tm/auth/radius',
@@ -123,7 +124,8 @@ module.exports = {
         'SSHD',
         'Disk',
         'MirrorIp',
-        'GSLBGlobals'
+        'GSLBGlobals',
+        'ManagementIpFirewall'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

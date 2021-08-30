@@ -1,13 +1,9 @@
 {
-    "schemaVersion": "1.20.0",
+    "schemaVersion": "1.24.0",
     "class": "Device",
     "async": true,
     "Common": {
         "class": "Tenant",
-        "provisioning": {
-            "class": "Provision",
-            "afm": "nominal"
-        },
         "newVlan": {
             "class": "VLAN",
             "interfaces": [
@@ -15,18 +11,6 @@
                     "name": "1.1"
                 }
             ]
-        },
-        "selfOne": {
-            "class": "SelfIp",
-            "address": "192.0.2.10/24",
-            "vlan": "/Common/newVlan",
-            "enforcedFirewallPolicy": "/Common/firewallPolicy"
-        },
-        "selfTwo": {
-            "class": "SelfIp",
-            "address": "192.0.3.20/24",
-            "vlan": "/Common/newVlan",
-            "stagedFirewallPolicy": "/Common/firewallPolicy"
         },
         "firewallAddressList1": {
             "class": "FirewallAddressList",
@@ -40,15 +24,15 @@
             "class": "FirewallPortList",
             "ports": ["8123", "8234", "8300-8350"]
         },
-        "firewallPolicy": {
-            "class": "FirewallPolicy",
-            "label": "Example of all firewall policy properties",
-            "remark": "firewall policy description",
+        "managementIpFirewall": {
+            "class": "ManagementIpFirewall",
+            "label": "Example of all management IP firewall properties",
+            "remark": "management IP firewall description",
             "rules": [
                 {
-                    "name": "firewallPolicyRule",
-                    "label": "Example of all firewall policy rule properties",
-                    "remark": "firewall policy rule description",
+                    "name": "firewallRule",
+                    "label": "Example of all firewall rule properties",
+                    "remark": "firewall rule description",
                     "action": "reject",
                     "protocol": "tcp",
                     "loggingEnabled": true,
@@ -59,9 +43,6 @@
                         "portLists": [
                             "/Common/firewallPortList1",
                             "/Common/firewallPortList2"
-                        ],
-                        "vlans": [
-                            "/Common/newVlan"
                         ]
                     },
                     "destination": {

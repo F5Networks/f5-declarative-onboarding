@@ -1483,7 +1483,54 @@ describe('inspectHandler', () => {
                     }
                 }
             ],
-            '/tm/security/firewall/policy/~Common~currentFirewallPolicyNoRules/rules': []
+            '/tm/security/firewall/policy/~Common~currentFirewallPolicyNoRules/rules': [],
+            '/tm/security/firewall/management-ip-rules': {
+                description: 'management IP firewall description',
+                rulesReference: {
+                    link: 'https://localhost/mgmt/tm/security/firewall/management-ip-rules/rules'
+                }
+            },
+            '/tm/security/firewall/management-ip-rules/rules': [
+                {
+                    name: 'firewallRuleOne',
+                    description: 'firewall rule one description',
+                    action: 'accept',
+                    ipProtocol: 'any',
+                    log: 'no',
+                    source: {
+                        identity: {}
+                    },
+                    destination: {}
+                },
+                {
+                    name: 'firewallRuleTwo',
+                    description: 'firewall rule two description',
+                    action: 'reject',
+                    ipProtocol: 'tcp',
+                    log: 'yes',
+                    source: {
+                        identity: {},
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    },
+                    destination: {
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    }
+                }
+            ]
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -2319,6 +2366,48 @@ describe('inspectHandler', () => {
                         currentFirewallPolicyNoRules: {
                             class: 'FirewallPolicy',
                             rules: []
+                        },
+                        currentManagementIpFirewall: {
+                            class: 'ManagementIpFirewall',
+                            remark: 'management IP firewall description',
+                            rules: [
+                                {
+                                    name: 'firewallRuleOne',
+                                    remark: 'firewall rule one description',
+                                    action: 'accept',
+                                    protocol: 'any',
+                                    loggingEnabled: false,
+                                    source: {},
+                                    destination: {}
+                                },
+                                {
+                                    name: 'firewallRuleTwo',
+                                    remark: 'firewall rule two description',
+                                    action: 'reject',
+                                    protocol: 'tcp',
+                                    loggingEnabled: true,
+                                    source: {
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
+                                        ]
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2511,6 +2600,11 @@ describe('inspectHandler', () => {
                 },
                 '/tm/auth/radius': {
                     type: 'local'
+                },
+                '/tm/security/firewall/management-ip-rules': {
+                    rulesReference: {
+                        link: 'https://localhost/mgmt/tm/security/firewall/management-ip-rules/rules'
+                    }
                 }
             });
 
@@ -2590,6 +2684,10 @@ describe('inspectHandler', () => {
                                 address: 'any6',
                                 interface: 'none',
                                 port: 0
+                            },
+                            currentManagementIpFirewall: {
+                                class: 'ManagementIpFirewall',
+                                rules: []
                             }
                         }
                     }

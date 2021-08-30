@@ -1027,5 +1027,25 @@
             { "name": "^_sys_self_allow_tcp_defaults$" },
             { "name": "^_sys_self_allow_udp_defaults$" }
         ]
+    },
+    {
+        "path": "/tm/security/firewall/management-ip-rules",
+        "schemaClass": "ManagementIpFirewall",
+        "properties": [
+            { "id": "description", "newId": "remark" },
+            { "id": "rulesReference", "dereferenceId": "rules" }
+        ],
+        "references": {
+            "rulesReference": [
+                { "id": "name" },
+                { "id": "description", "newId": "remark" },
+                { "id": "action" },
+                { "id": "ipProtocol", "newId": "protocol" },
+                { "id": "log", "newId": "loggingEnabled", "truth": "yes", "falsehood": "no" },
+                { "id": "source" },
+                { "id": "destination" }
+            ]
+        },
+        "nameless": true
     }
 ]

@@ -430,8 +430,10 @@ class ConfigManager {
                             (item, key) => item[key],
                             currentConfig[schemaClass]
                         );
-                    } else {
+                    } else if (name) {
                         configItem = currentConfig[schemaClass][name];
+                    } else {
+                        configItem = currentConfig[schemaClass];
                     }
 
                     const patchReferences = (reference) => {
@@ -589,21 +591,14 @@ class ConfigManager {
                 const currentFirewallPolicy = state.currentConfig.Common.FirewallPolicy;
                 if (currentFirewallPolicy) {
                     Object.keys(currentFirewallPolicy).forEach((key) => {
-                        const allowedSourceKeys = ['vlans', 'addressLists', 'portLists'];
-                        const allowedDestinationKeys = ['addressLists', 'portLists'];
-
-                        const filter = (obj, allowedKeys) => Object.keys(obj)
-                            .filter(objKey => allowedKeys.indexOf(objKey) > -1)
-                            .reduce((newObj, objKey) => {
-                                newObj[objKey] = obj[objKey];
-                                return newObj;
-                            }, {});
-
-                        (currentFirewallPolicy[key].rules || []).forEach((rule) => {
-                            rule.source = filter(rule.source, allowedSourceKeys);
-                            rule.destination = filter(rule.destination, allowedDestinationKeys);
-                        });
+                        (currentFirewallPolicy[key].rules || []).forEach(filterFirewallRuleProps);
                     });
+                }
+
+                // Patch Management IP Firewall rules after they've been dereferenced
+                const currentManagementIpFirewall = state.currentConfig.Common.ManagementIpFirewall;
+                if (currentManagementIpFirewall) {
+                    (currentManagementIpFirewall.rules || []).forEach(filterFirewallRuleProps);
                 }
 
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
@@ -1191,6 +1186,21 @@ function isEnabledGtmObject(obj) {
 function getGtmMonitorArray(monitorString) {
     // Convert monitors from BIG-IP string to declaration compatible array, for diffing
     return monitorString ? monitorString.split(' and ') : [];
+}
+
+function filterFirewallRuleProps(rule) {
+    const allowedSourceKeys = ['vlans', 'addressLists', 'portLists'];
+    const allowedDestinationKeys = ['addressLists', 'portLists'];
+
+    const filter = (obj, allowedKeys) => Object.keys(obj)
+        .filter(objKey => allowedKeys.indexOf(objKey) > -1)
+        .reduce((newObj, objKey) => {
+            newObj[objKey] = obj[objKey];
+            return newObj;
+        }, {});
+
+    rule.source = filter(rule.source, allowedSourceKeys);
+    rule.destination = filter(rule.destination, allowedDestinationKeys);
 }
 
 function shouldIgnore(item, ignoreList) {

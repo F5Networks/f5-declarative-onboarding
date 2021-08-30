@@ -1037,6 +1037,13 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "ManagementIpFirewall" } }
+            },
+            "then": { "$ref": "#/definitions/managementIpFirewall" }
         }
     ],
     "definitions": {
@@ -1059,7 +1066,7 @@
                 "rules": {
                     "description": "Specifies the list of firewall policy rules",
                     "type": "array",
-                    "items": { "$ref": "#/definitions/firewallRule" }
+                    "items": { "$ref": "#/definitions/firewallRulePolicy" }
                 }
             },
             "additionalProperties": false
@@ -1165,7 +1172,7 @@
                 "ports"
             ]
         },
-        "firewallRule": {
+        "firewallRuleCore": {
             "description": "Configures a firewall rule.",
             "type": "object",
             "required": ["name", "action"],
@@ -1201,10 +1208,10 @@
                     "default": "any"
                 },
                 "source": {
-                    "$ref": "#/definitions/firewallRuleSource"
+                    "$ref": "#/definitions/firewallRuleSourceCore"
                 },
                 "destination": {
-                    "$ref": "#/definitions/firewallRuleDestination"
+                    "$ref": "#/definitions/firewallRuleDestinationCore"
                 },
                 "loggingEnabled": {
                     "description": "Specifies whether the system enables or disables logging for the firewall rule",
@@ -1214,7 +1221,18 @@
             },
             "additionalProperties": false
         },
-        "firewallRuleSource": {
+        "firewallRulePolicy": {
+            "type": "object",
+            "allOf": [
+                { "$ref": "#/definitions/firewallRuleCore" },
+                {
+                    "properties": {
+                        "source": { "$ref": "#/definitions/firewallRuleSourcePolicy" }
+                    }
+                }
+            ]
+        },
+        "firewallRuleSourceCore": {
             "description": "Configures the packet sources to which the network firewall rule applies",
             "type": "object",
             "properties": {
@@ -1233,19 +1251,29 @@
                         "type": "string"
                     },
                     "additionalProperties": false
-                },
-                "vlans": {
-                    "type": "array",
-                    "description": "Specifies a list of VLANs against which the packets will be compared",
-                    "items": {
-                        "type": "string"
-                    },
-                    "additionalProperties": false
                 }
-            },
-            "additionalProperties": false
+            }
         },
-        "firewallRuleDestination": {
+        "firewallRuleSourcePolicy": {
+            "type": "object",
+            "allOf": [
+                { "$ref": "#/definitions/firewallRuleSourceCore" },
+                {
+                    "type": "object",
+                    "properties": {
+                        "vlans": {
+                            "type": "array",
+                            "description": "Specifies a list of VLANs against which the packets will be compared",
+                            "items": {
+                                "type": "string"
+                            },
+                            "additionalProperties": false
+                        }
+                    }
+                }
+            ]
+        },
+        "firewallRuleDestinationCore": {
             "description": "Configures the packet destination to which the network firewall rule applies",
             "type": "object",
             "properties": {
@@ -1264,6 +1292,30 @@
                         "type": "string"
                     },
                     "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "managementIpFirewall": {
+            "description": "Configures the management IP firewall",
+            "type": "object",
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates this property contains management IP firewall configuration.",
+                    "type": "string",
+                    "const": "ManagementIpFirewall"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "rules": {
+                    "description": "Specifies the list of firewall rules",
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/firewallRuleCore" }
                 }
             },
             "additionalProperties": false

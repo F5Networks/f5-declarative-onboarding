@@ -84,6 +84,10 @@ class NetworkHandler {
                 return handleFirewallPolicy.call(this);
             })
             .then(() => {
+                logger.fine('Checking ManagementIpFirewall.');
+                return handleManagementIpFirewall.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking SelfIps');
                 return handleSelfIp.call(this);
             })
@@ -224,26 +228,9 @@ function handleFirewallPolicy() {
         if (firewallPolicy && firewallPolicy.name) {
             const body = {
                 name: firewallPolicy.name,
-                description: firewallPolicy.description || 'none'
+                description: firewallPolicy.description || 'none',
+                rules: formatRulesRequest(firewallPolicy.rules)
             };
-
-            body.rules = firewallPolicy.rules.map((rule, index, rules) => ({
-                name: rule.name,
-                description: rule.description || 'none',
-                action: rule.action,
-                ipProtocol: rule.ipProtocol,
-                log: rule.log ? 'yes' : 'no',
-                placeAfter: index === 0 ? 'first' : rules[index - 1].name,
-                source: {
-                    addressLists: rule.source.addressLists || [],
-                    portLists: rule.source.portLists || [],
-                    vlans: rule.source.vlans || []
-                },
-                destination: {
-                    addressLists: rule.destination.addressLists || [],
-                    portLists: rule.destination.portLists || []
-                }
-            }));
 
             promises.push(this.bigIp.createOrModify(PATHS.FirewallPolicy, body, null, cloudUtil.MEDIUM_RETRY));
         }
@@ -255,6 +242,30 @@ function handleFirewallPolicy() {
             throw err;
         });
 }
+
+function handleManagementIpFirewall() {
+    const mgmtIpFirewall = this.declaration.Common.ManagementIpFirewall;
+
+    if (!mgmtIpFirewall) {
+        return Promise.resolve();
+    }
+
+    const body = {
+        description: mgmtIpFirewall.description || 'none',
+        rules: formatRulesRequest(mgmtIpFirewall.rules)
+    };
+
+    body.rules.forEach((rule) => {
+        delete rule.source.vlans;
+    });
+
+    return this.bigIp.modify(PATHS.ManagementIpFirewall, body)
+        .catch((err) => {
+            logger.severe(`Error creating Management IP Firewall: ${err.message}`);
+            throw err;
+        });
+}
+
 
 function handleFirewallPortList() {
     const promises = [];
@@ -1140,6 +1151,34 @@ function exists(path, partition, name) {
 
 function elementMatches(element) {
     return this.name === element.name;
+}
+
+/**
+ * Converts an array of firewall rules, provided by the
+ * network.schema.json#/definitions/firewallRule definition, to an array
+ * of rules formatted for an iControl REST request body.
+ *
+ * @param {Object[]} rules - The rules to be included in the request body.
+ * @returns {Object[]} - The rules formatted for a request body.
+ */
+function formatRulesRequest(rules) {
+    return rules.map((rule, index, array) => ({
+        name: rule.name,
+        description: rule.description || 'none',
+        action: rule.action,
+        ipProtocol: rule.ipProtocol,
+        log: rule.log ? 'yes' : 'no',
+        placeAfter: index === 0 ? 'first' : array[index - 1].name,
+        source: {
+            addressLists: rule.source.addressLists || [],
+            portLists: rule.source.portLists || [],
+            vlans: rule.source.vlans || []
+        },
+        destination: {
+            addressLists: rule.destination.addressLists || [],
+            portLists: rule.destination.portLists || []
+        }
+    }));
 }
 
 module.exports = NetworkHandler;

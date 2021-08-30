@@ -2933,8 +2933,8 @@ describe('configManager', () => {
             ];
             listResponses['/tm/security/firewall/policy/~Common~firewallPolicy/rules'] = [
                 {
-                    name: 'firewallPolicyRuleOne',
-                    description: 'firewall policy rule one description',
+                    name: 'firewallRuleOne',
+                    description: 'firewall rule one description',
                     action: 'accept',
                     ipProtocol: 'any',
                     log: 'no',
@@ -2944,8 +2944,8 @@ describe('configManager', () => {
                     destination: {}
                 },
                 {
-                    name: 'firewallPolicyRuleTwo',
-                    description: 'firewall policy rule two description',
+                    name: 'firewallRuleTwo',
+                    description: 'firewall rule two description',
                     action: 'reject',
                     ipProtocol: 'tcp',
                     log: 'yes',
@@ -2988,8 +2988,8 @@ describe('configManager', () => {
                                 description: 'firewall policy description',
                                 rules: [
                                     {
-                                        name: 'firewallPolicyRuleOne',
-                                        description: 'firewall policy rule one description',
+                                        name: 'firewallRuleOne',
+                                        description: 'firewall rule one description',
                                         action: 'accept',
                                         ipProtocol: 'any',
                                         log: false,
@@ -2997,8 +2997,8 @@ describe('configManager', () => {
                                         destination: {}
                                     },
                                     {
-                                        name: 'firewallPolicyRuleTwo',
-                                        description: 'firewall policy rule two description',
+                                        name: 'firewallRuleTwo',
+                                        description: 'firewall rule two description',
                                         action: 'reject',
                                         ipProtocol: 'tcp',
                                         log: true,
@@ -3029,6 +3029,109 @@ describe('configManager', () => {
                                     }
                                 ]
                             }
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('ManagementIpFirewall', () => {
+        it('should handle ManagementIpFirewall', () => {
+            const configItems = getConfigItems('ManagementIpFirewall');
+
+            listResponses['/tm/security/firewall/management-ip-rules'] = {
+                description: 'management IP firewall description',
+                rulesReference: {
+                    link: 'https://localhost/mgmt/tm/security/firewall/management-ip-rules/rules'
+                }
+            };
+            listResponses['/tm/security/firewall/management-ip-rules/rules'] = [
+                {
+                    name: 'firewallRuleOne',
+                    description: 'firewall rule one description',
+                    action: 'accept',
+                    ipProtocol: 'any',
+                    log: 'no',
+                    source: {
+                        identity: {}
+                    },
+                    destination: {}
+                },
+                {
+                    name: 'firewallRuleTwo',
+                    description: 'firewall rule two description',
+                    action: 'reject',
+                    ipProtocol: 'tcp',
+                    log: 'yes',
+                    source: {
+                        identity: {},
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    },
+                    destination: {
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    }
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.ManagementIpFirewall,
+                        {
+                            description: 'management IP firewall description',
+                            rules: [
+                                {
+                                    name: 'firewallRuleOne',
+                                    description: 'firewall rule one description',
+                                    action: 'accept',
+                                    ipProtocol: 'any',
+                                    log: false,
+                                    source: {},
+                                    destination: {}
+                                },
+                                {
+                                    name: 'firewallRuleTwo',
+                                    description: 'firewall rule two description',
+                                    action: 'reject',
+                                    ipProtocol: 'tcp',
+                                    log: true,
+                                    source: {
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
+                                        ]
+                                    }
+                                }
+                            ]
                         }
                     );
                 });
