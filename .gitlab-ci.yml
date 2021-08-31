@@ -270,7 +270,7 @@ integration-test:
         when: always
         paths:
             - test/logs
-        expire_in: 1 day
+        expire_in: 1 week
 
 teardown:
     image: $INTEGRATION_DEPLOY_IMAGE
