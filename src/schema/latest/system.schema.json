@@ -566,7 +566,8 @@
                     "version": {
                         "description": "Specifies to which Simple Network Management Protocol (SNMP) version the trap destination applies.",
                         "type": "string",
-                        "enum": ["1", "2c", "3"]
+                        "enum": ["1", "2c", "3"],
+                        "default": "2c"
                     },
                     "destination": {
                         "description": "Specifies the address for the trap destination.",
@@ -580,12 +581,14 @@
                         "description": "Specifies the port for the trap destination.",
                         "type": "integer",
                         "minimum": 0,
-                        "maximum": 65535
+                        "maximum": 65535,
+                        "default": 162
                     },
                     "network": {
                         "description": "Specifies the trap network. The system sends the SNMP trap out the specified network. 'management' specifies that the system sends the trap out of the management IP address. 'other' specifies that the system sends the trap out of the interface based on the routing tables.",
                         "type": "string",
-                        "enum": ["management", "other"]
+                        "enum": ["management", "other"],
+                        "default": "management"
                     }
                 },
                 "if": {

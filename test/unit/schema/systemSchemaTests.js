@@ -681,13 +681,13 @@ describe('system.schema.json', () => {
             it('should validate minimal SnmpTrapDestination', () => {
                 const data = {
                     "class": "SnmpTrapDestination",
-                    "version": "1",
                     "destination": "1.2.3.4",
-                    "port": 80,
-                    "network": "management",
                     "community": "myCommunity"
                 };
                 assert.ok(validate(data), getErrorString(validate));
+                assert.strictEqual(data.version, '2c', 'wrong version default applied');
+                assert.strictEqual(data.port, 162, 'wrong port default applied');
+                assert.strictEqual(data.network, 'management', 'wrong network default applied');
             });
         });
 
