@@ -77,9 +77,9 @@ function handleRemoteAuthRoles() {
         const rr = {};
         rr.attribute = decl.attribute;
         rr.console = decl.console;
-        // deny is equivalent to denyRemoteAccess, thus remoteAccess === true is equivalent to deny === false
+        // deny is equivalent to denyRemoteAccess, thus remoteAccess === 'enabled' is equivalent to deny === 'disabled'
         // and remoteAccess in the original declaration is deny in the parsed declaration
-        rr.deny = (decl.deny) ? 'disabled' : 'enabled';
+        rr.deny = (decl.deny === 'enabled') ? 'disabled' : 'enabled';
         rr.lineOrder = decl.lineOrder;
         rr.role = decl.role;
         rr.userPartition = decl.userPartition;
@@ -147,8 +147,8 @@ function handleTacacs() {
         partition: 'Common',
         accounting: tacacs.accounting || 'send-to-first-server',
         authentication: tacacs.authentication || 'use-first-server',
-        debug: tacacs.debug ? 'enabled' : 'disabled',
-        encryption: tacacs.encryption === false ? 'disabled' : 'enabled',
+        debug: tacacs.debug,
+        encryption: tacacs.encryption,
         secret: tacacs.secret,
         servers: tacacs.servers,
         service: tacacs.service
@@ -177,24 +177,24 @@ function handleLdap() {
         bindDn: ldap.bindDn || 'none',
         bindPw: ldap.bindPw || 'none',
         bindTimeout: ldap.bindTimeout,
-        checkHostAttr: ldap.checkHostAttr ? 'enabled' : 'disabled',
-        checkRolesGroup: ldap.checkRolesGroup ? 'enabled' : 'disabled',
+        checkHostAttr: ldap.checkHostAttr,
+        checkRolesGroup: ldap.checkRolesGroup,
         filter: ldap.filter || 'none',
         groupDn: ldap.groupDn || 'none',
         groupMemberAttribute: ldap.groupMemberAttribute || 'none',
         idleTimeout: ldap.idleTimeout,
-        ignoreAuthInfoUnavail: ldap.ignoreAuthInfoUnavail ? 'yes' : 'no',
-        ignoreUnknownUser: ldap.ignoreUnknownUser ? 'enabled' : 'disabled',
+        ignoreAuthInfoUnavail: ldap.ignoreAuthInfoUnavail,
+        ignoreUnknownUser: ldap.ignoreUnknownUser,
         loginAttribute: ldap.loginAttribute || 'none',
         port: ldap.port,
-        referrals: ldap.referrals ? 'yes' : 'no',
+        referrals: ldap.referrals,
         scope: ldap.scope,
         searchBaseDn: ldap.searchBaseDn || 'none',
         searchTimeout: ldap.searchTimeout,
         servers: ldap.servers,
         ssl: ldap.ssl,
         sslCaCertFile: ldap.sslCaCertFile ? getCertPath(ldap.sslCaCertFile) : 'none',
-        sslCheckPeer: ldap.sslCheckPeer ? 'enabled' : 'disabled',
+        sslCheckPeer: ldap.sslCheckPeer,
         sslCiphers: ldap.sslCiphers ? ldap.sslCiphers.join(':') : '',
         sslClientCert: ldap.sslClientCert ? getCertPath(ldap.sslClientCert) : 'none',
         sslClientKey: ldap.sslClientKey ? getCertPath(ldap.sslClientKey) : 'none',

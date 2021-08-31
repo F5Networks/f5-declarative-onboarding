@@ -1,4 +1,5 @@
 .vscode
+*.tfstate*
 .nyc_output/
 out/
 node_modules/
@@ -9,6 +10,8 @@ npm-debug.log
 docs/schema-reference.rst
 docs/do.schema.json
 dist/
+test/env/terraform/plans/openstack/.terraform*
 test/logs
 test_harness.json
+harness_facts.json
 *.swp

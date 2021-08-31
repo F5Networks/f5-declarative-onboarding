@@ -39,9 +39,7 @@ If `npx` is available on your system, you can run the locally installed version 
       * `tmsh modify sys sshd include "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,aes192-cbc,aes256-cbc,arcfour,rijndael-cbc@lysator.liu.se"`
       * Note: This command occassionally has issues on 14.1.
 3. Alternatives to setting up BIG-IPs
-  * If you have the openstack client installed, you can use the same method we use to deploy the devices during integration testing:
-    * INTEGRATION_ROOT_PASSWORD=\<root_password\> INTEGRATION_ADMIN_PASSWORD=\<admin_password\> BIGIP_IMAGE=\<big_ip_image_name\> scripts/dev/rebuild-test-env.sh
-    * This will create three devices and write the output to `test_harness.json`. You can set the environment var `TEST_HARNESS_FILE` to change the location.
+  * See test/env/terraform/README.md
     * Devices will be created in your personal VIO project.
   * Copy one of the existing GitLab schedules and run it (or just run one of the existing schedules).
     * Devices will be created in the vio-do-testing VIO project.

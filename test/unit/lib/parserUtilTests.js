@@ -28,7 +28,9 @@ describe('parserUtil', () => {
                     schemaClass: 'MySchemaClass',
                     properties: [
                         { id: 'mcpdId', newId: 'replaceMe' },
-                        { id: 'theOtherMcpdId', newId: 'theOtherNewId' }
+                        { id: 'theOtherMcpdId', newId: 'theOtherNewId' },
+                        { id: 'trueValue', truth: 'thisIsTrue', falsehood: 'thisIsFalse' },
+                        { id: 'falseValue', truth: 'thisIsEnabled', falsehood: 'thisIsDisabled' }
                     ]
                 }
             ];
@@ -36,6 +38,8 @@ describe('parserUtil', () => {
                 class: 'MySchemaClass',
                 replaceMe: 'theValue',
                 theOtherNewId: 'theOtherValue',
+                trueValue: true,
+                falseValue: false,
                 dontTouchThis: 'theValueNotToTouch',
                 dontTouchThisEither: 'theOtherValueNotToTouch'
             };
@@ -48,6 +52,8 @@ describe('parserUtil', () => {
                     class: 'MySchemaClass',
                     mcpdId: 'theValue',
                     theOtherMcpdId: 'theOtherValue',
+                    trueValue: 'thisIsTrue',
+                    falseValue: 'thisIsDisabled',
                     dontTouchThis: 'theValueNotToTouch',
                     dontTouchThisEither: 'theOtherValueNotToTouch'
                 }
@@ -110,7 +116,7 @@ describe('parserUtil', () => {
             );
         });
 
-        it('should handle configItems that have newId in a transform', () => {
+        it('should handle configItems that have a transform', () => {
             const configItems = [
                 {
                     schemaClass: 'MySchemaClass',
@@ -118,7 +124,11 @@ describe('parserUtil', () => {
                         {
                             id: 'myPropWithAttributes',
                             transform: [
-                                { id: 'mcpdId', newId: 'replaceMe' }
+                                { id: 'mcpdId', newId: 'replaceMe' },
+                                { id: 'valueWithTruth', truth: 'yes', falsehood: 'no' },
+                                {
+                                    id: 'valueWithTruthAndNewId', newId: 'theNewId', truth: 'enabled', falsehood: 'disabled'
+                                }
                             ]
                         }
                     ]
@@ -128,7 +138,9 @@ describe('parserUtil', () => {
             const declarationItem = {
                 class: 'MySchemaClass',
                 myPropWithAttributes: {
-                    replaceMe: 'myValue'
+                    replaceMe: 'myValue',
+                    valueWithTruth: true,
+                    theNewId: false
                 }
             };
 
@@ -138,7 +150,9 @@ describe('parserUtil', () => {
                 {
                     class: 'MySchemaClass',
                     myPropWithAttributes: {
-                        mcpdId: 'myValue'
+                        mcpdId: 'myValue',
+                        valueWithTruth: 'yes',
+                        valueWithTruthAndNewId: 'disabled'
                     }
                 }
             );
@@ -297,7 +311,7 @@ describe('parserUtil', () => {
                                     routeMap: {
                                         out: 'testRouteMap'
                                     },
-                                    softReconfigurationInbound: true
+                                    softReconfigurationInbound: 'enabled'
                                 }
                             ],
                             remoteAs: 65020
@@ -526,7 +540,7 @@ describe('parserUtil', () => {
                                     routeMap: {
                                         out: 'testRouteMap'
                                     },
-                                    softReconfigurationInbound: true
+                                    softReconfigurationInbound: 'enabled'
                                 }
                             ],
                             remoteAs: 65020
@@ -575,12 +589,16 @@ describe('parserUtil', () => {
             );
         });
 
-        it('should handle schema classes with schemaMerge', () => {
+        it('should handle schema classes with schemaMerge path', () => {
             const configItems = [
                 {
                     schemaClass: 'MySchemaClass',
                     properties: [
-                        { id: 'mcpdId', newId: 'myNewId' }
+                        { id: 'mcpdId', newId: 'myNewId' },
+                        { id: 'valueWithTruth', truth: 'yes', falsehood: 'no' },
+                        {
+                            id: 'valueWithTruthAndNewId', newId: 'theNewId', truth: 'enabled', falsehood: 'disabled'
+                        }
                     ],
                     schemaMerge: {
                         path: ['myPath']
@@ -591,7 +609,9 @@ describe('parserUtil', () => {
             const declarationItem = {
                 class: 'MySchemaClass',
                 myPath: {
-                    myNewId: 'myValue'
+                    myNewId: 'myValue',
+                    valueWithTruth: true,
+                    theNewId: false
                 }
             };
 
@@ -601,8 +621,47 @@ describe('parserUtil', () => {
                 {
                     class: 'MySchemaClass',
                     myPath: {
-                        mcpdId: 'myValue'
+                        mcpdId: 'myValue',
+                        valueWithTruth: 'yes',
+                        valueWithTruthAndNewId: 'disabled'
                     }
+                }
+            );
+        });
+
+        it('should handle schema classes with schemaMerge add', () => {
+            const configItems = [
+                {
+                    schemaClass: 'MySchemaClass',
+                    schemaMerge: {
+                        action: 'add'
+                    },
+                    properties: [
+                        {
+                            id: 'autoPhonehome', truth: 'enabled', falsehood: 'disabled'
+                        },
+                        {
+                            id: 'mcpdId', newId: 'theNewId', truth: 'thisIsTrue', falsehood: 'thisIsFalse'
+                        }
+                    ]
+                }
+            ];
+
+            const declarationItem = {
+                class: 'MySchemaClass',
+                mySystem: {
+                    autoPhonehome: false,
+                    theNewId: true
+                }
+            };
+
+            // nameless classes are called with the name stripped
+            const updated = parserUtil.updateIds(configItems, 'MySchemaClass', declarationItem.mySystem);
+            assert.deepStrictEqual(
+                updated,
+                {
+                    autoPhonehome: 'disabled',
+                    mcpdId: 'thisIsTrue'
                 }
             );
         });

@@ -101,7 +101,7 @@ describe('networkHandler', () => {
                     DNS_Resolver: {
                         dnsResolver1: {
                             name: 'dnsResolver1',
-                            answerDefaultZones: false,
+                            answerDefaultZones: 'no',
                             cacheSize: 5767168,
                             forwardZones: [
                                 {
@@ -119,12 +119,12 @@ describe('networkHandler', () => {
                                     ]
                                 }
                             ],
-                            randomizeQueryNameCase: true,
+                            randomizeQueryNameCase: 'yes',
                             routeDomain: '0',
-                            useIpv4: true,
-                            useIpv6: false,
-                            useTcp: true,
-                            useUdp: false
+                            useIpv4: 'yes',
+                            useIpv6: 'no',
+                            useTcp: 'yes',
+                            useUdp: 'no'
                         }
                     }
                 }
@@ -224,12 +224,12 @@ describe('networkHandler', () => {
                                 '1.1',
                                 '1.2'
                             ],
-                            lacp: true,
+                            lacp: 'enabled',
                             lacpMode: 'active',
                             lacpTimeout: 'long',
                             linkSelectPolicy: 'auto',
                             qinqEthertype: '0xAF09',
-                            stp: true
+                            stp: 'enabled'
                         }
                     }
                 }
@@ -275,7 +275,7 @@ describe('networkHandler', () => {
                             ],
                             autoLasthop: 'enabled',
                             cmpHash: 'dst-ip',
-                            failsafe: true,
+                            failsafe: 'enabled',
                             failsafeAction: 'reboot',
                             failsafeTimeout: 3600
                         },
@@ -290,7 +290,8 @@ describe('networkHandler', () => {
                                 }
                             ],
                             autoLasthop: 'disabled',
-                            cmpHash: 'src-ip'
+                            cmpHash: 'src-ip',
+                            failsafe: 'disabled'
                         }
                     }
                 }
@@ -983,7 +984,7 @@ describe('networkHandler', () => {
                             fwStagedPolicy: 'stagedFirewallPolicy',
                             securityNatPolicy: 'securityNatPolicy',
                             servicePolicy: 'servicePolicy',
-                            strict: false,
+                            strict: 'disabled',
                             routingProtocol: [
                                 'RIP'
                             ],
@@ -996,7 +997,7 @@ describe('networkHandler', () => {
                             name: 'rd2',
                             id: 1234,
                             parent: '/Common/rd1',
-                            strict: true
+                            strict: 'enabled'
                         }
                     }
                 }
@@ -1104,7 +1105,7 @@ describe('networkHandler', () => {
                             name: 'tunnel1',
                             profile: 'tcp-forward',
                             mtu: 0,
-                            usePmtu: true,
+                            usePmtu: 'enabled',
                             tos: 'preserve',
                             autoLasthop: 'default',
                             key: 0,
@@ -1112,14 +1113,14 @@ describe('networkHandler', () => {
                             remoteAddress: '20.20.20.10',
                             secondaryAddress: '30.30.30.10',
                             mode: 'bidirectional',
-                            transparent: false,
+                            transparent: 'disabled',
                             trafficGroup: 'traffic-group-local-only'
                         },
                         tunnel2: {
                             name: 'tunnel2',
                             profile: 'tcp-forward',
                             mtu: 1000,
-                            usePmtu: false,
+                            usePmtu: 'disabled',
                             tos: 12,
                             autoLasthop: 'enabled',
                             key: 1,
@@ -1127,7 +1128,7 @@ describe('networkHandler', () => {
                             remoteAddress: '20.20.20.20',
                             secondaryAddress: '30.30.30.20',
                             mode: 'inbound',
-                            transparent: true,
+                            transparent: 'enabled',
                             trafficGroup: 'none'
                         }
                     }
@@ -1971,7 +1972,7 @@ describe('networkHandler', () => {
                                 }
                             ],
                             gracefulRestart: {
-                                gracefulReset: true,
+                                gracefulReset: 'enabled',
                                 restartTime: 120,
                                 stalepathTime: 240
                             },
@@ -1988,7 +1989,7 @@ describe('networkHandler', () => {
                                                 in: 'routeMapIn1',
                                                 out: 'routeMapOut1'
                                             },
-                                            softReconfigurationInbound: true
+                                            softReconfigurationInbound: 'enabled'
                                         }
                                     ],
                                     remoteAs: 65020
@@ -2002,7 +2003,7 @@ describe('networkHandler', () => {
                                                 in: 'routeMapIn2',
                                                 out: 'routeMapOut2'
                                             },
-                                            softReconfigurationInbound: false
+                                            softReconfigurationInbound: 'disabled'
                                         }
                                     ],
                                     remoteAs: 65040
@@ -2171,7 +2172,7 @@ describe('networkHandler', () => {
                         routingBgp: {
                             name: 'routingBgp',
                             gracefulRestart: {
-                                gracefulReset: false
+                                gracefulReset: 'disabled'
                             }
                         }
                     }
@@ -2201,7 +2202,7 @@ describe('networkHandler', () => {
                         routingBgp: {
                             name: 'routingBgp',
                             gracefulRestart: {
-                                gracefulReset: false,
+                                gracefulReset: 'disabled',
                                 restartTime: 0,
                                 stalepathTime: 0
                             },
@@ -2215,7 +2216,7 @@ describe('networkHandler', () => {
                                         {
                                             name: 'ipv4',
                                             routeMap: {},
-                                            softReconfigurationInbound: true
+                                            softReconfigurationInbound: 'enabled'
                                         }
                                     ],
                                     remoteAs: 65020
@@ -2584,7 +2585,7 @@ describe('networkHandler', () => {
                                     name: 'firewallRuleOne',
                                     action: 'accept',
                                     ipProtocol: 'any',
-                                    log: false,
+                                    log: 'no',
                                     source: {},
                                     destination: {}
                                 },
@@ -2593,7 +2594,7 @@ describe('networkHandler', () => {
                                     description: 'firewall rule two description',
                                     action: 'reject',
                                     ipProtocol: 'tcp',
-                                    log: true,
+                                    log: 'yes',
                                     source: {
                                         vlans: [
                                             '/Common/vlan1',
@@ -2710,7 +2711,7 @@ describe('networkHandler', () => {
                                 name: 'firewallRuleOne',
                                 action: 'accept',
                                 ipProtocol: 'any',
-                                log: false,
+                                log: 'no',
                                 source: {},
                                 destination: {}
                             },
@@ -2719,7 +2720,7 @@ describe('networkHandler', () => {
                                 description: 'firewall rule two description',
                                 action: 'reject',
                                 ipProtocol: 'tcp',
-                                log: true,
+                                log: 'yes',
                                 source: {
                                     addressLists: [
                                         '/Common/addressList1',

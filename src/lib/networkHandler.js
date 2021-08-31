@@ -160,7 +160,7 @@ function handleVlan() {
                     partition: tenant,
                     autoLasthop: vlan.autoLasthop,
                     cmpHash: vlan.cmpHash,
-                    failsafe: vlan.failsafe ? 'enabled' : 'disabled',
+                    failsafe: vlan.failsafe,
                     failsafeAction: vlan.failsafeAction,
                     failsafeTimeout: vlan.failsafeTimeout
                 };
@@ -537,15 +537,15 @@ function handleDnsResolver() {
             const resolverBody = {
                 name: resolver.name,
                 partition: tenant,
-                answerDefaultZones: resolver.answerDefaultZones ? 'yes' : 'no',
+                answerDefaultZones: resolver.answerDefaultZones,
                 cacheSize: resolver.cacheSize,
                 forwardZones: forwardZones || 'none',
-                randomizeQueryNameCase: resolver.randomizeQueryNameCase ? 'yes' : 'no',
+                randomizeQueryNameCase: resolver.randomizeQueryNameCase,
                 routeDomain: resolver.routeDomain,
-                useIpv4: resolver.useIpv4 ? 'yes' : 'no',
-                useIpv6: resolver.useIpv6 ? 'yes' : 'no',
-                useTcp: resolver.useTcp ? 'yes' : 'no',
-                useUdp: resolver.useUdp ? 'yes' : 'no'
+                useIpv4: resolver.useIpv4,
+                useIpv6: resolver.useIpv6,
+                useTcp: resolver.useTcp,
+                useUdp: resolver.useUdp
             };
 
             promises.push(
@@ -569,12 +569,12 @@ function handleTrunk() {
                 name: trunk.name,
                 distributionHash: trunk.distributionHash,
                 interfaces: trunk.interfaces,
-                lacp: trunk.lacp ? 'enabled' : 'disabled',
+                lacp: trunk.lacp,
                 lacpMode: trunk.lacpMode,
                 lacpTimeout: trunk.lacpTimeout,
                 linkSelectPolicy: trunk.linkSelectPolicy,
                 qinqEthertype: trunk.qinqEthertype,
-                stp: trunk.stp ? 'enabled' : 'disabled'
+                stp: trunk.stp
             };
 
             promises.push(
@@ -606,7 +606,7 @@ function handleRouteDomain() {
                 ipIntelligencePolicy: routeDomain.ipIntelligencePolicy,
                 securityNatPolicy: routeDomain.securityNatPolicy,
                 servicePolicy: routeDomain.servicePolicy,
-                strict: routeDomain.strict ? 'enabled' : 'disabled',
+                strict: routeDomain.strict,
                 routingProtocol: routeDomain.routingProtocol,
                 vlans: routeDomain.vlans
             };
@@ -657,13 +657,13 @@ function handleTunnel() {
                 mtu: tunnel.mtu,
                 profile: `/Common/${tunnel.profile}`,
                 tos: tunnel.tos,
-                usePmtu: tunnel.usePmtu ? 'enabled' : 'disabled',
+                usePmtu: tunnel.usePmtu,
                 localAddress: tunnel.localAddress,
                 remoteAddress: tunnel.remoteAddress,
                 secondaryAddress: tunnel.secondaryAddress,
                 key: tunnel.key,
                 mode: tunnel.mode,
-                transparent: tunnel.transparent ? 'enabled' : 'disabled',
+                transparent: tunnel.transparent,
                 trafficGroup: tunnel.trafficGroup
             };
 
@@ -890,7 +890,7 @@ function handleRoutingBGP() {
                                         routeMap.out = af.routeMap.out || 'none';
                                     }
                                     entry.routeMap = routeMap;
-                                    entry.softReconfigurationInbound = af.softReconfigurationInbound ? 'enabled' : 'disabled';
+                                    entry.softReconfigurationInbound = af.softReconfigurationInbound;
                                     peerAddressFamilies.push(entry);
                                 });
                                 peerBody.addressFamily = peerAddressFamilies;
@@ -916,7 +916,7 @@ function handleRoutingBGP() {
                         partition: tenant,
                         addressFamily: addressFamilies,
                         gracefulRestart: bgp.gracefulRestart ? {
-                            gracefulReset: bgp.gracefulRestart.gracefulReset === true ? 'enabled' : 'disabled',
+                            gracefulReset: bgp.gracefulRestart.gracefulReset,
                             restartTime: bgp.gracefulRestart.restartTime,
                             stalepathTime: bgp.gracefulRestart.stalepathTime
                         } : undefined,
@@ -1167,7 +1167,7 @@ function formatRulesRequest(rules) {
         description: rule.description || 'none',
         action: rule.action,
         ipProtocol: rule.ipProtocol,
-        log: rule.log ? 'yes' : 'no',
+        log: rule.log,
         placeAfter: index === 0 ? 'first' : array[index - 1].name,
         source: {
             addressLists: rule.source.addressLists || [],

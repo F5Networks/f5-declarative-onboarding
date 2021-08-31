@@ -702,7 +702,7 @@ function mapProperties(item, configItem, bigIpVersion, options) {
         if (property.truth !== undefined) {
             // for certain items we don't want to add prop with default falsehood value if prop doesn't exist
             if (typeof mappedItem[property.id] !== 'undefined' || !property.skipWhenOmitted) {
-                mappedItem[property.id] = mapTruth(mappedItem, property);
+                mappedItem[property.id] = mapTruth(mappedItem, property, options);
             }
         }
 
@@ -756,7 +756,7 @@ function mapProperties(item, configItem, bigIpVersion, options) {
                         }
 
                         if (trans.truth !== undefined) {
-                            value = mapTruth(currentProperty, trans);
+                            value = mapTruth(currentProperty, trans, options);
                         }
 
                         if (options.translateToNewId && trans.newId) {
@@ -835,14 +835,20 @@ function mapNewId(mappedItem, id, newId) {
  *
  * @param {Object} item - The config item
  * @param {Object} property - The property to map
+ * @param {Object} [options] - Optional parameters
+ * @param {Boolean} [options.translateToNewId] - Set property names to the value in 'newId' if there is one.
+ *                                               Default false.
  *
  * @returns {Boolean} Whether or not the property value represents truth
  */
-function mapTruth(item, property) {
-    if (!item[property.id]) {
-        return false;
+function mapTruth(item, property, options) {
+    if (options.translateToNewId) {
+        if (!item[property.id]) {
+            return false;
+        }
+        return item[property.id] === property.truth;
     }
-    return item[property.id] === property.truth;
+    return item[property.id] || property.falsehood;
 }
 
 /**

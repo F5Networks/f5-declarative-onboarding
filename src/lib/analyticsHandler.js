@@ -67,12 +67,12 @@ function handleAnalytics() {
         return this.bigIp.replace(
             PATHS.Analytics,
             {
-                'avrd-debug-mode': (analytics.avrdDebugMode ? 'enabled' : 'disabled'),
+                'avrd-debug-mode': analytics.avrdDebugMode,
                 'avrd-interval': analytics.avrdInterval,
                 'offbox-protocol': analytics.offboxProtocol || 'none',
                 'offbox-tcp-addresses': analytics.offboxTcpAddresses || [],
                 'offbox-tcp-port': analytics.offboxTcpPort || 0,
-                'use-offbox': (analytics.useOffbox ? 'enabled' : 'disabled'),
+                'use-offbox': analytics.useOffbox,
                 'source-id': analytics.sourceId || 'none',
                 'tenant-id': analytics.tenantId || 'default'
             }

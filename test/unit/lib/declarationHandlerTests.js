@@ -2191,7 +2191,7 @@ describe('declarationHandler', () => {
                                 {
                                     name: 'ipv4',
                                     routeMap: {},
-                                    softReconfigurationInbound: false
+                                    softReconfigurationInbound: 'disabled'
                                 }
                             ]
                         }
@@ -2208,12 +2208,12 @@ describe('declarationHandler', () => {
                                             {
                                                 name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             },
                                             {
                                                 name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             }
                                         ]
                                     }
@@ -2229,7 +2229,7 @@ describe('declarationHandler', () => {
                                 {
                                     name: 'ipv6',
                                     routeMap: {},
-                                    softReconfigurationInbound: false
+                                    softReconfigurationInbound: 'disabled'
                                 }
                             ]
                         }
@@ -2246,12 +2246,12 @@ describe('declarationHandler', () => {
                                             {
                                                 name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             },
                                             {
                                                 name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             }
                                         ]
                                     }
@@ -2278,12 +2278,12 @@ describe('declarationHandler', () => {
                                             {
                                                 name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             },
                                             {
                                                 name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             }
                                         ]
                                     }
@@ -2308,12 +2308,12 @@ describe('declarationHandler', () => {
                                             {
                                                 name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             },
                                             {
                                                 name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             }
                                         ]
                                     }

@@ -364,7 +364,8 @@ describe('configManager', () => {
         ];
         listResponses['/tm/net/vlan/~Common~external/interfaces'] = [
             {
-                name: '1.1'
+                name: '1.1',
+                tagged: true
             }
         ];
 
@@ -372,6 +373,7 @@ describe('configManager', () => {
         return configManager.get({}, state, doState)
             .then(() => {
                 assert.strictEqual(state.currentConfig.Common.VLAN.external.interfaces[0].name, '1.1');
+                assert.strictEqual(state.currentConfig.Common.VLAN.external.interfaces[0].tagged, true);
             });
     });
 
@@ -2041,7 +2043,7 @@ describe('configManager', () => {
                         exampleBGP: {
                             name: 'exampleBGP',
                             gracefulRestart: {
-                                gracefulReset: true,
+                                gracefulReset: 'enabled',
                                 restartTime: 120,
                                 stalepathTime: 0
                             },
@@ -2110,12 +2112,12 @@ describe('configManager', () => {
                                                 in: '/Common/routeMap1',
                                                 out: '/Common/routeMap1'
                                             },
-                                            softReconfigurationInbound: true
+                                            softReconfigurationInbound: 'enabled'
                                         },
                                         {
                                             name: 'ipv6',
                                             routeMap: {},
-                                            softReconfigurationInbound: false
+                                            softReconfigurationInbound: 'disabled'
                                         }
                                     ]
                                 },
@@ -2126,7 +2128,7 @@ describe('configManager', () => {
                                         {
                                             name: 'ipv4',
                                             routeMap: {},
-                                            softReconfigurationInbound: false
+                                            softReconfigurationInbound: 'disabled'
                                         }
                                     ]
                                 }
@@ -2465,7 +2467,7 @@ describe('configManager', () => {
                         state.currentConfig.Common.GSLBGlobals,
                         {
                             general: {
-                                synchronization: true,
+                                synchronization: 'yes',
                                 synchronizationGroupName: 'syncGroup',
                                 synchronizationTimeTolerance: 123,
                                 synchronizationTimeout: 100
@@ -2564,18 +2566,18 @@ describe('configManager', () => {
                                 proberFallback: 'any-available',
                                 proberPool: 'gslbProberPool',
                                 limitMaxBps: 50,
-                                limitMaxBpsStatus: true,
+                                limitMaxBpsStatus: 'enabled',
                                 limitMaxPps: 60,
-                                limitMaxPpsStatus: true,
+                                limitMaxPpsStatus: 'enabled',
                                 limitMaxConnections: 70,
-                                limitMaxConnectionsStatus: true,
+                                limitMaxConnectionsStatus: 'enabled',
                                 limitCpuUsage: 10,
-                                limitCpuUsageStatus: true,
+                                limitCpuUsageStatus: 'enabled',
                                 limitMemAvail: 12,
-                                limitMemAvailStatus: true,
-                                iqAllowServiceCheck: false,
-                                iqAllowPath: false,
-                                iqAllowSnmp: false,
+                                limitMemAvailStatus: 'enabled',
+                                iqAllowServiceCheck: 'no',
+                                iqAllowPath: 'no',
+                                iqAllowSnmp: 'no',
                                 datacenter: 'gslbDataCenter',
                                 devices: [
                                     {
@@ -2612,7 +2614,7 @@ describe('configManager', () => {
                                         monitor: []
                                     }
                                 ],
-                                exposeRouteDomains: true,
+                                exposeRouteDomains: 'yes',
                                 virtualServerDiscovery: 'enabled',
                                 monitor: [
                                     '/Common/http',
@@ -2668,15 +2670,15 @@ describe('configManager', () => {
             const getExpected = name => ({
                 name,
                 enabled: true,
-                limitMaxBpsStatus: false,
-                limitMaxConnectionsStatus: false,
-                limitCpuUsageStatus: false,
-                exposeRouteDomains: false,
-                limitMemAvailStatus: false,
-                iqAllowPath: false,
-                limitMaxPpsStatus: false,
-                iqAllowServiceCheck: false,
-                iqAllowSnmp: false,
+                limitMaxBpsStatus: 'disabled',
+                limitMaxConnectionsStatus: 'disabled',
+                limitCpuUsageStatus: 'disabled',
+                exposeRouteDomains: 'no',
+                limitMemAvailStatus: 'disabled',
+                iqAllowPath: 'no',
+                limitMaxPpsStatus: 'disabled',
+                iqAllowServiceCheck: 'no',
+                iqAllowSnmp: 'no',
                 monitor: [],
                 devices: []
             });
@@ -2737,17 +2739,17 @@ describe('configManager', () => {
                                     defaultsFrom: '/Common/http',
                                     fullPath: '/Common/GSLBmonitor',
                                     generation: 0,
-                                    ignoreDownResponse: true,
+                                    ignoreDownResponse: 'enabled',
                                     interval: 100,
                                     monitorType: 'http',
                                     probeTimeout: 110,
                                     recv: 'HTTP',
                                     description: 'description',
-                                    reverse: true,
+                                    reverse: 'enabled',
                                     send: 'HEAD / HTTP/1.0\\r\\n',
                                     destination: '1.1.1.1:80',
                                     timeout: 1000,
-                                    transparent: true
+                                    transparent: 'enabled'
                                 }
                             }
                         );
@@ -2992,7 +2994,7 @@ describe('configManager', () => {
                                         description: 'firewall rule one description',
                                         action: 'accept',
                                         ipProtocol: 'any',
-                                        log: false,
+                                        log: 'no',
                                         source: {},
                                         destination: {}
                                     },
@@ -3001,7 +3003,7 @@ describe('configManager', () => {
                                         description: 'firewall rule two description',
                                         action: 'reject',
                                         ipProtocol: 'tcp',
-                                        log: true,
+                                        log: 'yes',
                                         source: {
                                             vlans: [
                                                 '/Common/vlan1',
@@ -3100,7 +3102,7 @@ describe('configManager', () => {
                                     description: 'firewall rule one description',
                                     action: 'accept',
                                     ipProtocol: 'any',
-                                    log: false,
+                                    log: 'no',
                                     source: {},
                                     destination: {}
                                 },
@@ -3109,7 +3111,7 @@ describe('configManager', () => {
                                     description: 'firewall rule two description',
                                     action: 'reject',
                                     ipProtocol: 'tcp',
-                                    log: true,
+                                    log: 'yes',
                                     source: {
                                         addressLists: [
                                             '/Common/myAddressList1',
@@ -3168,7 +3170,7 @@ describe('configManager', () => {
                         state.currentConfig.Common.Authentication,
                         {
                             ldap: {
-                                referrals: true
+                                referrals: 'yes'
                             }
                         }
                     );

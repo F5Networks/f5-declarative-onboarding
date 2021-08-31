@@ -701,7 +701,7 @@ function applyRoutingBgpFixes(declaration) {
         (bgp.peerGroups || []).forEach((peer) => {
             processAddressFamiliesDefaults(peer, {
                 routeMap: {},
-                softReconfigurationInbound: false
+                softReconfigurationInbound: 'disabled'
             });
         });
 
