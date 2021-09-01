@@ -365,7 +365,7 @@
     {
         "path": "/tm/analytics/global-settings",
         "schemaClass": "Analytics",
-        "requiredModule": "avr",
+        "requiredModules": [{ "module": "avr" }],
         "properties": [
             { "id": "avrdDebugMode", "newId": "debugEnabled", "truth": "enabled", "falsehood": "disabled" },
             { "id": "avrdInterval", "newId": "interval" },
@@ -737,7 +737,7 @@
     {
         "path": "/tm/gtm/global-settings/general",
         "schemaClass": "GSLBGlobals",
-        "requiredModule": "gtm",
+        "requiredModules": [{ "module": "gtm" }],
         "schemaMerge": {
             "path": ["general"]
         },
@@ -758,7 +758,7 @@
         "path": "/tm/gtm/datacenter",
         "schemaClass": "GSLBDataCenter",
         "enforceArray": true,
-        "requiredModule": "gtm",
+        "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "contact" },
             { "id": "enabled" },
@@ -771,7 +771,7 @@
     {
         "path": "/tm/gtm/server",
         "schemaClass": "GSLBServer",
-        "requiredModule": "gtm",
+        "requiredModules": [{ "module": "gtm" }],
         "enforceArray": true,
         "properties": [
             { "id": "description", "newId": "remark" },
@@ -829,7 +829,7 @@
     {
         "path": "/tm/gtm/monitor/http",
         "schemaClass": "GSLBMonitor",
-        "requiredModule": "gtm",
+        "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "kind" },
             { "id": "description", "newId": "remark" },
@@ -851,7 +851,7 @@
         "schemaMerge": {
             "action": "add"
         },
-        "requiredModule": "gtm",
+        "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "kind" },
             { "id": "description", "newId": "remark" },
@@ -874,7 +874,7 @@
         "schemaMerge": {
             "action": "add"
         },
-        "requiredModule": "gtm",
+        "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "kind" },
             { "id": "description", "newId": "remark" },
@@ -894,7 +894,7 @@
         "schemaMerge": {
             "action": "add"
         },
-        "requiredModule": "gtm",
+        "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "kind" },
             { "id": "description", "newId": "remark" },
@@ -915,7 +915,7 @@
         "schemaMerge": {
             "action": "add"
         },
-        "requiredModule": "gtm",
+        "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "kind" },
             { "id": "description", "newId": "remark" },
@@ -937,7 +937,7 @@
         "path": "/tm/gtm/prober-pool",
         "schemaClass": "GSLBProberPool",
         "enforceArray": true,
-        "requiredModule": "gtm",
+        "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "description", "newId": "remark" },
             { "id": "enabled" },
@@ -963,7 +963,7 @@
     {
         "path": "/tm/security/firewall/policy",
         "schemaClass": "FirewallPolicy",
-        "requiredModule": "afm",
+        "requiredModules": [{ "module": "afm" }],
         "properties": [
             { "id": "description", "newId": "remark" },
             { "id": "rulesReference", "dereferenceId": "rules" }
@@ -983,7 +983,7 @@
     {
         "path": "/tm/security/firewall/address-list",
         "schemaClass": "FirewallAddressList",
-        "requiredModule": "afm",
+        "requiredModules": [{ "module": "afm" }],
         "properties": [
             { "id": "description", "newId": "remark" },
             {
@@ -1012,7 +1012,7 @@
     {
         "path": "/tm/security/firewall/port-list",
         "schemaClass": "FirewallPortList",
-        "requiredModule": "afm",
+        "requiredModules": [{ "module": "afm" }],
         "properties": [
             { "id": "description", "newId": "remark" },
             {
@@ -1031,6 +1031,12 @@
     {
         "path": "/tm/security/firewall/management-ip-rules",
         "schemaClass": "ManagementIpFirewall",
+        "requiredModules": [
+            {
+                "module": "afm",
+                "maxVersion": "13.1"
+            }
+        ],
         "properties": [
             { "id": "description", "newId": "remark" },
             { "id": "rulesReference", "dereferenceId": "rules" }

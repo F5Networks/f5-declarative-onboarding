@@ -397,7 +397,7 @@ describe('parserUtil', () => {
                 {
                     path: '/tm/gtm/server',
                     schemaClass: 'GSLBServer',
-                    requiredModule: 'gtm',
+                    requiredModules: [{ module: 'gtm' }],
                     enforceArray: true,
                     properties: [
                         { id: 'devicesReference', dereferenceId: 'devices' }

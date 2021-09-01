@@ -173,8 +173,11 @@ class ConfigManager {
                 // properties we want
                 return Promise.all(this.configItems
                     .map((configItem) => {
-                        if (configItem.requiredModule && provisionedModules.indexOf(configItem.requiredModule) === -1) {
-                            return Promise.resolve(false);
+                        if (configItem.requiredModules) {
+                            const targetInfo = { version: this.bigIpVersion };
+                            if (!checkRequiredModules(configItem.requiredModules, provisionedModules, targetInfo)) {
+                                return Promise.resolve(false);
+                            }
                         }
 
                         const query = { $filter: 'partition eq Common' };
@@ -507,12 +510,13 @@ class ConfigManager {
                     }, { provisioned: [], deprovisioned: [] });
 
                     this.configItems.forEach((item) => {
-                        if (!item.requiredModule
-                            || provisionState.provisioned.indexOf(item.requiredModule) > -1) {
+                        const targetInfo = { version: this.bigIpVersion };
+                        if (!item.requiredModules
+                            || checkRequiredModules(item.requiredModules, provisionState.provisioned, targetInfo)) {
                             // add default empty objects for classes that do not exist
                             originalConfig.Common[item.schemaClass] = originalConfig.Common[item.schemaClass] || {};
-                        } else if (item.requiredModule
-                            && provisionState.deprovisioned.indexOf(item.requiredModule) > -1
+                        } else if (item.requiredModules
+                            && checkRequiredModules(item.requiredModules, provisionState.deprovisioned, targetInfo)
                             && originalConfig.Common[item.schemaClass]
                             && Object.keys(originalConfig.Common[item.schemaClass]).length === 0) {
                             // remove default empty objects for classes that require de-provisioned module
@@ -1282,6 +1286,38 @@ function getMappedId(configPath, propertyPath, id, configItems, options) {
     }
 
     return property.newId;
+}
+
+/**
+ * Filters required modules based on target BIG-IP info and checks if all filtered modules
+ * can be found in the list of current modules. Returns true if all modules are found.
+ *
+ * @param {Object[]} requiredModules - The required modules
+ * @param {string[]} currentModules - The list of modules to search through
+ * @param {Object} targetInfo - Info about the target machine to use for filtering
+ * @param {string} targetInfo.version - The version of the machine
+ *
+ * @returns {boolean} True if all required modules are found in the list of current modules
+ */
+function checkRequiredModules(requiredModules, currentModules, targetInfo) {
+    return requiredModules
+        .filter((requiredModule) => {
+            const maxVersion = requiredModule.maxVersion;
+
+            if (maxVersion) {
+                const maxVersionLength = maxVersion.split('.').length;
+                // Truncate targetInfo version when comparing against maxVersion
+                const version = targetInfo.version.split('.').slice(0, maxVersionLength).join('.');
+
+                if (cloudUtil.versionCompare(version, maxVersion) > 0) {
+                    return false;
+                }
+            }
+
+            return true;
+        })
+        .map(requiredModule => requiredModule.module)
+        .every(module => currentModules.indexOf(module) > -1);
 }
 
 module.exports = ConfigManager;
