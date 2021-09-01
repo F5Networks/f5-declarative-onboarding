@@ -39,7 +39,7 @@ Utility pools include a additional parameters: **skuKeyword1** and **skuKeyword2
 We've highlighted the lines that are specific to this utility and Route example (reachable=true).  
 
 **New in DO 1.24** |br|
-Declarative Onboarding 1.24 introduced the **chargebackTag** property to the License class. **chargebackTag** is an optional text string which can be used as a charge back tag.
+Declarative Onboarding 1.24 introduced the **chargebackTag** property to the License class. **chargebackTag** is an optional text string which can be used as a charge back tag, making it easier to track license costs.
 
 .. Warnings:: If you attempt to use this example a Declarative Onboarding version prior to 1.24, it will fail.  On previous versions, remove line 22.
 
@@ -60,7 +60,7 @@ The following is another example of using a BIG-IQ to license your BIG-IP system
 For unreachable devices (with no route to BIG-IP), BIG-IP credentials are not required. Instead, you must explicitly indicate the platform on which the device runs (the **hypervisor** field) as Declarative Onboarding cannot automatically detect the value at this time. This is required for the BIG-IQ license activation API request (see :ref:`license-pool` for hypervisor options).  
 
 **New in DO 1.24** |br|
-Declarative Onboarding 1.24 introduced the **chargebackTag** property. **chargebackTag** is an optional text string which can be used as a charge back tag.
+Declarative Onboarding 1.24 introduced the **chargebackTag** property. **chargebackTag** is an optional text string which can be used as a charge back tag, making it easier to track license costs.
 
 .. Warnings:: If you attempt to use this example a Declarative Onboarding version prior to 1.24, it will fail.  On previous versions, remove line 22.
 
