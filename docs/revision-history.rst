@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.24
-        - Updated the documentation for Declarative Onboarding v1.24.0.  This release contains the following changes: |br| * Added support for the **ebgpMultihop** property for BGP neighbors (see the updated :ref:`BGP example<bgprouting>`) |br| * Added support for **gre** and **geneve** tunnel types (see :ref:`Tunnels<example24>`) |br| |br| Issues Resolved: |br| * FirewallPolicy incorrectly allows VLANs to be included in the destination schema object
+        - Updated the documentation for Declarative Onboarding v1.24.0.  This release contains the following changes: |br| * Added support for the **ebgpMultihop** property for BGP neighbors (see the updated :ref:`BGP example<bgprouting>`) |br| * Added support for **gre** and **geneve** tunnel types (see :ref:`Tunnels<example24>`) |br| * Added the optional **chargebackTag** to the BIG-IQ utility examples, and to the :ref:`License class<license-class>` section (see :ref:`BIG-IQ utility route<bigiq2>` and :ref:`BIG-IQ utility no route<bigiq3>` |br| |br| Issues Resolved: |br| * FirewallPolicy incorrectly allows VLANs to be included in the destination schema object
         - 9-28-21
 
       * - 1.23
