@@ -366,7 +366,29 @@ This example shows how you can specify multiple route of different types in a DO
 .. literalinclude:: ../../examples/preserveOrigDhcpRoutes.json
     :language: json
 
+|
 
+.. _manipfwr:
+
+Configuring firewall rules on the management interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+    Support for configuring firewall rules on the management interface is available in DO 1.24 and later. |br| You must be using BIG-IP 14.1 or later
+
+This example shows how you can configure firewall rules on the management interface in a DO declaration when deploying on BIG-IP 14.1 or later. 
+
+This feature uses the new |manfw| class, which includes the |manfwr| settings.
+
+For more detail on Firewall rules and manual configuration instructions, see |fwkb| on AskF5.
+
+For more information and DO usage on individual properties, see |manfw| and |manfwr|.
+
+.. literalinclude:: ../../examples/managementIpFirewall.json
+    :language: json
+
+
+    
 
 .. |br| raw:: html
 
@@ -587,4 +609,14 @@ This example shows how you can specify multiple route of different types in a DO
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingbgp-neighbors" target="_blank">RoutingBGP_neighbors</a>
 
-   
+.. |manfwr| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementipfirewall-rules" target="_blank">ManagementIpFirewall_rules</a>
+
+.. |manfw| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementipfirewall" target="_blank">ManagementIpFirewall</a>
+
+.. |fwkb| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K46122561" target="_blank">Restrict access to the BIG-IP management interface using network firewall rules</a>
