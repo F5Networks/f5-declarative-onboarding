@@ -374,9 +374,9 @@ Configuring firewall rules on the management interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-    Support for configuring firewall rules on the management interface is available in DO 1.24 and later. |br| You must be using BIG-IP 14.1 or later
+    Support for configuring firewall rules on the management interface is available in DO 1.24 and later. |br| If using BIG-IP 13.1, you must have the AFM module licensed and provisioned
 
-This example shows how you can configure firewall rules on the management interface in a DO declaration when deploying on BIG-IP 14.1 or later. 
+This example shows how you can configure firewall rules on the management interface in a DO declaration. If you are deploying on BIG-IP 13.1-13.x, you must have the AFM module licensed and provisioned. BIG-IP versions 14.1 and later do not have this requirement.
 
 This feature uses the new |manfw| class, which includes the |manfwr| settings.
 
