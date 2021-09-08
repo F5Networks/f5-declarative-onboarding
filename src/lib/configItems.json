@@ -829,6 +829,7 @@
     {
         "path": "/tm/gtm/monitor/http",
         "schemaClass": "GSLBMonitor",
+        "enforceArray": true,
         "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "kind" },
@@ -871,6 +872,7 @@
     {
         "path": "/tm/gtm/monitor/gateway-icmp",
         "schemaClass": "GSLBMonitor",
+        "enforceArray": true,
         "schemaMerge": {
             "action": "add"
         },
@@ -891,6 +893,7 @@
     {
         "path": "/tm/gtm/monitor/tcp",
         "schemaClass": "GSLBMonitor",
+        "enforceArray": true,
         "schemaMerge": {
             "action": "add"
         },
@@ -912,6 +915,7 @@
     {
         "path": "/tm/gtm/monitor/udp",
         "schemaClass": "GSLBMonitor",
+        "enforceArray": true,
         "schemaMerge": {
             "action": "add"
         },
