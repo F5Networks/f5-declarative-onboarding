@@ -369,6 +369,50 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             assert.strictEqual(currentState.MirrorIp.mirrorSecondaryIp, 'any6');
         });
 
+        it('should match RoutingAccessList', () => assert.deepStrictEqual(
+            currentState.RoutingAccessList,
+            {
+                testRoutingAccessList1: {
+                    name: 'testRoutingAccessList1',
+                    entries: [
+                        {
+                            name: 11,
+                            action: 'permit',
+                            destination: '10.10.0.0/16',
+                            exactMatch: 'disabled',
+                            source: '10.11.0.0/16'
+                        },
+                        {
+                            name: 22,
+                            action: 'deny',
+                            destination: '10.12.13.14/32',
+                            exactMatch: 'disabled',
+                            source: '10.13.14.15/32'
+                        }
+                    ]
+                },
+                testRoutingAccessList2: {
+                    name: 'testRoutingAccessList2',
+                    entries: [
+                        {
+                            name: 33,
+                            action: 'permit',
+                            destination: '::/0',
+                            exactMatch: 'enabled',
+                            source: '1111:2222::/64'
+                        },
+                        {
+                            name: 44,
+                            action: 'permit',
+                            destination: '::/0',
+                            exactMatch: 'disabled',
+                            source: '1111:3333::/64'
+                        }
+                    ]
+                }
+            }
+        ));
+
         it('should match RoutingAsPath', () => assert.deepStrictEqual(
             currentState.RoutingAsPath,
             {

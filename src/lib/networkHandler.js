@@ -108,6 +108,10 @@ class NetworkHandler {
                 return handleRoutingAsPath.call(this);
             })
             .then(() => {
+                logger.info('Checking RoutingAccessList');
+                return handleRoutingAccessList.call(this);
+            })
+            .then(() => {
                 logger.info('Checking RoutingPrefixList');
                 return handleRoutingPrefixList.call(this);
             })
@@ -695,7 +699,7 @@ function handleTunnel() {
 function handleEnableRouting() {
     const promises = [];
     let enabledRouting = false;
-    ['RoutingBGP', 'RouteMap', 'RoutingAsPath', 'RoutingPrefixList'].forEach((routingModuleClass) => {
+    ['RoutingBGP', 'RouteMap', 'RoutingAsPath', 'RoutingAccessList', 'RoutingPrefixList'].forEach((routingModuleClass) => {
         doUtil.forEach(this.declaration, routingModuleClass, () => {
             if (!enabledRouting) {
                 // Enable routing module on the BIG-IP
@@ -744,6 +748,41 @@ function handleRoutingAsPath() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating RoutingAsPath: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleRoutingAccessList() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'RoutingAccessList', (tenant, list) => {
+        if (list && Object.keys(list).length !== 0) {
+            const entries = {};
+
+            (list.entries || []).forEach((entry) => {
+                entries[entry.name] = {
+                    action: entry.action,
+                    destination: entry.destination,
+                    exactMatch: entry.exactMatch,
+                    source: entry.source
+                };
+            });
+
+            const body = {
+                name: list.name,
+                partition: tenant,
+                description: list.description || 'none',
+                entries
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.RoutingAccessList, body, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating RoutingAccessList: ${err.message}`);
             throw err;
         });
 }

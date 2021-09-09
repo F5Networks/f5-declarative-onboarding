@@ -171,6 +171,7 @@
                             "Route",
                             "RouteDomain",
                             "RouteMap",
+                            "RoutingAccessList",
                             "RoutingAsPath",
                             "RoutingPrefixList",
                             "RoutingBGP",

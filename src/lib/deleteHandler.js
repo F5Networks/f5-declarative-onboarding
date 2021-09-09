@@ -41,6 +41,7 @@ const DELETABLE_CLASSES = [
     'ManagementRoute',
     'Tunnel',
     'RouteMap',
+    'RoutingAccessList',
     'RoutingAsPath',
     'RoutingPrefixList',
     'GSLBMonitor'
