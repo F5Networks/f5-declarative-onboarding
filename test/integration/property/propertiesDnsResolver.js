@@ -55,12 +55,12 @@ describe('DNS Resolver', function testDnsResolver() {
                 name: 'forwardZones',
                 inputValue: [
                     undefined,
-                    [{ name: 'test.as3.com', nameservers: ['192.0.2.20:8080'] }],
+                    [{ name: 'test.do.com', nameservers: ['192.0.2.20:8080'] }],
                     undefined
                 ],
                 expectedValue: [
                     [{ name: 'none' }],
-                    [{ name: 'test.as3.com', nameservers: [{ name: '192.0.2.20:8080' }] }],
+                    [{ name: 'test.do.com', nameservers: [{ name: '192.0.2.20:8080' }] }],
                     [{ name: 'none' }]
                 ]
             },

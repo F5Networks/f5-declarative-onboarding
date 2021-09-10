@@ -25,7 +25,6 @@
 'use strict';
 
 const assert = require('assert');
-const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const constants = require('./constants');
 const common = require('./common');
 const logger = require('./logger').getInstance();
@@ -597,107 +596,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should return 200 using experimental statusCodes',
             () => testStatusCode({ statusCodes: 'experimental' }, constants.HTTP_SUCCESS));
-    });
-
-    describe('Test Auth Settings', function testAuth() {
-        this.timeout(1000 * 60 * 30); // 30 minutes
-        let body;
-        let currentState;
-
-        before(() => {
-            const thisMachine = machines[2];
-            const bigIpAddress = thisMachine.ip;
-            const bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
-            const bodyFile = `${BODIES}/auth.json`;
-            return common.readFile(bodyFile)
-                .then((fileRead) => {
-                    body = JSON.parse(fileRead);
-                })
-                .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
-                    + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                    constants.HTTP_SUCCESS))
-                .then((response) => {
-                    currentState = response.currentConfig.Common;
-                })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
-        });
-
-        after(() => {
-            const thisMachine = machines[2];
-            const bigIpAddress = thisMachine.ip;
-            const bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
-            return common.testOriginalConfig(bigIpAddress, bigIpAuth)
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
-        });
-
-        it('should configure main auth settings', () => {
-            const expected = JSON.parse(JSON.stringify(body.Common.myAuth));
-            expected.fallback = 'true';
-            assert.ok(testMainAuth(expected, currentState));
-        });
-
-        it('should configure remoteUsersDefaults', () => {
-            const actual = currentState.Authentication.remoteUsersDefaults;
-            const expected = body.Common.myAuth.remoteUsersDefaults;
-            assert.strictEqual(actual.remoteConsoleAccess, expected.terminalAccess);
-            assert.strictEqual(actual.defaultPartition, expected.partitionAccess);
-            assert.strictEqual(actual.defaultRole, expected.role);
-        });
-
-        it('should configure radius', () => {
-            assert.ok(testRadiusAuth(body.Common.myAuth.radius, currentState));
-        });
-
-        it('should configure ldap', () => {
-            const actual = currentState.Authentication.ldap;
-            const expected = body.Common.myAuth.ldap;
-            assert.strictEqual(actual.bindDn, expected.bindDn);
-            assert.ok(actual.bindPw.startsWith('$M$'));
-            assert.strictEqual(actual.bindTimeout, expected.bindTimeout);
-            assert.strictEqual(actual.checkHostAttr, 'enabled');
-            assert.strictEqual(actual.checkRolesGroup, 'enabled');
-            assert.strictEqual(actual.filter, expected.filter);
-            assert.strictEqual(actual.groupDn, expected.groupDn);
-            assert.strictEqual(actual.groupMemberAttribute, expected.groupMemberAttribute);
-            assert.strictEqual(actual.idleTimeout, expected.idleTimeout);
-            assert.strictEqual(actual.ignoreAuthInfoUnavail, 'yes');
-            assert.strictEqual(actual.ignoreUnknownUser, 'enabled');
-            assert.strictEqual(actual.loginAttribute, expected.loginAttribute);
-            assert.strictEqual(actual.port, expected.port);
-            assert.strictEqual(actual.scope, expected.searchScope);
-            assert.strictEqual(actual.searchBaseDn, expected.searchBaseDn);
-            assert.strictEqual(actual.searchTimeout, expected.searchTimeout);
-            assert.deepStrictEqual(actual.servers, expected.servers);
-            assert.strictEqual(actual.ssl, expected.ssl);
-            assert.strictEqual(actual.sslCheckPeer, 'enabled');
-            assert.deepStrictEqual(actual.sslCiphers, expected.sslCiphers);
-            assert.strictEqual(actual.userTemplate, expected.userTemplate);
-            assert.strictEqual(actual.version, expected.version);
-
-            const currentBigIpVersion = process.env.BIGIP_IMAGE.split('-')[1];
-            if (cloudUtil.versionCompare('15.1', currentBigIpVersion) <= 0) {
-                assert.strictEqual(actual.referrals, 'yes');
-            }
-        });
-
-        it('should configure tacacs', () => {
-            const expected = JSON.parse(JSON.stringify(body.Common.myAuth.tacacs));
-            expected.debug = 'disabled';
-            expected.encryption = 'enabled';
-            assert.ok(testTacacsAuth(expected, currentState));
-        });
-
-        it('should configure remoteAuthRole', () => {
-            const actual = currentState.RemoteAuthRole.remoteAuthRole;
-            const expected = body.Common.remoteAuthRole;
-            assert.strictEqual(actual.attribute, expected.attribute);
-            assert.strictEqual(actual.console, expected.console);
-            assert.strictEqual(actual.lineOrder, expected.lineOrder);
-            assert.strictEqual(actual.deny, 'enabled');
-            assert.strictEqual(actual.role, expected.role);
-            assert.strictEqual(actual.userPartition, expected.userPartition);
-        });
     });
 
     describe('Test Licensing and properties requiring a license', function testLicensing() {
@@ -1700,38 +1598,6 @@ function testConfigSyncIp(target, response) {
     const validRef = target.myConfigSync.configsyncIp === '/Common/mySelfIp/address';
     const validAddr = target.mySelfIp.address.indexOf(response.ConfigSync.configsyncIp) === 0;
     return validRef && validAddr;
-}
-
-function testMainAuth(target, response) {
-    return compareSimple(target, response.Authentication, ['enabledSourceType', 'fallback']);
-}
-
-function testRadiusAuth(target, response) {
-    const radiusResp = response.Authentication.radius;
-    const serviceTypeCheck = compareSimple(target, radiusResp, ['serviceType']);
-    const serverPrimaryCheck = compareSimple(
-        target.servers.primary,
-        radiusResp.servers.primary,
-        ['server', 'port']
-    );
-    const serverSecondaryCheck = compareSimple(
-        target.servers.secondary,
-        radiusResp.servers.secondary,
-        ['server', 'port']
-    );
-    return serviceTypeCheck && serverPrimaryCheck && serverSecondaryCheck;
-}
-
-function testTacacsAuth(target, response) {
-    const tacacsResp = response.Authentication.tacacs;
-    return compareSimple(
-        target,
-        tacacsResp,
-        [
-            'accounting', 'authentication', 'debug', 'encryption', 'protocol',
-            'servers', 'service'
-        ]
-    );
 }
 
 /**

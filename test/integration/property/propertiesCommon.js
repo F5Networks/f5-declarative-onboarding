@@ -43,6 +43,7 @@ const DEFAULT_OPTIONS = {
     skipIdempotentCheck: false,
     maxPathLength: 195,
     maxNameLength: 48,
+    getMcpObject: {},
     getMcpValueDelay: 0,
     maxMcpRetries: 0 // -1 will poll mcp indefinitely, until success or timeout
 };
@@ -54,7 +55,7 @@ let testInfo;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 function getAuth() {
-    return DEFAULT_OPTIONS.token ? { token: DEFAULT_OPTIONS.token } : bigIpAuth;
+    return bigIpAuth;
 }
 
 function sendRequest(options, retryOptions) {
@@ -482,19 +483,17 @@ function getMcpObject(targetClass, options) {
     }
 
     const itemName = getItemName(options);
-    if (options.getMcpObject) {
-        options.getMcpObject.itemName = options.getMcpObject.itemName || itemName;
-        pathPrefix += options.getMcpObject.itemName;
-    } else {
-        pathPrefix += itemName;
+    options.getMcpObject.itemName = options.getMcpObject.itemName || itemName;
+    pathPrefix += options.getMcpObject.itemName;
+
+    const className = options.getMcpObject.className ? options.getMcpObject.className : targetClass;
+
+    const classPath = classMap[className];
+    if (!classPath) {
+        throw new Error(`Class ${className} not found in sharedConstants.PATH`);
     }
 
-    const mcpClass = classMap[targetClass];
-    if (!mcpClass) {
-        throw new Error(`Class ${targetClass} not found in sharedConstants.PATH`);
-    }
-
-    const url = `${bigIpUrl}${constants.ICONTROL_API}${mcpClass}`;
+    const url = `${bigIpUrl}${constants.ICONTROL_API}${classPath}`;
     const reqOpts = common.buildBody(url, null, getAuth(), 'GET');
 
     return sendRequest(reqOpts, { trials: 5, timeInterval: 1000 })
@@ -520,7 +519,7 @@ function getMcpObject(targetClass, options) {
         })
         .catch((err) => {
             if (enableConsole) {
-                console.log(`Error while getting mcpClass: ${err}`);
+                console.log(`Error while getting mcp object: ${err}`);
             }
             return undefined;
         })
@@ -655,7 +654,7 @@ function checkMcpValue(result, properties, index) {
                     assert.deepStrictEqual(
                         result[property.name][key],
                         deepValue,
-                        `${property.name}.${key}  value of ${result[property.name]} does not match expected value ${value}`
+                        `${property.name}.${key}  value of ${JSON.stringify(result[property.name][key], null, 4)} does not match expected value ${JSON.stringify(value[key], null, 4)}`
                     );
                 });
             } else {
