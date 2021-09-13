@@ -38,9 +38,14 @@ Utility pools include a additional parameters: **skuKeyword1** and **skuKeyword2
 
 We've highlighted the lines that are specific to this utility and Route example (reachable=true).  
 
+**New in DO 1.24** |br|
+Declarative Onboarding 1.24 introduced the **chargebackTag** property to the License class. **chargebackTag** is an optional text string which can be used as a charge back tag, making it easier to track license costs.
+
+.. Warnings:: If you attempt to use this example a Declarative Onboarding version prior to 1.24, it will fail.  On previous versions, remove line 22.
+
 .. literalinclude:: ../../examples/licenseViaBigIqUtilityReachable.json
    :language: json
-   :emphasize-lines: 16-21
+   :emphasize-lines: 16-22
 
 :ref:`Back to top<iqexamples>`
 
@@ -54,16 +59,16 @@ The following is another example of using a BIG-IQ to license your BIG-IP system
 
 For unreachable devices (with no route to BIG-IP), BIG-IP credentials are not required. Instead, you must explicitly indicate the platform on which the device runs (the **hypervisor** field) as Declarative Onboarding cannot automatically detect the value at this time. This is required for the BIG-IQ license activation API request (see :ref:`license-pool` for hypervisor options).  
 
-**New in DO 1.15** |br| 
-DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the DO property, it becomes *DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
+**New in DO 1.24** |br|
+Declarative Onboarding 1.24 introduced the **chargebackTag** property. **chargebackTag** is an optional text string which can be used as a charge back tag, making it easier to track license costs.
 
-.. IMPORTANT:: The following declaration has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom of the **License** class.
+.. Warnings:: If you attempt to use this example a Declarative Onboarding version prior to 1.24, it will fail.  On previous versions, remove line 22.
 
 In this example, we've highlighted the lines that are specific to this utility and No Route example (reachable=false).  See :ref:`Composing a declaration for licensing BIG-IP with a BIG-IQ<bigiqdec>` for specific details on this example.
 
 .. literalinclude:: ../../examples/licenseViaBigIqUtilityUnreachable.json
    :language: json
-   :emphasize-lines: 16-20
+   :emphasize-lines: 16-22
 
 :ref:`Back to top<iqexamples>`
 
