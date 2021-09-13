@@ -15,6 +15,7 @@ variables:
     ESR_PRODUCT: DO
     ESR_TEST_RUN_ID: ${CI_JOB_ID}
     ESR_TEST_RUN_WEB_URL: ${CI_JOB_URL}
+    TEST_REPORTER_OPTIONS: "--reporter mocha-multi-reporters --reporter-options configFile=test/mochaReporterConfig.json"
 
 # This inherits all the jobs defined in the parent template
 # Override variables in this project as needed
@@ -55,7 +56,11 @@ test_node:6:
     script:
         - npm install
         - npm install mocha@6.2.2
-        - npm test
+        - npm test -- $TEST_REPORTER_OPTIONS
+    artifacts:
+        when: always
+        reports:
+            junit: test_report.xml
 
 test_node:8:
     image: $DOCKER_URL/node:8
@@ -66,7 +71,11 @@ test_node:8:
     script:
         - npm ci
         - npm install mocha@7
-        - npm test
+        - npm test -- $TEST_REPORTER_OPTIONS
+    artifacts:
+        when: always
+        reports:
+            junit: test_report.xml
 
 test_node:latest:
     stage: test
@@ -75,14 +84,11 @@ test_node:latest:
         - do-test-docker-executor
     script:
         - npm ci
-        - if [ "$REPORT_UNIT_TESTS" = "true" ]; then
-        -   export ESR_TEST_TYPE=unit
-        -   export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
-        -   export GIT_SSL_NO_VERIFY=1
-        -   npm test -- --reporter @f5devcentral/atg-shared-utilities-dev/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
-        - else
-        -   npm test
-        - fi
+        - npm test -- $TEST_REPORTER_OPTIONS
+    artifacts:
+        when: always
+        reports:
+            junit: test_report.xml
 
 test-bigiq-ui:
   stage: test
@@ -258,9 +264,9 @@ integration-test:
         -     export DO_HOST=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].admin_ip')
         -     export DO_USERNAME=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].f5_rest_user.username')
         -     export DO_PASSWORD=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].f5_rest_user.password')
-        -     npm run property
+        -     npm run property -- $TEST_REPORTER_OPTIONS
         - else
-        -     npm run integration -- --reporter @f5devcentral/atg-shared-utilities-dev/src/mochaReporters/elasticSearchReporter/elasticSearchReporter.js
+        -     npm run integration -- $TEST_REPORTER_OPTIONS
         - fi
     after_script:
         - apt-get install -y expect
@@ -270,6 +276,8 @@ integration-test:
         when: always
         paths:
             - test/logs
+        reports:
+            junit: test_report.xml
         expire_in: 1 week
 
 teardown:
