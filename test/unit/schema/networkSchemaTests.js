@@ -873,7 +873,7 @@ describe('network.schema.json', () => {
 
                 assert.ok(validate(data), getErrorString(validate));
                 assert(Array.isArray(data.entries), 'entries should be an array');
-                assert(Object.keys(data.entries.length === 0, 'entries should be empty'));
+                assert(data.entries.length === 0, 'entries should be empty');
             });
 
             it('should validate a full entries declaration', () => {
@@ -1456,7 +1456,7 @@ describe('network.schema.json', () => {
 
                 assert.ok(validate(data), getErrorString(validate));
                 assert(Array.isArray(data.entries), 'entries should be an array');
-                assert(Object.keys(data.entries.length === 0, 'entries should be empty'));
+                assert(data.entries.length === 0, 'entries should be empty');
             });
 
             it('should supply default for missing match', () => {
@@ -1719,6 +1719,108 @@ describe('network.schema.json', () => {
         });
     });
 
+    describe('RoutingAccessList', () => {
+        // Though some of these tests are correct for schema validation you cannot mix ipv4 and ipv6 entries.
+        // You also cannot set exactMatchEnabled true on one entry and have destination set on any entry.
+        // The validator will flag these as invalid later on.
+        describe('valid', () => {
+            it('should validate minimal declaration and generate empty entries default', () => {
+                const data = {
+                    class: 'RoutingAccessList'
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data.entries, [], 'entries should be an empty array');
+            });
+
+            it('should validate a full entries declaration', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    label: 'my label',
+                    remark: 'my remark',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            destination: '10.3.3.0/24',
+                            exactMatchEnabled: false,
+                            source: '10.4.4.4'
+                        },
+                        {
+                            name: 30,
+                            action: 'deny',
+                            destination: '1111:2222:3333:4444::/64',
+                            exactMatchEnabled: true,
+                            source: '1111:2222:3333:5555::'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should generate entries defaults', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.strictEqual(data.entries[0].destination, '::', 'destination should be ::');
+                assert.strictEqual(data.entries[0].exactMatchEnabled, false, 'exactMatchEnabled should be false');
+                assert.strictEqual(data.entries[0].source, '::', 'source should be ::');
+            });
+
+            it('should validate empty entries property', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    entries: []
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should fail if no name is provided', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    entries: [
+                        {
+                            action: 'permit'
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if name is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'name\''), -1,
+                    `Errored but not because of the missing name:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if no action is provided', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    entries: [
+                        {
+                            name: 20
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if action is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'action\''), -1,
+                    `Errored but not because of the missing action:\n${getErrorString()}`
+                );
+            });
+        });
+    });
+
     describe('RoutingPrefixList', () => {
         describe('valid', () => {
             it('should validate minimal declaration', () => {
@@ -1728,7 +1830,7 @@ describe('network.schema.json', () => {
 
                 assert.ok(validate(data), getErrorString(validate));
                 assert(Array.isArray(data.entries), 'entries should be an array');
-                assert(Object.keys(data.entries.length === 0, 'entries should be empty'));
+                assert(data.entries.length === 0, 'entries should be empty');
             });
 
             it('should validate a full entries declaration', () => {

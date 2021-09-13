@@ -101,7 +101,7 @@ describe('networkHandler', () => {
                     DNS_Resolver: {
                         dnsResolver1: {
                             name: 'dnsResolver1',
-                            answerDefaultZones: false,
+                            answerDefaultZones: 'no',
                             cacheSize: 5767168,
                             forwardZones: [
                                 {
@@ -119,12 +119,12 @@ describe('networkHandler', () => {
                                     ]
                                 }
                             ],
-                            randomizeQueryNameCase: true,
+                            randomizeQueryNameCase: 'yes',
                             routeDomain: '0',
-                            useIpv4: true,
-                            useIpv6: false,
-                            useTcp: true,
-                            useUdp: false
+                            useIpv4: 'yes',
+                            useIpv6: 'no',
+                            useTcp: 'yes',
+                            useUdp: 'no'
                         }
                     }
                 }
@@ -224,12 +224,12 @@ describe('networkHandler', () => {
                                 '1.1',
                                 '1.2'
                             ],
-                            lacp: true,
+                            lacp: 'enabled',
                             lacpMode: 'active',
                             lacpTimeout: 'long',
                             linkSelectPolicy: 'auto',
                             qinqEthertype: '0xAF09',
-                            stp: true
+                            stp: 'enabled'
                         }
                     }
                 }
@@ -275,7 +275,7 @@ describe('networkHandler', () => {
                             ],
                             autoLasthop: 'enabled',
                             cmpHash: 'dst-ip',
-                            failsafe: true,
+                            failsafe: 'enabled',
                             failsafeAction: 'reboot',
                             failsafeTimeout: 3600
                         },
@@ -290,7 +290,8 @@ describe('networkHandler', () => {
                                 }
                             ],
                             autoLasthop: 'disabled',
-                            cmpHash: 'src-ip'
+                            cmpHash: 'src-ip',
+                            failsafe: 'disabled'
                         }
                     }
                 }
@@ -983,7 +984,7 @@ describe('networkHandler', () => {
                             fwStagedPolicy: 'stagedFirewallPolicy',
                             securityNatPolicy: 'securityNatPolicy',
                             servicePolicy: 'servicePolicy',
-                            strict: false,
+                            strict: 'disabled',
                             routingProtocol: [
                                 'RIP'
                             ],
@@ -996,7 +997,7 @@ describe('networkHandler', () => {
                             name: 'rd2',
                             id: 1234,
                             parent: '/Common/rd1',
-                            strict: true
+                            strict: 'enabled'
                         }
                     }
                 }
@@ -1104,7 +1105,7 @@ describe('networkHandler', () => {
                             name: 'tunnel1',
                             profile: 'tcp-forward',
                             mtu: 0,
-                            usePmtu: true,
+                            usePmtu: 'enabled',
                             tos: 'preserve',
                             autoLasthop: 'default',
                             key: 0,
@@ -1112,14 +1113,14 @@ describe('networkHandler', () => {
                             remoteAddress: '20.20.20.10',
                             secondaryAddress: '30.30.30.10',
                             mode: 'bidirectional',
-                            transparent: false,
+                            transparent: 'disabled',
                             trafficGroup: 'traffic-group-local-only'
                         },
                         tunnel2: {
                             name: 'tunnel2',
                             profile: 'tcp-forward',
                             mtu: 1000,
-                            usePmtu: false,
+                            usePmtu: 'disabled',
                             tos: 12,
                             autoLasthop: 'enabled',
                             key: 1,
@@ -1127,7 +1128,7 @@ describe('networkHandler', () => {
                             remoteAddress: '20.20.20.20',
                             secondaryAddress: '30.30.30.20',
                             mode: 'inbound',
-                            transparent: true,
+                            transparent: 'enabled',
                             trafficGroup: 'none'
                         }
                     }
@@ -1321,6 +1322,41 @@ describe('networkHandler', () => {
                 });
         });
 
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAccessList', () => {
+            const declaration = {
+                Common: {
+                    RoutingAccessList: {
+                        RoutingAccessList1: {
+                            name: 'RoutingAccessList1',
+                            entries: [
+                                {
+                                    name: 10
+                                }
+                            ]
+                        },
+                        RoutingAccessList2: {
+                            name: 'RoutingAccessList2',
+                            entries: [
+                                {
+                                    name: 20
+                                },
+                                {
+                                    name: 30
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
+                    assert.deepStrictEqual(data, [{ value: 'enable' }]);
+                });
+        });
+
         it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingPrefixList', () => {
             const declaration = {
                 Common: {
@@ -1443,7 +1479,7 @@ describe('networkHandler', () => {
                 });
         });
 
-        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath, RoutingPrefixList, RouteMap, and RoutingBGP', () => {
+        it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingAsPath, RoutingAccessList, RoutingPrefixList, RouteMap, and RoutingBGP', () => {
             const state = {
                 currentConfig: {
                     Common: {}
@@ -1474,6 +1510,12 @@ describe('networkHandler', () => {
                                     regex: '^$'
                                 }
                             ]
+                        }
+                    },
+                    RoutingAccessList: {
+                        RoutingAccessList1: {
+                            name: 20,
+                            entries: []
                         }
                     },
                     RoutingPrefixList: {
@@ -1650,6 +1692,177 @@ describe('networkHandler', () => {
                     assert.deepStrictEqual(data[0], {
                         name: 'RoutingAsPath1',
                         partition: 'Common',
+                        entries: {}
+                    });
+                });
+        });
+    });
+
+    describe('RoutingAccessList', () => {
+        it('should handle a fully specified Routing Access List', () => {
+            const declaration = {
+                Common: {
+                    RoutingAccessList: {
+                        RoutingAccessList1: {
+                            name: 'RoutingAccessList1',
+                            description: 'my description 1',
+                            entries: [
+                                {
+                                    name: 10,
+                                    action: 'permit',
+                                    destination: '10.2.2.0/24',
+                                    exactMatch: 'disabled',
+                                    source: '10.3.3.0/24'
+                                },
+                                {
+                                    name: 20,
+                                    action: 'deny',
+                                    destination: '10.4.4.1/32',
+                                    exactMatch: 'disabled',
+                                    source: '10.4.4.2/32'
+                                }
+                            ]
+                        },
+                        RoutingAccessList2: {
+                            name: 'RoutingAccessList2',
+                            description: 'my description 2',
+                            entries: [
+                                {
+                                    name: 30,
+                                    action: 'permit',
+                                    destination: '0.0.0.0/0',
+                                    exactMatch: 'enabled',
+                                    source: '10.5.5.1'
+                                }
+                            ]
+                        },
+                        RoutingAccessList3: {
+                            name: 'RoutingAccessList3',
+                            description: 'my description 3',
+                            entries: [
+                                {
+                                    name: 40,
+                                    action: 'permit',
+                                    destination: '1111:1111::/64',
+                                    exactMatch: 'disabled',
+                                    source: '1111:3333::/64'
+                                },
+                                {
+                                    name: 50,
+                                    action: 'deny',
+                                    destination: '1111:2222::/128',
+                                    exactMatch: 'disabled',
+                                    source: '1111:3333::/128'
+                                }
+                            ]
+                        },
+                        RoutingAccessList4: {
+                            name: 'RoutingAccessList4',
+                            entries: [
+                                {
+                                    name: 60,
+                                    action: 'permit',
+                                    destination: '::',
+                                    exactMatch: 'enabled',
+                                    source: '1111:3333::/64'
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RoutingAccessList];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RoutingAccessList1',
+                        partition: 'Common',
+                        description: 'my description 1',
+                        entries: {
+                            10: {
+                                action: 'permit',
+                                destination: '10.2.2.0/24',
+                                exactMatch: 'disabled',
+                                source: '10.3.3.0/24'
+                            },
+                            20: {
+                                action: 'deny',
+                                destination: '10.4.4.1/32',
+                                exactMatch: 'disabled',
+                                source: '10.4.4.2/32'
+                            }
+                        }
+                    });
+                    assert.deepStrictEqual(data[1], {
+                        name: 'RoutingAccessList2',
+                        partition: 'Common',
+                        description: 'my description 2',
+                        entries: {
+                            30: {
+                                action: 'permit',
+                                destination: '0.0.0.0/0',
+                                exactMatch: 'enabled',
+                                source: '10.5.5.1'
+                            }
+                        }
+                    });
+                    assert.deepStrictEqual(data[2], {
+                        name: 'RoutingAccessList3',
+                        partition: 'Common',
+                        description: 'my description 3',
+                        entries: {
+                            40: {
+                                action: 'permit',
+                                destination: '1111:1111::/64',
+                                exactMatch: 'disabled',
+                                source: '1111:3333::/64'
+                            },
+                            50: {
+                                action: 'deny',
+                                destination: '1111:2222::/128',
+                                exactMatch: 'disabled',
+                                source: '1111:3333::/128'
+                            }
+                        }
+                    });
+                    assert.deepStrictEqual(data[3], {
+                        name: 'RoutingAccessList4',
+                        partition: 'Common',
+                        description: 'none',
+                        entries: {
+                            60: {
+                                action: 'permit',
+                                destination: '::',
+                                exactMatch: 'enabled',
+                                source: '1111:3333::/64'
+                            }
+                        }
+                    });
+                });
+        });
+
+        it('should handle empty entries property', () => {
+            const declaration = {
+                Common: {
+                    RoutingAccessList: {
+                        RoutingAccessList1: {
+                            name: 'RoutingAccessList1',
+                            entries: []
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RoutingAccessList];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RoutingAccessList1',
+                        partition: 'Common',
+                        description: 'none',
                         entries: {}
                     });
                 });
@@ -1971,7 +2184,7 @@ describe('networkHandler', () => {
                                 }
                             ],
                             gracefulRestart: {
-                                gracefulReset: true,
+                                gracefulReset: 'enabled',
                                 restartTime: 120,
                                 stalepathTime: 240
                             },
@@ -1988,7 +2201,7 @@ describe('networkHandler', () => {
                                                 in: 'routeMapIn1',
                                                 out: 'routeMapOut1'
                                             },
-                                            softReconfigurationInbound: true
+                                            softReconfigurationInbound: 'enabled'
                                         }
                                     ],
                                     remoteAs: 65020
@@ -2002,7 +2215,7 @@ describe('networkHandler', () => {
                                                 in: 'routeMapIn2',
                                                 out: 'routeMapOut2'
                                             },
-                                            softReconfigurationInbound: false
+                                            softReconfigurationInbound: 'disabled'
                                         }
                                     ],
                                     remoteAs: 65040
@@ -2171,7 +2384,7 @@ describe('networkHandler', () => {
                         routingBgp: {
                             name: 'routingBgp',
                             gracefulRestart: {
-                                gracefulReset: false
+                                gracefulReset: 'disabled'
                             }
                         }
                     }
@@ -2201,7 +2414,7 @@ describe('networkHandler', () => {
                         routingBgp: {
                             name: 'routingBgp',
                             gracefulRestart: {
-                                gracefulReset: false,
+                                gracefulReset: 'disabled',
                                 restartTime: 0,
                                 stalepathTime: 0
                             },
@@ -2215,7 +2428,7 @@ describe('networkHandler', () => {
                                         {
                                             name: 'ipv4',
                                             routeMap: {},
-                                            softReconfigurationInbound: true
+                                            softReconfigurationInbound: 'enabled'
                                         }
                                     ],
                                     remoteAs: 65020
@@ -2584,7 +2797,7 @@ describe('networkHandler', () => {
                                     name: 'firewallRuleOne',
                                     action: 'accept',
                                     ipProtocol: 'any',
-                                    log: false,
+                                    log: 'no',
                                     source: {},
                                     destination: {}
                                 },
@@ -2593,7 +2806,7 @@ describe('networkHandler', () => {
                                     description: 'firewall rule two description',
                                     action: 'reject',
                                     ipProtocol: 'tcp',
-                                    log: true,
+                                    log: 'yes',
                                     source: {
                                         vlans: [
                                             '/Common/vlan1',
@@ -2710,7 +2923,7 @@ describe('networkHandler', () => {
                                 name: 'firewallRuleOne',
                                 action: 'accept',
                                 ipProtocol: 'any',
-                                log: false,
+                                log: 'no',
                                 source: {},
                                 destination: {}
                             },
@@ -2719,7 +2932,7 @@ describe('networkHandler', () => {
                                 description: 'firewall rule two description',
                                 action: 'reject',
                                 ipProtocol: 'tcp',
-                                log: true,
+                                log: 'yes',
                                 source: {
                                     addressLists: [
                                         '/Common/addressList1',

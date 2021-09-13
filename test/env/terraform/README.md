@@ -17,7 +17,7 @@
 
 ## Manual deployment
 
-- Change dir to test/integration/env/terraform/openstack.
+- Change dir to test/env/terraform/plans/openstack.
 - Run `terraform init` output should be like:
 
         Initializing the backend...

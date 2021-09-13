@@ -71,6 +71,7 @@ module.exports = {
         Tunnel: '/tm/net/tunnels/tunnel',
         RoutingBGP: '/tm/net/routing/bgp',
         RouteMap: '/tm/net/routing/route-map',
+        RoutingAccessList: '/tm/net/routing/access-list',
         RoutingAsPath: '/tm/net/routing/as-path',
         RoutingPrefixList: '/tm/net/routing/prefix-list',
         Uploads: '/shared/file-transfer/uploads',

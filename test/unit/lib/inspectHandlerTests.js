@@ -640,6 +640,31 @@ describe('inspectHandler', () => {
                     }
                 }
             ],
+            '/tm/net/routing/access-list': [
+                {
+                    name: 'exampleAccessList',
+                    description: 'my description',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/access-list/~Common~exampleAccessList/entries?ver=14.1.2.7'
+                    }
+                }
+            ],
+            '/tm/net/routing/access-list/~Common~exampleAccessList/entries': [
+                {
+                    name: 20,
+                    action: 'permit',
+                    source: '10.3.3.0/24',
+                    exactMatch: 'disabled',
+                    destination: '10.4.4.0/24'
+                },
+                {
+                    name: 30,
+                    action: 'deny',
+                    source: '1111:2222:3333:4444::/64',
+                    exactMatch: 'enabled',
+                    destination: '1111:2222:3333:5555::/64'
+                }
+            ],
             '/tm/net/routing/as-path/~Common~exampleAsPath/entries': [
                 {
                     name: '10',
@@ -1677,6 +1702,26 @@ describe('inspectHandler', () => {
                             mtu: 0,
                             class: 'Route',
                             localOnly: true
+                        },
+                        exampleAccessList: {
+                            class: 'RoutingAccessList',
+                            remark: 'my description',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    source: '10.3.3.0/24',
+                                    exactMatchEnabled: false,
+                                    destination: '10.4.4.0/24'
+                                },
+                                {
+                                    name: 30,
+                                    action: 'deny',
+                                    source: '1111:2222:3333:4444::/64',
+                                    exactMatchEnabled: true,
+                                    destination: '1111:2222:3333:5555::/64'
+                                }
+                            ]
                         },
                         exampleAsPath: {
                             class: 'RoutingAsPath',

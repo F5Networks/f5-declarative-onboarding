@@ -21,6 +21,7 @@ const BigIqSettingsValidator = require('./bigIqSettingsValidator');
 const BusinessLogicValidator = require('./businessLogicValidator');
 const DeviceCertificateValidator = require('./deviceCertificateValidator');
 const LicensePoolValidator = require('./licensePoolValidator');
+const RoutingAccessListValidator = require('./routingAccessListValidator');
 const RoutingPrefixListValidator = require('./routingPrefixListValidator');
 const RoutingBgpValidator = require('./routingBgpValidator');
 const UserValidator = require('./userValidator');
@@ -34,6 +35,7 @@ class Validator {
             new LicensePoolValidator(),
             new UserValidator(),
             new DeviceCertificateValidator(),
+            new RoutingAccessListValidator(),
             new RoutingPrefixListValidator(),
             new RoutingBgpValidator()
         ];

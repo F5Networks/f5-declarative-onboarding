@@ -25,7 +25,6 @@
 'use strict';
 
 const assert = require('assert');
-const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const constants = require('./constants');
 const common = require('./common');
 const logger = require('./logger').getInstance();
@@ -192,7 +191,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 name: '/Common/mySnmpCommunityWithoutSpecialCharacter',
                 access: 'ro',
                 communityName: 'mySnmpCommunityWithoutSpecialCharacter',
-                ipv6: false,
+                ipv6: 'disabled',
                 oidSubset: '.1',
                 source: 'all'
             }
@@ -204,7 +203,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 name: '/Common/mySnmpCommunityWithSpecialCharacter',
                 access: 'ro',
                 communityName: 'special!community',
-                ipv6: false,
+                ipv6: 'disabled',
                 oidSubset: '.1',
                 source: 'all'
             }
@@ -369,6 +368,50 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             assert.strictEqual(currentState.MirrorIp.mirrorSecondaryIp, 'any6');
         });
 
+        it('should match RoutingAccessList', () => assert.deepStrictEqual(
+            currentState.RoutingAccessList,
+            {
+                testRoutingAccessList1: {
+                    name: 'testRoutingAccessList1',
+                    entries: [
+                        {
+                            name: 11,
+                            action: 'permit',
+                            destination: '10.10.0.0/16',
+                            exactMatch: 'disabled',
+                            source: '10.11.0.0/16'
+                        },
+                        {
+                            name: 22,
+                            action: 'deny',
+                            destination: '10.12.13.14/32',
+                            exactMatch: 'disabled',
+                            source: '10.13.14.15/32'
+                        }
+                    ]
+                },
+                testRoutingAccessList2: {
+                    name: 'testRoutingAccessList2',
+                    entries: [
+                        {
+                            name: 33,
+                            action: 'permit',
+                            destination: '::/0',
+                            exactMatch: 'enabled',
+                            source: '1111:2222::/64'
+                        },
+                        {
+                            name: 44,
+                            action: 'permit',
+                            destination: '::/0',
+                            exactMatch: 'disabled',
+                            source: '1111:3333::/64'
+                        }
+                    ]
+                }
+            }
+        ));
+
         it('should match RoutingAsPath', () => assert.deepStrictEqual(
             currentState.RoutingAsPath,
             {
@@ -475,7 +518,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         }
                     ],
                     gracefulRestart: {
-                        gracefulReset: true,
+                        gracefulReset: 'enabled',
                         restartTime: 120,
                         stalepathTime: 0
                     },
@@ -498,12 +541,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                     routeMap: {
                                         out: '/Common/testRouteMap'
                                     },
-                                    softReconfigurationInbound: true
+                                    softReconfigurationInbound: 'enabled'
                                 },
                                 {
                                     name: 'ipv6',
                                     routeMap: {},
-                                    softReconfigurationInbound: false
+                                    softReconfigurationInbound: 'disabled'
                                 }
                             ],
                             remoteAs: 65020
@@ -553,102 +596,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should return 200 using experimental statusCodes',
             () => testStatusCode({ statusCodes: 'experimental' }, constants.HTTP_SUCCESS));
-    });
-
-    describe('Test Auth Settings', function testAuth() {
-        this.timeout(1000 * 60 * 30); // 30 minutes
-        let body;
-        let currentState;
-
-        before(() => {
-            const thisMachine = machines[2];
-            const bigIpAddress = thisMachine.ip;
-            const bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
-            const bodyFile = `${BODIES}/auth.json`;
-            return common.readFile(bodyFile)
-                .then((fileRead) => {
-                    body = JSON.parse(fileRead);
-                })
-                .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
-                    + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                    constants.HTTP_SUCCESS))
-                .then((response) => {
-                    currentState = response.currentConfig.Common;
-                })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
-        });
-
-        after(() => {
-            const thisMachine = machines[2];
-            const bigIpAddress = thisMachine.ip;
-            const bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
-            return common.testOriginalConfig(bigIpAddress, bigIpAuth)
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
-        });
-
-        it('should configure main auth settings', () => {
-            assert.ok(testMainAuth(body.Common.myAuth, currentState));
-        });
-
-        it('should configure remoteUsersDefaults', () => {
-            const actual = currentState.Authentication.remoteUsersDefaults;
-            const expected = body.Common.myAuth.remoteUsersDefaults;
-            assert.strictEqual(actual.remoteConsoleAccess, expected.terminalAccess);
-            assert.strictEqual(actual.defaultPartition, expected.partitionAccess);
-            assert.strictEqual(actual.defaultRole, expected.role);
-        });
-
-        it('should configure radius', () => {
-            assert.ok(testRadiusAuth(body.Common.myAuth.radius, currentState));
-        });
-
-        it('should configure ldap', () => {
-            const actual = currentState.Authentication.ldap;
-            const expected = body.Common.myAuth.ldap;
-            assert.strictEqual(actual.bindDn, expected.bindDn);
-            assert.ok(actual.bindPw.startsWith('$M$'));
-            assert.strictEqual(actual.bindTimeout, expected.bindTimeout);
-            assert.strictEqual(actual.checkHostAttr, expected.checkBindPassword);
-            assert.strictEqual(actual.checkRolesGroup, expected.checkRemoteRole);
-            assert.strictEqual(actual.filter, expected.filter);
-            assert.strictEqual(actual.groupDn, expected.groupDn);
-            assert.strictEqual(actual.groupMemberAttribute, expected.groupMemberAttribute);
-            assert.strictEqual(actual.idleTimeout, expected.idleTimeout);
-            assert.strictEqual(actual.ignoreAuthInfoUnavail, expected.ignoreAuthInfoUnavailable);
-            assert.strictEqual(actual.ignoreUnknownUser, expected.ignoreUnknownUser);
-            assert.strictEqual(actual.loginAttribute, expected.loginAttribute);
-            assert.strictEqual(actual.port, expected.port);
-            assert.strictEqual(actual.scope, expected.searchScope);
-            assert.strictEqual(actual.searchBaseDn, expected.searchBaseDn);
-            assert.strictEqual(actual.searchTimeout, expected.searchTimeout);
-            assert.deepStrictEqual(actual.servers, expected.servers);
-            assert.strictEqual(actual.ssl, expected.ssl);
-            assert.strictEqual(actual.sslCheckPeer, expected.sslCheckPeer);
-            assert.deepStrictEqual(actual.sslCiphers, expected.sslCiphers);
-            assert.strictEqual(actual.userTemplate, expected.userTemplate);
-            assert.strictEqual(actual.version, expected.version);
-
-            const currentBigIpVersion = process.env.BIGIP_IMAGE.split('-')[1];
-            if (cloudUtil.versionCompare('15.1', currentBigIpVersion) <= 0) {
-                assert.strictEqual(actual.referrals, expected.referrals);
-            }
-        });
-
-        it('should configure tacacs', () => {
-            assert.ok(testTacacsAuth(body.Common.myAuth.tacacs, currentState));
-        });
-
-        it('should configure remoteAuthRole', () => {
-            const actual = currentState.RemoteAuthRole.remoteAuthRole;
-            const expected = body.Common.remoteAuthRole;
-            assert.strictEqual(actual.attribute, expected.attribute);
-            assert.strictEqual(actual.console, expected.console);
-            assert.strictEqual(actual.lineOrder, expected.lineOrder);
-            assert.strictEqual(actual.deny, expected.remoteAccess);
-            assert.strictEqual(actual.role, expected.role);
-            assert.strictEqual(actual.userPartition, expected.userPartition);
-        });
     });
 
     describe('Test Licensing and properties requiring a license', function testLicensing() {
@@ -819,7 +766,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                 description: 'firewall policy rule description',
                                 action: 'reject',
                                 ipProtocol: 'tcp',
-                                log: true,
+                                log: 'yes',
                                 source: {
                                     vlans: [
                                         '/Common/myVlan'
@@ -844,7 +791,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                 name: 'firewallPolicyRuleTwo',
                                 action: 'accept',
                                 ipProtocol: 'any',
-                                log: false,
+                                log: 'no',
                                 source: {},
                                 destination: {}
                             }
@@ -863,7 +810,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             description: 'firewall rule description',
                             action: 'reject',
                             ipProtocol: 'tcp',
-                            log: true,
+                            log: 'yes',
                             source: {
                                 addressLists: [
                                     '/Common/myFirewallAddressList'
@@ -885,7 +832,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             name: 'firewallRuleTwo',
                             action: 'accept',
                             ipProtocol: 'any',
-                            log: false,
+                            log: 'no',
                             source: {},
                             destination: {}
                         }
@@ -926,7 +873,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 currentState.GSLBGlobals,
                 {
                     general: {
-                        synchronization: true,
+                        synchronization: 'yes',
                         synchronizationGroupName: 'newGroup',
                         synchronizationTimeTolerance: 123,
                         synchronizationTimeout: 12345
@@ -965,20 +912,20 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     proberFallback: 'any-available',
                     proberPool: 'myGSLBProberPool',
                     limitMaxBps: 10,
-                    limitMaxBpsStatus: true,
+                    limitMaxBpsStatus: 'enabled',
                     limitMaxPps: 10,
-                    limitMaxPpsStatus: true,
+                    limitMaxPpsStatus: 'enabled',
                     limitMaxConnections: 10,
-                    limitMaxConnectionsStatus: true,
-                    iqAllowServiceCheck: false,
-                    iqAllowPath: false,
-                    iqAllowSnmp: false,
+                    limitMaxConnectionsStatus: 'enabled',
+                    iqAllowServiceCheck: 'no',
+                    iqAllowPath: 'no',
+                    iqAllowSnmp: 'no',
                     virtualServerDiscovery: 'enabled',
-                    exposeRouteDomains: true,
+                    exposeRouteDomains: 'yes',
                     limitCpuUsage: 10,
-                    limitCpuUsageStatus: true,
+                    limitCpuUsageStatus: 'enabled',
                     limitMemAvail: 10,
-                    limitMemAvailStatus: true,
+                    limitMemAvailStatus: 'enabled',
                     monitor: [
                         '/Common/http',
                         '/Common/myGSLBMonitorHTTP',
@@ -1039,12 +986,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     probeTimeout: 110,
                     send: 'HEAD / HTTP/1.0\\r\\n',
                     timeout: 1000,
-                    transparent: true,
+                    transparent: 'enabled',
                     monitorType: 'http',
                     description: 'description',
                     destination: '1.1.1.1:80',
-                    ignoreDownResponse: true,
-                    reverse: true,
+                    ignoreDownResponse: 'enabled',
+                    reverse: 'enabled',
                     recv: 'HTTP'
                 }
             ));
@@ -1057,12 +1004,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     probeTimeout: 110,
                     send: 'HEAD / HTTP/1.0\\r\\n',
                     timeout: 1000,
-                    transparent: true,
+                    transparent: 'enabled',
                     monitorType: 'https',
                     description: 'description',
                     destination: '2.2.2.2:80',
-                    ignoreDownResponse: true,
-                    reverse: true,
+                    ignoreDownResponse: 'enabled',
+                    reverse: 'enabled',
                     recv: 'HTTP',
                     cipherlist: 'DEFAULT',
                     cert: 'default.crt'
@@ -1076,11 +1023,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     interval: 100,
                     probeTimeout: 110,
                     timeout: 1000,
-                    transparent: true,
+                    transparent: 'enabled',
                     monitorType: 'gateway-icmp',
                     description: 'description',
                     destination: '3.3.3.3:80',
-                    ignoreDownResponse: true,
+                    ignoreDownResponse: 'enabled',
                     probeInterval: 1,
                     probeAttempts: 3
                 }
@@ -1093,12 +1040,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     interval: 100,
                     probeTimeout: 110,
                     timeout: 1000,
-                    transparent: true,
+                    transparent: 'enabled',
                     monitorType: 'tcp',
                     description: 'description',
                     destination: '4.4.4.4:80',
-                    ignoreDownResponse: true,
-                    reverse: true,
+                    ignoreDownResponse: 'enabled',
+                    reverse: 'enabled',
                     recv: 'example receive',
                     send: 'example send'
                 }
@@ -1112,14 +1059,14 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     probeTimeout: 110,
                     send: 'default send string',
                     timeout: 1000,
-                    transparent: true,
+                    transparent: 'enabled',
                     monitorType: 'udp',
                     description: 'description',
                     destination: '5.5.5.5:80',
-                    ignoreDownResponse: true,
-                    reverse: true,
+                    ignoreDownResponse: 'enabled',
+                    reverse: 'enabled',
                     recv: 'udp receive',
-                    debug: true,
+                    debug: 'yes',
                     probeInterval: 1,
                     probeAttempts: 3
                 }
@@ -1651,38 +1598,6 @@ function testConfigSyncIp(target, response) {
     const validRef = target.myConfigSync.configsyncIp === '/Common/mySelfIp/address';
     const validAddr = target.mySelfIp.address.indexOf(response.ConfigSync.configsyncIp) === 0;
     return validRef && validAddr;
-}
-
-function testMainAuth(target, response) {
-    return compareSimple(target, response.Authentication, ['enabledSourceType', 'fallback']);
-}
-
-function testRadiusAuth(target, response) {
-    const radiusResp = response.Authentication.radius;
-    const serviceTypeCheck = compareSimple(target, radiusResp, ['serviceType']);
-    const serverPrimaryCheck = compareSimple(
-        target.servers.primary,
-        radiusResp.servers.primary,
-        ['server', 'port']
-    );
-    const serverSecondaryCheck = compareSimple(
-        target.servers.secondary,
-        radiusResp.servers.secondary,
-        ['server', 'port']
-    );
-    return serviceTypeCheck && serverPrimaryCheck && serverSecondaryCheck;
-}
-
-function testTacacsAuth(target, response) {
-    const tacacsResp = response.Authentication.tacacs;
-    return compareSimple(
-        target,
-        tacacsResp,
-        [
-            'accounting', 'authentication', 'debug', 'encryption', 'protocol',
-            'servers', 'service'
-        ]
-    );
 }
 
 /**

@@ -664,6 +664,70 @@
         {
             "if": {
                 "required": ["class"],
+                "properties": { "class": { "const": "RoutingAccessList" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains routing access list configuration.",
+                        "type": "string",
+                        "const": "RoutingAccessList"
+                    },
+                    "label": {
+                        "$ref": "definitions.schema.json#/definitions/Label"
+                    },
+                    "remark": {
+                        "$ref": "definitions.schema.json#/definitions/Remark"
+                    },
+                    "entries": {
+                        "description": "An array that holds sources and destinations.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "integer",
+                                    "description": "Name of the entity identified as an integer"
+                                },
+                                "action": {
+                                    "type": "string",
+                                    "description": "Permit or deny access",
+                                    "enum": [
+                                        "permit",
+                                        "deny"
+                                    ]
+                                },
+                                "destination": {
+                                    "description": "IPv4 or IPv6 address or address range. Specify either [address] or [address/prefixlength].",
+                                    "type": "string",
+                                    "format": "ipWithOptionalPrefix",
+                                    "default": "::"
+                                },
+                                "exactMatchEnabled": {
+                                    "description": "Perform exact matching. A single entry with exactMatchEnabled true disallows any entry to have a non-default destination.",
+                                    "type": "boolean",
+                                    "default": false
+                                },
+                                "source": {
+                                    "description": "IPv4 or IPv6 address or address range. Specify either [address] or [address/prefixlength].",
+                                    "type": "string",
+                                    "format": "ipWithOptionalPrefix",
+                                    "default": "::"
+                                }
+                            },
+                            "required": ["name", "action"],
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
                 "properties": { "class": { "const": "RoutingPrefixList" } }
             },
             "then": {

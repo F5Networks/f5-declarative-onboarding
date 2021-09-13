@@ -30,7 +30,7 @@ const ConfigItems = require('../../../src/lib/configItems.json');
 describe('configManager', () => {
     const hostname = 'myhost.bigip.com';
     const deviceName = 'device1';
-    const version = '15.1';
+    const version = '15.1.6.5';
 
     let listResponses;
     let bigIpMock;
@@ -364,7 +364,8 @@ describe('configManager', () => {
         ];
         listResponses['/tm/net/vlan/~Common~external/interfaces'] = [
             {
-                name: '1.1'
+                name: '1.1',
+                tagged: true
             }
         ];
 
@@ -372,6 +373,7 @@ describe('configManager', () => {
         return configManager.get({}, state, doState)
             .then(() => {
                 assert.strictEqual(state.currentConfig.Common.VLAN.external.interfaces[0].name, '1.1');
+                assert.strictEqual(state.currentConfig.Common.VLAN.external.interfaces[0].tagged, true);
             });
     });
 
@@ -1505,7 +1507,7 @@ describe('configManager', () => {
                 {
                     path: '/tm/security/firewall/port-list',
                     schemaClass: 'FirewallPortList',
-                    requiredModule: 'afm',
+                    requiredModules: [{ module: 'afm' }],
                     properties: [
                         {
                             id: 'ports',
@@ -1549,11 +1551,12 @@ describe('configManager', () => {
                 });
         });
     });
+
     it('should skip unprovisioned modules', () => {
         const configItems = [
             {
                 path: '/tm/analytics/global-settings',
-                requiredModule: 'avr',
+                requiredModules: [{ module: 'avr' }],
                 schemaClass: 'Analytics',
                 properties: []
             }
@@ -1580,7 +1583,7 @@ describe('configManager', () => {
         const configItems = [
             {
                 path: '/tm/analytics/global-settings',
-                requiredModule: 'avr',
+                requiredModules: [{ module: 'avr' }],
                 schemaClass: 'Analytics',
                 properties: []
             }
@@ -1606,12 +1609,92 @@ describe('configManager', () => {
             });
     });
 
+    it('should include required modules if the maxVersion is greater than or equal to the BIG-IP version', () => {
+        const configItems = [
+            {
+                path: '/tm/analytics/global-settings',
+                requiredModules: [
+                    {
+                        module: 'afm',
+                        maxVersion: '13.1'
+                    },
+                    {
+                        module: 'avr',
+                        maxVersion: '15.1'
+                    },
+                    {
+                        module: 'gtm',
+                        maxVersion: '16.1'
+                    }
+                ],
+                schemaClass: 'Analytics',
+                properties: []
+            }
+        ];
+        listResponses['/tm/sys/provision'] = [
+            { name: 'afm', level: 'nominal' },
+            { name: 'gtm', level: 'nominal' }
+        ];
+
+        let skipped = true;
+
+        bigIpMock.list = (path) => {
+            const pathname = URL.parse(path, 'https://foo').pathname;
+            if (pathname === '/tm/analytics/global-settings') {
+                skipped = false;
+            }
+            return Promise.resolve(listResponses[pathname] || {});
+        };
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.ok(skipped, 'Should not check Analytics due to maxVersion requiring AVR');
+            });
+    });
+
+    it('should ignore required modules if the maxVersion is less than the BIG-IP version', () => {
+        const configItems = [
+            {
+                path: '/tm/analytics/global-settings',
+                requiredModules: [
+                    {
+                        module: 'afm',
+                        maxVersion: '13.1'
+                    },
+                    {
+                        module: 'avr',
+                        maxVersion: '14.1'
+                    }
+                ],
+                schemaClass: 'Analytics',
+                properties: []
+            }
+        ];
+
+        let notSkipped = false;
+
+        bigIpMock.list = (path) => {
+            const pathname = URL.parse(path, 'https://foo').pathname;
+            if (pathname === '/tm/analytics/global-settings') {
+                notSkipped = true;
+            }
+            return Promise.resolve(listResponses[pathname] || {});
+        };
+
+        const configManager = new ConfigManager(configItems, bigIpMock);
+        return configManager.get({}, state, doState)
+            .then(() => {
+                assert.ok(notSkipped, 'Should still check Analytics due to maxVersion not requiring AFM or AVR');
+            });
+    });
+
     it('should add empty object for unprovisioned modules when a class is in the delcaration', () => {
         const configItems = [
             {
                 path: '/tm/gtm/monitor/http',
                 schemaClass: 'GSLBMonitor',
-                requiredModule: 'gtm',
+                requiredModules: [{ module: 'gtm' }],
                 properties: []
             }
         ];
@@ -1696,7 +1779,7 @@ describe('configManager', () => {
             },
             {
                 path: '/tm/analytics/global-settings',
-                requiredModule: 'avr',
+                requiredModules: [{ module: 'avr' }],
                 schemaClass: 'Analytics',
                 properties: []
             },
@@ -2041,7 +2124,7 @@ describe('configManager', () => {
                         exampleBGP: {
                             name: 'exampleBGP',
                             gracefulRestart: {
-                                gracefulReset: true,
+                                gracefulReset: 'enabled',
                                 restartTime: 120,
                                 stalepathTime: 0
                             },
@@ -2110,12 +2193,12 @@ describe('configManager', () => {
                                                 in: '/Common/routeMap1',
                                                 out: '/Common/routeMap1'
                                             },
-                                            softReconfigurationInbound: true
+                                            softReconfigurationInbound: 'enabled'
                                         },
                                         {
                                             name: 'ipv6',
                                             routeMap: {},
-                                            softReconfigurationInbound: false
+                                            softReconfigurationInbound: 'disabled'
                                         }
                                     ]
                                 },
@@ -2126,7 +2209,7 @@ describe('configManager', () => {
                                         {
                                             name: 'ipv4',
                                             routeMap: {},
-                                            softReconfigurationInbound: false
+                                            softReconfigurationInbound: 'disabled'
                                         }
                                     ]
                                 }
@@ -2465,7 +2548,7 @@ describe('configManager', () => {
                         state.currentConfig.Common.GSLBGlobals,
                         {
                             general: {
-                                synchronization: true,
+                                synchronization: 'yes',
                                 synchronizationGroupName: 'syncGroup',
                                 synchronizationTimeTolerance: 123,
                                 synchronizationTimeout: 100
@@ -2564,18 +2647,18 @@ describe('configManager', () => {
                                 proberFallback: 'any-available',
                                 proberPool: 'gslbProberPool',
                                 limitMaxBps: 50,
-                                limitMaxBpsStatus: true,
+                                limitMaxBpsStatus: 'enabled',
                                 limitMaxPps: 60,
-                                limitMaxPpsStatus: true,
+                                limitMaxPpsStatus: 'enabled',
                                 limitMaxConnections: 70,
-                                limitMaxConnectionsStatus: true,
+                                limitMaxConnectionsStatus: 'enabled',
                                 limitCpuUsage: 10,
-                                limitCpuUsageStatus: true,
+                                limitCpuUsageStatus: 'enabled',
                                 limitMemAvail: 12,
-                                limitMemAvailStatus: true,
-                                iqAllowServiceCheck: false,
-                                iqAllowPath: false,
-                                iqAllowSnmp: false,
+                                limitMemAvailStatus: 'enabled',
+                                iqAllowServiceCheck: 'no',
+                                iqAllowPath: 'no',
+                                iqAllowSnmp: 'no',
                                 datacenter: 'gslbDataCenter',
                                 devices: [
                                     {
@@ -2612,7 +2695,7 @@ describe('configManager', () => {
                                         monitor: []
                                     }
                                 ],
-                                exposeRouteDomains: true,
+                                exposeRouteDomains: 'yes',
                                 virtualServerDiscovery: 'enabled',
                                 monitor: [
                                     '/Common/http',
@@ -2668,15 +2751,15 @@ describe('configManager', () => {
             const getExpected = name => ({
                 name,
                 enabled: true,
-                limitMaxBpsStatus: false,
-                limitMaxConnectionsStatus: false,
-                limitCpuUsageStatus: false,
-                exposeRouteDomains: false,
-                limitMemAvailStatus: false,
-                iqAllowPath: false,
-                limitMaxPpsStatus: false,
-                iqAllowServiceCheck: false,
-                iqAllowSnmp: false,
+                limitMaxBpsStatus: 'disabled',
+                limitMaxConnectionsStatus: 'disabled',
+                limitCpuUsageStatus: 'disabled',
+                exposeRouteDomains: 'no',
+                limitMemAvailStatus: 'disabled',
+                iqAllowPath: 'no',
+                limitMaxPpsStatus: 'disabled',
+                iqAllowServiceCheck: 'no',
+                iqAllowSnmp: 'no',
                 monitor: [],
                 devices: []
             });
@@ -2737,17 +2820,17 @@ describe('configManager', () => {
                                     defaultsFrom: '/Common/http',
                                     fullPath: '/Common/GSLBmonitor',
                                     generation: 0,
-                                    ignoreDownResponse: true,
+                                    ignoreDownResponse: 'enabled',
                                     interval: 100,
                                     monitorType: 'http',
                                     probeTimeout: 110,
                                     recv: 'HTTP',
                                     description: 'description',
-                                    reverse: true,
+                                    reverse: 'enabled',
                                     send: 'HEAD / HTTP/1.0\\r\\n',
                                     destination: '1.1.1.1:80',
                                     timeout: 1000,
-                                    transparent: true
+                                    transparent: 'enabled'
                                 }
                             }
                         );
@@ -2992,7 +3075,7 @@ describe('configManager', () => {
                                         description: 'firewall rule one description',
                                         action: 'accept',
                                         ipProtocol: 'any',
-                                        log: false,
+                                        log: 'no',
                                         source: {},
                                         destination: {}
                                     },
@@ -3001,7 +3084,7 @@ describe('configManager', () => {
                                         description: 'firewall rule two description',
                                         action: 'reject',
                                         ipProtocol: 'tcp',
-                                        log: true,
+                                        log: 'yes',
                                         source: {
                                             vlans: [
                                                 '/Common/vlan1',
@@ -3036,9 +3119,9 @@ describe('configManager', () => {
     });
 
     describe('ManagementIpFirewall', () => {
-        it('should handle ManagementIpFirewall', () => {
-            const configItems = getConfigItems('ManagementIpFirewall');
+        let expectedConfig;
 
+        beforeEach(() => {
             listResponses['/tm/security/firewall/management-ip-rules'] = {
                 description: 'management IP firewall description',
                 rulesReference: {
@@ -3086,53 +3169,89 @@ describe('configManager', () => {
                     }
                 }
             ];
+            expectedConfig = {
+                description: 'management IP firewall description',
+                rules: [
+                    {
+                        name: 'firewallRuleOne',
+                        description: 'firewall rule one description',
+                        action: 'accept',
+                        ipProtocol: 'any',
+                        log: 'no',
+                        source: {},
+                        destination: {}
+                    },
+                    {
+                        name: 'firewallRuleTwo',
+                        description: 'firewall rule two description',
+                        action: 'reject',
+                        ipProtocol: 'tcp',
+                        log: 'yes',
+                        source: {
+                            addressLists: [
+                                '/Common/myAddressList1',
+                                '/Common/myAddressList2'
+                            ],
+                            portLists: [
+                                '/Common/myPortList1',
+                                '/Common/myPortList2'
+                            ]
+                        },
+                        destination: {
+                            addressLists: [
+                                '/Common/myAddressList1',
+                                '/Common/myAddressList2'
+                            ],
+                            portLists: [
+                                '/Common/myPortList1',
+                                '/Common/myPortList2'
+                            ]
+                        }
+                    }
+                ]
+            };
+        });
+
+        it('should handle ManagementIpFirewall', () => {
+            const configItems = getConfigItems('ManagementIpFirewall');
 
             const configManager = new ConfigManager(configItems, bigIpMock);
             return configManager.get({}, state, doState)
                 .then(() => {
                     assert.deepStrictEqual(
                         state.currentConfig.Common.ManagementIpFirewall,
-                        {
-                            description: 'management IP firewall description',
-                            rules: [
-                                {
-                                    name: 'firewallRuleOne',
-                                    description: 'firewall rule one description',
-                                    action: 'accept',
-                                    ipProtocol: 'any',
-                                    log: false,
-                                    source: {},
-                                    destination: {}
-                                },
-                                {
-                                    name: 'firewallRuleTwo',
-                                    description: 'firewall rule two description',
-                                    action: 'reject',
-                                    ipProtocol: 'tcp',
-                                    log: true,
-                                    source: {
-                                        addressLists: [
-                                            '/Common/myAddressList1',
-                                            '/Common/myAddressList2'
-                                        ],
-                                        portLists: [
-                                            '/Common/myPortList1',
-                                            '/Common/myPortList2'
-                                        ]
-                                    },
-                                    destination: {
-                                        addressLists: [
-                                            '/Common/myAddressList1',
-                                            '/Common/myAddressList2'
-                                        ],
-                                        portLists: [
-                                            '/Common/myPortList1',
-                                            '/Common/myPortList2'
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
+                        expectedConfig
+                    );
+                });
+        });
+
+        it('should include ManagementIpFirewall if AFM is provisioned on BIG-IP 13.1', () => {
+            const configItems = getConfigItems('ManagementIpFirewall');
+
+            bigIpMock.deviceInfo = () => Promise.resolve({ hostname, version: '13.1' });
+            listResponses['/tm/sys/provision'] = [{ name: 'afm', level: 'nominal' }];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.ManagementIpFirewall,
+                        expectedConfig
+                    );
+                });
+        });
+
+        it('should skip ManagementIpFirewall if AFM is not provisioned on BIG-IP 13.1', () => {
+            const configItems = getConfigItems('ManagementIpFirewall');
+
+            bigIpMock.deviceInfo = () => Promise.resolve({ hostname, version: '13.1' });
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.ManagementIpFirewall,
+                        undefined
                     );
                 });
         });
@@ -3168,7 +3287,7 @@ describe('configManager', () => {
                         state.currentConfig.Common.Authentication,
                         {
                             ldap: {
-                                referrals: true
+                                referrals: 'yes'
                             }
                         }
                     );

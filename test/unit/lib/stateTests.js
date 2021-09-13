@@ -209,7 +209,7 @@ describe('state', () => {
                     VLAN: {
                         myVlan: {
                             mtu: 1400,
-                            failsafe: true
+                            failsafe: 'enabled'
                         }
                     },
                     SnmpCommunity: {
@@ -217,7 +217,7 @@ describe('state', () => {
                             name: 'nothingSpecial',
                             communityName: 'nothingSpecial',
                             access: 'ro',
-                            ipv6: false,
+                            ipv6: 'disabled',
                             source: 'all',
                             oidSubset: '.1'
                         },
@@ -225,7 +225,7 @@ describe('state', () => {
                             name: 'snmpCommunityWithSpecialChar',
                             communityName: 'special!community',
                             access: 'ro',
-                            ipv6: false,
+                            ipv6: 'disabled',
                             source: 'all',
                             oidSubset: '.1'
                         }

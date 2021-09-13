@@ -173,8 +173,11 @@ class ConfigManager {
                 // properties we want
                 return Promise.all(this.configItems
                     .map((configItem) => {
-                        if (configItem.requiredModule && provisionedModules.indexOf(configItem.requiredModule) === -1) {
-                            return Promise.resolve(false);
+                        if (configItem.requiredModules) {
+                            const targetInfo = { version: this.bigIpVersion };
+                            if (!checkRequiredModules(configItem.requiredModules, provisionedModules, targetInfo)) {
+                                return Promise.resolve(false);
+                            }
                         }
 
                         const query = { $filter: 'partition eq Common' };
@@ -507,12 +510,13 @@ class ConfigManager {
                     }, { provisioned: [], deprovisioned: [] });
 
                     this.configItems.forEach((item) => {
-                        if (!item.requiredModule
-                            || provisionState.provisioned.indexOf(item.requiredModule) > -1) {
+                        const targetInfo = { version: this.bigIpVersion };
+                        if (!item.requiredModules
+                            || checkRequiredModules(item.requiredModules, provisionState.provisioned, targetInfo)) {
                             // add default empty objects for classes that do not exist
                             originalConfig.Common[item.schemaClass] = originalConfig.Common[item.schemaClass] || {};
-                        } else if (item.requiredModule
-                            && provisionState.deprovisioned.indexOf(item.requiredModule) > -1
+                        } else if (item.requiredModules
+                            && checkRequiredModules(item.requiredModules, provisionState.deprovisioned, targetInfo)
                             && originalConfig.Common[item.schemaClass]
                             && Object.keys(originalConfig.Common[item.schemaClass]).length === 0) {
                             // remove default empty objects for classes that require de-provisioned module
@@ -702,7 +706,7 @@ function mapProperties(item, configItem, bigIpVersion, options) {
         if (property.truth !== undefined) {
             // for certain items we don't want to add prop with default falsehood value if prop doesn't exist
             if (typeof mappedItem[property.id] !== 'undefined' || !property.skipWhenOmitted) {
-                mappedItem[property.id] = mapTruth(mappedItem, property);
+                mappedItem[property.id] = mapTruth(mappedItem, property, options);
             }
         }
 
@@ -756,7 +760,7 @@ function mapProperties(item, configItem, bigIpVersion, options) {
                         }
 
                         if (trans.truth !== undefined) {
-                            value = mapTruth(currentProperty, trans);
+                            value = mapTruth(currentProperty, trans, options);
                         }
 
                         if (options.translateToNewId && trans.newId) {
@@ -835,14 +839,20 @@ function mapNewId(mappedItem, id, newId) {
  *
  * @param {Object} item - The config item
  * @param {Object} property - The property to map
+ * @param {Object} [options] - Optional parameters
+ * @param {Boolean} [options.translateToNewId] - Set property names to the value in 'newId' if there is one.
+ *                                               Default false.
  *
  * @returns {Boolean} Whether or not the property value represents truth
  */
-function mapTruth(item, property) {
-    if (!item[property.id]) {
-        return false;
+function mapTruth(item, property, options) {
+    if (options.translateToNewId) {
+        if (!item[property.id]) {
+            return false;
+        }
+        return item[property.id] === property.truth;
     }
-    return item[property.id] === property.truth;
+    return item[property.id] || property.falsehood;
 }
 
 /**
@@ -1276,6 +1286,38 @@ function getMappedId(configPath, propertyPath, id, configItems, options) {
     }
 
     return property.newId;
+}
+
+/**
+ * Filters required modules based on target BIG-IP info and checks if all filtered modules
+ * can be found in the list of current modules. Returns true if all modules are found.
+ *
+ * @param {Object[]} requiredModules - The required modules
+ * @param {string[]} currentModules - The list of modules to search through
+ * @param {Object} targetInfo - Info about the target machine to use for filtering
+ * @param {string} targetInfo.version - The version of the machine
+ *
+ * @returns {boolean} True if all required modules are found in the list of current modules
+ */
+function checkRequiredModules(requiredModules, currentModules, targetInfo) {
+    return requiredModules
+        .filter((requiredModule) => {
+            const maxVersion = requiredModule.maxVersion;
+
+            if (maxVersion) {
+                const maxVersionLength = maxVersion.split('.').length;
+                // Truncate targetInfo version when comparing against maxVersion
+                const version = targetInfo.version.split('.').slice(0, maxVersionLength).join('.');
+
+                if (cloudUtil.versionCompare(version, maxVersion) > 0) {
+                    return false;
+                }
+            }
+
+            return true;
+        })
+        .map(requiredModule => requiredModule.module)
+        .every(module => currentModules.indexOf(module) > -1);
 }
 
 module.exports = ConfigManager;

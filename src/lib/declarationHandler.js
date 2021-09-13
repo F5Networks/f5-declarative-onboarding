@@ -32,11 +32,13 @@ const DeprovisionHandler = require('./deprovisionHandler');
 const AuthHandler = require('./authHandler');
 const GSLBHandler = require('./gslbHandler');
 const TraceManager = require('./traceManager');
+const RoutingAccessListValidator = require('./routingAccessListValidator');
 const doUtil = require('./doUtil');
 
 const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 
 const logger = new Logger(module);
+const ralv = new RoutingAccessListValidator();
 
 // They are the classes for which we are the source of truth. We will
 // run a diff against these classes and also apply defaults for them if they
@@ -76,6 +78,7 @@ const CLASSES_OF_TRUTH = [
     'TrafficGroup',
     'Disk',
     'MirrorIp',
+    'RoutingAccessList',
     'RoutingAsPath',
     'RoutingPrefixList',
     'RoutingBGP',
@@ -164,6 +167,7 @@ class DeclarationHandler {
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
                 applyGSLBServerFixes(parsedNewDeclaration);
+                applyRoutingAccessListFixes(parsedNewDeclaration);
                 applyRoutingPrefixListFixes(parsedNewDeclaration);
                 applyRouteMapFixes(parsedNewDeclaration);
                 applyRoutingBgpFixes(parsedNewDeclaration);
@@ -597,6 +601,69 @@ function applyRouteMapFixes(declaration) {
 }
 
 /**
+ * Apply fixes to RoutingAccessList entries destination and source to align the current config to the desired config
+ *
+ * All destination and source values must be from the same address family or one of the any-address values.
+ * any-address values include ::, any, any6, 0.0.0.0 including all variations with a CIDR.  Fortunately we do not need
+ * to worry about any or any6 variations because our schema format does not accept them and these are redundant anyway.
+ *
+ * Strangely it does not matter to TMSH which any-address value is used.
+ * Any variation is accepted even if it seems wrong. TMSH will change these values as it sees fit.
+ * All any-address values get set to 0.0.0.0/0 if ipv4 is set on the opposite value.
+ * All any-address values get set to ::/0 if ipv6 is set on the opposite value.
+ *
+ * If the address family of the opposite value cannot be determined then replace any values that begin with ::/
+ * with ::/0 and then replace any values that begin with 0.0.0.0 with 0.0.0.0/0
+ *
+ * Standalone ipv4 addresses get /32 appended and standalone ipv6 addresses get /128 appended
+ *
+ * Examples
+ *
+ * source (0.0.0.0 or ::) with destination 1.1.1.1 sets source 0.0.0.0/0 and destination 10.10.10.10/32
+ * source 1.1.1.1 with destination (0.0.0.0 or ::) sets source 10.10.10.10/32 and destination 0.0.0.0/0
+ *
+ * source 1111:2222:: with destination (0.0.0.0 or ::) sets source 1111:2222::/128 and destination ::/0
+ * source (0.0.0.0 or ::) with destination 1111:2222:: sets source ::/0 and destination 1111:2222::/128
+ *
+ * @param {Object} declaration
+ */
+function applyRoutingAccessListFixes(declaration) {
+    doUtil.forEach(declaration, 'RoutingAccessList', (tenant, list) => {
+        (list.entries || []).forEach((entry) => {
+            // change any-address values according to the address family of the opposite property value
+            if (ralv.isAnyAddress(entry.destination)) {
+                if (entry.source.includes('.')) {
+                    entry.destination = '0.0.0.0/0';
+                } else if (entry.source.includes(':') && (entry.source !== '::')) {
+                    entry.destination = '::/0';
+                }
+            }
+            if (ralv.isAnyAddress(entry.source)) {
+                if (entry.destination.includes('.')) {
+                    entry.source = '0.0.0.0/0';
+                } else if (entry.destination.includes(':') && (entry.destination !== '::')) {
+                    entry.source = '::/0';
+                }
+            }
+
+            ['destination', 'source'].forEach((ip) => {
+                // replace remaining any-address values with what TMSH will change them to
+                if (entry[ip].startsWith('0.0.0.0')) {
+                    entry[ip] = '0.0.0.0/0';
+                } else if (!entry[ip].includes('/')) {
+                    // append CIDR according to address family
+                    if (entry[ip].includes('.')) {
+                        entry[ip] = `${entry[ip]}/32`;
+                    } else if (entry[ip].includes(':') && entry[ip] !== '::') {
+                        entry[ip] = `${entry[ip]}/128`;
+                    }
+                }
+            });
+        });
+    });
+}
+
+/**
  * Apply fixes to RoutingPrefixList prefixLenRange to align the current config to the desired config.
  * @param {Object} declaration
  */
@@ -701,7 +768,7 @@ function applyRoutingBgpFixes(declaration) {
         (bgp.peerGroups || []).forEach((peer) => {
             processAddressFamiliesDefaults(peer, {
                 routeMap: {},
-                softReconfigurationInbound: false
+                softReconfigurationInbound: 'disabled'
             });
         });
 
