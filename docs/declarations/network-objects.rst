@@ -247,6 +247,7 @@ The BGP routing configuration uses the following Declarative Onboarding classes 
 - |routingaspath|
 - |prefix|
 - |routemap|
+- |accesslist| (added in DO 1.24, not included in this example)
 
 The **RoutingBGP** class contains a number of properties used in the following example, so be sure to see |routingbgp| for descriptions and options.
 
@@ -387,7 +388,30 @@ For more information and DO usage on individual properties, see |manfw| and |man
 .. literalinclude:: ../../examples/managementIpFirewall.json
     :language: json
 
+|
 
+.. _routeal:
+
+Configuring routing access lists
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for routing access lists is available in DO v1.24 and later
+
+This example shows how you can create network routing access lists using Declarative Onboarding 1.18 and later. These access lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for source and destination addresses (or ranges).
+
+See |accesslist| and |accessentry| in the Schema Reference for DO usage and options.
+
+Also see the :ref:`BGP routing example<bgprouting>`.
+
+
+The following example contains multiple access lists, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
+
+
+.. literalinclude:: ../../examples/routingAccessList.json
+   :language: json
+
+|
     
 
 .. |br| raw:: html
@@ -620,3 +644,11 @@ For more information and DO usage on individual properties, see |manfw| and |man
 .. |fwkb| raw:: html
 
    <a href="https://support.f5.com/csp/article/K46122561" target="_blank">Restrict access to the BIG-IP management interface using network firewall rules</a>
+
+.. |accesslist| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingaccesslist" target="_blank">RoutingAccessList</a>
+
+.. |accessentry| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingaccesslist-entries" target="_blank">RoutingAccessList-Entries</a>
