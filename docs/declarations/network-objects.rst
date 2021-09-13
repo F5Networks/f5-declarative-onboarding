@@ -398,7 +398,7 @@ Configuring routing access lists
 
    Support for routing access lists is available in DO v1.24 and later
 
-This example shows how you can create network routing access lists using Declarative Onboarding 1.18 and later. These access lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for source and destination addresses (or ranges).
+This example shows how you can create network routing access lists using Declarative Onboarding 1.24 and later. These access lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for source and destination addresses (or ranges).
 
 See |accesslist| and |accessentry| in the Schema Reference for DO usage and options.
 
