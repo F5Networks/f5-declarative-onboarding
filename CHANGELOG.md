@@ -1,6 +1,15 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.25.0
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
 ## 1.24.0
 ### Added
 - AUTOTOOL-1156: ([GitHub Issue 98](https://github.com/F5Networks/f5-declarative-onboarding/issues/98), [GitHub Issue 206](https://github.com/F5Networks/f5-declarative-onboarding/issues/206)): GRE and Geneve Tunnel Support
