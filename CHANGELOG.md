@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 
 ### Changed
+- AUTOTOOL-2544: Use a default of "UTC" for the timezone property of the NTP class
 
 ### Removed
 

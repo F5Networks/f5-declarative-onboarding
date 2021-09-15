@@ -177,7 +177,8 @@
                     },
                     "timezone": {
                         "description": "The timezone to set.",
-                        "type": "string"
+                        "type": "string",
+                        "default": "UTC"
                     }
                 },
                 "additionalProperties": false
