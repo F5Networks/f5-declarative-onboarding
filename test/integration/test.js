@@ -1302,13 +1302,16 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .then(JSON.parse)
                 .then((body) => {
                     originDeclaration = body[0].declaration;
+                    originDeclaration.declaration.async = true; // Timing issue without async
                     assert.notStrictEqual(originDeclaration, undefined, 'Should have "declaration" property');
                     // apply declaration
                     return common.testRequest(
-                        originDeclaration, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
-                        authData, constants.HTTP_SUCCESS, 'POST'
+                        originDeclaration, `${common.hostname(thisMachine.ip, constants.PORT)}${constants.DO_API}`,
+                        authData, constants.HTTP_ACCEPTED, 'POST'
                     );
                 })
+                .then(() => common.testGetStatus(60, 30 * 1000, thisMachine.ip, authData,
+                    constants.HTTP_SUCCESS))
                 // fetch declaration again
                 .then(() => common.testRequest(
                     null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
@@ -1318,6 +1321,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .then((body) => {
                     // declaration should be the same
                     const declaration = body[0].declaration;
+                    delete originDeclaration.declaration.async; // Must remove for the comparison
                     removeSecrets(declaration);
                     removeSecrets(originDeclaration);
                     assert.deepStrictEqual(declaration, originDeclaration, 'Should match original declaration');
