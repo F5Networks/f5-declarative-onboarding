@@ -223,7 +223,7 @@ For more information and a full list of properties, see |licenseclass| in the Sc
 
 The name *myLicense* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
 
-Declarative Onboarding 1.24 introduced the optional **chargebackTag** property, the value of which is a text string that can be used as a charge back tag, making it easier to track license costs.
+Declarative Onboarding 1.24 introduced the optional **chargebackTag** property (not shown in this example), the value of which is a text string that can be used as a charge back tag, making it easier to track license costs.
 
 
 
