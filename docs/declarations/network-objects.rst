@@ -358,17 +358,6 @@ See |sysclass| for more information and DO usage.
 
 |
 
-.. _interfaceroutes:
-
-Configuring interface routes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This example shows how you can specify multiple route of different types in a DO declaration. This functionality previously existed,    
-
-.. literalinclude:: ../../examples/preserveOrigDhcpRoutes.json
-    :language: json
-
-|
-
 .. _manipfwr:
 
 Configuring firewall rules on the management interface
