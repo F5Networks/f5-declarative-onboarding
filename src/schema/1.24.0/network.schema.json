@@ -502,10 +502,13 @@
                         "type": "string",
                         "const": "Tunnel"
                     },
+                    "remark": {
+                        "$ref": "definitions.schema.json#/definitions/Remark"
+                    },
                     "tunnelType": {
                         "description": "Specifies the profile that you want to associate with the Tunnel.",
                         "type": "string",
-                        "enum": ["tcp-forward"]
+                        "enum": ["geneve", "gre", "tcp-forward"]
                     },
                     "mtu": {
                         "description": "Specifies the maximum transmission unit of the Tunnel.",
@@ -543,9 +546,82 @@
                             "disabled"
                         ],
                         "default": "default"
+                    },
+                    "key": {
+                        "description": "When applied to a GRE tunnel, this value specifies an optional field in the GRE header, used to authenticate the source of the packet. When applied to a VXLAN or Geneve tunnel, this value specifies the Virtual Network Identifier (VNI). When applied to an NVGRE tunnel, this value specifies the Virtual Subnet Identifier (VSID).",
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0
+                    },
+                    "localAddress": {
+                        "description": "Specifies the IP address of the local endpoint of the tunnel.",
+                        "type": "string",
+                        "anyOf": [
+                            { "enum": ["any", "any6"] },
+                            { "format": "f5ip" }
+                        ],
+                        "default": "any6"
+                    },
+                    "remoteAddress": {
+                        "description": "Specifies the IP address of the remote endpoint of the tunnel.",
+                        "type": "string",
+                        "anyOf": [
+                            { "enum": ["any", "any6"] },
+                            { "format": "f5ip" }
+                        ],
+                        "default": "any6"
+                    },
+                    "secondaryAddress": {
+                        "description": "Specifies a non-floating IP address for the tunnel, to be used with host-initiated traffic.",
+                        "type": "string",
+                        "anyOf": [
+                            { "enum": ["any", "any6"] },
+                            { "format": "f5ip" }
+                        ],
+                        "default": "any6"
+                    },
+                    "mode": {
+                        "description": "Specifies how the tunnel carries traffic.",
+                        "type": "string",
+                        "enum": ["bidirectional", "inbound", "outbound"],
+                        "default": "bidirectional"
+                    },
+                    "transparent": {
+                        "description": "Specifies that the tunnel operates in transparent mode. When enabled, you can inspect and manipulate the encapsulated traffic flowing through the BIG-IP system.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "trafficGroup": {
+                        "description": "Specifies the traffic group to associate with the tunnel.",
+                        "type": "string",
+                        "default": "none"
                     }
                 },
-                "additionalProperties": false
+                "allOf": [
+                    {
+                        "if": {
+                            "required": ["transparent", "trafficGroup"],
+                            "properties": { "transparent": { "const": true } }
+                        },
+                        "then": {
+                            "properties": {
+                                "trafficGroup": { "const": "none" }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "required": ["tunnelType"],
+                            "properties": { "tunnelType": { "const": "geneve" } }
+                        },
+                        "then": {
+                            "properties": {
+                                "mode": { "const": "bidirectional" },
+                                "remoteAddress": { "enum": ["any", "any6"] }
+                            }
+                        }
+                    }
+                ]
             }
         },
         {
@@ -577,6 +653,70 @@
                                 }
                             },
                             "required": ["name", "regex"],
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RoutingAccessList" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains routing access list configuration.",
+                        "type": "string",
+                        "const": "RoutingAccessList"
+                    },
+                    "label": {
+                        "$ref": "definitions.schema.json#/definitions/Label"
+                    },
+                    "remark": {
+                        "$ref": "definitions.schema.json#/definitions/Remark"
+                    },
+                    "entries": {
+                        "description": "An array that holds sources and destinations.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "integer",
+                                    "description": "Name of the entity identified as an integer"
+                                },
+                                "action": {
+                                    "type": "string",
+                                    "description": "Permit or deny access",
+                                    "enum": [
+                                        "permit",
+                                        "deny"
+                                    ]
+                                },
+                                "destination": {
+                                    "description": "IPv4 or IPv6 address or address range. Specify either [address] or [address/prefixlength].",
+                                    "type": "string",
+                                    "format": "ipWithOptionalPrefix",
+                                    "default": "::"
+                                },
+                                "exactMatchEnabled": {
+                                    "description": "Perform exact matching. A single entry with exactMatchEnabled true disallows any entry to have a non-default destination.",
+                                    "type": "boolean",
+                                    "default": false
+                                },
+                                "source": {
+                                    "description": "IPv4 or IPv6 address or address range. Specify either [address] or [address/prefixlength].",
+                                    "type": "string",
+                                    "format": "ipWithOptionalPrefix",
+                                    "default": "::"
+                                }
+                            },
+                            "required": ["name", "action"],
                             "additionalProperties": false
                         },
                         "default": []
@@ -961,6 +1101,13 @@
                 },
                 "additionalProperties": false
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "ManagementIpFirewall" } }
+            },
+            "then": { "$ref": "#/definitions/managementIpFirewall" }
         }
     ],
     "definitions": {
@@ -983,7 +1130,7 @@
                 "rules": {
                     "description": "Specifies the list of firewall policy rules",
                     "type": "array",
-                    "items": { "$ref": "#/definitions/firewallRule" }
+                    "items": { "$ref": "#/definitions/firewallRulePolicy" }
                 }
             },
             "additionalProperties": false
@@ -1089,7 +1236,7 @@
                 "ports"
             ]
         },
-        "firewallRule": {
+        "firewallRuleCore": {
             "description": "Configures a firewall rule.",
             "type": "object",
             "required": ["name", "action"],
@@ -1125,10 +1272,10 @@
                     "default": "any"
                 },
                 "source": {
-                    "$ref": "#/definitions/firewallRuleSource"
+                    "$ref": "#/definitions/firewallRuleSourceCore"
                 },
                 "destination": {
-                    "$ref": "#/definitions/firewallRuleSource"
+                    "$ref": "#/definitions/firewallRuleDestinationCore"
                 },
                 "loggingEnabled": {
                     "description": "Specifies whether the system enables or disables logging for the firewall rule",
@@ -1138,7 +1285,18 @@
             },
             "additionalProperties": false
         },
-        "firewallRuleSource": {
+        "firewallRulePolicy": {
+            "type": "object",
+            "allOf": [
+                { "$ref": "#/definitions/firewallRuleCore" },
+                {
+                    "properties": {
+                        "source": { "$ref": "#/definitions/firewallRuleSourcePolicy" }
+                    }
+                }
+            ]
+        },
+        "firewallRuleSourceCore": {
             "description": "Configures the packet sources to which the network firewall rule applies",
             "type": "object",
             "properties": {
@@ -1157,19 +1315,29 @@
                         "type": "string"
                     },
                     "additionalProperties": false
-                },
-                "vlans": {
-                    "type": "array",
-                    "description": "Specifies a list of VLANs against which the packets will be compared",
-                    "items": {
-                        "type": "string"
-                    },
-                    "additionalProperties": false
                 }
-            },
-            "additionalProperties": false
+            }
         },
-        "firewallRuleDestination": {
+        "firewallRuleSourcePolicy": {
+            "type": "object",
+            "allOf": [
+                { "$ref": "#/definitions/firewallRuleSourceCore" },
+                {
+                    "type": "object",
+                    "properties": {
+                        "vlans": {
+                            "type": "array",
+                            "description": "Specifies a list of VLANs against which the packets will be compared",
+                            "items": {
+                                "type": "string"
+                            },
+                            "additionalProperties": false
+                        }
+                    }
+                }
+            ]
+        },
+        "firewallRuleDestinationCore": {
             "description": "Configures the packet destination to which the network firewall rule applies",
             "type": "object",
             "properties": {
@@ -1188,6 +1356,30 @@
                         "type": "string"
                     },
                     "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "managementIpFirewall": {
+            "description": "Configures the management IP firewall",
+            "type": "object",
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates this property contains management IP firewall configuration.",
+                    "type": "string",
+                    "const": "ManagementIpFirewall"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "rules": {
+                    "description": "Specifies the list of firewall rules",
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/firewallRuleCore" }
                 }
             },
             "additionalProperties": false

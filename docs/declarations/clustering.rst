@@ -31,7 +31,7 @@ See :ref:`devicegroup` for more information.
 
 |
 
-.. _example26:
+.. _founi:
 
 Configuring multiple failover unicast addresses 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

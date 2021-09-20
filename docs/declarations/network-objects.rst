@@ -358,17 +358,6 @@ See |sysclass| for more information and DO usage.
 
 |
 
-.. _interfaceroutes:
-
-Configuring interface routes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This example shows how you can specify multiple route of different types in a DO declaration. This functionality previously existed, however an issue existed in DO prior to v1.23 that would not allow a type of **interface** on Management routes.   
-
-.. literalinclude:: ../../examples/preserveOrigDhcpRoutes.json
-    :language: json
-
-|
-
 .. _manipfwr:
 
 Configuring firewall rules on the management interface
@@ -388,6 +377,28 @@ For more information and DO usage on individual properties, see |manfw| and |man
 .. literalinclude:: ../../examples/managementIpFirewall.json
     :language: json
 
+
+|
+
+.. _routes:
+
+Configuring routes and managementRoutes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+These examples show how you can create routes and management routes in Declarative Onboarding declarations. DO has supported these objects, however an issue existed in DO prior to v1.23 that would not allow a type of **interface** on Management routes.
+
+See |route| and |manroute| in the Schema Reference for DO usage and options.
+
+The following examples contain route configuration, but no other DO configuration.  You can use these classes as a part of a larger Declarative Onboarding declaration.
+
+
+.. literalinclude:: ../../examples/routeInterface.json
+   :language: json
+
+|
+
+.. literalinclude:: ../../examples/managementRouteInterface.json
+   :language: json
+
 |
 
 .. _routeal:
@@ -401,9 +412,6 @@ Configuring routing access lists
 This example shows how you can create network routing access lists using Declarative Onboarding 1.24 and later. These access lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for source and destination addresses (or ranges).
 
 See |accesslist| and |accessentry| in the Schema Reference for DO usage and options.
-
-Also see the :ref:`BGP routing example<bgprouting>`.
-
 
 The following example contains multiple access lists, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
@@ -652,3 +660,9 @@ The following example contains multiple access lists, but no other DO configurat
 .. |accessentry| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingaccesslist-entries" target="_blank">RoutingAccessList-Entries</a>
+
+.. |manroute| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementroute" target="_blank">ManagementRoute</a>
+
+

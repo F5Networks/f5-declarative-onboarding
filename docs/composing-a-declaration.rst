@@ -253,7 +253,7 @@ Declarative Onboarding 1.24 introduced the optional **chargebackTag** property, 
 +--------------------+--------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | overwrite          | true, **false**                |   No       |  Whether or not to overwrite the license if the device is already licensed (not shown in the example)                                                             |
 +--------------------+--------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| chargebackTag      | string                         |   No       |  An optional string that can be used as a charge back tag (not shown in the example)                                                             |
+| chargebackTag      | string                         |   No       |  An optional string that can be used as a charge back tag (not shown in the example)                                                                              |
 +--------------------+--------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
