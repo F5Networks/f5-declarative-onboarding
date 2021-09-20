@@ -44,6 +44,7 @@ module.exports = {
         Analytics: '/tm/analytics/global-settings',
         ManagementDHCPConfig: '/tm/sys/management-dhcp/sys-mgmt-dhcp-config',
         ManagementIp: '/tm/sys/management-ip',
+        ManagementIpFirewall: '/tm/security/firewall/management-ip-rules',
         ManagementRoute: '/tm/sys/management-route',
         RouteDomain: '/tm/net/route-domain',
         AuthRadius: '/tm/auth/radius',
@@ -70,6 +71,7 @@ module.exports = {
         Tunnel: '/tm/net/tunnels/tunnel',
         RoutingBGP: '/tm/net/routing/bgp',
         RouteMap: '/tm/net/routing/route-map',
+        RoutingAccessList: '/tm/net/routing/access-list',
         RoutingAsPath: '/tm/net/routing/as-path',
         RoutingPrefixList: '/tm/net/routing/prefix-list',
         Uploads: '/shared/file-transfer/uploads',
@@ -123,7 +125,8 @@ module.exports = {
         'SSHD',
         'Disk',
         'MirrorIp',
-        'GSLBGlobals'
+        'GSLBGlobals',
+        'ManagementIpFirewall'
     ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'

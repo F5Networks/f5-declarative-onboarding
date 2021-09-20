@@ -1342,6 +1342,7 @@ describe('declarationHandler', () => {
                     );
                 });
         });
+
         it('should apply firewall address list fix', () => {
             const newDeclaration = {
                 parsed: true,
@@ -1433,15 +1434,15 @@ describe('declarationHandler', () => {
                             label: 'testing firewall policy',
                             rules: [
                                 {
-                                    name: 'firewallPolicyRuleOne',
+                                    name: 'firewallRuleOne',
                                     action: 'accept',
                                     ipProtocol: 'any',
                                     log: false
                                 },
                                 {
-                                    name: 'firewallPolicyRuleTwo',
-                                    label: 'testing firewall policy rule two',
-                                    description: 'firewall policy rule two description',
+                                    name: 'firewallRuleTwo',
+                                    label: 'testing firewall rule two',
+                                    description: 'firewall rule two description',
                                     action: 'reject',
                                     ipProtocol: 'tcp',
                                     log: true,
@@ -1499,7 +1500,7 @@ describe('declarationHandler', () => {
                             firewallPolicy: {
                                 rules: [
                                     {
-                                        name: 'firewallPolicyRuleOne',
+                                        name: 'firewallRuleOne',
                                         description: undefined,
                                         action: 'accept',
                                         ipProtocol: 'any',
@@ -1508,8 +1509,8 @@ describe('declarationHandler', () => {
                                         destination: {}
                                     },
                                     {
-                                        name: 'firewallPolicyRuleTwo',
-                                        description: 'firewall policy rule two description',
+                                        name: 'firewallRuleTwo',
+                                        description: 'firewall rule two description',
                                         action: 'reject',
                                         ipProtocol: 'tcp',
                                         log: true,
@@ -1543,6 +1544,148 @@ describe('declarationHandler', () => {
                             firewallPolicyNoMembers: {
                                 rules: []
                             }
+                        }
+                    );
+                });
+        });
+        it('should apply management IP firewall fix with rules', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    ManagementIpFirewall: {
+                        label: 'testing management IP firewall',
+                        description: 'management IP firewall description',
+                        rules: [
+                            {
+                                name: 'firewallRuleOne',
+                                action: 'accept',
+                                ipProtocol: 'any',
+                                log: false
+                            },
+                            {
+                                name: 'firewallRuleTwo',
+                                label: 'testing firewall rule two',
+                                description: 'firewall rule two description',
+                                action: 'reject',
+                                ipProtocol: 'tcp',
+                                log: true,
+                                source: {
+                                    addressLists: [
+                                        '/Common/addressList1',
+                                        'addressList2'
+                                    ],
+                                    portLists: [
+                                        '/Common/portList1',
+                                        'portList2'
+                                    ]
+                                },
+                                destination: {
+                                    addressLists: [
+                                        '/Common/addressList1',
+                                        'addressList2'
+                                    ],
+                                    portLists: [
+                                        '/Common/portList1',
+                                        'portList2'
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const managementIpFirewall = declarationWithDefaults.Common.ManagementIpFirewall;
+                    assert.deepStrictEqual(
+                        managementIpFirewall,
+                        {
+                            description: 'management IP firewall description',
+                            rules: [
+                                {
+                                    name: 'firewallRuleOne',
+                                    description: undefined,
+                                    action: 'accept',
+                                    ipProtocol: 'any',
+                                    log: false,
+                                    source: {},
+                                    destination: {}
+                                },
+                                {
+                                    name: 'firewallRuleTwo',
+                                    description: 'firewall rule two description',
+                                    action: 'reject',
+                                    ipProtocol: 'tcp',
+                                    log: true,
+                                    source: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/addressList1',
+                                            '/Common/addressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/portList1',
+                                            '/Common/portList2'
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    );
+                });
+        });
+
+        it('should apply management IP firewall fix with no rules', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    ManagementIpFirewall: {
+                        label: 'testing management IP firewall',
+                        description: 'management IP firewall description'
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const managementIpFirewall = declarationWithDefaults.Common.ManagementIpFirewall;
+                    assert.deepStrictEqual(
+                        managementIpFirewall,
+                        {
+                            description: 'management IP firewall description',
+                            rules: []
                         }
                     );
                 });
@@ -1603,6 +1746,306 @@ describe('declarationHandler', () => {
                         }
                     );
                 });
+        });
+
+        describe('RoutingAccessList fixes', () => {
+            let newDeclaration;
+            let state;
+
+            beforeEach(() => {
+                newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        RoutingAccessList: {
+                            list: {
+                                name: 'list'
+                            }
+                        }
+                    }
+                };
+
+                state = {
+                    originalConfig: {
+                        Common: {}
+                    },
+                    currentConfig: {
+                        parsed: true,
+                        Common: {}
+                    }
+                };
+            });
+
+            describe('entries destination and source', () => {
+                it('should replace 0.0.0.0 or 0.0.0.0 slash CIDR address with ipv4 default', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '0.0.0.0',
+                            action: 'deny',
+                            source: '0.0.0.0/10'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '0.0.0.0/0');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '0.0.0.0/0');
+                        });
+                });
+
+                it('should leave double colon addresses alone in destination and source', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '::',
+                            action: 'deny',
+                            source: '::'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '::');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '::');
+                        });
+                });
+
+                it('should leave 0.0.0.0 slash 0 alone in destination and source', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '0.0.0.0/0',
+                            action: 'deny',
+                            source: '0.0.0.0/0'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '0.0.0.0/0');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '0.0.0.0/0');
+                        });
+                });
+
+                it('should replace source 0.0.0.0 address with 0.0.0.0 slash 0 when destination is ipv4', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '10.10.10.10/32',
+                            action: 'deny',
+                            source: '0.0.0.0'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.10.10/32');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '0.0.0.0/0');
+                        });
+                });
+
+                it('should replace source 0.0.0.0 slash CIDR address with 0.0.0.0 slash 0 when destination is ipv4', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '10.10.10.10/32',
+                            action: 'deny',
+                            source: '0.0.0.0/10'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.10.10/32');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '0.0.0.0/0');
+                        });
+                });
+
+                it('should replace source 0.0.0.0 address with :: slash 0 when destination is ipv6', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '1111::/32',
+                            action: 'deny',
+                            source: '0.0.0.0'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '1111::/32');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '::/0');
+                        });
+                });
+
+                it('should replace source 0.0.0.0 slash CIDR address with :: slash 0 when destination is ipv6', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '1111::/32',
+                            action: 'deny',
+                            source: '0.0.0.0/6'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '1111::/32');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '::/0');
+                        });
+                });
+
+                it('should replace destination 0.0.0.0 address with 0.0.0.0 slash 0 when source is ipv4', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '0.0.0.0',
+                            action: 'deny',
+                            source: '10.10.10.10/32'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '0.0.0.0/0');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '10.10.10.10/32');
+                        });
+                });
+
+                it('should replace destination 0.0.0.0 slash CIDR address with 0.0.0.0 slash 0 when source is ipv4', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '0.0.0.0/10',
+                            action: 'deny',
+                            source: '10.10.10.10/32'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '0.0.0.0/0');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '10.10.10.10/32');
+                        });
+                });
+
+                it('should replace destination 0.0.0.0 address with :: slash 0 when source is ipv6', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '0.0.0.0',
+                            action: 'deny',
+                            source: '1111::/32'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '::/0');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '1111::/32');
+                        });
+                });
+
+                it('should replace destination 0.0.0.0 slash CIDR address with :: slash 0 when source is ipv6', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '0.0.0.0/10',
+                            action: 'deny',
+                            source: '1111::/32'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '::/0');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '1111::/32');
+                        });
+                });
+
+                it('should append slash 32 to fixed ipv4 address', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '10.10.10.10',
+                            action: 'deny',
+                            source: '20.20.20.20'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.10.10/32');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '20.20.20.20/32');
+                        });
+                });
+
+                it('should append slash 128 to fixed ipv6 address', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '1111:2222:3333::',
+                            action: 'deny',
+                            source: '1111:2222:4444::'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '1111:2222:3333::/128');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '1111:2222:4444::/128');
+                        });
+                });
+
+                it('should not modify an ipv4 network address', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '10.10.0.0/16',
+                            action: 'deny',
+                            source: '20.20.0.0/16'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.0.0/16');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '20.20.0.0/16');
+                        });
+                });
+
+                it('should not modify an ipv6 network address', () => {
+                    newDeclaration.Common.RoutingAccessList.list.entries = [
+                        {
+                            name: '20',
+                            destination: '1111:2222:3333::/64',
+                            action: 'deny',
+                            source: '1111:2222:4444::/64'
+                        }
+                    ];
+
+                    const declarationHandler = new DeclarationHandler(bigIpMock);
+                    return declarationHandler.process(newDeclaration, state)
+                        .then(() => {
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '1111:2222:3333::/64');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '1111:2222:4444::/64');
+                        });
+                });
+            });
         });
 
         describe('RoutingPrefixList fixes', () => {
@@ -2048,7 +2491,7 @@ describe('declarationHandler', () => {
                                 {
                                     name: 'ipv4',
                                     routeMap: {},
-                                    softReconfigurationInbound: false
+                                    softReconfigurationInbound: 'disabled'
                                 }
                             ]
                         }
@@ -2065,12 +2508,12 @@ describe('declarationHandler', () => {
                                             {
                                                 name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             },
                                             {
                                                 name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             }
                                         ]
                                     }
@@ -2086,7 +2529,7 @@ describe('declarationHandler', () => {
                                 {
                                     name: 'ipv6',
                                     routeMap: {},
-                                    softReconfigurationInbound: false
+                                    softReconfigurationInbound: 'disabled'
                                 }
                             ]
                         }
@@ -2103,12 +2546,12 @@ describe('declarationHandler', () => {
                                             {
                                                 name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             },
                                             {
                                                 name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             }
                                         ]
                                     }
@@ -2135,12 +2578,12 @@ describe('declarationHandler', () => {
                                             {
                                                 name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             },
                                             {
                                                 name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             }
                                         ]
                                     }
@@ -2165,12 +2608,12 @@ describe('declarationHandler', () => {
                                             {
                                                 name: 'ipv4',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             },
                                             {
                                                 name: 'ipv6',
                                                 routeMap: {},
-                                                softReconfigurationInbound: false
+                                                softReconfigurationInbound: 'disabled'
                                             }
                                         ]
                                     }
@@ -2263,18 +2706,22 @@ describe('declarationHandler', () => {
                     newDeclaration.Common.RoutingBGP.bgp1.neighbors = [
                         {
                             name: '10.1.1.4',
+                            ebgpMultihop: 1,
                             peerGroup: 'Neighbor_IN'
                         },
                         {
                             name: '10.1.1.5',
+                            ebgpMultihop: 2,
                             peerGroup: 'Neighbor_OUT'
                         },
                         {
                             name: '10.1.1.2',
+                            ebgpMultihop: 3,
                             peerGroup: 'Neighbor_IN'
                         },
                         {
                             name: '10.1.1.3',
+                            ebgpMultihop: 4,
                             peerGroup: 'Neighbor_OUT'
                         }
                     ];
@@ -2287,18 +2734,22 @@ describe('declarationHandler', () => {
                                 [
                                     {
                                         name: '10.1.1.2',
+                                        ebgpMultihop: 3,
                                         peerGroup: 'Neighbor_IN'
                                     },
                                     {
                                         name: '10.1.1.3',
+                                        ebgpMultihop: 4,
                                         peerGroup: 'Neighbor_OUT'
                                     },
                                     {
                                         name: '10.1.1.4',
+                                        ebgpMultihop: 1,
                                         peerGroup: 'Neighbor_IN'
                                     },
                                     {
                                         name: '10.1.1.5',
+                                        ebgpMultihop: 2,
                                         peerGroup: 'Neighbor_OUT'
                                     }
                                 ]

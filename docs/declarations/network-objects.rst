@@ -161,14 +161,13 @@ Configuring a TCP Forward Tunnel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for TCP Forward Tunnels is available in DO v1.14 and later
+   Support for tunnel types **gre** and **geneve** is  available in DO v1.24 and later
 
-In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class introduced in DO 1.14.
+In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class.
 
-Currently, **tcp_forward** is the only profile (**tunnelType**) Declarative Onboarding supports.  The tcp_forward profile specifies a tunnel used for forward proxy connections.
+Declarative Onboarding 1.24 adds two tunnel types: **gre** and **geneve**.  In previous versions, **tcp_forward**, for forward proxy connections, was the only supported type of tunnel.  
 
-See |tunnel| in the Schema Reference for DO usage and options.
-
+See |tunnel| in the Schema Reference for DO usage and options.  The following example only shows the **tcp_forward** tunnel type.
 
 .. literalinclude:: ../../examples/tcpForwardTunnel.json
    :language: json
@@ -234,8 +233,8 @@ Configuring BGP Routing in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for BGP routing is available in DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP
-
+   Support for BGP routing is available in DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP. |br| Support for the **ebgpMultihop** property is available in DO 1.24 and later.
+   
 This example shows how you can configure Border Gateway Protocol (BGP) routing in a Declarative Onboarding declaration.
 
 For an excellent overview of BGP, see the F5 Lightboard lesson |bgpvid|.
@@ -248,12 +247,19 @@ The BGP routing configuration uses the following Declarative Onboarding classes 
 - |routingaspath|
 - |prefix|
 - |routemap|
+- |accesslist| (added in DO 1.24, not included in this example)
 
 The **RoutingBGP** class contains a number of properties used in the following example, so be sure to see |routingbgp| for descriptions and options.
+
+**New in DO 1.24** |br|
+Declarative Onboarding 1.24 introduced the **ebgpMultihop** property for BGP neighbors. This property allows you to specify between 1 and 255 external BGP members that are not on directly connected networks (the default is **1**). See |ebgp| in the Schema Reference for more information.
+
+.. IMPORTANT:: If you try to use the following example with a version prior to 1.24, it will fail.  For previous versions, remove the lines in yellow.
 
 
 .. literalinclude:: ../../examples/bgp.json
    :language: json
+   :emphasize-lines: 110, 115
 
 |
 
@@ -350,7 +356,71 @@ See |sysclass| for more information and DO usage.
 .. literalinclude:: ../../examples/preserveOrigDhcpRoutes.json
     :language: json
 
+|
 
+.. _manipfwr:
+
+Configuring firewall rules on the management interface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+    Support for configuring firewall rules on the management interface is available in DO 1.24 and later. |br| If using BIG-IP 13.1, you must have the AFM module licensed and provisioned
+
+This example shows how you can configure firewall rules on the management interface in a DO declaration. If you are deploying on BIG-IP 13.1-13.x, you must have the AFM module licensed and provisioned. BIG-IP versions 14.1 and later do not have this requirement.
+
+This feature uses the new |manfw| class, which includes the |manfwr| settings.
+
+For more detail on Firewall rules and manual configuration instructions, see |fwkb| on AskF5.
+
+For more information and DO usage on individual properties, see |manfw| and |manfwr|.
+
+.. literalinclude:: ../../examples/managementIpFirewall.json
+    :language: json
+
+
+|
+
+.. _routes:
+
+Configuring routes and managementRoutes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+These examples show how you can create routes and management routes in Declarative Onboarding declarations. DO has supported these objects, however an issue existed in DO prior to v1.23 that would not allow a type of **interface** on Management routes.
+
+See |route| and |manroute| in the Schema Reference for DO usage and options.
+
+The following examples contain route configuration, but no other DO configuration.  You can use these classes as a part of a larger Declarative Onboarding declaration.
+
+
+.. literalinclude:: ../../examples/routeInterface.json
+   :language: json
+
+|
+
+.. literalinclude:: ../../examples/managementRouteInterface.json
+   :language: json
+
+|
+
+.. _routeal:
+
+Configuring routing access lists
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for routing access lists is available in DO v1.24 and later
+
+This example shows how you can create network routing access lists using Declarative Onboarding 1.24 and later. These access lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for source and destination addresses (or ranges).
+
+See |accesslist| and |accessentry| in the Schema Reference for DO usage and options.
+
+The following example contains multiple access lists, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
+
+
+.. literalinclude:: ../../examples/routingAccessList.json
+   :language: json
+
+|
+    
 
 .. |br| raw:: html
 
@@ -566,3 +636,33 @@ See |sysclass| for more information and DO usage.
 .. |mip| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementip" target="_blank">ManagementIp</a>
+
+.. |ebgp| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingbgp-neighbors" target="_blank">RoutingBGP_neighbors</a>
+
+.. |manfwr| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementipfirewall-rules" target="_blank">ManagementIpFirewall_rules</a>
+
+.. |manfw| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementipfirewall" target="_blank">ManagementIpFirewall</a>
+
+.. |fwkb| raw:: html
+
+   <a href="https://support.f5.com/csp/article/K46122561" target="_blank">Restrict access to the BIG-IP management interface using network firewall rules</a>
+
+.. |accesslist| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingaccesslist" target="_blank">RoutingAccessList</a>
+
+.. |accessentry| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#routingaccesslist-entries" target="_blank">RoutingAccessList-Entries</a>
+
+.. |manroute| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementroute" target="_blank">ManagementRoute</a>
+
+

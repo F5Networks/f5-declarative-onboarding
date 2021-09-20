@@ -364,15 +364,15 @@ function handleSystem() {
             promises.push(this.bigIp.modify(PATHS.CLI, { idleTimeout: system.idleTimeout / 60 }));
         }
         if (typeof system.autoPhonehome !== 'undefined') {
-            const autoPhonehome = system.autoPhonehome ? 'enabled' : 'disabled';
+            const autoPhonehome = system.autoPhonehome;
             promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoPhonehome }));
         }
         if (typeof system.autoCheck !== 'undefined') {
-            const autoCheck = system.autoCheck ? 'enabled' : 'disabled';
+            const autoCheck = system.autoCheck;
             promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoCheck }));
         }
         if (typeof system.audit !== 'undefined') {
-            const audit = system.audit ? 'enabled' : 'disabled';
+            const audit = system.audit;
             promises.push(this.bigIp.modify(PATHS.CLI, { audit }));
         }
         if (typeof system.mcpAuditLog !== 'undefined') {
@@ -381,7 +381,7 @@ function handleSystem() {
         }
         if (typeof system.guiAudit !== 'undefined'
             && cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
-            const guiAudit = system.guiAudit ? 'enabled' : 'disabled';
+            const guiAudit = system.guiAudit;
             promises.push(this.bigIp.modify(PATHS.SysGlobalSettings, { guiAudit }));
         }
     }
@@ -586,7 +586,8 @@ function handleLicensePool(license) {
                             bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, licenseInfo),
                             passwordIsUri: !!options.bigIqPasswordUri,
                             authProvider: license.bigIqAuthProvider,
-                            noUnreachable: !!license.reachable
+                            noUnreachable: !!license.reachable,
+                            chargebackTag: license.chargebackTag
                         }
                     ))
                     .then(() => {
@@ -627,6 +628,7 @@ function handleLicensePool(license) {
                         skuKeyword2: license.skuKeyword2,
                         unitOfMeasure: license.unitOfMeasure,
                         noUnreachable: !!license.reachable,
+                        chargebackTag: license.chargebackTag,
                         overwrite: !!license.overwrite,
                         autoApiType: true,
                         tenant: license.tenant
@@ -808,9 +810,9 @@ function handleSnmp() {
         promise = promise.then(() => this.bigIp.modify(
             PATHS.SnmpTrapEvents,
             {
-                agentTrap: trapEvents.agentTrap ? 'enabled' : 'disabled',
-                authTrap: trapEvents.authTrap ? 'enabled' : 'disabled',
-                bigipTraps: trapEvents.bigipTraps ? 'enabled' : 'disabled'
+                agentTrap: trapEvents.agentTrap,
+                authTrap: trapEvents.authTrap,
+                bigipTraps: trapEvents.bigipTraps
             }
         ));
     }
@@ -833,7 +835,7 @@ function handleSnmp() {
         const transformedComms = JSON.parse(JSON.stringify(communities));
         Object.keys(transformedComms).forEach((communityName) => {
             const community = transformedComms[communityName];
-            community.ipv6 = community.ipv6 ? 'enabled' : 'disabled';
+            community.ipv6 = community.ipv6;
         });
 
         promise = promise.then(() => this.bigIp.modify(
@@ -898,21 +900,21 @@ function handleTrafficControl() {
     const trafficCtrl = this.declaration.Common.TrafficControl;
 
     const trafficControlObj = {
-        acceptIpOptions: trafficCtrl.acceptIpOptions ? 'enabled' : 'disabled',
-        acceptIpSourceRoute: trafficCtrl.acceptIpSourceRoute ? 'enabled' : 'disabled',
-        allowIpSourceRoute: trafficCtrl.allowIpSourceRoute ? 'enabled' : 'disabled',
-        continueMatching: trafficCtrl.continueMatching ? 'enabled' : 'disabled',
+        acceptIpOptions: trafficCtrl.acceptIpOptions,
+        acceptIpSourceRoute: trafficCtrl.acceptIpSourceRoute,
+        allowIpSourceRoute: trafficCtrl.allowIpSourceRoute,
+        continueMatching: trafficCtrl.continueMatching,
         maxIcmpRate: trafficCtrl.maxIcmpRate,
         portFindLinear: trafficCtrl.portFindLinear,
         portFindRandom: trafficCtrl.portFindRandom,
         maxRejectRate: trafficCtrl.maxRejectRate,
         maxRejectRateTimeout: trafficCtrl.maxRejectRateTimeout,
         minPathMtu: trafficCtrl.minPathMtu,
-        pathMtuDiscovery: trafficCtrl.pathMtuDiscovery ? 'enabled' : 'disabled',
-        portFindThresholdWarning: trafficCtrl.portFindThresholdWarning ? 'enabled' : 'disabled',
+        pathMtuDiscovery: trafficCtrl.pathMtuDiscovery,
+        portFindThresholdWarning: trafficCtrl.portFindThresholdWarning,
         portFindThresholdTrigger: trafficCtrl.portFindThresholdTrigger,
         portFindThresholdTimeout: trafficCtrl.portFindThresholdTimeout,
-        rejectUnmatched: trafficCtrl.rejectUnmatched ? 'enabled' : 'disabled'
+        rejectUnmatched: trafficCtrl.rejectUnmatched
     };
 
     return this.bigIp.modify(PATHS.TrafficControl, trafficControlObj)

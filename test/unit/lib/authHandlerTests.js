@@ -207,7 +207,9 @@ describe('authHandler', () => {
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             secret: 'test',
-                            service: 'ppp'
+                            service: 'ppp',
+                            debug: 'disabled',
+                            encryption: 'enabled'
                         }
                     }
                 }
@@ -246,8 +248,8 @@ describe('authHandler', () => {
                         tacacs: {
                             accounting: 'send-to-all-servers',
                             authentication: 'use-all-servers',
-                            debug: true,
-                            encryption: false,
+                            debug: 'enabled',
+                            encryption: 'disabled',
                             protocol: 'http',
 
                             servers: [
@@ -297,13 +299,13 @@ describe('authHandler', () => {
                         fallback: true,
                         ldap: {
                             bindTimeout: 30,
-                            checkHostAttr: false,
-                            checkRolesGroup: false,
+                            checkHostAttr: 'disabled',
+                            checkRolesGroup: 'disabled',
                             idleTimeout: 3600,
-                            ignoreAuthInfoUnavail: false,
-                            ignoreUnknownUser: false,
+                            ignoreAuthInfoUnavail: 'no',
+                            ignoreUnknownUser: 'disabled',
                             port: 389,
-                            referrals: false,
+                            referrals: 'no',
                             scope: 'sub',
                             searchTimeout: 30,
                             servers: [
@@ -312,7 +314,7 @@ describe('authHandler', () => {
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'disabled',
-                            sslCheckPeer: false,
+                            sslCheckPeer: 'disabled',
                             version: 3
                         }
                     }
@@ -373,17 +375,17 @@ describe('authHandler', () => {
                             bindDn: 'searchingName',
                             bindPw: 'test',
                             bindTimeout: 40,
-                            checkHostAttr: true,
-                            checkRolesGroup: true,
+                            checkHostAttr: 'enabled',
+                            checkRolesGroup: 'enabled',
                             filter: 'filter',
                             groupDn: 'groupName',
                             groupMemberAttribute: 'attribute',
                             idleTimeout: 20,
-                            ignoreAuthInfoUnavail: true,
-                            ignoreUnknownUser: true,
+                            ignoreAuthInfoUnavail: 'yes',
+                            ignoreUnknownUser: 'enabled',
                             loginAttribute: 'attributeToLogin',
                             port: 654,
-                            referrals: true,
+                            referrals: 'yes',
                             scope: 'base',
                             searchBaseDn: 'searchName',
                             searchTimeout: 687,
@@ -399,7 +401,7 @@ describe('authHandler', () => {
                                 checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10',
                                 base64: 'ZjVmYWtlY2VydA=='
                             },
-                            sslCheckPeer: true,
+                            sslCheckPeer: 'enabled',
                             sslCiphers: [
                                 'ECDHE-RSA-AES128-GCM-SHA256',
                                 'ECDHE-RSA-AES128-CBC-SHA',
@@ -539,13 +541,13 @@ describe('authHandler', () => {
                         fallback: true,
                         ldap: {
                             bindTimeout: 30,
-                            checkHostAttr: false,
-                            checkRolesGroup: false,
+                            checkHostAttr: 'disabled',
+                            checkRolesGroup: 'disabled',
                             idleTimeout: 3600,
-                            ignoreAuthInfoUnavail: false,
-                            ignoreUnknownUser: false,
+                            ignoreAuthInfoUnavail: 'no',
+                            ignoreUnknownUser: 'disabled',
                             port: 389,
-                            referrals: true,
+                            referrals: 'yes',
                             scope: 'sub',
                             searchTimeout: 30,
                             servers: [
@@ -559,7 +561,7 @@ describe('authHandler', () => {
                                 partition: 'Common',
                                 checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10'
                             },
-                            sslCheckPeer: false,
+                            sslCheckPeer: 'disabled',
                             sslClientCert: {
                                 name: 'do_ldapClientCert.crt',
                                 partition: 'Common',
@@ -629,7 +631,7 @@ describe('authHandler', () => {
                         exampleGroupName: {
                             attribute: 'attributeValue',
                             console: 'tmsh',
-                            deny: true,
+                            deny: 'enabled',
                             lineOrder: 1050,
                             role: 'guest',
                             userPartition: 'all'
@@ -637,7 +639,7 @@ describe('authHandler', () => {
                         anotherGroupName: {
                             attribute: 'attributeValue',
                             console: false,
-                            deny: false,
+                            deny: 'disabled',
                             lineOrder: 984,
                             role: 'admin',
                             userPartition: 'all'

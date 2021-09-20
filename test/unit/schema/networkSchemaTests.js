@@ -698,96 +698,168 @@ describe('network.schema.json', () => {
     });
 
     describe('Tunnel', () => {
-        describe('valid', () => {
-            it('should validate minimal schema', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward'
-                };
-                assert.ok(validate(data), getErrorString(validate));
+        describe('all', () => {
+            describe('valid', () => {
+                it('should validate minimal schema', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate with all properties', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        mtu: 5,
+                        usePmtu: false,
+                        typeOfService: 10,
+                        autoLastHop: 'enabled'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
             });
 
-            it('should validate with all properties', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    mtu: 5,
-                    usePmtu: false,
-                    typeOfService: 10,
-                    autoLastHop: 'enabled'
-                };
-                assert.ok(validate(data), getErrorString(validate));
+            describe('invalid', () => {
+                it('should invalidate invalid tunnelType', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'InvalidTunnelType'
+                    };
+                    assert.strictEqual(validate(data), false, 'tunnelType should match one of the enum values');
+                    assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                });
+
+                it('should invalidate invalid mtu value', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        mtu: 70000
+                    };
+                    assert.strictEqual(validate(data), false, 'mtu is out of range');
+                    assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+                });
+
+                it('should invalidate invalid usePmtu value', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        usePmtu: 'yes'
+                    };
+                    assert.strictEqual(validate(data), false, 'usePmtu should be a boolean');
+                    assert.notStrictEqual(getErrorString().indexOf('should be boolean'), -1);
+                });
+
+                it('should invalidate invalid enum value for typeOfService', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        typeOfService: 'newType'
+                    };
+                    assert.strictEqual(validate(data), false, 'typeOfService should match one of the enum values');
+                    assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                });
+
+                it('should invalidate invalid integer value for typeOfService', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        typeOfService: 300
+                    };
+                    assert.strictEqual(validate(data), false, 'typeOfService should be in the 0-255 range');
+                    assert.notStrictEqual(getErrorString().indexOf('should be <= 255'), -1);
+                });
+
+                it('should invalidate invalid enum value for autoLastHop', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        autoLastHop: 'auto'
+                    };
+                    assert.strictEqual(validate(data), false, 'autoLastHop should match one of the enum values');
+                    assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                });
+
+                it('should invalidate transparent if traffic group is not none', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'tcp-forward',
+                        trafficGroup: 'traffic-group-local-only',
+                        transparent: true
+                    };
+                    assert.strictEqual(validate(data), false, 'traffic group must be none if transparent is true');
+                    assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".trafficGroup"'), -1);
+                    assert.notStrictEqual(getErrorString().indexOf('"allowedValue": "none"'), -1);
+                });
             });
         });
 
-        describe('invalid', () => {
-            it('should invalidate invalid tunnelType', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'InvalidTunnelType'
-                };
-                assert.strictEqual(validate(data), false, 'tunnelType should match one of the enum values');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+        describe('GRE', () => {
+            describe('valid', () => {
+                it('should validate minimal GRE declaration', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'gre',
+                        localAddress: '10.10.10.10'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+
+                it('should validate a full GRE declaration', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'gre',
+                        localAddress: '10.10.10.10',
+                        remoteAddress: '10.10.10.20',
+                        secondaryAddress: '10.10.10.30',
+                        key: 1,
+                        mode: 'inbound',
+                        transparent: true,
+                        trafficGroup: 'none'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+            });
+        });
+
+        describe('geneve', () => {
+            describe('valid', () => {
+                it('should validate bidirectonal mode', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'geneve',
+                        localAddress: '10.10.10.10',
+                        mode: 'bidirectional'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
             });
 
-            it('should invalidate additional properties', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    newProperty: 'helloThere'
-                };
-                assert.strictEqual(validate(data), false, 'can\'t have additional properties');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
-            });
+            describe('invalid', () => {
+                it('should invalidate non-any remote address', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'geneve',
+                        localAddress: '10.10.10.10',
+                        remoteAddress: '10.10.10.20'
+                    };
+                    assert.strictEqual(validate(data), false, 'geneve tunnel must use bidirectional mode');
+                    assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".remoteAddress"'), -1);
+                    assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                });
 
-            it('should invalidate invalid mtu value', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    mtu: 70000
-                };
-                assert.strictEqual(validate(data), false, 'mtu is out of range');
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
-            });
-
-            it('should invalidate invalid usePmtu value', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    usePmtu: 'yes'
-                };
-                assert.strictEqual(validate(data), false, 'usePmtu should be a boolean');
-                assert.notStrictEqual(getErrorString().indexOf('should be boolean'), -1);
-            });
-
-            it('should invalidate invalid enum value for typeOfService', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    typeOfService: 'newType'
-                };
-                assert.strictEqual(validate(data), false, 'typeOfService should match one of the enum values');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
-            });
-
-            it('should invalidate invalid integer value for typeOfService', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    typeOfService: 300
-                };
-                assert.strictEqual(validate(data), false, 'typeOfService should be in the 0-255 range');
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 255'), -1);
-            });
-
-            it('should invalidate invalid enum value for autoLastHop', () => {
-                const data = {
-                    class: 'Tunnel',
-                    tunnelType: 'tcp-forward',
-                    autoLastHop: 'auto'
-                };
-                assert.strictEqual(validate(data), false, 'autoLastHop should match one of the enum values');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                it('should invalidate non-bidirectional mode', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'geneve',
+                        localAddress: '10.10.10.10',
+                        mode: 'inbound'
+                    };
+                    assert.strictEqual(validate(data), false, 'geneve tunnel must use bidirectional mode');
+                    assert.notStrictEqual(getErrorString().indexOf('"dataPath": ".mode"'), -1);
+                    assert.notStrictEqual(getErrorString().indexOf('"allowedValue": "bidirectional"'), -1);
+                });
             });
         });
     });
@@ -801,7 +873,7 @@ describe('network.schema.json', () => {
 
                 assert.ok(validate(data), getErrorString(validate));
                 assert(Array.isArray(data.entries), 'entries should be an array');
-                assert(Object.keys(data.entries.length === 0, 'entries should be empty'));
+                assert(data.entries.length === 0, 'entries should be empty');
             });
 
             it('should validate a full entries declaration', () => {
@@ -899,6 +971,7 @@ describe('network.schema.json', () => {
                     neighbors: [
                         {
                             address: '10.2.2.2',
+                            ebgpMultihop: 2,
                             peerGroup: 'Neighbor_IN'
                         }
                     ],
@@ -946,6 +1019,7 @@ describe('network.schema.json', () => {
                     neighbors: [
                         {
                             address: '10.2.2.2',
+                            ebgpMultihop: 2,
                             peerGroup: 'Neighbor_IN'
                         }
                     ],
@@ -1382,7 +1456,7 @@ describe('network.schema.json', () => {
 
                 assert.ok(validate(data), getErrorString(validate));
                 assert(Array.isArray(data.entries), 'entries should be an array');
-                assert(Object.keys(data.entries.length === 0, 'entries should be empty'));
+                assert(data.entries.length === 0, 'entries should be empty');
             });
 
             it('should supply default for missing match', () => {
@@ -1645,6 +1719,108 @@ describe('network.schema.json', () => {
         });
     });
 
+    describe('RoutingAccessList', () => {
+        // Though some of these tests are correct for schema validation you cannot mix ipv4 and ipv6 entries.
+        // You also cannot set exactMatchEnabled true on one entry and have destination set on any entry.
+        // The validator will flag these as invalid later on.
+        describe('valid', () => {
+            it('should validate minimal declaration and generate empty entries default', () => {
+                const data = {
+                    class: 'RoutingAccessList'
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data.entries, [], 'entries should be an empty array');
+            });
+
+            it('should validate a full entries declaration', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    label: 'my label',
+                    remark: 'my remark',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit',
+                            destination: '10.3.3.0/24',
+                            exactMatchEnabled: false,
+                            source: '10.4.4.4'
+                        },
+                        {
+                            name: 30,
+                            action: 'deny',
+                            destination: '1111:2222:3333:4444::/64',
+                            exactMatchEnabled: true,
+                            source: '1111:2222:3333:5555::'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should generate entries defaults', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    entries: [
+                        {
+                            name: 20,
+                            action: 'permit'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.strictEqual(data.entries[0].destination, '::', 'destination should be ::');
+                assert.strictEqual(data.entries[0].exactMatchEnabled, false, 'exactMatchEnabled should be false');
+                assert.strictEqual(data.entries[0].source, '::', 'source should be ::');
+            });
+
+            it('should validate empty entries property', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    entries: []
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should fail if no name is provided', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    entries: [
+                        {
+                            action: 'permit'
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if name is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'name\''), -1,
+                    `Errored but not because of the missing name:\n${getErrorString()}`
+                );
+            });
+
+            it('should fail if no action is provided', () => {
+                const data = {
+                    class: 'RoutingAccessList',
+                    entries: [
+                        {
+                            name: 20
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'This should fail if action is not provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should have required property \'action\''), -1,
+                    `Errored but not because of the missing action:\n${getErrorString()}`
+                );
+            });
+        });
+    });
+
     describe('RoutingPrefixList', () => {
         describe('valid', () => {
             it('should validate minimal declaration', () => {
@@ -1654,7 +1830,7 @@ describe('network.schema.json', () => {
 
                 assert.ok(validate(data), getErrorString(validate));
                 assert(Array.isArray(data.entries), 'entries should be an array');
-                assert(Object.keys(data.entries.length === 0, 'entries should be empty'));
+                assert(data.entries.length === 0, 'entries should be empty');
             });
 
             it('should validate a full entries declaration', () => {
@@ -1971,21 +2147,6 @@ describe('network.schema.json', () => {
                 assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
             });
 
-            it('should invalidate additional firewall policy rule source properties', () => {
-                const data = {
-                    class: 'FirewallPolicy',
-                    rules: [{
-                        name: 'firewallRule',
-                        action: 'accept',
-                        source: {
-                            foo: 'bar'
-                        }
-                    }]
-                };
-                assert.strictEqual(validate(data), false, '');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
-            });
-
             it('should invalidate additional firewall policy rule destination properties', () => {
                 const data = {
                     class: 'FirewallPolicy',
@@ -2013,6 +2174,122 @@ describe('network.schema.json', () => {
             it('should invalidate missing firewall policy rule action property', () => {
                 const data = {
                     class: 'FirewallPolicy',
+                    rules: [{ name: 'firewallRule' }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'action\''), -1);
+            });
+        });
+    });
+
+    describe('ManagementIpFirewall', () => {
+        describe('valid', () => {
+            it('should validate minimal management IP firewall properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate minimal management IP firewall rule properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept'
+                    }]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    label: 'this is a management IP firewall test',
+                    remark: 'management IP firewall description',
+                    rules: [{
+                        name: 'firewallRule',
+                        label: 'this is a firewall rule test',
+                        remark: 'firewall rule description',
+                        action: 'reject',
+                        protocol: 'tcp',
+                        source: {
+                            addressLists: [
+                                '/Common/myAddressList1',
+                                'myAddressList2'
+                            ],
+                            portLists: [
+                                '/Common/myPortList1',
+                                'myPortList2'
+                            ]
+                        },
+                        destination: {
+                            addressLists: [
+                                '/Common/myAddressList1',
+                                'myAddressList2'
+                            ],
+                            portLists: [
+                                '/Common/myPortList1',
+                                'myPortList2'
+                            ]
+                        },
+                        loggingEnabled: true
+                    }]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional management IP firewall properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    foo: 'bar'
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate additional management IP firewall rule properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept',
+                        foo: 'bar'
+                    }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate additional management IP firewall rule destination properties', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    rules: [{
+                        name: 'firewallRule',
+                        action: 'accept',
+                        destination: {
+                            foo: 'bar'
+                        }
+                    }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+            });
+
+            it('should invalidate missing management IP firewall rule name property', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
+                    rules: [{ action: 'accept' }]
+                };
+                assert.strictEqual(validate(data), false, '');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'name\''), -1);
+            });
+
+            it('should invalidate missing management IP firewall rule action property', () => {
+                const data = {
+                    class: 'ManagementIpFirewall',
                     rules: [{ name: 'firewallRule' }]
                 };
                 assert.strictEqual(validate(data), false, '');

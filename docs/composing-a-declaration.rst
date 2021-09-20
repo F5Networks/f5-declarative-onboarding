@@ -172,7 +172,7 @@ For more information, see |systemclass| in the Schema Reference. Also see :ref:`
 
 .. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class. We recommend using the System class for hostname
 
-The name *mySystem* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+The name *mySystem* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
 
 This snippet includes the **autoCheck** property which is not in the full declaration at the top of this page.
 
@@ -219,9 +219,12 @@ License class
 `````````````
 The next lines of the declaration set the licensing options if you are using an F5 Bring Your Own License (BYOL). If your BIG-IP system already has a license (for example, you are using a pay-as-you-go (PAYG) license), you do not need this class. Contact your F5 sales representative if you require a license.
 
-For more information, see |licenseclass| in the Schema Reference.
+For more information and a full list of properties, see |licenseclass| in the Schema Reference.
 
-The name *myLicense* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+The name *myLicense* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
+
+Declarative Onboarding 1.24 introduced the optional **chargebackTag** property, the value of which is a text string that can be used as a charge back tag, making it easier to track license costs.
+
 
 
 .. code-block:: javascript
@@ -250,6 +253,8 @@ The name *myLicense* we use in this example is arbitrary; it is not used anywher
 +--------------------+--------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | overwrite          | true, **false**                |   No       |  Whether or not to overwrite the license if the device is already licensed (not shown in the example)                                                             |
 +--------------------+--------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| chargebackTag      | string                         |   No       |  An optional string that can be used as a charge back tag (not shown in the example)                                                                              |
++--------------------+--------------------------------+------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
 
@@ -261,7 +266,7 @@ DNS class
 `````````
 The next lines of the declaration set the DNS options on the BIG-IP system. For more information, see |dnsclass| in the Schema Reference.
 
-The name *myDNS* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+The name *myDNS* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
 
 .. IMPORTANT:: If you are configuring DNS in your declaration, Declarative Onboarding disables DHCP for DNS.
 
@@ -305,7 +310,7 @@ NTP class
 `````````
 The next lines of the declaration set the NTP (network time protocol) options on the BIG-IP. For more information, see |ntpclass| in the Schema Reference.
 
-The name *myNTP* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+The name *myNTP* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
 
 .. IMPORTANT:: If you are configuring NTP in your declaration, Declarative Onboarding disables DHCP for NTP.
 
@@ -444,7 +449,7 @@ Provision class
 ```````````````
 The next lines of the declaration set the provisioning options on the BIG-IP.  For information on the available modules, see |f5|, and for information on provisioning levels, see |prov|. By default, the BIG-IP has the Local Traffic Manager (ltm) provisioned as nominal. For more information, see |provisionclass| in the Schema Reference.
 
-The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object however you'd like, but it must have a name.
+The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
 
 .. NOTE:: Provisioning CGNAT is currently only available in TMOS versions 15.0 and later. |br|  Provisioning SSL Orchestrator (SSLO) is available in DO 1.11 and later.
 

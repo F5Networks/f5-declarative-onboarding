@@ -617,6 +617,43 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
+    it('should delete a RoutingAccessList', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    RoutingAccessList: {
+                        routingAccessListTest: {
+                            name: 'routingAccessListTest',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    source: '::',
+                                    exactMatchEnabled: false,
+                                    destination: '::'
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                RoutingAccessList: {
+                    routingAccessListTest: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/routing/access-list/~Common~routingAccessListTest']);
+            });
+    });
+
     it('should delete a RoutingPrefixList', () => {
         const state = {
             currentConfig: {
@@ -653,7 +690,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
-    it('should delete RouteMap, RoutingAsPath, and RoutePrefixList in that order', () => {
+    it('should delete RouteMap, RoutingAccessList, RoutingAsPath, and RoutePrefixList in that order', () => {
         const state = {
             currentConfig: {
                 Common: {
@@ -687,6 +724,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
                             }
                         }
                     },
+                    RoutingAccessList: {
+                        routingAccessListTest: {
+                            name: 'routingAccessList',
+                            entries: []
+                        }
+                    },
                     RoutingAsPath: {
                         routingAsPathTest: {
                             name: 'routingAsPathTest',
@@ -717,6 +760,9 @@ describe(('deleteHandler'), function testDeleteHandler() {
 
         const declaration = {
             Common: {
+                RoutingAccessList: {
+                    routingAccessListTest: {}
+                },
                 RoutingBGP: {
                     routingBgpTest: {}
                 },
@@ -735,10 +781,11 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
         return deleteHandler.process()
             .then(() => {
-                assert.strictEqual(deletedPaths.length, 3);
+                assert.strictEqual(deletedPaths.length, 4);
                 assert.strictEqual(deletedPaths[0], '/tm/net/routing/route-map/~Common~routeMapTest');
-                assert.strictEqual(deletedPaths[1], '/tm/net/routing/as-path/~Common~routingAsPathTest');
-                assert.strictEqual(deletedPaths[2], '/tm/net/routing/prefix-list/~Common~routingPrefixListTest');
+                assert.strictEqual(deletedPaths[1], '/tm/net/routing/access-list/~Common~routingAccessListTest');
+                assert.strictEqual(deletedPaths[2], '/tm/net/routing/as-path/~Common~routingAsPathTest');
+                assert.strictEqual(deletedPaths[3], '/tm/net/routing/prefix-list/~Common~routingPrefixListTest');
             });
     });
 

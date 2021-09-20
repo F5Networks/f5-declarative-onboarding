@@ -100,7 +100,7 @@ function handleGSLBGlobals() {
     if (gslbGlobals.general) {
         const gslbGeneral = gslbGlobals.general;
         const body = {
-            synchronization: gslbGeneral.synchronization ? 'yes' : 'no',
+            synchronization: gslbGeneral.synchronization,
             synchronizationGroupName: gslbGeneral.synchronizationGroupName,
             synchronizationTimeTolerance: gslbGeneral.synchronizationTimeTolerance,
             synchronizationTimeout: gslbGeneral.synchronizationTimeout
@@ -162,12 +162,12 @@ function handleGSLBMonitor() {
                 interval: monitor.interval,
                 timeout: monitor.timeout,
                 probeTimeout: monitor.probeTimeout,
-                ignoreDownResponse: (monitor.ignoreDownResponse) ? 'enabled' : 'disabled',
-                transparent: (monitor.transparent) ? 'enabled' : 'disabled'
+                ignoreDownResponse: monitor.ignoreDownResponse,
+                transparent: monitor.transparent
             };
 
             if (monitor.monitorType !== 'gateway-icmp') {
-                body.reverse = (monitor.reverse) ? 'enabled' : 'disabled';
+                body.reverse = monitor.reverse;
                 body.send = monitor.send || 'none';
                 body.recv = monitor.recv || 'none';
             }
@@ -183,7 +183,7 @@ function handleGSLBMonitor() {
             }
 
             if (monitor.monitorType === 'udp') {
-                body.debug = (monitor.debug) ? 'yes' : 'no';
+                body.debug = (monitor.debug);
             }
 
             const monPath = `${PATHS.GSLBMonitor}/${monitor.monitorType}`;
@@ -221,21 +221,21 @@ function handleGSLBServer() {
                 proberFallback: server.proberFallback,
                 proberPool: server.proberPool || 'none',
                 limitMaxBps: server.limitMaxBps,
-                limitMaxBpsStatus: server.limitMaxBpsStatus ? 'enabled' : 'disabled',
+                limitMaxBpsStatus: server.limitMaxBpsStatus,
                 limitMaxPps: server.limitMaxPps,
-                limitMaxPpsStatus: server.limitMaxPpsStatus ? 'enabled' : 'disabled',
+                limitMaxPpsStatus: server.limitMaxPpsStatus,
                 limitMaxConnections: server.limitMaxConnections,
-                limitMaxConnectionsStatus: server.limitMaxConnectionsStatus ? 'enabled' : 'disabled',
+                limitMaxConnectionsStatus: server.limitMaxConnectionsStatus,
                 limitCpuUsage: server.limitCpuUsage,
-                limitCpuUsageStatus: server.limitCpuUsageStatus ? 'enabled' : 'disabled',
+                limitCpuUsageStatus: server.limitCpuUsageStatus,
                 limitMemAvail: server.limitMemAvail,
-                limitMemAvailStatus: server.limitMemAvailStatus ? 'enabled' : 'disabled',
-                iqAllowServiceCheck: server.iqAllowServiceCheck ? 'yes' : 'no',
-                iqAllowPath: server.iqAllowPath ? 'yes' : 'no',
-                iqAllowSnmp: server.iqAllowSnmp ? 'yes' : 'no',
+                limitMemAvailStatus: server.limitMemAvailStatus,
+                iqAllowServiceCheck: server.iqAllowServiceCheck,
+                iqAllowPath: server.iqAllowPath,
+                iqAllowSnmp: server.iqAllowSnmp,
                 datacenter: server.datacenter,
                 devices: server.devices,
-                exposeRouteDomains: server.exposeRouteDomains ? 'yes' : 'no',
+                exposeRouteDomains: server.exposeRouteDomains,
                 virtualServerDiscovery: server.virtualServerDiscovery,
                 monitor: mapMonitors(server),
                 virtualServers: server.virtualServers.map(vs => ({

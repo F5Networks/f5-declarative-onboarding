@@ -640,6 +640,31 @@ describe('inspectHandler', () => {
                     }
                 }
             ],
+            '/tm/net/routing/access-list': [
+                {
+                    name: 'exampleAccessList',
+                    description: 'my description',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/access-list/~Common~exampleAccessList/entries?ver=14.1.2.7'
+                    }
+                }
+            ],
+            '/tm/net/routing/access-list/~Common~exampleAccessList/entries': [
+                {
+                    name: 20,
+                    action: 'permit',
+                    source: '10.3.3.0/24',
+                    exactMatch: 'disabled',
+                    destination: '10.4.4.0/24'
+                },
+                {
+                    name: 30,
+                    action: 'deny',
+                    source: '1111:2222:3333:4444::/64',
+                    exactMatch: 'enabled',
+                    destination: '1111:2222:3333:5555::/64'
+                }
+            ],
             '/tm/net/routing/as-path/~Common~exampleAsPath/entries': [
                 {
                     name: '10',
@@ -744,6 +769,7 @@ describe('inspectHandler', () => {
             '/tm/net/routing/bgp/~Common~exampleBGP/neighbor': [
                 {
                     name: '10.1.1.2',
+                    ebgpMultihop: 2,
                     peerGroup: 'Neighbor_IN',
                     unwanted: 1
                 }
@@ -1083,11 +1109,19 @@ describe('inspectHandler', () => {
             '/tm/net/tunnels/tunnel': [
                 {
                     name: 'tunnel',
+                    description: 'this is my tunnel',
                     mtu: 0,
                     profile: '/Common/tcp-forward',
                     tos: 'preserve',
                     usePmtu: 'enabled',
-                    autoLasthop: 'default'
+                    autoLasthop: 'default',
+                    localAddress: 'any6',
+                    remoteAddress: 'any6',
+                    secondaryAddress: 'any6',
+                    key: 0,
+                    mode: 'bidirectional',
+                    transparent: 'disabled',
+                    trafficGroup: 'none'
                 }
             ],
             '/tm/sys/disk/directory': {
@@ -1474,7 +1508,54 @@ describe('inspectHandler', () => {
                     }
                 }
             ],
-            '/tm/security/firewall/policy/~Common~currentFirewallPolicyNoRules/rules': []
+            '/tm/security/firewall/policy/~Common~currentFirewallPolicyNoRules/rules': [],
+            '/tm/security/firewall/management-ip-rules': {
+                description: 'management IP firewall description',
+                rulesReference: {
+                    link: 'https://localhost/mgmt/tm/security/firewall/management-ip-rules/rules'
+                }
+            },
+            '/tm/security/firewall/management-ip-rules/rules': [
+                {
+                    name: 'firewallRuleOne',
+                    description: 'firewall rule one description',
+                    action: 'accept',
+                    ipProtocol: 'any',
+                    log: 'no',
+                    source: {
+                        identity: {}
+                    },
+                    destination: {}
+                },
+                {
+                    name: 'firewallRuleTwo',
+                    description: 'firewall rule two description',
+                    action: 'reject',
+                    ipProtocol: 'tcp',
+                    log: 'yes',
+                    source: {
+                        identity: {},
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    },
+                    destination: {
+                        addressLists: [
+                            '/Common/myAddressList1',
+                            '/Common/myAddressList2'
+                        ],
+                        portLists: [
+                            '/Common/myPortList1',
+                            '/Common/myPortList2'
+                        ]
+                    }
+                }
+            ]
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1622,6 +1703,26 @@ describe('inspectHandler', () => {
                             class: 'Route',
                             localOnly: true
                         },
+                        exampleAccessList: {
+                            class: 'RoutingAccessList',
+                            remark: 'my description',
+                            entries: [
+                                {
+                                    name: 20,
+                                    action: 'permit',
+                                    source: '10.3.3.0/24',
+                                    exactMatchEnabled: false,
+                                    destination: '10.4.4.0/24'
+                                },
+                                {
+                                    name: 30,
+                                    action: 'deny',
+                                    source: '1111:2222:3333:4444::/64',
+                                    exactMatchEnabled: true,
+                                    destination: '1111:2222:3333:5555::/64'
+                                }
+                            ]
+                        },
                         exampleAsPath: {
                             class: 'RoutingAsPath',
                             entries: [
@@ -1704,6 +1805,7 @@ describe('inspectHandler', () => {
                             neighbors: [
                                 {
                                     address: '10.1.1.2',
+                                    ebgpMultihop: 2,
                                     peerGroup: 'Neighbor_IN'
                                 }
                             ],
@@ -2045,11 +2147,19 @@ describe('inspectHandler', () => {
                         },
                         tunnel: {
                             class: 'Tunnel',
+                            remark: 'this is my tunnel',
                             tunnelType: 'tcp-forward',
                             mtu: 0,
                             usePmtu: true,
                             typeOfService: 'preserve',
-                            autoLastHop: 'default'
+                            autoLastHop: 'default',
+                            transparent: false,
+                            localAddress: 'any6',
+                            remoteAddress: 'any6',
+                            secondaryAddress: 'any6',
+                            key: 0,
+                            mode: 'bidirectional',
+                            trafficGroup: 'none'
                         },
                         currentDisk: {
                             class: 'Disk',
@@ -2301,6 +2411,48 @@ describe('inspectHandler', () => {
                         currentFirewallPolicyNoRules: {
                             class: 'FirewallPolicy',
                             rules: []
+                        },
+                        currentManagementIpFirewall: {
+                            class: 'ManagementIpFirewall',
+                            remark: 'management IP firewall description',
+                            rules: [
+                                {
+                                    name: 'firewallRuleOne',
+                                    remark: 'firewall rule one description',
+                                    action: 'accept',
+                                    protocol: 'any',
+                                    loggingEnabled: false,
+                                    source: {},
+                                    destination: {}
+                                },
+                                {
+                                    name: 'firewallRuleTwo',
+                                    remark: 'firewall rule two description',
+                                    action: 'reject',
+                                    protocol: 'tcp',
+                                    loggingEnabled: true,
+                                    source: {
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
+                                        ]
+                                    },
+                                    destination: {
+                                        addressLists: [
+                                            '/Common/myAddressList1',
+                                            '/Common/myAddressList2'
+                                        ],
+                                        portLists: [
+                                            '/Common/myPortList1',
+                                            '/Common/myPortList2'
+                                        ]
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2493,6 +2645,11 @@ describe('inspectHandler', () => {
                 },
                 '/tm/auth/radius': {
                     type: 'local'
+                },
+                '/tm/security/firewall/management-ip-rules': {
+                    rulesReference: {
+                        link: 'https://localhost/mgmt/tm/security/firewall/management-ip-rules/rules'
+                    }
                 }
             });
 
@@ -2572,6 +2729,10 @@ describe('inspectHandler', () => {
                                 address: 'any6',
                                 interface: 'none',
                                 port: 0
+                            },
+                            currentManagementIpFirewall: {
+                                class: 'ManagementIpFirewall',
+                                rules: []
                             }
                         }
                     }

@@ -18,7 +18,8 @@
             "unitOfMeasure": "hourly",
             "reachable": false,
             "hypervisor": "vmware",
-            "tenant": "Optional custom descriptor"
+            "tenant": "Optional custom descriptor",
+            "chargebackTag": "foo-bar"
         },
         "myDns": {
             "class": "DNS",

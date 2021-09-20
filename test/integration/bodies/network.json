@@ -27,6 +27,12 @@
             ],
             "autoLastHop": "default"
         },
+        "myGreTunnel": {
+            "class": "Tunnel",
+            "tunnelType": "gre",
+            "localAddress": "10.10.10.10",
+            "mode": "bidirectional"
+        },
         "mySelfIp": {
             "class": "SelfIp",
             "address": "10.148.75.46/24",
@@ -44,6 +50,12 @@
             ],
             "trafficGroup": "traffic-group-local-only"
         },
+        "myGreTunnelSelf": {
+            "class": "SelfIp",
+            "address": "10.10.10.0/24",
+            "vlan": "myGreTunnel",
+            "allowService": "default"
+        },
         "myRoute": {
             "class": "Route",
             "gw": "10.148.75.1",
@@ -55,6 +67,12 @@
             "target": "myVlan",
             "network": "default",
             "localOnly": true
+        },
+        "myGreTunnelRoute": {
+            "class": "Route",
+            "target": "myGreTunnel",
+            "network": "10.10.20.0/24",
+            "mtu": 1500
         },
         "internal-self": {
             "class": "SelfIp",
@@ -96,6 +114,41 @@
             "class": "MirrorIp",
             "primaryIp": "::ffff:0a94:552e",
             "secondaryIp": "any6"
+        },
+        "testRoutingAccessList1": {
+            "class": "RoutingAccessList",
+            "entries": [
+                {
+                    "name": "11",
+                    "action": "permit",
+                    "destination": "10.10.0.0/16",
+                    "exactMatchEnabled": false,
+                    "source": "10.11.0.0/16"
+                },
+                {
+                    "name": "22",
+                    "action": "deny",
+                    "destination": "10.12.13.14",
+                    "exactMatchEnabled": false,
+                    "source": "10.13.14.15"
+                }
+            ]
+        },
+        "testRoutingAccessList2": {
+            "class": "RoutingAccessList",
+            "entries": [
+                {
+                    "name": "33",
+                    "action": "permit",
+                    "exactMatchEnabled": true,
+                    "source": "1111:2222::/64"
+                },
+                {
+                    "name": 44,
+                    "action": "permit",
+                    "source": "1111:3333::/64"
+                }
+            ]
         },
         "testRoutingAsPath1": {
             "class": "RoutingAsPath",
@@ -186,6 +239,7 @@
             "neighbors": [
                 {
                     "address": "10.1.1.2",
+                    "ebgpMultihop": 2,
                     "peerGroup": "Neighbor"
                 }
             ],

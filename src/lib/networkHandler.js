@@ -84,6 +84,10 @@ class NetworkHandler {
                 return handleFirewallPolicy.call(this);
             })
             .then(() => {
+                logger.fine('Checking ManagementIpFirewall.');
+                return handleManagementIpFirewall.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking SelfIps');
                 return handleSelfIp.call(this);
             })
@@ -102,6 +106,10 @@ class NetworkHandler {
             .then(() => {
                 logger.info('Checking RoutingAsPath');
                 return handleRoutingAsPath.call(this);
+            })
+            .then(() => {
+                logger.info('Checking RoutingAccessList');
+                return handleRoutingAccessList.call(this);
             })
             .then(() => {
                 logger.info('Checking RoutingPrefixList');
@@ -156,7 +164,7 @@ function handleVlan() {
                     partition: tenant,
                     autoLasthop: vlan.autoLasthop,
                     cmpHash: vlan.cmpHash,
-                    failsafe: vlan.failsafe ? 'enabled' : 'disabled',
+                    failsafe: vlan.failsafe,
                     failsafeAction: vlan.failsafeAction,
                     failsafeTimeout: vlan.failsafeTimeout
                 };
@@ -224,26 +232,9 @@ function handleFirewallPolicy() {
         if (firewallPolicy && firewallPolicy.name) {
             const body = {
                 name: firewallPolicy.name,
-                description: firewallPolicy.description || 'none'
+                description: firewallPolicy.description || 'none',
+                rules: formatRulesRequest(firewallPolicy.rules)
             };
-
-            body.rules = firewallPolicy.rules.map((rule, index, rules) => ({
-                name: rule.name,
-                description: rule.description || 'none',
-                action: rule.action,
-                ipProtocol: rule.ipProtocol,
-                log: rule.log ? 'yes' : 'no',
-                placeAfter: index === 0 ? 'first' : rules[index - 1].name,
-                source: {
-                    addressLists: rule.source.addressLists || [],
-                    portLists: rule.source.portLists || [],
-                    vlans: rule.source.vlans || []
-                },
-                destination: {
-                    addressLists: rule.destination.addressLists || [],
-                    portLists: rule.destination.portLists || []
-                }
-            }));
 
             promises.push(this.bigIp.createOrModify(PATHS.FirewallPolicy, body, null, cloudUtil.MEDIUM_RETRY));
         }
@@ -255,6 +246,30 @@ function handleFirewallPolicy() {
             throw err;
         });
 }
+
+function handleManagementIpFirewall() {
+    const mgmtIpFirewall = this.declaration.Common.ManagementIpFirewall;
+
+    if (!mgmtIpFirewall) {
+        return Promise.resolve();
+    }
+
+    const body = {
+        description: mgmtIpFirewall.description || 'none',
+        rules: formatRulesRequest(mgmtIpFirewall.rules)
+    };
+
+    body.rules.forEach((rule) => {
+        delete rule.source.vlans;
+    });
+
+    return this.bigIp.modify(PATHS.ManagementIpFirewall, body)
+        .catch((err) => {
+            logger.severe(`Error creating Management IP Firewall: ${err.message}`);
+            throw err;
+        });
+}
+
 
 function handleFirewallPortList() {
     const promises = [];
@@ -526,15 +541,15 @@ function handleDnsResolver() {
             const resolverBody = {
                 name: resolver.name,
                 partition: tenant,
-                answerDefaultZones: resolver.answerDefaultZones ? 'yes' : 'no',
+                answerDefaultZones: resolver.answerDefaultZones,
                 cacheSize: resolver.cacheSize,
                 forwardZones: forwardZones || 'none',
-                randomizeQueryNameCase: resolver.randomizeQueryNameCase ? 'yes' : 'no',
+                randomizeQueryNameCase: resolver.randomizeQueryNameCase,
                 routeDomain: resolver.routeDomain,
-                useIpv4: resolver.useIpv4 ? 'yes' : 'no',
-                useIpv6: resolver.useIpv6 ? 'yes' : 'no',
-                useTcp: resolver.useTcp ? 'yes' : 'no',
-                useUdp: resolver.useUdp ? 'yes' : 'no'
+                useIpv4: resolver.useIpv4,
+                useIpv6: resolver.useIpv6,
+                useTcp: resolver.useTcp,
+                useUdp: resolver.useUdp
             };
 
             promises.push(
@@ -558,12 +573,12 @@ function handleTrunk() {
                 name: trunk.name,
                 distributionHash: trunk.distributionHash,
                 interfaces: trunk.interfaces,
-                lacp: trunk.lacp ? 'enabled' : 'disabled',
+                lacp: trunk.lacp,
                 lacpMode: trunk.lacpMode,
                 lacpTimeout: trunk.lacpTimeout,
                 linkSelectPolicy: trunk.linkSelectPolicy,
                 qinqEthertype: trunk.qinqEthertype,
-                stp: trunk.stp ? 'enabled' : 'disabled'
+                stp: trunk.stp
             };
 
             promises.push(
@@ -595,7 +610,7 @@ function handleRouteDomain() {
                 ipIntelligencePolicy: routeDomain.ipIntelligencePolicy,
                 securityNatPolicy: routeDomain.securityNatPolicy,
                 servicePolicy: routeDomain.servicePolicy,
-                strict: routeDomain.strict ? 'enabled' : 'disabled',
+                strict: routeDomain.strict,
                 routingProtocol: routeDomain.routingProtocol,
                 vlans: routeDomain.vlans
             };
@@ -634,17 +649,38 @@ function handleDagGlobals() {
 
 function handleTunnel() {
     const promises = [];
+    const deletePromises = [];
+
     doUtil.forEach(this.declaration, 'Tunnel', (tenant, tunnel) => {
         if (tunnel && tunnel.name && tunnel.profile) {
             const tunnelBody = {
                 name: tunnel.name,
+                description: tunnel.description,
                 partition: tenant,
                 autoLasthop: tunnel.autoLasthop,
                 mtu: tunnel.mtu,
                 profile: `/Common/${tunnel.profile}`,
                 tos: tunnel.tos,
-                usePmtu: tunnel.usePmtu ? 'enabled' : 'disabled'
+                usePmtu: tunnel.usePmtu,
+                localAddress: tunnel.localAddress,
+                remoteAddress: tunnel.remoteAddress,
+                secondaryAddress: tunnel.secondaryAddress,
+                key: tunnel.key,
+                mode: tunnel.mode,
+                transparent: tunnel.transparent,
+                trafficGroup: tunnel.trafficGroup
             };
+
+            // if we are changing the profile or trafficGroup, we first have to delete the tunnel
+            // (but we can't delete http-tunnel or socks-tunnel)
+            if (tunnel.name !== 'http-tunnel'
+                && tunnel.name !== 'socks-tunnel'
+                && this.state.currentConfig[tenant].Tunnel[tunnel.name]) {
+                if (tunnel.profile !== this.state.currentConfig[tenant].Tunnel[tunnel.name].profile
+                    || tunnel.trafficGroup !== this.state.currentConfig[tenant].Tunnel[tunnel.name].trafficGroup) {
+                    deletePromises.push(this.bigIp.delete(`${PATHS.Tunnel}/${tunnel.name}`));
+                }
+            }
 
             promises.push(
                 this.bigIp.createOrModify(PATHS.Tunnel, tunnelBody, null, cloudUtil.MEDIUM_RETRY)
@@ -652,7 +688,8 @@ function handleTunnel() {
         }
     });
 
-    return Promise.all(promises)
+    return Promise.all(deletePromises)
+        .then(() => Promise.all(promises))
         .catch((err) => {
             logger.severe(`Error creating Tunnels: ${err.message}`);
             throw err;
@@ -662,7 +699,7 @@ function handleTunnel() {
 function handleEnableRouting() {
     const promises = [];
     let enabledRouting = false;
-    ['RoutingBGP', 'RouteMap', 'RoutingAsPath', 'RoutingPrefixList'].forEach((routingModuleClass) => {
+    ['RoutingBGP', 'RouteMap', 'RoutingAsPath', 'RoutingAccessList', 'RoutingPrefixList'].forEach((routingModuleClass) => {
         doUtil.forEach(this.declaration, routingModuleClass, () => {
             if (!enabledRouting) {
                 // Enable routing module on the BIG-IP
@@ -711,6 +748,41 @@ function handleRoutingAsPath() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating RoutingAsPath: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleRoutingAccessList() {
+    const promises = [];
+    doUtil.forEach(this.declaration, 'RoutingAccessList', (tenant, list) => {
+        if (list && Object.keys(list).length !== 0) {
+            const entries = {};
+
+            (list.entries || []).forEach((entry) => {
+                entries[entry.name] = {
+                    action: entry.action,
+                    destination: entry.destination,
+                    exactMatch: entry.exactMatch,
+                    source: entry.source
+                };
+            });
+
+            const body = {
+                name: list.name,
+                partition: tenant,
+                description: list.description || 'none',
+                entries
+            };
+
+            promises.push(
+                this.bigIp.createOrModify(PATHS.RoutingAccessList, body, null, cloudUtil.MEDIUM_RETRY)
+            );
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating RoutingAccessList: ${err.message}`);
             throw err;
         });
 }
@@ -857,7 +929,7 @@ function handleRoutingBGP() {
                                         routeMap.out = af.routeMap.out || 'none';
                                     }
                                     entry.routeMap = routeMap;
-                                    entry.softReconfigurationInbound = af.softReconfigurationInbound ? 'enabled' : 'disabled';
+                                    entry.softReconfigurationInbound = af.softReconfigurationInbound;
                                     peerAddressFamilies.push(entry);
                                 });
                                 peerBody.addressFamily = peerAddressFamilies;
@@ -872,6 +944,7 @@ function handleRoutingBGP() {
                         bgp.neighbors.forEach((n) => {
                             const neighborBody = {};
                             neighborBody.name = n.name;
+                            neighborBody.ebgpMultihop = n.ebgpMultihop;
                             neighborBody.peerGroup = n.peerGroup;
                             neighbor.push(neighborBody);
                         });
@@ -882,7 +955,7 @@ function handleRoutingBGP() {
                         partition: tenant,
                         addressFamily: addressFamilies,
                         gracefulRestart: bgp.gracefulRestart ? {
-                            gracefulReset: bgp.gracefulRestart.gracefulReset === true ? 'enabled' : 'disabled',
+                            gracefulReset: bgp.gracefulRestart.gracefulReset,
                             restartTime: bgp.gracefulRestart.restartTime,
                             stalepathTime: bgp.gracefulRestart.stalepathTime
                         } : undefined,
@@ -1081,7 +1154,7 @@ function findMatchingRoutes(selfIpsToDelete) {
 
             existingRoutes.forEach((route) => {
                 selfIpsToDelete.forEach((selfIp) => {
-                    if (isInSubnet(route.gw, selfIp.address)) {
+                    if (route.gw && isInSubnet(route.gw, selfIp.address)) {
                         if (matchingRoutes.findIndex(elementMatches, route) === -1) {
                             matchingRoutes.push(route);
                         }
@@ -1117,6 +1190,34 @@ function exists(path, partition, name) {
 
 function elementMatches(element) {
     return this.name === element.name;
+}
+
+/**
+ * Converts an array of firewall rules, provided by the
+ * network.schema.json#/definitions/firewallRule definition, to an array
+ * of rules formatted for an iControl REST request body.
+ *
+ * @param {Object[]} rules - The rules to be included in the request body.
+ * @returns {Object[]} - The rules formatted for a request body.
+ */
+function formatRulesRequest(rules) {
+    return rules.map((rule, index, array) => ({
+        name: rule.name,
+        description: rule.description || 'none',
+        action: rule.action,
+        ipProtocol: rule.ipProtocol,
+        log: rule.log,
+        placeAfter: index === 0 ? 'first' : array[index - 1].name,
+        source: {
+            addressLists: rule.source.addressLists || [],
+            portLists: rule.source.portLists || [],
+            vlans: rule.source.vlans || []
+        },
+        destination: {
+            addressLists: rule.destination.addressLists || [],
+            portLists: rule.destination.portLists || []
+        }
+    }));
 }
 
 module.exports = NetworkHandler;

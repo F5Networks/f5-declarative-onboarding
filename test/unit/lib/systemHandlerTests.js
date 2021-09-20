@@ -707,7 +707,7 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 System: {
-                    autoPhonehome: false
+                    autoPhonehome: 'disabled'
                 }
             }
         };
@@ -723,7 +723,7 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 System: {
-                    autoCheck: false
+                    autoCheck: 'disabled'
                 }
             }
         };
@@ -739,7 +739,7 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 System: {
-                    audit: true
+                    audit: 'enabled'
                 }
             }
         };
@@ -755,7 +755,7 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 System: {
-                    guiAudit: true
+                    guiAudit: 'enabled'
                 }
             }
         };
@@ -772,8 +772,8 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 System: {
-                    audit: true,
-                    guiAudit: true
+                    audit: 'enabled',
+                    guiAudit: 'enabled'
                 }
             }
         };
@@ -1982,7 +1982,7 @@ describe('systemHandler', () => {
                 SnmpCommunity: {
                     myFirstSnmpCommunity: {
                         communityName: 'special!community',
-                        ipv6: false,
+                        ipv6: 'disabled',
                         source: 'all',
                         oidSubset: '.1',
                         access: 'ro'
@@ -2014,7 +2014,8 @@ describe('systemHandler', () => {
             Common: {
                 SnmpCommunity: {
                     myFirstSnmpCommunity: {
-                        communityName: 'myFirstSnmpCommunity'
+                        communityName: 'myFirstSnmpCommunity',
+                        ipv6: 'disabled'
                     }
                 }
             }
@@ -2037,9 +2038,9 @@ describe('systemHandler', () => {
         const declaration = {
             Common: {
                 SnmpTrapEvents: {
-                    agentTrap: true,
-                    authTrap: false,
-                    bigipTraps: true
+                    agentTrap: 'enabled',
+                    authTrap: 'disabled',
+                    bigipTraps: 'enabled'
                 }
             }
         };
@@ -2201,21 +2202,21 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     TrafficControl: {
-                        acceptIpOptions: true,
-                        acceptIpSourceRoute: true,
-                        allowIpSourceRoute: true,
-                        continueMatching: true,
+                        acceptIpOptions: 'enabled',
+                        acceptIpSourceRoute: 'enabled',
+                        allowIpSourceRoute: 'enabled',
+                        continueMatching: 'enabled',
                         maxIcmpRate: 867,
                         portFindLinear: 867,
                         portFindRandom: 867,
                         maxRejectRate: 867,
                         maxRejectRateTimeout: 200,
                         minPathMtu: 867,
-                        pathMtuDiscovery: false,
-                        portFindThresholdWarning: false,
+                        pathMtuDiscovery: 'disabled',
+                        portFindThresholdWarning: 'disabled',
                         portFindThresholdTrigger: 10,
                         portFindThresholdTimeout: 200,
-                        rejectUnmatched: false
+                        rejectUnmatched: 'disabled'
                     }
                 }
             };
