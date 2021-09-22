@@ -476,15 +476,12 @@ function resolveMcpReferences(mcpObject) {
     return Promise.all(promises).then(() => resolvedObject);
 }
 
-function getMcpObject(targetClass, options) {
-    let pathPrefix = `/${options.tenantName}/`;
-    if (options.mcpPath) {
-        pathPrefix = options.mcpPath;
-    }
-
+function getMcpObject(targetClass, inputOptions) {
+    const options = JSON.parse(JSON.stringify(inputOptions));
+    const pathPrefix = getPathPrefix(options);
     const itemName = getItemName(options);
     options.getMcpObject.itemName = options.getMcpObject.itemName || itemName;
-    pathPrefix += options.getMcpObject.itemName;
+    const path = `${pathPrefix}${options.getMcpObject.itemName}`;
 
     const className = options.getMcpObject.className ? options.getMcpObject.className : targetClass;
 
@@ -515,7 +512,7 @@ function getMcpObject(targetClass, options) {
                 return [];
             }
 
-            return response.body.items.filter(i => i.fullPath.startsWith(pathPrefix));
+            return response.body.items.filter(i => i.fullPath.startsWith(path));
         })
         .catch((err) => {
             if (enableConsole) {
@@ -530,7 +527,7 @@ function getMcpObject(targetClass, options) {
 
             if (mcpObjects.length === 0) {
                 const found = JSON.stringify(results, null, 2);
-                throw new Error(`Unable to find ${pathPrefix} on BIG-IP. Found: ${found}`);
+                throw new Error(`Unable to find ${path} on BIG-IP. Found: ${found}`);
             }
 
             return (options.findAll) ? mcpObjects : mcpObjects[0];
@@ -985,11 +982,19 @@ function getProvisionedModules() {
     return PROVISIONED_MODULES;
 }
 
+function getPathPrefix(options) {
+    let pathPrefix = `/${options.tenantName}/`;
+    if (options.mcpPath !== undefined) {
+        pathPrefix = options.mcpPath;
+    }
+    return pathPrefix;
+}
+
 function getItemName(options) {
-    const prefixLength = `/${options.tenantName}`.length;
+    const pathPrefix = getPathPrefix(options);
 
     let itemName = 'test_item-foo_';
-    let counter = prefixLength + itemName.length;
+    let counter = pathPrefix.length + itemName.length;
 
     const maxPathLength = options.maxPathLength || DEFAULT_OPTIONS.maxPathLength;
     const maxNameLength = options.maxNameLength || DEFAULT_OPTIONS.maxNameLength;
@@ -1012,5 +1017,6 @@ function getPreFetchFunctions(properties, index) {
 
 module.exports = {
     assertClass,
-    getProvisionedModules
+    getProvisionedModules,
+    postDeclaration
 };

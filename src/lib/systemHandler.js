@@ -1047,7 +1047,7 @@ function handleDisk() {
 }
 
 function createOrUpdateUser(username, data) {
-    let userEndpoint = '/tm/auth/user';
+    let userEndpoint = PATHS.User;
     if (this.bigIp.isBigIq()) {
         userEndpoint = '/shared/authz/users';
     }

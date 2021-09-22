@@ -103,5 +103,5 @@ If `npx` is available on your system, you can run the locally installed version 
 * Property tests are run against 1 BIG-IP
 * To run property tests
 ```
-DO_HOST=<ip> DO_USERNAME=<admin_username> DO_PASSWORD=<admin_password> npm run property
+DO_HOST=<ip> DO_USERNAME=<admin_username> DO_PASSWORD=<admin_password> INTEGRATION_TEST_PASSWORD=<password_for_test_users> INTEGRATION_ROOT_PASSWORD=<password_for_test_users> npm run property
 ```

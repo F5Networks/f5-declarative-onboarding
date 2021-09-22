@@ -54,7 +54,7 @@
     "build": "scripts/build/build.sh",
     "test": "mocha --recursive test/unit",
     "integration": "mocha test/integration/test.js",
-    "property": "mocha test/integration/property",
+    "property": "mocha test/integration/property test/integration/misc",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "coverage": "nyc npm test",
     "lint": "eslint src test",
