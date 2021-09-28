@@ -638,9 +638,9 @@
             { "id": "username", "newId": "name" },
             { "id": "access" },
             { "id": "authPassword", "newId": "authentication.password" },
-            { "id": "authProtocol", "newId": "authentication.protocol", "defaultWhenOmitted": "none" },
+            { "id": "authProtocol", "newId": "authentication.protocol" },
             { "id": "privacyPassword", "newId": "privacy.password" },
-            { "id": "privacyProtocol", "newId": "privacy.protocol", "defaultWhenOmitted": "none"  },
+            { "id": "privacyProtocol", "newId": "privacy.protocol" },
             { "id": "oidSubset", "newId": "oid" }
         ]
     },

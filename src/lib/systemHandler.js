@@ -122,6 +122,18 @@ class SystemHandler {
                 return handleSnmp.call(this);
             })
             .then(() => {
+                logger.fine('Checking SNMP Users.');
+                return handleSnmpUsers.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking SNMP Communities.');
+                return handleSnmpCommunities.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking SNMP Trap Destinations.');
+                return handleSnmpTrapDestinations.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking Syslog.');
                 return handleSyslog.call(this);
             })
@@ -790,10 +802,7 @@ function handleSnmp() {
     let promise = Promise.resolve();
 
     const agent = this.declaration.Common.SnmpAgent;
-    const users = this.declaration.Common.SnmpUser;
-    const communities = this.declaration.Common.SnmpCommunity;
     const trapEvents = this.declaration.Common.SnmpTrapEvents;
-    const trapDestinations = this.declaration.Common.SnmpTrapDestination;
 
     if (agent) {
         promise = promise.then(() => this.bigIp.modify(
@@ -817,37 +826,60 @@ function handleSnmp() {
         ));
     }
 
-    if (users) {
-        const transformedUsers = JSON.parse(JSON.stringify(users));
-        Object.keys(transformedUsers).forEach((username) => {
-            const user = transformedUsers[username];
+    return promise;
+}
+
+function handleSnmpUsers() {
+    let promise = Promise.resolve();
+
+    doUtil.forEach(this.declaration, 'SnmpUser', (tenant, snmpUser) => {
+        if (snmpUser && snmpUser.name) {
+            const user = JSON.parse(JSON.stringify(snmpUser));
             user.authProtocol = user.authProtocol || 'none';
             user.privacyProtocol = user.privacyProtocol || 'none';
-        });
 
-        promise = promise.then(() => this.bigIp.modify(
-            PATHS.SnmpUser,
-            { users: transformedUsers }
-        ));
-    }
+            // 'none' is only a valid option for 14.0+
+            if (cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
+                user.authPassword = user.authPassword || 'none';
+                user.privacyPassword = user.privacyPassword || 'none';
+            }
 
-    if (communities) {
-        const transformedComms = JSON.parse(JSON.stringify(communities));
-        Object.keys(transformedComms).forEach((communityName) => {
-            const community = transformedComms[communityName];
-            community.ipv6 = community.ipv6;
-        });
+            promise = promise.then(() => this.bigIp.createOrModify(
+                PATHS.SnmpUser,
+                user
+            ));
+        }
+    });
 
-        promise = promise.then(() => this.bigIp.modify(
-            PATHS.SnmpCommunity,
-            { communities: transformedComms }
-        ));
-    }
+    return promise;
+}
 
-    if (trapDestinations) {
-        const transformedDestinations = JSON.parse(JSON.stringify(trapDestinations));
-        Object.keys(transformedDestinations).forEach((destinationName) => {
-            const destination = transformedDestinations[destinationName];
+function handleSnmpCommunities() {
+    let promise = Promise.resolve();
+
+    doUtil.forEach(this.declaration, 'SnmpCommunity', (tenant, snmpCommunity) => {
+        if (snmpCommunity && snmpCommunity.name) {
+            const community = JSON.parse(JSON.stringify(snmpCommunity));
+            community.source = community.source || 'none';
+            community.oidSubset = community.oidSubset || 'none';
+
+            promise = promise.then(() => this.bigIp.createOrModify(
+                PATHS.SnmpCommunity,
+                community
+            ));
+        }
+    });
+
+    return promise;
+}
+
+function handleSnmpTrapDestinations() {
+    let promise = Promise.resolve();
+
+    doUtil.forEach(this.declaration, 'SnmpTrapDestination', (tenant, snmpTrapDestination) => {
+        if (snmpTrapDestination && snmpTrapDestination.name) {
+            const destination = JSON.parse(JSON.stringify(snmpTrapDestination));
+            destination.securityLevel = 'no-auth-no-privacy';
 
             if (destination.authPassword) {
                 destination.securityLevel = 'auth-no-privacy';
@@ -860,13 +892,25 @@ function handleSnmp() {
             if (destination.network !== 'mgmt') {
                 destination.network = (destination.network === 'management') ? 'mgmt' : 'other';
             }
-        });
 
-        promise = promise.then(() => this.bigIp.modify(
-            PATHS.SnmpCommunity,
-            { traps: transformedDestinations }
-        ));
-    }
+            destination.community = destination.community || 'none';
+            destination.securityName = destination.securityName || 'none';
+            destination.authProtocol = destination.authProtocol || 'none';
+            destination.privacyProtocol = destination.privacyProtocol || 'none';
+            destination.engineId = destination.engineId || 'none';
+
+            // 'none' is only a valid option for 14.0+
+            if (cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
+                destination.authPassword = destination.authPassword || 'none';
+                destination.privacyPassword = destination.privacyPassword || 'none';
+            }
+
+            promise = promise.then(() => this.bigIp.createOrModify(
+                PATHS.SnmpTrapDestination,
+                destination
+            ));
+        }
+    });
 
     return promise;
 }

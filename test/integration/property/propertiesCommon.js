@@ -982,6 +982,10 @@ function getProvisionedModules() {
     return PROVISIONED_MODULES;
 }
 
+function getBigIpVersion() {
+    return BIGIP_VERSION;
+}
+
 function getPathPrefix(options) {
     let pathPrefix = `/${options.tenantName}/`;
     if (options.mcpPath !== undefined) {
@@ -1018,5 +1022,6 @@ function getPreFetchFunctions(properties, index) {
 module.exports = {
     assertClass,
     getProvisionedModules,
+    getBigIpVersion,
     postDeclaration
 };

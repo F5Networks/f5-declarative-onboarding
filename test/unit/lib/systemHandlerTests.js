@@ -1904,6 +1904,7 @@ describe('systemHandler', () => {
             Common: {
                 SnmpUser: {
                     myFirstSnmpUser: {
+                        name: 'myFirstSnmpUser',
                         username: 'my!name!withspecials',
                         authProtocol: 'sha',
                         authPassword: 'pass1W0rd!',
@@ -1919,29 +1920,64 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.username,
-                    'my!name!withspecials'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.authPassword, 'pass1W0rd!'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.authProtocol, 'sha'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.privacyPassword, 'P@ssW0rd'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.privacyProtocol, 'aes'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.oidSubset, '.1'
-                );
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].name, 'myFirstSnmpUser');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].username, 'my!name!withspecials');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authPassword, 'pass1W0rd!');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, 'sha');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyPassword, 'P@ssW0rd');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, 'aes');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].oidSubset, '.1');
             });
     });
 
     it('should handle SnmpUser defaults', () => {
+        const declaration = {
+            Common: {
+                SnmpUser: {
+                    myFirstSnmpUser: {
+                        name: 'myFirstSnmpUser'
+                    }
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].name, 'myFirstSnmpUser');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].username, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authPassword, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyPassword, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, 'none');
+            });
+    });
+
+    it('should handle SnmpUser defaults on BIG-IP versions < 14.0', () => {
+        const declaration = {
+            Common: {
+                SnmpUser: {
+                    myFirstSnmpUser: {
+                        name: 'myFirstSnmpUser'
+                    }
+                }
+            }
+        };
+        sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1.3' });
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].name, 'myFirstSnmpUser');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].username, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authPassword, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyPassword, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, 'none');
+            });
+    });
+
+    it('should skip empty SnmpUser', () => {
         const declaration = {
             Common: {
                 SnmpUser: {
@@ -1953,26 +1989,7 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.username,
-                    undefined
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.authPassword,
-                    undefined
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.authProtocol,
-                    'none'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.privacyPassword,
-                    undefined
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].users.myFirstSnmpUser.privacyProtocol,
-                    'none'
-                );
+                assert.strictEqual(dataSent, null);
             });
     });
 
@@ -1981,6 +1998,7 @@ describe('systemHandler', () => {
             Common: {
                 SnmpCommunity: {
                     myFirstSnmpCommunity: {
+                        name: 'myFirstSnmpCommunity',
                         communityName: 'special!community',
                         ipv6: 'disabled',
                         source: 'all',
@@ -1994,18 +2012,11 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.communityName,
-                    'special!community'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.oidSubset,
-                    '.1'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.ipv6,
-                    'disabled'
-                );
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].name, 'myFirstSnmpCommunity');
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].communityName, 'special!community');
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].oidSubset, '.1');
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].source, 'all');
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].ipv6, 'disabled');
             });
     });
 
@@ -2014,6 +2025,7 @@ describe('systemHandler', () => {
             Common: {
                 SnmpCommunity: {
                     myFirstSnmpCommunity: {
+                        name: 'myFirstSnmpCommunity',
                         communityName: 'myFirstSnmpCommunity',
                         ipv6: 'disabled'
                     }
@@ -2024,13 +2036,27 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.communityName,
-                    'myFirstSnmpCommunity'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpUser][0].communities.myFirstSnmpCommunity.ipv6, 'disabled'
-                );
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].name, 'myFirstSnmpCommunity');
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].communityName, 'myFirstSnmpCommunity');
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].oidSubset, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].source, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].ipv6, 'disabled');
+            });
+    });
+
+    it('should skip empty SnmpCommunity', () => {
+        const declaration = {
+            Common: {
+                SnmpCommunity: {
+                    myFirstSnmpCommunity: {}
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(dataSent, null);
             });
     });
 
@@ -2048,9 +2074,9 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].agentTrap, 'enabled');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authTrap, 'disabled');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].bigipTraps, 'enabled');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapEvents][0].agentTrap, 'enabled');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapEvents][0].authTrap, 'disabled');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapEvents][0].bigipTraps, 'enabled');
             });
     });
 
@@ -2059,6 +2085,7 @@ describe('systemHandler', () => {
             Common: {
                 SnmpTrapDestination: {
                     myDestination: {
+                        name: 'myDestination',
                         version: '3',
                         host: '10.0.10.100',
                         port: 80,
@@ -2067,7 +2094,8 @@ describe('systemHandler', () => {
                         authPassword: 'P@ssW0rd1',
                         privacyProtocol: 'aes',
                         privacyPassword: 'P@ssW0rd2',
-                        engineId: '0x80001f8880c6b6067fdacfb558'
+                        engineId: '0x80001f8880c6b6067fdacfb558',
+                        securityName: 'someSnmpUser'
                     }
                 }
             }
@@ -2076,34 +2104,48 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.authPassword,
-                    'P@ssW0rd1'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.authProtocol,
-                    'sha'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.privacyPassword,
-                    'P@ssW0rd2'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.privacyProtocol,
-                    'aes'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.securityLevel,
-                    'auth-privacy'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.engineId,
-                    '0x80001f8880c6b6067fdacfb558'
-                );
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.host,
-                    '10.0.10.100'
-                );
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authPassword, 'P@ssW0rd1');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, 'sha');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyPassword, 'P@ssW0rd2');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, 'aes');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'auth-privacy');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, '0x80001f8880c6b6067fdacfb558');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].host, '10.0.10.100');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'someSnmpUser');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, 'none');
+            });
+    });
+
+    it('should handle SnmpTrapDestination with only auth', () => {
+        const declaration = {
+            Common: {
+                SnmpTrapDestination: {
+                    myDestination: {
+                        name: 'myDestination',
+                        version: '3',
+                        authProtocol: 'sha',
+                        authPassword: 'P@ssW0rd',
+                        securityName: 'someSnmpUser'
+                    }
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authPassword, 'P@ssW0rd');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, 'sha');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'auth-no-privacy');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'someSnmpUser');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyPassword, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, 'none');
             });
     });
 
@@ -2112,8 +2154,8 @@ describe('systemHandler', () => {
             Common: {
                 SnmpTrapDestination: {
                     myDestination: {
-                        authProtocol: 'sha',
-                        authPassword: 'P@ssW0rd'
+                        name: 'myDestination',
+                        community: 'public'
                     }
                 }
             }
@@ -2122,10 +2164,57 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.myDestination.securityLevel,
-                    'auth-no-privacy'
-                );
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, 'public');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'no-auth-no-privacy');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authPassword, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyPassword, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, 'none');
+            });
+    });
+
+    it('should handle SnmpTrapDestination defaults on BIG-IP versions < 14.0', () => {
+        const declaration = {
+            Common: {
+                SnmpTrapDestination: {
+                    myDestination: {
+                        name: 'myDestination',
+                        community: 'public'
+                    }
+                }
+            }
+        };
+        sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1.3' });
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, 'public');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'no-auth-no-privacy');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, 'none');
+            });
+    });
+
+    it('should skip empty SnmpTrapDestination', () => {
+        const declaration = {
+            Common: {
+                SnmpTrapDestination: {}
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(dataSent, null);
             });
     });
 
@@ -2134,6 +2223,7 @@ describe('systemHandler', () => {
             Common: {
                 SnmpTrapDestination: {
                     dest: {
+                        name: 'dest',
                         network: 'management'
                     }
                 }
@@ -2142,10 +2232,8 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.dest.network,
-                    'mgmt'
-                );
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'dest');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'mgmt');
             });
     });
 
@@ -2154,6 +2242,7 @@ describe('systemHandler', () => {
             Common: {
                 SnmpTrapDestination: {
                     dest: {
+                        name: 'dest',
                         network: 'mgmt'
                     }
                 }
@@ -2162,10 +2251,8 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.strictEqual(
-                    dataSent[PATHS.SnmpTrapDestination][0].traps.dest.network,
-                    'mgmt'
-                );
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'dest');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'mgmt');
             });
     });
 

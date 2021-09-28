@@ -3257,6 +3257,57 @@ describe('configManager', () => {
         });
     });
 
+    describe('SnmpUser', () => {
+        it('should reset name property if translateToNewId is disabled ', () => {
+            const configItems = getConfigItems('SnmpUser');
+
+            listResponses['/tm/sys/snmp/users'] = [
+                {
+                    name: 'user1',
+                    username: 'special!username'
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState, { translateToNewId: false })
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.SnmpUser.user1,
+                        {
+                            name: 'user1',
+                            username: 'special!username'
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('SnmpCommunity', () => {
+        it('should reset name property if translateToNewId is disabled ', () => {
+            const configItems = getConfigItems('SnmpCommunity');
+
+            listResponses['/tm/sys/snmp/communities'] = [
+                {
+                    name: 'community1',
+                    communityName: 'public'
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState, { translateToNewId: false })
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.SnmpCommunity.community1,
+                        {
+                            name: 'community1',
+                            ipv6: 'disabled',
+                            communityName: 'public'
+                        }
+                    );
+                });
+        });
+    });
+
     describe('minVersion', () => {
         it('should add to currentConfig if minVersion is met', () => {
             const configItems = [

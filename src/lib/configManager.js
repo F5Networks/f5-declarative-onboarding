@@ -281,6 +281,20 @@ class ConfigManager {
                                         patchedItem.name = name;
                                     }
 
+                                    if (schemaClass === 'SnmpUser') {
+                                        // Don't update name if configManager is called by inspectHandler
+                                        if (!configOptions.translateToNewId) {
+                                            patchedItem.name = name;
+                                        }
+                                    }
+
+                                    if (schemaClass === 'SnmpCommunity') {
+                                        // Don't update name if configManager is called by inspectHandler
+                                        if (!configOptions.translateToNewId) {
+                                            patchedItem.name = name;
+                                        }
+                                    }
+
                                     if (schemaClass === 'RemoteAuthRole') {
                                         patchedItem.name = name; // The patchedItem needs its name updated too
                                     }

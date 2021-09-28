@@ -44,7 +44,10 @@ const DELETABLE_CLASSES = [
     'RoutingAccessList',
     'RoutingAsPath',
     'RoutingPrefixList',
-    'GSLBMonitor'
+    'GSLBMonitor',
+    'SnmpTrapDestination',
+    'SnmpCommunity',
+    'SnmpUser'
 ];
 const READ_ONLY_DEVICE_GROUPS = ['device_trust_group', 'gtm', 'datasync-global-dg', 'dos-global-dg'];
 

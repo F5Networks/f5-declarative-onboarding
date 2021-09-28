@@ -188,7 +188,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         it('should match SnmpCommunity without special character', () => assert.deepStrictEqual(
             currentState.SnmpCommunity.mySnmpCommunityWithoutSpecialCharacter,
             {
-                name: '/Common/mySnmpCommunityWithoutSpecialCharacter',
+                name: 'mySnmpCommunityWithoutSpecialCharacter',
                 access: 'ro',
                 communityName: 'mySnmpCommunityWithoutSpecialCharacter',
                 ipv6: 'disabled',
@@ -200,7 +200,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         it('should match SnmpCommunity with special character', () => assert.deepStrictEqual(
             currentState.SnmpCommunity.mySnmpCommunityWithSpecialCharacter,
             {
-                name: '/Common/mySnmpCommunityWithSpecialCharacter',
+                name: 'mySnmpCommunityWithSpecialCharacter',
                 access: 'ro',
                 communityName: 'special!community',
                 ipv6: 'disabled',

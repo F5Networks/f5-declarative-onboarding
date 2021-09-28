@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 
 ### Fixed
+- AUTOTOOL-2721: SnmpTrapDestination, SnmpUser, and SnmpCommunity objects cannot be removed once created
 
 ### Changed
 - AUTOTOOL-2544: Use a default of "UTC" for the timezone property of the NTP class
