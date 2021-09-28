@@ -20,7 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@f5devcentral/atg-shared-utilities": "^0.2.1",
-    "@f5devcentral/f5-cloud-libs": "^4.26.4",
+    "@f5devcentral/f5-cloud-libs": "^4.26.5",
     "@f5devcentral/f5-teem": "^1.5.0",
     "ajv": "6.12.6",
     "deep-diff": "^1.0.2",
@@ -38,7 +38,7 @@
     "coveralls": "^3.1.1",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.24.0",
+    "eslint-plugin-import": "^2.24.2",
     "json-schema-ref-parser": "^9.0.9",
     "mkdirp": "^1.0.4",
     "mocha": "^8.4.0",
