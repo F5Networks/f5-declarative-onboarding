@@ -3009,8 +3009,17 @@ describe('configManager', () => {
                 {
                     name: 'firewallPolicy',
                     description: 'firewall policy description',
+                    fullPath: '/Common/firewallPolicy',
                     rulesReference: {
                         link: 'https://localhost/mgmt/tm/security/firewall/policy/~Common~firewallPolicy/rules'
+                    }
+                },
+                {
+                    name: 'firewallPolicy',
+                    description: 'firewall policy managed by AS3',
+                    fullPath: '/Common/Shared/firewallPolicy',
+                    rulesReference: {
+                        link: 'https://localhost/mgmt/tm/security/firewall/policy/~Common~Shared~firewallPolicy/rules'
                     }
                 }
             ];

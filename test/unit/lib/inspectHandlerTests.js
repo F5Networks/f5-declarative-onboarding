@@ -1371,6 +1371,7 @@ describe('inspectHandler', () => {
                 {
                     name: 'currentFirewallAddressList',
                     description: 'firewall address list description',
+                    fullPath: '/Common/currentFirewallAddressList',
                     addresses: [
                         {
                             name: '10.1.0.1'
@@ -1394,6 +1395,7 @@ describe('inspectHandler', () => {
             '/tm/security/firewall/port-list': [
                 {
                     name: '_sys_self_allow_tcp_defaults',
+                    fullPath: '/Common/_sys_self_allow_tcp_defaults',
                     port: [
                         {
                             name: '22'
@@ -1417,6 +1419,7 @@ describe('inspectHandler', () => {
                 },
                 {
                     name: '_sys_self_allow_udp_defaults',
+                    fullPath: '/Common/_sys_self_allow_udp_defaults',
                     ports: [
                         {
                             name: '53'
@@ -1438,6 +1441,7 @@ describe('inspectHandler', () => {
                 {
                     name: 'currentFirewallPortList',
                     description: 'firewall port list description',
+                    fullPath: '/Common/currentFirewallPortList',
                     ports: [
                         {
                             name: '8080'
@@ -1452,12 +1456,14 @@ describe('inspectHandler', () => {
                 {
                     name: 'currentFirewallPolicy',
                     description: 'firewall policy description',
+                    fullPath: '/Common/currentFirewallPolicy',
                     rulesReference: {
                         link: 'https://localhost/mgmt/tm/security/firewall/policy/~Common~currentFirewallPolicy/rules'
                     }
                 },
                 {
                     name: 'currentFirewallPolicyNoRules',
+                    fullPath: '/Common/currentFirewallPolicyNoRules',
                     rulesReference: {
                         link: 'https://localhost/mgmt/tm/security/firewall/policy/~Common~currentFirewallPolicyNoRules/rules'
                     }

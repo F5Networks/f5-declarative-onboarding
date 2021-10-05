@@ -254,6 +254,10 @@ class ConfigManager {
                                     }
                                     delete item.partition; // Must be removed for the diffs
 
+                                    if (schemaClass === 'FirewallPolicy' || schemaClass === 'FirewallAddressList' || schemaClass === 'FirewallPortList') {
+                                        patchFirewall.call(this, item);
+                                    }
+
                                     if (schemaClass === 'GSLBMonitor') {
                                         // Must pull the kind before it is removed in removeUnusedKeys()
                                         patchGSLBMonitor.call(this, item);
@@ -1155,6 +1159,11 @@ function patchGSLBServer(patchedItem, options) {
     patchedItem[monitorId] = getGtmMonitorArray(patchedItem[monitorId]);
     patchedItem.enabled = isEnabledGtmObject(patchedItem);
     delete patchedItem.disabled;
+}
+
+function patchFirewall(item) {
+    // Must remove fullPath for the diffs
+    delete item.fullPath;
 }
 
 function patchGSLBMonitor(item) {

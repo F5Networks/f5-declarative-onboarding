@@ -988,7 +988,11 @@
         "requiredModules": [{ "module": "afm" }],
         "properties": [
             { "id": "description", "newId": "remark" },
+            { "id": "fullPath" },
             { "id": "rulesReference", "dereferenceId": "rules" }
+        ],
+        "ignore": [
+            { "fullPath": "^/Common/Shared" }
         ],
         "references": {
             "rulesReference": [
@@ -1008,6 +1012,7 @@
         "requiredModules": [{ "module": "afm" }],
         "properties": [
             { "id": "description", "newId": "remark" },
+            { "id": "fullPath" },
             {
                 "id": "addresses",
                 "transformAsArray": true,
@@ -1029,6 +1034,9 @@
                     { "id": "geo", "extract": "name" }
                 ]
             }
+        ],
+        "ignore": [
+            { "fullPath": "^/Common/Shared" }
         ]
     },
     {
@@ -1037,6 +1045,7 @@
         "requiredModules": [{ "module": "afm" }],
         "properties": [
             { "id": "description", "newId": "remark" },
+            { "id": "fullPath" },
             {
                 "id": "ports",
                 "transformAsArray": true,
@@ -1047,7 +1056,8 @@
         ],
         "ignore": [
             { "name": "^_sys_self_allow_tcp_defaults$" },
-            { "name": "^_sys_self_allow_udp_defaults$" }
+            { "name": "^_sys_self_allow_udp_defaults$" },
+            { "fullPath": "^/Common/Shared" }
         ]
     },
     {
