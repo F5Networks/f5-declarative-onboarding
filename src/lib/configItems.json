@@ -992,7 +992,7 @@
             { "id": "rulesReference", "dereferenceId": "rules" }
         ],
         "ignore": [
-            { "fullPath": "^/Common/Shared" }
+            { "fullPath": "^/Common/Shared/" }
         ],
         "references": {
             "rulesReference": [
@@ -1036,7 +1036,7 @@
             }
         ],
         "ignore": [
-            { "fullPath": "^/Common/Shared" }
+            { "fullPath": "^/Common/Shared/" }
         ]
     },
     {
@@ -1057,7 +1057,7 @@
         "ignore": [
             { "name": "^_sys_self_allow_tcp_defaults$" },
             { "name": "^_sys_self_allow_udp_defaults$" },
-            { "fullPath": "^/Common/Shared" }
+            { "fullPath": "^/Common/Shared/" }
         ]
     },
     {
