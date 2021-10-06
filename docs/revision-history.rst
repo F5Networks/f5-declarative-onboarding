@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.25
+        - Updated the documentation for Declarative Onboarding v1.25.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * SnmpTrapDestination, SnmpUser, and SnmpCommunity objects cannot be removed once created |br| * Firewall policies managed by AS3 are not ignored, `GitHub Issue 255 <https://github.com/F5Networks/f5-declarative-onboarding/issues/255>`_
+        - 11-9-21
+
       * - 1.24
         - Updated the documentation for Declarative Onboarding v1.24.0.  This release contains the following changes: |br| * Added support for the **ebgpMultihop** property for BGP neighbors (see the updated :ref:`BGP example<bgprouting>`) |br| * Added support for **gre** and **geneve** tunnel types (see :ref:`Tunnels<example24>`) |br| * Added the optional **chargebackTag** to the BIG-IQ utility examples, and to the :ref:`License class<license-class>` section (see :ref:`BIG-IQ utility route<bigiq2>` and :ref:`BIG-IQ utility no route<bigiq3>`) |br| * Added support for firewall rules on the management interface (see :ref:`Firewall rules<manipfwr>`) |br| * Added support for network routing access lists (see :ref:`Access Lists<routeal>`) |br| * Added example declarations for Routes and Management Routes (see :ref:`Routes<routes>`) |br| * Added default values for version, port, and network for **SnmpTrapDestination** |br| |br| Issues Resolved: |br| * FirewallPolicy incorrectly allows VLANs to be included in the destination schema object
         - 9-21-21
