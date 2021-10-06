@@ -14,9 +14,9 @@ Currently supported versions:
 | Software Version | Release Type  | First Customer Ship |End of Support   |
 |------------------|---------------|---------------------|-----------------|
 | DO 1.21.1        | LTS           | 23-Jun-2021         | 23-Jun-2022     |
-| DO 1.22.0        | Feature       | 29-Jun-2021         | 29-Sep-2021     |
 | DO 1.23.0        | Feature       | 09-Aug-2021         | 09-Nov-2021     |
 | DO 1.24.0        | Feature       | 21-Sep-2021         | 21-Dec-2021     |
+| DO 1.25.0        | Feature       | 02-Nov-2021         | 02-Feb-2022     |
 
 \* Fix for Allowed schema version
 
@@ -50,6 +50,7 @@ Versions no longer supported:
 | DO 1.19.0        | Feature       | 23-Feb-2021         | 23-May-2021     |
 | DO 1.20.0        | Feature       | 06-Apr-2021         | 06-Jul-2021     |
 | DO 1.21.0        | Feature       | 18-May-2021         | 18-Aug-2021     |
+| DO 1.22.0        | Feature       | 29-Jun-2021         | 29-Sep-2021     |
 
 \* Fix for updated Docker Container packaging only
 
