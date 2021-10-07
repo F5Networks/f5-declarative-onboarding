@@ -323,13 +323,13 @@ describe('gslbHandler', () => {
                         dataSent[PATHS.GSLBServer][0],
                         {
                             name: 'gslbServer1',
-                            description: 'none',
+                            description: undefined,
                             enabled: true,
                             disabled: false,
                             product: 'bigip',
                             proberPreference: 'inherit',
                             proberFallback: 'inherit',
-                            proberPool: 'none',
+                            proberPool: undefined,
                             limitMaxBps: 0,
                             limitMaxBpsStatus: 'disabled',
                             limitMaxPps: 0,
@@ -347,7 +347,7 @@ describe('gslbHandler', () => {
                             devices: [
                                 {
                                     name: '0',
-                                    description: 'none',
+                                    description: undefined,
                                     addresses: [{
                                         name: '10.0.0.1',
                                         translation: 'none'
@@ -360,11 +360,11 @@ describe('gslbHandler', () => {
                             virtualServers: [
                                 {
                                     name: '0',
-                                    description: 'none',
+                                    description: undefined,
                                     enabled: true,
                                     disabled: false,
                                     destination: '10.0.20.1:0',
-                                    translationAddress: 'none',
+                                    translationAddress: undefined,
                                     translationPort: 0,
                                     monitor: ''
                                 }
@@ -427,7 +427,7 @@ describe('gslbHandler', () => {
                         dataSent[PATHS.GSLBServer][1],
                         {
                             name: 'gslbServer3',
-                            description: 'none',
+                            description: undefined,
                             enabled: true,
                             disabled: false,
                             product: 'bigip',
@@ -451,7 +451,7 @@ describe('gslbHandler', () => {
                             devices: [
                                 {
                                     name: '0',
-                                    description: 'none',
+                                    description: undefined,
                                     addresses: [{
                                         name: '10.0.0.1',
                                         translation: 'none'
@@ -530,7 +530,7 @@ describe('gslbHandler', () => {
                             dataSent[`${PATHS.GSLBMonitor}/http`][1],
                             {
                                 name: 'gslbMonitor2',
-                                description: 'none',
+                                description: undefined,
                                 destination: '*:*',
                                 interval: 30,
                                 timeout: 120,
@@ -538,8 +538,8 @@ describe('gslbHandler', () => {
                                 ignoreDownResponse: 'disabled',
                                 transparent: 'disabled',
                                 reverse: 'disabled',
-                                send: 'none',
-                                recv: 'none'
+                                send: undefined,
+                                recv: undefined
                             }
                         );
                     });
@@ -581,18 +581,18 @@ describe('gslbHandler', () => {
                             dataSent[`${PATHS.GSLBMonitor}/https`][1],
                             {
                                 name: 'gslbMonitor2',
-                                description: 'none',
+                                description: undefined,
                                 destination: '*:*',
                                 interval: 30,
                                 timeout: 120,
                                 probeTimeout: 5,
                                 ignoreDownResponse: 'disabled',
                                 transparent: 'disabled',
-                                cipherlist: 'none',
-                                cert: 'none',
+                                cipherlist: undefined,
+                                cert: undefined,
                                 reverse: 'disabled',
-                                send: 'none',
-                                recv: 'none'
+                                send: undefined,
+                                recv: undefined
                             }
                         );
                     });
@@ -629,7 +629,7 @@ describe('gslbHandler', () => {
                             dataSent[`${PATHS.GSLBMonitor}/gateway-icmp`][1],
                             {
                                 name: 'gslbMonitor2',
-                                description: 'none',
+                                description: undefined,
                                 destination: '*:*',
                                 interval: 30,
                                 timeout: 120,
@@ -675,7 +675,7 @@ describe('gslbHandler', () => {
                             dataSent[`${PATHS.GSLBMonitor}/tcp`][1],
                             {
                                 name: 'gslbMonitor2',
-                                description: 'none',
+                                description: undefined,
                                 destination: '*:*',
                                 interval: 30,
                                 timeout: 120,
@@ -683,8 +683,8 @@ describe('gslbHandler', () => {
                                 ignoreDownResponse: 'disabled',
                                 transparent: 'disabled',
                                 reverse: 'disabled',
-                                send: 'none',
-                                recv: 'none'
+                                send: undefined,
+                                recv: undefined
                             }
                         );
                     });
@@ -731,7 +731,7 @@ describe('gslbHandler', () => {
                             dataSent[`${PATHS.GSLBMonitor}/udp`][1],
                             {
                                 name: 'gslbMonitor2',
-                                description: 'none',
+                                description: undefined,
                                 destination: '*:*',
                                 interval: 30,
                                 timeout: 120,
@@ -741,8 +741,8 @@ describe('gslbHandler', () => {
                                 probeInterval: 15,
                                 probeAttempts: 5,
                                 debug: 'no',
-                                send: 'none',
-                                recv: 'none',
+                                send: undefined,
+                                recv: undefined,
                                 reverse: 'disabled'
                             }
                         );
@@ -807,7 +807,7 @@ describe('gslbHandler', () => {
                         dataSent[PATHS.GSLBProberPool][0],
                         {
                             name: 'gslbProberPool1',
-                            description: 'none',
+                            description: undefined,
                             enabled: true,
                             disabled: false,
                             loadBalancingMode: 'global-availability',
@@ -818,21 +818,21 @@ describe('gslbHandler', () => {
                         dataSent[PATHS.GSLBProberPool][1],
                         {
                             name: 'gslbProberPool2',
-                            description: 'none',
+                            description: undefined,
                             enabled: true,
                             disabled: false,
                             loadBalancingMode: 'global-availability',
                             members: [
                                 {
                                     name: 'gslbServer1',
-                                    description: 'none',
+                                    description: undefined,
                                     enabled: true,
                                     disabled: false,
                                     order: 0
                                 },
                                 {
                                     name: 'gslbServer2',
-                                    description: 'none',
+                                    description: undefined,
                                     enabled: true,
                                     disabled: false,
                                     order: 1

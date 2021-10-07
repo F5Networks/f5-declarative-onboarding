@@ -1894,6 +1894,7 @@ describe('inspectHandler', () => {
                             enforcedFirewallPolicy: 'fwEnforcedPolicy',
                             flowEvictionPolicy: 'flowEvictionPolicy',
                             id: 0,
+                            parent: 'none',
                             ipIntelligencePolicy: 'ipIntelligencePolicy',
                             routingProtocols: ['BFD'],
                             securityNatPolicy: 'securityNatPolicy',
@@ -2246,6 +2247,7 @@ describe('inspectHandler', () => {
                                 },
                                 {
                                     name: 'virtualServer2',
+                                    remark: 'none',
                                     enabled: true,
                                     address: 'a989:1c34:9c::b099:c1c7:8bfe',
                                     port: 0,
@@ -2352,6 +2354,7 @@ describe('inspectHandler', () => {
                         },
                         currentGSLBProberPoolNoMembers: {
                             class: 'GSLBProberPool',
+                            remark: 'none',
                             enabled: true,
                             lbMode: 'global-availability',
                             members: []
@@ -2416,6 +2419,7 @@ describe('inspectHandler', () => {
                         },
                         currentFirewallPolicyNoRules: {
                             class: 'FirewallPolicy',
+                            remark: 'none',
                             rules: []
                         },
                         currentManagementIpFirewall: {
@@ -2687,7 +2691,11 @@ describe('inspectHandler', () => {
                             currentAnalytics: {
                                 class: 'Analytics',
                                 debugEnabled: false,
-                                offboxEnabled: false
+                                offboxEnabled: false,
+                                offboxTcpAddresses: [],
+                                offboxTcpPort: 0,
+                                sourceId: 'none',
+                                tenantId: 'default'
                             },
                             currentAuthentication: {
                                 class: 'Authentication',
@@ -2695,7 +2703,10 @@ describe('inspectHandler', () => {
                                 remoteUsersDefaults: {}
                             },
                             currentSnmpAgent: {
-                                class: 'SnmpAgent'
+                                class: 'SnmpAgent',
+                                allowList: [],
+                                contact: '',
+                                location: ''
                             },
                             currentSnmpTrapEvents: {
                                 class: 'SnmpTrapEvents',
@@ -2738,6 +2749,7 @@ describe('inspectHandler', () => {
                             },
                             currentManagementIpFirewall: {
                                 class: 'ManagementIpFirewall',
+                                remark: 'none',
                                 rules: []
                             }
                         }

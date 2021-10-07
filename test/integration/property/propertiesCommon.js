@@ -658,7 +658,7 @@ function checkMcpValue(result, properties, index) {
                 assert.deepStrictEqual(
                     (typeof result[property.name] === 'undefined') ? 'undefined' : result[property.name],
                     (typeof value === 'undefined') ? 'undefined' : value,
-                    `${property.name}  value of ${result[property.name]} does not match expected value ${value}`
+                    `${property.name}  value of ${JSON.stringify(result[property.name])} does not match expected value ${value}`
                 );
             }
         });

@@ -93,19 +93,21 @@ class DscHandler {
  */
 function handleConfigSync() {
     if (this.declaration.Common.ConfigSync) {
-        let configsyncIp = this.declaration.Common.ConfigSync.configsyncIp || 'none';
+        let configsyncIp = this.declaration.Common.ConfigSync.configsyncIp;
 
-        // address may have been a json pointer to something with a CIDR
-        // so strip that off
-        const slashIndex = configsyncIp.indexOf('/');
-        if (slashIndex !== -1) {
-            configsyncIp = configsyncIp.substring(0, slashIndex);
+        if (configsyncIp) {
+            // address may have been a json pointer to something with a CIDR
+            // so strip that off
+            const slashIndex = configsyncIp.indexOf('/');
+            if (slashIndex !== -1) {
+                configsyncIp = configsyncIp.substring(0, slashIndex);
+            }
+
+            return this.bigIp.cluster.configSyncIp(
+                configsyncIp,
+                cloudUtil.SHORT_RETRY
+            );
         }
-
-        return this.bigIp.cluster.configSyncIp(
-            configsyncIp,
-            cloudUtil.SHORT_RETRY
-        );
     }
     return Promise.resolve();
 }
@@ -156,9 +158,9 @@ function handleFailoverMulticast() {
     if (this.declaration.Common.FailoverMulticast) {
         const multicast = this.declaration.Common.FailoverMulticast;
         const body = {};
-        body.multicastInterface = multicast.multicastInterface || 'none';
-        body.multicastIp = multicast.multicastIp || 'any6';
-        body.multicastPort = multicast.multicastPort || 0;
+        body.multicastInterface = multicast.multicastInterface;
+        body.multicastIp = multicast.multicastIp;
+        body.multicastPort = multicast.multicastPort;
 
         return this.bigIp.deviceInfo()
             .then(deviceInfo => this.bigIp.modify(

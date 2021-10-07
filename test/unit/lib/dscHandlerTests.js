@@ -294,8 +294,8 @@ describe('dscHandler', () => {
                         bodySent,
                         {
                             multicastInterface: 'none',
-                            multicastIp: 'any6',
-                            multicastPort: 0
+                            multicastIp: undefined,
+                            multicastPort: undefined
                         }
                     );
                 });

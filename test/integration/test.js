@@ -373,6 +373,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             {
                 testRoutingAccessList1: {
                     name: 'testRoutingAccessList1',
+                    description: 'none',
                     entries: [
                         {
                             name: 11,
@@ -392,6 +393,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 },
                 testRoutingAccessList2: {
                     name: 'testRoutingAccessList2',
+                    description: 'none',
                     entries: [
                         {
                             name: 33,
@@ -789,6 +791,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             },
                             {
                                 name: 'firewallPolicyRuleTwo',
+                                description: 'none',
                                 action: 'accept',
                                 ipProtocol: 'any',
                                 log: 'no',
@@ -830,6 +833,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         },
                         {
                             name: 'firewallRuleTwo',
+                            description: 'none',
                             action: 'accept',
                             ipProtocol: 'any',
                             log: 'no',
@@ -937,6 +941,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     virtualServers: [
                         {
                             name: '0',
+                            description: 'none',
                             address: '10.0.20.1',
                             port: 80,
                             enabled: true,

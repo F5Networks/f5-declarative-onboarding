@@ -127,21 +127,21 @@ describe('Authentication', function testAuthentication() {
             };
 
             const ldapDefA = {
-                bindDn: 'bindDnNameA',
-                bindPassword: 'shhhhhh',
+                bindDn: undefined,
+                bindPassword: undefined,
                 bindTimeout: 40,
                 checkBindPassword: true,
                 checkRemoteRole: true,
-                filter: 'filterA',
-                groupDn: 'groupNameA',
-                groupMemberAttribute: 'attributeA',
+                filter: undefined,
+                groupDn: undefined,
+                groupMemberAttribute: undefined,
                 idleTimeout: 20,
                 ignoreAuthInfoUnavailable: true,
                 ignoreUnknownUser: true,
-                loginAttribute: 'attributeToLoginA',
+                loginAttribute: undefined,
                 port: 654,
                 searchScope: 'base',
-                searchBaseDn: 'searchNameA',
+                searchBaseDn: undefined,
                 searchTimeout: 687,
                 servers: [
                     'a.host.com',
@@ -149,11 +149,7 @@ describe('Authentication', function testAuthentication() {
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                 ],
                 ssl: 'enabled',
-                sslCaCert: {
-                    certificate: {
-                        base64: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ5RENDQXR3Q0NRQ0x2QUZoZVJaRlNqQU5CZ2txaGtpRzl3MEJBUXNGQURDQnV6RUxNQWtHQTFVRUJoTUMKVlZNeEV6QVJCZ05WQkFnTUNsZGhjMmhwYm1kMGIyNHhFREFPQmdOVkJBY01CMU5sWVhSMGJHVXhDekFKQmdOVgpCQW9NQWtZMU1SOHdIUVlEVlFRTERCWkVaV05zWVhKaGRHbDJaU0JQYm1KdllYSmthVzVuTVNZd0pBWURWUVFECkRCMW1OUzFrWldOc1lYSmhkR2wyWlMxdmJtSnZjbUZrYVc1bkxtTnZiVEV2TUMwR0NTcUdTSWIzRFFFSkFSWWcKYldWQVpqVXRaR1ZqYkdGeVlYUnBkbVV0YjI1aWIyRnlaR2x1Wnk1amIyMHdIaGNOTVRrd01UQTBNakV3T1RRNApXaGNOTWpBd01UQTBNakV3T1RRNFdqQ0J1ekVMTUFrR0ExVUVCaE1DVlZNeEV6QVJCZ05WQkFnTUNsZGhjMmhwCmJtZDBiMjR4RURBT0JnTlZCQWNNQjFObFlYUjBiR1V4Q3pBSkJnTlZCQW9NQWtZMU1SOHdIUVlEVlFRTERCWkUKWldOc1lYSmhkR2wyWlNCUGJtSnZZWEprYVc1bk1TWXdKQVlEVlFRRERCMW1OUzFrWldOc1lYSmhkR2wyWlMxdgpibUp2Y21Ga2FXNW5MbU52YlRFdk1DMEdDU3FHU0liM0RRRUpBUllnYldWQVpqVXRaR1ZqYkdGeVlYUnBkbVV0CmIyNWliMkZ5WkdsdVp5NWpiMjB3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRRG0KZGUxQkRKOEdReWhqSHZTTjJ5TThDOTZjT1VuS0NRVWs2d2JKRFRQME1RNEJYUnhFVUJFTjhwOHFTN3FSaDdQcQpvVWt2enVBYVl0cGlxcjZLb0tSWXRobVFwYlBIVXFmckZDVUs0TjB0L29YdjdhY0x1SEVuYW1OZmlrYU5VVTZDClh0TlZFUmZwZTlmU21kRTlzVCtKTDRPNWNpc1RCcWlESGIwaWpOa1lSMHE2cHEwdEpkZGtGNTZ1bGo2WUtOazUKb3EzTVBUeENGQzJCVFRIcmc1N0tMeTdwZjZUL0NjUHk5ZDBSUC81K2NyK1o0NjVTMitEYVBZR3dvQzdKd1RZQgo1L0doelpwc1ovQVN0ZjdwYnJuSVFLVW5pSk1pNjhVZURZWXpyYjhYYjAzeHVNMHE5bXhhS01Hd0VCd2ZKWmZ1CjhZaDFXL1VFYS9Ic3pYNklDSFhqQWdNQkFBRXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBQ1o4NzNYcHdJaHIKd0dVTGZTYWpqeWdvUXZzOFRPQ2N5YWUwTnl3emw0NEE5VVZsUTVJZVpWVzdyYk1BUDhTMkh4RnJzSmk2VCthNQphSFFsc09jeWZGZ3Q1MHoyRXhvekJIcFY3eHNUb3JMTGx4RUpqMk55RnA1OXIrZXhEVnhPMHUwbTRjR2xiVUVKCndZZEQ5VkFTWTZlZ1QrWXkzaVlMK0NWdmpJQk9wRC8zaDBmOHB2TjJlek02MGE3L0FNWnRyRzNuSXlUZkJZMkcKOG5NdUY1Qk5vTFAzNFVQOUJDeE5LMi8zR2YwNHFyNDk2MnVCbHQ0UjJNR3N4enZGS1JIb2JJRm9XbkpQMWVXbApzQVhzajlUVit1UVFPb2xXdG1xUE5qVGNIc2V2am9EdUpUMjRudzU0TUs0bVg4eXlJbEkyNERvYlhFMEJNK2hoCkhWS0xmT1o0TWYwPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCgo='
-                    }
-                },
+                sslCaCert: undefined,
                 sslCheckPeer: true,
                 sslCiphers: [
                     'ECDHE-RSA-AES128-CBC-SHA',
@@ -202,20 +198,20 @@ describe('Authentication', function testAuthentication() {
 
             const expectedResponseA = {
                 name: 'system-auth',
-                bindDn: 'bindDnNameA',
+                bindDn: undefined,
                 bindTimeout: 40,
                 checkHostAttr: 'enabled',
                 checkRolesGroup: 'enabled',
-                filter: 'filterA',
-                groupDn: 'groupNameA',
-                groupMemberAttribute: 'attributeA',
+                filter: undefined,
+                groupDn: undefined,
+                groupMemberAttribute: undefined,
                 idleTimeout: 20,
                 ignoreAuthInfoUnavail: 'yes',
                 ignoreUnknownUser: 'enabled',
-                loginAttribute: 'attributeToLoginA',
+                loginAttribute: undefined,
                 port: 654,
                 scope: 'base',
-                searchBaseDn: 'searchNameA',
+                searchBaseDn: undefined,
                 searchTimeout: 687,
                 servers: [
                     'a.host.com',
@@ -223,7 +219,7 @@ describe('Authentication', function testAuthentication() {
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                 ],
                 ssl: 'enabled',
-                sslCaCertFile: '/Common/do_ldapCaCert.crt',
+                sslCaCertFile: undefined,
                 sslCheckPeer: 'enabled',
                 sslCiphers: 'ECDHE-RSA-AES128-CBC-SHA:ECDHE-RSA-AES128-SHA256',
                 userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
@@ -280,7 +276,7 @@ describe('Authentication', function testAuthentication() {
                     inputValue: [ldapDefA, ldapDefB, ldapDefA],
                     expectedValue: [expectedResponseA, expectedResponseB, expectedResponseA],
                     extractFunction: (o) => {
-                        o.sslCaCertFile = o.sslCaCertFile.fullPath;
+                        o.sslCaCertFile = o.sslCaCertFile ? o.sslCaCertFile.fullPath : o.sslCaCertFile;
                         return o;
                     }
                 }

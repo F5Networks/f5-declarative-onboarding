@@ -157,7 +157,7 @@ function handleGSLBMonitor() {
         if (monitor && monitor.name) {
             const body = {
                 name: monitor.name,
-                description: monitor.description || 'none',
+                description: monitor.description,
                 destination: monitor.destination,
                 interval: monitor.interval,
                 timeout: monitor.timeout,
@@ -168,13 +168,13 @@ function handleGSLBMonitor() {
 
             if (monitor.monitorType !== 'gateway-icmp') {
                 body.reverse = monitor.reverse;
-                body.send = monitor.send || 'none';
-                body.recv = monitor.recv || 'none';
+                body.send = monitor.send;
+                body.recv = monitor.recv;
             }
 
             if (monitor.monitorType === 'https') {
-                body.cipherlist = monitor.cipherlist || 'none';
-                body.cert = monitor.cert || 'none';
+                body.cipherlist = monitor.cipherlist;
+                body.cert = monitor.cert;
             }
 
             if (monitor.monitorType === 'gateway-icmp' || monitor.monitorType === 'udp') {
@@ -213,13 +213,13 @@ function handleGSLBServer() {
         if (server && server.name) {
             const body = {
                 name: server.name,
-                description: server.description || 'none',
+                description: server.description,
                 enabled: server.enabled,
                 disabled: !server.enabled,
                 product: server.product,
                 proberPreference: server.proberPreference,
                 proberFallback: server.proberFallback,
-                proberPool: server.proberPool || 'none',
+                proberPool: server.proberPool,
                 limitMaxBps: server.limitMaxBps,
                 limitMaxBpsStatus: server.limitMaxBpsStatus,
                 limitMaxPps: server.limitMaxPps,
@@ -240,11 +240,11 @@ function handleGSLBServer() {
                 monitor: mapMonitors(server),
                 virtualServers: server.virtualServers.map(vs => ({
                     name: vs.name,
-                    description: vs.description || 'none',
+                    description: vs.description,
                     destination: `${vs.address}${vs.address.indexOf(':') > -1 ? '.' : ':'}${vs.port}`,
                     enabled: vs.enabled,
                     disabled: !vs.enabled,
-                    translationAddress: vs.translationAddress || 'none',
+                    translationAddress: vs.translationAddress,
                     translationPort: vs.translationPort,
                     monitor: mapMonitors(vs)
                 }))
@@ -253,9 +253,9 @@ function handleGSLBServer() {
                 name: `${i}`,
                 addresses: [{
                     name: device.name,
-                    translation: device.translation || 'none'
+                    translation: device.translation
                 }],
-                description: device.description || 'none'
+                description: device.description
             }));
 
             let method = 'create';
@@ -282,7 +282,7 @@ function handleGSLBProberPool() {
         if (proberPool && proberPool.name) {
             const body = {
                 name: proberPool.name,
-                description: proberPool.description || 'none',
+                description: proberPool.description,
                 enabled: proberPool.enabled,
                 disabled: !proberPool.enabled,
                 loadBalancingMode: proberPool.loadBalancingMode
@@ -290,7 +290,7 @@ function handleGSLBProberPool() {
 
             body.members = proberPool.members.map(member => ({
                 name: member.name,
-                description: member.description || 'none',
+                description: member.description,
                 enabled: member.enabled,
                 disabled: !member.enabled,
                 order: member.order

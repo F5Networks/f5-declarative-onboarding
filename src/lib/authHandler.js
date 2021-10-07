@@ -145,8 +145,8 @@ function handleTacacs() {
     const tacacsObj = {
         name: AUTH.SUBCLASSES_NAME,
         partition: 'Common',
-        accounting: tacacs.accounting || 'send-to-first-server',
-        authentication: tacacs.authentication || 'use-first-server',
+        accounting: tacacs.accounting,
+        authentication: tacacs.authentication,
         debug: tacacs.debug,
         encryption: tacacs.encryption,
         secret: tacacs.secret,
@@ -168,37 +168,37 @@ function handleLdap() {
         return Promise.resolve();
     }
 
-    const getCertPath = certObj => `/${certObj.partition}/${certObj.name}`;
+    const getCertPath = certObj => (certObj === 'none' ? 'none' : `/${certObj.partition}/${certObj.name}`);
     const certPromises = [];
 
     const ldapObj = {
         name: AUTH.SUBCLASSES_NAME,
         partition: 'Common',
-        bindDn: ldap.bindDn || 'none',
-        bindPw: ldap.bindPw || 'none',
+        bindDn: ldap.bindDn,
+        bindPw: ldap.bindPw,
         bindTimeout: ldap.bindTimeout,
         checkHostAttr: ldap.checkHostAttr,
         checkRolesGroup: ldap.checkRolesGroup,
-        filter: ldap.filter || 'none',
-        groupDn: ldap.groupDn || 'none',
-        groupMemberAttribute: ldap.groupMemberAttribute || 'none',
+        filter: ldap.filter,
+        groupDn: ldap.groupDn,
+        groupMemberAttribute: ldap.groupMemberAttribute,
         idleTimeout: ldap.idleTimeout,
         ignoreAuthInfoUnavail: ldap.ignoreAuthInfoUnavail,
         ignoreUnknownUser: ldap.ignoreUnknownUser,
-        loginAttribute: ldap.loginAttribute || 'none',
+        loginAttribute: ldap.loginAttribute,
         port: ldap.port,
         referrals: ldap.referrals,
         scope: ldap.scope,
-        searchBaseDn: ldap.searchBaseDn || 'none',
+        searchBaseDn: ldap.searchBaseDn,
         searchTimeout: ldap.searchTimeout,
         servers: ldap.servers,
         ssl: ldap.ssl,
-        sslCaCertFile: ldap.sslCaCertFile ? getCertPath(ldap.sslCaCertFile) : 'none',
+        sslCaCertFile: getCertPath(ldap.sslCaCertFile),
         sslCheckPeer: ldap.sslCheckPeer,
         sslCiphers: ldap.sslCiphers ? ldap.sslCiphers.join(':') : '',
-        sslClientCert: ldap.sslClientCert ? getCertPath(ldap.sslClientCert) : 'none',
-        sslClientKey: ldap.sslClientKey ? getCertPath(ldap.sslClientKey) : 'none',
-        userTemplate: ldap.userTemplate || 'none',
+        sslClientCert: getCertPath(ldap.sslClientCert),
+        sslClientKey: getCertPath(ldap.sslClientKey),
+        userTemplate: ldap.userTemplate,
         version: ldap.version
     };
 

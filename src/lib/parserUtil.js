@@ -62,7 +62,17 @@ module.exports = {
     }
 };
 
-function handleMappings(value, property) {
+function mapUndefined(value, property) {
+    if (typeof value === 'undefined' || value === null) {
+        if (property.defaultWhenOmitted) {
+            return property.defaultWhenOmitted;
+        }
+    }
+
+    return value;
+}
+
+function mapTruth(value, property) {
     if (value === true && property.truth) {
         return property.truth;
     }
@@ -80,8 +90,17 @@ function handleMappings(value, property) {
     return value;
 }
 
+function handleMappings(value, property) {
+    value = mapUndefined(value, property);
+    value = mapTruth(value, property);
+    return value;
+}
+
 function updateValue(property, itemToUpdate, dottedId, dottedNewId) {
     let value = doUtil.getDeepValue(itemToUpdate, dottedNewId || dottedId);
+    if (typeof value === 'undefined') {
+        value = doUtil.getDeepValue(itemToUpdate, dottedId);
+    }
     value = handleMappings(value, property);
     if (typeof value !== 'undefined' && value !== null) {
         doUtil.setDeepValue(itemToUpdate, dottedId, value);
@@ -99,6 +118,11 @@ function updateProperty(property, itemToUpdate, propertyName, declarationItem, i
     // Simple newId translation
     if (!configItem.schemaMerge || !hasSchemaMergePath) {
         let value = doUtil.getDeepValue(itemToUpdate, property.newId || property.id);
+        // If we didn't get a value, check to see if it was already updated to a newId
+        // as would be the case of when we are updating state.originalConfig
+        if (typeof value === 'undefined') {
+            value = doUtil.getDeepValue(itemToUpdate, property.id);
+        }
         value = handleMappings(value, property);
 
         if (typeof value !== 'undefined' && value !== null) {
