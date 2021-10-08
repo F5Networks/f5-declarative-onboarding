@@ -1830,7 +1830,7 @@ describe('networkHandler', () => {
                     assert.deepStrictEqual(data[3], {
                         name: 'RoutingAccessList4',
                         partition: 'Common',
-                        description: 'none',
+                        description: undefined,
                         entries: {
                             60: {
                                 action: 'permit',
@@ -1862,7 +1862,7 @@ describe('networkHandler', () => {
                     assert.deepStrictEqual(data[0], {
                         name: 'RoutingAccessList1',
                         partition: 'Common',
-                        description: 'none',
+                        description: undefined,
                         entries: {}
                     });
                 });
@@ -2256,7 +2256,7 @@ describe('networkHandler', () => {
                                     },
                                     {
                                         name: 'ospf',
-                                        routeMap: 'none'
+                                        routeMap: undefined
                                     }
                                 ]
                             },
@@ -2464,8 +2464,8 @@ describe('networkHandler', () => {
                                     {
                                         name: 'ipv4',
                                         routeMap: {
-                                            in: 'none',
-                                            out: 'none'
+                                            in: undefined,
+                                            out: undefined
                                         },
                                         softReconfigurationInbound: 'enabled'
                                     }
@@ -2846,7 +2846,7 @@ describe('networkHandler', () => {
                         firewallPolicy[0],
                         {
                             name: 'firewallPolicyOne',
-                            description: 'none',
+                            description: undefined,
                             rules: []
                         }
                     );
@@ -2858,7 +2858,7 @@ describe('networkHandler', () => {
                             rules: [
                                 {
                                     name: 'firewallRuleOne',
-                                    description: 'none',
+                                    description: undefined,
                                     action: 'accept',
                                     ipProtocol: 'any',
                                     log: 'no',
@@ -2969,7 +2969,7 @@ describe('networkHandler', () => {
                             rules: [
                                 {
                                     name: 'firewallRuleOne',
-                                    description: 'none',
+                                    description: undefined,
                                     action: 'accept',
                                     ipProtocol: 'any',
                                     log: 'no',
@@ -3032,7 +3032,7 @@ describe('networkHandler', () => {
                     assert.deepStrictEqual(
                         dataSent[PATHS.ManagementIpFirewall][0],
                         {
-                            description: 'none',
+                            description: undefined,
                             rules: []
                         }
                     );

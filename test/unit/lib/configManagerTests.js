@@ -2688,6 +2688,7 @@ describe('configManager', () => {
                                     },
                                     {
                                         name: 'virtualServer2',
+                                        description: 'none',
                                         enabled: true,
                                         address: 'a989:1c34:9c::b099:c1c7:8bfe',
                                         port: 0,
@@ -2750,6 +2751,7 @@ describe('configManager', () => {
 
             const getExpected = name => ({
                 name,
+                description: 'none',
                 enabled: true,
                 limitMaxBpsStatus: 'disabled',
                 limitMaxConnectionsStatus: 'disabled',
@@ -2761,7 +2763,8 @@ describe('configManager', () => {
                 iqAllowServiceCheck: 'no',
                 iqAllowSnmp: 'no',
                 monitor: [],
-                devices: []
+                devices: [],
+                proberPool: 'none'
             });
 
             const configManager = new ConfigManager(configItems, bigIpMock);
@@ -2927,6 +2930,7 @@ describe('configManager', () => {
 
             const getExpected = name => ({
                 name,
+                description: 'none',
                 enabled: true
             });
 
@@ -2974,6 +2978,7 @@ describe('configManager', () => {
 
             const getExpected = name => ({
                 name,
+                description: 'none',
                 enabled: true
             });
 
@@ -2985,6 +2990,7 @@ describe('configManager', () => {
                         {
                             gslbProberPool: {
                                 name: 'gslbProberPool',
+                                description: 'none',
                                 enabled: true,
                                 members: [
                                     getExpected('memberEnabledStringVal'),
@@ -3284,7 +3290,10 @@ describe('configManager', () => {
                         state.currentConfig.Common.SnmpUser.user1,
                         {
                             name: 'user1',
-                            username: 'special!username'
+                            username: 'special!username',
+                            oidSubset: 'none',
+                            authProtocol: 'none',
+                            privacyProtocol: 'none'
                         }
                     );
                 });
@@ -3310,7 +3319,9 @@ describe('configManager', () => {
                         {
                             name: 'community1',
                             ipv6: 'disabled',
-                            communityName: 'public'
+                            communityName: 'public',
+                            oidSubset: 'none',
+                            source: 'none'
                         }
                     );
                 });

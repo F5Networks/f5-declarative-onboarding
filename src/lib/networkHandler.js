@@ -201,7 +201,7 @@ function handleFirewallAddressList() {
         if (firewallAddressList && firewallAddressList.name) {
             const body = {
                 name: firewallAddressList.name,
-                description: firewallAddressList.description || 'none'
+                description: firewallAddressList.description
             };
 
             if (firewallAddressList.addresses) {
@@ -232,7 +232,7 @@ function handleFirewallPolicy() {
         if (firewallPolicy && firewallPolicy.name) {
             const body = {
                 name: firewallPolicy.name,
-                description: firewallPolicy.description || 'none',
+                description: firewallPolicy.description,
                 rules: formatRulesRequest(firewallPolicy.rules)
             };
 
@@ -255,7 +255,7 @@ function handleManagementIpFirewall() {
     }
 
     const body = {
-        description: mgmtIpFirewall.description || 'none',
+        description: mgmtIpFirewall.description,
         rules: formatRulesRequest(mgmtIpFirewall.rules)
     };
 
@@ -278,7 +278,7 @@ function handleFirewallPortList() {
         if (firewallPortList && firewallPortList.name) {
             const body = {
                 name: firewallPortList.name,
-                description: firewallPortList.description || 'none'
+                description: firewallPortList.description
             };
 
             if (firewallPortList.ports) {
@@ -531,9 +531,9 @@ function handleDnsResolver() {
     const promises = [];
     doUtil.forEach(this.declaration, 'DNS_Resolver', (tenant, resolver) => {
         if (resolver && resolver.name) {
-            let forwardZones;
-            if (resolver.forwardZones) {
-                forwardZones = resolver.forwardZones.map(zone => ({
+            let forwardZones = resolver.forwardZones;
+            if (forwardZones && forwardZones !== 'none') {
+                forwardZones = forwardZones.map(zone => ({
                     name: zone.name,
                     nameservers: zone.nameservers.map(nameserver => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })))
                 }));
@@ -543,7 +543,7 @@ function handleDnsResolver() {
                 partition: tenant,
                 answerDefaultZones: resolver.answerDefaultZones,
                 cacheSize: resolver.cacheSize,
-                forwardZones: forwardZones || 'none',
+                forwardZones,
                 randomizeQueryNameCase: resolver.randomizeQueryNameCase,
                 routeDomain: resolver.routeDomain,
                 useIpv4: resolver.useIpv4,
@@ -601,7 +601,7 @@ function handleRouteDomain() {
                 name: routeDomain.name,
                 partition: tenant,
                 id: routeDomain.id,
-                parent: routeDomain.parent || 'none',
+                parent: routeDomain.parent,
                 connectionLimit: routeDomain.connectionLimit,
                 bwcPolicy: routeDomain.bwcPolicy,
                 flowEvictionPolicy: routeDomain.flowEvictionPolicy,
@@ -770,7 +770,7 @@ function handleRoutingAccessList() {
             const body = {
                 name: list.name,
                 partition: tenant,
-                description: list.description || 'none',
+                description: list.description,
                 entries
             };
 
@@ -905,7 +905,7 @@ function handleRoutingBGP() {
                                 family.redistribute.forEach((r) => {
                                     const entry = {};
                                     entry.name = r.routingProtocol;
-                                    entry.routeMap = r.routeMap || 'none';
+                                    entry.routeMap = r.routeMap;
                                     familyBody.redistribute.push(entry);
                                 });
                             }
@@ -925,8 +925,8 @@ function handleRoutingBGP() {
                                     entry.name = af.name;
                                     const routeMap = {};
                                     if (af.routeMap) {
-                                        routeMap.in = af.routeMap.in || 'none';
-                                        routeMap.out = af.routeMap.out || 'none';
+                                        routeMap.in = af.routeMap.in;
+                                        routeMap.out = af.routeMap.out;
                                     }
                                     entry.routeMap = routeMap;
                                     entry.softReconfigurationInbound = af.softReconfigurationInbound;
@@ -1203,7 +1203,7 @@ function elementMatches(element) {
 function formatRulesRequest(rules) {
     return rules.map((rule, index, array) => ({
         name: rule.name,
-        description: rule.description || 'none',
+        description: rule.description,
         action: rule.action,
         ipProtocol: rule.ipProtocol,
         log: rule.log,

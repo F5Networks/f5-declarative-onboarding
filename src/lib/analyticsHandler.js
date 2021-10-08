@@ -69,12 +69,12 @@ function handleAnalytics() {
             {
                 'avrd-debug-mode': analytics.avrdDebugMode,
                 'avrd-interval': analytics.avrdInterval,
-                'offbox-protocol': analytics.offboxProtocol || 'none',
-                'offbox-tcp-addresses': analytics.offboxTcpAddresses || [],
-                'offbox-tcp-port': analytics.offboxTcpPort || 0,
+                'offbox-protocol': analytics.offboxProtocol,
+                'offbox-tcp-addresses': analytics.offboxTcpAddresses,
+                'offbox-tcp-port': analytics.offboxTcpPort,
                 'use-offbox': analytics.useOffbox,
-                'source-id': analytics.sourceId || 'none',
-                'tenant-id': analytics.tenantId || 'default'
+                'source-id': analytics.sourceId,
+                'tenant-id': analytics.tenantId
             }
         );
     }

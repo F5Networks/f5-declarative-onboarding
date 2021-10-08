@@ -223,8 +223,8 @@ describe('authHandler', () => {
                         {
                             name: 'system-auth',
                             partition: 'Common',
-                            accounting: 'send-to-first-server',
-                            authentication: 'use-first-server',
+                            accounting: undefined,
+                            authentication: undefined,
                             debug: 'disabled',
                             encryption: 'enabled',
                             secret: 'test',
@@ -298,15 +298,22 @@ describe('authHandler', () => {
                         enabledSourceType: 'local',
                         fallback: true,
                         ldap: {
+                            bindDn: 'none',
+                            bindPw: 'none',
                             bindTimeout: 30,
                             checkHostAttr: 'disabled',
                             checkRolesGroup: 'disabled',
+                            filter: 'none',
+                            groupDn: 'none',
+                            groupMemberAttribute: 'none',
                             idleTimeout: 3600,
                             ignoreAuthInfoUnavail: 'no',
                             ignoreUnknownUser: 'disabled',
+                            loginAttribute: 'none',
                             port: 389,
                             referrals: 'no',
                             scope: 'sub',
+                            searchBaseDn: 'none',
                             searchTimeout: 30,
                             servers: [
                                 'my.host.com',
@@ -315,6 +322,10 @@ describe('authHandler', () => {
                             ],
                             ssl: 'disabled',
                             sslCheckPeer: 'disabled',
+                            sslCaCertFile: 'none',
+                            sslClientCert: 'none',
+                            sslClientKey: 'none',
+                            userTemplate: 'none',
                             version: 3
                         }
                     }
@@ -587,22 +598,22 @@ describe('authHandler', () => {
                         {
                             name: 'system-auth',
                             partition: 'Common',
-                            bindDn: 'none',
-                            bindPw: 'none',
+                            bindDn: undefined,
+                            bindPw: undefined,
                             bindTimeout: 30,
                             checkHostAttr: 'disabled',
                             checkRolesGroup: 'disabled',
-                            filter: 'none',
-                            groupDn: 'none',
-                            groupMemberAttribute: 'none',
+                            filter: undefined,
+                            groupDn: undefined,
+                            groupMemberAttribute: undefined,
                             idleTimeout: 3600,
                             ignoreAuthInfoUnavail: 'no',
                             ignoreUnknownUser: 'disabled',
-                            loginAttribute: 'none',
+                            loginAttribute: undefined,
                             port: 389,
                             referrals: 'yes',
                             scope: 'sub',
-                            searchBaseDn: 'none',
+                            searchBaseDn: undefined,
                             searchTimeout: 30,
                             servers: [
                                 'my.host.com',
@@ -615,7 +626,7 @@ describe('authHandler', () => {
                             sslCiphers: '',
                             sslClientCert: '/Common/do_ldapClientCert.crt',
                             sslClientKey: '/Common/do_ldapClientCert.key',
-                            userTemplate: 'none',
+                            userTemplate: undefined,
                             version: 3
                         }
                     );

@@ -73,7 +73,7 @@ describe('Snmp', function testSnmp() {
     });
 
     describe('Snmp User', () => {
-        function assertSnmpCommunityClass(properties, options) {
+        function assertSnmpUserClass(properties, options) {
             return assertClass('SnmpUser', properties, options);
         }
 
@@ -143,7 +143,7 @@ describe('Snmp', function testSnmp() {
                 }
             ];
 
-            return assertSnmpCommunityClass(properties, options);
+            return assertSnmpUserClass(properties, options);
         });
 
         /*
@@ -209,7 +209,7 @@ describe('Snmp', function testSnmp() {
                 }
             ];
 
-            return assertSnmpCommunityClass(properties, options);
+            return assertSnmpUserClass(properties, options);
         });
     });
 

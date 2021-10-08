@@ -1799,7 +1799,7 @@ describe('systemHandler', () => {
                         {
                             '/tm/sys/management-route': [
                                 {
-                                    description: 'none',
+                                    description: undefined,
                                     gateway: '4.3.2.1',
                                     mtu: 123,
                                     name: 'theManagementRoute',
@@ -1893,9 +1893,9 @@ describe('systemHandler', () => {
         const systemHandler = new SystemHandler(declaration, bigIpMock);
         return systemHandler.process()
             .then(() => {
-                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysContact, '');
-                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysLocation, '');
-                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].allowedAddresses, []);
+                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysContact, undefined);
+                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysLocation, undefined);
+                assert.deepEqual(dataSent[PATHS.SnmpAgent][0].allowedAddresses, undefined);
             });
     });
 
@@ -1947,9 +1947,9 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].name, 'myFirstSnmpUser');
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].username, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].authPassword, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyPassword, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, undefined);
             });
     });
 
@@ -1971,9 +1971,9 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].name, 'myFirstSnmpUser');
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].username, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].authPassword, undefined);
-                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyPassword, undefined);
-                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, undefined);
             });
     });
 
@@ -2038,8 +2038,8 @@ describe('systemHandler', () => {
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].name, 'myFirstSnmpCommunity');
                 assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].communityName, 'myFirstSnmpCommunity');
-                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].oidSubset, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].source, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].oidSubset, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].source, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].ipv6, 'disabled');
             });
     });
@@ -2114,7 +2114,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].host, '10.0.10.100');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'someSnmpUser');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, undefined);
             });
     });
 
@@ -2142,10 +2142,10 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'auth-no-privacy');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'someSnmpUser');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyPassword, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, undefined);
             });
     });
 
@@ -2167,13 +2167,13 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, 'public');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'no-auth-no-privacy');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authPassword, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyPassword, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, undefined);
             });
     });
 
@@ -2196,11 +2196,11 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, 'public');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'no-auth-no-privacy');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, 'none');
-                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, 'none');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, undefined);
             });
     });
 

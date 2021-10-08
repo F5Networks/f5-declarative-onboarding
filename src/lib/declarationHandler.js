@@ -313,8 +313,11 @@ function applyRouteDomainFixes(declaration, currentConfig) {
  * @param {Object} declaration - User provided declaration
  */
 function applyFailoverUnicastFixes(declaration) {
-    if (declaration.Common.FailoverUnicast && declaration.Common.FailoverUnicast.address) {
-        if (declaration.Common.FailoverUnicast.unicastAddress) {
+    if (declaration.Common.FailoverUnicast
+        && declaration.Common.FailoverUnicast.address
+        && declaration.Common.FailoverUnicast.address !== 'none') {
+        if (declaration.Common.FailoverUnicast.unicastAddress
+            && declaration.Common.FailoverUnicast.unicastAddress !== 'none') {
             // If there is both and address and unicastAddress at this point
             // then the user supplied two different Failover Unicast objects.
             // DO cannot guarantee which to use, thus we need to throw an error.
@@ -394,8 +397,8 @@ function applyRouteDomainParentFix(declaration) {
     }
 
     doUtil.forEach(declaration, 'RouteDomain', (tenant, routeDomain) => {
-        // If the parent does not start with '/', assume it is in this tenant
-        if (routeDomain.parent && !routeDomain.parent.startsWith('/')) {
+        // If the parent does not start with '/', assume it is in this tenant unless it is 'none'
+        if (routeDomain.parent && !routeDomain.parent.startsWith('/') && routeDomain.parent !== 'none') {
             routeDomain.parent = `/${tenant}/${routeDomain.parent}`;
         }
     });
@@ -571,7 +574,7 @@ function applyGSLBServerFixes(declaration) {
             virtualServer.name = virtualServer.name || `${i}`;
             virtualServer.address = doUtil.minimizeIP(virtualServer.address);
             virtualServer.monitor = virtualServer.monitor || [];
-            if (virtualServer.translationAddress) {
+            if (virtualServer.translationAddress && virtualServer.translationAddress !== 'none') {
                 virtualServer.translationAddress = doUtil.minimizeIP(virtualServer.translationAddress);
             }
             delete virtualServer.label;

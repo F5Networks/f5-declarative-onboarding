@@ -772,7 +772,7 @@ function handleManagementRoute() {
 
                         const routeBody = {
                             name: managementRoute.name,
-                            description: managementRoute.description || 'none',
+                            description: managementRoute.description,
                             partition: tenant,
                             gateway: managementRoute.gateway,
                             network: managementRoute.network,
@@ -808,9 +808,9 @@ function handleSnmp() {
         promise = promise.then(() => this.bigIp.modify(
             PATHS.SnmpAgent,
             {
-                sysContact: agent.sysContact || '',
-                sysLocation: agent.sysLocation || '',
-                allowedAddresses: agent.allowedAddresses || []
+                sysContact: agent.sysContact,
+                sysLocation: agent.sysLocation,
+                allowedAddresses: agent.allowedAddresses
             }
         ));
     }
@@ -835,8 +835,8 @@ function handleSnmpUsers() {
     doUtil.forEach(this.declaration, 'SnmpUser', (tenant, snmpUser) => {
         if (snmpUser && snmpUser.name) {
             const user = JSON.parse(JSON.stringify(snmpUser));
-            user.authProtocol = user.authProtocol || 'none';
-            user.privacyProtocol = user.privacyProtocol || 'none';
+            user.authProtocol = user.authProtocol;
+            user.privacyProtocol = user.privacyProtocol;
 
             // 'none' is only a valid option for 14.0+
             if (cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
@@ -860,8 +860,8 @@ function handleSnmpCommunities() {
     doUtil.forEach(this.declaration, 'SnmpCommunity', (tenant, snmpCommunity) => {
         if (snmpCommunity && snmpCommunity.name) {
             const community = JSON.parse(JSON.stringify(snmpCommunity));
-            community.source = community.source || 'none';
-            community.oidSubset = community.oidSubset || 'none';
+            community.source = community.source;
+            community.oidSubset = community.oidSubset;
 
             promise = promise.then(() => this.bigIp.createOrModify(
                 PATHS.SnmpCommunity,
@@ -893,11 +893,11 @@ function handleSnmpTrapDestinations() {
                 destination.network = (destination.network === 'management') ? 'mgmt' : 'other';
             }
 
-            destination.community = destination.community || 'none';
-            destination.securityName = destination.securityName || 'none';
-            destination.authProtocol = destination.authProtocol || 'none';
-            destination.privacyProtocol = destination.privacyProtocol || 'none';
-            destination.engineId = destination.engineId || 'none';
+            destination.community = destination.community;
+            destination.securityName = destination.securityName;
+            destination.authProtocol = destination.authProtocol;
+            destination.privacyProtocol = destination.privacyProtocol;
+            destination.engineId = destination.engineId;
 
             // 'none' is only a valid option for 14.0+
             if (cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
