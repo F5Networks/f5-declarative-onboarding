@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 - AUTOTOOL-2721: SnmpTrapDestination, SnmpUser, and SnmpCommunity objects cannot be removed once created
 - AUTOTOOL-2688: ([GitHub Issue 255](https://github.com/F5Networks/f5-declarative-onboarding/issues/255)): Firewall policies managed by AS3 are not ignored
+- AUTOTOOL-2766: ([GitHub Issue 264](https://github.com/F5Networks/f5-declarative-onboarding/issues/264)): Unable to use remote auth user on BIG-IQ to deploy DO declaration
 
 ### Changed
 - AUTOTOOL-2544: Use a default of "UTC" for the timezone property of the NTP class
