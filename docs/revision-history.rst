@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.25
-        - Updated the documentation for Declarative Onboarding v1.25.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * SnmpTrapDestination, SnmpUser, and SnmpCommunity objects cannot be removed once created |br| * Firewall policies managed by AS3 are not ignored, `GitHub Issue 255 <https://github.com/F5Networks/f5-declarative-onboarding/issues/255>`_
+        - Updated the documentation for Declarative Onboarding v1.25.0.  This release contains the following changes: |br| *  |br| * The **timezone** property of the NTP class now uses **UTC** as the default |br| |br| Issues Resolved: |br| * SnmpTrapDestination, SnmpUser, and SnmpCommunity objects cannot be removed once created |br| * Firewall policies managed by AS3 are not ignored, `GitHub Issue 255 <https://github.com/F5Networks/f5-declarative-onboarding/issues/255>`_
         - 11-2-21
 
       * - 1.24
