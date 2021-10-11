@@ -385,14 +385,17 @@ const customFunctions = {
     removeIncompleteAuthMethods: (configKey, configObject) => {
         const radius = configObject.radius;
         const ldap = configObject.ldap;
+        const tacacs = configObject.tacacs;
 
-        // if no servers defined then remove 'radius' config
+        // if no servers defined then remove auth configs
         if (radius && !(radius.servers && radius.servers.primary)) {
             delete configObject.radius;
         }
-        // if no servers defined then remove 'ldap' config
         if (ldap && !ldap.servers) {
             delete configObject.ldap;
+        }
+        if (tacacs && !tacacs.servers) {
+            delete configObject.tacacs;
         }
         return [configKey, configObject];
     },
