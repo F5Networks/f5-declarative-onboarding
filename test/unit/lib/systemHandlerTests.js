@@ -1742,6 +1742,25 @@ describe('systemHandler', () => {
             return assert.isRejected(systemHandler.process(), 'Cannot update network property when running remotely');
         });
 
+        it('should remove gateway if it is "none" and there is a type', () => {
+            declaration.Common.ManagementRoute = {
+                managementRoute1: {
+                    name: 'managementRoute1',
+                    gateway: 'none',
+                    network: 'default-inet6',
+                    type: 'interface'
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const managementRouteData = dataSent[PATHS.ManagementRoute];
+                    assert.strictEqual(managementRouteData[0].gateway, undefined);
+                    assert.strictEqual(managementRouteData[0].type, 'interface');
+                });
+        });
+
         it('should not delete the existing ManagementRoute if network not updated', () => {
             state.currentConfig.Common.ManagementRoute.theManagementRoute.network = '1.2.3.4/32';
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
