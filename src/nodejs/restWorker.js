@@ -606,7 +606,7 @@ function passToTcw(wrapper, taskId, incomingRestOp) {
 
     const restOperation = this.restOperationFactory.createRestOperationInstance()
         .setUri(this.restHelper.makeRestjavadUri('/cm/global/tasks/declarative-onboarding'))
-        .setIsSetBasicAuthHeader(true)
+        .setIsSetBasicAuthHeader(false)
         .setReferer(incomingRestOp.getUri().href)
         .setContentType('application/json')
         .setBody({

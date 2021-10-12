@@ -102,6 +102,7 @@
     {
         "path": "/tm/net/dns-resolver",
         "schemaClass": "DNS_Resolver",
+        "enforceArray": true,
         "properties": [
             { "id": "answerDefaultZones", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
             { "id": "cacheSize" },
@@ -178,6 +179,7 @@
     {
         "path": "/tm/net/routing/access-list",
         "schemaClass": "RoutingAccessList",
+        "enforceArray": true,
         "properties": [
             { "id": "name" },
             { "id": "description", "newId": "remark", "defaultWhenOmitted": "none" },
