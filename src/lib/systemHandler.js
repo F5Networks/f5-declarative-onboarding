@@ -770,6 +770,12 @@ function handleManagementRoute() {
                             ));
                         }
 
+                        // iControl REST can return a gateway of 'none' with a type, but posting that back
+                        // to iControl rest is illegal. We love you BIG-IP.
+                        if (managementRoute.gateway === 'none' && managementRoute.type) {
+                            delete managementRoute.gateway;
+                        }
+
                         const routeBody = {
                             name: managementRoute.name,
                             description: managementRoute.description,
