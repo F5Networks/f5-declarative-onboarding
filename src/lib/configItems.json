@@ -6,7 +6,7 @@
             { "id": "hostname" },
             { "id": "consoleInactivityTimeout" },
             { "id": "guiAudit", "newId": "guiAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
-            { "id": "mgmtDhcp", "truth": "enabled", "falsehood": "disabled" }
+            { "id": "mgmtDhcp" }
         ],
         "nameless": true,
         "declaration": {

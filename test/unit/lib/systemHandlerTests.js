@@ -1634,6 +1634,83 @@ describe('systemHandler', () => {
                     assert.strictEqual(hostSet, '1.2.3.4');
                 });
         });
+
+        it('should not update mgmt-dhcp when it is currently set to dhcpv6', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'configured-by-dhcp'
+                        }
+                    }
+                }
+            };
+            state.currentConfig.Common.System.mgmtDhcp = 'dhcpv6';
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
+                    assert.deepStrictEqual(
+                        mgmtDhcpData,
+                        {
+                            mgmtDhcp: 'dhcpv6'
+                        }
+                    );
+                    assert.strictEqual(hostSet, '1.2.3.4');
+                });
+        });
+
+        it('should not update mgmt-dhcp when the current and desired vlaues match', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'configured statically'
+                        }
+                    }
+                }
+            };
+            state.currentConfig.Common.System.mgmtDhcp = 'disabled';
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(
+                        dataSent,
+                        null
+                    );
+                    assert.strictEqual(hostSet, '1.2.3.4');
+                });
+        });
+
+        it('should default mgmt-dhcp to enabled when there is no description', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5'
+                        }
+                    }
+                }
+            };
+            state.currentConfig.Common.System.mgmtDhcp = 'disabled';
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
+                    assert.deepStrictEqual(
+                        mgmtDhcpData,
+                        {
+                            mgmtDhcp: 'enabled'
+                        }
+                    );
+                    assert.strictEqual(hostSet, '1.2.3.4');
+                });
+        });
     });
 
     describe('ManagementRoute', () => {
@@ -1643,9 +1720,7 @@ describe('systemHandler', () => {
         beforeEach(() => {
             declaration = {
                 Common: {
-                    System: {
-                        mgmtDhcp: true
-                    },
+                    System: {},
                     ManagementRoute: {
                         theManagementRoute: {
                             name: 'theManagementRoute',
@@ -1660,7 +1735,7 @@ describe('systemHandler', () => {
                 currentConfig: {
                     Common: {
                         System: {
-                            mgmtDhcp: true
+                            mgmtDhcp: 'enabled'
                         },
                         ManagementRoute: {
                             theManagementRoute: {
@@ -1792,7 +1867,7 @@ describe('systemHandler', () => {
             declaration.Common.System = {
                 preserveOrigDhcpRoutes: false
             };
-            state.currentConfig.Common.System.mgmtDhcp = true;
+            state.currentConfig.Common.System.mgmtDhcp = 'enabled';
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
@@ -1861,6 +1936,23 @@ describe('systemHandler', () => {
                         [
                             {
                                 mgmtDhcp: 'enabled'
+                            }
+                        ]
+                    );
+                });
+        });
+
+        it('should not change mgmtDhcp when it is set to dhcpv4', () => {
+            state.currentConfig.Common.System.mgmtDhcp = 'dhcpv4';
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcp = dataSent['/tm/sys/global-settings'];
+                    assert.deepStrictEqual(
+                        mgmtDhcp,
+                        [
+                            {
+                                mgmtDhcp: 'dhcpv4'
                             }
                         ]
                     );
