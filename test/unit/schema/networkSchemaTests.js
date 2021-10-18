@@ -514,7 +514,7 @@ describe('network.schema.json', () => {
                     class: 'Route'
                 };
                 assert.strictEqual(validate(data), false, 'missing gateway should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should match exactly one schema in oneOf'), -1);
+                assert.notStrictEqual(getErrorString().indexOf('should match some schema in anyOf'), -1);
             });
 
             it('should invalidate route data with bad gateway IP address', () => {

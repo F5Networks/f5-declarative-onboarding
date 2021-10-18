@@ -355,18 +355,12 @@
                     }
                 },
                 "additionalProperties": false,
-                "oneOf": [
+                "anyOf": [
                     {
-                        "required": ["class", "gw"],
-                        "not": {
-                            "required": ["target"]
-                        }
+                        "required": ["class", "gw"]
                     },
                     {
-                        "required": ["class", "target"],
-                        "not": {
-                            "required": ["gw"]
-                        }
+                        "required": ["class", "target"]
                     }
                 ]
             }
