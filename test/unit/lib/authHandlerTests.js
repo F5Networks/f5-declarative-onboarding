@@ -642,7 +642,7 @@ describe('authHandler', () => {
                         exampleGroupName: {
                             attribute: 'attributeValue',
                             console: 'tmsh',
-                            deny: 'enabled',
+                            deny: 'disabled',
                             lineOrder: 1050,
                             role: 'guest',
                             userPartition: 'all'
@@ -650,7 +650,7 @@ describe('authHandler', () => {
                         anotherGroupName: {
                             attribute: 'attributeValue',
                             console: false,
-                            deny: 'disabled',
+                            deny: 'enabled',
                             lineOrder: 984,
                             role: 'admin',
                             userPartition: 'all'

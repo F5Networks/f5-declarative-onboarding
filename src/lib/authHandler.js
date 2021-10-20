@@ -77,9 +77,9 @@ function handleRemoteAuthRoles() {
         const rr = {};
         rr.attribute = decl.attribute;
         rr.console = decl.console;
-        // deny is equivalent to denyRemoteAccess, thus remoteAccess === 'enabled' is equivalent to deny === 'disabled'
-        // and remoteAccess in the original declaration is deny in the parsed declaration
-        rr.deny = (decl.deny === 'enabled') ? 'disabled' : 'enabled';
+        // With resolving of AUTOTOOL-531 deny logic was changed.
+        // Right now remoteAccess === 'true' equals deny === true.
+        rr.deny = (decl.deny === 'enabled') ? 'enabled' : 'disabled';
         rr.lineOrder = decl.lineOrder;
         rr.role = decl.role;
         rr.userPartition = decl.userPartition;
