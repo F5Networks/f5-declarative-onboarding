@@ -73,7 +73,7 @@ describe('DNS Resolver', function testDnsResolver() {
                 name: 'routeDomain',
                 inputValue: [undefined, '1', undefined],
                 expectedValue: ['/Common/0', '/Common/1', '/Common/0'],
-                extractFunction: o => o.routeDomain.fullPath
+                extractFunction: (o) => o.routeDomain.fullPath
             },
             {
                 name: 'useIpv4',

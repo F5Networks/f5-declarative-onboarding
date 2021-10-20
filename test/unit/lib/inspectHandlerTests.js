@@ -32,7 +32,6 @@ const ConfigManagerMock = require('../../../src/lib/configManager');
 const doUtilMock = require('../../../src/lib/doUtil');
 const InspectHandler = require('../../../src/lib/inspectHandler');
 
-
 describe('inspectHandler', () => {
     let expectedDeclaration;
     let inspectHandler;
@@ -184,20 +183,20 @@ describe('inspectHandler', () => {
             });
 
             it('should get data', () => inspectHandler.process()
-                .then(data => basicAssertsForSuccessResponse(data)));
+                .then((data) => basicAssertsForSuccessResponse(data)));
 
             it('should get data when targetHost specified', () => {
                 targetHost = 'targethost';
                 inspectHandler.queryParams = { targetHost };
                 return inspectHandler.process()
-                    .then(data => basicAssertsForSuccessResponse(data));
+                    .then((data) => basicAssertsForSuccessResponse(data));
             });
 
             it('should convert targetHost value to lower case', () => {
                 inspectHandler.queryParams = { targetHost: 'targetHost' };
                 targetHost = 'targethost';
                 return inspectHandler.process()
-                    .then(data => basicAssertsForSuccessResponse(data));
+                    .then((data) => basicAssertsForSuccessResponse(data));
             });
 
             it('should get data when platform is not BIGIP and target* specified', () => {
@@ -213,7 +212,7 @@ describe('inspectHandler', () => {
                     targetPassword
                 };
                 return inspectHandler.process()
-                    .then(data => basicAssertsForSuccessResponse(data));
+                    .then((data) => basicAssertsForSuccessResponse(data));
             });
 
             it('should get data when all target* params specified', () => {
@@ -228,7 +227,7 @@ describe('inspectHandler', () => {
                     targetPassword
                 };
                 return inspectHandler.process()
-                    .then(data => basicAssertsForSuccessResponse(data));
+                    .then((data) => basicAssertsForSuccessResponse(data));
             });
         });
 
@@ -252,7 +251,7 @@ describe('inspectHandler', () => {
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 408, 'Request Timeout',
-                            errMsg => errMsg.indexOf('Unable to complete request within specified timeout') !== -1);
+                            (errMsg) => errMsg.indexOf('Unable to complete request within specified timeout') !== -1);
                     });
             });
 
@@ -260,7 +259,7 @@ describe('inspectHandler', () => {
                 raiseUnhandledException = 'raiseUnhandledException';
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 500, 'failed', errMsg => errMsg === raiseUnhandledException);
+                        basicAssertsForFailedResponse(data, 500, 'failed', (errMsg) => errMsg === raiseUnhandledException);
                     });
             });
 
@@ -272,7 +271,7 @@ describe('inspectHandler', () => {
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
-                            errMsg => errMsg.indexOf('Invalid value for parameter') !== -1
+                            (errMsg) => errMsg.indexOf('Invalid value for parameter') !== -1
                                         && errMsg.indexOf('targetHost') !== -1);
                     });
             });
@@ -284,7 +283,7 @@ describe('inspectHandler', () => {
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
-                            errMsg => errMsg.indexOf('should be in range') !== -1
+                            (errMsg) => errMsg.indexOf('should be in range') !== -1
                                         && errMsg.indexOf('targetPort') !== -1);
                     });
             });
@@ -296,7 +295,7 @@ describe('inspectHandler', () => {
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
-                            errMsg => errMsg.indexOf('should be in range') !== -1
+                            (errMsg) => errMsg.indexOf('should be in range') !== -1
                                         && errMsg.indexOf('targetPort') !== -1);
                     });
             });
@@ -308,7 +307,7 @@ describe('inspectHandler', () => {
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
-                            errMsg => errMsg.indexOf('should be in range') !== -1
+                            (errMsg) => errMsg.indexOf('should be in range') !== -1
                                         && errMsg.indexOf('targetPort') !== -1);
                     });
             });
@@ -322,7 +321,7 @@ describe('inspectHandler', () => {
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
-                            errMsg => errMsg.indexOf('should be specified') !== -1
+                            (errMsg) => errMsg.indexOf('should be specified') !== -1
                                     && errMsg.indexOf('targetHost') !== -1);
                     });
             });
@@ -336,7 +335,7 @@ describe('inspectHandler', () => {
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 400, 'Bad Request',
-                            errMsg => errMsg.indexOf('Invalid value for parameter') !== -1
+                            (errMsg) => errMsg.indexOf('Invalid value for parameter') !== -1
                                         && errMsg.indexOf('should be in range') !== -1
                                         && errMsg.indexOf('should be specified') !== -1);
                     });
@@ -347,7 +346,7 @@ describe('inspectHandler', () => {
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 403, 'Forbidden',
-                            errMsg => errMsg === 'Should be executed on BIG-IP or should specify "target*" parameters.');
+                            (errMsg) => errMsg === 'Should be executed on BIG-IP or should specify "target*" parameters.');
                     });
             });
 
@@ -380,7 +379,7 @@ describe('inspectHandler', () => {
                 return inspectHandler.process()
                     .then((data) => {
                         basicAssertsForFailedResponse(data, 412, 'Precondition failed',
-                            errMsg => errMsg === 'Unable to verify declaration from existing state.');
+                            (errMsg) => errMsg === 'Unable to verify declaration from existing state.');
                     });
             });
         });
@@ -417,7 +416,7 @@ describe('inspectHandler', () => {
             }
         };
 
-        const pathsToIgnore = configItems.filter(item => item.declaration === false).map(item => item.path);
+        const pathsToIgnore = configItems.filter((item) => item.declaration === false).map((item) => item.path);
         const deviceName = 'device1';
         const hostname = 'myhost.bigip.com';
         const version = '15.1';
@@ -2544,7 +2543,7 @@ describe('inspectHandler', () => {
                     }
                 }
             });
-            Object.keys(classes).forEach(key => missing.push(key));
+            Object.keys(classes).forEach((key) => missing.push(key));
             assert.deepStrictEqual(missing, [], `Should have coverage for following classes/properties - ${missing.join(', ')}`);
         });
 
@@ -2575,7 +2574,7 @@ describe('inspectHandler', () => {
             });
             return inspectHandler.process()
                 .then((data) => {
-                    basicInspectHandlerAsserts(data, 409, 'ERROR', 'Conflict', errMsg => /contains INVALID items/.test(errMsg));
+                    basicInspectHandlerAsserts(data, 409, 'ERROR', 'Conflict', (errMsg) => /contains INVALID items/.test(errMsg));
 
                     assert.notStrictEqual(data.declaration, undefined, 'Should have "declaration" key');
                     const commonTenant = data.declaration.declaration.Common;

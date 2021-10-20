@@ -43,10 +43,9 @@ describe('User', function User() {
                 password: process.env.DO_PASSWORD
             }
         )
-            .then(bigIp => doUtil.executeBashCommandIControl(bigIp, catCmd))
-            .then(keyFile => keyFile.trim());
+            .then((bigIp) => doUtil.executeBashCommandIControl(bigIp, catCmd))
+            .then((keyFile) => keyFile.trim());
     }
-
 
     it('userType root', () => {
         const decl = {

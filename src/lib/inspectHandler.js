@@ -167,8 +167,8 @@ function processRequest() {
                 return Promise.reject(err);
             }
         })
-        .then(declaration => validateDeclaration.call(this, declaration))
-        .then(declaration => Promise.resolve({ declaration }));
+        .then((declaration) => validateDeclaration.call(this, declaration))
+        .then((declaration) => Promise.resolve({ declaration }));
 }
 
 /**
@@ -192,7 +192,6 @@ function validateDeclaration(declaration) {
             return Promise.resolve(declaration);
         });
 }
-
 
 /**
  * Validate request. Result can be empty object when no target* params specified in query
@@ -337,7 +336,7 @@ function processItemProperty(property, configObject) {
     if ('replaceIfValue' in property) {
         if (Array.isArray(configObject[property.id])) {
             configObject[property.id] = configObject[property.id]
-                .map(item => (item === property.replaceIfValue ? property.newValue : item));
+                .map((item) => (item === property.replaceIfValue ? property.newValue : item));
         } else if (configObject[property.id] === property.replaceIfValue) {
             configObject[property.id] = property.newValue;
         }
@@ -368,7 +367,7 @@ const customFunctions = {
     remapNameservers: (configKey, configObject) => {
         if (configObject.forwardZones) {
             configObject.forwardZones.forEach((zone) => {
-                zone.nameservers = zone.nameservers.map(nameserver => nameserver.name);
+                zone.nameservers = zone.nameservers.map((nameserver) => nameserver.name);
             });
         }
         return [configKey, configObject];
@@ -449,7 +448,7 @@ function processItem(configItem, declItem, configKey, configObject) {
 
         // most declaration objects has no 'name' property, but some may have
         // an override
-        const hasNameOverride = configItem.properties.find(property => property.newId === 'name');
+        const hasNameOverride = configItem.properties.find((property) => property.newId === 'name');
         if (hasNameOverride === undefined) {
             delete configObject.name;
         }

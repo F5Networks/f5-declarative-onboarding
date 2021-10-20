@@ -38,10 +38,9 @@ if (!process.env.RPM_PACKAGE) {
 
 const RPM_PACKAGE = process.env.RPM_PACKAGE;
 
-
 return common.readFile(process.env.TEST_HARNESS_FILE)
     .then(JSON.parse)
-    .then(machinesInfo => setupMachines(machinesInfo))
+    .then((machinesInfo) => setupMachines(machinesInfo))
     .then(() => {
         process.exit(0);
     })

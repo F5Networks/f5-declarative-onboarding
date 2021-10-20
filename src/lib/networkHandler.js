@@ -270,7 +270,6 @@ function handleManagementIpFirewall() {
         });
 }
 
-
 function handleFirewallPortList() {
     const promises = [];
 
@@ -282,7 +281,7 @@ function handleFirewallPortList() {
             };
 
             if (firewallPortList.ports) {
-                body.ports = firewallPortList.ports.map(port => port.toString());
+                body.ports = firewallPortList.ports.map((port) => port.toString());
             }
 
             promises.push(this.bigIp.createOrModify(PATHS.FirewallPortList, body, null, cloudUtil.MEDIUM_RETRY));
@@ -311,8 +310,8 @@ function handleSelfIp() {
         .then(() => this.bigIp.list('/tm/sys/provision'))
         .then((provisioning) => {
             const provisionedModules = (provisioning || [])
-                .filter(module => module.level !== 'none')
-                .map(module => module.name);
+                .filter((module) => module.level !== 'none')
+                .map((module) => module.name);
 
             doUtil.forEach(this.declaration, 'SelfIp', (tenant, selfIp) => {
                 if (selfIp && selfIp.name) {
@@ -498,7 +497,7 @@ function handleRoute() {
                     }
 
                     if (Object.keys(this.state.currentConfig.Common.Route)
-                        .find(routeName => routeName === route.name) && !deleteRoute) {
+                        .find((routeName) => routeName === route.name) && !deleteRoute) {
                         commands.push({
                             method: 'delete',
                             path: `${PATHS.Route}/~${targetPartition}~${route.name}`
@@ -533,9 +532,9 @@ function handleDnsResolver() {
         if (resolver && resolver.name) {
             let forwardZones = resolver.forwardZones;
             if (forwardZones && forwardZones !== 'none') {
-                forwardZones = forwardZones.map(zone => ({
+                forwardZones = forwardZones.map((zone) => ({
                     name: zone.name,
-                    nameservers: zone.nameservers.map(nameserver => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })))
+                    nameservers: zone.nameservers.map((nameserver) => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })))
                 }));
             }
             const resolverBody = {

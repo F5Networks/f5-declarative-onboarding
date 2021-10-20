@@ -28,7 +28,6 @@
  * Syslog transports are also supported.
  */
 
-
 const winston = require('winston');
 const mkdirp = require('mkdirp');
 

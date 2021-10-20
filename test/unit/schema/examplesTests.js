@@ -26,7 +26,7 @@ const validator = new Validator();
 
 describe('examples', () => {
     const files = fs.readdirSync(`${__dirname}/../../../examples`)
-        .filter(file => file.endsWith('.json')); // This removes files like .swp from being tested
+        .filter((file) => file.endsWith('.json')); // This removes files like .swp from being tested
 
     beforeEach(() => {
         sinon.stub(doUtil, 'getCurrentPlatform').callsFake(() => Promise.resolve('BIG-IP'));

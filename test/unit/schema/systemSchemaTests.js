@@ -677,7 +677,6 @@ describe('system.schema.json', () => {
                 assert.ok(validate(data), getErrorString(validate));
             });
 
-
             it('should validate minimal SnmpTrapDestination', () => {
                 const data = {
                     "class": "SnmpTrapDestination",

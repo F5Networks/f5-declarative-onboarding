@@ -440,7 +440,7 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
         }
         return result;
     };
-    const getTmosName = parsedName => `/${parsedName.partition}/${parsedName.folder}${parsedName.folder ? '/' : ''}${parsedName.name}`;
+    const getTmosName = (parsedName) => `/${parsedName.partition}/${parsedName.folder}${parsedName.folder ? '/' : ''}${parsedName.name}`;
 
     // create list of VLAN names from declaration
     // NOTE: this line should be slightly updated when DO will support VLAN groups and tunnels.
@@ -539,7 +539,7 @@ function applyHttpdFixes(declaration) {
         // Older versions of DO did not normalize allow to lower-case so normalize
         // here in case the user has upgraded.
         if (Array.isArray(httpdDeclaration.allow)) {
-            httpdDeclaration.allow = httpdDeclaration.allow.map(item => (item === 'All' ? 'all' : item));
+            httpdDeclaration.allow = httpdDeclaration.allow.map((item) => (item === 'All' ? 'all' : item));
         }
 
         // Schema can handle 'all' as either a single word or in an array. Normalize
@@ -873,7 +873,7 @@ function applyFirewallPortListFixes(declaration) {
         if (firewallPortList.ports) {
             // The schema allows for integer or string, so coerce to string since that's
             // what iControl REST will return for these
-            firewallPortList.ports = firewallPortList.ports.map(port => port.toString());
+            firewallPortList.ports = firewallPortList.ports.map((port) => port.toString());
         }
     });
 }

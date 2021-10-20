@@ -27,7 +27,6 @@ const sinon = require('sinon');
 
 const ENCRYPT_PATH = '/tm/auth/radius-server';
 
-
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const cryptoUtil = require('../../../src/lib/cryptoUtil');
 const doUtil = require('../../../src/lib/doUtil');

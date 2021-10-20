@@ -105,7 +105,7 @@ describe('Authentication', function testAuthentication() {
                     name: 'radius',
                     inputValue: [radiusDefA, radiusDefB, radiusDefA],
                     expectedValue: [expectedResponseA, expectedResponseB, expectedResponseA],
-                    extractFunction: o => o.servers.map(server => ({
+                    extractFunction: (o) => o.servers.map((server) => ({
                         name: server.name,
                         server: server.server,
                         port: server.port
@@ -363,7 +363,7 @@ describe('Authentication', function testAuthentication() {
                     name: 'tacacs',
                     inputValue: [tacacsDefA, tacacsDefB, tacacsDefA],
                     expectedValue: [expectedResponseA, expectedResponseB, expectedResponseA],
-                    extractFunction: o => o
+                    extractFunction: (o) => o
                 }
             ];
 
@@ -415,7 +415,7 @@ describe('Authentication', function testAuthentication() {
                 name: 'userPartition',
                 inputValue: ['Common', 'all', 'Common'],
                 expectedValue: ['Common', undefined, 'Common'],
-                extractFunction: o => o.userPartition.name
+                extractFunction: (o) => o.userPartition.name
             }
         ];
 

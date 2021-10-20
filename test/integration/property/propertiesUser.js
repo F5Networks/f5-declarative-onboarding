@@ -61,8 +61,8 @@ describe('User', function testAuthentication() {
                     password: process.env.DO_PASSWORD
                 }
             )
-                .then(bigIp => doUtil.executeBashCommandIControl(bigIp, catCmd))
-                .then(keyFile => keyFile.trim());
+                .then((bigIp) => doUtil.executeBashCommandIControl(bigIp, catCmd))
+                .then((keyFile) => keyFile.trim());
         }
 
         const properties = [
@@ -81,20 +81,20 @@ describe('User', function testAuthentication() {
                 name: 'shell',
                 inputValue: [undefined, 'bash', undefined],
                 expectedValue: ['tmsh', 'bash', 'tmsh'],
-                extractFunction: o => o.shell
+                extractFunction: (o) => o.shell
             },
             {
                 // Note: 'shell' and 'partitionAccess' are coupled here. Only admins can have 'bash'
                 name: 'partitionAccess',
                 inputValue: [guestRole, adminRole, guestRole],
                 expectedValue: ['guest', 'admin', 'guest'],
-                extractFunction: o => o.partitionAccess[0].role
+                extractFunction: (o) => o.partitionAccess[0].role
             },
             {
                 name: 'keys',
                 inputValue: [[key1], [key2], undefined],
                 expectedValue: [key1, key2, key2],
-                extractFunction: o => getKeys(o.fullPath)
+                extractFunction: (o) => getKeys(o.fullPath)
             }
         ];
 

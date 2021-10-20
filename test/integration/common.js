@@ -46,7 +46,6 @@ module.exports = {
         return util.promisify(request)(options);
     },
 
-
     /**
      * delayPromise- promise based timeout function
      * @time {Integer} - Time in milliseconds to wait
@@ -79,7 +78,7 @@ module.exports = {
         return targetFunction.apply(this)
             .catch((error) => {
                 if (checkError) {
-                    if (!acceptErrors.some(err => (err === parseInt(error.message, 10) || err === error.message))) {
+                    if (!acceptErrors.some((err) => (err === parseInt(error.message, 10) || err === error.message))) {
                         // non-trivial error, we reject
                         throw new Error(`error is unrecoverable : ${error.message}`);
                     }
@@ -251,7 +250,7 @@ module.exports = {
             const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
                 constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
             module.exports.sendRequest(options)
-                .then(response => response.body)
+                .then((response) => response.body)
                 .then(JSON.parse)
                 .then((parsedResponse) => {
                     resolve(parsedResponse);

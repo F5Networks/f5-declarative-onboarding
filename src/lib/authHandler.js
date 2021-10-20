@@ -90,7 +90,6 @@ function handleRemoteAuthRoles() {
     return Promise.all(promiseChain);
 }
 
-
 function handleRadius() {
     const radius = this.declaration.Common.Authentication.radius;
 
@@ -168,7 +167,7 @@ function handleLdap() {
         return Promise.resolve();
     }
 
-    const getCertPath = certObj => (certObj === 'none' ? 'none' : `/${certObj.partition}/${certObj.name}`);
+    const getCertPath = (certObj) => (certObj === 'none' ? 'none' : `/${certObj.partition}/${certObj.name}`);
     const certPromises = [];
 
     const ldapObj = {

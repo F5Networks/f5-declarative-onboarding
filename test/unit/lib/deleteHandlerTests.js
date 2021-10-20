@@ -24,7 +24,6 @@ const assert = chai.assert;
 const sinon = require('sinon');
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 
-
 let DeleteHandler;
 
 /* eslint-disable global-require */
@@ -55,7 +54,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
             deletedPaths.push(path);
             return Promise.resolve();
         };
-        bigIpMock.list = path => new Promise((resolve) => {
+        bigIpMock.list = (path) => new Promise((resolve) => {
             fetchedPaths.push(path);
             resolve([
                 { fullPath: '/Common/system-auth' }
@@ -83,7 +82,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
     });
 
     it('should issue deletes for Routes, SelfIps, and VLANs in that order', () => {
-        bigIpMock.delete = path => new Promise((resolve) => {
+        bigIpMock.delete = (path) => new Promise((resolve) => {
             deletedPaths.push(path);
             setTimeout(() => {
                 resolve();
@@ -103,7 +102,6 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 }
             }
         };
-
 
         const declaration = {
             Common: {
@@ -136,7 +134,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
     });
 
     it('should issue deletes for Authentication subclasses', () => {
-        bigIpMock.delete = path => new Promise((resolve) => {
+        bigIpMock.delete = (path) => new Promise((resolve) => {
             deletedPaths.push(path);
             resolve();
         });
@@ -174,7 +172,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
             its 'delete' promise will be resolved with delay.
             Expected result: order of issued deletes should be preserved.
          */
-        bigIpMock.delete = path => new Promise((resolve) => {
+        bigIpMock.delete = (path) => new Promise((resolve) => {
             deletedPaths.push(path);
             setTimeout(() => {
                 resolve();
@@ -204,7 +202,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
 
     it('should have no unhandled promises rejection when issue deletes for Authentication radius servers', () => {
         const errorMsg = 'this is a processing error';
-        bigIpMock.delete = path => new Promise((resolve, reject) => {
+        bigIpMock.delete = (path) => new Promise((resolve, reject) => {
             if (path.indexOf('system_auth_name1') !== -1) {
                 reject(new Error(errorMsg));
             } else {
@@ -226,12 +224,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
     });
 
     it('should not issue deletes for missing Authentication items', () => {
-        bigIpMock.delete = path => new Promise((resolve) => {
+        bigIpMock.delete = (path) => new Promise((resolve) => {
             deletedPaths.push(path);
             resolve();
         });
 
-        bigIpMock.list = path => new Promise((resolve) => {
+        bigIpMock.list = (path) => new Promise((resolve) => {
             fetchedPaths.push(path);
             resolve([]);
         });
@@ -259,12 +257,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
     });
 
     it('should issue deletes for Authentication LDAP certificates', () => {
-        bigIpMock.delete = path => new Promise((resolve) => {
+        bigIpMock.delete = (path) => new Promise((resolve) => {
             deletedPaths.push(path);
             resolve();
         });
 
-        bigIpMock.list = path => new Promise((resolve) => {
+        bigIpMock.list = (path) => new Promise((resolve) => {
             fetchedPaths.push(path);
             if (path === '/tm/sys/file/ssl-cert') {
                 resolve([
@@ -306,12 +304,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
     });
 
     it('should handle non-array response from bigIp.list', () => {
-        bigIpMock.delete = path => new Promise((resolve) => {
+        bigIpMock.delete = (path) => new Promise((resolve) => {
             deletedPaths.push(path);
             resolve();
         });
 
-        bigIpMock.list = path => new Promise((resolve) => {
+        bigIpMock.list = (path) => new Promise((resolve) => {
             fetchedPaths.push(path);
             resolve({});
         });
@@ -337,7 +335,6 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.strictEqual(deletedPaths.length, 0);
             });
     });
-
 
     it('should not issue deletes for non-deletable classes', () => {
         const declaration = {

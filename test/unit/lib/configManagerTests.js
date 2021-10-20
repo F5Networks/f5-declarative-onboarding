@@ -45,7 +45,7 @@ describe('configManager', () => {
 
         // Return a copy of the configItem
         return JSON.parse(JSON.stringify(
-            [ConfigItems.find(configItem => configItem.schemaClass === schemaClass)]
+            [ConfigItems.find((configItem) => configItem.schemaClass === schemaClass)]
         ));
     };
 
@@ -2749,7 +2749,7 @@ describe('configManager', () => {
                 }
             ];
 
-            const getExpected = name => ({
+            const getExpected = (name) => ({
                 name,
                 description: 'none',
                 enabled: true,
@@ -2928,7 +2928,7 @@ describe('configManager', () => {
                 }
             ];
 
-            const getExpected = name => ({
+            const getExpected = (name) => ({
                 name,
                 description: 'none',
                 enabled: true
@@ -2976,7 +2976,7 @@ describe('configManager', () => {
                 }
             ];
 
-            const getExpected = name => ({
+            const getExpected = (name) => ({
                 name,
                 description: 'none',
                 enabled: true

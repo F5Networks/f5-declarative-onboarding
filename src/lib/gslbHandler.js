@@ -238,7 +238,7 @@ function handleGSLBServer() {
                 exposeRouteDomains: server.exposeRouteDomains,
                 virtualServerDiscovery: server.virtualServerDiscovery,
                 monitor: mapMonitors(server),
-                virtualServers: server.virtualServers.map(vs => ({
+                virtualServers: server.virtualServers.map((vs) => ({
                     name: vs.name,
                     description: vs.description,
                     destination: `${vs.address}${vs.address.indexOf(':') > -1 ? '.' : ':'}${vs.port}`,
@@ -288,7 +288,7 @@ function handleGSLBProberPool() {
                 loadBalancingMode: proberPool.loadBalancingMode
             };
 
-            body.members = proberPool.members.map(member => ({
+            body.members = proberPool.members.map((member) => ({
                 name: member.name,
                 description: member.description,
                 enabled: member.enabled,

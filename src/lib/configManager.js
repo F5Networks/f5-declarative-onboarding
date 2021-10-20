@@ -156,8 +156,8 @@ class ConfigManager {
             .then(() => this.bigIp.list('/tm/sys/provision'))
             .then((provisioning) => {
                 provisionedModules = provisioning
-                    .filter(module => module.level !== 'none')
-                    .map(module => module.name);
+                    .filter((module) => module.level !== 'none')
+                    .map((module) => module.name);
             })
             .then(() => this.bigIp.deviceInfo())
             .then((deviceInfo) => {
@@ -203,7 +203,7 @@ class ConfigManager {
                         }
 
                         const requiredFields = configItem.properties
-                            .filter(property => property.required)
+                            .filter((property) => property.required)
                             .reduce((accumulator, current) => {
                                 accumulator.push(current.id);
                                 return accumulator;
@@ -745,7 +745,7 @@ function mapProperties(item, configItem, bigIpVersion, options) {
                 const transformProperty = function (currentProperty) {
                     if (Array.isArray(currentProperty) && !property.transformAsArray) {
                         // Iterate through currentProperty to convert subobjects
-                        const output = currentProperty.map(prop => transformProperty(prop));
+                        const output = currentProperty.map((prop) => transformProperty(prop));
                         return output;
                     }
 
@@ -767,7 +767,7 @@ function mapProperties(item, configItem, bigIpVersion, options) {
 
                         if (trans.extract) {
                             if (property.transformAsArray) {
-                                value = currentProperty.map(prop => prop[trans.extract]);
+                                value = currentProperty.map((prop) => prop[trans.extract]);
                             } else {
                                 value = currentProperty[trans.extract];
                             }
@@ -953,7 +953,7 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo, optio
             const trimmedPropertyName = regex.exec(property)[1];
             let newId;
             if (options.translateToNewId) {
-                newId = (configItem.properties.find(obj => obj.id === trimmedPropertyName) || {}).newId;
+                newId = (configItem.properties.find((obj) => obj.id === trimmedPropertyName) || {}).newId;
             }
             referencePromises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
             referenceInfo.push(
@@ -985,7 +985,7 @@ function getTokenMap(deviceInfo) {
     const hostName = deviceInfo.hostname;
     return this.bigIp.list('/tm/cm/device')
         .then((cmDeviceInfo) => {
-            const devices = cmDeviceInfo.filter(device => device.hostname === hostName);
+            const devices = cmDeviceInfo.filter((device) => device.hostname === hostName);
 
             if (devices.length === 1) {
                 const deviceName = devices[0].name;
@@ -1137,7 +1137,7 @@ function patchHTTPD(patchedItem) {
     if (patchedItem.allow) {
         if (Array.isArray(patchedItem.allow)) {
             // Allow can use 'all' or 'All'. Normalize to 'all'.
-            patchedItem.allow = patchedItem.allow.map(item => (item === 'All' ? 'all' : item));
+            patchedItem.allow = patchedItem.allow.map((item) => (item === 'All' ? 'all' : item));
         }
     } else {
         patchedItem.allow = 'none';
@@ -1226,7 +1226,7 @@ function filterFirewallRuleProps(rule) {
     const allowedDestinationKeys = ['addressLists', 'portLists'];
 
     const filter = (obj, allowedKeys) => Object.keys(obj)
-        .filter(objKey => allowedKeys.indexOf(objKey) > -1)
+        .filter((objKey) => allowedKeys.indexOf(objKey) > -1)
         .reduce((newObj, objKey) => {
             newObj[objKey] = obj[objKey];
             return newObj;
@@ -1264,7 +1264,7 @@ function inPartitions(item, partitionList) {
 
 function classPresent(declaration, className) {
     return declaration.Common
-        && Object.keys(declaration.Common).find(key => declaration.Common[key].class === className);
+        && Object.keys(declaration.Common).find((key) => declaration.Common[key].class === className);
 }
 
 /**
@@ -1285,7 +1285,7 @@ function getMappedId(configPath, propertyPath, id, configItems, options) {
         return id;
     }
 
-    const configItem = configItems.find(ci => ci.path === configPath);
+    const configItem = configItems.find((ci) => ci.path === configPath);
     if (!configItem) {
         return id;
     }
@@ -1296,10 +1296,10 @@ function getMappedId(configPath, propertyPath, id, configItems, options) {
     }
 
     if (options.transformId) {
-        properties = properties.find(prop => prop.id === options.transformId).transform;
+        properties = properties.find((prop) => prop.id === options.transformId).transform;
     }
 
-    const property = properties.find(prop => prop.id === id);
+    const property = properties.find((prop) => prop.id === id);
     if (!property) {
         return id;
     }
@@ -1339,8 +1339,8 @@ function checkRequiredModules(requiredModules, currentModules, targetInfo) {
 
             return true;
         })
-        .map(requiredModule => requiredModule.module)
-        .every(module => currentModules.indexOf(module) > -1);
+        .map((requiredModule) => requiredModule.module)
+        .every((module) => currentModules.indexOf(module) > -1);
 }
 
 module.exports = ConfigManager;

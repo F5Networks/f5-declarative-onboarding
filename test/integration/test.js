@@ -34,14 +34,13 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 /* eslint-disable no-console */
 /* eslint-disable prefer-arrow-callback */
 
-
 describe('Declarative Onboarding Integration Test Suite', function performIntegrationTest() {
     // location of DO test JSON bodies
     const BODIES = 'test/integration/bodies';
     const machines = [];
     before(function setup() {
         return common.readFile(process.env.TEST_HARNESS_FILE)
-            .then(file => JSON.parse(file))
+            .then((file) => JSON.parse(file))
             .then((deployedMachines) => {
                 deployedMachines.forEach((deployedMachine) => {
                     machines.push({
@@ -60,7 +59,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 }
                 return Promise.resolve();
             })
-            .catch(error => Promise.reject(error));
+            .catch((error) => Promise.reject(error));
     });
 
     describe('Test Onboard', function testOnboard() {
@@ -91,7 +90,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .then((response) => {
                     currentState = response.currentConfig.Common;
                 })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
         after(() => {
@@ -102,7 +101,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 password: thisMachine.adminPassword
             };
             return common.testOriginalConfig(bigIpAddress, bigIpAuth)
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
         it('should match the hostname', () => {
@@ -222,7 +221,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should have preserved DHCP ManagementRoutes', () => {
             const dhcpManagementRoutes = Object.keys(currentState.ManagementRoute)
-                .filter(managementRoute => currentState.ManagementRoute[managementRoute].description === 'configured-by-dhcp');
+                .filter((managementRoute) => currentState.ManagementRoute[managementRoute].description === 'configured-by-dhcp');
             assert(dhcpManagementRoutes.length > 0);
         });
     });
@@ -264,7 +263,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     result = response.result;
                     currentState = response.currentConfig.Common;
                 })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
         it('should indicate that it was a dry run', () => {
@@ -297,7 +296,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .then((response) => {
                     currentState = response.currentConfig.Common;
                 })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
         after(() => {
@@ -305,7 +304,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             const bigIpAddress = thisMachine.ip;
             const bigIpAuth = { username: thisMachine.adminUsername, password: thisMachine.adminPassword };
             return common.testOriginalConfig(bigIpAddress, bigIpAuth)
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
         it('should match tunnel', () => {
@@ -571,8 +570,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             const url = `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`;
 
             return common.readFile(bodyFile)
-                .then(fileRead => JSON.parse(fileRead))
-                .then(body => common.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST'))
+                .then((fileRead) => JSON.parse(fileRead))
+                .then((body) => common.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST'))
                 .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, auth, expectedCode, query))
                 .then((responseBody) => {
                     // on 14+ this will be a string because of the messed up response
@@ -636,15 +635,15 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     body.Common.myLicense.bigIpPassword = bigIpAuth.password;
                     return body;
                 })
-                .then(body => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
+                .then((body) => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
                     + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
                 .then(() => common.testGetStatus(20, 60 * 1000, bigIpAddress, bigIpAuth,
                     constants.HTTP_SUCCESS))
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
         after(() => common.testOriginalConfig(bigIpAddress, bigIpAuth)
-            .catch(error => logError(error, bigIpAddress, bigIpAuth)));
+            .catch((error) => logError(error, bigIpAddress, bigIpAuth)));
 
         it('should have licensed', () => {
             logTestTitle(this.ctx.test.title);
@@ -655,7 +654,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     oldAuditLink = auditLink;
                     assert.ok(auditLink);
                 })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
         it('should have re-licensed with new pool', () => {
@@ -672,7 +671,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     body.Common.myLicense.bigIpPassword = bigIpAuth.password;
                     return body;
                 })
-                .then(body => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
+                .then((body) => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
                     + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
                 .then(() => common.testGetStatus(20, 60 * 1000, bigIpAddress,
                     bigIpAuth, constants.HTTP_SUCCESS))
@@ -684,7 +683,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     assert.notStrictEqual(oldAuditLink, auditLink);
                     newAuditLink = auditLink;
                 })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
         describe('Test Firewall', function testFirewall() {
@@ -705,11 +704,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                     })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                    .catch((error) => logError(error, bigIpAddress, bigIpAuth));
             });
 
             after(() => common.testOriginalConfig(bigIpAddress, bigIpAuth)
-                .catch(error => logError(error, bigIpAddress, bigIpAuth)));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth)));
 
             it('should match self ip', () => {
                 assert.deepStrictEqual(
@@ -867,11 +866,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                     })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                    .catch((error) => logError(error, bigIpAddress, bigIpAuth));
             });
 
             after(() => common.testOriginalConfig(bigIpAddress, bigIpAuth)
-                .catch(error => logError(error, bigIpAddress, bigIpAuth)));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth)));
 
             it('should have updated GSLB global-settings', () => assert.deepStrictEqual(
                 currentState.GSLBGlobals,
@@ -1105,7 +1104,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     .then(() => {
                         resolve();
                     })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
+                    .catch((error) => logError(error, bigIpAddress, bigIpAuth))
                     .catch((err) => {
                         reject(err);
                     }));
@@ -1183,7 +1182,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     .then(() => {
                         resolve();
                     })
-                    .catch(error => logError(error, bigIpAddress, bigIpAuth))
+                    .catch((error) => logError(error, bigIpAddress, bigIpAuth))
                     .catch((err) => {
                         reject(err);
                     });
@@ -1224,7 +1223,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .then((response) => {
                     currentState = response.currentConfig.Common;
                 })
-                .catch(error => logError(error, bigIpAddress, bigIpAuth));
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
         it('should have rollback status', () => {
@@ -1375,7 +1374,7 @@ function logError(error, bigIpAddress, bigIpAuth) {
     console.log(error);
     logger.info(error);
     return common.dumpDeclaration(bigIpAddress, bigIpAuth)
-        .then(declarationStatus => Promise.reject(new Error(JSON.stringify(declarationStatus, null, 2))));
+        .then((declarationStatus) => Promise.reject(new Error(JSON.stringify(declarationStatus, null, 2))));
 }
 
 /**
@@ -1440,12 +1439,12 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
                         }
                         return response.body;
                     })
-                    .then(response => JSON.parse(response))
-                    .then(response => response.items)
+                    .then((response) => JSON.parse(response))
+                    .then((response) => response.items)
                     .then((assignments) => {
                         logger.debug(`current assignments: ${JSON.stringify(
                             assignments.map(
-                                assignment => ({
+                                (assignment) => ({
                                     deviceAddress: assignment.deviceAddress,
                                     status: assignment.status,
                                     id: assignment.id
@@ -1454,9 +1453,10 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
                             null,
                             4
                         )}`);
-                        const bigIpAssignments = assignments.filter(current => current.deviceAddress === bigIpAddress);
+                        const bigIpAssignments = assignments
+                            .filter((current) => current.deviceAddress === bigIpAddress);
                         if (bigIpAssignments.length > 0) {
-                            const assignment = bigIpAssignments.find(current => current.status === 'LICENSED');
+                            const assignment = bigIpAssignments.find((current) => current.status === 'LICENSED');
                             if (assignment) {
                                 const auditLink = assignment.auditRecordReference.link;
                                 // audit links come with the ip address as localhost, we need to
@@ -1620,7 +1620,7 @@ function testConfigSyncIp(target, response) {
  * Returns true/false
 */
 function compareSimple(target, response, strings) {
-    return strings.every(str => compareObjects(str, str, target, response));
+    return strings.every((str) => compareObjects(str, str, target, response));
 }
 
 /**

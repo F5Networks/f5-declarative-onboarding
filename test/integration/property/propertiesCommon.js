@@ -81,7 +81,7 @@ function getTestInfo(currentTest) {
 }
 
 function toCamelCase(string) {
-    return string.replace(/-[a-z]/g, x => x[1].toUpperCase());
+    return string.replace(/-[a-z]/g, (x) => x[1].toUpperCase());
 }
 
 function getIndexOrLast(array, index) {
@@ -132,7 +132,7 @@ function createDeclarations(targetClass, properties, options) {
     const declarations = [];
 
     const count = properties
-        .map(p => ((p.inputValue) ? p.inputValue.length : p.expectedValue.length))
+        .map((p) => ((p.inputValue) ? p.inputValue.length : p.expectedValue.length))
         .reduce((result, current) => Math.max(result, current), 0);
 
     for (let i = 0; i < count; i += 1) {
@@ -156,7 +156,6 @@ function createDeclarations(targetClass, properties, options) {
                 setDeepValue(itemDeclaration, property.name, inputValue);
             }
         });
-
 
         const itemName = getItemName(options);
         declaration[options.tenantName] = {
@@ -293,7 +292,7 @@ function createTransaction() {
     return sendRequest(reqOpts, { trials: 3, timeInterval: 500 })
         // Transaction response does not always mean that it's ready.
         // Wait a couple seconds to avoid race condition.
-        .then(response => promiseUtil.delay(2000).then(() => response.body.transId))
+        .then((response) => promiseUtil.delay(2000).then(() => response.body.transId))
         .catch((error) => {
             error.message = `Unable to POST transaction: ${error}`;
             throw error;
@@ -350,7 +349,7 @@ function postBigipItems(items, useTransaction) {
 
     return (useTransaction ? createTransaction().then((id) => { transId = id; }) : Promise.resolve())
         .then(() => promiseUtil.series(
-            items.map(item => () => {
+            items.map((item) => () => {
                 const url = `${bigIpUrl}${constants.ICONTROL_API}${item.endpoint}`;
                 const reqOpts = common.buildBody(url, item.data, getAuth(), 'POST');
 
@@ -400,7 +399,7 @@ function deleteDeclaration() {
     };
 
     return sendDeclaration(declaration, '', `${bigIpUrl}${constants.DO_API}`)
-        .then(response => _waitForCompleteStatus(response.body.id))
+        .then((response) => _waitForCompleteStatus(response.body.id))
         .catch((error) => {
             error.message = `Unable to DELETE declaration: ${error}`;
             throw error;
@@ -409,8 +408,8 @@ function deleteDeclaration() {
 
 function deleteBigipItems(items) {
     return promiseUtil.series(items
-        .filter(item => !item.skipDelete)
-        .map(item => () => {
+        .filter((item) => !item.skipDelete)
+        .map((item) => () => {
             if (item.endpoint.indexOf('file-transfer/uploads') > -1) {
                 return Promise.resolve();
             }
@@ -420,7 +419,7 @@ function deleteBigipItems(items) {
             const reqOpts = common.buildBody(url, null, getAuth(), 'DELETE');
 
             return sendRequest(reqOpts, { trials: 3, timeInterval: 500 })
-                .then(response => response.body)
+                .then((response) => response.body)
                 .catch((error) => {
                     // Console intentionally left so delete will hit all items
                     error.message = `Unable to DELETE BigIP Items: ${error}`;
@@ -444,7 +443,7 @@ function resolveMcpReferences(mcpObject) {
                 }
 
                 if (Array.isArray(value)) {
-                    return Promise.all(value.map(v => resolveMcpReferences(v)));
+                    return Promise.all(value.map((v) => resolveMcpReferences(v)));
                 }
 
                 return resolveMcpReferences(value);
@@ -452,15 +451,15 @@ function resolveMcpReferences(mcpObject) {
     }
 
     const resolvedObject = JSON.parse(JSON.stringify(mcpObject));
-    const referenceProperties = Object.keys(mcpObject).filter(n => n.endsWith('Reference'));
+    const referenceProperties = Object.keys(mcpObject).filter((n) => n.endsWith('Reference'));
     const promises = referenceProperties.map((prop) => {
         // Treat everything as an array until it matters again
         const isArray = Array.isArray(mcpObject[prop]);
         const mcpProps = (isArray) ? mcpObject[prop] : [mcpObject[prop]];
 
         const requests = mcpProps
-            .map(p => parseUrl(p.link).pathname)
-            .map(path => resolveFromItem(path, prop)
+            .map((p) => parseUrl(p.link).pathname)
+            .map((path) => resolveFromItem(path, prop)
                 .catch((error) => {
                     error.message = `Unable to resolve reference for ${path}: ${error.message}`;
                     throw error;
@@ -498,7 +497,7 @@ function getMcpObject(targetClass, inputOptions) {
             if (options.getMcpObject && (options.getMcpObject.itemKind || options.getMcpObject.refItemKind)) {
                 let results = [];
                 if (response.body.items) {
-                    results = response.body.items.filter(i => i.kind === options.getMcpObject.itemKind
+                    results = response.body.items.filter((i) => i.kind === options.getMcpObject.itemKind
                         && (i.name === options.getMcpObject.itemName || options.getMcpObject.skipNameCheck));
                 } else if (options.getMcpObject.refItemKind
                     && response.body.kind === options.getMcpObject.refItemKind) {
@@ -512,7 +511,7 @@ function getMcpObject(targetClass, inputOptions) {
                 return [];
             }
 
-            return response.body.items.filter(i => i.fullPath.startsWith(path));
+            return response.body.items.filter((i) => i.fullPath.startsWith(path));
         })
         .catch((err) => {
             if (enableConsole) {
@@ -523,7 +522,7 @@ function getMcpObject(targetClass, inputOptions) {
         .then((results) => {
             const mcpObjects = results
                 .reduce((result, current) => result.concat(current), [])
-                .filter(i => i);
+                .filter((i) => i);
 
             if (mcpObjects.length === 0) {
                 const found = JSON.stringify(results, null, 2);
@@ -543,7 +542,7 @@ function getPropertyFromKind(kind) {
         if (path === '') {
             throw new Error(`Unable to find an entry in configItems.json for ${kind}`);
         }
-        subMap = propertyMap.find(item => item.path.slice(1) === path);
+        subMap = propertyMap.find((item) => item.path.slice(1) === path);
         pathComponents.pop();
     }
 
@@ -575,7 +574,7 @@ function extractMcpValue(mcpObject, mcpProperties, property) {
             mcpValue = mcpValue[parseInt(name, 10)];
         } else {
             const propMap = getPropertyFromKind(kind);
-            entry = propMap.find(p => p.id === name || p.newId === name);
+            entry = propMap.find((p) => p.id === name || p.newId === name);
             if (!entry) {
                 throw new Error(`No entry with id or newId of ${name}`);
             }
@@ -595,7 +594,6 @@ function extractMcpValue(mcpObject, mcpProperties, property) {
     const minVersion = entry.minVersion || '0.0.0.0';
     mcpProperties[property.name] = mcpValue;
 
-
     if (cloudUtil.versionCompare(BIGIP_VERSION, minVersion) < 0) {
         assert.strictEqual(
             mcpProperties[property.name],
@@ -614,7 +612,7 @@ function getMcpValue(targetClass, properties, index, options) {
             const mcpProperties = {};
 
             const extractPromises = properties
-                .filter(p => !p.skipAssert)
+                .filter((p) => !p.skipAssert)
                 .map((property) => {
                     if (property.extractFunction) {
                         const expected = getExpectedValue(property, index);
@@ -635,7 +633,7 @@ function getMcpValue(targetClass, properties, index, options) {
 
 function checkMcpValue(result, properties, index) {
     properties
-        .filter(p => !p.skipAssert && (!result._skip || !result._skip.includes(p.name)))
+        .filter((p) => !p.skipAssert && (!result._skip || !result._skip.includes(p.name)))
         .forEach((property) => {
             const value = getExpectedValue(property, index);
             // This print can be very helpful for debugging the expect vs receive vals
@@ -693,7 +691,7 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
                 // Retry on 503 for 2 and a half minutes on first post.
                 const options = {
                     delay: 10000,
-                    retries: 2.5 * 60 * 1000 / 10000
+                    retries: (2.5 * 60 * 1000) / 10000
                 };
                 return promiseUtil.retryPromise((decl, info) => postDeclaration(decl, info)
                     .then((result) => {
@@ -726,7 +724,7 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
         .then(() => promiseUtil.delay(fullOptions.getMcpValueDelay))
         .then(() => {
             const assertMcp = () => getMcpValue(targetClass, properties, index, fullOptions)
-                .then(result => checkMcpValue(result, properties, index));
+                .then((result) => checkMcpValue(result, properties, index));
             const options = {
                 delay: 1000,
                 retries: fullOptions.maxMcpRetries
@@ -876,8 +874,8 @@ function getProvisionedModulesAsync() {
             }
 
             return body.items
-                .filter(m => m.level !== 'none')
-                .map(m => m.name);
+                .filter((m) => m.level !== 'none')
+                .map((m) => m.name);
         })
         .catch((error) => {
             error.message = `Unable to get BIG-IP module list: ${error.message}`;
@@ -931,8 +929,8 @@ function getAuthToken() {
     const reqOpts = common.buildBody(url, body, null, 'POST');
 
     return sendRequest(reqOpts, { trials: 3, timeInterval: 500 })
-        .then(r => r.body.token.token)
-        .then(t => extendAuthTokenTimeout(t));
+        .then((r) => r.body.token.token)
+        .then((t) => extendAuthTokenTimeout(t));
 }
 
 function extendAuthTokenTimeout(token) {
@@ -1013,8 +1011,8 @@ function getItemName(options) {
 
 function getPreFetchFunctions(properties, index) {
     const preFetchPromises = properties
-        .filter(prop => prop.preFetchFunction)
-        .map(prop => Promise.resolve(prop.preFetchFunction(index)));
+        .filter((prop) => prop.preFetchFunction)
+        .map((prop) => Promise.resolve(prop.preFetchFunction(index)));
 
     return Promise.all(preFetchPromises);
 }

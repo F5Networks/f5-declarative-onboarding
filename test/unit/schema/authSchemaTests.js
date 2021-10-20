@@ -177,7 +177,6 @@ describe('auth.schema.json', () => {
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "primary"'), -1);
             });
 
-
             it('should invalidate data with extra server item', () => {
                 const data = {
                     "class": "Authentication",

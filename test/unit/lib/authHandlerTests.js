@@ -687,7 +687,7 @@ describe('authHandler', () => {
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return authHandler.process()
                 .then(() => {
-                    const remoteUserIndex = pathsSent.findIndex(p => p === PATHS.AuthRemoteUser);
+                    const remoteUserIndex = pathsSent.findIndex((p) => p === PATHS.AuthRemoteUser);
                     assert.notStrictEqual(remoteUserIndex, -1, 'RemoteAuthUser should be handled');
                     assert.deepStrictEqual(
                         dataSent[remoteUserIndex],

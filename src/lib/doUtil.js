@@ -76,7 +76,7 @@ module.exports = {
             portPromise = this.getPort(host);
         }
         return portPromise
-            .then(managmentPort => bigIp.init(
+            .then((managmentPort) => bigIp.init(
                 host,
                 user,
                 password,
@@ -132,7 +132,7 @@ module.exports = {
                 .then((deviceInfo) => {
                     let platform = 'CONTAINER';
                     if (deviceInfo && deviceInfo.slots) {
-                        const activeSlot = deviceInfo.slots.find(slot => slot.isActive && slot.product);
+                        const activeSlot = deviceInfo.slots.find((slot) => slot.isActive && slot.product);
 
                         if (activeSlot) {
                             platform = activeSlot.product;
@@ -149,7 +149,6 @@ module.exports = {
 
         return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, retryFunc);
     },
-
 
     /**
      * Gets the current version of DO if available.
@@ -214,11 +213,11 @@ module.exports = {
                 // reboot required, then reboot is required.
                 if (!promptSaysRebootRequired) {
                     return bigIp.list('/tm/sys/db/provision.action', null, cloudUtil.MEDIUM_RETRY)
-                        .then(response => Promise.resolve(response.value === 'reboot'));
+                        .then((response) => Promise.resolve(response.value === 'reboot'));
                 }
                 return Promise.resolve(true);
             })
-            .then(rebootRequired => Promise.resolve(rebootRequired));
+            .then((rebootRequired) => Promise.resolve(rebootRequired));
     },
 
     /**
@@ -263,7 +262,7 @@ module.exports = {
             retryOptions || cloudUtil.SHORT_RETRY,
             options
         )
-            .then(result => result.commandResult);
+            .then((result) => result.commandResult);
     },
 
     /**
@@ -277,7 +276,7 @@ module.exports = {
      */
     getClassObjects(declaration, className) {
         const common = declaration.Common || {};
-        const keys = Object.keys(common).filter(key => typeof common[key] === 'object'
+        const keys = Object.keys(common).filter((key) => typeof common[key] === 'object'
             && common[key].class
             && common[key].class === className);
 

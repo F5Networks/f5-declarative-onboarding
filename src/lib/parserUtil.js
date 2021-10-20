@@ -33,7 +33,7 @@ module.exports = {
      * @returns {Object} Updated property
      */
     updateIds(configItems, schemaClass, declarationItem, propertyName) {
-        const matchingConfigItems = configItems.filter(item => item.schemaClass === schemaClass);
+        const matchingConfigItems = configItems.filter((item) => item.schemaClass === schemaClass);
         if (matchingConfigItems.length === 0) {
             return declarationItem;
         }

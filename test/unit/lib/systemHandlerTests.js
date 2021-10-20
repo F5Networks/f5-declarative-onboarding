@@ -1573,7 +1573,6 @@ describe('systemHandler', () => {
                 });
         });
 
-
         it('should error if using not using localhost and only changing mask', () => {
             const declaration = {
                 Common: {

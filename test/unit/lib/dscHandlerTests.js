@@ -183,7 +183,6 @@ describe('dscHandler', () => {
                 });
         });
 
-
         it('should return none if no address is provided', () => {
             const declaration = {
                 Common: {

@@ -40,7 +40,7 @@ class BusinessLogicValidator {
         }
 
         // hostname is in Common and System is present
-        if (Object.keys(sysWrapper).find(key => typeof sysWrapper[key].hostname !== 'undefined')) {
+        if (Object.keys(sysWrapper).find((key) => typeof sysWrapper[key].hostname !== 'undefined')) {
             isValid = false;
             errors.push('multiple hostnames in declaration');
         }

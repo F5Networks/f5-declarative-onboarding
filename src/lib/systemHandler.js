@@ -198,7 +198,7 @@ function handleDhcpOptions() {
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        const promises = (ntp.servers || []).map(server => doUtil.checkDnsResolution(this.bigIp, server));
+        const promises = (ntp.servers || []).map((server) => doUtil.checkDnsResolution(this.bigIp, server));
 
         return Promise.all(promises)
             .then(() => this.bigIp.replace(
@@ -312,7 +312,7 @@ function handleDeviceCertificate() {
                             if (needsWrite) {
                                 writePromises.push(
                                     cryptoUtil.encryptValue(newKey)
-                                        .then(results => doUtil.executeBashCommandIControl(
+                                        .then((results) => doUtil.executeBashCommandIControl(
                                             this.bigIp,
                                             `/usr/bin/php -f ${decryptScript} '${results}' ${keyFullPath}`
                                         ))
@@ -426,7 +426,7 @@ function handleUser() {
                                 .then((origAuthKey) => {
                                     const masterKeys = origAuthKey
                                         .split('\n')
-                                        .filter(key => key.endsWith(' Host Processor Superuser'));
+                                        .filter((key) => key.endsWith(' Host Processor Superuser'));
                                     if (masterKeys !== '') {
                                         user.keys.unshift(masterKeys);
                                     }
@@ -527,7 +527,7 @@ function handleLicensePool(license) {
             if (currentPlatform === PRODUCTS.BIGIP && license.reachable) {
                 getBigIp = new Promise((resolve, reject) => {
                     this.bigIp.deviceInfo()
-                        .then(deviceInfo => doUtil.getBigIp(
+                        .then((deviceInfo) => doUtil.getBigIp(
                             logger,
                             {
                                 host: deviceInfo.managementAddress,
@@ -658,7 +658,7 @@ function handleLicensePool(license) {
             }
             return this.bigIp.active();
         })
-        .catch(err => Promise.reject(err));
+        .catch((err) => Promise.reject(err));
 }
 
 function handleManagementIp() {
@@ -666,7 +666,7 @@ function handleManagementIp() {
         // If there are two entries, the one w/ a name property is the new one. The other entry
         // is the old management-ip and should be empty because to ajv it looks like a delete
         const names = Object.keys(this.declaration.Common.ManagementIp);
-        const newName = names.find(name => this.declaration.Common.ManagementIp[name].name);
+        const newName = names.find((name) => this.declaration.Common.ManagementIp[name].name);
         if (newName) {
             const mgmtIpInfo = this.declaration.Common.ManagementIp[newName];
             const address = mgmtIpInfo.name;
@@ -847,8 +847,6 @@ function handleSnmpUsers() {
     doUtil.forEach(this.declaration, 'SnmpUser', (tenant, snmpUser) => {
         if (snmpUser && snmpUser.name) {
             const user = JSON.parse(JSON.stringify(snmpUser));
-            user.authProtocol = user.authProtocol;
-            user.privacyProtocol = user.privacyProtocol;
 
             // 'none' is only a valid option for 14.0+
             if (cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
@@ -872,8 +870,6 @@ function handleSnmpCommunities() {
     doUtil.forEach(this.declaration, 'SnmpCommunity', (tenant, snmpCommunity) => {
         if (snmpCommunity && snmpCommunity.name) {
             const community = JSON.parse(JSON.stringify(snmpCommunity));
-            community.source = community.source;
-            community.oidSubset = community.oidSubset;
 
             promise = promise.then(() => this.bigIp.createOrModify(
                 PATHS.SnmpCommunity,
@@ -905,12 +901,6 @@ function handleSnmpTrapDestinations() {
                 destination.network = (destination.network === 'management') ? 'mgmt' : 'other';
             }
 
-            destination.community = destination.community;
-            destination.securityName = destination.securityName;
-            destination.authProtocol = destination.authProtocol;
-            destination.privacyProtocol = destination.privacyProtocol;
-            destination.engineId = destination.engineId;
-
             // 'none' is only a valid option for 14.0+
             if (cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
                 destination.authPassword = destination.authPassword || 'none';
@@ -933,7 +923,7 @@ function handleSyslog() {
     }
 
     const remoteServers = Object.keys(this.declaration.Common.SyslogRemoteServer).map(
-        logName => this.declaration.Common.SyslogRemoteServer[logName]
+        (logName) => this.declaration.Common.SyslogRemoteServer[logName]
     );
 
     if (remoteServers.length === 0) {
@@ -988,7 +978,7 @@ function handleHTTPD() {
         // allow defaults to 'All' on BIGIP but can be either 'all' or 'All'.  For consistency with other schema enums
         // and BIGIP's default let's always use 'all' with the user and 'All' with BIGIP.
         if (Array.isArray(httpd.allow)) {
-            httpd.allow = httpd.allow.map(item => (item === 'all' ? 'All' : item));
+            httpd.allow = httpd.allow.map((item) => (item === 'all' ? 'All' : item));
         } else if (httpd.allow === 'all') {
             // This should already be an array by the time it gets here, but let's
             // just make sure
@@ -1164,7 +1154,7 @@ function disableDhcpOptions(optionsToDisable) {
             }
 
             const currentOptions = dhcpOptions.requestOptions;
-            const newOptions = currentOptions.filter(option => optionsToDisable.indexOf(option) === -1);
+            const newOptions = currentOptions.filter((option) => optionsToDisable.indexOf(option) === -1);
 
             if (currentOptions.length === newOptions.length) {
                 return Promise.resolve();
@@ -1200,7 +1190,7 @@ function getBigIqManagementPort(currentPlatform, license) {
 function restartDhcp() {
     // If DHCP is disabled on the device do NOT attempt to restart it
     return this.bigIp.list(PATHS.SysGlobalSettings)
-        .then(globalSettings => globalSettings && globalSettings.mgmtDhcp === 'enabled')
+        .then((globalSettings) => globalSettings && globalSettings.mgmtDhcp === 'enabled')
         .then((canRestartDhcp) => {
             if (canRestartDhcp) {
                 return restartService.call(this, 'dhclient');

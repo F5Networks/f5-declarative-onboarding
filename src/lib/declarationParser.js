@@ -182,7 +182,7 @@ class DeclarationParser {
         }
 
         function getKeysOfInterest(declaration) {
-            return Object.keys(declaration).filter(key => isKeyOfInterest(key));
+            return Object.keys(declaration).filter((key) => isKeyOfInterest(key));
         }
 
         try {

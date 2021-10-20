@@ -42,7 +42,7 @@ class Response {
             response = getResponse(this.itemId, this.responder, this.options);
         } else {
             const ids = this.responder.getIds() || [];
-            response = Promise.all(ids.map(id => getResponse(id, this.responder, this.options)));
+            response = Promise.all(ids.map((id) => getResponse(id, this.responder, this.options)));
         }
         return response;
     }
@@ -90,7 +90,7 @@ function getResponse(id, responder, options) {
             Object.assign(response, data);
             return Promise.resolve(response);
         })
-        .catch(err => Promise.resolve({
+        .catch((err) => Promise.resolve({
             id,
             result: {
                 code: 500,

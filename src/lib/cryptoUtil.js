@@ -98,7 +98,7 @@ module.exports = {
      */
     deleteEncryptedId(id) {
         return doUtil.getBigIp(logger)
-            .then(bigIp => bigIp.delete(`${ENCRYPT_PATH}/${id}`)).catch((err) => {
+            .then((bigIp) => bigIp.delete(`${ENCRYPT_PATH}/${id}`)).catch((err) => {
                 logger.warning('Failed to delete encrypted data with id', id, err);
                 return Promise.reject(err);
             });
@@ -114,7 +114,7 @@ module.exports = {
      */
     encryptAndStoreValue(value, id) {
         return doUtil.getBigIp(logger)
-            .then(bigIp => encryptValueOnBigIp(value, id, bigIp))
+            .then((bigIp) => encryptValueOnBigIp(value, id, bigIp))
             .catch((err) => {
                 logger.warning('Failed to encrypt data', err);
                 return Promise.reject(err);

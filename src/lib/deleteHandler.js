@@ -173,7 +173,7 @@ class DeleteHandler {
             // Delete special GSLB item items first so that references to other items, such as
             // GSLB Monitor, are not prematurely deleted
             .then(() => getGSLBClassTransaction.call(this))
-            .then(() => cloudUtil.callInSerial(this, DELETABLE_CLASSES.map(deletableClass => ({
+            .then(() => cloudUtil.callInSerial(this, DELETABLE_CLASSES.map((deletableClass) => ({
                 promise: deleteClass,
                 arguments: [deletableClass]
             }))))
@@ -223,7 +223,7 @@ function getAuthClassPromises() {
             .then((authItems) => {
                 const items = authItems && Array.isArray(authItems) ? authItems : [];
                 return Promise.all(names.map((name) => {
-                    const shouldDelete = items.some(item => item.fullPath === `/Common/${name}`);
+                    const shouldDelete = items.some((item) => item.fullPath === `/Common/${name}`);
 
                     if (shouldDelete) {
                         return this.bigIp.delete(
@@ -243,7 +243,7 @@ function getAuthClassPromises() {
             let promise = this.bigIp.list(`/tm/auth/${authItem}`, null, null, cloudUtil.NO_RETRY)
                 .then((authItems) => {
                     const items = authItems && Array.isArray(authItems) ? authItems : [];
-                    const shouldDelete = items.some(item => item.fullPath === `/Common/${AUTH.SUBCLASSES_NAME}`);
+                    const shouldDelete = items.some((item) => item.fullPath === `/Common/${AUTH.SUBCLASSES_NAME}`);
 
                     if (shouldDelete) {
                         return this.bigIp.delete(
@@ -264,7 +264,7 @@ function getAuthClassPromises() {
                         return Promise.all(
                             [RADIUS.PRIMARY_SERVER, RADIUS.SECONDARY_SERVER].map((server) => {
                                 const shouldDelete = items.some(
-                                    item => item.fullPath === `/Common/${AUTH.SUBCLASSES_NAME}`
+                                    (item) => item.fullPath === `/Common/${AUTH.SUBCLASSES_NAME}`
                                 );
 
                                 if (shouldDelete) {

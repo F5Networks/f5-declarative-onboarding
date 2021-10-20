@@ -139,7 +139,7 @@ function handleFailoverUnicast() {
         }
 
         return this.bigIp.deviceInfo()
-            .then(deviceInfo => this.bigIp.modify(
+            .then((deviceInfo) => this.bigIp.modify(
                 `/tm/cm/device/~Common~${deviceInfo.hostname}`,
                 body
             ))
@@ -163,7 +163,7 @@ function handleFailoverMulticast() {
         body.multicastPort = multicast.multicastPort;
 
         return this.bigIp.deviceInfo()
-            .then(deviceInfo => this.bigIp.modify(
+            .then((deviceInfo) => this.bigIp.modify(
                 `/tm/cm/device/~Common~${deviceInfo.hostname}`,
                 body
             ))
@@ -265,7 +265,7 @@ function handleJoinCluster(convertedMembers, deviceGroup) {
                 }
             ))
             .then(() => convertToHostnames.call(this, deviceGroup.members, deviceGroup.owner))
-            .then(syncedConverted => pruneDeviceGroup.call(this, deviceGroup.name, syncedConverted.members));
+            .then((syncedConverted) => pruneDeviceGroup.call(this, deviceGroup.name, syncedConverted.members));
     }
     return Promise.resolve();
 }
@@ -301,7 +301,7 @@ function handleDeviceTrust() {
                         password: deviceTrust.remotePassword
                     }
                 ))
-                .then(remoteBigIp => remoteBigIp.cluster.addToTrust(
+                .then((remoteBigIp) => remoteBigIp.cluster.addToTrust(
                     deviceInfo.hostname,
                     deviceInfo.managementAddress,
                     deviceTrust.localUsername,
@@ -452,7 +452,7 @@ function isRemoteHost(deviceInfo, remoteHost) {
             this.bigIp.list(PATHS.SelfIp)
                 .then((selfIps) => {
                     if (selfIps && Array.isArray(selfIps)) {
-                        const match = selfIps.find(selfIp => doUtil.stripCidr(selfIp.address) === remoteHost);
+                        const match = selfIps.find((selfIp) => doUtil.stripCidr(selfIp.address) === remoteHost);
                         resolve(!!match);
                     }
                 })
@@ -518,7 +518,7 @@ function convertToHostnames(deviceGroupMembers, deviceGroupOwner) {
 
     return Promise.resolve()
         .then(() => {
-            if (deviceGroupMembers.some(mem => ipF5(mem))) {
+            if (deviceGroupMembers.some((mem) => ipF5(mem))) {
                 return this.bigIp.list('/tm/cm/device');
             }
             return Promise.resolve([]);
@@ -548,8 +548,8 @@ function convertToHostnames(deviceGroupMembers, deviceGroupOwner) {
                 return address;
             };
 
-            converted.members = deviceGroupMembers.map(mem => convertAddress(mem))
-                .filter(mem => !ipF5(mem));
+            converted.members = deviceGroupMembers.map((mem) => convertAddress(mem))
+                .filter((mem) => !ipF5(mem));
             converted.owner = convertAddress(deviceGroupOwner);
 
             return converted;
@@ -599,7 +599,7 @@ function handleMacMasquerade() {
         const macMasquerade = this.declaration.Common.MAC_Masquerade;
         return Promise.resolve()
             .then(() => {
-                if (!Object.keys(macMasquerade).some(masquerade => macMasquerade[masquerade].source)) {
+                if (!Object.keys(macMasquerade).some((masquerade) => macMasquerade[masquerade].source)) {
                     return Promise.resolve();
                 }
                 return this.bigIp.list('/tm/sys/mac-address');
@@ -649,7 +649,7 @@ function handleMirrorIp() {
         };
 
         return this.bigIp.deviceInfo()
-            .then(deviceInfo => this.bigIp.modify(
+            .then((deviceInfo) => this.bigIp.modify(
                 `/tm/cm/device/~Common~${deviceInfo.hostname}`,
                 body
             ))

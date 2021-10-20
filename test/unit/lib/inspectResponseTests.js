@@ -23,7 +23,6 @@ const sinon = require('sinon');
 const InspectHandler = require('../../../src/lib/inspectHandler');
 const InspectResponse = require('../../../src/lib/inspectResponse');
 
-
 describe('inspectResponse', () => {
     let inspectResponse;
     let expectedResponse;

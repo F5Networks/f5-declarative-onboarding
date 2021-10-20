@@ -294,7 +294,7 @@ class RestWorker {
                             if (platform === PRODUCTS.BIGIQ && !isFromTcw) {
                                 logger.finest('Passing to TCW');
                                 passToTcw.call(this, wrapper, taskId, restOperation)
-                                    .then(tcwId => pollTcw.call(this, tcwId, taskId, restOperation))
+                                    .then((tcwId) => pollTcw.call(this, tcwId, taskId, restOperation))
                                     .then(() => {
                                         logger.finest('TCW is done');
                                         if (!declaration.async) {
@@ -614,7 +614,7 @@ function passToTcw(wrapper, taskId, incomingRestOp) {
             declaration: wrapper
         });
     return this.restRequestSender.sendPost(restOperation)
-        .then(response => response.getBody().id);
+        .then((response) => response.getBody().id);
 }
 
 /**
@@ -1110,7 +1110,7 @@ function getPort(wrapper) {
 
 function getUserFromDeclaration(username, declaration) {
     const commonDeclaration = declaration.Common || {};
-    const users = Object.keys(commonDeclaration).filter(key => commonDeclaration[key].class === 'User');
+    const users = Object.keys(commonDeclaration).filter((key) => commonDeclaration[key].class === 'User');
     let user;
     if (users.indexOf(username) !== -1) {
         user = commonDeclaration[username];
