@@ -404,7 +404,7 @@ describe('Authentication', function testAuthentication() {
             {
                 name: 'remoteAccess',
                 inputValue: [false, true, false],
-                expectedValue: ['disabled', 'enabled', 'disabled']
+                expectedValue: ['enabled', 'disabled', 'enabled']
             },
             {
                 name: 'role',
