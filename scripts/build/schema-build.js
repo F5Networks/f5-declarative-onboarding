@@ -47,10 +47,10 @@ function derefPromise(schemaPath) {
 
 function combineSchemas() {
     const definitions = fs.readdirSync(`${SCHEMA_DIR}/`)
-        .filter(name => !(name.includes('draft')) && name.endsWith('schema.json'))
-        .map(fileName => `${SCHEMA_DIR}/${fileName}`);
+        .filter((name) => !(name.includes('draft')) && name.endsWith('schema.json'))
+        .map((fileName) => `${SCHEMA_DIR}/${fileName}`);
 
-    return Promise.all(definitions.map(definition => derefPromise(definition)))
+    return Promise.all(definitions.map((definition) => derefPromise(definition)))
         .then((schemas) => {
             schemas.forEach((content) => {
                 if (!base.definitions) base.definitions = {};

@@ -862,6 +862,23 @@ describe('network.schema.json', () => {
                 });
             });
         });
+
+        describe('VXLAN', () => {
+            describe('valid', () => {
+                it('should validate VXLAN all properties', () => {
+                    const data = {
+                        class: 'Tunnel',
+                        tunnelType: 'vxlan',
+                        defaultsFrom: 'otherProfile',
+                        description: 'test description',
+                        port: 124,
+                        floodingType: 'multipoint',
+                        encapsulationType: 'vxlan-gpe'
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
+            });
+        });
     });
 
     describe('RoutingAsPath', () => {

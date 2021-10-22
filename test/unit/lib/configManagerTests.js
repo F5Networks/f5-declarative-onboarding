@@ -49,6 +49,17 @@ describe('configManager', () => {
         ));
     };
 
+    const getAllConfigItems = function (schemaClass) {
+        if (typeof schemaClass === 'undefined' || schemaClass === '') {
+            return undefined;
+        }
+
+        // Return a copy of the configItem
+        return JSON.parse(JSON.stringify(
+            ConfigItems.filter((configItem) => configItem.schemaClass === schemaClass)
+        ));
+    };
+
     beforeEach(() => {
         optionsReceived = {};
         listResponses = {
@@ -3322,6 +3333,111 @@ describe('configManager', () => {
                             communityName: 'public',
                             oidSubset: 'none',
                             source: 'none'
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('Tunnel oddities', () => {
+        it('should handle combining VXLAN profiles and tunnels into a single object', () => {
+            const configItems = getAllConfigItems('Tunnel');
+
+            listResponses['/tm/net/tunnels/tunnel'] = [
+                {
+                    name: 'testTunnel',
+                    autoLasthop: 'default',
+                    mtu: 0,
+                    profile: '/Common/testTunnel_vxlan',
+                    tos: 'preserve',
+                    usePmtu: 'enabled',
+                    localAddress: '10.145.0.1',
+                    remoteAddress: '250.250.0.1',
+                    secondaryAddress: 'any6',
+                    key: 0,
+                    mode: 'bidirectional',
+                    transparent: 'disabled'
+                },
+                {
+                    name: 'testTcpForwardTunnel',
+                    autoLasthop: 'default',
+                    mtu: 0,
+                    profile: '/Common/tcp-forward',
+                    tos: 'preserve',
+                    usePmtu: 'enabled',
+                    localAddress: 'any6',
+                    remoteAddress: 'any6',
+                    secondaryAddress: 'any6',
+                    key: 0,
+                    mode: 'bidirectional',
+                    transparent: 'disabled'
+                }
+            ];
+            listResponses['/tm/net/tunnels/vxlan'] = [
+                {
+                    name: 'testTunnel_vxlan',
+                    defaultsFrom: '/Common/vxlan',
+                    port: 4789,
+                    floodingType: 'multicast',
+                    encapsulationType: 'vxlan'
+                },
+                {
+                    name: 'vxlan-gpe',
+                    defaultsFrom: '/Common/vxlan',
+                    port: 4790,
+                    floodingType: 'multipoint',
+                    encapsulationType: 'vxlan-gpe'
+                },
+                {
+                    name: 'vxlan',
+                    port: 4789,
+                    floodingType: 'multicast',
+                    encapsulationType: 'vxlan'
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.Tunnel,
+                        {
+                            testTunnel: {
+                                name: 'testTunnel',
+                                autoLasthop: 'default',
+                                mtu: 0,
+                                profile: 'vxlan',
+                                tos: 'preserve',
+                                usePmtu: 'enabled',
+                                localAddress: '10.145.0.1',
+                                remoteAddress: '250.250.0.1',
+                                secondaryAddress: 'any6',
+                                key: 0,
+                                mode: 'bidirectional',
+                                transparent: 'disabled',
+                                trafficGroup: 'none',
+                                defaultsFrom: 'vxlan',
+                                port: 4789,
+                                floodingType: 'multicast',
+                                encapsulationType: 'vxlan',
+                                description: 'none'
+                            },
+                            testTcpForwardTunnel: {
+                                name: 'testTcpForwardTunnel',
+                                autoLasthop: 'default',
+                                mtu: 0,
+                                profile: 'tcp-forward',
+                                tos: 'preserve',
+                                usePmtu: 'enabled',
+                                localAddress: 'any6',
+                                remoteAddress: 'any6',
+                                secondaryAddress: 'any6',
+                                key: 0,
+                                mode: 'bidirectional',
+                                transparent: 'disabled',
+                                description: 'none',
+                                trafficGroup: 'none'
+                            }
                         }
                     );
                 });

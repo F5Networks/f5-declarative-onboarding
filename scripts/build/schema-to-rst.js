@@ -43,10 +43,10 @@ function getTypes(property) {
         });
     }
     if (property.oneOf && property.type === undefined) {
-        property.oneOf.forEach(p => types.push(getTypes(p)));
+        property.oneOf.forEach((p) => types.push(getTypes(p)));
     }
     if (property.anyOf && property.type === undefined) {
-        property.anyOf.forEach(p => types.push(getTypes(p)));
+        property.anyOf.forEach((p) => types.push(getTypes(p)));
     }
     if (property.if && property.if.type !== undefined) {
         types.push(property.if.type);
@@ -106,8 +106,8 @@ function getValues(property, type) {
 
     if (Array.isArray(type)) {
         return type
-            .map(subType => getValues(property, subType))
-            .filter(v => v !== defaultValue)
+            .map((subType) => getValues(property, subType))
+            .filter((v) => v !== defaultValue)
             .join(', ');
     }
     if (property.if && property.then) {
@@ -126,7 +126,7 @@ function getValues(property, type) {
     }
     if (type === 'string') {
         if (property.const) return `"${property.const}"`;
-        if (property.enum) return property.enum.map(s => `"${s}"`).join(', ');
+        if (property.enum) return property.enum.map((s) => `"${s}"`).join(', ');
         if (property.pattern) return `regex: ${property.pattern}`;
         if (property.format) return `format: ${property.format}`;
     }
@@ -317,7 +317,7 @@ Object.keys(defs).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
                 }
             } else if (defs[defName].enum) {
                 rstBody += 'Type string with possible values:\n';
-                rstBody += `${defs[defName].enum.map(s => `"${s}"`).join(', ')}\n`;
+                rstBody += `${defs[defName].enum.map((s) => `"${s}"`).join(', ')}\n`;
             } else if (defs[defName].type === 'array' && defs[defName].items.$ref) {
                 const defRefs = defs[defName].items.$ref.split('/');
                 rstBody += `For item definition, see type (*${defRefs[defRefs.length - 1]}*)\n\n`;

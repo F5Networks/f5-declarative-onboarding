@@ -1121,6 +1121,39 @@ describe('inspectHandler', () => {
                     mode: 'bidirectional',
                     transparent: 'disabled',
                     trafficGroup: 'none'
+                },
+                {
+                    name: 'tunnelVxlan',
+                    description: 'this is my vxlan tunnel',
+                    mtu: 0,
+                    profile: '/Common/tunnelVxlan_vxlan',
+                    tos: 'preserve',
+                    usePmtu: 'enabled',
+                    autoLasthop: 'default',
+                    localAddress: 'any6',
+                    remoteAddress: 'any6',
+                    secondaryAddress: '30.30.30.30',
+                    key: 0,
+                    mode: 'bidirectional',
+                    transparent: 'disabled',
+                    trafficGroup: 'none'
+                }
+            ],
+            '/tm/net/tunnels/vxlan': [
+                {
+                    name: 'tunnelVxlan_vxlan',
+                    description: 'this is a vxlan tunnel profile',
+                    appService: 'none',
+                    defaultsFrom: '/Common/vxlan-ovsdb',
+                    encapsulationType: 'vxlan',
+                    floodingType: 'replicator',
+                    port: 256
+                },
+                {
+                    name: 'vxlan',
+                    encapsulationType: 'vxlan',
+                    floodingType: 'multicast',
+                    port: 4789
                 }
             ],
             '/tm/sys/disk/directory': {
@@ -2166,6 +2199,26 @@ describe('inspectHandler', () => {
                             key: 0,
                             mode: 'bidirectional',
                             trafficGroup: 'none'
+                        },
+                        tunnelVxlan: {
+                            class: 'Tunnel',
+                            remark: 'this is my vxlan tunnel',
+                            tunnelType: 'vxlan',
+                            mtu: 0,
+                            usePmtu: true,
+                            typeOfService: 'preserve',
+                            autoLastHop: 'default',
+                            transparent: false,
+                            localAddress: 'any6',
+                            remoteAddress: 'any6',
+                            secondaryAddress: '30.30.30.30',
+                            key: 0,
+                            mode: 'bidirectional',
+                            trafficGroup: 'none',
+                            defaultsFrom: 'vxlan-ovsdb',
+                            port: 256,
+                            floodingType: 'replicator',
+                            encapsulationType: 'vxlan'
                         },
                         currentDisk: {
                             class: 'Disk',

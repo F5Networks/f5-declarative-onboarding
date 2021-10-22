@@ -737,6 +737,19 @@
         ]
     },
     {
+        "path": "/tm/net/tunnels/vxlan",
+        "schemaClass": "Tunnel",
+        "schemaMerge": {
+            "action": "add"
+        },
+        "properties": [
+            { "id": "defaultsFrom" },
+            { "id": "port" },
+            { "id": "floodingType" },
+            { "id": "encapsulationType" }
+        ]
+    },
+    {
         "path": "/tm/sys/disk/directory",
         "schemaClass": "Disk",
         "properties": [

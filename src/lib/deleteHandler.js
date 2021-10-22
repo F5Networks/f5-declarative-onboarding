@@ -150,6 +150,20 @@ class DeleteHandler {
                     const currMon = this.state.currentConfig.Common.GSLBMonitor[itemToDelete];
                     const path = `${PATHS.GSLBMonitor}/${currMon.monitorType}/~Common~${itemToDelete}`;
                     classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                } else if (deletableClass === 'Tunnel'
+                    && !isRetainedItem(deletableClass, itemToDelete)) {
+                    const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
+                    const path = `${PATHS.Tunnel}/${commonPrefix}${itemToDelete}`;
+                    const tunnelPromise = this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY);
+                    if (this.state.currentConfig.Common.Tunnel[itemToDelete].profile === 'vxlan') {
+                        // Check if the itemToDelete has a vxlan profile if so that must be deleted
+                        // too vxlan profiles need deleted AFTER the tunnel deletion
+                        const pathVxlan = `${PATHS.VXLAN}/${commonPrefix}${itemToDelete}_vxlan`;
+                        tunnelPromise.then(() => this.bigIp.delete(
+                            pathVxlan, null, null, cloudUtil.NO_RETRY
+                        ));
+                    }
+                    classPromises.push(tunnelPromise);
                 } else if (!isRetainedItem(deletableClass, itemToDelete)) {
                     const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
                     const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete}`;

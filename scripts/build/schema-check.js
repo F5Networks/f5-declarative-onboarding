@@ -32,7 +32,7 @@ function checkDefinitions(schema) {
 
 function checkProperties(schema, prefix) {
     Object.keys(schema.properties || {})
-        .filter(key => key !== 'class')
+        .filter((key) => key !== 'class')
         .forEach((propertyKey) => {
             const propSchema = schema.properties[propertyKey];
             checkSchema(propSchema, `${prefix}.${propertyKey}`, true);
@@ -55,7 +55,7 @@ function checkItems(schema, prefix) {
 }
 
 function collapseAllOf(schema) {
-    (schema.allOf || []).forEach(subSchema => Object.assign(schema, subSchema));
+    (schema.allOf || []).forEach((subSchema) => Object.assign(schema, subSchema));
     delete schema.allOf;
 }
 
@@ -77,7 +77,7 @@ function checkSchema(schema, prefix, isProperty) {
     if (schema.$ref) {
         if (!hasAllOf) {
             const keywords = Object.keys(schema)
-                .filter(key => ['$ref', 'description', 'title', '$comment'].indexOf(key) < 0);
+                .filter((key) => ['$ref', 'description', 'title', '$comment'].indexOf(key) < 0);
             if (keywords.length) {
                 warnings.push(`${pref} mixes keywords with $ref: ${JSON.stringify(keywords)}`);
             }
@@ -110,11 +110,11 @@ function runChecks(fileName, callback) {
     checkDefinitions(JSON.parse(fs.readFileSync(fileName)));
     if (errors.length) {
         console.log(`Found ${errors.length} errors:`);
-        errors.forEach(error => console.log(error));
+        errors.forEach((error) => console.log(error));
     }
     if (warnings.length) {
         console.log(`Found ${warnings.length} warnings:`);
-        warnings.forEach(error => console.log(error));
+        warnings.forEach((error) => console.log(error));
     }
 
     const error = (errors.length) ? new Error('Schema checking failed') : null;

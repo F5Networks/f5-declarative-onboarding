@@ -32,13 +32,12 @@ const makeDirP = (path) => {
     }
 };
 
-const readdir = path => fs.readdirSync(path)
-    .filter(name => name.endsWith('.json'))
-    .map(example => ({
+const readdir = (path) => fs.readdirSync(path)
+    .filter((name) => name.endsWith('.json'))
+    .map((example) => ({
         json: JSON.parse(fs.readFileSync(`${path}/${example}`)),
         name: example.split('.')[0]
     }));
-
 
 const buildCollection = () => {
     const examples = readdir(examplesDir);

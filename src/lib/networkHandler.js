@@ -17,6 +17,7 @@
 'use strict';
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
 const isInSubnet = require('is-in-subnet').isInSubnet;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
@@ -647,11 +648,33 @@ function handleDagGlobals() {
 }
 
 function handleTunnel() {
+    const deleteTunnels = [];
+    const deleteVxlans = [];
+    const vxlanPromises = [];
     const promises = [];
-    const deletePromises = [];
 
     doUtil.forEach(this.declaration, 'Tunnel', (tenant, tunnel) => {
         if (tunnel && tunnel.name && tunnel.profile) {
+            // if the tunnel has a vxlan profile we need to update that profile appropriately.
+            // must do this step first so the following profile step handles changes properly
+            if (tunnel.profile === 'vxlan') {
+                const vxlanBody = {
+                    name: `${tunnel.name}_vxlan`,
+                    description: tunnel.description,
+                    partition: tenant,
+                    defaultsFrom: tunnel.defaultsFrom,
+                    encapsulationType: tunnel.encapsulationType,
+                    floodingType: tunnel.floodingType,
+                    port: tunnel.port
+                };
+
+                tunnel.profile = `${tunnel.name}_vxlan`;
+
+                vxlanPromises.push(() => this.bigIp.createOrModify(
+                    PATHS.VXLAN, vxlanBody, null, cloudUtil.MEDIUM_RETRY
+                ));
+            }
+
             const tunnelBody = {
                 name: tunnel.name,
                 description: tunnel.description,
@@ -677,18 +700,28 @@ function handleTunnel() {
                 && this.state.currentConfig[tenant].Tunnel[tunnel.name]) {
                 if (tunnel.profile !== this.state.currentConfig[tenant].Tunnel[tunnel.name].profile
                     || tunnel.trafficGroup !== this.state.currentConfig[tenant].Tunnel[tunnel.name].trafficGroup) {
-                    deletePromises.push(this.bigIp.delete(`${PATHS.Tunnel}/${tunnel.name}`));
+                    deleteTunnels.push(() => this.bigIp.delete(
+                        `${PATHS.Tunnel}/${tunnel.name}`
+                    ));
+                    if (this.state.currentConfig[tenant].Tunnel[tunnel.name].profile === 'vxlan') {
+                        // Delete the vxlan profile if the profile changed from vxlan
+                        deleteVxlans.push(() => this.bigIp.delete(
+                            `${PATHS.VXLAN}/${tunnel.name}_vxlan`
+                        ));
+                    }
                 }
             }
 
-            promises.push(
-                this.bigIp.createOrModify(PATHS.Tunnel, tunnelBody, null, cloudUtil.MEDIUM_RETRY)
-            );
+            promises.push(() => this.bigIp.createOrModify(
+                PATHS.Tunnel, tunnelBody, null, cloudUtil.MEDIUM_RETRY
+            ));
         }
     });
 
-    return Promise.all(deletePromises)
-        .then(() => Promise.all(promises))
+    return promiseUtil.parallel(deleteTunnels)
+        .then(() => promiseUtil.parallel(deleteVxlans))
+        .then(() => promiseUtil.parallel(vxlanPromises))
+        .then(() => promiseUtil.parallel(promises))
         .catch((err) => {
             logger.severe(`Error creating Tunnels: ${err.message}`);
             throw err;

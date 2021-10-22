@@ -897,8 +897,9 @@ before(function setup() {
     return Promise.resolve()
         .then(() => {
             const bigIpAddress = process.env.DO_HOST;
+            const bigIpPort = process.env.DO_PORT || constants.PORT;
             bigIpAuth = { username: process.env.DO_USERNAME, password: process.env.DO_PASSWORD };
-            bigIpUrl = common.hostname(bigIpAddress, constants.PORT);
+            bigIpUrl = common.hostname(bigIpAddress, bigIpPort);
         })
         .then(() => getProvisionedModulesAsync())
         .then((modules) => { PROVISIONED_MODULES = modules; })

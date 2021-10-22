@@ -1130,6 +1130,26 @@ describe('networkHandler', () => {
                             mode: 'inbound',
                             transparent: 'enabled',
                             trafficGroup: 'none'
+                        },
+                        tunnelVxlan: {
+                            name: 'tunnelVxlan',
+                            profile: 'vxlan',
+                            mtu: 0,
+                            usePmtu: 'enabled',
+                            tos: 'preserve',
+                            autoLasthop: 'default',
+                            description: 'none',
+                            key: 0,
+                            localAddress: '10.10.0.0',
+                            remoteAddress: '20.20.0.0',
+                            secondaryAddress: 'any6',
+                            mode: 'bidirectional',
+                            transparent: 'disabled',
+                            trafficGroup: 'none',
+                            defaultsFrom: 'vxlan',
+                            encapsulationType: 'vxlan',
+                            floodingType: 'multicast',
+                            port: 4789
                         }
                     }
                 }
@@ -1146,33 +1166,76 @@ describe('networkHandler', () => {
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
-                    const tunnels = dataSent[PATHS.Tunnel];
-                    assert.strictEqual(tunnels[0].name, 'tunnel1');
-                    assert.strictEqual(tunnels[0].profile, '/Common/tcp-forward');
-                    assert.strictEqual(tunnels[0].mtu, 0);
-                    assert.strictEqual(tunnels[0].usePmtu, 'enabled');
-                    assert.strictEqual(tunnels[0].tos, 'preserve');
-                    assert.strictEqual(tunnels[0].autoLasthop, 'default');
-                    assert.strictEqual(tunnels[0].key, 0);
-                    assert.strictEqual(tunnels[0].localAddress, '10.10.10.10');
-                    assert.strictEqual(tunnels[0].remoteAddress, '20.20.20.10');
-                    assert.strictEqual(tunnels[0].secondaryAddress, '30.30.30.10');
-                    assert.strictEqual(tunnels[0].mode, 'bidirectional');
-                    assert.strictEqual(tunnels[0].transparent, 'disabled');
-                    assert.strictEqual(tunnels[0].trafficGroup, 'traffic-group-local-only');
-                    assert.strictEqual(tunnels[1].name, 'tunnel2');
-                    assert.strictEqual(tunnels[1].profile, '/Common/tcp-forward');
-                    assert.strictEqual(tunnels[1].mtu, 1000);
-                    assert.strictEqual(tunnels[1].usePmtu, 'disabled');
-                    assert.strictEqual(tunnels[1].tos, 12);
-                    assert.strictEqual(tunnels[1].autoLasthop, 'enabled');
-                    assert.strictEqual(tunnels[1].key, 1);
-                    assert.strictEqual(tunnels[1].localAddress, '10.10.10.20');
-                    assert.strictEqual(tunnels[1].remoteAddress, '20.20.20.20');
-                    assert.strictEqual(tunnels[1].secondaryAddress, '30.30.30.20');
-                    assert.strictEqual(tunnels[1].mode, 'inbound');
-                    assert.strictEqual(tunnels[1].transparent, 'enabled');
-                    assert.strictEqual(tunnels[1].trafficGroup, 'none');
+                    assert.deepStrictEqual(
+                        dataSent[PATHS.VXLAN],
+                        [
+                            {
+                                name: 'tunnelVxlan_vxlan',
+                                description: 'none',
+                                defaultsFrom: 'vxlan',
+                                encapsulationType: 'vxlan',
+                                floodingType: 'multicast',
+                                partition: 'Common',
+                                port: 4789
+                            }
+                        ]
+                    );
+                    assert.deepStrictEqual(
+                        dataSent[PATHS.Tunnel],
+                        [
+                            {
+                                name: 'tunnel1',
+                                description: undefined,
+                                partition: 'Common',
+                                autoLasthop: 'default',
+                                mtu: 0,
+                                profile: '/Common/tcp-forward',
+                                tos: 'preserve',
+                                usePmtu: 'enabled',
+                                localAddress: '10.10.10.10',
+                                remoteAddress: '20.20.20.10',
+                                secondaryAddress: '30.30.30.10',
+                                key: 0,
+                                mode: 'bidirectional',
+                                transparent: 'disabled',
+                                trafficGroup: 'traffic-group-local-only'
+                            },
+                            {
+                                name: 'tunnel2',
+                                description: undefined,
+                                partition: 'Common',
+                                autoLasthop: 'enabled',
+                                mtu: 1000,
+                                profile: '/Common/tcp-forward',
+                                tos: 12,
+                                usePmtu: 'disabled',
+                                localAddress: '10.10.10.20',
+                                remoteAddress: '20.20.20.20',
+                                secondaryAddress: '30.30.30.20',
+                                key: 1,
+                                mode: 'inbound',
+                                transparent: 'enabled',
+                                trafficGroup: 'none'
+                            },
+                            {
+                                name: 'tunnelVxlan',
+                                description: 'none',
+                                partition: 'Common',
+                                autoLasthop: 'default',
+                                mtu: 0,
+                                profile: '/Common/tunnelVxlan_vxlan',
+                                tos: 'preserve',
+                                usePmtu: 'enabled',
+                                localAddress: '10.10.0.0',
+                                remoteAddress: '20.20.0.0',
+                                secondaryAddress: 'any6',
+                                key: 0,
+                                mode: 'bidirectional',
+                                transparent: 'disabled',
+                                trafficGroup: 'none'
+                            }
+                        ]
+                    );
                 });
         });
 
@@ -1258,6 +1321,40 @@ describe('networkHandler', () => {
                     .then(() => {
                         assert.strictEqual(deletedPaths.length, 1);
                         assert.strictEqual(deletedPaths[0], '/tm/net/tunnels/tunnel/tunnel1');
+                    });
+            });
+
+            it('should delete vxlan profile if the profile changes from vxlan', () => {
+                const declaration = {
+                    Common: {
+                        Tunnel: {
+                            tunnelVxlan: {
+                                name: 'tunnelVxlan',
+                                profile: 'otherProfile',
+                                trafficGroup: 'originalTrafficGroup'
+                            }
+                        }
+                    }
+                };
+
+                state.currentConfig.Common.Tunnel = {
+                    tunnelVxlan: {
+                        name: 'tunnelVxlan',
+                        profile: 'vxlan',
+                        trafficGroup: 'originalTrafficGroup'
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            deletedPaths,
+                            [
+                                '/tm/net/tunnels/tunnel/tunnelVxlan',
+                                '/tm/net/tunnels/vxlan/tunnelVxlan_vxlan'
+                            ]
+                        );
                     });
             });
 

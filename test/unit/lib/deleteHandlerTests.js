@@ -503,6 +503,31 @@ describe(('deleteHandler'), function testDeleteHandler() {
     });
 
     it('should skip tunnel socks-tunnel and http-tunnel on attempt to delete it', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    Tunnel: {
+                        tunnel: {
+                            name: 'tunnel',
+                            partition: 'Common',
+                            profile: 'tcp-forward',
+                            mtu: 0,
+                            usePmtu: 'enabled',
+                            tos: 'preserve',
+                            autoLasthop: 'default',
+                            description: 'none',
+                            key: 0,
+                            localAddress: 'any6',
+                            remoteAddress: 'any6',
+                            secondaryAddress: 'any6',
+                            mode: 'bidirectional',
+                            transparent: 'disabled',
+                            trafficGroup: 'none'
+                        }
+                    }
+                }
+            }
+        };
         const declaration = {
             Common: {
                 Tunnel: {
@@ -513,12 +538,67 @@ describe(('deleteHandler'), function testDeleteHandler() {
             }
         };
 
-        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
         return deleteHandler.process()
             .then(() => {
                 assert.strictEqual(deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~socks-tunnel'), -1);
                 assert.strictEqual(deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~http-tunnel'), -1);
                 assert.notStrictEqual(deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~tunnel'), -1);
+                assert.strictEqual(
+                    deletedPaths.indexOf('/tm/net/tunnels/vxlan/~Common~tunnel_vxlan'), -1,
+                    'Should not have deleted non-existant tunnel_vxlan profile'
+                );
+            });
+    });
+
+    it('should delete vxlan tunnel if it was in the currentConfig', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    Tunnel: {
+                        tunnelVxlan: {
+                            name: 'tunnelVxlan',
+                            profile: 'vxlan',
+                            mtu: 0,
+                            usePmtu: 'enabled',
+                            tos: 'preserve',
+                            autoLasthop: 'default',
+                            description: 'none',
+                            key: 0,
+                            localAddress: '10.10.0.0',
+                            remoteAddress: '20.20.0.0',
+                            secondaryAddress: 'any6',
+                            mode: 'bidirectional',
+                            transparent: 'disabled',
+                            trafficGroup: 'none',
+                            defaultsFrom: 'vxlan',
+                            encapsulationType: 'vxlan',
+                            floodingType: 'multicast',
+                            port: 4789
+                        }
+                    }
+                }
+            }
+        };
+        const declaration = {
+            Common: {
+                Tunnel: {
+                    tunnelVxlan: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.notStrictEqual(
+                    deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~tunnelVxlan'), -1,
+                    'Should have deleted tunnelVxlan'
+                );
+                assert.notStrictEqual(
+                    deletedPaths.indexOf('/tm/net/tunnels/vxlan/~Common~tunnelVxlan_vxlan'), -1,
+                    'Should have deleted tunnelVxlan_vxlan'
+                );
             });
     });
 

@@ -623,6 +623,29 @@ class ConfigManager {
                     (currentManagementIpFirewall.rules || []).forEach(filterFirewallRuleProps);
                 }
 
+                // Tunnels and VXLAN profiles are already combined in the Common.Tunnel object
+                // Note: To possibly improve this, initially we could keep Tunnels and VXLAN profiles
+                // separate, then just ignore VXLAN profiles in the diffing process
+                const currentTunnels = state.currentConfig.Common.Tunnel;
+                if (currentTunnels) {
+                    const tunnels = Object.keys(currentTunnels);
+                    const deleteAfter = [];
+                    tunnels.forEach((name) => {
+                        if (currentTunnels[`${name}_vxlan`]) {
+                            // This will add VXLAN properties to a Tunnel object for later diffing
+                            patchVxlanTunnels.call(this, currentTunnels[name],
+                                currentTunnels[`${name}_vxlan`], configOptions.translateToNewId);
+                        } else if (currentTunnels[name].encapsulationType) {
+                            // encapsulationType is unique to VXLAN profiles, so we can use it to
+                            // identify a VXLAN profile from a Tunnel. We need to remove the VXLAN
+                            // profiles from Tunnel object, so they do NOT show up in the diff
+                            deleteAfter.push(name);
+                        }
+                    });
+                    // Remove pointless VXLAN profiles from tunnel object to fix diff
+                    deleteAfter.forEach((name) => { delete currentTunnels[name]; });
+                }
+
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
                 state.originalConfig = originalConfig;
 
@@ -1190,6 +1213,28 @@ function patchRoutingBGP(patchedItem) {
             }
         });
     });
+}
+
+/**
+ * Combines vxlan profiles into the tunnel object and set tunnelType to vxlan
+ *
+ * @param {Object} item - config for the tunnel
+ * @param {object} vxlan - config for the vxlan profile
+ */
+function patchVxlanTunnels(item, vxlan, translateToNewId) {
+    if (!vxlan) { return; }
+
+    // The name is determined by the tunnel name and so does NOT need retained
+    delete vxlan.name;
+
+    // The profile or tunnelType is always vxlan
+    if (translateToNewId) {
+        item.tunnelType = 'vxlan';
+    } else {
+        item.profile = 'vxlan';
+    }
+
+    mapSchemaMerge.call(this, item, vxlan, { action: 'add' });
 }
 
 /**

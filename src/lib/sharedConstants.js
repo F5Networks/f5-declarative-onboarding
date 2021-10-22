@@ -86,7 +86,8 @@ module.exports = {
         UnixRm: '/tm/util/unix-rm',
         Uploads: '/shared/file-transfer/uploads',
         User: '/tm/auth/user',
-        VLAN: '/tm/net/vlan'
+        VLAN: '/tm/net/vlan',
+        VXLAN: '/tm/net/tunnels/vxlan'
     },
     STATUS: {
         STATUS_OK: 'OK',

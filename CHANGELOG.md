@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.25.0
 ### Added
+- AUTOTOOL-2750: VXLAN Tunnel Profile support
 
 ### Fixed
 - AUTOTOOL-2721: SnmpTrapDestination, SnmpUser, and SnmpCommunity objects cannot be removed once created
