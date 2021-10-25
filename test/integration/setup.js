@@ -21,6 +21,7 @@
 'use strict';
 
 const path = require('path');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const NodeSSH = require('node-ssh').NodeSSH;
 const constants = require('./constants');
 const common = require('./common');

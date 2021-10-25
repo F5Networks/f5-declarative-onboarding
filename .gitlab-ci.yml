@@ -43,7 +43,7 @@ test_node:4:
         - cm-official-docker-executor
     script:
         - npm install --global npm@5.10.0
-        - npm install
+        - npm install --no-optional
         - npm install mocha@5.2.0
         - npm test
 
@@ -195,7 +195,7 @@ create docs:
         - apk update
         # Need to add bash, because included sh doen't support arrays
         # used in build_harness_file.sh script to get IP addresses.
-        - apk add bash npm
+        - apk add bash npm build-base python3 cmake
         - if [[ $CI_PIPELINE_SOURCE == "pipeline" ]]; then
         -     echo using RPM from cross-project pipeline
         -     export RPM_PACKAGE=$(ls ${UPSTREAM_RPM_PATH}/*.rpm)
@@ -215,7 +215,7 @@ create docs:
         - export BIGIPS_ADDRESSES=$(terraform output --json admin_ip | jq -rc .[])
         - cd -
         - scripts/dev/build_harness_file.sh > $TEST_HARNESS_FILE
-        - npm install
+        - npm ci
         - node test/integration/setup.js
     artifacts:
       when: always
