@@ -5,7 +5,7 @@ VERSION_RELEASE=$(npm version | grep f5-declarative-onboarding | cut -d : -f 2 |
 VERSION=$(echo $VERSION_RELEASE | cut -d - -f 1)
 RELEASE=$(echo $VERSION_RELEASE | cut -d - -f 2)
 RPM_NAME=f5-declarative-onboarding-${VERSION}-${RELEASE}.noarch.rpm
-npm ci --production
+npm ci --production --no-optional
 rpmbuild -bb \
     --define "main $(pwd)" \
     --define '_topdir %{main}/build' \
