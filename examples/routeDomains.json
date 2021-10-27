@@ -28,14 +28,9 @@
         "theRouteDomain": {
             "class": "RouteDomain",
             "id": 100,
-            "bandWidthControllerPolicy": "bwcPol",
             "connectionLimit": 5432991,
             "flowEvictionPolicy": "default-eviction-policy",
             "ipIntelligencePolicy": "ip-intelligence",
-            "enforcedFirewallPolicy": "enforcedPolicy",
-            "stagedFirewallPolicy": "stagedPolicy",
-            "securityNatPolicy": "securityPolicy",
-            "servicePolicy": "servicePolicy",
             "strict": false,
             "routingProtocols": [
                 "BGP"
