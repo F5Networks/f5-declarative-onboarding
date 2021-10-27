@@ -17,7 +17,7 @@
         },
         "Route": {
             "class": "Route",
-            "gw": "10.1.0.1",
+            "gw": "10.1.0.1%100",
             "network": "192.168.0.0%100/16"
         },
         "newSelfIp": {
@@ -42,7 +42,8 @@
         "AnotherRouteDomain": {
             "class": "RouteDomain",
             "id": 101,
-            "parent": "theRouteDomain"
+            "parent": "theRouteDomain",
+            "strict": false
         }
     }
 }
