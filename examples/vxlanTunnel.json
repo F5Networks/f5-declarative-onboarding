@@ -2,9 +2,6 @@
     "schemaVersion": "1.25.0",
     "class": "Device",
     "async": true,
-    "controls": {
-        "traceResponse": true
-    },
     "label": "Configuring System",
     "Common": {
         "class": "Tenant",
