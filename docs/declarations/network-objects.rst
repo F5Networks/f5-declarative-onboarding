@@ -420,6 +420,33 @@ The following example contains multiple access lists, but no other DO configurat
    :language: json
 
 |
+
+.. _vxlan:
+
+Configuring VXLAN tunnels
+^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for VXLAN tunnels is available in DO v1.25 and later
+
+This example shows how you can create VXLAN tunnels using Declarative Onboarding 1.25 and later. 
+
+Virtual eXtended LAN (VXLAN) is a network virtualization scheme that overlays Layer 2 over Layer 3. VLXAN uses Layer 3 multicast to support the transmission of multicast and broadcast traffic in the virtual network, while decoupling the virtualized network from the physical infrastructure. See |vxlant| for more information and manual configuration.
+
+See |tunnel| in the Schema Reference for DO usage and options.
+
+The following example contains a VXLAN tunnel, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
+
+
+.. literalinclude:: ../../examples/vxlanTunnel.json
+   :language: json
+
+|
+    
+
+
+
+
     
 
 .. |br| raw:: html
@@ -665,4 +692,6 @@ The following example contains multiple access lists, but no other DO configurat
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#managementroute" target="_blank">ManagementRoute</a>
 
+.. |vxlant| raw:: html
 
+   <a href="https://techdocs.f5.com/en-us/bigip-14-1-0/big-ip-tmos-tunneling-and-ipsec-14-1-0/configuring-network-virtualization-tunnels.html" target="_blank">Configuring Network Virtualization Tunnels</a>
