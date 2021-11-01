@@ -710,7 +710,12 @@ function handleManagementIp() {
                     return Promise.resolve();
                 })
                 .then(() => {
-                    if (desiredMgmtDhcp === 'disabled') {
+                    const currentAddress = getCurrentManagementAddress(
+                        this.state.currentConfig.Common.ManagementIp
+                    );
+                    // In case of ManagementIP in declaration is the same as one in current state,
+                    // don't create and proceed.
+                    if (desiredMgmtDhcp === 'disabled' && currentAddress !== address) {
                         return this.bigIp.create(
                             PATHS.ManagementIp,
                             {

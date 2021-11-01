@@ -1661,7 +1661,7 @@ describe('systemHandler', () => {
                 });
         });
 
-        it('should not update mgmt-dhcp when the current and desired vlaues match', () => {
+        it('should not update mgmt-dhcp when the current and desired values match', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
@@ -1708,6 +1708,26 @@ describe('systemHandler', () => {
                         }
                     );
                     assert.strictEqual(hostSet, '1.2.3.4');
+                });
+        });
+
+        it('Proceed if desired management IP equals to current', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '4.5.6.7/8': {
+                            name: '4.5.6.7/8',
+                            description: 'this is my description'
+                        }
+                    }
+                }
+            };
+
+            const bigIpMockSpy = sinon.spy(bigIpMock, 'create');
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIpMockSpy.callCount, 0);
                 });
         });
     });

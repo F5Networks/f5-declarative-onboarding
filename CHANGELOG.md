@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 ### Fixed
 - AUTOTOOL-2764: ([GitHub Issue 263](https://github.com/F5Networks/f5-declarative-onboarding/issues/263)): RouteDomain example references objects that do not exist
+- AUTOTOOL-2677: ([GitHub Issue 254](https://github.com/F5Networks/f5-declarative-onboarding/issues/254)): Declaration fails when Management IP already exists
 
 ### Changed
 ### Removed
