@@ -499,6 +499,7 @@ describe('configManager', () => {
         listResponses['/tm/sys/management-route'] = [
             {
                 name: 'default',
+                fullPath: '/Common/default',
                 gateway: '8.8.8.8',
                 network: 'default',
                 mtu: 0,
@@ -3278,6 +3279,33 @@ describe('configManager', () => {
                     assert.deepStrictEqual(
                         state.currentConfig.Common.ManagementIpFirewall,
                         undefined
+                    );
+                });
+        });
+    });
+
+    describe('ManagementRoute', () => {
+        it('should use fullPath for the ManagementRoute name', () => {
+            const configItems = getConfigItems('ManagementRoute');
+
+            listResponses['/tm/sys/management-route'] = [
+                {
+                    name: '24',
+                    fullPath: '/Common/8.8.8.8/32'
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.ManagementRoute,
+                        {
+                            '8.8.8.8/32': {
+                                name: '8.8.8.8/32',
+                                description: 'none'
+                            }
+                        }
                     );
                 });
         });

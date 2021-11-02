@@ -267,6 +267,10 @@ class ConfigManager {
                                         patchRoutingBGP.call(this, item);
                                     }
 
+                                    if (schemaClass === 'ManagementRoute') {
+                                        patchManagementRoute.call(this, item);
+                                    }
+
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
                                     patchedItem = mapProperties(
                                         patchedItem,
@@ -1213,6 +1217,19 @@ function patchRoutingBGP(patchedItem) {
             }
         });
     });
+}
+
+/**
+ * Determines the name from the fullPath.
+ *
+ * For management routes that have a / in the name, iControl REST returns
+ * the name as just the part after the /. What we want is everything after /Common
+ *
+ * @param {Object} patchedItem - config item that needs patching
+ */
+function patchManagementRoute(patchedItem) {
+    patchedItem.name = patchedItem.fullPath.split('/Common/')[1];
+    delete patchedItem.fullPath;
 }
 
 /**

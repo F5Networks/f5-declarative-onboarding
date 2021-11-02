@@ -38,6 +38,7 @@ let PROVISIONED_MODULES = [];
 const DEFAULT_OPTIONS = {
     findAll: false,
     bigipItems: [],
+    extraItems: [],
     tenantName: 'Common',
     dryRun: process.env.DRY_RUN,
     skipIdempotentCheck: false,
@@ -171,6 +172,10 @@ function createDeclarations(targetClass, properties, options) {
                     tenant[key] = property.referenceObjects[key];
                 });
             }
+        });
+
+        options.extraItems.forEach((item, index) => {
+            declaration[options.tenantName][`extraItem${index}`] = item;
         });
 
         declarations.push(declaration);
@@ -415,7 +420,7 @@ function deleteBigipItems(items) {
             }
 
             const url = `${bigIpUrl}${constants.ICONTROL_API}${item.endpoint}`
-                + `/${encodeURIComponent(item.data.name)}`;
+                + `/${encodeURIComponent(item.data.name.replace(/\//g, '~'))}`;
             const reqOpts = common.buildBody(url, null, getAuth(), 'DELETE');
 
             return sendRequest(reqOpts, { trials: 3, timeInterval: 500 })

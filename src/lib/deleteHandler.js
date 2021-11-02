@@ -166,7 +166,7 @@ class DeleteHandler {
                     classPromises.push(tunnelPromise);
                 } else if (!isRetainedItem(deletableClass, itemToDelete)) {
                     const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
-                    const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete}`;
+                    const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
                     if (deletableClass === 'RouteDomain') {
                         transactionCommands.push({
                             method: 'delete',

@@ -831,6 +831,7 @@ describe('inspectHandler', () => {
             '/tm/sys/management-route': [
                 {
                     name: 'mgmt-route-forward',
+                    fullPath: '/Common/mgmt-route-forward',
                     description: 'Example description 0',
                     network: '255.255.255.254/32',
                     mtu: 0,
@@ -838,6 +839,7 @@ describe('inspectHandler', () => {
                 },
                 {
                     name: 'default-mgmt-route',
+                    fullPath: '/Common/default-mgmt-route',
                     description: 'Example description 1',
                     gateway: '192.168.1.1',
                     network: 'default',

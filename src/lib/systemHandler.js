@@ -774,7 +774,7 @@ function handleManagementRoute() {
                                 throw new Error('Cannot update network property when running remotely');
                             }
                             promise = promise.then(() => this.bigIp.delete(
-                                `${PATHS.ManagementRoute}/~Common~${managementRoute.name}`,
+                                `${PATHS.ManagementRoute}/~Common~${managementRoute.name.replace(/\//g, '~')}`,
                                 null,
                                 null,
                                 cloudUtil.NO_RETRY

@@ -407,6 +407,7 @@
         "schemaClass": "ManagementRoute",
         "properties": [
             { "id": "description", "newId": "remark", "defaultWhenOmitted": "none" },
+            { "id": "fullPath" },
             { "id": "gateway", "newId": "gw" },
             { "id": "network" },
             { "id": "mtu" },
