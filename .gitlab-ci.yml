@@ -1,4 +1,4 @@
-image: $DOCKER_URL/node:latest
+image: $DOCKER_URL/node:12-buster
 
 stages:
     - atg-shared-checks
