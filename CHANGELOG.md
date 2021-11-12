@@ -8,6 +8,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2677: ([GitHub Issue 254](https://github.com/F5Networks/f5-declarative-onboarding/issues/254)): Declaration fails when Management IP already exists
 - AUTOTOOL-2773: ([GitHub Issue 267](https://github.com/F5Networks/f5-declarative-onboarding/issues/267)): DO fails when a route with a '/' in the name is added manually between DO runs.
 - AUTOTOOL-2805: ([GitHub Issue 269](https://github.com/F5Networks/f5-declarative-onboarding/issues/269)): Adding a Management Route Resets Management IP to DHCP.
+- AUTOTOOL-2759: ([GitHub Issue 178](https://github.com/F5Networks/f5-declarative-onboarding/issues/178)): Unsupported httpd ciphersuite
 
 ### Changed
 ### Removed
