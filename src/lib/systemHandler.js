@@ -86,8 +86,12 @@ class SystemHandler {
                 return handleDhcpOptions.call(this);
             })
             .then(() => {
+                logger.fine('Checking management DHCP setting.');
+                return handleManagementDhcp.call(this);
+            })
+            .then((updatedMgmtDhcpSetting) => {
                 logger.fine('Checking ManagementIp. Hold on to your hats.');
-                return handleManagementIp.call(this);
+                return handleManagementIp.call(this, updatedMgmtDhcpSetting);
             })
             .then(() => {
                 logger.fine('Checking ManagementRoute.');
@@ -193,6 +197,91 @@ function handleDhcpOptions() {
     }
 
     return disableDhcpOptions.call(this, dhcpOptionsToDisable);
+}
+
+function handleManagementDhcp() {
+    const currentMgmtDhcpSetting = this.state.currentConfig.Common.System.mgmtDhcp;
+
+    // DO currently only handles one management ip. If it is a dual-stack setting, leave it alone.
+    if (currentMgmtDhcpSetting === 'dhcpv4' || currentMgmtDhcpSetting === 'dhcpv6') {
+        return Promise.resolve(currentMgmtDhcpSetting);
+    }
+
+    let desiredMgmtIpDhcpSetting;
+    let deisredMgmtRouteDhcpSetting;
+    let desiredMgmtDhcpSetting;
+
+    return Promise.resolve()
+        .then(() => getDesiredMgmtIpDhcpSetting.call(this))
+        .then((desiredSetting) => {
+            desiredMgmtIpDhcpSetting = desiredSetting;
+        })
+        .then(() => getDesiredMgmtRouteDhcpSetting.call(this))
+        .then((desiredSetting) => {
+            deisredMgmtRouteDhcpSetting = desiredSetting;
+        })
+        .then(() => {
+            if (!desiredMgmtIpDhcpSetting || !deisredMgmtRouteDhcpSetting) {
+                // At least one is undefined. Use the one that is defined if there is one
+                desiredMgmtDhcpSetting = desiredMgmtIpDhcpSetting || deisredMgmtRouteDhcpSetting;
+            } else {
+                // If ManagementRoute and ManagementIp disagree, favor disabled as that is safer.
+                // Enabling can modify the ManagementIp.
+                desiredMgmtDhcpSetting = desiredMgmtIpDhcpSetting === deisredMgmtRouteDhcpSetting ? desiredMgmtIpDhcpSetting : 'disabled';
+            }
+            if (desiredMgmtDhcpSetting && desiredMgmtDhcpSetting !== currentMgmtDhcpSetting) {
+                return this.bigIp.modify(
+                    PATHS.SysGlobalSettings,
+                    {
+                        mgmtDhcp: desiredMgmtDhcpSetting
+                    }
+                );
+            }
+            return Promise.resolve();
+        })
+        .then(() => Promise.resolve(desiredMgmtDhcpSetting || currentMgmtDhcpSetting));
+}
+
+function getDesiredMgmtIpDhcpSetting() {
+    if (this.declaration.Common.ManagementIp) {
+        // If there are two entries, the one w/ a name property is the new one. The other entry
+        // is the old management-ip and should be empty because to ajv it looks like a delete
+        const names = Object.keys(this.declaration.Common.ManagementIp);
+        const newName = names.find((name) => this.declaration.Common.ManagementIp[name].name);
+        if (newName) {
+            const mgmtIpInfo = this.declaration.Common.ManagementIp[newName];
+            let desiredMgmtDhcp = 'disabled';
+            // Determining the mgmt-dhcp setting is tricky. Maybe this is a rollback.
+            // As there is no metadata on a management-ip, it is hard to know whether we are
+            // rolling back to a management-ip that was static or dynamic. We use the description field
+            // to make our best guess. DO defaults the description to something else,
+            // so as long as a user didn't put 'configured-by-dhcp' in their own description
+            // this should work.
+            if (mgmtIpInfo.description) {
+                desiredMgmtDhcp = mgmtIpInfo.description.indexOf('configured-by-dhcp') === -1 ? 'disabled' : 'enabled';
+            }
+            return Promise.resolve(desiredMgmtDhcp);
+        }
+    }
+    return Promise.resolve();
+}
+
+function getDesiredMgmtRouteDhcpSetting() {
+    if (this.declaration.Common.ManagementRoute) {
+        // Check to see if we have any entries with name properties
+        const names = Object.keys(this.declaration.Common.ManagementRoute);
+        const hasRoutes = names.some((name) => typeof this.declaration.Common.ManagementRoute[name].name !== 'undefined');
+
+        if (hasRoutes) {
+            let desiredMgmtDhcp = 'disabled';
+            if (this.declaration.Common.System
+                && typeof this.declaration.Common.System.preserveOrigDhcpRoutes !== 'undefined') {
+                desiredMgmtDhcp = this.declaration.Common.System.preserveOrigDhcpRoutes ? 'enabled' : 'disabled';
+            }
+            return Promise.resolve(desiredMgmtDhcp);
+        }
+    }
+    return Promise.resolve();
 }
 
 function handleNTP() {
@@ -661,7 +750,7 @@ function handleLicensePool(license) {
         .catch((err) => Promise.reject(err));
 }
 
-function handleManagementIp() {
+function handleManagementIp(mgmtDhcp) {
     if (this.declaration.Common.ManagementIp) {
         // If there are two entries, the one w/ a name property is the new one. The other entry
         // is the old management-ip and should be empty because to ajv it looks like a delete
@@ -670,29 +759,7 @@ function handleManagementIp() {
         if (newName) {
             const mgmtIpInfo = this.declaration.Common.ManagementIp[newName];
             const address = mgmtIpInfo.name;
-            let desiredMgmtDhcp;
             return Promise.resolve()
-                .then(() => {
-                    // Rollback of the mgmt-dhcp setting is tricky. There is no metadata on
-                    // a management-ip, so it is hard to know whether we are rolling back to
-                    // a management-ip that was static or dynamic. We use the description field
-                    // to make our best guess. DO defaults the description to something else,
-                    // so as long as a user didn't put 'configured-by-dhcp' in their own description
-                    // this should work.
-                    const currentDhcp = this.state.currentConfig.Common.System.mgmtDhcp;
-                    desiredMgmtDhcp = mgmtIpInfo.description ? mgmtIpInfo.description.indexOf('configured-by-dhcp') !== -1 : true;
-                    const dhcpState = desiredMgmtDhcp ? 'enabled' : 'disabled';
-                    if (currentDhcp !== dhcpState) {
-                        desiredMgmtDhcp = currentDhcp === 'dhcpv4' || currentDhcp === 'dhcpv6' ? currentDhcp : dhcpState;
-                        return this.bigIp.modify(
-                            PATHS.SysGlobalSettings,
-                            {
-                                mgmtDhcp: desiredMgmtDhcp
-                            }
-                        );
-                    }
-                    return Promise.resolve();
-                })
                 .then(() => {
                     // If we are only changing the mask and on localhost, delete the managementIp first.
                     // This allows for just changing the mask - otherwise, MCP complains that the address
@@ -701,7 +768,7 @@ function handleManagementIp() {
                     const currentAddress = getCurrentManagementAddress(
                         this.state.currentConfig.Common.ManagementIp
                     );
-                    if (desiredMgmtDhcp === 'disabled' && isMaskChangeOnly(currentAddress, address)) {
+                    if (mgmtDhcp === 'disabled' && isMaskChangeOnly(currentAddress, address)) {
                         if (this.bigIp.host === 'localhost') {
                             return this.bigIp.delete(`${PATHS.ManagementIp}/${currentAddress.replace('/', '~')}`);
                         }
@@ -715,7 +782,7 @@ function handleManagementIp() {
                     );
                     // In case of ManagementIP in declaration is the same as one in current state,
                     // don't create and proceed.
-                    if (desiredMgmtDhcp === 'disabled' && currentAddress !== address) {
+                    if (mgmtDhcp === 'disabled' && currentAddress !== address) {
                         return this.bigIp.create(
                             PATHS.ManagementIp,
                             {
@@ -742,22 +809,6 @@ function handleManagementRoute() {
         return doUtil.getCurrentPlatform()
             .then((platform) => {
                 const promises = [];
-
-                const currentDhcp = this.state.currentConfig.Common.System.mgmtDhcp;
-                let desiredMgmtDhcp = !this.declaration.Common.System
-                    || typeof this.declaration.Common.System.preserveOrigDhcpRoutes === 'undefined'
-                    ? true : this.declaration.Common.System.preserveOrigDhcpRoutes;
-                const dhcpState = desiredMgmtDhcp ? 'enabled' : 'disabled';
-                if (currentDhcp !== dhcpState) {
-                    desiredMgmtDhcp = currentDhcp === 'dhcpv4' || currentDhcp === 'dhcpv6' ? currentDhcp : dhcpState;
-                    promises.push(this.bigIp.modify(
-                        PATHS.SysGlobalSettings,
-                        {
-                            mgmtDhcp: desiredMgmtDhcp
-                        }
-                    ));
-                }
-
                 doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
                     let promise = Promise.resolve();
                     if (managementRoute && managementRoute.name) {

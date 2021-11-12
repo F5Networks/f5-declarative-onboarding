@@ -59,12 +59,22 @@ describe('systemHandler', () => {
     let doUtilGetCurrentPlatformStub;
     let doUtilExecuteBashCommandStub;
     let activeCalled;
+    let state;
 
     beforeEach(() => {
         pathSent = null;
         deletePathSent = null;
         dataSent = null;
         activeCalled = false;
+
+        state = {
+            currentConfig: {
+                Common: {
+                    System: {}
+                }
+            }
+        };
+
         bigIpMock = {
             host: undefined,
             replace(path, data) {
@@ -154,7 +164,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.deepEqual(dbVarsSent,
@@ -241,7 +251,7 @@ describe('systemHandler', () => {
                 }
             ];
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then((status) => {
                     assert.strictEqual(certWritten.startsWith('echo \'foo\''), true);
@@ -273,7 +283,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then((status) => {
                     assert.strictEqual(certWritten, '');
@@ -295,7 +305,7 @@ describe('systemHandler', () => {
 
             diff = 'they are different';
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then((status) => {
                     assert.strictEqual(status.rebootRequired, true);
@@ -359,7 +369,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(pathSent, '/tm/sys/ntp');
@@ -377,7 +387,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process();
         });
 
@@ -398,7 +408,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(body.requestOptions.indexOf('ntp-servers'), -1);
             });
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process();
         });
 
@@ -425,7 +435,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return assert.isRejected(systemHandler.process(),
                 'Unable to resolve host example.cant',
                 `All of these ${JSON.stringify(testServers)} exist, and one should NOT`);
@@ -465,7 +475,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process();
         });
 
@@ -482,7 +492,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(pathSent, PATHS.DNS);
@@ -510,7 +520,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(body.requestOptions.indexOf('domain-name'), -1);
             });
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process();
         });
 
@@ -535,7 +545,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(body.requestOptions.indexOf('domain-name'), -1);
             });
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process();
         });
 
@@ -564,7 +574,7 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             });
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process();
         });
 
@@ -583,7 +593,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(hostnameSent, 'myhost.example.com');
@@ -606,7 +616,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(hostnameSent, 'myhost.example.com');
@@ -626,7 +636,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(hostnameSent, 'global.hostname');
@@ -657,7 +667,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(body.requestOptions.indexOf('host-name'), -1);
             });
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(hostnameSent, 'myhost.example.com');
@@ -675,7 +685,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.deepStrictEqual(dataSent[PATHS.SysGlobalSettings][0], { consoleInactivityTimeout: 50 });
@@ -694,7 +704,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.deepStrictEqual(dataSent[PATHS.SysGlobalSettings][0], { consoleInactivityTimeout: 50 });
@@ -712,7 +722,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.deepStrictEqual(dataSent[PATHS.SoftwareUpdate][0], { autoPhonehome: 'disabled' });
@@ -728,7 +738,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.deepStrictEqual(dataSent[PATHS.SoftwareUpdate][0], { autoCheck: 'disabled' });
@@ -744,7 +754,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.deepStrictEqual(dataSent[PATHS.CLI][0], { audit: 'enabled' });
@@ -760,7 +770,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.deepStrictEqual(dataSent[PATHS.SysGlobalSettings][0], { guiAudit: 'enabled' });
@@ -779,7 +789,7 @@ describe('systemHandler', () => {
         };
         const expected = { '/tm/cli/global-settings': [{ audit: 'enabled' }] };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 // note guiAudit info is absent, only audit info is present
@@ -796,7 +806,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.deepStrictEqual(dataSent['/tm/sys/db/config.auditing'][0], { value: 'verbose' });
@@ -833,7 +843,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(userSent, 'root');
@@ -874,7 +884,7 @@ describe('systemHandler', () => {
 
         const expectedKeys = `${superuserKey}\n${testKey}`;
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(userSent, 'root');
@@ -916,7 +926,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(userSent, 'root');
@@ -988,7 +998,7 @@ describe('systemHandler', () => {
             return Promise.resolve();
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(pathSent, '/tm/auth/user');
@@ -1056,7 +1066,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(licenseArgs.registrationKey, 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ');
@@ -1083,7 +1093,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return assert.isRejected(systemHandler.process(),
             'Error licensing: failed to license device', 'should have rejected');
     });
@@ -1129,7 +1139,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(bigIqHostSent, '10.145.112.44');
@@ -1195,7 +1205,7 @@ describe('systemHandler', () => {
             return Promise.resolve(bigIpMock);
         });
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(optionsSent.bigIpMgmtAddress, undefined);
@@ -1236,7 +1246,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(bigIqHostSent, 'localhost');
@@ -1268,7 +1278,7 @@ describe('systemHandler', () => {
 
         sinon.stub(doUtilMock, 'getBigIp').resolves(bigIpMock);
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return assert.isRejected(systemHandler.process(),
             'Unable to resolve host example.cant',
             'example.cant is reported to exist and it should not');
@@ -1327,7 +1337,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIqHostSent, '10.145.112.44');
@@ -1362,8 +1372,7 @@ describe('systemHandler', () => {
 
             sinon.stub(promiseUtil, 'delay').resolves();
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
-            systemHandler.state = {};
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(willBeRevokedCalled, true);
@@ -1395,8 +1404,7 @@ describe('systemHandler', () => {
             };
             bigIpMock.deviceInfo = () => Promise.resolve({});
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
-            systemHandler.state = {};
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
             return assert.isRejected(systemHandler.process(), 'Timed out waiting for revoke ready event');
         });
 
@@ -1435,7 +1443,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIqHostSent, '10.145.112.45');
@@ -1449,22 +1457,14 @@ describe('systemHandler', () => {
     });
 
     describe('ManagementIp', () => {
-        let state;
         let hostSet;
         beforeEach(() => {
             hostSet = undefined;
 
-            state = {
-                currentConfig: {
-                    Common: {
-                        System: {},
-                        ManagementIp: {
-                            '4.5.6.7/8': {
-                                name: '4.5.6.7/8',
-                                description: 'configured-by-dhcp'
-                            }
-                        }
-                    }
+            state.currentConfig.Common.ManagementIp = {
+                '4.5.6.7/8': {
+                    name: '4.5.6.7/8',
+                    description: 'configured-by-dhcp'
                 }
             };
 
@@ -1650,13 +1650,7 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
-                    const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
-                    assert.deepStrictEqual(
-                        mgmtDhcpData,
-                        {
-                            mgmtDhcp: 'dhcpv6'
-                        }
-                    );
+                    assert.deepStrictEqual(dataSent, null);
                     assert.strictEqual(hostSet, '1.2.3.4');
                 });
         });
@@ -1665,8 +1659,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
+                        '4.5.6.7/8': {
+                            name: '4.5.6.7/8',
                             description: 'configured statically'
                         }
                     }
@@ -1681,7 +1675,7 @@ describe('systemHandler', () => {
                         dataSent,
                         null
                     );
-                    assert.strictEqual(hostSet, '1.2.3.4');
+                    assert.strictEqual(hostSet, '4.5.6.7');
                 });
         });
 
@@ -1689,8 +1683,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5'
+                        '4.5.6.7/8': {
+                            name: '4.5.6.7/8'
                         }
                     }
                 }
@@ -1700,14 +1694,44 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
+                    assert.deepStrictEqual(dataSent, null);
+                    assert.strictEqual(hostSet, '4.5.6.7');
+                });
+        });
+
+        it('should disable mgmt-dhcp if ManagementIp and ManagementRoute disagree', () => {
+            const declaration = {
+                Common: {
+                    System: {
+                        preserveOrigDhcpRoutes: false
+                    },
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'configured-by-dhcp'
+                        }
+                    },
+                    ManagementRoute: {
+                        managementRoute1: {
+                            name: 'managementRoute1',
+                            gateway: '1.2.3.4',
+                            network: '4.3.2.1',
+                            mtu: 1
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
                     const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
                     assert.deepStrictEqual(
                         mgmtDhcpData,
                         {
-                            mgmtDhcp: 'enabled'
+                            mgmtDhcp: 'disabled'
                         }
                     );
-                    assert.strictEqual(hostSet, '1.2.3.4');
                 });
         });
 
@@ -1734,7 +1758,6 @@ describe('systemHandler', () => {
 
     describe('ManagementRoute', () => {
         let declaration;
-        let state;
         const deletedPaths = [];
         beforeEach(() => {
             declaration = {
@@ -1750,21 +1773,13 @@ describe('systemHandler', () => {
                     }
                 }
             };
-            state = {
-                currentConfig: {
-                    Common: {
-                        System: {
-                            mgmtDhcp: 'enabled'
-                        },
-                        ManagementRoute: {
-                            theManagementRoute: {
-                                name: 'theManagementRoute',
-                                gateway: '4.3.2.1',
-                                network: '10.20.30.40',
-                                mtu: 123
-                            }
-                        }
-                    }
+            state.currentConfig.Common.System.mgmtDhcp = 'enabled';
+            state.currentConfig.Common.ManagementRoute = {
+                theManagementRoute: {
+                    name: 'theManagementRoute',
+                    gateway: '4.3.2.1',
+                    network: '10.20.30.40',
+                    mtu: 123
                 }
             };
             deletedPaths.length = 0;
@@ -1927,7 +1942,10 @@ describe('systemHandler', () => {
         });
 
         it('should set mgmtDhcp to true when preserving DHCP ManagementRoutes', () => {
-            state.currentConfig.Common.System.mgmtDhcp = false;
+            state.currentConfig.Common.System.mgmtDhcp = 'disabled';
+            declaration.Common.System = {
+                preserveOrigDhcpRoutes: true
+            };
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
@@ -1943,9 +1961,9 @@ describe('systemHandler', () => {
                 });
         });
 
-        it('should set mgmtDhcp to true when no System is in declaration', () => {
+        it('should set mgmtDhcp to disabled when no System is in declaration but there is a route', () => {
             delete declaration.Common.System;
-            state.currentConfig.Common.System.mgmtDhcp = false;
+            state.currentConfig.Common.System.mgmtDhcp = 'enabled';
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
@@ -1954,10 +1972,21 @@ describe('systemHandler', () => {
                         mgmtDhcp,
                         [
                             {
-                                mgmtDhcp: 'enabled'
+                                mgmtDhcp: 'disabled'
                             }
                         ]
                     );
+                });
+        });
+
+        it('should not change mgmtDhcp when no System is in declaration and there is no route', () => {
+            delete declaration.Common.System;
+            delete declaration.Common.ManagementRoute;
+            state.currentConfig.Common.System.mgmtDhcp = 'enabled';
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent, null);
                 });
         });
 
@@ -1967,14 +1996,7 @@ describe('systemHandler', () => {
             return systemHandler.process()
                 .then(() => {
                     const mgmtDhcp = dataSent['/tm/sys/global-settings'];
-                    assert.deepStrictEqual(
-                        mgmtDhcp,
-                        [
-                            {
-                                mgmtDhcp: 'dhcpv4'
-                            }
-                        ]
-                    );
+                    assert.deepStrictEqual(mgmtDhcp, undefined);
                 });
         });
     });
@@ -1996,7 +2018,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysContact,
@@ -2020,7 +2042,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysContact, undefined);
@@ -2047,7 +2069,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].name, 'myFirstSnmpUser');
@@ -2071,7 +2093,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].name, 'myFirstSnmpUser');
@@ -2095,7 +2117,7 @@ describe('systemHandler', () => {
         };
         sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1.3' });
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].name, 'myFirstSnmpUser');
@@ -2116,7 +2138,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent, null);
@@ -2139,7 +2161,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].name, 'myFirstSnmpCommunity');
@@ -2163,7 +2185,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpCommunity][0].name, 'myFirstSnmpCommunity');
@@ -2183,7 +2205,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent, null);
@@ -2201,7 +2223,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapEvents][0].agentTrap, 'enabled');
@@ -2231,7 +2253,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
@@ -2263,7 +2285,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
@@ -2291,7 +2313,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
@@ -2320,7 +2342,7 @@ describe('systemHandler', () => {
         };
         sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1.3' });
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
@@ -2341,7 +2363,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent, null);
@@ -2359,7 +2381,7 @@ describe('systemHandler', () => {
                 }
             }
         };
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'dest');
@@ -2378,7 +2400,7 @@ describe('systemHandler', () => {
                 }
             }
         };
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'dest');
@@ -2406,7 +2428,7 @@ describe('systemHandler', () => {
             }
         };
 
-        const systemHandler = new SystemHandler(declaration, bigIpMock);
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
             .then(() => {
                 assert.deepEqual(dataSent[PATHS.Syslog][0].remoteServers[0].name, 'LocalDCSyslog');
@@ -2438,7 +2460,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     const trafficControlData = dataSent[PATHS.TrafficControl][0];
@@ -2483,7 +2505,7 @@ describe('systemHandler', () => {
                     }
                 }
             };
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.deepEqual(dataSent[PATHS.HTTPD][0].allow, ['10.10.10.10']);
@@ -2503,7 +2525,7 @@ describe('systemHandler', () => {
                     }
                 }
             };
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     assert.deepStrictEqual(dataSent[PATHS.HTTPD][0].allow, ['All']);
@@ -2543,7 +2565,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     const sshdData = dataSent[PATHS.SSHD][0];
@@ -2572,7 +2594,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     const sshdData = dataSent[PATHS.SSHD][0];
@@ -2598,7 +2620,7 @@ describe('systemHandler', () => {
                 }
             };
 
-            const systemHandler = new SystemHandler(declaration, bigIpMock);
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
                     const sshdData = dataSent[PATHS.SSHD][0];
@@ -2640,15 +2662,9 @@ describe('systemHandler', () => {
                     }
                 }
             };
-            const state = {
-                id: 'stateId',
-                currentConfig: {
-                    Common: {
-                        Disk: {
-                            applicationData: 26128384
-                        }
-                    }
-                }
+            state.id = 'stateId';
+            state.currentConfig.Common.Disk = {
+                applicationData: 26128384
             };
 
             const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
@@ -2666,15 +2682,9 @@ describe('systemHandler', () => {
                     }
                 }
             };
-            const state = {
-                id: 'stateId',
-                currentConfig: {
-                    Common: {
-                        Disk: {
-                            applicationData: 130985984
-                        }
-                    }
-                }
+            state.id = 'stateId';
+            state.currentConfig.Common.Disk = {
+                applicationData: 130985984
             };
 
             const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
