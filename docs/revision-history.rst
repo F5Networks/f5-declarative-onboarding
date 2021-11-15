@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.26
-        - Updated the documentation for Declarative Onboarding v1.26.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Declaration fails when Management IP already exists, `GitHub Issue 254 <https://github.com/F5Networks/f5-declarative-onboarding/issues/254>`_ |br| * DO fails when a route with a '/' in the name is added manually between DO runs, `GitHub Issue 267 <https://github.com/F5Networks/f5-declarative-onboarding/issues/267>`_ |br| * 
+        - Updated the documentation for Declarative Onboarding v1.26.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Declaration fails when Management IP already exists, `GitHub Issue 254 <https://github.com/F5Networks/f5-declarative-onboarding/issues/254>`_ |br| * DO fails when a route with a '/' in the name is added manually between DO runs, `GitHub Issue 267 <https://github.com/F5Networks/f5-declarative-onboarding/issues/267>`_ |br| * Adding a Management Route Resets Management IP to DHCP, `GitHub Issue 269 <https://github.com/F5Networks/f5-declarative-onboarding/issues/269>`_ |br| * Unsupported httpd ciphersuite, `GitHub Issue 178 <https://github.com/F5Networks/f5-declarative-onboarding/issues/178>`_
         - 12-14-21
 
       * - 1.25
