@@ -29,7 +29,11 @@
                 "AES256-GCM-SHA384",
                 "AES128-SHA",
                 "AES256-SHA",
-                "AES128-SHA256"
+                "AES128-SHA256",
+                "!ADH",
+                "!MEDIUM",
+                "!EXPORT",
+                "!eNULL"
             ],
             "sslProtocol": "all -SSLv2 -SSLv3 -TLSv1"
         }

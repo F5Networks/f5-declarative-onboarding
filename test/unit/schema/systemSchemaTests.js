@@ -1171,6 +1171,23 @@ describe('system.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should allow strings that match the pattern for sslCiphersuite', () => {
+                const data = {
+                    class: 'HTTPD',
+                    sslCiphersuite: [
+                        '123',
+                        'abcabcabcabcabcabcabcabcabcabc',
+                        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                        'hello:there',
+                        'ECDHE-RSA-AES128-GCM-SHA256',
+                        'ALL',
+                        '!cipherSuite*^$%@!!&()+=[|~]-_',
+                        'ALL:!ADH:!EXPORT:!eNULL:!MD5:!RC4:!DES:!3DES:!SSLv2'
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
@@ -1183,6 +1200,17 @@ describe('system.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'allow should not contain route domains');
                 assert.notStrictEqual(getErrorString().indexOf('should match exactly one schema in oneOf'), -1);
+            });
+
+            it('should invalidate characters not in the pattern for sslCiphersuite', () => {
+                const data = {
+                    class: 'HTTPD',
+                    sslCiphersuite: [
+                        '{}#'
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'sslCiphersuite values should match the pattern');
+                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
             });
         });
     });
