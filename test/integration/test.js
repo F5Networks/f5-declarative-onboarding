@@ -888,6 +888,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 currentState.GSLBDataCenter.myDataCenter,
                 {
                     name: 'myDataCenter',
+                    description: 'GSLB DataCenter description',
                     enabled: true,
                     contact: 'dataCenterContact',
                     location: 'dataCenterLocation',

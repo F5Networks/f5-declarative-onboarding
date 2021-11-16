@@ -795,6 +795,7 @@
         "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "contact" },
+            { "id": "description", "newId": "remark", "defaultWhenOmitted": "none" },
             { "id": "enabled" },
             { "id": "location" },
             { "id": "proberFallback" },

@@ -1172,6 +1172,7 @@ describe('inspectHandler', () => {
             '/tm/gtm/datacenter': [
                 {
                     name: 'currentDataCenter',
+                    description: 'description',
                     contact: 'contact',
                     enabled: true,
                     location: 'location',
@@ -2242,6 +2243,7 @@ describe('inspectHandler', () => {
                         },
                         currentDataCenter: {
                             class: 'GSLBDataCenter',
+                            remark: 'description',
                             contact: 'contact',
                             enabled: true,
                             location: 'location',

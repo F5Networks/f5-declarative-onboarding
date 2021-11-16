@@ -124,6 +124,7 @@ describe('gslbHandler', () => {
                         dataCenter0: {
                             name: 'dataCenter0',
                             contact: 'contact0',
+                            description: 'description',
                             enabled: true,
                             location: 'location0',
                             proberFallback: 'pool',
@@ -156,6 +157,7 @@ describe('gslbHandler', () => {
                             name: 'dataCenter0',
                             partition: 'Common',
                             contact: 'contact0',
+                            description: 'description',
                             enabled: true,
                             location: 'location0',
                             proberFallback: 'pool',
@@ -167,6 +169,7 @@ describe('gslbHandler', () => {
                         dataSent[`${PATHS.GSLBDataCenter}/~Common~dataCenter1`][0],
                         {
                             name: 'dataCenter1',
+                            description: undefined,
                             partition: 'Common',
                             contact: 'contact1',
                             enabled: false,
