@@ -19,6 +19,7 @@
 const crypto = require('crypto');
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
 const TeemRecord = require('@f5devcentral/f5-teem').Record;
+const ipUtil = require('@f5devcentral/atg-shared-utilities').ipUtils;
 const DeclarationParser = require('./declarationParser');
 const DiffHandler = require('./diffHandler');
 const Logger = require('./logger');
@@ -572,10 +573,10 @@ function applyGSLBServerFixes(declaration) {
         server.virtualServers = server.virtualServers || [];
         server.virtualServers.forEach((virtualServer, i) => {
             virtualServer.name = virtualServer.name || `${i}`;
-            virtualServer.address = doUtil.minimizeIP(virtualServer.address);
+            virtualServer.address = ipUtil.minimizeIP(virtualServer.address);
             virtualServer.monitor = virtualServer.monitor || [];
             if (virtualServer.translationAddress && virtualServer.translationAddress !== 'none') {
-                virtualServer.translationAddress = doUtil.minimizeIP(virtualServer.translationAddress);
+                virtualServer.translationAddress = ipUtil.minimizeIP(virtualServer.translationAddress);
             }
             delete virtualServer.label;
         });
