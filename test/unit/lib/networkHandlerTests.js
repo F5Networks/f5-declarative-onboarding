@@ -30,10 +30,12 @@ const NetworkHandler = require('../../../src/lib/networkHandler');
 describe('networkHandler', () => {
     let bigIpMock;
     let dataSent;
+    let deletedPaths;
     let createdFolder;
 
     beforeEach(() => {
         dataSent = {};
+        deletedPaths = [];
         createdFolder = undefined;
         bigIpMock = {
             createOrModify(path, data) {
@@ -60,7 +62,8 @@ describe('networkHandler', () => {
             list() {
                 return Promise.resolve();
             },
-            delete() {
+            delete(path) {
+                deletedPaths.push(path);
                 return Promise.resolve();
             },
             modify(path, data) {
@@ -86,6 +89,11 @@ describe('networkHandler', () => {
                     }
                 });
                 return promise;
+            },
+            deviceInfo() {
+                return Promise.resolve({
+                    hostname: 'bigip.example.com'
+                });
             }
         };
     });
@@ -521,16 +529,47 @@ describe('networkHandler', () => {
                 });
         });
 
-        describe('modify self ip', () => {
-            const deletedPaths = [];
-            beforeEach(() => {
-                deletedPaths.length = 0;
-                bigIpMock.delete = (path) => {
-                    deletedPaths.push(path);
-                    return Promise.resolve();
-                };
-            });
+        it('should temporarily clear ConfigSync IP when matching SelfIP will be modified', () => {
+            const configSyncIpDataSent = [];
+            const declaration = {
+                Common: {
+                    SelfIp: {
+                        selfIp1: {
+                            name: 'selfIp1',
+                            vlan: '/Common/vlan1',
+                            address: '1.2.3.4/24',
+                            trafficGroup: '/Common/traffic-group-local-only'
+                        }
+                    }
+                }
+            };
+            const device = {
+                configsyncIp: '1.2.3.4'
+            };
 
+            bigIpMock.list = (path) => {
+                if (path === '/tm/cm/device/~Common~bigip.example.com') {
+                    return Promise.resolve(device);
+                }
+                return Promise.resolve();
+            };
+            bigIpMock.cluster = {
+                configSyncIp(ip) {
+                    configSyncIpDataSent.push(ip);
+                    device.configsyncIp = ip;
+                    return Promise.resolve();
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    assert.strictEqual(configSyncIpDataSent[0], 'none');
+                    assert.strictEqual(configSyncIpDataSent[1], '1.2.3.4');
+                });
+        });
+
+        describe('modify self ip', () => {
             it('should delete existing matching self ips', () => {
                 const declaration = {
                     Common: {
@@ -765,17 +804,11 @@ describe('networkHandler', () => {
     });
 
     describe('Route', () => {
-        const deletedPaths = [];
         let declaration = {};
         let state = {};
         let bigIpMockSpy;
 
         beforeEach(() => {
-            deletedPaths.length = 0;
-            bigIpMock.delete = (path) => {
-                deletedPaths.push(path);
-                return Promise.resolve();
-            };
             bigIpMockSpy = sinon.spy(bigIpMock);
 
             declaration = {
@@ -1240,8 +1273,6 @@ describe('networkHandler', () => {
         });
 
         describe('pre-delete', () => {
-            let deletedPaths;
-
             const state = {
                 currentConfig: {
                     Common: {
@@ -1254,13 +1285,6 @@ describe('networkHandler', () => {
                     }
                 }
             };
-
-            beforeEach(() => {
-                deletedPaths = [];
-                sinon.stub(bigIpMock, 'delete').callsFake((path) => {
-                    deletedPaths.push(path);
-                });
-            });
 
             it('should delete existing tunnel if changing the trafficGroup', () => {
                 const declaration = {
@@ -2229,15 +2253,9 @@ describe('networkHandler', () => {
     });
 
     describe('RoutingBGP', () => {
-        const deletedPaths = [];
         let bigIpMockSpy;
 
         beforeEach(() => {
-            deletedPaths.length = 0;
-            bigIpMock.delete = (path) => {
-                deletedPaths.push(path);
-                return Promise.resolve();
-            };
             bigIpMockSpy = sinon.spy(bigIpMock);
         });
 

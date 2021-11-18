@@ -105,6 +105,9 @@
                     "type": "string",
                     "const": "GSLBDataCenter"
                 },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
                 "enabled": {
                     "description": "Specifies whether the data center is enabled or disabled",
                     "type": "boolean",

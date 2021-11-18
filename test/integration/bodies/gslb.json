@@ -21,6 +21,7 @@
         },
         "myDataCenter": {
             "class": "GSLBDataCenter",
+            "remark": "GSLB DataCenter description",
             "enabled": true,
             "contact": "dataCenterContact",
             "location": "dataCenterLocation",

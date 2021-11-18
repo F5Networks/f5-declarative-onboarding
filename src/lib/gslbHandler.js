@@ -121,6 +121,7 @@ function handleGSLBDataCenter() {
         if (dataCenter.name) {
             const body = {
                 name: dataCenter.name,
+                description: dataCenter.description,
                 partition: tenant,
                 contact: dataCenter.contact,
                 enabled: dataCenter.enabled,

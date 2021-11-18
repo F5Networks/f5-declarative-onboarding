@@ -18,6 +18,7 @@
 
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
+const ipUtil = require('@f5devcentral/atg-shared-utilities').ipUtils;
 
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
@@ -533,7 +534,7 @@ function convertToHostnames(deviceGroupMembers, deviceGroupOwner) {
                     return address;
                 }
 
-                address = doUtil.minimizeIP(address);
+                address = ipUtil.minimizeIP(address);
                 const found = deviceResults.find((device) => {
                     if (device.configsyncIp === address || device.managementIp === address) {
                         return true;

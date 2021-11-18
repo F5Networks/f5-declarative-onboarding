@@ -301,6 +301,7 @@ function handleSelfIp() {
     const floatingBodies = [];
     let selfIpsToRecreate = [];
     let routesToRecreate = [];
+    let configSyncIpToRecreate;
 
     // In case of creating SelfIP in non default routedomain, we'd ignore
     // "ioctl failed: No such device" error and continue retrying.
@@ -366,12 +367,14 @@ function handleSelfIp() {
             if (deletedObjects) {
                 selfIpsToRecreate = deletedObjects.deletedFloatingSelfIps.slice();
                 routesToRecreate = deletedObjects.deletedRoutes.slice();
+                configSyncIpToRecreate = deletedObjects.deletedConfigSyncIp;
             }
             return deleteExistingSelfIps.call(this, nonFloatingBodies);
         })
         .then((deletedObjects) => {
             selfIpsToRecreate = selfIpsToRecreate.concat(deletedObjects.deletedFloatingSelfIps);
             routesToRecreate = routesToRecreate.concat(deletedObjects.deletedRoutes);
+            configSyncIpToRecreate = configSyncIpToRecreate || deletedObjects.deletedConfigSyncIp;
 
             // We have to create non floating self IPs before floating self IPs
             const createPromises = [];
@@ -410,6 +413,12 @@ function handleSelfIp() {
                 );
             });
             return Promise.all(createPromises);
+        })
+        .then(() => {
+            if (!configSyncIpToRecreate) {
+                return Promise.resolve();
+            }
+            return this.bigIp.cluster.configSyncIp(configSyncIpToRecreate, cloudUtil.SHORT_RETRY);
         })
         .then(() => {
             const createPromises = [];
@@ -1033,6 +1042,7 @@ function handleRoutingBGP() {
  *      {
  *          deletedFloatingSelfIps: [],
  *          deletedRouted: []
+ *          deletedConfigSyncIp: '' | undefined
  *      }
  */
 function deleteExistingSelfIps(selfIpBodies) {
@@ -1040,6 +1050,8 @@ function deleteExistingSelfIps(selfIpBodies) {
     const existingSelfIps = [];
     const deletedFloatingSelfIps = [];
     const deletedRoutes = [];
+    let matchingSelfIps;
+    let deletedConfigSyncIp;
 
     if (!selfIpBodies || !Array.isArray(selfIpBodies)) {
         return Promise.resolve({ deletedRoutes, deletedFloatingSelfIps });
@@ -1076,7 +1088,19 @@ function deleteExistingSelfIps(selfIpBodies) {
         })
         .then(() => findMatchingFloatingSelfIps.call(this, existingSelfIps))
         .then((results) => {
-            const matchingSelfIps = results && Array.isArray(results) ? results.slice() : [];
+            matchingSelfIps = results && Array.isArray(results) ? results.slice() : [];
+            return findMatchingConfigSyncIp.call(this, existingSelfIps.concat(matchingSelfIps));
+        })
+        .then((matchingConfigSyncIp) => {
+            deletedConfigSyncIp = matchingConfigSyncIp;
+            if (!matchingConfigSyncIp) {
+                return Promise.resolve();
+            }
+            // The config sync IP matches one of the self IPs that will be deleted. We need to
+            // delete the config sync IP before deleting the matching self IP
+            return this.bigIp.cluster.configSyncIp('none', cloudUtil.SHORT_RETRY);
+        })
+        .then(() => {
             const selfIpDeletePromises = [];
 
             matchingSelfIps.forEach((selfIp) => {
@@ -1122,11 +1146,40 @@ function deleteExistingSelfIps(selfIpBodies) {
             return Promise.all(selfIpDeletePromises);
         })
         .then(() => Promise.resolve(
-            { deletedRoutes, deletedFloatingSelfIps }
+            { deletedRoutes, deletedFloatingSelfIps, deletedConfigSyncIp }
         ))
         .catch((err) => {
             logger.severe(`Error deleting SelfIp: ${err.message}`);
             return Promise.reject(err);
+        });
+}
+
+/**
+ * Finds the self IP address that we are about to delete that matches the config sync IP
+ *
+ * @param {Object[]} selfIpsToDelete - Self IPs we are going to delete
+ * @returns {string|undefined} - config sync IP that matched
+ */
+function findMatchingConfigSyncIp(selfIpsToDelete) {
+    const addDefaultRoute = (ip) => (ip.indexOf('%') < 0 ? `${ip}%0` : ip);
+
+    return this.bigIp.deviceInfo()
+        .then((deviceInfo) => this.bigIp.list(
+            `/tm/cm/device/~Common~${deviceInfo.hostname}`,
+            null,
+            cloudUtil.SHORT_RETRY
+        ))
+        .then((device) => {
+            let matchingConfigSyncIp;
+            if (device && device.configsyncIp !== 'none') {
+                const configSyncIp = addDefaultRoute(device.configsyncIp);
+                const foundMatch = selfIpsToDelete.some((selfIp) => {
+                    const selfIpAddress = addDefaultRoute(doUtil.stripCidr(selfIp.address));
+                    return selfIpAddress === configSyncIp;
+                });
+                if (foundMatch) matchingConfigSyncIp = device.configsyncIp;
+            }
+            return matchingConfigSyncIp;
         });
 }
 

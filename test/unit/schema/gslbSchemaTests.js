@@ -113,6 +113,7 @@ describe('gslb.schema.json', () => {
             it('should validate all properties', () => {
                 const data = {
                     class: 'GSLBDataCenter',
+                    remark: 'description',
                     enabled: false,
                     location: 'dataCenterLocation',
                     contact: 'dataCenterContact',
