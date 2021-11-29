@@ -86,7 +86,8 @@ class ConfigManager {
      *         schemaMerge: {
      *           path: <array_containing_property_path>,
      *           action: <override_if_not_direct_assign_of_value>
-     *           skipWhenOmitted: <do_not_add_to_parent_when_missing>
+     *           skipWhenOmitted: <do_not_add_to_parent_when_missing>,
+     *           specificTo: { property: 'only_add_when_prop_name_equals_prop_value', value: 'prop_value' }
      *         },
      *         partitions: ['partition(s)', 'to', 'check']
      *     }
@@ -489,6 +490,11 @@ class ConfigManager {
 
                 const originalConfig = doState.getOriginalConfigByConfigId(this.configId)
                     || state.currentConfig;
+                if (!originalConfig.version) {
+                    const doVersion = doUtil.getDoVersion();
+                    const doVersionStr = `${doVersion.VERSION}-${doVersion.RELEASE}`;
+                    originalConfig.version = doVersionStr;
+                }
 
                 // Fill in any db vars that we don't currently have in the original config. If
                 // a user does not set a db var on the first POST but does on a subsequent POST

@@ -16,11 +16,26 @@
 
 'use strict';
 
+const sinon = require('sinon');
 const assert = require('assert');
 
+const doUtil = require('../../../src/lib/doUtil');
 const State = require('../../../src/lib/state');
 
 describe('state', () => {
+    beforeEach(() => {
+        sinon.stub(doUtil, 'getDoVersion').returns(
+            {
+                VERSION: '9.9.9',
+                RELEASE: '9'
+            }
+        );
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
     it('should create a new state from an exsiting state', () => {
         const existingState = {
             originalConfig: {
@@ -153,85 +168,135 @@ describe('state', () => {
                 });
         });
 
-        it('should replace configItems properties newIds with ids in originalConfig', () => {
-            const existingState = {
-                result: {
-                    foo: 'bar'
-                },
-                internalDeclaration: {
-                    hello: 'world'
-                },
-                currentConfig: {
-                    DNS: '1234'
-                },
-                tasks: {},
-                originalConfig: {
-                    myConfigId: {
-                        Common: {
-                            NTP: {
-                                servers: ['server1']
-                            },
-                            VLAN: {
-                                myVlan: {
-                                    mtu: 1400,
-                                    failsafeEnabled: true
-                                }
-                            },
-                            SnmpCommunity: {
-                                nothingSpecial: {
-                                    name: 'nothingSpecial',
-                                    access: 'ro',
-                                    ipv6: false,
-                                    source: 'all',
-                                    oid: '.1'
+        describe('update ids', () => {
+            let existingState;
+
+            beforeEach(() => {
+                existingState = {
+                    result: {
+                        foo: 'bar'
+                    },
+                    internalDeclaration: {
+                        hello: 'world'
+                    },
+                    currentConfig: {
+                        DNS: '1234'
+                    },
+                    tasks: {},
+                    originalConfig: {
+                        myConfigId: {
+                            version: '1.0.0-1',
+                            Common: {
+                                NTP: {
+                                    servers: ['server1']
                                 },
-                                snmpCommunityWithSpecialChar: {
-                                    name: 'special!community',
-                                    access: 'ro',
-                                    ipv6: false,
-                                    source: 'all',
-                                    oid: '.1'
+                                VLAN: {
+                                    myVlan: {
+                                        mtu: 1400,
+                                        failsafeEnabled: true
+                                    }
+                                },
+                                SnmpCommunity: {
+                                    nothingSpecial: {
+                                        name: 'nothingSpecial',
+                                        access: 'ro',
+                                        ipv6: false,
+                                        source: 'all',
+                                        oid: '.1'
+                                    },
+                                    snmpCommunityWithSpecialChar: {
+                                        name: 'special!community',
+                                        access: 'ro',
+                                        ipv6: false,
+                                        source: 'all',
+                                        oid: '.1'
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            };
+                };
+            });
 
-            const state = new State(existingState);
-            const originalConfig = state.originalConfig.myConfigId;
-            assert.deepStrictEqual(
-                originalConfig.Common,
-                {
-                    NTP: {
-                        servers: ['server1']
-                    },
-                    VLAN: {
-                        myVlan: {
-                            mtu: 1400,
-                            failsafe: 'enabled'
-                        }
-                    },
-                    SnmpCommunity: {
-                        nothingSpecial: {
-                            name: 'nothingSpecial',
-                            communityName: 'nothingSpecial',
-                            access: 'ro',
-                            ipv6: 'disabled',
-                            source: 'all',
-                            oidSubset: '.1'
+            it('should replace configItems properties newIds with ids in originalConfig', () => {
+                const state = new State(existingState);
+                const originalConfig = state.originalConfig.myConfigId;
+                assert.deepStrictEqual(
+                    originalConfig.Common,
+                    {
+                        NTP: {
+                            servers: ['server1']
                         },
-                        snmpCommunityWithSpecialChar: {
-                            name: 'snmpCommunityWithSpecialChar',
-                            communityName: 'special!community',
-                            access: 'ro',
-                            ipv6: 'disabled',
-                            source: 'all',
-                            oidSubset: '.1'
+                        VLAN: {
+                            myVlan: {
+                                mtu: 1400,
+                                failsafe: 'enabled'
+                            }
+                        },
+                        SnmpCommunity: {
+                            nothingSpecial: {
+                                name: 'nothingSpecial',
+                                communityName: 'nothingSpecial',
+                                access: 'ro',
+                                ipv6: 'disabled',
+                                source: 'all',
+                                oidSubset: '.1'
+                            },
+                            snmpCommunityWithSpecialChar: {
+                                name: 'snmpCommunityWithSpecialChar',
+                                communityName: 'special!community',
+                                access: 'ro',
+                                ipv6: 'disabled',
+                                source: 'all',
+                                oidSubset: '.1'
+                            }
                         }
                     }
-                }
-            );
+                );
+            });
+
+            it('should not update configItems properties if version has not be updated', () => {
+                doUtil.getDoVersion.restore();
+                sinon.stub(doUtil, 'getDoVersion').returns(
+                    {
+                        VERSION: '1.0.0',
+                        RELEASE: '1'
+                    }
+                );
+
+                const state = new State(existingState);
+                const originalConfig = state.originalConfig.myConfigId;
+                assert.deepStrictEqual(
+                    originalConfig.Common,
+                    {
+                        NTP: {
+                            servers: ['server1']
+                        },
+                        VLAN: {
+                            myVlan: {
+                                mtu: 1400,
+                                failsafeEnabled: true
+                            }
+                        },
+                        SnmpCommunity: {
+                            nothingSpecial: {
+                                name: 'nothingSpecial',
+                                access: 'ro',
+                                ipv6: false,
+                                source: 'all',
+                                oid: '.1'
+                            },
+                            snmpCommunityWithSpecialChar: {
+                                name: 'special!community',
+                                access: 'ro',
+                                ipv6: false,
+                                source: 'all',
+                                oid: '.1'
+                            }
+                        }
+                    }
+                );
+            });
         });
     });
 

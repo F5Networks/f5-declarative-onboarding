@@ -11,6 +11,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2805: ([GitHub Issue 269](https://github.com/F5Networks/f5-declarative-onboarding/issues/269)): Adding a Management Route Resets Management IP to DHCP.
 - AUTOTOOL-2759: ([GitHub Issue 178](https://github.com/F5Networks/f5-declarative-onboarding/issues/178)): Unsupported httpd ciphersuite
 - AUTOTOOL-1797: ([GitHub Issue 135](https://github.com/F5Networks/f5-declarative-onboarding/issues/135)): Unable to modify SelfIp referenced by ConfigSync
+- AUTOTOOL-2857: When GTM is enabled, DO returns the error 'Monitor /Common/http is read only' on the second POST even when GSLB is not in the declaration.
 
 ### Changed
 ### Removed

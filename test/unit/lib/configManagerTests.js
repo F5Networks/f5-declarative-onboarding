@@ -1300,6 +1300,7 @@ describe('configManager', () => {
                     assert.deepEqual(state.originalConfig,
                         {
                             parsed: true,
+                            version: '0.0.0-0',
                             Common: {
                                 HTTPD: {
                                     allow: ['all']
@@ -1329,6 +1330,7 @@ describe('configManager', () => {
                     assert.deepEqual(state.originalConfig,
                         {
                             parsed: true,
+                            version: '0.0.0-0',
                             Common: {
                                 HTTPD: {
                                     allow: 'none'
@@ -1369,6 +1371,7 @@ describe('configManager', () => {
                 assert.deepEqual(state.originalConfig,
                     {
                         parsed: true,
+                        version: '0.0.0-0',
                         Common: {
                             hostname: 'myhost.bigip.com',
                             SelfIp: {
@@ -1419,8 +1422,8 @@ describe('configManager', () => {
         const configManager = new ConfigManager(configItems, bigIpMock);
         return configManager.get({}, state, doState)
             .then(() => {
-                assert.deepEqual(state.originalConfig, { foo: 'bar' });
-                assert.deepEqual(updatedOriginalConfig, { foo: 'bar' });
+                assert.deepEqual(state.originalConfig, { version: '0.0.0-0', foo: 'bar' });
+                assert.deepEqual(updatedOriginalConfig, { version: '0.0.0-0', foo: 'bar' });
             });
     });
 

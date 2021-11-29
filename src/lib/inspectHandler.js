@@ -422,9 +422,9 @@ const customFunctions = {
         });
         return [configKey, configObject];
     },
-    // GSLB Globals - really this is just a way not to skip GSLB Globals which
-    // have a schemaMerge but should be processed by processItem anyway
-    remapGSLBGlobals: (configKey, configObject) => [configKey, configObject]
+    // Some items with schemaMerge are skipped in the general handling but
+    // should be processed by processItem anyway
+    remapItemWithSchemaMerge: (configKey, configObject) => [configKey, configObject]
 };
 
 /**
@@ -524,6 +524,7 @@ function makeDeclarationFromConfig(config) {
         class: 'Device',
         schemaVersion: SCHEMA_VERSION
     };
+    delete config.version;
     // expect "tenant" name on the top of the object
     Object.keys(config).forEach((tenant) => {
         const tenantDeclaration = {

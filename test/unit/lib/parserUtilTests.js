@@ -665,5 +665,78 @@ describe('parserUtil', () => {
                 }
             );
         });
+
+        it('should handle schema classes with schemaMerge add with specificTo', () => {
+            const configItems = [
+                {
+                    schemaClass: 'MySchemaClass',
+                    schemaMerge: {
+                        action: 'add',
+                        specificTo: { property: 'type', value: 'oneType' }
+                    },
+                    properties: [
+                        {
+                            id: 'autoPhonehome', truth: 'enabled', falsehood: 'disabled'
+                        },
+                        {
+                            id: 'mcpdId', newId: 'theNewId', truth: 'thisIsTrue', falsehood: 'thisIsFalse'
+                        }
+                    ]
+                },
+                {
+                    schemaClass: 'MySchemaClass',
+                    schemaMerge: {
+                        action: 'add',
+                        specificTo: { property: 'type', value: 'anotherType' }
+                    },
+                    properties: [
+                        {
+                            id: 'autoPhonehome', truth: 'enabled', falsehood: 'disabled'
+                        },
+                        {
+                            id: 'mcpdId', newId: 'theNewId', truth: 'thisIsTrue', falsehood: 'thisIsFalse'
+                        },
+                        {
+                            id: 'onlyAddToTypeAnother', newId: 'OnlyAddToTypeAnother', truth: 'yes', falsehood: 'no'
+                        }
+                    ]
+                }
+            ];
+
+            const declarationItem = {
+                class: 'MySchemaClass',
+                mySystem1: {
+                    type: 'oneType',
+                    autoPhonehome: false,
+                    theNewId: true
+                },
+                mySystem2: {
+                    type: 'anotherType',
+                    autoPhonehome: true,
+                    theNewId: false
+                }
+            };
+
+            // nameless classes are called with the name stripped
+            let updated = parserUtil.updateIds(configItems, 'MySchemaClass', declarationItem.mySystem1);
+            assert.deepStrictEqual(
+                updated,
+                {
+                    type: 'oneType',
+                    autoPhonehome: 'disabled',
+                    mcpdId: 'thisIsTrue'
+                }
+            );
+            updated = parserUtil.updateIds(configItems, 'MySchemaClass', declarationItem.mySystem2);
+            assert.deepStrictEqual(
+                updated,
+                {
+                    type: 'anotherType',
+                    autoPhonehome: 'enabled',
+                    mcpdId: 'thisIsFalse',
+                    onlyAddToTypeAnother: 'no'
+                }
+            );
+        });
     });
 });
