@@ -140,6 +140,7 @@ describe('authHandler', () => {
                 deletePath.push(path);
                 return Promise.resolve();
             };
+            bigIpMock.list = () => [{ name: 'system_auth_name2' }];
             const declaration = {
                 Common: {
                     Authentication: {
@@ -163,6 +164,38 @@ describe('authHandler', () => {
                 .then(() => {
                     assert.strictEqual(deletePath.length, 1);
                     assert.strictEqual(deletePath[0], '/tm/auth/radius-server/~Common~system_auth_name2');
+                });
+        });
+
+        it('should not issue a delete for radius secondary when it is absent from the declaration and does not exist', () => {
+            const deletePath = [];
+            bigIpMock.delete = (path) => {
+                deletePath.push(path);
+                return Promise.resolve();
+            };
+            bigIpMock.list = () => [];
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        enabledSourceType: 'radius',
+                        fallback: true,
+                        radius: {
+                            serviceType: 'callback-login',
+                            servers: {
+                                primary: {
+                                    server: '1.2.3.4',
+                                    port: 1811,
+                                    secret: 'something'
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(deletePath.length, 0);
                 });
         });
 

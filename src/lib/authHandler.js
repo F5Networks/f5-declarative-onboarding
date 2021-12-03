@@ -124,10 +124,18 @@ function handleRadius() {
             },
             undefined, undefined, opts
         ))
-        .then(() => (radius.servers.secondary ? Promise.resolve() : this.bigIp.delete(
-            `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`,
-            null, null, CLOUD_UTIL_NO_RETRY
-        )))
+        .then(() => this.bigIp.list(`${PATHS.AuthRadiusServer}`))
+        .then((radiusServers) => {
+            if (!radius.servers.secondary && radiusServers
+                .find((server) => server.name === RADIUS.SECONDARY_SERVER)) {
+                return this.bigIp.delete(
+                    `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`,
+                    null, null, CLOUD_UTIL_NO_RETRY
+                );
+            }
+
+            return Promise.resolve();
+        })
         .catch((err) => {
             logger.severe(`Error configuring remote RADIUS auth: ${err.message}`);
             return Promise.reject(err);
