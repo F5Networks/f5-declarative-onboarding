@@ -116,6 +116,56 @@ describe('Authentication', function testAuthentication() {
             return assertAuthClass(properties, options);
         });
 
+        it('radius - only primary server', () => {
+            const options = {
+                skipIdempotentCheck: true,
+                getMcpObject: {
+                    className: 'AuthRadius',
+                    itemKind: 'tm:auth:radius:radiusstate',
+                    refItemKind: 'tm:auth:radius-server:radius-serverstate',
+                    skipNameCheck: true
+                }
+            };
+
+            const radiusDef = {
+                servers: {
+                    primary: {
+                        server: '10.10.10.10',
+                        port: 80,
+                        secret: 'mySecret'
+                    }
+                }
+            };
+
+            const expectedResponse = [
+                {
+                    name: 'system_auth_name1',
+                    server: '10.10.10.10',
+                    port: 80
+                }
+            ];
+
+            const properties = [
+                {
+                    name: 'enabledSourceType',
+                    inputValue: ['radius'],
+                    skipAssert: true
+                },
+                {
+                    name: 'radius',
+                    inputValue: [radiusDef],
+                    expectedValue: [expectedResponse],
+                    extractFunction: (o) => o.servers.map((server) => ({
+                        name: server.name,
+                        server: server.server,
+                        port: server.port
+                    }))
+                }
+            ];
+
+            return assertAuthClass(properties, options);
+        });
+
         it('ldap', () => {
             const options = {
                 skipIdempotentCheck: true,

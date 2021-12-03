@@ -784,7 +784,7 @@
         "nameless": true,
         "declaration": {
             "customFunctions": [
-                { "id": "remapGSLBGlobals" }
+                { "id": "remapItemWithSchemaMerge" }
             ]
         }
     },
@@ -865,6 +865,10 @@
         "path": "/tm/gtm/monitor/http",
         "schemaClass": "GSLBMonitor",
         "enforceArray": true,
+        "schemaMerge": {
+            "action": "add",
+            "specificTo": { "property": "monitorType", "value": "http" }
+        },
         "requiredModules": [{ "module": "gtm" }],
         "properties": [
             { "id": "kind" },
@@ -878,14 +882,20 @@
             { "id": "reverse", "newId": "reverseEnabled", "truth": "enabled", "falsehood": "disabled" },
             { "id": "send", "defaultWhenOmitted": "none" },
             { "id": "recv", "newId": "receive", "defaultWhenOmitted": "none" }
-        ]
+        ],
+        "declaration": {
+            "customFunctions": [
+                { "id": "remapItemWithSchemaMerge" }
+            ]
+        }
     },
     {
         "path": "/tm/gtm/monitor/https",
         "schemaClass": "GSLBMonitor",
         "enforceArray": true,
         "schemaMerge": {
-            "action": "add"
+            "action": "add",
+            "specificTo": { "property": "monitorType", "value": "https" }
         },
         "requiredModules": [{ "module": "gtm" }],
         "properties": [
@@ -909,7 +919,8 @@
         "schemaClass": "GSLBMonitor",
         "enforceArray": true,
         "schemaMerge": {
-            "action": "add"
+            "action": "add",
+            "specificTo": { "property": "monitorType", "value": "gateway-icmp" }
         },
         "requiredModules": [{ "module": "gtm" }],
         "properties": [
@@ -930,7 +941,8 @@
         "schemaClass": "GSLBMonitor",
         "enforceArray": true,
         "schemaMerge": {
-            "action": "add"
+            "action": "add",
+            "specificTo": { "property": "monitorType", "value": "tcp" }
         },
         "requiredModules": [{ "module": "gtm" }],
         "properties": [
@@ -952,7 +964,8 @@
         "schemaClass": "GSLBMonitor",
         "enforceArray": true,
         "schemaMerge": {
-            "action": "add"
+            "action": "add",
+            "specificTo": { "property": "monitorType", "value": "udp" }
         },
         "requiredModules": [{ "module": "gtm" }],
         "properties": [

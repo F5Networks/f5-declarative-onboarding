@@ -16,6 +16,7 @@
 
 'use strict';
 
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const uuidv4 = require('uuid/v4');
 const doUtil = require('./doUtil');
 const parserUtil = require('./parserUtil');
@@ -567,27 +568,34 @@ function cleanupOldTasks(tasks) {
 }
 
 function updateNewIdToId(existingState) {
+    const doVersion = doUtil.getDoVersion();
+    const doVersionStr = `${doVersion.VERSION}-${doVersion.RELEASE}`;
     Object.keys(existingState.originalConfig).forEach((configId) => {
-        const originalConfig = existingState.originalConfig[configId].Common;
-        if (originalConfig) {
-            Object.keys(originalConfig).forEach((schemaClass) => {
-                const config = originalConfig[schemaClass];
+        const configById = existingState.originalConfig[configId];
+        const configVersion = configById.version || '0.0.0-0';
+        if (cloudUtil.versionCompare(configVersion, doVersionStr) < 0) {
+            const originalConfig = configById.Common;
+            if (originalConfig) {
+                configById.version = doVersionStr;
+                Object.keys(originalConfig).forEach((schemaClass) => {
+                    const config = originalConfig[schemaClass];
 
-                if (NAMELESS_CLASSES.indexOf(schemaClass) !== -1) {
-                    // If it's a nameless class, the config to update is the whole 'config' object
-                    originalConfig[schemaClass] = parserUtil.updateIds(configItems, schemaClass, config);
-                } else {
-                    // If it's a named class, iterate through each named object in the 'config' container
-                    Object.keys(config).forEach((itemName) => {
-                        originalConfig[schemaClass][itemName] = parserUtil.updateIds(
-                            configItems,
-                            schemaClass,
-                            config[itemName],
-                            itemName
-                        );
-                    });
-                }
-            });
+                    if (NAMELESS_CLASSES.indexOf(schemaClass) !== -1) {
+                        // If it's a nameless class, the config to update is the whole 'config' object
+                        originalConfig[schemaClass] = parserUtil.updateIds(configItems, schemaClass, config);
+                    } else {
+                        // If it's a named class, iterate through each named object in the 'config' container
+                        Object.keys(config).forEach((itemName) => {
+                            originalConfig[schemaClass][itemName] = parserUtil.updateIds(
+                                configItems,
+                                schemaClass,
+                                config[itemName],
+                                itemName
+                            );
+                        });
+                    }
+                });
+            }
         }
     });
 }

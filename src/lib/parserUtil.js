@@ -33,7 +33,16 @@ module.exports = {
      * @returns {Object} Updated property
      */
     updateIds(configItems, schemaClass, declarationItem, propertyName) {
-        const matchingConfigItems = configItems.filter((item) => item.schemaClass === schemaClass);
+        const isSpecificTo = (configItem, declItem) => {
+            if (!configItem.schemaMerge || !configItem.schemaMerge.specificTo) {
+                return true;
+            }
+            return declItem[configItem.schemaMerge.specificTo.property] === configItem.schemaMerge.specificTo.value;
+        };
+
+        const matchingConfigItems = configItems.filter((item) => item.schemaClass === schemaClass
+            && isSpecificTo(item, declarationItem));
+
         if (matchingConfigItems.length === 0) {
             return declarationItem;
         }
