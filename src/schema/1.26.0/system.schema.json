@@ -1,0 +1,1392 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/system.schema.json",
+    "title": "F5 Declarative Onboarding system declaration",
+    "description": "System properties for onboarding a BIG-IP.",
+    "allOf": [
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DeviceCertificate" } }
+            },
+            "then": {
+                "description": "PKI certificate with optional chain",
+                "required": ["class", "certificate"],
+                "allOf": [
+                    {
+                        "properties": {
+                            "class": {
+                                "description": "Indicates that this property contains device certificate information",
+                                "type": "string",
+                                "const": "DeviceCertificate"
+                            }
+                        }
+                    },
+                    { "$ref": "definitions.schema.json#/definitions/pkiCertificate" }
+                ]
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "License" } }
+            },
+            "then": {
+                "oneOf": [
+                    { "$ref": "#/definitions/regKeyInfo" },
+                    { "$ref": "#/definitions/licensePoolInfo" }
+                ],
+                "if": {
+                    "required": ["licenseType"],
+                    "properties": { "licenseType": { "const": "licensePool" } }
+                },
+                "then": {
+                    "properties": {
+                        "unitOfMeasure": {
+                            "default": "monthly"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DbVariables" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains global db variable configuration.",
+                        "type": "string",
+                        "const": "DbVariables"
+                    }
+                },
+                "propertyNames": {
+                    "description": "The name of the db variable."
+                },
+                "additionalProperties": {
+                    "description": "The value to set for the db variable."
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Provision" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains module provisioning configuration.",
+                        "type": "string",
+                        "const": "Provision"
+                    }
+                },
+                "propertyNames": {
+                    "description": "The module to provision. Note: 'cgnat' is only supported on TMOS v15+",
+                    "enum": [
+                        "class",
+                        "afm",
+                        "am",
+                        "apm",
+                        "asm",
+                        "avr",
+                        "cgnat",
+                        "dos",
+                        "fps",
+                        "gtm",
+                        "ilx",
+                        "lc",
+                        "ltm",
+                        "pem",
+                        "swg",
+                        "urldb",
+                        "sslo"
+                    ]
+                },
+                "additionalProperties": {
+                    "description": "The level at which to provision the module.",
+                    "type": "string",
+                    "enum": ["dedicated", "nominal", "minimum", "none"]
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DNS" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains DNS configuration.",
+                        "type": "string",
+                        "const": "DNS"
+                    },
+                    "nameServers": {
+                        "description": "IP addresses of name servers to use for DNS.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "ipv4" },
+                                { "format": "ipv6" }
+                            ]
+                        }
+                    },
+                    "search": {
+                        "description": "Search domain to use for DNS.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "hostname"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "NTP" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains NTP configuration.",
+                        "type": "string",
+                        "const": "NTP"
+                    },
+                    "servers": {
+                        "description": "IP addresses of servers to use for NTP.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "ipv4" },
+                                { "format": "ipv6" },
+                                { "format": "hostname" }
+                            ]
+                        }
+                    },
+                    "timezone": {
+                        "description": "The timezone to set.",
+                        "type": "string",
+                        "default": "UTC"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "HTTPD" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Configures the HTTP daemon for the system.  Important: F5 Networks recommends that users of the Configuration utility exit the utility before changes are made to the system using the httpd component.  This is because making changes to the system using this component causes a restart of the httpd daemon.  Additionally, restarting the httpd daemon creates the necessity for a restart of the Configuration utility.",
+                        "type": "string",
+                        "const": "HTTPD"
+                    },
+                    "allow": {
+                        "description": "Configures IP addresses for the HTTP clients from which the httpd daemon accepts requests.",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all",
+                                    "none"
+                                ]
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "anyOf": [
+                                        { "format": "ipWithOptionalPrefix" },
+                                        { "const": "all" }
+                                    ]
+                                }
+                            }
+                        ],
+                        "default": "all"
+                    },
+                    "authPamIdleTimeout": {
+                        "description": "Specifies the number of seconds of inactivity that can elapse before the GUI session is automatically logged out.",
+                        "type": "integer",
+                        "minimum": 120,
+                        "maximum": 2147483647,
+                        "default": 1200
+                    },
+                    "maxClients": {
+                        "description": "Maximum number of clients allowed to be simultaneously connected.",
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 256,
+                        "default": 10
+                    },
+                    "sslCiphersuite": {
+                        "description": "Specifies the ciphers that the system uses.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^[0-9A-Za-z!:\\-+.~@$%^&*()_=\\[\\]|]+$"
+                        },
+                        "default": [
+                            "ECDHE-RSA-AES128-GCM-SHA256",
+                            "ECDHE-RSA-AES256-GCM-SHA384",
+                            "ECDHE-RSA-AES128-SHA",
+                            "ECDHE-RSA-AES256-SHA",
+                            "ECDHE-RSA-AES128-SHA256",
+                            "ECDHE-RSA-AES256-SHA384",
+                            "ECDHE-ECDSA-AES128-GCM-SHA256",
+                            "ECDHE-ECDSA-AES256-GCM-SHA384",
+                            "ECDHE-ECDSA-AES128-SHA",
+                            "ECDHE-ECDSA-AES256-SHA",
+                            "ECDHE-ECDSA-AES128-SHA256",
+                            "ECDHE-ECDSA-AES256-SHA384",
+                            "AES128-GCM-SHA256",
+                            "AES256-GCM-SHA384",
+                            "AES128-SHA",
+                            "AES256-SHA",
+                            "AES128-SHA256",
+                            "AES256-SHA256"
+                        ]
+                    },
+                    "sslProtocol": {
+                        "description": "The list of SSL protocols to accept on the management console.  A space-separated list of tokens in the format accepted by the Apache mod_ssl SSLProtocol directive.",
+                        "type": "string",
+                        "default": "all -SSLv2 -SSLv3 -TLSv1"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpAgent" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains basic SNMP agent configuration.",
+                        "type": "string",
+                        "const": "SnmpAgent"
+                    },
+                    "contact": {
+                        "description": "The name of the person who administers the SNMP service for this system.",
+                        "type": "string"
+                    },
+                    "location": {
+                        "description": "The description of this system's physical location.",
+                        "type": "string"
+                    },
+                    "allowList": {
+                        "description": "Allowed client IP addresses.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "f5ip"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpCommunity" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP v1 or v2c community configuration.",
+                        "type": "string",
+                        "const": "SnmpCommunity"
+                    },
+                    "ipv6": {
+                        "description": "Specifies whether the record applies to IPv6 addresses.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "source": {
+                        "description": "Specifies the source address for access to the MIB.",
+                        "type": "string"
+                    },
+                    "oid": {
+                        "description": "Specifies the current object identifier (OID) for the record.",
+                        "type": "string"
+                    },
+                    "access": {
+                        "description": "Whether the user's access level to the MIB is readOnly.",
+                        "type": "string",
+                        "enum": [ "ro", "rw" ],
+                        "default": "ro"
+                    },
+                    "name": {
+                        "description": "Overrides using the object name as the community name. Use this if you want special characters in the community name.",
+                        "type": "string"
+                    }
+                },
+                "if": {
+                    "required": ["oid"]
+                },
+                "then": {
+                    "required": ["source"]
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpUser" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP v3 user configuration.",
+                        "type": "string",
+                        "const": "SnmpUser"
+                    },
+                    "authentication": {
+                        "description": "Specifies the user's authentication method and password.",
+                        "type": "object",
+                        "required": [ "protocol", "password" ],
+                        "properties": {
+                            "protocol": {
+                                "description": "Authentication protocol.",
+                                "type": "string",
+                                "enum": ["sha", "md5"],
+                                "default": "sha"
+                            },
+                            "password": {
+                                "description": "Specifies the password for the user.",
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "privacy": {
+                        "description": "Specifies the privacy protcol to use to deliver authentication information for this user.",
+                        "type": "object",
+                        "required": [ "protocol", "password" ],
+                        "properties": {
+                            "protocol": {
+                                "description": "Specifies the encryption protocol.",
+                                "type": "string",
+                                "enum": ["aes", "des"],
+                                "default": "aes"
+                            },
+                            "password": {
+                                "description": "Specifies the password for the user.",
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "oid": {
+                        "description": "Specifies the current object identifier (OID) for the record.",
+                        "type": "string",
+                        "default": ".1"
+                    },
+                    "access": {
+                        "description": "Whether the user's access level to the MIB is readOnly.",
+                        "type": "string",
+                        "enum": ["ro", "rw"],
+                        "default": "ro"
+                    },
+                    "name": {
+                        "description": "Overrides using the object name as the username. Use this if you want special characters in the username.",
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false,
+                "if": {
+                    "required": [ "privacy" ]
+                },
+                "then": {
+                    "required": [ "authentication" ]
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpTrapEvents" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP trap configuration.",
+                        "type": "string",
+                        "const": "SnmpTrapEvents"
+                    },
+                    "agentStartStop": {
+                        "description": "Indicates whether to send a trap when the SNMP agent starts/stops.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "authentication": {
+                        "description": "Indicates whether to send authentication warning traps.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "device": {
+                        "description": "Indicates whether to send device warning traps.",
+                        "type": "boolean",
+                        "default": true
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SnmpTrapDestination" } }
+            },
+            "then": {
+                "required": ["class", "version", "destination", "port", "network"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SNMP trap configuration.",
+                        "type": "string",
+                        "const": "SnmpTrapDestination"
+                    },
+                    "version": {
+                        "description": "Specifies to which Simple Network Management Protocol (SNMP) version the trap destination applies.",
+                        "type": "string",
+                        "enum": ["1", "2c", "3"],
+                        "default": "2c"
+                    },
+                    "destination": {
+                        "description": "Specifies the address for the trap destination.",
+                        "type": "string",
+                        "oneOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    },
+                    "port": {
+                        "description": "Specifies the port for the trap destination.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535,
+                        "default": 162
+                    },
+                    "network": {
+                        "description": "Specifies the trap network. The system sends the SNMP trap out the specified network. 'management' specifies that the system sends the trap out of the management IP address. 'other' specifies that the system sends the trap out of the interface based on the routing tables.",
+                        "type": "string",
+                        "enum": ["management", "other"],
+                        "default": "management"
+                    }
+                },
+                "if": {
+                    "required": ["version"],
+                    "properties": { "version": { "const" : "3" } } },
+                "then": {
+                    "required": ["securityName", "authentication"],
+                    "properties": {
+                        "securityName": {
+                            "description": "Specifies the user name the system uses to handle SNMP v3 traps.",
+                            "type": "string"
+                        },
+                        "authentication": {
+                            "description": "Specifies the user's authentication method and password.",
+                            "type": "object",
+                            "required": [ "protocol", "password" ],
+                            "properties": {
+                                "protocol": {
+                                    "description": "Authentication protocol.",
+                                    "type": "string",
+                                    "enum": ["sha", "md5"]
+                                },
+                                "password": {
+                                    "description": "Specifies the password for the user.",
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "privacy": {
+                            "description": "Specifies the privacy protcol to use to deliver authentication information for this user.",
+                            "type": "object",
+                            "properties": {
+                                "protocol": {
+                                    "description": "Specifies the encryption protocol.",
+                                    "type": "string",
+                                    "enum": ["aes", "des"]
+                                },
+                                "password": {
+                                    "description": "Specifies the password for the user.",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "engineId": {
+                            "description": "Specifies the unique identifier (snmpEngineID) of the remote SNMP protocol engine.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "else": {
+                    "required": ["community"],
+                    "properties": {
+                        "community": {
+                            "description": "Specifies the community name for the trap destination.",
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "User" } }
+            },
+            "then": {
+                "if": {
+                    "properties": { "userType": { "const": "root" } }
+                },
+                "then": {
+                    "required": ["class", "userType", "newPassword", "oldPassword"],
+                    "properties": {
+                        "class": {
+                            "description": "Indicates that this property contains user configuration.",
+                            "type": "string",
+                            "const": "User"
+                        },
+                        "userType": {
+                            "description": "The type of user.",
+                            "type": "string",
+                            "const": "root"
+                        },
+                        "newPassword": {
+                            "description": "Password to set for the root user.",
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^.{0,254}$" }
+                            ]
+                        },
+                        "oldPassword": {
+                            "description": "Old password for the root user.",
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^.{0,254}$" }
+                            ]
+                        },
+                        "keys": {
+                            "description": "An array of public keys for the user. If the user is root, this will preserve only the master key and then overwrite the rest in the file: /root/.ssh/authorized_keys.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "else": {
+                    "required": ["class", "userType"],
+                    "properties": {
+                        "class": {
+                            "description": "Indicates that this property contains user configuration.",
+                            "type": "string",
+                            "const": "User"
+                        },
+                        "userType": {
+                            "description": "The type of user.",
+                            "type": "string",
+                            "const": "regular"
+                        },
+                        "password": {
+                            "description": "Password for the user.",
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "json-pointer" },
+                                { "pattern": "^.{0,254}$" }
+                            ]
+                        },
+                        "partitionAccess": {
+                            "description": "Access control configuration.",
+                            "type": "object",
+                            "properties": {
+                                "Common": {
+                                    "$ref": "#/definitions/partitionAccess"
+                                },
+                                "all-partitions": {
+                                    "$ref": "#/definitions/partitionAccess"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "shell": {
+                            "description": "Shell for the user.",
+                            "type": "string",
+                            "enum": ["bash", "tmsh", "none"],
+                            "default": "tmsh"
+                        },
+                        "keys": {
+                            "description": "An array of public keys for the user. These will overwrite the /home/username/.ssh/authorized_keys if not root.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "ManagementIp" } }
+            },
+            "then": {
+                "required": ["class", "address"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates this property contains management IP configuration. Note that if you set this you will have to poll for status on the new address.",
+                        "type": "string",
+                        "const": "ManagementIp"
+                    },
+                    "address": {
+                        "description": "IP address.",
+                        "type": "string",
+                        "format": "ipWithRequiredPrefix"
+                    },
+                    "remark": {
+                        "description": "To handle rollback to a dynamically configured address, do not set this to 'configured-by-dhcp'",
+                        "$ref": "definitions.schema.json#/definitions/Remark",
+                        "default": "configured-statically by DO"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "ManagementRoute" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates this property contains management route configuration",
+                        "type": "string",
+                        "const": "ManagementRoute"
+                    },
+                    "remark": {
+                        "$ref": "definitions.schema.json#/definitions/Remark"
+                    },
+                    "gw": {
+                        "description": "Gateway for the management route.",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    },
+                    "network": {
+                        "description": "IP address/netmask for the management route",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "f5ip" },
+                            { "enum": ["default", "default-inet6"]}
+                        ],
+                        "default": "default"
+                    },
+                    "mtu": {
+                        "description": "MTU for the management route.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "type": {
+                        "description": "Type of the management route",
+                        "type": "string",
+                        "enum": [
+                            "interface",
+                            "blackhole"
+                        ]
+                    }
+                },
+                "additionalProperties": false,
+                "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "network": {
+                                    "not": {
+                                        "enum": ["default", "default-inet6"]
+                                    }
+                                },
+                                "type": {
+                                    "not": {
+                                        "enum": ["interface", "blackhole"]
+                                    }
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": ["gw"]
+                        }
+                    },
+                    {
+                        "if": {
+                            "required": ["type"]
+                        },
+                        "then": {
+                            "dependencies": {
+                                "gw": {
+                                    "not": {}
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SyslogRemoteServer" } }
+            },
+            "then": {
+                "required": ["class", "host"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Syslog Remote Server Information",
+                        "type": "string",
+                        "const": "SyslogRemoteServer"
+                    },
+                    "host": {
+                        "description": "Specifies the IP address of a remote server to which syslog sends messages.",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" },
+                            { "format": "hostname" }
+                        ]
+                    },
+                    "localIp": {
+                        "description": "Specifies the IP address of the interface syslog binds with in order to log messages to a remote host.",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" }
+                        ]
+                    },
+                    "remotePort": {
+                        "description": "Specifies the port to which the syslog sends messages.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535,
+                        "default": 514
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "System" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates this property contains global system settings",
+                        "type": "string",
+                        "const": "System"
+                    },
+                    "hostname": {
+                        "description": "Hostname to set for the device. Note: If you set the hostname as part of the Common class, you CANNOT set a hostname in the System class (they are mutually exclusive).",
+                        "type": "string",
+                        "format": "hostname"
+                    },
+                    "consoleInactivityTimeout": {
+                        "description": "Configure automatic logout for idle serial console sessions (command line sessions) in seconds. The default value 0 means that no timeout is set.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2147483647,
+                        "default": 0
+                    },
+                    "cliInactivityTimeout": {
+                        "description": "Configure automatic logout for idle users in TMSH interactive mode. A setting other than 0 automatically logs a user out after a specified number of seconds, which must be entered in multiples of 60.  The default value 0 means that no timeout is set.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 128849018820,
+                        "multipleOf": 60,
+                        "default": 0
+                    },
+                    "autoPhonehome": {
+                        "description": "Enables the BIG-IP system to send non-confidential, high-level device information to F5 in order to help determine product usage to optimize product development.",
+                        "type": "boolean"
+                    },
+                    "autoCheck": {
+                        "description": "Enables the BIG-IP system to check for and recommend software updates.",
+                        "type": "boolean"
+                    },
+                    "tmshAuditLog": {
+                        "description": "Enables audit logging for tmsh.",
+                        "type": "boolean"
+                    },
+                    "guiAuditLog": {
+                        "description": "Enables audit logging for the GUI. Only available on TMOS v14+",
+                        "type": "boolean"
+                    },
+                    "mcpAuditLog": {
+                        "description": "Enables audit logging for MCP.",
+                        "type": "string",
+                        "enum": [
+                            "disable",
+                            "enable",
+                            "verbose",
+                            "all"
+                        ]
+                    },
+                    "preserveOrigDhcpRoutes": {
+                        "description": "Determines if DHCP ManagementRoute objects are preserved.",
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "TrafficControl" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates this property contains traffic control configuration",
+                        "type": "string",
+                        "const": "TrafficControl"
+                    },
+                    "acceptIpOptions": {
+                        "description": "Specifies whether the system accepts IPv4 packets with IP Options.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "acceptIpSourceRoute": {
+                        "description": "Specifies whether the system accepts IPv4 packets with IP source route options that are destined for TMM. To enable this option, you must also enable the acceptIpOptions option.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "allowIpSourceRoute": {
+                        "description": "Specifies whether the system allows IPv4 packets with IP source route options enabled to be routed through TMM. To enable this option, you must also enable the acceptIpOptions option.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "continueMatching": {
+                        "description": "Specifies whether the system matches against a less-specific virtual server when the more-specific one is disabled or rejects / drops the packets depending on the value of rejectUnmatched.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "maxIcmpRate": {
+                        "description": "Specifies the maximum rate per second at which the system issues ICMP errors.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2147483647,
+                        "default": 100
+                    },
+                    "maxPortFindLinear": {
+                        "description": "Specifies the maximum of ports to linearly search for outbound connections",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 61439,
+                        "default": 16
+                    },
+                    "maxPortFindRandom": {
+                        "description": "Specifies the maximum of ports to randomly search for outbound connections",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1024,
+                        "default": 16
+                    },
+                    "maxRejectRate": {
+                        "description": "Specifies the maximum rate per second at which the system issues reject packets (TCP RST or ICMP port unreach).",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 1000,
+                        "default": 250
+                    },
+                    "maxRejectRateTimeout": {
+                        "description": "Specifies the time in seconds which the system ignores ICMP port unreach and TCP RST ratelimits on becoming active after a failover.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 300,
+                        "default": 30
+                    },
+                    "minPathMtu": {
+                        "description": "Specifies the minimum packet size that can traverse the path without suffering fragmentation",
+                        "type": "integer",
+                        "minimum": 68,
+                        "maximum": 1500,
+                        "default": 296
+                    },
+                    "pathMtuDiscovery": {
+                        "description": "Specifies that the system discovers the MTU that it can send over a path without fragmenting TCP packets",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "portFindThresholdWarning": {
+                        "description": "Specifies if the ephemeral port-exhaustion threshold warning is to be monitored.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "portFindThresholdTrigger": {
+                        "description": "Specifies the threshold warning's trigger which is the value of random port attempts when attempting to find an unused outbound port for a connection.",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12,
+                        "default": 8
+                    },
+                    "portFindThresholdTimeout": {
+                        "description": "Specifies the threshold warning's timeout which is the time in seconds since the last trigger value was hit and will drop the tuple if not hit.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 300,
+                        "default": 30
+                    },
+                    "rejectUnmatched": {
+                        "description": "Specifies, when enabled, that the system returns a TCP RST or ICMP port unreach packet if no virtual servers on the system match the destination address of the incoming packet. When disabled, the system silently drops the unmatched packet.",
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false,
+                "dependencies": {
+                    "acceptIpSourceRoute": {
+                        "if": {
+                            "required": ["acceptIpSourceRoute"],
+                            "properties": { "acceptIpSourceRoute": { "const": true } }
+                        },
+                        "then": {
+                            "required": ["acceptIpOptions"],
+                            "properties": { "acceptIpOptions": { "const": true } }
+                        }
+                    },
+                    "allowIpSourceRoute": {
+                        "if": {
+                            "required": ["allowIpSourceRoute"],
+                            "properties": { "allowIpSourceRoute": { "const": true } }
+                        },
+                        "then": {
+                            "required": ["acceptIpOptions"],
+                            "properties": { "acceptIpOptions": { "const": true } }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SSHD" } }
+            },
+            "then": {
+                "properties": {
+                    "class": {
+                        "description": "Indicates this contains SSH configuration.",
+                        "type": "string",
+                        "const": "SSHD"
+                    },
+                    "allow": {
+                        "description": "Specifies the list of IP addresses that are allowed to log in to the system. Allow all addresses by using the 'all' value or disallow all addresses using the 'none' value.",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all",
+                                    "none"
+                                ]
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        ]
+                    },
+                    "banner": {
+                        "description": "Enables or disabled the display of the banner text field when a user logs in.",
+                        "type": "string"
+                    },
+                    "ciphers": {
+                        "description": "Specifies the ciphers to be included.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "3des-cbc",
+                                "aes128-ctr",
+                                "aes192-ctr",
+                                "aes256-ctr",
+                                "aes128-cbc",
+                                "aes192-cbc",
+                                "aes256-cbc",
+                                "aes128-gcm@openssh.com",
+                                "aes256-gcm@openssh.com",
+                                "arcfour",
+                                "arcfour128",
+                                "arcfour256",
+                                "blowfish-cbc",
+                                "cast128-cbc",
+                                "chacha20-poly1305@openssh.com"
+                            ]
+                        }
+                    },
+                    "inactivityTimeout": {
+                        "description": "Specifies the number of seconds before inactivity causes an SSH session to log out.",
+                        "type": "integer",
+                        "default": 0,
+                        "minimum": 0,
+                        "maximum": 2147483647
+                    },
+                    "loginGraceTime": {
+                        "description": "Specifies the login grace period that will be included. This is in the number of seconds.",
+                        "type": "integer"
+                    },
+                    "MACS": {
+                        "description": "Specifies the MACs that will be included.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "hmac-sha1",
+                                "hmac-ripemd160",
+                                "hmac-md5",
+                                "hmac-md5-96",
+                                "hmac-sha1-96",
+                                "hmac-sha2-256",
+                                "hmac-sha2-512",
+                                "hmac-md5-etm@openssh.com",
+                                "hmac-md5-96-etm@openssh.com",
+                                "hmac-ripemd160-etm@openssh.com",
+                                "hmac-sha1-etm@openssh.com",
+                                "hmac-sha1-96-etm@openssh.com",
+                                "hmac-sha2-256-etm@openssh.com",
+                                "hmac-sha2-512-etm@openssh.com",
+                                "umac-64@openssh.com",
+                                "umac-128@openssh.com",
+                                "umac-64-etm@openssh.com",
+                                "umac-128-etm@openssh.com"
+                            ]
+                        }
+                    },
+                    "maxAuthTries": {
+                        "description": "Specifies the max auth tries to be included.",
+                        "type": "integer"
+                    },
+                    "maxStartups": {
+                        "description": "Specifies the max startups to include.",
+                        "type": "string"
+                    },
+                    "protocol": {
+                        "description": "Specifies the protocol to be included.",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Disk" } }
+            },
+            "then": {
+                "properties": {
+                    "class": {
+                        "description": "Indicates this contains Disk configuration. This API is experimental and subject to change.",
+                        "type": "string",
+                        "const": "Disk"
+                    },
+                    "applicationData": {
+                        "description": "Specifies the size in kilobytes for the application data. This size should be less than the current size. This API is experimental and subject to change.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "multipleOf": 4096
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    ],
+    "definitions": {
+        "partitionAccess": {
+            "description": "The partition - either 'Common' or 'all-partitions'.",
+            "type": "object",
+            "required": ["role"],
+            "properties": {
+                "role": {
+                    "description": "Role for the user.",
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "auditor",
+                        "guest",
+                        "manager",
+                        "operator",
+                        "user-manager",
+                        "application-editor",
+                        "certificate-manager",
+                        "irule-manager",
+                        "no-access",
+                        "resource-admin"
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "regKeyInfo": {
+            "description": "Registration key information.",
+            "required": ["class", "licenseType", "regKey"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains licensing information.",
+                    "type": "string",
+                    "const": "License"
+                },
+                "licenseType": {
+                    "description": "The type of license",
+                    "type": "string",
+                    "const": "regKey"
+                },
+                "regKey": {
+                    "description": "Registration key.",
+                    "type": "string",
+                    "pattern": "^([A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{5}-[A-Z]{7})|([A-Z][0-9]{4}-[0-9]{5}-[0-9]{5}-[0-9]{5}-[0-9]{7})$"
+                },
+                "addOnKeys": {
+                    "description": "Add on keys.",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[A-Z]{7}-[A-Z]{7}$",
+                        "uniqueItems": true
+                    }
+                },
+                "overwrite": {
+                    "description": "Whether or not to overwrite the license if the device is already licensed.",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "licensePoolInfo": {
+            "required": ["class", "licenseType"],
+            "if": {
+                "required": ["reachable"],
+                "properties": { "reachable": { "const": false }}
+            },
+            "then": {
+                "if": {
+                    "required": ["licensePool"]
+                },
+                "then": {
+                    "required": ["hypervisor"]
+                }
+            },
+            "else": {
+                "not": { "required": ["tenant"] },
+                "if": {
+                    "required": ["licensePool"]
+                },
+                "then": {
+                    "required": ["bigIpUsername", "bigIpPassword"]
+                }
+            },
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains licensing information.",
+                    "type": "string",
+                    "const": "License"
+                },
+                "licenseType": {
+                    "description": "The type of license",
+                    "type": "string",
+                    "const": "licensePool"
+                },
+                "licensePool": {
+                    "description": "Name of the BIG-IQ license pool from which to get a new license.",
+                    "type": "string"
+                },
+                "skuKeyword1": {
+                    "description": "skuKeyword1 parameter for subscription licensing.",
+                    "type": "string"
+                },
+                "skuKeyword2": {
+                    "description": "skuKeyword2 parameter for subscription licensing.",
+                    "type": "string"
+                },
+                "unitOfMeasure": {
+                    "description": "unitOfMeasure parameter for subscription licensing.",
+                    "type": "string",
+                    "enum": ["yearly", "monthly", "daily", "hourly"]
+                },
+                "hypervisor": {
+                    "description": "Hypervisor which is running the BIG-IP. Required by BIG-IQ if 'reachable' is false.",
+                    "type": "string",
+                    "oneOf": [
+                        { "enum": ["aws", "azure", "gce", "vmware", "hyperv", "kvm", "xen", "alibaba"] },
+                        { "pattern": "0x[0-9a-zA-Z]*" }
+                    ]
+                },
+                "bigIpUsername": {
+                    "description": "An admin user on the BIG-IP. Used by BIG-IQ to login to BIG-IP if 'reachable' is true.",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "json-pointer" },
+                        { "pattern": "^.{0,254}$" }
+                    ]
+                },
+                "bigIpPassword": {
+                    "description": "Password for the user in bigIpUsername. Used by BIG-IQ to login to BIG-IP if 'reachable' is true.",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "json-pointer" },
+                        { "pattern": "^.{0,254}$" }
+                    ]
+                },
+                "chargebackTag": {
+                    "description": "An optional text string which can be used as a charge back tag.",
+                    "type": "string"
+                },
+                "overwrite": {
+                    "description": "Whether or not to overwrite the license if the device is already licensed.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "revokeFrom": {
+                    "description": "Current license should be revoked from the pool specified. Either just the name of the pool (if old license is on the same BIG-IQ as in the main License section) or full licensePoolInfo (if old license is on a different BIG-IQ)",
+                    "oneOf": [
+                        { "type": "string" },
+                        {
+                            "required": ["licensePool"],
+                            "properties": {
+                                "licensePool": {
+                                    "description": "Name of the BIG-IQ license pool.",
+                                    "type": "string"
+                                }
+                            },
+                            "allOf": [
+                                { "$ref": "#/definitions/bigIqHostInfo" }
+                            ]
+                        }
+                    ]
+                },
+                "tenant": {
+                    "description": "An optional description for the license. Can be useful in a clustered environment. Requires that reachable is set to false.",
+                    "type": "string"
+                }
+            },
+            "allOf": [
+                { "$ref": "#/definitions/bigIqHostInfo" }
+            ]
+        },
+        "bigIqHostInfo": {
+            "description": "BIG-IQ host/credentials information",
+            "type": "object",
+            "allOf": [
+                {
+                    "if": {
+                        "required": ["bigIqPassword"]
+                    },
+                    "then": {
+                        "dependencies": {
+                            "bigIqPasswordUri": {
+                                "not": {}
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "required": ["bigIqHost"]
+                    },
+                    "then": {
+                        "if": { "not": {"properties": { "bigIqHost": { "const": "localhost" } } } },
+                        "then": {
+                            "required": ["bigIqUsername"],
+                            "oneOf": [
+                                { "required": ["bigIqPassword"] },
+                                { "required": ["bigIqPasswordUri"] }
+                            ]
+                        }
+                    }
+                }
+            ],
+            "properties": {
+                "bigIqHost": {
+                    "description": "The BIG-IQ hostname or IP address.",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6" },
+                        { "format": "hostname" }
+                    ]
+                },
+                "bigIqUsername": {
+                    "description": "An admin user on the BIG-IQ.",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "json-pointer" },
+                        { "pattern": "^[^:]{0,254}$" }
+                    ]
+                },
+                "bigIqPassword": {
+                    "description": "Password for the user in bigIqUsername.",
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "json-pointer" },
+                        { "pattern": "^.{0,254}$" }
+                    ]
+                },
+                "bigIqPasswordUri": {
+                    "description": "URI which will return the password for the user in bigIqUsername.",
+                    "type": "string",
+                    "format": "uri"
+                },
+                "bigIqAuthProvider": {
+                    "description": "Name of auth provider on BIG-IQ. Default is to use TMOS.",
+                    "type": "string"
+                },
+                "reachable": {
+                    "description": "Whether or not BIG-IQ has a route to the BIG-IP device.",
+                    "type": "boolean",
+                    "default": true
+                }
+            }
+        }
+    }
+}
