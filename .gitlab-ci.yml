@@ -160,6 +160,15 @@ build_rpm:
             - dist/
         expire_in: 1 week
 
+reactivate_big_iq_license:
+    stage: build
+    needs: []
+    rules:
+        - if: '$REACTIVATE_BIG_IQ_LICENSE =~ /true/i'
+    script:
+      - npm ci
+      - node scripts/dev/reactivateBigIq.js
+
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build
@@ -226,7 +235,7 @@ create docs:
 
 deploy_for_this_project:
     rules:
-        - if: '$CI_PIPELINE_SOURCE == "schedule"'
+        - if: '$RUN_INTEGRATION_TEST =~ /true/i'
     <<: *deploy_common
     needs:
         - job: build_rpm
@@ -246,7 +255,7 @@ integration-test:
     tags:
         - do-test-docker-executor
     rules:
-      - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      - if: '$RUN_INTEGRATION_TEST =~ /true/i'
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
     stage: integration-test
     timeout: 3 hours
@@ -288,7 +297,7 @@ teardown:
     rules:
       - if: '$SKIP_TEARDOWN =~ /true/i'
         when: never
-      - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      - if: '$RUN_INTEGRATION_TEST =~ /true/i'
         when: always
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
         when: always
