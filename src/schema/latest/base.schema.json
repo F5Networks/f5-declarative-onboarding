@@ -5,12 +5,6 @@
     "description": "Top level schema for onboarding a BIG-IP.",
     "type": "object",
     "required": ["schemaVersion", "class"],
-    "propertyNames": {
-        "oneOf": [
-            { "pattern": "^[A-Za-z][0-9A-Za-z_]{0,47}$" },
-            { "const": "$schema" }
-        ]
-    },
     "properties": {
         "schemaVersion": {
             "description": "Version of Declarative Onboarding schema this declaration uses.",
@@ -131,7 +125,8 @@
             "type": "object",
             "required": ["class"],
             "propertyNames": {
-                "pattern": "^[A-Za-z][0-9A-Za-z_-]{0,47}$"
+                "pattern": "^[A-Za-z][0-9A-Za-z_.-]*$",
+                "maxLength": 48
             },
             "properties": {
                 "class": {

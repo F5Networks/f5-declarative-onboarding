@@ -41,9 +41,16 @@ class UserValidator {
                 isValid = false;
                 errors.push('root must have userType root');
             }
-            if (user !== 'root' && userWrapper[user].userType === 'root') {
-                isValid = false;
-                errors.push(`${user} must have userType regular`);
+            if (user !== 'root') {
+                if (userWrapper[user].userType === 'root') {
+                    isValid = false;
+                    errors.push(`${user} must have userType regular`);
+                }
+
+                if (user.length > 31) {
+                    isValid = false;
+                    errors.push(`${user} is too long. User names must be less than 32 characters`);
+                }
             }
         });
 

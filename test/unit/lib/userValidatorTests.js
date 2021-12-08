@@ -39,6 +39,10 @@ describe('userValidator', () => {
                         user2: {
                             class: 'User',
                             userType: 'regular'
+                        },
+                        userWithMaxLengthName_123456789: {
+                            class: 'User',
+                            userType: 'regular'
                         }
                     }
                 }
@@ -86,6 +90,25 @@ describe('userValidator', () => {
                 .then((validation) => {
                     assert.ok(!validation.isValid);
                     assert.strictEqual(validation.errors[0], 'root must have userType root');
+                });
+        });
+
+        it('should invalidate user names that are too long', () => {
+            const wrapper = {
+                targetHost: '1.2.3.4',
+                declaration: {
+                    Common: {
+                        userWithTooLongName_123456789012: {
+                            class: 'User',
+                            userType: 'regular'
+                        }
+                    }
+                }
+            };
+            return validator.validate(wrapper)
+                .then((validation) => {
+                    assert.ok(!validation.isValid);
+                    assert.strictEqual(validation.errors[0], 'userWithTooLongName_123456789012 is too long. User names must be less than 32 characters');
                 });
         });
     });

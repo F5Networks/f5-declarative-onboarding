@@ -1001,7 +1001,7 @@ function getPathPrefix(options) {
 function getItemName(options) {
     const pathPrefix = getPathPrefix(options);
 
-    let itemName = 'test_item-foo_';
+    let itemName = 'test_item-foo.';
     let counter = pathPrefix.length + itemName.length;
 
     const maxPathLength = options.maxPathLength || DEFAULT_OPTIONS.maxPathLength;
@@ -1027,5 +1027,6 @@ module.exports = {
     assertClass,
     getProvisionedModules,
     getBigIpVersion,
+    getItemName,
     postDeclaration
 };

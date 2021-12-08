@@ -17,7 +17,8 @@
 'use strict';
 
 const {
-    assertClass
+    assertClass,
+    getItemName
 } = require('./propertiesCommon');
 
 describe('Tunnel', function testAuthentication() {
@@ -114,7 +115,7 @@ describe('Tunnel', function testAuthentication() {
             {
                 name: 'tunnelType',
                 inputValue: ['vxlan'],
-                expectedValue: ['test_item-foo_2345678901234567890123456789012345_vxlan'],
+                expectedValue: [`${getItemName({ tenantName: 'Common' })}_vxlan`],
                 extractFunction: ((o) => o.profile.name)
             },
             {

@@ -19,7 +19,8 @@
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const {
     assertClass,
-    getBigIpVersion
+    getBigIpVersion,
+    getItemName
 } = require('./propertiesCommon');
 
 describe('Snmp', function testSnmp() {
@@ -31,7 +32,6 @@ describe('Snmp', function testSnmp() {
         }
 
         const options = {
-            itemName: 'test_item-foo_2345678901234567890123456789012345',
             skipIdempotentCheck: true
         };
 
@@ -61,9 +61,9 @@ describe('Snmp', function testSnmp() {
                     name: 'name',
                     inputValue: [undefined, 'special!community', undefined],
                     expectedValue: [
-                        'test_item-foo_2345678901234567890123456789012345',
+                        getItemName({ tenantName: 'Common' }),
                         'special!community',
-                        'test_item-foo_2345678901234567890123456789012345'
+                        getItemName({ tenantName: 'Common' })
                     ]
                 }
             ];
@@ -78,7 +78,6 @@ describe('Snmp', function testSnmp() {
         }
 
         const options = {
-            itemName: 'test_item-foo_2345678901234567890123456789012345',
             skipIdempotentCheck: true
         };
 
@@ -136,9 +135,9 @@ describe('Snmp', function testSnmp() {
                     name: 'name',
                     inputValue: [undefined, 'special!user', undefined],
                     expectedValue: [
-                        'test_item-foo_2345678901234567890123456789012345',
+                        getItemName({ tenantName: 'Common' }),
                         'special!user',
-                        'test_item-foo_2345678901234567890123456789012345'
+                        getItemName({ tenantName: 'Common' })
                     ]
                 }
             ];
@@ -202,9 +201,9 @@ describe('Snmp', function testSnmp() {
                     name: 'name',
                     inputValue: [undefined, 'special!user', undefined],
                     expectedValue: [
-                        'test_item-foo_2345678901234567890123456789012345',
+                        getItemName({ tenantName: 'Common' }),
                         'special!user',
-                        'test_item-foo_2345678901234567890123456789012345'
+                        getItemName({ tenantName: 'Common' })
                     ]
                 }
             ];
