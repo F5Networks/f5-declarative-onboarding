@@ -112,6 +112,15 @@ The API Contract for the F5 Automation Toolchain (Declarative Onboarding, AS3 an
  
 As of January 2020, no breaking changes have been made to AS3, Declarative Onboarding, or Telemetry Streaming since inception.  None are anticipated at this time.  A breaking change, if any, will be noted by a change to the major release number ("xx").  For example, the AS3 schema version would become "4.0.0."
 
+| 
+
+.. _cipher
+
+**What are the values I can use for the HTTPD ciphersuite?**
+
+Prior to Declarative Onboarding 1.26, HTTPD ciphersuite values were contained in a static list with a limited number from which to choose.  In DO 1.26 and later, we removed the enumerated list, and allow you to include any valid ciphersuite value.  
+
+For a list of valid ciphersuite values, see https://httpd.apache.org/docs/2.4/mod/mod_ssl.html#sslciphersuite.  You can also see https://support.f5.com/csp/article/K86554600 for a list of SSL ciphers supported on BIG-IP platforms.
 
 
 .. |AS3| raw:: html
