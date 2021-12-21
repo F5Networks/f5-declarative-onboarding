@@ -94,23 +94,23 @@ class DiffHandler {
                 // if these are named objects (vlans, for example) the name is at
                 // index 2
                 const schemaClass = diff.path[1];
-                let objectNames;
+                let objectName;
                 if (this.namelessClasses.indexOf(schemaClass) === -1) {
-                    objectNames = diff.path[2];
+                    objectName = diff.path[2];
                 }
                 // For additions of named classes, the object name will be in the rhs object
-                if (!objectNames && diff.rhs) {
-                    objectNames = Object.keys(diff.rhs);
+                if (!objectName && diff.rhs) {
+                    objectName = Object.keys(diff.rhs)[0];
                 }
 
                 if (updatedClasses.indexOf(schemaClass) === -1) {
                     updatedClasses.push(schemaClass);
                 }
-                if (objectNames) {
+                if (objectName) {
                     if (!updatedNames[schemaClass]) {
                         updatedNames[schemaClass] = [];
                     }
-                    updatedNames[schemaClass] = updatedNames[schemaClass].concat(objectNames);
+                    updatedNames[schemaClass].push(objectName);
                 } else {
                     updatedNames[schemaClass] = [];
                 }
