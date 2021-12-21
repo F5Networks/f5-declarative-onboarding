@@ -21,6 +21,9 @@ const assert = require('assert');
 const CLASSES_OF_TRUTH = ['class1', 'class2', 'class4'];
 const NAMELESS_CLASSES = ['class1', 'class2'];
 
+const sinon = require('sinon');
+const TraceManager = require('../../../src/lib/traceManager');
+
 let DiffHandler;
 
 /* eslint-disable global-require */
@@ -60,9 +63,9 @@ describe('diffHandler', () => {
         const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
         return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
-                assert.deepEqual(diff.toUpdate.Common.class1,
+                assert.deepStrictEqual(diff.toUpdate.Common.class1,
                     { myString: 'foo', myObj: { foo: 'bar' }, myArray: [1, 2, 3] });
-                assert.deepEqual(diff.toDelete.Common.class2, { hello: {} });
+                assert.deepStrictEqual(diff.toDelete.Common.class2, { hello: {} });
             });
     });
 
@@ -93,9 +96,9 @@ describe('diffHandler', () => {
         const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
         return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
-                assert.deepEqual(diff.toUpdate.Common.class3,
+                assert.deepStrictEqual(diff.toUpdate.Common.class3,
                     { myString: 'foo', myObj: { foo: 'bar' }, myArray: [1, 2, 3] });
-                assert.deepEqual(diff.toDelete.Common.class3, undefined);
+                assert.deepStrictEqual(diff.toDelete.Common.class3, undefined);
             });
     });
 
@@ -144,30 +147,44 @@ describe('diffHandler', () => {
         const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
         return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
-                assert.deepEqual(diff.toUpdate.Common.class4.myUpdatedObject,
+                assert.deepStrictEqual(diff.toUpdate.Common.class4.myUpdatedObject,
                     { myString: 'foo', myObj: { foo: 'bar' }, myArray: [1, 2, 3] });
                 assert.strictEqual(diff.toUpdate.Common.class4.myNonUpdatedObject, undefined);
             });
     });
 
-    it('should leave hostname alone', () => {
-        const hostname = 'bigip1.example.com';
-
+    it('should modify all updated objects for a named class', () => {
         const toDeclaration = {
             Common: {
-                hostname
+                class1: {
+                    myUpdatedObject: {
+                        myString: 'foo',
+                        myObj: {
+                            foo: 'bar'
+                        },
+                        myArray: [1, 2, 3]
+                    },
+                    myOtherUpdatedObject: {
+                        myString: 'foofoo',
+                        myObj: {
+                            foo: 'barbar'
+                        },
+                        myArray: [11, 22, 33]
+                    }
+                }
             }
         };
         const fromDeclaration = {
-            Common: {
-                hostname
-            }
+            Common: {}
         };
 
-        const diffHandler = new DiffHandler(['hostname'], []);
+        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
         return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
-                assert.deepEqual(diff.toUpdate.Common.hostname, 'bigip1.example.com');
+                assert.deepStrictEqual(diff.toUpdate.Common.class1.myUpdatedObject,
+                    { myString: 'foo', myObj: { foo: 'bar' }, myArray: [1, 2, 3] });
+                assert.deepStrictEqual(diff.toUpdate.Common.class1.myOtherUpdatedObject,
+                    { myString: 'foofoo', myObj: { foo: 'barbar' }, myArray: [11, 22, 33] });
             });
     });
 
@@ -186,8 +203,38 @@ describe('diffHandler', () => {
         const diffHandler = new DiffHandler([], []);
         return diffHandler.process(toDeclaration, fromDeclaration, {})
             .then((diff) => {
-                assert.deepEqual(diff.toUpdate.Common.DeviceGroup.ex1.name, 'ex1');
-                assert.deepEqual(diff.toUpdate.Common.DeviceGroup.ex2.name, 'ex2');
+                assert.deepStrictEqual(diff.toUpdate.Common.DeviceGroup.ex1.name, 'ex1');
+                assert.deepStrictEqual(diff.toUpdate.Common.DeviceGroup.ex2.name, 'ex2');
+            });
+    });
+
+    it('should remove InternalUse from the diffs', () => {
+        const toDeclaration = {
+            Common: {
+                InternalUse: {
+                    nothing: 'here'
+                }
+            }
+        };
+
+        const fromDeclaration = {
+            Common: {
+                InternalUse: {
+                    something: 'there'
+                }
+            }
+        };
+
+        let actualDiffs;
+        sinon.stub(TraceManager.prototype, 'traceDiff').callsFake((diffs) => {
+            actualDiffs = diffs;
+            return Promise.resolve();
+        });
+
+        const diffHandler = new DiffHandler(['InternalUse'], []);
+        return diffHandler.process(toDeclaration, fromDeclaration, {})
+            .then(() => {
+                assert.deepStrictEqual(actualDiffs.length, 0);
             });
     });
 });

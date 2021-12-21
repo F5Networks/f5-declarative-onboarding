@@ -25,8 +25,6 @@ describe('HTTPD', function testAuthentication() {
 
     it('All Properties', () => {
         const options = {
-            // Temporarily skip idempotency checks
-            skipIdempotentCheck: true,
             getMcpObject: {
                 className: 'HTTPD',
                 refItemKind: 'tm:sys:httpd:httpdstate',

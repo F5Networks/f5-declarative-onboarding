@@ -85,6 +85,29 @@ describe('businessLogicValidator', () => {
                     assert.ok(validation.isValid);
                 });
         });
+
+        it('should handle Common.hostname with System.hostname set to default value', () => {
+            const data = {
+                class: 'DO',
+                declaration: {
+                    schemaVersion: '1.0.0',
+                    class: 'Device',
+                    Common: {
+                        hostname: '111.bigip.com',
+                        class: 'Tenant',
+                        mySystem: {
+                            class: 'System',
+                            hostname: 'bigip1'
+                        }
+                    }
+                }
+            };
+
+            return validator.validate(data)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
+                });
+        });
     });
 
     describe('invalid', () => {

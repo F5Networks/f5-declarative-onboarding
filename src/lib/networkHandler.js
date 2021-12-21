@@ -506,12 +506,14 @@ function handleRoute() {
                         routeBody.gw = route.gw;
                     }
 
-                    if (Object.keys(this.state.currentConfig.Common.Route)
-                        .find((routeName) => routeName === route.name) && !deleteRoute) {
-                        commands.push({
-                            method: 'delete',
-                            path: `${PATHS.Route}/~${targetPartition}~${route.name}`
-                        });
+                    if (this.state.currentConfig.Common.Route) {
+                        if (Object.keys(this.state.currentConfig.Common.Route)
+                            .find((routeName) => routeName === route.name) && !deleteRoute) {
+                            commands.push({
+                                method: 'delete',
+                                path: `${PATHS.Route}/~${targetPartition}~${route.name}`
+                            });
+                        }
                     }
 
                     commands.push({
@@ -905,25 +907,29 @@ function handleRoutingBGP() {
     let promises = [];
     return Promise.resolve()
         .then(() => {
-            Object.keys(this.state.currentConfig.Common.RoutingBGP || []).forEach((name) => {
-                const declBgp = this.declaration.Common.RoutingBGP[name];
-                if (declBgp) {
-                    // BIGIP has a bug where a peerGroup with any members cannot be set to 'none' or overwritten.
-                    // Get around by preemptively deleting any matches found in current config that are to be modified.
-                    const curBgp = this.state.currentConfig.Common.RoutingBGP[name];
-                    if ((curBgp.peerGroups && curBgp.peerGroups.length > 0) || (curBgp.localAs !== declBgp.localAs)) {
+            if (this.state.currentConfig.Common.RoutingBGP) {
+                Object.keys(this.state.currentConfig.Common.RoutingBGP || []).forEach((name) => {
+                    const declBgp = this.declaration.Common.RoutingBGP[name];
+                    if (declBgp) {
+                        // BIGIP has a bug where a peerGroup with any members cannot be set to 'none' or overwritten.
+                        // Get around by preemptively deleting any matches found in current config that are to be
+                        // modified.
+                        const curBgp = this.state.currentConfig.Common.RoutingBGP[name];
+                        if ((curBgp.peerGroups && curBgp.peerGroups.length > 0)
+                            || (curBgp.localAs !== declBgp.localAs)) {
+                            promises.push(
+                                this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
+                            );
+                        }
+                    } else {
+                        // Process deletes here instead of in deleteHandler.  Can only have 1 RoutingBGP.
+                        // If renamed the delete handler is too late.  The new RoutingBGP will already be created.
                         promises.push(
                             this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
                         );
                     }
-                } else {
-                    // Process deletes here instead of in deleteHandler.  Can only have 1 RoutingBGP.  If renamed the
-                    // delete handler is too late.  The new RoutingBGP will already be created.
-                    promises.push(
-                        this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
-                    );
-                }
-            });
+                });
+            }
 
             return Promise.all(promises)
                 .catch((err) => {

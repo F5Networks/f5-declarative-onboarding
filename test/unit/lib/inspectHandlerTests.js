@@ -2123,7 +2123,8 @@ describe('inspectHandler', () => {
                             autoCheck: true,
                             autoPhonehome: false,
                             tmshAuditLog: true,
-                            guiAuditLog: false
+                            guiAuditLog: false,
+                            preserveOrigDhcpRoutes: true
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',
@@ -2782,7 +2783,8 @@ describe('inspectHandler', () => {
                             },
                             currentSystem: {
                                 class: 'System',
-                                hostname: 'myhost.bigip.com'
+                                hostname: 'myhost.bigip.com',
+                                preserveOrigDhcpRoutes: false
                             },
                             currentHTTPD: {
                                 class: 'HTTPD',

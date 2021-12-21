@@ -265,6 +265,12 @@ describe('declarationHandler', () => {
                 .then(() => {
                     assert.deepStrictEqual(declarationWithDefaults.Common,
                         {
+                            InternalUse: {
+                                deviceNames: {
+                                    deviceName: 'my.bigip.com',
+                                    hostName: 'my.bigip.com'
+                                }
+                            },
                             System: {
                                 hostname: 'my.bigip.com'
                             },
@@ -290,47 +296,68 @@ describe('declarationHandler', () => {
         });
 
         it('should remove empty objects from parsed declaration', () => {
+            DeclarationParser.prototype.parse.restore();
+            sinon.stub(DeclarationParser.prototype, 'parse').callsFake(function parse() {
+                parsedDeclarations.push(this.declaration);
+                return {
+                    parsedDeclaration: {
+                        Common: this.declaration
+                    }
+                };
+            });
+
             const newDeclaration = {
-                name: 'new'
+                parsed: true,
+                Common: {
+                    RemoveThis: {},
+                    Route: { property: 'value' },
+                    RemoveThisToo: {}
+                }
             };
             const state = {
                 currentConfig: {
-                    name: 'current'
+                    Common: {}
                 },
                 originalConfig: {
                     Common: {}
                 }
             };
 
-            const updatedDeclaration = {
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        declarationWithDefaults.Common,
+                        {
+                            Route: { property: 'value' }
+                        }
+                    );
+                });
+        });
+
+        it('should move Common.hostname to System class', () => {
+            const newDeclaration = {
+                parsed: true,
                 Common: {
-                    RemoveThis: {},
-                    DoNotRemoveThis: { property: 'value' },
-                    RemoveThisToo: {}
+                    hostname: 'my.host.name'
                 }
             };
 
-            diffHandlerStub.restore();
-            diffHandlerStub = sinon.stub(DiffHandler.prototype, 'process').callsFake((declaration) => {
-                declarationWithDefaults = declaration;
-                return Promise.resolve(
-                    {
-                        toUpdate: updatedDeclaration,
-                        toDelete: { Common: {} }
-                    }
-                );
-            });
+            const state = {
+                currentConfig: {
+                    Common: {}
+                },
+                originalConfig: {
+                    Common: {}
+                }
+            };
 
             const declarationHandler = new DeclarationHandler(bigIpMock);
             return declarationHandler.process(newDeclaration, state)
                 .then(() => {
                     assert.deepStrictEqual(
-                        updatedDeclaration,
-                        {
-                            Common: {
-                                DoNotRemoveThis: { property: 'value' }
-                            }
-                        }
+                        declarationWithDefaults.Common.System.hostname,
+                        'my.host.name'
                     );
                 });
         });
@@ -654,33 +681,6 @@ describe('declarationHandler', () => {
                             propB: 'world'
                         }
                     );
-                });
-        });
-
-        it('should not use old System hostname if Common.hostname is specified', () => {
-            const newDeclaration = {
-                parsed: true,
-                Common: {
-                    hostname: 'my.new.hostname'
-                }
-            };
-
-            const state = {
-                currentConfig: {
-                    name: 'current'
-                },
-                originalConfig: {
-                    Common: {
-                        System: {
-                            hostname: 'my.old.hostname'
-                        }
-                    }
-                }
-            };
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
-                .then(() => {
-                    assert.strictEqual(declarationWithDefaults.Common.System.hostname, undefined);
                 });
         });
 

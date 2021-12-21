@@ -581,7 +581,14 @@ describe('systemHandler', () => {
         it('should handle hostname', () => {
             const declaration = {
                 Common: {
-                    hostname: 'myhost.example.com'
+                    InternalUse: {
+                        deviceNames: {
+                            foo: 'bar'
+                        }
+                    },
+                    System: {
+                        hostname: 'myhost.example.com'
+                    }
                 }
             };
 
@@ -603,6 +610,11 @@ describe('systemHandler', () => {
         it('should handle hostname via System class', () => {
             const declaration = {
                 Common: {
+                    InternalUse: {
+                        deviceNames: {
+                            foo: 'bar'
+                        }
+                    },
                     System: {
                         hostname: 'myhost.example.com'
                     }
@@ -625,7 +637,13 @@ describe('systemHandler', () => {
 
         it('should handle no hostname in declaration', () => {
             const declaration = {
-                Common: {}
+                Common: {
+                    InternalUse: {
+                        deviceNames: {
+                            foo: 'bar'
+                        }
+                    }
+                }
             };
             setUpBigIpStubWithRequestOptions([], '', '', 'global.hostname');
             let hostnameSent;
@@ -646,7 +664,14 @@ describe('systemHandler', () => {
         it('should disable hostname from DHCP if we configure the hostname (aws)', () => {
             const declaration = {
                 Common: {
-                    hostname: 'myhost.example.com'
+                    InternalUse: {
+                        deviceNames: {
+                            foo: 'bar'
+                        }
+                    },
+                    System: {
+                        hostname: 'myhost.example.com'
+                    }
                 }
             };
             let hostnameSent;
@@ -1467,6 +1492,7 @@ describe('systemHandler', () => {
                     description: 'configured-by-dhcp'
                 }
             };
+            state.currentConfig.Common.System.preserveOrigDhcpRoutes = true;
 
             sinon.stub(bigIpMock, 'setHost').callsFake((host) => {
                 hostSet = host;
@@ -1608,32 +1634,6 @@ describe('systemHandler', () => {
                 });
         });
 
-        it('should enable mgmt-dhcp if management-ip is configured dynamically', () => {
-            const declaration = {
-                Common: {
-                    ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
-                            description: 'configured-by-dhcp'
-                        }
-                    }
-                }
-            };
-
-            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
-            return systemHandler.process()
-                .then(() => {
-                    const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
-                    assert.deepStrictEqual(
-                        mgmtDhcpData,
-                        {
-                            mgmtDhcp: 'enabled'
-                        }
-                    );
-                    assert.strictEqual(hostSet, '1.2.3.4');
-                });
-        });
-
         it('should not update mgmt-dhcp when it is currently set to dhcpv6', () => {
             const declaration = {
                 Common: {
@@ -1666,7 +1666,7 @@ describe('systemHandler', () => {
                     }
                 }
             };
-            state.currentConfig.Common.System.mgmtDhcp = 'disabled';
+            state.currentConfig.Common.System.preserveOrigDhcpRoutes = false;
 
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
@@ -1689,7 +1689,7 @@ describe('systemHandler', () => {
                     }
                 }
             };
-            state.currentConfig.Common.System.mgmtDhcp = 'disabled';
+            state.currentConfig.Common.System.preserveOrigDhcpRoutes = false;
 
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
@@ -1702,8 +1702,10 @@ describe('systemHandler', () => {
         it('should disable mgmt-dhcp if ManagementIp and ManagementRoute disagree', () => {
             const declaration = {
                 Common: {
-                    System: {
-                        preserveOrigDhcpRoutes: false
+                    InternalUse: {
+                        System: {
+                            preserveOrigDhcpRoutes: false
+                        }
                     },
                     ManagementIp: {
                         '1.2.3.4/5': {
@@ -1721,6 +1723,7 @@ describe('systemHandler', () => {
                     }
                 }
             };
+            state.currentConfig.Common.System.preserveOrigDhcpRoutes = true;
 
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
@@ -1762,7 +1765,9 @@ describe('systemHandler', () => {
         beforeEach(() => {
             declaration = {
                 Common: {
-                    System: {},
+                    InternalUse: {
+                        System: {}
+                    },
                     ManagementRoute: {
                         theManagementRoute: {
                             name: 'theManagementRoute',
@@ -1773,7 +1778,7 @@ describe('systemHandler', () => {
                     }
                 }
             };
-            state.currentConfig.Common.System.mgmtDhcp = 'enabled';
+            state.currentConfig.Common.System.preserveOrigDhcpRoutes = true;
             state.currentConfig.Common.ManagementRoute = {
                 theManagementRoute: {
                     name: 'theManagementRoute',
@@ -1851,25 +1856,6 @@ describe('systemHandler', () => {
             return assert.isRejected(systemHandler.process(), 'Cannot update network property when running remotely');
         });
 
-        it('should remove gateway if it is "none" and there is a type', () => {
-            declaration.Common.ManagementRoute = {
-                managementRoute1: {
-                    name: 'managementRoute1',
-                    gateway: 'none',
-                    network: 'default-inet6',
-                    type: 'interface'
-                }
-            };
-
-            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
-            return systemHandler.process()
-                .then(() => {
-                    const managementRouteData = dataSent[PATHS.ManagementRoute];
-                    assert.strictEqual(managementRouteData[0].gateway, undefined);
-                    assert.strictEqual(managementRouteData[0].type, 'interface');
-                });
-        });
-
         it('should not delete the existing ManagementRoute if network not updated', () => {
             state.currentConfig.Common.ManagementRoute.theManagementRoute.network = '1.2.3.4/32';
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
@@ -1898,9 +1884,7 @@ describe('systemHandler', () => {
         });
 
         it('should set mgmtDhcp to false when not preserving original ManagementRoutes', () => {
-            declaration.Common.System = {
-                preserveOrigDhcpRoutes: false
-            };
+            declaration.Common.InternalUse.System.preserveOrigDhcpRoutes = false;
             state.currentConfig.Common.System.mgmtDhcp = 'enabled';
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
@@ -1918,7 +1902,7 @@ describe('systemHandler', () => {
         });
 
         it('should not modify mgmtDhcp when mgmtDhcp matches the desired value', () => {
-            declaration.Common.System.preserveOrigDhcpRoutes = true;
+            declaration.Common.InternalUse.System.preserveOrigDhcpRoutes = true;
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
@@ -1941,10 +1925,15 @@ describe('systemHandler', () => {
                 });
         });
 
-        it('should set mgmtDhcp to true when preserving DHCP ManagementRoutes', () => {
-            state.currentConfig.Common.System.mgmtDhcp = 'disabled';
-            declaration.Common.System = {
-                preserveOrigDhcpRoutes: true
+        it('should not set mgmtDhcp to disabled when preserving DHCP ManagementRoutes', () => {
+            declaration.Common.InternalUse.System.preserveOrigDhcpRoutes = true;
+            declaration.Common.ManagementRoute = {
+                managementRoute: {
+                    name: 'managementRoute1',
+                    gateway: '1.2.3.4',
+                    network: '4.3.2.1',
+                    mtu: 1
+                }
             };
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
@@ -1952,18 +1941,14 @@ describe('systemHandler', () => {
                     const mgmtDhcp = dataSent['/tm/sys/global-settings'];
                     assert.deepStrictEqual(
                         mgmtDhcp,
-                        [
-                            {
-                                mgmtDhcp: 'enabled'
-                            }
-                        ]
+                        undefined
                     );
                 });
         });
 
         it('should set mgmtDhcp to disabled when no System is in declaration but there is a route', () => {
             delete declaration.Common.System;
-            state.currentConfig.Common.System.mgmtDhcp = 'enabled';
+            state.currentConfig.Common.System.preserveOrigDhcpRoutes = true;
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
@@ -1992,6 +1977,7 @@ describe('systemHandler', () => {
 
         it('should not change mgmtDhcp when it is set to dhcpv4', () => {
             state.currentConfig.Common.System.mgmtDhcp = 'dhcpv4';
+            state.currentConfig.Common.System.preserveOrigDhcpRoutes = false;
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {

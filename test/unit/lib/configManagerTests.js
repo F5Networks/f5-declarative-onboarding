@@ -643,6 +643,21 @@ describe('configManager', () => {
             });
     });
 
+    it('should reject if more than one device matches our hostname', () => {
+        listResponses['/tm/cm/device'] = [
+            {
+                hostname,
+                name: deviceName
+            },
+            {
+                hostname,
+                name: deviceName
+            }
+        ];
+        const configManager = new ConfigManager([], bigIpMock);
+        return assert.isRejected(configManager.get({}, state, doState), /Too many/, 'should have rejected');
+    });
+
     describe('FailoverUnicast oddities', () => {
         // iControl omits the property altogether in some cases
         // Adding this defaultWhenOmitted attr makes the manager recognize that a default value is actually there
@@ -812,7 +827,8 @@ describe('configManager', () => {
                         {
                             hostname: 'host.org',
                             consoleInactivityTimeout: 60,
-                            idleTimeout: 1800 // minutes converted to seconds
+                            idleTimeout: 1800, // minutes converted to seconds
+                            preserveOrigDhcpRoutes: false
                         }
                     );
                 });
@@ -852,7 +868,8 @@ describe('configManager', () => {
                         {
                             hostname: 'host.org',
                             consoleInactivityTimeout: 60,
-                            idleTimeout: 0
+                            idleTimeout: 0,
+                            preserveOrigDhcpRoutes: false
                         }
                     );
                 });
@@ -891,7 +908,8 @@ describe('configManager', () => {
                     assert.deepEqual(
                         state.currentConfig.Common.System,
                         {
-                            idleTimeout: 1800 // minutes converted to seconds
+                            idleTimeout: 1800, // minutes converted to seconds
+                            preserveOrigDhcpRoutes: false
                         }
                     );
                 });
@@ -959,7 +977,8 @@ describe('configManager', () => {
                             subProp2: true,
                             sysSub3: {
                                 subProp3: true
-                            }
+                            },
+                            preserveOrigDhcpRoutes: false
                         }
                     );
                 });
@@ -1030,7 +1049,8 @@ describe('configManager', () => {
                         state.currentConfig.Common.System,
                         {
                             hostname: 'host.org',
-                            consoleInactivityTimeout: 45
+                            consoleInactivityTimeout: 45,
+                            preserveOrigDhcpRoutes: false
                         }
                     );
                 });
@@ -1302,6 +1322,12 @@ describe('configManager', () => {
                             parsed: true,
                             version: '0.0.0-0',
                             Common: {
+                                InternalUse: {
+                                    deviceNames: {
+                                        deviceName: 'device1',
+                                        hostName: 'myhost.bigip.com'
+                                    }
+                                },
                                 HTTPD: {
                                     allow: ['all']
                                 }
@@ -1332,6 +1358,12 @@ describe('configManager', () => {
                             parsed: true,
                             version: '0.0.0-0',
                             Common: {
+                                InternalUse: {
+                                    deviceNames: {
+                                        deviceName: 'device1',
+                                        hostName: 'myhost.bigip.com'
+                                    }
+                                },
                                 HTTPD: {
                                     allow: 'none'
                                 }
@@ -1374,6 +1406,12 @@ describe('configManager', () => {
                         version: '0.0.0-0',
                         Common: {
                             hostname: 'myhost.bigip.com',
+                            InternalUse: {
+                                deviceNames: {
+                                    deviceName: 'device1',
+                                    hostName: 'myhost.bigip.com'
+                                }
+                            },
                             SelfIp: {
                                 selfIp1: {
                                     name: 'selfIp1',
@@ -1727,6 +1765,12 @@ describe('configManager', () => {
                 assert.deepStrictEqual(
                     state.currentConfig.Common,
                     {
+                        InternalUse: {
+                            deviceNames: {
+                                deviceName: 'device1',
+                                hostName: 'myhost.bigip.com'
+                            }
+                        },
                         GSLBMonitor: {}
                     }
                 );
@@ -1817,6 +1861,12 @@ describe('configManager', () => {
         };
 
         const expectedConfig = {
+            InternalUse: {
+                deviceNames: {
+                    deviceName: 'device1',
+                    hostName: 'myhost.bigip.com'
+                }
+            },
             NTP: {
                 servers: [
                     'server1',
@@ -1856,6 +1906,12 @@ describe('configManager', () => {
             };
 
             const expectedConfig = {
+                InternalUse: {
+                    deviceNames: {
+                        deviceName: 'device1',
+                        hostName: 'myhost.bigip.com'
+                    }
+                },
                 Disk: {
                     applicationData: 26128384
                 }
@@ -1880,6 +1936,12 @@ describe('configManager', () => {
             };
 
             const expectedConfig = {
+                InternalUse: {
+                    deviceNames: {
+                        deviceName: 'device1',
+                        hostName: 'myhost.bigip.com'
+                    }
+                },
                 Disk: {}
             };
 
@@ -1927,6 +1989,12 @@ describe('configManager', () => {
                     assert.deepStrictEqual(
                         state.currentConfig.Common,
                         {
+                            InternalUse: {
+                                deviceNames: {
+                                    deviceName: 'device1',
+                                    hostName: 'myhost.bigip.com'
+                                }
+                            },
                             FirewallAddressList: {
                                 myFirewallAddressList: {
                                     name: 'myFirewallAddressList',
@@ -1977,6 +2045,12 @@ describe('configManager', () => {
                     assert.deepStrictEqual(
                         state.currentConfig.Common,
                         {
+                            InternalUse: {
+                                deviceNames: {
+                                    deviceName: 'device1',
+                                    hostName: 'myhost.bigip.com'
+                                }
+                            },
                             FirewallAddressList: {
                                 myFirewallAddressList: {
                                     name: 'myFirewallAddressList',

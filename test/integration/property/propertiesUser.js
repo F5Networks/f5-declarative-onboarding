@@ -31,8 +31,7 @@ describe('User', function testAuthentication() {
     it('userType regular', () => {
         const options = {
             maxPathLength: 31,
-            mcpPath: '',
-            skipIdempotentCheck: true
+            mcpPath: ''
         };
 
         const guestRole = {

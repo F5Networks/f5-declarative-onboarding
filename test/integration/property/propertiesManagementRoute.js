@@ -33,8 +33,7 @@ describe('Management Route', function testDnsResolver() {
         };
 
         options = {
-            extraItems: [systemItem],
-            skipIdempotentCheck: true // DO is currently not idempotent
+            extraItems: [systemItem]
         };
     });
 

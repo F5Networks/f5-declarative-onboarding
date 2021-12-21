@@ -750,7 +750,7 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
                         throw new Error(`Unable to find diff in results: ${resultString}`);
                     }
 
-                    assert.deepStrictEqual(diff, [], 'declaration is not idempotent');
+                    assert.deepStrictEqual(diff, [], `declaration ${index} is not idempotent`);
                 });
         });
 }

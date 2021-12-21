@@ -45,7 +45,7 @@ const ralv = new RoutingAccessListValidator();
 // run a diff against these classes and also apply defaults for them if they
 // are missing from the declaration
 const CLASSES_OF_TRUTH = [
-    'hostname',
+    'InternalUse', // This is a special internal class in which we store things that are hard to handle otherwise
     'DbVariables',
     'DNS',
     'NTP',
@@ -159,9 +159,11 @@ class DeclarationHandler {
             })
             .then((parsedDeclaration) => {
                 parsedNewDeclaration = parsedDeclaration;
+                parsedNewDeclaration.Common.InternalUse = {};
             })
             .then(() => {
                 applyDefaults(parsedNewDeclaration, state);
+                applyHostnameFixes(parsedNewDeclaration);
                 applyManagementIpFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyManagementIpFirewallFixes(parsedNewDeclaration);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
@@ -179,7 +181,10 @@ class DeclarationHandler {
                 applySelfIpFixes(parsedNewDeclaration);
                 applyManagementRouteFixes(parsedNewDeclaration, state.originalConfig);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
-
+            })
+            .then(() => removeEmptyObjects(parsedNewDeclaration))
+            .then(() => removeEmptyObjects(parsedOldDeclaration))
+            .then(() => {
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
                 return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration, declaration);
             })
@@ -239,12 +244,9 @@ function applyDefaults(declaration, state) {
         }
         const original = commonOriginal[key];
         const item = commonDeclaration[key];
-        // if the missing or empty, fill in the original
+        // if the class is missing or empty, fill in the original
         if (!(key in commonDeclaration) || (typeof item === 'object' && Object.keys(item).length === 0)) {
             commonDeclaration[key] = original;
-            if (key === 'System' && commonDeclaration.hostname) {
-                delete commonDeclaration[key].hostname;
-            }
         } else if (key === 'Authentication') {
             // some more auth oddities
             if (typeof item.remoteUsersDefaults === 'undefined') {
@@ -252,6 +254,33 @@ function applyDefaults(declaration, state) {
             }
         }
     });
+}
+
+/**
+ * Hostname fixes
+ *
+ * hostname can be in 2 places for historical reasons. Consolidate into the System class
+ *
+ * @param {Object} declaration - declaration
+ */
+function applyHostnameFixes(declaration) {
+    // Put the desired hostname in just one place
+    if (declaration.Common.hostname) {
+        if (!declaration.Common.System) {
+            declaration.Common.System = {};
+        }
+        declaration.Common.System.hostname = declaration.Common.hostname;
+        delete declaration.Common.hostname;
+    }
+
+    // If a hostname is in the declaration, copy it to the same place that configManager
+    // uses for the 2 possible BIG-IP device names
+    if (declaration.Common.System && declaration.Common.System.hostname) {
+        declaration.Common.InternalUse.deviceNames = {
+            hostName: declaration.Common.System.hostname,
+            deviceName: declaration.Common.System.hostname
+        };
+    }
 }
 
 /**
@@ -1008,6 +1037,13 @@ function applyManagementRouteFixes(declaration, originalConfig) {
         return;
     }
 
+    // We need to separately save the preserveOrigDhcpRoutes settings to determine the proper
+    // mgmt-dhcp setting later. Otherwise, if it matches current config, we will lose the info in the diff.
+    if (!declaration.Common.InternalUse.System) {
+        declaration.Common.InternalUse.System = {};
+    }
+    declaration.Common.InternalUse.System.preserveOrigDhcpRoutes = declaration.Common.System.preserveOrigDhcpRoutes;
+
     Object.keys(origManagementRoutes).forEach((managementRoute) => {
         if (origManagementRoutes[managementRoute].description === 'configured-by-dhcp'
             && Object.keys(ManagementRoutes).indexOf(managementRoute) === -1) {
@@ -1103,7 +1139,7 @@ function removeEmptyObjects(declaration) {
     const common = declaration.Common;
     Object.keys(common).forEach((key) => {
         const configItem = common[key];
-        if (Object.keys(configItem).length === 0) {
+        if (typeof configItem === 'object' && Object.keys(configItem).length === 0) {
             delete common[key];
         }
     });
@@ -1111,7 +1147,6 @@ function removeEmptyObjects(declaration) {
 
 function makeUpdates(bigIp, eventEmitter, declaration, updateDeclaration, deleteDeclaration, state) {
     return Promise.resolve()
-        .then(() => removeEmptyObjects(updateDeclaration))
         .then(() => bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
         .then(() => {
             const handlers = [

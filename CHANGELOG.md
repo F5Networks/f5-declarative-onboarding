@@ -8,6 +8,7 @@ Changes to this project are documented in this file. More detail and links can b
 AUTOTOOL-2846: ([GitHub Issue 277](https://github.com/F5Networks/f5-declarative-onboarding/issues/277)): Items containg '.' or '-' characters in their names are not passing schema validation
 
 ### Changed
+AUTOTOOL-1898: Several idempotentcy issues are resolved. This required adding defaults for several items in the System class.
 
 ### Removed
 

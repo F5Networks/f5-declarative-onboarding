@@ -39,8 +39,9 @@ class BusinessLogicValidator {
             return Promise.resolve({ isValid });
         }
 
-        // hostname is in Common and System is present
-        if (Object.keys(sysWrapper).find((key) => typeof sysWrapper[key].hostname !== 'undefined')) {
+        // hostname is in Common and System is present but not default value ('bigip1')
+        const sysClassKey = Object.keys(sysWrapper).find((key) => typeof sysWrapper[key].hostname !== 'undefined');
+        if (sysClassKey && sysWrapper[sysClassKey].hostname && sysWrapper[sysClassKey].hostname !== 'bigip1') {
             isValid = false;
             errors.push('multiple hostnames in declaration');
         }

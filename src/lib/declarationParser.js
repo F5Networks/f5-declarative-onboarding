@@ -92,7 +92,9 @@ const logger = new Logger(module);
  *
  *     {
  *         "Common": {
- *             "hostname": "bigip.example.com",
+ *             "System": {
+ *                 "hostname": "bigip.example.com"
+ *             },
  *             "License": {
  *                 "licenseType": "regKey",
  *                 "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
@@ -196,6 +198,7 @@ class DeclarationParser {
 
                 const tenant = this.declaration[tenantName];
                 const properties = getKeysOfInterest(tenant);
+
                 properties.forEach((propertyName) => {
                     let property = tenant[propertyName];
 

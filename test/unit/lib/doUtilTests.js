@@ -838,4 +838,58 @@ describe('doUtil', () => {
             assert.deepStrictEqual(data, undefined);
         });
     });
+
+    describe('removeElementsFromArray', () => {
+        const testCases = [
+            {
+                title: 'should remove middle element',
+                inputArray: ['zero', 'one', 'two'],
+                indicesToRemove: [1],
+                expectedArray: ['zero', 'two']
+            },
+            {
+                title: 'should remove first element',
+                inputArray: ['zero', 'one', 'two'],
+                indicesToRemove: [0],
+                expectedArray: ['one', 'two']
+            },
+            {
+                title: 'should remove last element',
+                inputArray: ['zero', 'one', 'two'],
+                indicesToRemove: [2],
+                expectedArray: ['zero', 'one']
+            },
+            {
+                title: 'should remove all elements',
+                inputArray: ['zero', 'one', 'two'],
+                indicesToRemove: [0, 1, 2],
+                expectedArray: []
+            },
+            {
+                title: 'should cope with no indices',
+                inputArray: ['zero', 'one', 'two'],
+                indicesToRemove: [],
+                expectedArray: ['zero', 'one', 'two']
+            },
+            {
+                title: 'should cope with non-existing elements',
+                inputArray: ['zero', 'one', 'two'],
+                indicesToRemove: [3],
+                expectedArray: ['zero', 'one', 'two']
+            },
+            {
+                title: 'should cope with empty input',
+                inputArray: [],
+                indicesToRemove: [],
+                expectedArray: []
+            }
+        ];
+
+        testCases.forEach((testCase) => {
+            it(testCase.title, () => {
+                doUtil.removeElementsFromArray(testCase.inputArray, testCase.indicesToRemove);
+                assert.deepStrictEqual(testCase.inputArray, testCase.expectedArray);
+            });
+        });
+    });
 });
