@@ -150,6 +150,42 @@ describe('diffHandler', () => {
             });
     });
 
+    it('should modify all updated objects for a named class', () => {
+        const toDeclaration = {
+            Common: {
+                class1: {
+                    myUpdatedObject: {
+                        myString: 'foo',
+                        myObj: {
+                            foo: 'bar'
+                        },
+                        myArray: [1, 2, 3]
+                    },
+                    myOtherUpdatedObject: {
+                        myString: 'foofoo',
+                        myObj: {
+                            foo: 'barbar'
+                        },
+                        myArray: [11, 12, 13]
+                    }
+                }
+            }
+        };
+        const fromDeclaration = {
+            Common: {
+            }
+        };
+
+        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
+        return diffHandler.process(toDeclaration, fromDeclaration, {})
+            .then((diff) => {
+                assert.deepEqual(diff.toUpdate.Common.class1.myUpdatedObject,
+                    { myString: 'foo', myObj: { foo: 'bar' }, myArray: [1, 2, 3] });
+                assert.deepEqual(diff.toUpdate.Common.class1.myOtherUpdatedObject,
+                    { myString: 'foofoo', myObj: { foo: 'barbar' }, myArray: [11, 12, 13] });
+            });
+    });
+
     it('should leave hostname alone', () => {
         const hostname = 'bigip1.example.com';
 
