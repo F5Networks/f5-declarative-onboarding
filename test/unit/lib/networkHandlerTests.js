@@ -115,15 +115,23 @@ describe('networkHandler', () => {
                                 {
                                     name: 'amazonaws.com',
                                     nameservers: [
-                                        '8.8.8.8:53',
-                                        '8.8.8.7:53'
+                                        {
+                                            name: '8.8.8.8:53'
+                                        },
+                                        {
+                                            name: '8.8.8.7:53'
+                                        }
                                     ]
                                 },
                                 {
                                     name: 'idservice.net',
                                     nameservers: [
-                                        '8.8.4.4:53',
-                                        '8.8.4.3:53'
+                                        {
+                                            name: '8.8.4.4:53'
+                                        },
+                                        {
+                                            name: '8.8.4.3:53'
+                                        }
                                     ]
                                 }
                             ],

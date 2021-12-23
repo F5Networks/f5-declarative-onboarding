@@ -542,19 +542,12 @@ function handleDnsResolver() {
     const promises = [];
     doUtil.forEach(this.declaration, 'DNS_Resolver', (tenant, resolver) => {
         if (resolver && resolver.name) {
-            let forwardZones = resolver.forwardZones;
-            if (forwardZones && forwardZones !== 'none') {
-                forwardZones = forwardZones.map((zone) => ({
-                    name: zone.name,
-                    nameservers: zone.nameservers.map((nameserver) => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })))
-                }));
-            }
             const resolverBody = {
                 name: resolver.name,
                 partition: tenant,
                 answerDefaultZones: resolver.answerDefaultZones,
                 cacheSize: resolver.cacheSize,
-                forwardZones,
+                forwardZones: resolver.forwardZones,
                 randomizeQueryNameCase: resolver.randomizeQueryNameCase,
                 routeDomain: resolver.routeDomain,
                 useIpv4: resolver.useIpv4,

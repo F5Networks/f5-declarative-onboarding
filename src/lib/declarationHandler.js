@@ -163,6 +163,7 @@ class DeclarationHandler {
             })
             .then(() => {
                 applyDefaults(parsedNewDeclaration, state);
+                applyDnsResolverFixes(parsedNewDeclaration);
                 applyHostnameFixes(parsedNewDeclaration);
                 applyManagementIpFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyManagementIpFirewallFixes(parsedNewDeclaration);
@@ -251,6 +252,30 @@ function applyDefaults(declaration, state) {
             // some more auth oddities
             if (typeof item.remoteUsersDefaults === 'undefined') {
                 item.remoteUsersDefaults = original.remoteUsersDefaults;
+            }
+        }
+    });
+}
+
+/**
+ * DNS Resolver fixes
+ *
+ * We allow a user to put DNS Resolver nameservers in an array of strings, but
+ * iControl REST represents them as an array of objects with a name property
+ *
+ * @param {Object} declaration - declaration
+ */
+function applyDnsResolverFixes(declaration) {
+    doUtil.forEach(declaration, 'DNS_Resolver', (tenant, resolver) => {
+        if (resolver && resolver.name) {
+            let forwardZones = resolver.forwardZones;
+            if (forwardZones) {
+                forwardZones = forwardZones.map((zone) => {
+                    if (zone.nameservers) {
+                        zone.nameservers = zone.nameservers.map((nameserver) => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })));
+                    }
+                    return zone;
+                });
             }
         }
     });

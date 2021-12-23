@@ -684,6 +684,67 @@ describe('declarationHandler', () => {
                 });
         });
 
+        describe('DNS Resolver fix', () => {
+            it('should reformat DNS Resolver nameservers', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        DNS_Resolver: {
+                            myResolver: {
+                                name: 'myResolver',
+                                forwardZones: [
+                                    {
+                                        nameservers: [
+                                            'zone1',
+                                            'zone2',
+                                            {
+                                                name: 'zone3'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current'
+                    },
+                    originalConfig: {
+                        Common: {}
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            declarationWithDefaults.Common.DNS_Resolver,
+                            {
+                                myResolver: {
+                                    name: 'myResolver',
+                                    forwardZones: [
+                                        {
+                                            nameservers: [
+                                                {
+                                                    name: 'zone1'
+                                                },
+                                                {
+                                                    name: 'zone2'
+                                                },
+                                                {
+                                                    name: 'zone3'
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        );
+                    });
+            });
+        });
+
         describe('ManagementIp fix', () => {
             it('should apply fix for ManagementIp', () => {
                 const newDeclaration = {

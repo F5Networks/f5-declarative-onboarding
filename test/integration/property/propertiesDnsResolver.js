@@ -36,8 +36,7 @@ describe('DNS Resolver', function testDnsResolver() {
         ];
 
         const options = {
-            bigipItems,
-            skipIdempotentCheck: true // DNS_Resolver is currently not idempotent
+            bigipItems
         };
 
         const properties = [

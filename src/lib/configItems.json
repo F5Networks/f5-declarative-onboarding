@@ -106,13 +106,16 @@
         "properties": [
             { "id": "answerDefaultZones", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
             { "id": "cacheSize" },
-            { "id": "forwardZones", "defaultWhenOmitted": "none" },
+            { "id": "forwardZones", "defaultWhenOmitted": [{ "name": "none" }] },
             { "id": "randomizeQueryNameCase", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
             { "id": "routeDomain" },
             { "id": "useIpv4", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
             { "id": "useIpv6", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
             { "id": "useTcp", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true },
             { "id": "useUdp", "truth": "yes", "falsehood": "no", "skipWhenOmitted": true }
+        ],
+        "ignore": [
+            { "name": "^f5-aws-dns$" }
         ],
         "declaration": {
             "customFunctions": [
