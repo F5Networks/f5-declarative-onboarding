@@ -9,10 +9,11 @@ for i in "${IPS_ARRAY[@]}"
 do
     jq -n \
         --arg ip "$i" \
-        --arg admin_password "$INTEGRATION_ADMIN_PASSWORD" \
-        --arg root_password "$INTEGRATION_ROOT_PASSWORD" \
+        --arg admin_username "$ADMIN_USERNAME" \
+        --arg admin_password "$ADMIN_PASSWORD" \
+        --arg root_password "$ADMIN_PASSWORD" \
         '{ admin_ip: $ip,
-           f5_rest_user: { username: "admin",
+           f5_rest_user: { username: $admin_username,
                            password: $admin_password },
            ssh_user: { username: "root",
                        password: $root_password }

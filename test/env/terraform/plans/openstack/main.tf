@@ -1,4 +1,7 @@
 terraform {
+  backend "http" {
+  }
+
   required_providers {
     openstack = {
       source  = "terraform-provider-openstack/openstack"
@@ -7,17 +10,20 @@ terraform {
   }
 }
 
+module "utils" {
+  source = "../../modules/utils"
+}
+
 data "template_file" "user_data" {
   template = file("../../onboard.yaml")
   vars = {
-    root_password = var.root_password
-    admin_password = var.admin_password
+    admin_password = module.utils.admin_password
   }
 }
 
 resource "openstack_compute_instance_v2" "openstack-instance" {
   count = var.bigip_count
-  name = "integration-${var.bigip_image}-${count.index}"
+  name = "do-bigip-${var.bigip_image}-${count.index}"
   image_name        = var.bigip_image
   flavor_name     = var.image_flavor
   security_groups = []

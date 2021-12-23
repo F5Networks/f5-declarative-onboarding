@@ -5,22 +5,9 @@ variable "bigip_image" {
 }
 
 # Run parameters
-variable "admin_password" {
-  description = "BIGIP admin user password"
-}
-
-variable "f5_rest_user" {
+variable "admin_username" {
   description = "BIGIP fusername"
   default = "admin"
-}
-
-variable "ssh_user" {
-  description = "BIGIP fusername"
-  default = "root"
-}
-
-variable "root_password" {
-  description = "BIGIP root user password"
 }
 
 variable "nic_count" {

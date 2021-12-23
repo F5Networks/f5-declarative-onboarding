@@ -57,8 +57,8 @@ describe('User', function User() {
                 root: {
                     class: 'User',
                     userType: 'root',
-                    oldPassword: process.env.INTEGRATION_ROOT_PASSWORD,
-                    newPassword: process.env.INTEGRATION_ROOT_PASSWORD,
+                    oldPassword: process.env.DO_PASSWORD,
+                    newPassword: process.env.DO_PASSWORD,
                     keys: [key1, key2]
                 }
             }

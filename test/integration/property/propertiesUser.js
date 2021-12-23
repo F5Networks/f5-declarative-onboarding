@@ -72,7 +72,7 @@ describe('User', function testAuthentication() {
             },
             {
                 name: 'password',
-                inputValue: [process.env.INTEGRATION_TEST_PASSWORD],
+                inputValue: [process.env.DO_PASSWORD],
                 skipAssert: true
             },
             {
