@@ -27,8 +27,6 @@ describe('Tunnel', function testAuthentication() {
 
     beforeEach(() => {
         options = {
-            // Temporarily skip idempotency checks
-            skipIdempotentCheck: true
         };
     });
 
@@ -111,6 +109,13 @@ describe('Tunnel', function testAuthentication() {
     });
 
     it('All VXLAN properties', () => {
+        const trafficControl = {
+            class: 'TrafficControl',
+            acceptIpOptions: true
+        };
+
+        options.extraItems = [trafficControl];
+
         const properties = [
             {
                 name: 'tunnelType',

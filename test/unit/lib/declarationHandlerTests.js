@@ -815,297 +815,299 @@ describe('declarationHandler', () => {
             });
         });
 
-        it('should apply fix for Default Route Domain - no Route Domains in declaration', () => {
-            const newDeclaration = {
-                parsed: true,
-                Common: {}
-            };
-            const state = {
-                currentConfig: {
-                    name: 'current'
-                },
-                originalConfig: {
+        describe('RouteDomain fixes', () => {
+            it('should apply fix for Default Route Domain - no Route Domains in declaration', () => {
+                const newDeclaration = {
+                    parsed: true,
                     Common: {}
-                }
-            };
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
-                .then(() => {
-                    assert.strictEqual(declarationWithDefaults.Common.RouteDomain, undefined);
-                });
-        });
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current'
+                    },
+                    originalConfig: {
+                        Common: {}
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        assert.strictEqual(declarationWithDefaults.Common.RouteDomain, undefined);
+                    });
+            });
 
-        it('should apply fix for Default Route Domain - rename Default Route Domain', () => {
-            // test check also that multiple Default Route Domains will be
-            // removed from declaration
-            const newDeclaration = {
-                parsed: true,
-                Common: {
-                    RouteDomain: {
-                        rd0: {
-                            id: 0
-                        },
-                        rd0_2: {
-                            id: 0
-                        },
-                        rd1: {
-                            id: 1
-                        }
-                    }
-                }
-            };
-            const state = {
-                currentConfig: {
-                    name: 'current'
-                },
-                originalConfig: {
-                    Common: {
-                        RouteDomain: {
-                            0: {
-                                id: 0,
-                                vlan: []
-                            }
-                        }
-                    }
-                }
-            };
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
-                .then(() => {
-                    const routeDomain = declarationWithDefaults.Common.RouteDomain;
-                    assert.strictEqual(Object.keys(routeDomain).length, 2);
-                    assert.strictEqual(routeDomain.rd0, undefined);
-                    assert.strictEqual(routeDomain.rd0_2, undefined);
-                    assert.strictEqual(routeDomain['0'].id, 0);
-                    assert.strictEqual(routeDomain['0'].vlan, undefined);
-                    assert.notStrictEqual(routeDomain.rd1, undefined);
-                    assert.strictEqual(routeDomain.rd1.id, 1);
-                });
-        });
-
-        it('should apply fix for Default Route Domain - copy Default Route Domain from Current Configuration', () => {
-            const newDeclaration = {
-                parsed: true,
-                Common: {
-                    RouteDomain: {
-                        rd1: {
-                            id: 1
-                        }
-                    }
-                }
-            };
-            const state = {
-                currentConfig: {
-                    name: 'current',
+            it('should apply fix for Default Route Domain - rename Default Route Domain', () => {
+                // test check also that multiple Default Route Domains will be
+                // removed from declaration
+                const newDeclaration = {
                     parsed: true,
                     Common: {
                         RouteDomain: {
-                            0: {
+                            rd0: {
                                 id: 0
-                            }
-                        }
-                    }
-                },
-                originalConfig: {
-                    Common: {}
-                }
-            };
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
-                .then(() => {
-                    const routeDomain = declarationWithDefaults.Common.RouteDomain;
-                    assert.notStrictEqual(routeDomain['0'], undefined);
-                    assert.strictEqual(routeDomain['0'].id, 0);
-                    assert.notStrictEqual(routeDomain.rd1, undefined);
-                    assert.strictEqual(routeDomain.rd1.id, 1);
-                });
-        });
-
-        it('should apply Route Domain parent fix', () => {
-            const newDeclaration = {
-                parsed: true,
-                Common: {
-                    RouteDomain: {
-                        rd1: {
-                            id: 1
-                        },
-                        rd2: {
-                            id: 2,
-                            parent: 'rd1'
-                        },
-                        rd3: {
-                            id: 3,
-                            parent: '/Common/rd2'
-                        }
-                    }
-                }
-            };
-            const state = {
-                currentConfig: {
-                    name: 'current',
-                    parsed: true,
-                    Common: {
-                        RouteDomain: {
-                            0: {
+                            },
+                            rd0_2: {
                                 id: 0
                             },
                             rd1: {
-                                id: 1,
-                                parent: '/Common/rd1'
+                                id: 1
+                            }
+                        }
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current'
+                    },
+                    originalConfig: {
+                        Common: {
+                            RouteDomain: {
+                                0: {
+                                    id: 0,
+                                    vlan: []
+                                }
+                            }
+                        }
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                        assert.strictEqual(Object.keys(routeDomain).length, 2);
+                        assert.strictEqual(routeDomain.rd0, undefined);
+                        assert.strictEqual(routeDomain.rd0_2, undefined);
+                        assert.strictEqual(routeDomain['0'].id, 0);
+                        assert.strictEqual(routeDomain['0'].vlan, undefined);
+                        assert.notStrictEqual(routeDomain.rd1, undefined);
+                        assert.strictEqual(routeDomain.rd1.id, 1);
+                    });
+            });
+
+            it('should apply fix for Default Route Domain - copy Default Route Domain from Current Configuration', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        RouteDomain: {
+                            rd1: {
+                                id: 1
+                            }
+                        }
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current',
+                        parsed: true,
+                        Common: {
+                            RouteDomain: {
+                                0: {
+                                    id: 0
+                                }
+                            }
+                        }
+                    },
+                    originalConfig: {
+                        Common: {}
+                    }
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                        assert.notStrictEqual(routeDomain['0'], undefined);
+                        assert.strictEqual(routeDomain['0'].id, 0);
+                        assert.notStrictEqual(routeDomain.rd1, undefined);
+                        assert.strictEqual(routeDomain.rd1.id, 1);
+                    });
+            });
+
+            it('should apply Route Domain parent fix', () => {
+                const newDeclaration = {
+                    parsed: true,
+                    Common: {
+                        RouteDomain: {
+                            rd1: {
+                                id: 1
                             },
                             rd2: {
                                 id: 2,
+                                parent: 'rd1'
+                            },
+                            rd3: {
+                                id: 3,
                                 parent: '/Common/rd2'
                             }
                         }
                     }
-                },
-                originalConfig: {
-                    Common: {
-                        RouteDomain: {
-                            0: {
-                                id: 0
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current',
+                        parsed: true,
+                        Common: {
+                            RouteDomain: {
+                                0: {
+                                    id: 0
+                                },
+                                rd1: {
+                                    id: 1,
+                                    parent: '/Common/rd1'
+                                },
+                                rd2: {
+                                    id: 2,
+                                    parent: '/Common/rd2'
+                                }
+                            }
+                        }
+                    },
+                    originalConfig: {
+                        Common: {
+                            RouteDomain: {
+                                0: {
+                                    id: 0
+                                }
                             }
                         }
                     }
-                }
-            };
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
-                .then(() => {
-                    const routeDomain = declarationWithDefaults.Common.RouteDomain;
-                    assert.strictEqual(routeDomain['0'].id, 0);
-                    assert.isUndefined(routeDomain['0'].parent);
-                    assert.strictEqual(routeDomain.rd1.id, 1);
-                    assert.isUndefined(routeDomain.rd1.parent);
-                    assert.strictEqual(routeDomain.rd2.id, 2);
-                    assert.strictEqual(routeDomain.rd2.parent, '/Common/rd1');
-                    assert.strictEqual(routeDomain.rd3.id, 3);
-                    assert.strictEqual(routeDomain.rd3.parent, '/Common/rd2');
-                });
-        });
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                        assert.strictEqual(routeDomain['0'].id, 0);
+                        assert.isUndefined(routeDomain['0'].parent);
+                        assert.strictEqual(routeDomain.rd1.id, 1);
+                        assert.isUndefined(routeDomain.rd1.parent);
+                        assert.strictEqual(routeDomain.rd2.id, 2);
+                        assert.strictEqual(routeDomain.rd2.parent, '/Common/rd1');
+                        assert.strictEqual(routeDomain.rd3.id, 3);
+                        assert.strictEqual(routeDomain.rd3.parent, '/Common/rd2');
+                    });
+            });
 
-        it('should apply Route Domain VLANs fix', () => {
-            /**
-             * ideas of the test are:
-             * - remove non-existing VLANs from Route Domains
-             * - add VLANs to Route Domain 0 if they don't belong to any other Route Domain
-             * - check that VLANs from another partition or subfolder are untouched
-             * - should keep default VLANs
-             */
-            const newDeclaration = {
-                parsed: true,
-                Common: {
-                    RouteDomain: {
-                        0: {
-                            id: 0,
-                            vlans: [
-                                'nonExistingVlan', // should remove - non-existing vlan
-                                '/Partition/vlan', // should keep - partition !== Common
-                                '/Partition/folder/vlan', // should keep - partition !== Common
-                                '/Common/vlan', // should keep - exist in current confing
-                                '/Common/folder/vlan', // should keep - belongs to folder under Common
-                                'vlan1', // should keep - defined in declaration
-                                '/Common/vlan2' // should keep - defined in declaration
-                            ]
-                        },
-                        rd1: {
-                            id: 1,
-                            vlans: [
-                                'nonExistingVlan2', // should remove - non-existing vlan
-                                '/Partition1/vlan', // should keep - partition !== Common
-                                '/Partition1/folder/vlan', // should keep - partition !== Common
-                                '/Common/vlan10', // should remove - non-existing vlan
-                                '/Common/folder/vlan2', // should keep - belongs to folder under Common
-                                'vlan3', // should keep - defined in declaration
-                                '/Common/vlan4', // should keep - defined in declaration
-                                '/Common/rd1Vlan' // should keep - was attached to RD 2
-                            ]
-                        },
-                        rd2: {
-                            id: 2 // should restore /Common/rd2Vlan
-                        },
-                        rd3: {
-                            id: 3 // should keep 'vlans' (undefined) property untouched
-                        }
-                    },
-                    VLAN: {
-                        vlan1: {}, // should add to RD 0
-                        vlan2: {}, // should add to RD 0
-                        vlan3: {}, // should add to RD 1
-                        vlan4: {}, // should add to RD 1
-                        vlan5: {}, // should add to RD 0
-                        vlan6: {} // should add to RD 0
-                    }
-                }
-            };
-            const state = {
-                currentConfig: {
-                    name: 'current',
+            it('should apply Route Domain VLANs fix', () => {
+                /**
+                 * ideas of the test are:
+                 * - remove non-existing VLANs from Route Domains
+                 * - add VLANs to Route Domain 0 if they don't belong to any other Route Domain
+                 * - check that VLANs from another partition or subfolder are untouched
+                 * - should keep default VLANs
+                 */
+                const newDeclaration = {
                     parsed: true,
                     Common: {
                         RouteDomain: {
                             0: {
                                 id: 0,
                                 vlans: [
-                                    '/Common/http-tunnel', // should keep it  - exist in current confing
-                                    '/Common/vlan' // should keep - exist in current confing
+                                    'nonExistingVlan', // should remove - non-existing vlan
+                                    '/Partition/vlan', // should keep - partition !== Common
+                                    '/Partition/folder/vlan', // should keep - partition !== Common
+                                    '/Common/vlan', // should keep - exist in current confing
+                                    '/Common/folder/vlan', // should keep - belongs to folder under Common
+                                    'vlan1', // should keep - defined in declaration
+                                    '/Common/vlan2' // should keep - defined in declaration
                                 ]
                             },
                             rd1: {
                                 id: 1,
                                 vlans: [
-                                    '/Common/socks-tunnel' // should keep - exist in current confing
+                                    'nonExistingVlan2', // should remove - non-existing vlan
+                                    '/Partition1/vlan', // should keep - partition !== Common
+                                    '/Partition1/folder/vlan', // should keep - partition !== Common
+                                    '/Common/vlan10', // should remove - non-existing vlan
+                                    '/Common/folder/vlan2', // should keep - belongs to folder under Common
+                                    'vlan3', // should keep - defined in declaration
+                                    '/Common/vlan4', // should keep - defined in declaration
+                                    '/Common/rd1Vlan' // should keep - was attached to RD 2
                                 ]
                             },
                             rd2: {
-                                id: 2,
-                                vlans: [
-                                    '/Common/rd2Vlan', // should keep - exist in current confing
-                                    '/Common/rd1Vlan' // should keep - exist in current confing and attached to RD 1
-                                ]
+                                id: 2 // should restore /Common/rd2Vlan
+                            },
+                            rd3: {
+                                id: 3 // should keep 'vlans' (undefined) property untouched
+                            }
+                        },
+                        VLAN: {
+                            vlan1: {}, // should add to RD 0
+                            vlan2: {}, // should add to RD 0
+                            vlan3: {}, // should add to RD 1
+                            vlan4: {}, // should add to RD 1
+                            vlan5: {}, // should add to RD 0
+                            vlan6: {} // should add to RD 0
+                        }
+                    }
+                };
+                const state = {
+                    currentConfig: {
+                        name: 'current',
+                        parsed: true,
+                        Common: {
+                            RouteDomain: {
+                                0: {
+                                    id: 0,
+                                    vlans: [
+                                        '/Common/http-tunnel', // should keep it  - exist in current confing
+                                        '/Common/vlan' // should keep - exist in current confing
+                                    ]
+                                },
+                                rd1: {
+                                    id: 1,
+                                    vlans: [
+                                        '/Common/socks-tunnel' // should keep - exist in current confing
+                                    ]
+                                },
+                                rd2: {
+                                    id: 2,
+                                    vlans: [
+                                        '/Common/rd2Vlan', // should keep - exist in current confing
+                                        '/Common/rd1Vlan' // should keep - exist in current confing and attached to RD 1
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    originalConfig: {
+                        Common: {
+                            RouteDomain: {
+                                0: {
+                                    id: 0,
+                                    vlans: []
+                                }
                             }
                         }
                     }
-                },
-                originalConfig: {
-                    Common: {
-                        RouteDomain: {
-                            0: {
-                                id: 0,
-                                vlans: []
-                            }
-                        }
-                    }
-                }
-            };
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
-                .then(() => {
-                    const routeDomain = declarationWithDefaults.Common.RouteDomain;
-                    assert.deepStrictEqual(routeDomain['0'].vlans.sort(), [
-                        '/Common/http-tunnel',
-                        '/Partition/vlan',
-                        '/Partition/folder/vlan',
-                        '/Common/vlan',
-                        '/Common/folder/vlan',
-                        'vlan1',
-                        '/Common/vlan2',
-                        'vlan5',
-                        'vlan6'
-                    ].sort());
-                    assert.deepStrictEqual(routeDomain.rd1.vlans.sort(), [
-                        '/Common/socks-tunnel',
-                        '/Partition1/vlan',
-                        '/Partition1/folder/vlan',
-                        '/Common/folder/vlan2',
-                        'vlan3',
-                        '/Common/vlan4',
-                        '/Common/rd1Vlan'
-                    ].sort());
-                    assert.deepStrictEqual(routeDomain.rd2.vlans, ['/Common/rd2Vlan']);
-                    assert.strictEqual(routeDomain.rd3.vlans, undefined);
-                });
+                };
+                const declarationHandler = new DeclarationHandler(bigIpMock);
+                return declarationHandler.process(newDeclaration, state)
+                    .then(() => {
+                        const routeDomain = declarationWithDefaults.Common.RouteDomain;
+                        assert.deepStrictEqual(routeDomain['0'].vlans, [
+                            '/Common/http-tunnel',
+                            '/Partition/vlan',
+                            '/Partition/folder/vlan',
+                            '/Common/vlan',
+                            '/Common/folder/vlan',
+                            'vlan1',
+                            '/Common/vlan2',
+                            'vlan5',
+                            'vlan6'
+                        ].sort());
+                        assert.deepStrictEqual(routeDomain.rd1.vlans, [
+                            '/Common/socks-tunnel',
+                            '/Partition1/vlan',
+                            '/Partition1/folder/vlan',
+                            '/Common/folder/vlan2',
+                            'vlan3',
+                            '/Common/vlan4',
+                            '/Common/rd1Vlan'
+                        ].sort());
+                        assert.deepStrictEqual(routeDomain.rd2.vlans, ['/Common/rd2Vlan']);
+                        assert.strictEqual(routeDomain.rd3.vlans, undefined);
+                    });
+            });
         });
 
         it('should apply RouteMap path prefix fixes', () => {

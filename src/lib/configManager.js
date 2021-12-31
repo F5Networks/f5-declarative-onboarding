@@ -828,6 +828,12 @@ function mapProperties(item, configItem, bigIpVersion, options) {
                             doUtil.deleteKeys(value, trans.removeKeys);
                         }
 
+                        if (trans.sort) {
+                            if (property.transformAsArray && Array.isArray(currentProperty)) {
+                                value = currentProperty.sort();
+                            }
+                        }
+
                         if (trans.truth !== undefined) {
                             value = mapTruth(currentProperty, trans, options);
                         }
@@ -856,7 +862,12 @@ function mapProperties(item, configItem, bigIpVersion, options) {
         }
 
         if (hasVal && property.stringToInt) {
-            mappedItem[property.id] = parseInt(mappedItem[property.id], 10);
+            // Some items can be either plain strings or string representations of ints.
+            // Only map if they are string representations of ints.
+            const possibleInt = parseInt(mappedItem[property.id], 10);
+            if (Number.isInteger(possibleInt)) {
+                mappedItem[property.id] = possibleInt;
+            }
         }
 
         if (options.translateToNewId && hasVal && property.newId !== undefined) {

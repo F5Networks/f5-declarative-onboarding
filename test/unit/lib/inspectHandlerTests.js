@@ -1936,7 +1936,7 @@ describe('inspectHandler', () => {
                             servicePolicy: 'servicePolicy',
                             stagedFirewallPolicy: 'fwStagedPolicy',
                             strict: true,
-                            vlans: ['/Common/http-tunnel', '/Common/socks-tunnel', '/Common/internal']
+                            vlans: ['/Common/http-tunnel', '/Common/internal', '/Common/socks-tunnel']
                         },
                         rd1: {
                             bandWidthControllerPolicy: 'bwcPolicy',
@@ -1952,7 +1952,7 @@ describe('inspectHandler', () => {
                             servicePolicy: 'servicePolicy',
                             stagedFirewallPolicy: 'fwStagedPolicy',
                             strict: true,
-                            vlans: ['/Common/http-tunnel', '/Common/socks-tunnel', '/Common/internal']
+                            vlans: ['/Common/http-tunnel', '/Common/internal', '/Common/socks-tunnel']
                         },
                         mySnmpUser: {
                             class: 'SnmpUser',

@@ -818,7 +818,7 @@ function assertClass(targetClass, properties, options) {
                 if (!fullOptions.checkForFail) {
                     const message = (result.result) ? result.result.message : 'Unable to find result message'
                         + `\n${JSON.stringify(result.result, null, 2)}`;
-                    assert.strictEqual(message, 'success', 'declaration did not delete successfully');
+                    assert.strictEqual(message, 'success', `declaration did not delete successfully: ${message}`);
                 }
             })
             .catch((newError) => {

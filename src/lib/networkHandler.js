@@ -698,9 +698,7 @@ function handleTunnel() {
             };
 
             // if we are changing the profile or trafficGroup, we first have to delete the tunnel
-            // (but we can't delete http-tunnel or socks-tunnel)
-            if (tunnel.name !== 'http-tunnel'
-                && tunnel.name !== 'socks-tunnel'
+            if (this.state.currentConfig[tenant].Tunnel
                 && this.state.currentConfig[tenant].Tunnel[tunnel.name]) {
                 if (tunnel.profile !== this.state.currentConfig[tenant].Tunnel[tunnel.name].profile
                     || tunnel.trafficGroup !== this.state.currentConfig[tenant].Tunnel[tunnel.name].trafficGroup) {

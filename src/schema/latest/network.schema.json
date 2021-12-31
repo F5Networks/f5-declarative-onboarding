@@ -589,30 +589,6 @@
                         "description": "Specifies the traffic group to associate with the tunnel.",
                         "type": "string",
                         "default": "none"
-                    },
-                    "defaultsFrom": {
-                        "description": "Specifies the existing profile from which the system imports settings for the new profile. Default value is vxlan. Can NOT default from itself.",
-                        "type": "string",
-                        "default": "vxlan"
-                    },
-                    "port": {
-                        "description": "Specifies the local port for receiving VXLAN packets. The default is 4789.",
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 65535,
-                        "default": 4789
-                    },
-                    "floodingType": {
-                        "description": "Specifies the flooding type to use to transmit multicast, broadcast, and unknown destination frames. The default is multicast.",
-                        "type": "string",
-                        "enum": ["none", "multicast", "multipoint", "replicator"],
-                        "default": "multicast"
-                    },
-                    "encapsulationType": {
-                        "description": "Specifies whether the VXLAN header is formatted according to RFC 7348 (vxlan) or with the Generic Protocol Extension (vxlan-gpe). The default is vxlan.",
-                        "type": "string",
-                        "enum": ["vxlan", "vxlan-gpe"],
-                        "default": "vxlan"
                     }
                 },
                 "allOf": [
@@ -636,6 +612,40 @@
                             "properties": {
                                 "mode": { "const": "bidirectional" },
                                 "remoteAddress": { "enum": ["any", "any6"] }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "required": ["tunnelType"],
+                            "properties": { "tunnelType": { "const": "vxlan" } }
+                        },
+                        "then": {
+                            "properties": {
+                                "defaultsFrom": {
+                                    "description": "Specifies the existing profile from which the system imports settings for the new profile. Default value is vxlan. Can NOT default from itself.",
+                                    "type": "string",
+                                    "default": "vxlan"
+                                },
+                                "port": {
+                                    "description": "Specifies the local port for receiving VXLAN packets. The default is 4789.",
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 65535,
+                                    "default": 4789
+                                },
+                                "floodingType": {
+                                    "description": "Specifies the flooding type to use to transmit multicast, broadcast, and unknown destination frames. The default is multicast.",
+                                    "type": "string",
+                                    "enum": ["none", "multicast", "multipoint", "replicator"],
+                                    "default": "multicast"
+                                },
+                                "encapsulationType": {
+                                    "description": "Specifies whether the VXLAN header is formatted according to RFC 7348 (vxlan) or with the Generic Protocol Extension (vxlan-gpe). The default is vxlan.",
+                                    "type": "string",
+                                    "enum": ["vxlan", "vxlan-gpe"],
+                                    "default": "vxlan"
+                                }
                             }
                         }
                     }

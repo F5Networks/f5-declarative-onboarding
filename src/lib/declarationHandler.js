@@ -180,6 +180,7 @@ class DeclarationHandler {
                 applyFirewallPortListFixes(parsedNewDeclaration);
                 applyFirewallPolicyFixes(parsedNewDeclaration);
                 applySelfIpFixes(parsedNewDeclaration);
+                applyTunnelFixes(parsedNewDeclaration);
                 applyManagementRouteFixes(parsedNewDeclaration, state.originalConfig);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
             })
@@ -579,6 +580,14 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
         if (typeof rd !== 'undefined') {
             rd.vlans = rd.vlans || [];
             rd.vlans.push(vlanName);
+        }
+    });
+
+    // Sort the vlans so we don't get a diff just due to ordering
+    Object.keys(decalrationRDs).forEach((rdName) => {
+        const rd = decalrationRDs[rdName];
+        if (rd.vlans) {
+            rd.vlans.sort();
         }
     });
 }
@@ -1003,6 +1012,24 @@ function applySelfIpFixes(declaration) {
                 selfIp[policyKey] = selfIp[policyKey].split('/').pop();
             }
         });
+    });
+}
+
+/**
+ * Normalizes tunnel properties to what the configManager returns
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyTunnelFixes(declaration) {
+    const tunnels = (declaration.Common && declaration.Common.Tunnel) || {};
+    if (Object.keys(tunnels).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'Tunnel', (tenant, tunnel) => {
+        if (tunnel.trafficGroup && tunnel.trafficGroup.startsWith('/Common')) {
+            tunnel.trafficGroup = tunnel.trafficGroup.split('/Common/')[1];
+        }
     });
 }
 

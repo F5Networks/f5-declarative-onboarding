@@ -542,55 +542,123 @@ describe('configManager', () => {
             });
     });
 
-    it('should handle references containing stringToInt', () => {
-        const configItems = [
-            {
-                path: '/tm/net/routing/prefix-list',
-                schemaClass: 'RoutingPrefixList',
-                properties: [
-                    { id: 'name' },
-                    { id: 'entriesReference' }
-                ],
-                references: {
-                    entriesReference: [
-                        { id: 'name', stringToInt: true }
+    describe('stringToInt', () => {
+        it('should handle stringToInt for integer strings', () => {
+            const configItems = [
+                {
+                    path: '/tm/net/tunnels/tunnel',
+                    schemaClass: 'Tunnel',
+                    properties: [
+                        { id: 'tos', stringToInt: true }
                     ]
                 }
-            }
-        ];
+            ];
 
-        listResponses['/tm/net/routing/prefix-list'] = [
-            {
-                name: 'examplePrefixList',
-                entriesReference: {
-                    link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+            listResponses['/tm/net/tunnels/tunnel'] = [
+                {
+                    name: 'myTunnel',
+                    tos: '10'
                 }
-            }
-        ];
+            ];
 
-        listResponses['/tm/net/routing/prefix-list/~Common~examplePrefixList/entries'] = [
-            {
-                name: '20'
-            }
-        ];
-
-        const configManager = new ConfigManager(configItems, bigIpMock);
-        return configManager.get({}, state, doState)
-            .then(() => {
-                assert.deepStrictEqual(
-                    state.currentConfig.Common.RoutingPrefixList,
-                    {
-                        examplePrefixList: {
-                            name: 'examplePrefixList',
-                            entries: [
-                                {
-                                    name: 20
-                                }
-                            ]
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.Tunnel,
+                        {
+                            myTunnel: {
+                                name: 'myTunnel',
+                                tos: 10
+                            }
                         }
+                    );
+                });
+        });
+
+        it('should handle stringToInt for non-integer strings', () => {
+            const configItems = [
+                {
+                    path: '/tm/net/tunnels/tunnel',
+                    schemaClass: 'Tunnel',
+                    properties: [
+                        { id: 'tos', stringToInt: true }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/net/tunnels/tunnel'] = [
+                {
+                    name: 'myTunnel',
+                    tos: 'preserve'
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.Tunnel,
+                        {
+                            myTunnel: {
+                                name: 'myTunnel',
+                                tos: 'preserve'
+                            }
+                        }
+                    );
+                });
+        });
+
+        it('should handle references containing stringToInt', () => {
+            const configItems = [
+                {
+                    path: '/tm/net/routing/prefix-list',
+                    schemaClass: 'RoutingPrefixList',
+                    properties: [
+                        { id: 'name' },
+                        { id: 'entriesReference' }
+                    ],
+                    references: {
+                        entriesReference: [
+                            { id: 'name', stringToInt: true }
+                        ]
                     }
-                );
-            });
+                }
+            ];
+
+            listResponses['/tm/net/routing/prefix-list'] = [
+                {
+                    name: 'examplePrefixList',
+                    entriesReference: {
+                        link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                    }
+                }
+            ];
+
+            listResponses['/tm/net/routing/prefix-list/~Common~examplePrefixList/entries'] = [
+                {
+                    name: '20'
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common.RoutingPrefixList,
+                        {
+                            examplePrefixList: {
+                                name: 'examplePrefixList',
+                                entries: [
+                                    {
+                                        name: 20
+                                    }
+                                ]
+                            }
+                        }
+                    );
+                });
+        });
     });
 
     it('should pass on required fields property', () => {
@@ -2058,6 +2126,59 @@ describe('configManager', () => {
                                         '10.1.0.1',
                                         '10.2.0.0/24'
                                     ]
+                                }
+                            }
+                        }
+                    );
+                });
+        });
+    });
+
+    describe('sort transform', () => {
+        it('should sort arrays', () => {
+            const configItems = [
+                {
+                    path: '/tm/net/route-domain',
+                    schemaClass: 'RouteDomain',
+                    properties: [
+                        { id: 'id' },
+                        {
+                            id: 'vlans',
+                            transformAsArray: true,
+                            transform: [
+                                {
+                                    id: 'vlans',
+                                    sort: true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ];
+
+            listResponses['/tm/net/route-domain'] = [
+                {
+                    name: '0',
+                    vlans: ['c', 'a', 'b']
+                }
+            ];
+
+            const configManager = new ConfigManager(configItems, bigIpMock);
+            return configManager.get({}, state, doState)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        state.currentConfig.Common,
+                        {
+                            InternalUse: {
+                                deviceNames: {
+                                    deviceName: 'device1',
+                                    hostName: 'myhost.bigip.com'
+                                }
+                            },
+                            RouteDomain: {
+                                0: {
+                                    name: '0',
+                                    vlans: ['a', 'b', 'c']
                                 }
                             }
                         }
