@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,7 @@ describe('Snmp', function testSnmp() {
             return assertClass('SnmpCommunity', properties, options);
         }
 
-        const options = {
-            skipIdempotentCheck: true
-        };
+        const options = {};
 
         it('All Properties', () => {
             const properties = [
@@ -78,7 +76,7 @@ describe('Snmp', function testSnmp() {
         }
 
         const options = {
-            skipIdempotentCheck: true
+            skipIdempotentCheck: true // items with passwords are not idempotent
         };
 
         it('All Properties 14.0+', function snmpUserTest() {
@@ -218,7 +216,7 @@ describe('Snmp', function testSnmp() {
         }
 
         const options = {
-            skipIdempotentCheck: true
+            skipIdempotentCheck: true // items with passwords are not idempotent
         };
 
         it('All Properties 14.0+', function snmpTrapDestinationTest() {

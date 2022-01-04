@@ -16,6 +16,14 @@ variables:
     ESR_TEST_RUN_ID: ${CI_JOB_ID}
     ESR_TEST_RUN_WEB_URL: ${CI_JOB_URL}
     TEST_REPORTER_OPTIONS: "--reporter mocha-multi-reporters --reporter-options configFile=test/mochaReporterConfig.json"
+    TF_DIRECTORY: test/env/terraform
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_HTTP_USERNAME: ${CI_REGISTRY_USER}
+    TF_HTTP_PASSWORD: ${CI_JOB_TOKEN}
+    TF_CLI_ARGS_apply: "-auto-approve"
+    TF_CLI_ARGS_destroy: "-auto-approve"
+    TF_STATE_URL: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state"
 
 # This inherits all the jobs defined in the parent template
 # Override variables in this project as needed
@@ -192,58 +200,77 @@ create docs:
         paths:
             - docs/_build/html
 
-# the following variables should be defined for deploy, integration-tests and teardown:
-# BIGIP_IMAGE           - BIGIP VIO image name. (e.g. BIGIP-15.1.0.5-0.0.8)
 .deploy_common: &deploy_common
     image: $INTEGRATION_DEPLOY_IMAGE
     tags:
-        - do-test-docker-executor
+      - do-test-docker-executor
     stage: deploy
-    timeout: 2 hours
-    before_script:
-        - apk update
-        # Need to add bash, because included sh doen't support arrays
-        # used in build_harness_file.sh script to get IP addresses.
-        - apk add bash npm build-base python3 cmake
-        - if [[ $CI_PIPELINE_SOURCE == "pipeline" ]]; then
-        -     echo using RPM from cross-project pipeline
-        -     export RPM_PACKAGE=$(ls ${UPSTREAM_RPM_PATH}/*.rpm)
-        - else
-        -     echo using RPM from our pipeline
-        -     export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
-        - fi
+    timeout: 1 hour
     script:
-        - cd test/env/terraform/plans/openstack
-        - terraform init
-        - terraform apply -var nic_count="$NIC_COUNT"
-                          -var bigip_count="$BIGIP_COUNT"
-                          -var admin_password="$INTEGRATION_ADMIN_PASSWORD"
-                          -var root_password="$INTEGRATION_ROOT_PASSWORD"
-                          -var bigip_image="$BIGIP_IMAGE"
-                          -auto-approve
-        - export BIGIPS_ADDRESSES=$(terraform output --json admin_ip | jq -rc .[])
-        - cd -
-        - scripts/dev/build_harness_file.sh > $TEST_HARNESS_FILE
-        - npm ci
-        - node test/integration/setup.js
+      - apk update
+      # Need to add bash, because included sh doen't support arrays
+      # used in build_harness_file.sh script to get IP addresses.
+      - apk add bash npm build-base python3 cmake
+      - if [[ $PROPERTY_TEST == true ]]; then
+      -     export TF_VAR_bigip_count=1
+      - else
+      -     export TF_VAR_bigip_count=3
+      - fi
+      - cd "$TF_ROOT"
+      - terraform init
+      # In case of testing failure, BIGIP will not be destroyed,
+      # so before run we need to clean leftovers from last night.
+      - terraform destroy
+      - terraform apply
+      - export BIGIPS_ADDRESSES=$(terraform output --json admin_ip | jq -rc .[])
+      - export ADMIN_USERNAME=$(terraform output --json admin_username | jq -rc .)
+      - export ADMIN_PASSWORD=$(terraform output --json admin_password | jq -rc .)
+      - cd -
+      - scripts/dev/build_harness_file.sh > $TEST_HARNESS_FILE
+      - npm ci
+      - node test/integration/setup.js
     artifacts:
       when: always
       paths:
-        - ${CI_PROJECT_DIR}/test/env/terraform/plans/openstack/terraform.tfstate*
         - ${TEST_HARNESS_FILE}
       expire_in: 1 day
+    retry:
+      max: 1
+      when: script_failure
 
 deploy_for_this_project:
     rules:
-        - if: '$RUN_INTEGRATION_TEST =~ /true/i'
+      - if: '$RUN_INTEGRATION_TEST =~ /true/i'
+    variables:
+      TF_ROOT: '$TF_DIRECTORY/plans/openstack'
+      TF_VAR_bigip_image: "$BIGIP_IMAGE"
+      TF_VAR_nic_count: "$NIC_COUNT"
+    before_script:
+      - export TRIM_VERSION="$(echo $BIGIP_IMAGE | cut -d '-' -f 2 | tr '.' -)"
+      - export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - export TF_HTTP_LOCK_ADDRESS="$TF_HTTP_ADDRESS/lock"
+      - export TF_HTTP_UNLOCK_ADDRESS=$TF_HTTP_LOCK_ADDRESS
+      - echo using RPM from our pipeline
+      - export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
     <<: *deploy_common
     needs:
-        - job: build_rpm
-          artifacts: true
+      - job: build_rpm
+        artifacts: true
 
 deploy_for_other_project:
     rules:
-        - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
+      - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
+    variables:
+      TF_ROOT: "$TF_DIRECTORY/plans/openstack"
+      TF_VAR_bigip_image: "$BIGIP_IMAGE"
+      TF_VAR_nic_count: "$NIC_COUNT"
+    before_script:
+      - export TRIM_VERSION="$(echo $BIGIP_IMAGE | cut -d '-' -f 2 | tr '.' -)"
+      - export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - export TF_HTTP_LOCK_ADDRESS="$TF_HTTP_ADDRESS/lock"
+      - export TF_HTTP_UNLOCK_ADDRESS=$TF_HTTP_LOCK_ADDRESS
+      - echo using RPM from cross-project pipeline
+      - export RPM_PACKAGE=$(ls ${UPSTREAM_RPM_PATH}/*.rpm)
     <<: *deploy_common
     needs:
         - project: "$UPSTREAM_PROJECT_PATH"
@@ -292,25 +319,27 @@ integration-test:
 teardown:
     image: $INTEGRATION_DEPLOY_IMAGE
     tags:
-        - do-test-docker-executor
+      - do-test-docker-executor
     stage: teardown
     rules:
       - if: '$SKIP_TEARDOWN =~ /true/i'
         when: never
       - if: '$RUN_INTEGRATION_TEST =~ /true/i'
-        when: always
+        when: on_success
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
-        when: always
+        when: on_success
       - when: never
+    before_script:
+      # terraform doesn't support '.' in backend address.
+      - export TRIM_VERSION="$(echo $BIGIP_IMAGE | cut -d '-' -f 2 | tr '.' -)"
+      - export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
     script:
-        - cd test/env/terraform/plans/openstack
-        - terraform init
-        - terraform destroy -var admin_password="$INTEGRATION_ADMIN_PASSWORD"
-                            -var root_password="$INTEGRATION_ROOT_PASSWORD"
-                            -auto-approve
-    artifacts:
-        paths:
-          - ${CI_PROJECT_DIR}/test/env/terraform/plans/openstack/terraform.tfstate*
+      - cd $TF_DIRECTORY/plans/openstack
+      - terraform init
+      - terraform destroy
+    retry:
+      max: 1
+      when: script_failure
 
 # Deploy docs to Pages for review
 # Docs are staged on this projects pages site

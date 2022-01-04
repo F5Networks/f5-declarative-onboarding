@@ -718,7 +718,8 @@
                         "description": "MTU for the management route.",
                         "type": "integer",
                         "minimum": 0,
-                        "maximum": 65535
+                        "maximum": 65535,
+                        "default": 0
                     },
                     "type": {
                         "description": "Type of the management route",
@@ -822,7 +823,8 @@
                     "hostname": {
                         "description": "Hostname to set for the device. Note: If you set the hostname as part of the Common class, you CANNOT set a hostname in the System class (they are mutually exclusive).",
                         "type": "string",
-                        "format": "hostname"
+                        "format": "hostname",
+                        "default": "bigip1"
                     },
                     "consoleInactivityTimeout": {
                         "description": "Configure automatic logout for idle serial console sessions (command line sessions) in seconds. The default value 0 means that no timeout is set.",
@@ -841,19 +843,23 @@
                     },
                     "autoPhonehome": {
                         "description": "Enables the BIG-IP system to send non-confidential, high-level device information to F5 in order to help determine product usage to optimize product development.",
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": true
                     },
                     "autoCheck": {
                         "description": "Enables the BIG-IP system to check for and recommend software updates.",
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": true
                     },
                     "tmshAuditLog": {
                         "description": "Enables audit logging for tmsh.",
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": true
                     },
                     "guiAuditLog": {
                         "description": "Enables audit logging for the GUI. Only available on TMOS v14+",
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": false
                     },
                     "mcpAuditLog": {
                         "description": "Enables audit logging for MCP.",
@@ -863,7 +869,8 @@
                             "enable",
                             "verbose",
                             "all"
-                        ]
+                        ],
+                        "default": "enable"
                     },
                     "preserveOrigDhcpRoutes": {
                         "description": "Determines if DHCP ManagementRoute objects are preserved.",

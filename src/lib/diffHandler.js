@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ const observableDiff = require('deep-diff').observableDiff;
 const applyChange = require('deep-diff').applyChange;
 
 const TraceManager = require('./traceManager');
+const doUtil = require('./doUtil');
 
 class DiffHandler {
     /**
@@ -36,15 +37,6 @@ class DiffHandler {
         this.namelessClasses = namelessClasses.slice();
         this.eventEmitter = eventEmitter;
         this.state = state;
-
-        // Although we may be the source of truth for 'hostname', we do not want
-        // to diff it because hostname is set in 2 different places. Better
-        // to let f5-cloud-libs handle checking it.
-        for (let i = 0; i < this.classesOfTruth.length; i += 1) {
-            if (this.classesOfTruth[i] === 'hostname') {
-                this.classesOfTruth.splice(i, 1);
-            }
-        }
     }
 
     /**
@@ -94,23 +86,23 @@ class DiffHandler {
                 // if these are named objects (vlans, for example) the name is at
                 // index 2
                 const schemaClass = diff.path[1];
-                let objectName;
+                let objectNames;
                 if (this.namelessClasses.indexOf(schemaClass) === -1) {
-                    objectName = diff.path[2];
+                    objectNames = diff.path[2];
                 }
                 // For additions of named classes, the object name will be in the rhs object
-                if (!objectName && diff.rhs) {
-                    objectName = Object.keys(diff.rhs)[0];
+                if (!objectNames && diff.rhs) {
+                    objectNames = Object.keys(diff.rhs);
                 }
 
                 if (updatedClasses.indexOf(schemaClass) === -1) {
                     updatedClasses.push(schemaClass);
                 }
-                if (objectName) {
+                if (objectNames) {
                     if (!updatedNames[schemaClass]) {
                         updatedNames[schemaClass] = [];
                     }
-                    updatedNames[schemaClass].push(objectName);
+                    updatedNames[schemaClass] = updatedNames[schemaClass].concat(objectNames);
                 } else {
                     updatedNames[schemaClass] = [];
                 }
@@ -161,6 +153,8 @@ class DiffHandler {
             }
         });
 
+        cleanDiff(accumulatedDiffs);
+
         const traceManager = new TraceManager(originalDeclaration, this.eventEmitter, this.state);
         return traceManager.traceDiff(accumulatedDiffs)
             .then(() => Promise.resolve(
@@ -170,6 +164,23 @@ class DiffHandler {
                 }
             ));
     }
+}
+
+/**
+ * Removes certain things from the diffs that we don't want to pass along
+ *
+ * @param {Object} diffs - the diffs
+ */
+function cleanDiff(diffs) {
+    const indicesToRemove = [];
+    const pathsToRemove = ['Common.InternalUse'];
+    diffs.forEach((diff, index) => {
+        const path = diff.path.join('.');
+        if (pathsToRemove.find((pathToRemove) => path.startsWith(pathToRemove))) {
+            indicesToRemove.push(index);
+        }
+    });
+    doUtil.removeElementsFromArray(diffs, indicesToRemove);
 }
 
 /**

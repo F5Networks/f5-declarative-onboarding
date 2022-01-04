@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,8 @@ function reactivateSystemLicense() {
                         if (response.status !== 'LICENSING_COMPLETE') {
                             return Promise.reject(new Error(`current status: ${response.status}, expecting LICENSING_COMPLETE`));
                         }
-                        return Promise.resolve();
+                        const licenseText = response.licenseText;
+                        return Promise.resolve(licenseText);
                     });
             };
             const retryOpts = {
@@ -114,6 +115,25 @@ function reactivateSystemLicense() {
         })
         .catch((err) => {
             console.log(`Error re-activating system license: ${err.message}`);
+            throw err;
+        });
+}
+
+function registerSystemLicense(licenseText) {
+    console.log('Registering system license');
+    return Promise.resolve()
+        .then(() => {
+            const reqOpts = {
+                method: 'PUT',
+                path: '/mgmt/tm/shared/licensing/registration'
+            };
+            const body = {
+                licenseText
+            };
+            return sendRequestToBigIq(reqOpts, body);
+        })
+        .catch((err) => {
+            console.log(`Error registering system license: ${err.message}`);
             throw err;
         });
 }
@@ -173,6 +193,7 @@ function reactivatePoolLicenses() {
 function main() {
     return Promise.resolve()
         .then(() => reactivateSystemLicense())
+        .then((licenseText) => registerSystemLicense(licenseText))
         .then(() => reactivatePoolLicenses())
         .then(() => console.log('done'))
         .catch(() => {

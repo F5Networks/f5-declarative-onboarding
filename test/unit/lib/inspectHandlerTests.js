@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1936,7 +1936,7 @@ describe('inspectHandler', () => {
                             servicePolicy: 'servicePolicy',
                             stagedFirewallPolicy: 'fwStagedPolicy',
                             strict: true,
-                            vlans: ['/Common/http-tunnel', '/Common/socks-tunnel', '/Common/internal']
+                            vlans: ['/Common/http-tunnel', '/Common/internal', '/Common/socks-tunnel']
                         },
                         rd1: {
                             bandWidthControllerPolicy: 'bwcPolicy',
@@ -1952,7 +1952,7 @@ describe('inspectHandler', () => {
                             servicePolicy: 'servicePolicy',
                             stagedFirewallPolicy: 'fwStagedPolicy',
                             strict: true,
-                            vlans: ['/Common/http-tunnel', '/Common/socks-tunnel', '/Common/internal']
+                            vlans: ['/Common/http-tunnel', '/Common/internal', '/Common/socks-tunnel']
                         },
                         mySnmpUser: {
                             class: 'SnmpUser',
@@ -2123,7 +2123,8 @@ describe('inspectHandler', () => {
                             autoCheck: true,
                             autoPhonehome: false,
                             tmshAuditLog: true,
-                            guiAuditLog: false
+                            guiAuditLog: false,
+                            preserveOrigDhcpRoutes: true
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',
@@ -2782,7 +2783,8 @@ describe('inspectHandler', () => {
                             },
                             currentSystem: {
                                 class: 'System',
-                                hostname: 'myhost.bigip.com'
+                                hostname: 'myhost.bigip.com',
+                                preserveOrigDhcpRoutes: false
                             },
                             currentHTTPD: {
                                 class: 'HTTPD',

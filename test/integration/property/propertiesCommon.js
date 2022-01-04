@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -750,7 +750,7 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
                         throw new Error(`Unable to find diff in results: ${resultString}`);
                     }
 
-                    assert.deepStrictEqual(diff, [], 'declaration is not idempotent');
+                    assert.deepStrictEqual(diff, [], `declaration ${index} is not idempotent`);
                 });
         });
 }
@@ -818,7 +818,7 @@ function assertClass(targetClass, properties, options) {
                 if (!fullOptions.checkForFail) {
                     const message = (result.result) ? result.result.message : 'Unable to find result message'
                         + `\n${JSON.stringify(result.result, null, 2)}`;
-                    assert.strictEqual(message, 'success', 'declaration did not delete successfully');
+                    assert.strictEqual(message, 'success', `declaration did not delete successfully: ${message}`);
                 }
             })
             .catch((newError) => {

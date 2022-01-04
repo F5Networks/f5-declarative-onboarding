@@ -98,10 +98,11 @@ If `npx` is available on your system, you can run the locally installed version 
         }
     }
 ]
+```
 
 ## Property testing
 * Property tests are run against 1 BIG-IP
 * To run property tests
 ```
-DO_HOST=<ip> DO_PORT=<specific_port_to_use> DO_USERNAME=<admin_username> DO_PASSWORD=<admin_password> INTEGRATION_TEST_PASSWORD=<password_for_test_users> INTEGRATION_ROOT_PASSWORD=<password_for_test_users> BIGIP_IMAGE=<image_name_of_bigip_under_test> npm run property
+DO_HOST=<ip> DO_PORT=<specific_port_to_use> DO_USERNAME=<admin_username> DO_PASSWORD=<admin_password> BIGIP_IMAGE=<image_name_of_bigip_under_test> npm run property
 ```
