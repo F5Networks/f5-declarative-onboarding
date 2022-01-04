@@ -271,8 +271,8 @@ function getDesiredMgmtRouteDhcpSetting(currentMgmtDhcpSetting) {
         const hasRoutes = names.some((name) => typeof this.declaration.Common.ManagementRoute[name].name !== 'undefined');
 
         if (hasRoutes) {
-            if (this.declaration.Common.InternalUse.System
-                && typeof this.declaration.Common.InternalUse.System.preserveOrigDhcpRoutes !== 'undefined') {
+            const preserveOrigDhcpRoutes = doUtil.getDeepValue(this.declaration.Common, 'InternalUse.System');
+            if (typeof preserveOrigDhcpRoutes !== 'undefined') {
                 desiredMgmtDhcp = this.declaration.Common.InternalUse.System.preserveOrigDhcpRoutes ? 'enabled' : 'disabled';
             } else {
                 desiredMgmtDhcp = 'disabled';

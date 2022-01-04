@@ -1090,17 +1090,17 @@ describe('declarationHandler', () => {
                             '/Partition/folder/vlan',
                             '/Common/vlan',
                             '/Common/folder/vlan',
-                            'vlan1',
+                            '/Common/vlan1',
                             '/Common/vlan2',
-                            'vlan5',
-                            'vlan6'
+                            '/Common/vlan5',
+                            '/Common/vlan6'
                         ].sort());
                         assert.deepStrictEqual(routeDomain.rd1.vlans, [
                             '/Common/socks-tunnel',
                             '/Partition1/vlan',
                             '/Partition1/folder/vlan',
                             '/Common/folder/vlan2',
-                            'vlan3',
+                            '/Common/vlan3',
                             '/Common/vlan4',
                             '/Common/rd1Vlan'
                         ].sort());
