@@ -131,8 +131,11 @@ describe('sshUtil', () => {
     it('should handle stderr errors', () => {
         stdErrorData = 'this is my error';
         sshUtil = new SshUtil();
-        return assert.isRejected(sshUtil.executeCommand(),
-            'ssh got error on stderr: this is my error', 'executeCommand should have rejected');
+        return assert.isRejected(
+            sshUtil.executeCommand(),
+            'ssh got error on stderr: this is my error',
+            'executeCommand should have rejected'
+        );
     });
 
     it('should send stdout response', () => {
@@ -146,13 +149,19 @@ describe('sshUtil', () => {
     it('should handle child process errors', () => {
         errorData = 'this is my error';
         sshUtil = new SshUtil();
-        return assert.isRejected(sshUtil.executeCommand(),
-            'ssh received error: this is my error', 'executeCommand should have rejected');
+        return assert.isRejected(
+            sshUtil.executeCommand(),
+            'ssh received error: this is my error',
+            'executeCommand should have rejected'
+        );
     });
 
     it('should handle non-zero exit codes', () => {
         exitCode = 123;
-        return assert.isRejected(sshUtil.executeCommand(),
-            'ssh failed with code 123', 'executeCommand should have rejected');
+        return assert.isRejected(
+            sshUtil.executeCommand(),
+            'ssh failed with code 123',
+            'executeCommand should have rejected'
+        );
     });
 });

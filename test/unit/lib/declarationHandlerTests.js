@@ -477,20 +477,41 @@ describe('declarationHandler', () => {
             return declarationHandler.process(newDeclaration, state)
                 .then(() => {
                     // Check that each class was called
-                    assert.strictEqual(isAddClassCountCalled.calledOnce, true,
-                        'should call addClassCount() once');
-                    assert.strictEqual(isAddPlatformInfoCalled.calledOnce, true,
-                        'should call addPlatformInfo() once');
-                    assert.strictEqual(isAddRegKeyCalled.calledOnce, true,
-                        'should call addRegKey() once');
-                    assert.strictEqual(isAddProvisionedModulesCalled.calledOnce, true,
-                        'should call addProvisionedModules() once');
-                    assert.strictEqual(isCalculateAssetIdCalled.calledOnce, true,
-                        'should call calculateAssetId() once');
-                    assert.strictEqual(isAddJsonObjectCalled.calledOnce, true,
-                        'should call addJsonObject() once');
-                    assert.strictEqual(isReportCalled.called, false,
-                        'report() should not have been called');
+                    assert.strictEqual(
+                        isAddClassCountCalled.calledOnce,
+                        true,
+                        'should call addClassCount() once'
+                    );
+                    assert.strictEqual(
+                        isAddPlatformInfoCalled.calledOnce,
+                        true,
+                        'should call addPlatformInfo() once'
+                    );
+                    assert.strictEqual(
+                        isAddRegKeyCalled.calledOnce,
+                        true,
+                        'should call addRegKey() once'
+                    );
+                    assert.strictEqual(
+                        isAddProvisionedModulesCalled.calledOnce,
+                        true,
+                        'should call addProvisionedModules() once'
+                    );
+                    assert.strictEqual(
+                        isCalculateAssetIdCalled.calledOnce,
+                        true,
+                        'should call calculateAssetId() once'
+                    );
+                    assert.strictEqual(
+                        isAddJsonObjectCalled.calledOnce,
+                        true,
+                        'should call addJsonObject() once'
+                    );
+                    assert.strictEqual(
+                        isReportCalled.called,
+                        false,
+                        'report() should not have been called'
+                    );
 
                     // Check that the record body object was filled with input
                     assert.deepStrictEqual(

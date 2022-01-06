@@ -1119,8 +1119,11 @@ describe('systemHandler', () => {
         };
 
         const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
-        return assert.isRejected(systemHandler.process(),
-            'Error licensing: failed to license device', 'should have rejected');
+        return assert.isRejected(
+            systemHandler.process(),
+            'Error licensing: failed to license device',
+            'should have rejected'
+        );
     });
 
     it('should handle license pool licenses with unreachable BIG-IP', () => {

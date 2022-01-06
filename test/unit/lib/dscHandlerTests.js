@@ -645,8 +645,7 @@ describe('dscHandler', () => {
             const dscHandler = new DscHandler(declaration, bigIpMock);
             return dscHandler.process()
                 .then(() => {
-                    assert.strictEqual(removeFromDeviceGroupCalled, false,
-                        'Should not call removeFromDeviceGroup');
+                    assert.strictEqual(removeFromDeviceGroupCalled, false, 'Should not call removeFromDeviceGroup');
                 });
         });
 
@@ -668,12 +667,21 @@ describe('dscHandler', () => {
                 .then(() => {
                     assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
                     assert.deepEqual(devicesSent, ['device1']);
-                    assert.strictEqual(removeFromDeviceGroupCalled, true,
-                        'Should call removeFromDeviceGroup');
-                    assert.deepStrictEqual(removeDeviceNames, [['remove.example.com']],
-                        'Should remove old device');
-                    assert.deepStrictEqual(removeDeviceGroup, ['failoverGroup'],
-                        'Should remove old device from device group');
+                    assert.strictEqual(
+                        removeFromDeviceGroupCalled,
+                        true,
+                        'Should call removeFromDeviceGroup'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceNames,
+                        [['remove.example.com']],
+                        'Should remove old device'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceGroup,
+                        ['failoverGroup'],
+                        'Should remove old device from device group'
+                    );
                     assert.strictEqual(syncCalled, true);
                     assert.strictEqual(syncCompleteCalled, true);
                     assert.deepStrictEqual(syncCompleteConnectedDevices,
@@ -702,12 +710,21 @@ describe('dscHandler', () => {
                 .then(() => {
                     assert.strictEqual(deviceGroupNameSent, 'failoverGroup');
                     assert.deepEqual(devicesSent, ['device1']);
-                    assert.strictEqual(removeFromDeviceGroupCalled, true,
-                        'Should call removeFromDeviceGroup');
-                    assert.deepStrictEqual(removeDeviceNames, [['remove.example.com']],
-                        'Should remove old device');
-                    assert.deepStrictEqual(removeDeviceGroup, ['failoverGroup'],
-                        'Should remove old device from device group');
+                    assert.strictEqual(
+                        removeFromDeviceGroupCalled,
+                        true,
+                        'Should call removeFromDeviceGroup'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceNames,
+                        [['remove.example.com']],
+                        'Should remove old device'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceGroup,
+                        ['failoverGroup'],
+                        'Should remove old device from device group'
+                    );
                     assert.strictEqual(syncCalled, true);
                     assert.strictEqual(syncCompleteCalled, true);
                     assert.deepStrictEqual(syncCompleteConnectedDevices,
@@ -735,8 +752,11 @@ describe('dscHandler', () => {
             const dscHandler = new DscHandler(declaration, bigIpMock);
             return dscHandler.process()
                 .then(() => {
-                    assert.strictEqual(removeFromDeviceGroupCalled, false,
-                        'Should not call removeFromDeviceGroup');
+                    assert.strictEqual(
+                        removeFromDeviceGroupCalled,
+                        false,
+                        'Should not call removeFromDeviceGroup'
+                    );
                     assert.strictEqual(syncCalled, false);
                 });
         });
@@ -808,12 +828,21 @@ describe('dscHandler', () => {
                 .then(() => {
                     assert.deepStrictEqual(addToDeviceGroupNameSent, ['failoverGroup']);
                     assert.strictEqual(joinClusterCalled, true);
-                    assert.strictEqual(removeFromDeviceGroupCalled, true,
-                        'Should call removeFromDeviceGroup');
-                    assert.deepStrictEqual(removeDeviceNames, [['remove.example.com']],
-                        'Should remove old device');
-                    assert.deepStrictEqual(removeDeviceGroup, ['failoverGroup'],
-                        'Should remove old device from device group');
+                    assert.strictEqual(
+                        removeFromDeviceGroupCalled,
+                        true,
+                        'Should call removeFromDeviceGroup'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceNames,
+                        [['remove.example.com']],
+                        'Should remove old device'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceGroup,
+                        ['failoverGroup'],
+                        'Should remove old device from device group'
+                    );
                 });
         });
 
@@ -864,14 +893,25 @@ describe('dscHandler', () => {
                 .then(() => {
                     assert.deepStrictEqual(addToDeviceGroupNameSent, ['failoverGroup']);
                     assert.strictEqual(joinClusterCalled, true);
-                    assert.strictEqual(removeFromDeviceGroupCalled, true,
-                        'Should call removeFromDeviceGroup');
-                    assert.deepStrictEqual(removeDeviceNames, [['bigip2.example.com',
-                        'remove.example.com']], 'Should remove old device');
-                    assert.deepStrictEqual(removeDeviceGroup, ['failoverGroup'],
-                        'Should remove old device from device group');
-                    assert.deepStrictEqual(joinClusterMembers,
-                        [['do.test.1', 'do.test.2', 'bigip1.example.com']]);
+                    assert.strictEqual(
+                        removeFromDeviceGroupCalled,
+                        true,
+                        'Should call removeFromDeviceGroup'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceNames,
+                        [['bigip2.example.com', 'remove.example.com']],
+                        'Should remove old device'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceGroup,
+                        ['failoverGroup'],
+                        'Should remove old device from device group'
+                    );
+                    assert.deepStrictEqual(
+                        joinClusterMembers,
+                        [['do.test.1', 'do.test.2', 'bigip1.example.com']]
+                    );
                 });
         });
 
@@ -942,12 +982,21 @@ describe('dscHandler', () => {
                 .then(() => {
                     assert.deepStrictEqual(addToDeviceGroupNameSent, ['failoverGroup']);
                     assert.strictEqual(joinClusterCalled, false);
-                    assert.strictEqual(removeFromDeviceGroupCalled, true,
-                        'Should call removeFromDeviceGroup');
-                    assert.deepStrictEqual(removeDeviceNames, [['remove.example.com']],
-                        'Should remove old device');
-                    assert.deepStrictEqual(removeDeviceGroup, ['failoverGroup'],
-                        'Should remove old device from device group');
+                    assert.strictEqual(
+                        removeFromDeviceGroupCalled,
+                        true,
+                        'Should call removeFromDeviceGroup'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceNames,
+                        [['remove.example.com']],
+                        'Should remove old device'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceGroup,
+                        ['failoverGroup'],
+                        'Should remove old device from device group'
+                    );
                 });
         });
 
@@ -1045,16 +1094,32 @@ describe('dscHandler', () => {
                     assert.deepStrictEqual(addToDeviceGroupNameSent,
                         ['failoverGroup', 'otherGroup', 'finalGroup']);
                     assert.strictEqual(joinClusterCalled, true);
-                    assert.strictEqual(removeFromDeviceGroupCalled, true,
-                        'Should call removeFromDeviceGroup');
-                    assert.deepStrictEqual(removeDeviceNames, [
-                        ['bigip2.example.com', 'remove.example.com'],
-                        ['bigip1.example.com', 'bigip2.example.com', 'remove.example.com']
-                    ], 'Should remove old device');
-                    assert.deepStrictEqual(removeDeviceGroup, ['failoverGroup', 'otherGroup'],
-                        'Should remove old device from device group');
-                    assert.deepStrictEqual(joinClusterMembers,
-                        [['do.test.1', 'do.test.2', 'bigip1.example.com'], ['do.test.2', 'do.test.3'], []]);
+                    assert.strictEqual(
+                        removeFromDeviceGroupCalled,
+                        true,
+                        'Should call removeFromDeviceGroup'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceNames,
+                        [
+                            ['bigip2.example.com', 'remove.example.com'],
+                            ['bigip1.example.com', 'bigip2.example.com', 'remove.example.com']
+                        ],
+                        'Should remove old device'
+                    );
+                    assert.deepStrictEqual(
+                        removeDeviceGroup,
+                        ['failoverGroup', 'otherGroup'],
+                        'Should remove old device from device group'
+                    );
+                    assert.deepStrictEqual(
+                        joinClusterMembers,
+                        [
+                            ['do.test.1', 'do.test.2', 'bigip1.example.com'],
+                            ['do.test.2', 'do.test.3'],
+                            []
+                        ]
+                    );
                 });
         });
 

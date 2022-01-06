@@ -27,7 +27,7 @@
 const path = require('path');
 const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 
-const MASK_REGEX_REGKEY = new RegExp('[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{7}', 'i');
+const MASK_REGEX_REGKEY = /[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{7}/i;
 
 let f5Logger;
 try {

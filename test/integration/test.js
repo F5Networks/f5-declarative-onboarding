@@ -82,11 +82,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 })
                 .then(() => common.testRequest(
                     body,
-                    `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`, bigIpAuth,
-                    constants.HTTP_ACCEPTED, 'POST'
+                    `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`,
+                    bigIpAuth,
+                    constants.HTTP_ACCEPTED,
+                    'POST'
                 ))
-                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                    constants.HTTP_SUCCESS))
+                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS))
                 .then((response) => {
                     currentState = response.currentConfig.Common;
                 })
@@ -254,11 +255,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 })
                 .then(() => common.testRequest(
                     body,
-                    `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`, bigIpAuth,
-                    constants.HTTP_ACCEPTED, 'POST'
+                    `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`,
+                    bigIpAuth,
+                    constants.HTTP_ACCEPTED,
+                    'POST'
                 ))
-                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                    constants.HTTP_SUCCESS))
+                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS))
                 .then((response) => {
                     result = response.result;
                     currentState = response.currentConfig.Common;
@@ -291,8 +293,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 })
                 .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
                     + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                    constants.HTTP_SUCCESS))
+                .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS))
                 .then((response) => {
                     currentState = response.currentConfig.Common;
                 })
@@ -637,8 +638,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 })
                 .then((body) => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
                     + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                .then(() => common.testGetStatus(20, 60 * 1000, bigIpAddress, bigIpAuth,
-                    constants.HTTP_SUCCESS))
+                .then(() => common.testGetStatus(20, 60 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS))
                 .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
@@ -673,8 +673,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 })
                 .then((body) => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
                     + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                .then(() => common.testGetStatus(20, 60 * 1000, bigIpAddress,
-                    bigIpAuth, constants.HTTP_SUCCESS))
+                .then(() => common.testGetStatus(20, 60 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS))
                 .then(() => getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth))
                 .then((auditLink) => {
                     logger.info(`auditLink: ${auditLink}`);
@@ -699,8 +698,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     })
                     .then(() => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
                         + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
-                    .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth,
-                        constants.HTTP_SUCCESS))
+                    .then(() => common.testGetStatus(60, 30 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS))
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                     })
@@ -858,11 +856,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     })
                     .then(() => common.testRequest(
                         body,
-                        `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`, bigIpAuth,
-                        constants.HTTP_ACCEPTED, 'POST'
+                        `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`,
+                        bigIpAuth,
+                        constants.HTTP_ACCEPTED,
+                        'POST'
                     ))
-                    .then(() => common.testGetStatus(60, 15 * 1000, bigIpAddress, bigIpAuth,
-                        constants.HTTP_SUCCESS))
+                    .then(() => common.testGetStatus(60, 15 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS))
                     .then((response) => {
                         currentState = response.currentConfig.Common;
                     })
@@ -1085,7 +1084,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     trials: 100,
                     timeInterval: 1000
                 };
-                return new Promise((resolve, reject) => getF5Token(bigIqAddress, bigIqAuth)
+                return Promise.resolve()
+                    .then(() => getF5Token(bigIqAddress, bigIqAuth))
                     .then((token) => {
                         logger.debug(`oldAuditLink: ${oldAuditLink}`);
                         logger.debug(`token: ${token}`);
@@ -1094,7 +1094,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     })
                     .then((response) => {
                         if (response.response.statusCode !== constants.HTTP_SUCCESS) {
-                            reject(new Error('could not check revoking'));
+                            throw new Error('could not check revoking');
                         }
                         return response.body;
                     })
@@ -1102,16 +1102,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     .then((assignment) => {
                         assert.strictEqual(assignment.status, 'REVOKED');
                     })
-                    .then(() => {
-                        resolve();
-                    })
-                    .catch((error) => logError(error, bigIpAddress, bigIpAuth))
-                    .catch((err) => {
-                        reject(err);
-                    }));
+                    .catch((error) => logError(error, bigIpAddress, bigIpAuth));
             });
 
-            it('cleanup by revoking new license', () => new Promise((resolve, reject) => {
+            it('cleanup by revoking new license', () => Promise.resolve().then(() => {
                 logTestTitle(this.ctx.test.title);
                 let body;
                 const bodyFileRevoking = `${BODIES}/revoke_from_bigiq.json`;
@@ -1132,13 +1126,15 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         const options = common.buildBody(
                             `${common.hostname(bigIqAddress, constants.PORT)}`
                             + `${constants.ICONTROL_API}/cm/device/tasks/licensing/pool/member-management`,
-                            body, { token }, 'POST'
+                            body,
+                            { token },
+                            'POST'
                         );
                         return common.sendRequest(options, retryOptions);
                     })
                     .then((response) => {
                         if (response.response.statusCode !== constants.HTTP_ACCEPTED) {
-                            reject(new Error('could not request to revoke license'));
+                            throw new Error('could not request to revoke license');
                         }
                         return response.body;
                     })
@@ -1150,10 +1146,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     .then(() => {
                         const func = function () {
                             logger.debug('In retry func');
-                            return new Promise((resolveThis, rejectThis) => getF5Token(bigIqAddress, bigIqAuth)
+                            return Promise.resolve()
+                                .then(() => getF5Token(bigIqAddress, bigIqAuth))
                                 .then((token) => {
-                                    const options = common.buildBody(newAuditLink, null,
-                                        { token }, 'GET');
+                                    const options = common.buildBody(newAuditLink, null, { token }, 'GET');
                                     return common.sendRequest(options, retryOptions);
                                 })
                                 .then((response) => {
@@ -1163,30 +1159,23 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                         logger.debug(`Looking for REVOKED. Got ${JSON.parse(response.body).status}`);
                                         if (JSON.parse(response.body).status === 'REVOKED') {
                                             logger.debug('resolving retry func');
-                                            resolveThis();
-                                        } else {
-                                            logger.debug('rejecting retry func for status');
-                                            rejectThis(new Error(JSON.parse(response.body).status));
+                                            return Promise.resolve();
                                         }
+                                        logger.debug('rejecting retry func for status');
+                                        throw new Error(JSON.parse(response.body).status);
                                     } else {
                                         logger.debug('rejecting retry func for status code');
-                                        rejectThis(new Error(response.response.statusCode));
+                                        throw new Error(response.response.statusCode);
                                     }
                                 })
                                 .catch((err) => {
                                     logger.debug(`Retry func caught ${err.message}`);
-                                    rejectThis(new Error(err));
-                                }));
+                                    throw err;
+                                });
                         };
                         return common.tryOften(func, 10, 30 * 1000, [constants.HTTP_ACCEPTED, 'GRANTED'], true);
                     })
-                    .then(() => {
-                        resolve();
-                    })
-                    .catch((error) => logError(error, bigIpAddress, bigIpAuth))
-                    .catch((err) => {
-                        reject(err);
-                    });
+                    .catch((error) => logError(error, bigIpAddress, bigIpAuth));
             }));
         });
     });
@@ -1217,10 +1206,12 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     const bodyRequest = JSON.parse(fileRead);
                     return common.testRequest(bodyRequest,
                         `${common.hostname(bigIpAddress, constants.PORT)}`
-                        + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST');
+                        + `${constants.DO_API}`,
+                        bigIpAuth,
+                        constants.HTTP_ACCEPTED,
+                        'POST');
                 })
-                .then(() => common.testGetStatus(3, 60 * 1000, bigIpAddress, bigIpAuth,
-                    constants.HTTP_SUCCESS, query))
+                .then(() => common.testGetStatus(3, 60 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS, query))
                 .then((response) => {
                     currentState = response.currentConfig.Common;
                 })
@@ -1286,8 +1277,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         it('should get declaration with current device\'s configuration', () => {
             logTestTitle(this.ctx.test.title);
             return common.testRequest(
-                null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
-                authData, constants.HTTP_SUCCESS, 'GET'
+                null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`, authData, constants.HTTP_SUCCESS, 'GET'
             )
                 .then(JSON.parse)
                 .then((body) => {
@@ -1301,8 +1291,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             let originDeclaration;
 
             return common.testRequest(
-                null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
-                authData, constants.HTTP_SUCCESS, 'GET'
+                null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`, authData, constants.HTTP_SUCCESS, 'GET'
             )
                 .then(JSON.parse)
                 .then((body) => {
@@ -1311,16 +1300,13 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     assert.notStrictEqual(originDeclaration, undefined, 'Should have "declaration" property');
                     // apply declaration
                     return common.testRequest(
-                        originDeclaration, `${common.hostname(thisMachine.ip, constants.PORT)}${constants.DO_API}`,
-                        authData, constants.HTTP_ACCEPTED, 'POST'
+                        originDeclaration, `${common.hostname(thisMachine.ip, constants.PORT)}${constants.DO_API}`, authData, constants.HTTP_ACCEPTED, 'POST'
                     );
                 })
-                .then(() => common.testGetStatus(60, 30 * 1000, thisMachine.ip, authData,
-                    constants.HTTP_SUCCESS))
+                .then(() => common.testGetStatus(60, 30 * 1000, thisMachine.ip, authData, constants.HTTP_SUCCESS))
                 // fetch declaration again
                 .then(() => common.testRequest(
-                    null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`,
-                    authData, constants.HTTP_SUCCESS, 'GET'
+                    null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`, authData, constants.HTTP_SUCCESS, 'GET'
                 ))
                 .then(JSON.parse)
                 .then((body) => {
@@ -1385,28 +1371,24 @@ function logError(error, bigIpAddress, bigIpAuth) {
  * @auth {Object} : authorization body to retrieve token (username/password)
 */
 function getF5Token(deviceIp, auth) {
-    return new Promise((resolve, reject) => {
-        const options = common.buildBody(`${common.hostname(deviceIp, constants.PORT)}`
-            + `${constants.ICONTROL_API}/shared/authn/login`, auth, auth, 'POST');
-        const retryOptions = {
-            trials: 100,
-            timeInterval: 1000
-        };
-        return common.sendRequest(options, retryOptions)
-            .then((response) => {
-                if (response.response.statusCode !== constants.HTTP_SUCCESS) {
-                    reject(new Error('could not get token'));
-                }
-                return response.body;
-            })
-            .then(JSON.parse)
-            .then((response) => {
-                resolve(response.token.token);
-            })
-            .catch((error) => {
-                reject(error);
-            });
-    });
+    return Promise.resolve()
+        .then(() => {
+            const options = common.buildBody(`${common.hostname(deviceIp, constants.PORT)}`
+                + `${constants.ICONTROL_API}/shared/authn/login`, auth, auth, 'POST');
+            const retryOptions = {
+                trials: 100,
+                timeInterval: 1000
+            };
+            return common.sendRequest(options, retryOptions);
+        })
+        .then((response) => {
+            if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+                throw new Error('could not get token');
+            }
+            return response.body;
+        })
+        .then(JSON.parse)
+        .then((response) => Promise.resolve(response.token.token));
 }
 
 /**

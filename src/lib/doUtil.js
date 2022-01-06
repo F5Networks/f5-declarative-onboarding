@@ -354,8 +354,6 @@ module.exports = {
                         masked[key][index] = this.mask(item);
                     }
                 });
-            } else if (MASK_REGEX.test(key)) {
-                delete masked[key];
             }
         });
 

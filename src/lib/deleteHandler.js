@@ -242,7 +242,9 @@ function getAuthClassPromises() {
                     if (shouldDelete) {
                         return this.bigIp.delete(
                             `${path}/~Common~${name}`,
-                            null, null, cloudUtil.NO_RETRY
+                            null,
+                            null,
+                            cloudUtil.NO_RETRY
                         );
                     }
                     return Promise.resolve();
@@ -262,7 +264,9 @@ function getAuthClassPromises() {
                     if (shouldDelete) {
                         return this.bigIp.delete(
                             `/tm/auth/${authItem}/${AUTH.SUBCLASSES_NAME}`,
-                            null, null, cloudUtil.NO_RETRY
+                            null,
+                            null,
+                            cloudUtil.NO_RETRY
                         );
                     }
                     return Promise.resolve();
@@ -284,7 +288,9 @@ function getAuthClassPromises() {
                                 if (shouldDelete) {
                                     return this.bigIp.delete(
                                         `${PATHS.AuthRadiusServer}/~Common~${server}`,
-                                        null, null, cloudUtil.NO_RETRY
+                                        null,
+                                        null,
+                                        cloudUtil.NO_RETRY
                                     );
                                 }
                                 return Promise.resolve();

@@ -648,8 +648,12 @@ class ConfigManager {
                     tunnels.forEach((name) => {
                         if (currentTunnels[`${name}_vxlan`]) {
                             // This will add VXLAN properties to a Tunnel object for later diffing
-                            patchVxlanTunnels.call(this, currentTunnels[name],
-                                currentTunnels[`${name}_vxlan`], configOptions.translateToNewId);
+                            patchVxlanTunnels.call(
+                                this,
+                                currentTunnels[name],
+                                currentTunnels[`${name}_vxlan`],
+                                configOptions.translateToNewId
+                            );
                         } else if (currentTunnels[name].encapsulationType) {
                             // encapsulationType is unique to VXLAN profiles, so we can use it to
                             // identify a VXLAN profile from a Tunnel. We need to remove the VXLAN
