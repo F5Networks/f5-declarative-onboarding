@@ -776,6 +776,10 @@ function handleManagementIp(mgmtDhcp) {
                     const currentAddress = getCurrentManagementAddress(
                         this.state.currentConfig.Common.ManagementIp
                     );
+                    const currentDescription = getCurrentManagementDescription(
+                        this.state.currentConfig.Common.ManagementIp,
+                        currentAddress
+                    );
                     // In case of ManagementIP in declaration is the same as one in current state,
                     // don't create and proceed.
                     if (mgmtDhcp === 'disabled' && currentAddress !== address) {
@@ -783,6 +787,17 @@ function handleManagementIp(mgmtDhcp) {
                             PATHS.ManagementIp,
                             {
                                 name: address,
+                                description: mgmtIpInfo.description
+                            }
+                        );
+                    }
+                    // If it is just a description change...
+                    if (mgmtDhcp === 'disabled'
+                        && mgmtIpInfo.description
+                        && currentDescription !== mgmtIpInfo.description) {
+                        return this.bigIp.modify(
+                            `${PATHS.ManagementIp}/${address.replace('/', '~')}`,
+                            {
                                 description: mgmtIpInfo.description
                             }
                         );
@@ -1473,6 +1488,10 @@ function areFilesDifferent(fileA, fileB) {
 
 function getCurrentManagementAddress(managementIpInfo) {
     return Object.keys(managementIpInfo)[0];
+}
+
+function getCurrentManagementDescription(managementIpInfo, address) {
+    return managementIpInfo[address].description;
 }
 
 function isMaskChangeOnly(oldAddress, newAddress) {

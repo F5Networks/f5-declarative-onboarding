@@ -1537,6 +1537,88 @@ describe('systemHandler', () => {
                 });
         });
 
+        it('should update ManagementIp when just the address changes', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'this is my description'
+                        }
+                    }
+                }
+            };
+
+            state.currentConfig.Common.ManagementIp = {
+                '4.5.6.7/8': {
+                    name: '4.5.6.7/8',
+                    description: 'this is my description'
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const managementIpData = dataSent[PATHS.ManagementIp][0];
+                    const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
+                    assert.deepStrictEqual(
+                        managementIpData,
+                        {
+                            name: '1.2.3.4/5',
+                            description: 'this is my description'
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        mgmtDhcpData,
+                        {
+                            mgmtDhcp: 'disabled'
+                        }
+                    );
+                    assert.strictEqual(hostSet, '1.2.3.4');
+                });
+        });
+
+        it('should update ManagementIp when just the description changes', () => {
+            const declaration = {
+                Common: {
+                    ManagementIp: {
+                        '1.2.3.4/5': {
+                            name: '1.2.3.4/5',
+                            description: 'this is new'
+                        }
+                    }
+                }
+            };
+
+            state.currentConfig.Common.ManagementIp = {
+                '1.2.3.4/5': {
+                    name: '1.2.3.4/5',
+                    description: 'this is my description'
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const expectedPath = `${PATHS.ManagementIp}/1.2.3.4~5`;
+                    const managementIpData = dataSent[expectedPath][0];
+                    const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
+                    assert.deepStrictEqual(
+                        managementIpData,
+                        {
+                            description: 'this is new'
+                        }
+                    );
+                    assert.deepStrictEqual(
+                        mgmtDhcpData,
+                        {
+                            mgmtDhcp: 'disabled'
+                        }
+                    );
+                    assert.strictEqual(hostSet, '1.2.3.4');
+                });
+        });
+
         it('should not set host if using localhost', () => {
             const declaration = {
                 Common: {
@@ -1664,7 +1746,7 @@ describe('systemHandler', () => {
                     ManagementIp: {
                         '4.5.6.7/8': {
                             name: '4.5.6.7/8',
-                            description: 'configured statically'
+                            description: 'configured-by-dhcp'
                         }
                     }
                 }
