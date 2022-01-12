@@ -108,8 +108,13 @@ class RestWorker {
                 .then((platform) => {
                     if (platform === PRODUCTS.BIGIP) {
                         logger.debug('Prepping for reboot and resume');
-                        return prepForRebootResumeOrRevoke.call(this, taskId, STATUS.STATUS_REVOKING,
-                            bigIpPassword, bigIqPassword);
+                        return prepForRebootResumeOrRevoke.call(
+                            this,
+                            taskId,
+                            STATUS.STATUS_REVOKING,
+                            bigIpPassword,
+                            bigIqPassword
+                        );
                     }
                     return Promise.resolve();
                 })
@@ -360,8 +365,13 @@ class RestWorker {
                                     })
                                     .then(() => {
                                         logger.fine('Onboard complete.');
-                                        postWebhook.call(this, reqOpts, ENDPOINTS.TASK, taskId,
-                                            declaration.webhook);
+                                        postWebhook.call(
+                                            this,
+                                            reqOpts,
+                                            ENDPOINTS.TASK,
+                                            taskId,
+                                            declaration.webhook
+                                        );
                                     });
                             }
                         })

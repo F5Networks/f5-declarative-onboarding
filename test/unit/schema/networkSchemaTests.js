@@ -919,7 +919,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if regex is not provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should have required property \'regex\''), -1,
+                    getErrorString().indexOf('should have required property \'regex\''),
+                    -1,
                     `Errored but not because of the missing regex:\n${getErrorString()}`
                 );
             });
@@ -931,7 +932,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if name is not provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should have required property \'name\''), -1,
+                    getErrorString().indexOf('should have required property \'name\''),
+                    -1,
                     `Errored but not because of the missing name:\n${getErrorString()}`
                 );
             });
@@ -1274,7 +1276,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    getErrorString().indexOf('should NOT have additional properties'),
+                    -1,
                     `Errored but not because of additional properties:\n${getErrorString()}`
                 );
             });
@@ -1292,7 +1295,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    getErrorString().indexOf('should NOT have additional properties'),
+                    -1,
                     `Errored but not because of additional properties:\n${getErrorString()}`
                 );
             });
@@ -1315,7 +1319,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    getErrorString().indexOf('should NOT have additional properties'),
+                    -1,
                     `Errored but not because of additional properties:\n${getErrorString()}`
                 );
             });
@@ -1333,7 +1338,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail due to invalid internetProtocol');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should be equal to one of the allowed values'), -1,
+                    getErrorString().indexOf('should be equal to one of the allowed values'),
+                    -1,
                     `Errored but not because of invalid internetProtocol:\n${getErrorString()}`
                 );
             });
@@ -1356,7 +1362,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail due to invalid routingProtocol');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should be equal to one of the allowed values'), -1,
+                    getErrorString().indexOf('should be equal to one of the allowed values'),
+                    -1,
                     `Errored but not because of invalid routingProtocol:\n${getErrorString()}`
                 );
             });
@@ -1372,7 +1379,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    getErrorString().indexOf('should NOT have additional properties'),
+                    -1,
                     `Errored but not because of additional properties in gracefulRestart object:\n${getErrorString()}`
                 );
             });
@@ -1390,7 +1398,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    getErrorString().indexOf('should NOT have additional properties'),
+                    -1,
                     `Errored but not because of additional properties in neighbors object:\n${getErrorString()}`
                 );
             });
@@ -1408,7 +1417,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    getErrorString().indexOf('should NOT have additional properties'),
+                    -1,
                     `Errored but not because of additional properties in peerGroups object:\n${getErrorString()}`
                 );
             });
@@ -1431,7 +1441,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    getErrorString().indexOf('should NOT have additional properties'),
+                    -1,
                     `Errored but not because of additional properties in peerGroups object:\n${getErrorString()}`
                 );
             });
@@ -1457,7 +1468,8 @@ describe('network.schema.json', () => {
 
                 assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should NOT have additional properties'), -1,
+                    getErrorString().indexOf('should NOT have additional properties'),
+                    -1,
                     `Errored but not because of additional properties in peerGroups object:\n${getErrorString()}`
                 );
             });
@@ -1702,7 +1714,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if name is not provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should have required property \'name\''), -1,
+                    getErrorString().indexOf('should have required property \'name\''),
+                    -1,
                     `Errored but not because of the missing name:\n${getErrorString()}`
                 );
             });
@@ -1729,7 +1742,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if action is not provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should have required property \'action\''), -1,
+                    getErrorString().indexOf('should have required property \'action\''),
+                    -1,
                     `Errored but not because of the missing action:\n${getErrorString()}`
                 );
             });
@@ -1815,7 +1829,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if name is not provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should have required property \'name\''), -1,
+                    getErrorString().indexOf('should have required property \'name\''),
+                    -1,
                     `Errored but not because of the missing name:\n${getErrorString()}`
                 );
             });
@@ -1831,7 +1846,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if action is not provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should have required property \'action\''), -1,
+                    getErrorString().indexOf('should have required property \'action\''),
+                    -1,
                     `Errored but not because of the missing action:\n${getErrorString()}`
                 );
             });
@@ -1959,7 +1975,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if name is not provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should have required property \'name\''), -1,
+                    getErrorString().indexOf('should have required property \'name\''),
+                    -1,
                     `Errored but not because of the missing name:\n${getErrorString()}`
                 );
             });
@@ -1977,7 +1994,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if action is not provided');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should have required property \'action\''), -1,
+                    getErrorString().indexOf('should have required property \'action\''),
+                    -1,
                     `Errored but not because of the missing action:\n${getErrorString()}`
                 );
             });
@@ -1996,7 +2014,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if length is missing from prefix');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should match format \\"ipWithRequiredPrefix\\"'), -1,
+                    getErrorString().indexOf('should match format \\"ipWithRequiredPrefix\\"'),
+                    -1,
                     `Errored but not because of the missing prefix length:\n${getErrorString()}`
                 );
             });
@@ -2015,7 +2034,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if prefix is missing a length');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should match format \\"ipWithRequiredPrefix\\"'), -1,
+                    getErrorString().indexOf('should match format \\"ipWithRequiredPrefix\\"'),
+                    -1,
                     `Errored but not because prefix is missing length:\n${getErrorString()}`
                 );
             });
@@ -2034,7 +2054,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if prefixLengthRange contains a letter');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should match pattern \\"^\\\\d*:?\\\\d*$\\"'), -1,
+                    getErrorString().indexOf('should match pattern \\"^\\\\d*:?\\\\d*$\\"'),
+                    -1,
                     `Errored but not because prefixLengthRange is invalid format:\n${getErrorString()}`
                 );
             });
@@ -2053,7 +2074,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if prefixLengthRange contains an extra consecutive colon');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should match pattern \\"^\\\\d*:?\\\\d*$\\"'), -1,
+                    getErrorString().indexOf('should match pattern \\"^\\\\d*:?\\\\d*$\\"'),
+                    -1,
                     `Errored but not because prefixLengthRange is invalid format:\n${getErrorString()}`
                 );
             });
@@ -2072,7 +2094,8 @@ describe('network.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'This should fail if prefixLengthRange contains an extra random colon');
                 assert.notStrictEqual(
-                    getErrorString().indexOf('should match pattern \\"^\\\\d*:?\\\\d*$\\"'), -1,
+                    getErrorString().indexOf('should match pattern \\"^\\\\d*:?\\\\d*$\\"'),
+                    -1,
                     `Errored but not because prefixLengthRange is invalid format:\n${getErrorString()}`
                 );
             });

@@ -789,8 +789,14 @@ function assertClass(targetClass, properties, options) {
                 .then(() => configurePromiseForFail(declaration, partition));
         } else {
             promise = promise
-                .then(() => configurePromiseForSuccess(declaration, partition,
-                    targetClass, properties, index, fullOptions));
+                .then(() => configurePromiseForSuccess(
+                    declaration,
+                    partition,
+                    targetClass,
+                    properties,
+                    index,
+                    fullOptions
+                ));
         }
     });
 

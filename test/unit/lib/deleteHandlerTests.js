@@ -233,8 +233,11 @@ describe(('deleteHandler'), function testDeleteHandler() {
         };
 
         const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-        return assert.isRejected(deleteHandler.process(), 'this is a processing error',
-            'processing error should have been caught');
+        return assert.isRejected(
+            deleteHandler.process(),
+            'this is a processing error',
+            'processing error should have been caught'
+        );
     });
 
     it('should not issue deletes for missing Authentication items', () => {
@@ -413,8 +416,11 @@ describe(('deleteHandler'), function testDeleteHandler() {
         };
 
         const deleteHandler = new DeleteHandler(declaration, bigIpMock);
-        return assert.isRejected(deleteHandler.process(), 'this is a processing error',
-            'processing error should have been caught');
+        return assert.isRejected(
+            deleteHandler.process(),
+            'this is a processing error',
+            'processing error should have been caught'
+        );
     });
 
     it('should properly set the path for Remote Roles', () => {
@@ -544,7 +550,8 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.strictEqual(deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~http-tunnel'), -1);
                 assert.notStrictEqual(deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~tunnel'), -1);
                 assert.strictEqual(
-                    deletedPaths.indexOf('/tm/net/tunnels/vxlan/~Common~tunnel_vxlan'), -1,
+                    deletedPaths.indexOf('/tm/net/tunnels/vxlan/~Common~tunnel_vxlan'),
+                    -1,
                     'Should not have deleted non-existant tunnel_vxlan profile'
                 );
             });
@@ -591,11 +598,13 @@ describe(('deleteHandler'), function testDeleteHandler() {
         return deleteHandler.process()
             .then(() => {
                 assert.notStrictEqual(
-                    deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~tunnelVxlan'), -1,
+                    deletedPaths.indexOf('/tm/net/tunnels/tunnel/~Common~tunnelVxlan'),
+                    -1,
                     'Should have deleted tunnelVxlan'
                 );
                 assert.notStrictEqual(
-                    deletedPaths.indexOf('/tm/net/tunnels/vxlan/~Common~tunnelVxlan_vxlan'), -1,
+                    deletedPaths.indexOf('/tm/net/tunnels/vxlan/~Common~tunnelVxlan_vxlan'),
+                    -1,
                     'Should have deleted tunnelVxlan_vxlan'
                 );
             });

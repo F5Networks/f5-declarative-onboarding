@@ -584,9 +584,12 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
     });
 
     // Sort the vlans so we don't get a diff just due to ordering
+    // Also, iControl REST returns route domain vlans w/ a full name, so make sure that is
+    // there.
     Object.keys(decalrationRDs).forEach((rdName) => {
         const rd = decalrationRDs[rdName];
         if (rd.vlans) {
+            rd.vlans = rd.vlans.map((vlanName) => (vlanName.startsWith('/') ? vlanName : `/${commonPartition}/${vlanName}`));
             rd.vlans.sort();
         }
     });

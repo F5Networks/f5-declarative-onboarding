@@ -430,7 +430,7 @@ describe('doUtil', () => {
                     .then(() => {
                         reject(assert.fail());
                     });
-                return Promise.resolve()
+                Promise.resolve()
                     .then(() => {
                         clock.tick(10000);
                         clock.restore();

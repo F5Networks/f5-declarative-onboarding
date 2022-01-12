@@ -250,8 +250,12 @@ describe('inspectHandler', () => {
 
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 408, 'Request Timeout',
-                            (errMsg) => errMsg.indexOf('Unable to complete request within specified timeout') !== -1);
+                        basicAssertsForFailedResponse(
+                            data,
+                            408,
+                            'Request Timeout',
+                            (errMsg) => errMsg.indexOf('Unable to complete request within specified timeout') !== -1
+                        );
                     });
             });
 
@@ -270,9 +274,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('Invalid value for parameter') !== -1
-                                        && errMsg.indexOf('targetHost') !== -1);
+                                        && errMsg.indexOf('targetHost') !== -1
+                        );
                     });
             });
 
@@ -282,9 +290,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf('targetPort') !== -1);
+                                && errMsg.indexOf('targetPort') !== -1
+                        );
                     });
             });
 
@@ -294,9 +306,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf('targetPort') !== -1);
+                                && errMsg.indexOf('targetPort') !== -1
+                        );
                     });
             });
 
@@ -306,9 +322,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf('targetPort') !== -1);
+                                && errMsg.indexOf('targetPort') !== -1
+                        );
                     });
             });
 
@@ -320,9 +340,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('should be specified') !== -1
-                                    && errMsg.indexOf('targetHost') !== -1);
+                                && errMsg.indexOf('targetHost') !== -1
+                        );
                     });
             });
 
@@ -334,10 +358,14 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('Invalid value for parameter') !== -1
-                                        && errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf('should be specified') !== -1);
+                                && errMsg.indexOf('should be in range') !== -1
+                                && errMsg.indexOf('should be specified') !== -1
+                        );
                     });
             });
 
@@ -345,8 +373,12 @@ describe('inspectHandler', () => {
                 customPlatform = PRODUCTS.BIGIQ;
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 403, 'Forbidden',
-                            (errMsg) => errMsg === 'Should be executed on BIG-IP or should specify "target*" parameters.');
+                        basicAssertsForFailedResponse(
+                            data,
+                            403,
+                            'Forbidden',
+                            (errMsg) => errMsg === 'Should be executed on BIG-IP or should specify "target*" parameters.'
+                        );
                     });
             });
 
@@ -378,8 +410,12 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 412, 'Precondition failed',
-                            (errMsg) => errMsg === 'Unable to verify declaration from existing state.');
+                        basicAssertsForFailedResponse(
+                            data,
+                            412,
+                            'Precondition failed',
+                            (errMsg) => errMsg === 'Unable to verify declaration from existing state.'
+                        );
                     });
             });
         });

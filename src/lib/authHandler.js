@@ -122,7 +122,9 @@ function handleRadius() {
                 servers: authServers,
                 partition: 'Common'
             },
-            undefined, undefined, opts
+            undefined,
+            undefined,
+            opts
         ))
         .then(() => this.bigIp.list(`${PATHS.AuthRadiusServer}`))
         .then((radiusServers) => {
@@ -130,7 +132,9 @@ function handleRadius() {
                 .find((server) => server.name === RADIUS.SECONDARY_SERVER)) {
                 return this.bigIp.delete(
                     `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`,
-                    null, null, CLOUD_UTIL_NO_RETRY
+                    null,
+                    null,
+                    CLOUD_UTIL_NO_RETRY
                 );
             }
 

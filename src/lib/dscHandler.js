@@ -330,8 +330,12 @@ function handleDeviceGroup(convertedAddresses, deviceGroup) {
                 const hostname = deviceInfo.hostname;
                 // If we are the owner, create the group
                 if (hostname === convertedAddresses.owner) {
-                    return createDeviceGroup.call(this, deviceGroup.name, deviceGroup,
-                        convertedAddresses.members);
+                    return createDeviceGroup.call(
+                        this,
+                        deviceGroup.name,
+                        deviceGroup,
+                        convertedAddresses.members
+                    );
                 }
 
                 return joinDeviceGroup.call(this, deviceGroup.name, hostname)
