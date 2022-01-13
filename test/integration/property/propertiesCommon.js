@@ -29,8 +29,13 @@ const constants = require('../constants');
 const classMap = require('../../../src/lib/sharedConstants').PATHS;
 const propertyMap = require('../../../src/lib/configItems.json');
 
-const enableConsole = false;
-const enableDisplayDeclarations = false;
+const consoleOptions = {
+    declarations: false, // display the declarations that are created
+    expectedActual: false, // display expected and actual values
+    mcpError: false, // display errors from receiving MCP objects
+    postRequest: false, // display the declaration we are about to POST
+    postResult: false // display the result from the POST
+};
 
 let BIGIP_VERSION = '0.0.0';
 let PROVISIONED_MODULES = [];
@@ -181,7 +186,7 @@ function createDeclarations(targetClass, properties, options) {
         declarations.push(declaration);
     }
 
-    if (enableDisplayDeclarations) {
+    if (consoleOptions.declarations) {
         console.log(`${JSON.stringify(declarations, null, 2)}`);
     }
     return declarations;
@@ -519,7 +524,7 @@ function getMcpObject(targetClass, inputOptions) {
             return response.body.items.filter((i) => i.fullPath.startsWith(path));
         })
         .catch((err) => {
-            if (enableConsole) {
+            if (consoleOptions.mcpError) {
                 console.log(`Error while getting mcp object: ${err}`);
             }
             return undefined;
@@ -642,7 +647,7 @@ function checkMcpValue(result, properties, index) {
         .forEach((property) => {
             const value = getExpectedValue(property, index);
             // This print can be very helpful for debugging the expect vs receive vals
-            if (enableConsole) {
+            if (consoleOptions.expectedActual) {
                 console.log(`\t${property.name} => [ expected: ${value} ] [ actual: ${result[property.name]} ]`);
             }
             if (typeof value === 'number') {
@@ -682,7 +687,7 @@ function configurePromiseForFail(declaration) {
 function configurePromiseForSuccess(declaration, partition, targetClass, properties, index, fullOptions) {
     return Promise.resolve()
         .then(() => {
-            if (enableDisplayDeclarations) {
+            if (consoleOptions.postRequest) {
                 console.log(`\nPosting declaration:\n ${JSON.stringify(declaration, null, 2)}`);
             }
         })
@@ -710,7 +715,7 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
             return postDeclaration(declaration, logInfo);
         })
         .then((result) => {
-            if (enableConsole) {
+            if (consoleOptions.postResult) {
                 console.log(`\nGot result:\n ${JSON.stringify(result, null, 2)}`);
             }
 
