@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.27
-        - Updated the documentation for Declarative Onboarding v1.27.0.  This release contains the following resolved issues: |br| *  Items containing '.' or '-' characters in their names are not passing schema validation, `GitHub Issue 277 <https://github.com/F5Networks/f5-declarative-onboarding/issues/277>`_ |br| * DNS_Resolver is not idempotent |br| * Tunnel is not idempotent |br| * Cannot update only the description of ManagementIp 
+        - Updated the documentation for Declarative Onboarding v1.27.0.  This release contains the following resolved issues: |br| *  Items containing '.' or '-' characters in their names are not passing schema validation, `GitHub Issue 277 <https://github.com/F5Networks/f5-declarative-onboarding/issues/277>`_ |br| * DNS_Resolver is not idempotent |br| * Tunnel is not idempotent |br| * Cannot update only the description of ManagementIp |br| |br| Issues Resolved: |br| * Several idempotentcy issues are resolved, which required adding defaults for several items in the |system|
         - 1-25-22
 
       * - 1.26
@@ -176,3 +176,7 @@ Document Revision History
 .. |supportmd| raw:: html
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/SUPPORT.md" target="_blank">Support page on GitHub</a>
+
+.. |system| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#system" target="_blank">System Class</a>
