@@ -44,7 +44,7 @@ At some point in the sprint we create a release branch. This should happen when 
     * Update and commit the build number in `package.json` and `package-lock.json` and commit those changes.
     * Tag the appropriate branch with the updated version (e.g. v1.13.0-4). The tag will kick off a DO pipeline with integration tests.
     * Send you a release email.
-* If the DO pipleline is successful, that pipeline will upload the build artifacts to Artifactory. Once this happens, forward the release email to the `f5-declarative-onboarding` distribution list.
+* If the DO pipeline is successful, that pipeline will upload the build artifacts to Artifactory. Once this happens, forward the release email to the `f5-declarative-onboarding` distribution list.
 
 ## Process for release
 * Using the GUI, create 2 MRs.
