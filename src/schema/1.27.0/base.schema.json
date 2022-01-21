@@ -1,0 +1,267 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/base.schema.json",
+    "title": "F5 Declarative Onboarding base declaration",
+    "description": "Top level schema for onboarding a BIG-IP.",
+    "type": "object",
+    "required": ["schemaVersion", "class"],
+    "properties": {
+        "schemaVersion": {
+            "description": "Version of Declarative Onboarding schema this declaration uses.",
+            "type": "string",
+            "enum": [
+                "1.27.0",
+                "1.26.0",
+                "1.25.0",
+                "1.24.0",
+                "1.23.0",
+                "1.22.0",
+                "1.21.0",
+                "1.20.0",
+                "1.19.0",
+                "1.18.0",
+                "1.17.0",
+                "1.16.0",
+                "1.15.0",
+                "1.14.0",
+                "1.13.0",
+                "1.12.0",
+                "1.11.1",
+                "1.11.0",
+                "1.10.0",
+                "1.9.0",
+                "1.8.0",
+                "1.7.0",
+                "1.6.1",
+                "1.6.0",
+                "1.5.1",
+                "1.5.0",
+                "1.4.1",
+                "1.4.0",
+                "1.3.0",
+                "1.2.0",
+                "1.1.0",
+                "1.0.0"
+            ]
+        },
+        "class": {
+            "description": "Indicates this JSON document is a Device declaration",
+            "type": "string",
+            "const": "Device"
+        },
+        "$schema": {
+            "description": "URL of schema against which to validate. Used by validation in your local environment only (via Visual Studio Code, for example)",
+            "type": "string",
+            "format": "uri"
+        },
+        "async": {
+            "description": "Tells the API to return a 202 HTTP status before processing is complete. User must then poll for status.",
+            "type": "boolean",
+            "default": false
+        },
+        "webhook": {
+            "description": "URL to post results to",
+            "type": "string",
+            "format": "uri"
+        },
+        "label": {
+            "description": "Optional friendly name for this declaration",
+            "type": "string"
+        },
+        "Credentials": {
+            "description": "Credentials which can be referenced from other parts of the declaration or the remote wrapper.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "description": "Username of principal authorized to modify configuration of device (may not include the character ':').  NOTE:  this is generally not required to configure 'localhost' because client authentication and authorization precede invocation of DO.  It is also not required for any host if you populate tokens",
+                        "type": "string",
+                        "pattern": "^[^:]{0,254}$"
+                    },
+                    "password": {
+                        "description": "Password for username account.  This is generally not required to configure 'localhost' and is not required when you populate tokens",
+                        "type": "string",
+                        "pattern": "^.{0,254}$"
+                    },
+                    "tokens": {
+                        "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the device management service as authentication/authorization tokens",
+                        "type": "object",
+                        "patternProperties": {
+                            "^[^\\x00-\\x20:\\x7f-\\xff]{1,254}$": {
+                                "type": "string",
+                                "pattern": "^[^\\x00-\\x1f\\x7f-\\xff]*$",
+                                "maxLength": 8192
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false,
+                "if": {
+                    "required": ["tokens"]
+                },
+                "then": {
+                    "dependencies": {
+                        "username": {
+                            "not": {}
+                        },
+                        "password": {
+                            "not": {}
+                        }
+                    }
+                },
+                "else": {
+                    "dependencies": {
+                        "tokens": {
+                            "not": {}
+                        }
+                    }
+                }
+            }
+        },
+        "Common": {
+            "description": "Special tenant Common holds objects other tenants can share",
+            "type": "object",
+            "required": ["class"],
+            "propertyNames": {
+                "pattern": "^[A-Za-z][0-9A-Za-z_.-]*$",
+                "maxLength": 48
+            },
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Tenant"
+                },
+                "hostname": {
+                    "description": "Hostname to set for the device. Note: If you set the hostname as part of the System class, you CANNOT set a hostname in the Common class (they are mutually exclusive).",
+                    "type": "string",
+                    "format": "hostname"
+                }
+            },
+            "additionalProperties": {
+                "properties": {
+                    "class": {
+                        "enum": [
+                            "Analytics",
+                            "Authentication",
+                            "ConfigSync",
+                            "DagGlobals",
+                            "DbVariables",
+                            "DeviceCertificate",
+                            "DeviceGroup",
+                            "DeviceTrust",
+                            "Disk",
+                            "DNS",
+                            "DNS_Resolver",
+                            "FailoverUnicast",
+                            "FailoverMulticast",
+                            "HTTPD",
+                            "License",
+                            "MAC_Masquerade",
+                            "ManagementIp",
+                            "ManagementIpFirewall",
+                            "ManagementRoute",
+                            "MirrorIp",
+                            "NTP",
+                            "Provision",
+                            "RemoteAuthRole",
+                            "Route",
+                            "RouteDomain",
+                            "RouteMap",
+                            "RoutingAccessList",
+                            "RoutingAsPath",
+                            "RoutingPrefixList",
+                            "RoutingBGP",
+                            "SelfIp",
+                            "SnmpAgent",
+                            "SnmpCommunity",
+                            "SnmpTrapEvents",
+                            "SnmpTrapDestination",
+                            "SnmpUser",
+                            "SSHD",
+                            "SyslogRemoteServer",
+                            "System",
+                            "TrafficControl",
+                            "Trunk",
+                            "Tunnel",
+                            "User",
+                            "VLAN",
+                            "TrafficGroup",
+                            "GSLBGlobals",
+                            "GSLBDataCenter",
+                            "GSLBServer",
+                            "GSLBMonitor",
+                            "GSLBProberPool",
+                            "FirewallPolicy",
+                            "FirewallAddressList",
+                            "FirewallPortList"
+                        ]
+                    }
+                },
+                "allOf": [
+                    { "$ref": "system.schema.json#" },
+                    { "$ref": "network.schema.json#" },
+                    { "$ref": "dsc.schema.json#" },
+                    { "$ref": "analytics.schema.json#" },
+                    { "$ref": "auth.schema.json#" },
+                    { "$ref": "gslb.schema.json#" }
+                ]
+            },
+            "default": {
+                "class": "Tenant"
+            }
+        },
+        "controls": {
+            "description": "Options to control configuration process",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Controls"
+                },
+                "dryRun": {
+                    "description": "Boolean that indicates if this declaration will be run as a dry-run. If true, the declaration will NOT make any changes to the system, but will respond with whether or not it would.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "trace": {
+                    "description": "If true, create a detailed trace of the configuration process for subsequent analysis (default false).  Warning:  trace files may contain sensitive configuration data.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "traceResponse": {
+                    "description": "If true, the response will contain the trace files.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "userAgent": {
+                    "description": "User Agent information to include in TEEM report.",
+                    "type": "string"
+                }
+            }
+        },
+        "result": {
+            "description": "Status of current request. This is set by the system.",
+            "type": "object",
+            "readOnly": true,
+            "required": ["class", "code"],
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "const": "Result"
+                },
+                "code": {
+                    "description": "Status code.",
+                    "type": "string",
+                    "enum": ["OK", "ERROR"]
+                },
+                "message": {
+                    "description": "Further detail about the status.",
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "additionalProperties": false
+}
