@@ -21,8 +21,8 @@
 'use strict';
 
 const path = require('path');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const NodeSSH = require('node-ssh').NodeSSH;
+// eslint-disable-next-line
+const NodeSSH = require('node-ssh').NodeSSH; // skip eslint check due to skipped install during lint
 const constants = require('./constants');
 const common = require('./common');
 // directory on the BIG-IPs to copy rpm package to

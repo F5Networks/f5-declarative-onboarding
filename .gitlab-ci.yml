@@ -40,7 +40,7 @@ lint:
     tags:
         - cm-official-docker-executor
     script:
-        - npm ci
+        - npm ci --no-optional
         - npm run lint
 
 test_node:4:
