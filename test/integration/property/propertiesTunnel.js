@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 'use strict';
 
 const {
-    assertClass
+    assertClass,
+    getItemName
 } = require('./propertiesCommon');
 
 describe('Tunnel', function testAuthentication() {
@@ -26,8 +27,6 @@ describe('Tunnel', function testAuthentication() {
 
     beforeEach(() => {
         options = {
-            // Temporarily skip idempotency checks
-            skipIdempotentCheck: true
         };
     });
 
@@ -110,11 +109,18 @@ describe('Tunnel', function testAuthentication() {
     });
 
     it('All VXLAN properties', () => {
+        const trafficControl = {
+            class: 'TrafficControl',
+            acceptIpOptions: true
+        };
+
+        options.extraItems = [trafficControl];
+
         const properties = [
             {
                 name: 'tunnelType',
                 inputValue: ['vxlan'],
-                expectedValue: ['test_item-foo_2345678901234567890123456789012345_vxlan'],
+                expectedValue: [`${getItemName({ tenantName: 'Common' })}_vxlan`],
                 extractFunction: ((o) => o.profile.name)
             },
             {

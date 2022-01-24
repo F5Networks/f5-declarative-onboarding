@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,7 @@ describe('Management Route', function testDnsResolver() {
         };
 
         options = {
-            extraItems: [systemItem],
-            skipIdempotentCheck: true // DO is currently not idempotent
+            extraItems: [systemItem]
         };
     });
 

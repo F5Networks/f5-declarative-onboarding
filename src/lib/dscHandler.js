@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,8 +330,12 @@ function handleDeviceGroup(convertedAddresses, deviceGroup) {
                 const hostname = deviceInfo.hostname;
                 // If we are the owner, create the group
                 if (hostname === convertedAddresses.owner) {
-                    return createDeviceGroup.call(this, deviceGroup.name, deviceGroup,
-                        convertedAddresses.members);
+                    return createDeviceGroup.call(
+                        this,
+                        deviceGroup.name,
+                        deviceGroup,
+                        convertedAddresses.members
+                    );
                 }
 
                 return joinDeviceGroup.call(this, deviceGroup.name, hostname)

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,8 +108,13 @@ class RestWorker {
                 .then((platform) => {
                     if (platform === PRODUCTS.BIGIP) {
                         logger.debug('Prepping for reboot and resume');
-                        return prepForRebootResumeOrRevoke.call(this, taskId, STATUS.STATUS_REVOKING,
-                            bigIpPassword, bigIqPassword);
+                        return prepForRebootResumeOrRevoke.call(
+                            this,
+                            taskId,
+                            STATUS.STATUS_REVOKING,
+                            bigIpPassword,
+                            bigIqPassword
+                        );
                     }
                     return Promise.resolve();
                 })
@@ -360,8 +365,13 @@ class RestWorker {
                                     })
                                     .then(() => {
                                         logger.fine('Onboard complete.');
-                                        postWebhook.call(this, reqOpts, ENDPOINTS.TASK, taskId,
-                                            declaration.webhook);
+                                        postWebhook.call(
+                                            this,
+                                            reqOpts,
+                                            ENDPOINTS.TASK,
+                                            taskId,
+                                            declaration.webhook
+                                        );
                                     });
                             }
                         })

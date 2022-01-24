@@ -1,6 +1,20 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.27.0
+### Added
+
+### Fixed
+- AUTOTOOL-2846: ([GitHub Issue 277](https://github.com/F5Networks/f5-declarative-onboarding/issues/277)): Items containing '.' or '-' characters in their names are not passing schema validation
+- AUTOTOOL-2930: DNS_Resolver is not idempotent
+- AUTOTOOL-2931: Tunnel is not idempotent
+- AUTOTOOL-2939: Can't update just the description of ManagementIp
+
+### Changed
+- AUTOTOOL-1898: Several idempotentcy issues are resolved. This required adding defaults for several items in the System class.
+
+### Removed
+
 ## 1.26.0
 ### Added
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const {
     assertClass,
-    getBigIpVersion
+    getBigIpVersion,
+    getItemName
 } = require('./propertiesCommon');
 
 describe('Snmp', function testSnmp() {
@@ -30,10 +31,7 @@ describe('Snmp', function testSnmp() {
             return assertClass('SnmpCommunity', properties, options);
         }
 
-        const options = {
-            itemName: 'test_item-foo_2345678901234567890123456789012345',
-            skipIdempotentCheck: true
-        };
+        const options = {};
 
         it('All Properties', () => {
             const properties = [
@@ -61,9 +59,9 @@ describe('Snmp', function testSnmp() {
                     name: 'name',
                     inputValue: [undefined, 'special!community', undefined],
                     expectedValue: [
-                        'test_item-foo_2345678901234567890123456789012345',
+                        getItemName({ tenantName: 'Common' }),
                         'special!community',
-                        'test_item-foo_2345678901234567890123456789012345'
+                        getItemName({ tenantName: 'Common' })
                     ]
                 }
             ];
@@ -78,8 +76,7 @@ describe('Snmp', function testSnmp() {
         }
 
         const options = {
-            itemName: 'test_item-foo_2345678901234567890123456789012345',
-            skipIdempotentCheck: true
+            skipIdempotentCheck: true // items with passwords are not idempotent
         };
 
         it('All Properties 14.0+', function snmpUserTest() {
@@ -136,9 +133,9 @@ describe('Snmp', function testSnmp() {
                     name: 'name',
                     inputValue: [undefined, 'special!user', undefined],
                     expectedValue: [
-                        'test_item-foo_2345678901234567890123456789012345',
+                        getItemName({ tenantName: 'Common' }),
                         'special!user',
-                        'test_item-foo_2345678901234567890123456789012345'
+                        getItemName({ tenantName: 'Common' })
                     ]
                 }
             ];
@@ -202,9 +199,9 @@ describe('Snmp', function testSnmp() {
                     name: 'name',
                     inputValue: [undefined, 'special!user', undefined],
                     expectedValue: [
-                        'test_item-foo_2345678901234567890123456789012345',
+                        getItemName({ tenantName: 'Common' }),
                         'special!user',
-                        'test_item-foo_2345678901234567890123456789012345'
+                        getItemName({ tenantName: 'Common' })
                     ]
                 }
             ];
@@ -219,7 +216,7 @@ describe('Snmp', function testSnmp() {
         }
 
         const options = {
-            skipIdempotentCheck: true
+            skipIdempotentCheck: true // items with passwords are not idempotent
         };
 
         it('All Properties 14.0+', function snmpTrapDestinationTest() {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
  */
 module.exports = {
     BASE_URL: 'https://localhost/mgmt/shared/declarative-onboarding',
-    MASK_REGEX: new RegExp('pass(word|phrase)|secret|privateKey', 'i'),
+    MASK_REGEX: /pass(word|phrase)|secret|privateKey/i,
     ENDPOINT_MAX_TIMEOUT: 60000,
     ENDPOINTS: {
         CONFIG: 'config',

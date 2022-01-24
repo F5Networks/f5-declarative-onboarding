@@ -2,10 +2,10 @@ output "admin_ip" {
   value = "${openstack_compute_instance_v2.openstack-instance.*.access_ip_v4}"
 }
 
-output "f5_rest_user" {
-  value = var.f5_rest_user
+output "admin_username" {
+  value = var.admin_username
 }
 
-output "ssh_user" {
-  value = var.ssh_user
+output "admin_password" {
+  value = module.utils.admin_password
 }

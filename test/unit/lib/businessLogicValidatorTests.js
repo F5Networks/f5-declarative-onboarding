@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,29 @@ describe('businessLogicValidator', () => {
                         hostname: 'my.bigip.com',
                         mySystem: {
                             class: 'System'
+                        }
+                    }
+                }
+            };
+
+            return validator.validate(data)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
+                });
+        });
+
+        it('should handle Common.hostname with System.hostname set to default value', () => {
+            const data = {
+                class: 'DO',
+                declaration: {
+                    schemaVersion: '1.0.0',
+                    class: 'Device',
+                    Common: {
+                        hostname: '111.bigip.com',
+                        class: 'Tenant',
+                        mySystem: {
+                            class: 'System',
+                            hostname: 'bigip1'
                         }
                     }
                 }

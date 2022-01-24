@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@
 const path = require('path');
 const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 
-const MASK_REGEX_REGKEY = new RegExp('[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{7}', 'i');
+const MASK_REGEX_REGKEY = /[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{7}/i;
 
 let f5Logger;
 try {

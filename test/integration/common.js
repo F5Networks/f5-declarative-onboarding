@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,8 +124,7 @@ module.exports = {
             });
         };
         const acceptableErrors = [constants.HTTP_UNAVAILABLE, constants.HTTP_BAD_REQUEST].concat(acceptErrors || []);
-        return module.exports.tryOften(func, 10, (interval || 60) * 1000,
-            acceptableErrors, true);
+        return module.exports.tryOften(func, 10, (interval || 60) * 1000, acceptableErrors, true);
     },
 
     /**
@@ -188,8 +187,7 @@ module.exports = {
     deleteOriginalConfig(doUrl, auth) {
         const retryErrors = [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED];
 
-        return this.testRequest(null, `${doUrl}/config`, auth, constants.HTTP_SUCCESS, 'GET', null,
-            retryErrors)
+        return this.testRequest(null, `${doUrl}/config`, auth, constants.HTTP_SUCCESS, 'GET', null, retryErrors)
             .then((body) => {
                 const promises = JSON.parse(body).map((config) => {
                     logger.debug(`Deleting original config ${config.id}`);
@@ -234,8 +232,7 @@ module.exports = {
                     }
                 };
                 logger.debug('Generating and applying new original config');
-                return this.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST', null,
-                    retryErrors);
+                return this.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST', null, retryErrors);
             })
             .then(() => this.testGetStatus(60, 30 * 1000, ipAddress, auth, constants.HTTP_SUCCESS));
     },

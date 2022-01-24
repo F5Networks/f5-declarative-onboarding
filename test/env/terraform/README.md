@@ -5,17 +5,30 @@
 - You'll need a terraform binary or use docker container.
 - Setup environment variables needed for your project:
 
-        OS_AUTH_URL=https://<your vio domain>:5000/v3
-        OS_INSECURE=true
-        OS_PASSWORD=<password for user>
-        OS_PROJECT_DOMAIN_ID=default
-        OS_PROJECT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        OS_PROJECT_NAME=<your project name>
-        OS_REGION_NAME=nova
-        OS_USER_DOMAIN_NAME=Default
-        OS_USERNAME=<your username>
+        export OS_AUTH_URL=https://<your vio domain>:5000/v3
+        export OS_INSECURE=true
+        export OS_PASSWORD=<password for user>
+        export OS_PROJECT_DOMAIN_ID=default
+        export OS_PROJECT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        export OS_PROJECT_NAME=<your project name>
+        export OS_REGION_NAME=nova
+        export OS_USER_DOMAIN_NAME=Default
+        export OS_USERNAME=<your username>
+        export TF_HTTP_ADDRESS=<your gitlab domain>/api/v4/projects/<project id>/terraform/state/openstack-<BIGIP major version>
 
 ## Manual deployment
+
+**NOTE:** You'll need to generate access tokey to have access to Gitlab's terraform state files:
+        Go to `Settings` -> `Access Tokens` and generate api token:
+
+        export TF_HTTP_USERNAME=<your olymus username>
+        export TF_HTTP_PASSWORD=<token>
+
+To deploy instance(s) without reporting to Gitlab's state, go and edit `main.tf` file and comment this two lines:
+        ```
+        backend "http" {
+        }
+        ```
 
 - Change dir to test/env/terraform/plans/openstack.
 - Run `terraform init` output should be like:
@@ -30,31 +43,29 @@
 
         Terraform has been successfully initialized!
 
-- After initialization successfull, run `apply`:
+- After successfull initialization, run `apply`:
 
         terraform apply -var nic_count="$NIC_COUNT"
                         -var bigip_count="$BIGIP_COUNT"
-                        -var admin_password="$INTEGRATION_ADMIN_PASSWORD"
-                        -var root_password="$INTEGRATION_ROOT_PASSWORD"
                         -var bigip_image="$BIGIP_IMAGE"
                         -auto-approve
 
-- After deployment successfull you'll get output like:
+- After successfull deployment you'll get output like:
 
         Outputs:
         admin_ip = [
           "10.145.77.79",
         ]
-        f5_rest_user = "admin"
-        ssh_user = "root"
+        admin_password = <password>
+        admin_username = "admin"
 
 - All environment configuration stored in `terraform.tfstate` file, so keep it.
 - To get outputs into environment variable run this:
 
         export BIGIPS_ADDRESSES=$(terraform output --json admin_ip | jq -rc .[])
+        export ADMIN_USERNAME=$(terraform output --json admin_username | jq -rc .)
+        export ADMIN_PASSWORD=$(terraform output --json admin_password | jq -rc .)
 
 - To teardown instance(s) run `terraform destroy -auto-approve` cmd:
 
-  * NOTE: you'll need `terraform.tfstate` file to do it.
-
-        Destroy complete! Resources: 1 destroyed.
+        Destroy complete! Resources: 3 destroyed.

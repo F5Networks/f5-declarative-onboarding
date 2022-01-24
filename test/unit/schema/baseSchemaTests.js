@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -196,6 +196,34 @@ describe('base.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should accept property names that are not too long', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Common": {
+                        "class": "Tenant",
+                        "myLongItem_1234567890123456789012345678901234567": {
+                            "class": "System"
+                        }
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should accept property names that have dots, dashes, underscores', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Common": {
+                        "class": "Tenant",
+                        "my-item.with_ALL_possible_characters0": {
+                            "class": "System"
+                        }
+                    }
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
@@ -213,6 +241,36 @@ describe('base.schema.json', () => {
                 };
                 assert.strictEqual(validate(data), false, 'Bad classes should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+            });
+
+            it('should invalidate item names that are too long', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Common": {
+                        "class": "Tenant",
+                        "myLongItem_12345678901234567890123456789012345678": {
+                            "class": "System"
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'Item names that are too long should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf(`property name 'myLongItem_12345678901234567890123456789012345678' is invalid`), -1);
+            });
+
+            it('should invalidate item names that invalid characters', () => {
+                const data = {
+                    "schemaVersion": "1.0.0",
+                    "class": "Device",
+                    "Common": {
+                        "class": "Tenant",
+                        "invalidCharacters!": {
+                            "class": "System"
+                        }
+                    }
+                };
+                assert.strictEqual(validate(data), false, 'Item names that are too long should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
             });
         });
     });

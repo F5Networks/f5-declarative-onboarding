@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,15 +115,23 @@ describe('networkHandler', () => {
                                 {
                                     name: 'amazonaws.com',
                                     nameservers: [
-                                        '8.8.8.8:53',
-                                        '8.8.8.7:53'
+                                        {
+                                            name: '8.8.8.8:53'
+                                        },
+                                        {
+                                            name: '8.8.8.7:53'
+                                        }
                                     ]
                                 },
                                 {
                                     name: 'idservice.net',
                                     nameservers: [
-                                        '8.8.4.4:53',
-                                        '8.8.4.3:53'
+                                        {
+                                            name: '8.8.4.4:53'
+                                        },
+                                        {
+                                            name: '8.8.4.3:53'
+                                        }
                                     ]
                                 }
                             ],

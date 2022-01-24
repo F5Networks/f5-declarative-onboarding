@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,9 @@ class ConfigManager {
      */
     get(declaration, state, doState, options) {
         const currentCurrentConfig = state.currentConfig || {};
-        const currentConfig = {};
+        const currentConfig = {
+            InternalUse: {}
+        };
         const referencePromises = [];
         const referenceInfo = []; // info needed to tie reference result to config item
 
@@ -132,7 +134,7 @@ class ConfigManager {
         // them into the correct object in the current config. Since the current structure
         // (using configItems.json) is more amenable to the first approach, that's
         // what we're doing.
-        const dbVarsOfInterest = [];
+        const dbVarsOfInterest = ['config.auditing']; // We use this for System.mcpAuditLog
         if (currentCurrentConfig && currentCurrentConfig.Common && currentCurrentConfig.Common.DbVariables) {
             Object.keys(currentCurrentConfig.Common.DbVariables).forEach((dbVar) => {
                 if (dbVar !== 'class') {
@@ -164,9 +166,12 @@ class ConfigManager {
             .then((deviceInfo) => {
                 this.configId = deviceInfo.machineId;
                 this.bigIpVersion = deviceInfo.version;
-                return getTokenMap.call(this, deviceInfo);
+                return getDeviceAndHostNames.call(this, deviceInfo);
             })
-            .then((tokenMap) => {
+            .then((deviceNames) => {
+                // Save the name info to currentConfig - we'll need it to sort out hostname/device name
+                currentConfig.InternalUse.deviceNames = JSON.parse(JSON.stringify(deviceNames));
+
                 const hostNameRegex = /{{hostName}}/;
                 const deviceNameRegex = /{{deviceName}}/;
 
@@ -196,8 +201,8 @@ class ConfigManager {
                         let path = `${configItem.path}?${encodedQuery}`;
 
                         // do any replacements
-                        path = path.replace(hostNameRegex, tokenMap.hostName);
-                        path = path.replace(deviceNameRegex, tokenMap.deviceName);
+                        path = path.replace(hostNameRegex, deviceNames.hostName);
+                        path = path.replace(deviceNameRegex, deviceNames.deviceName);
 
                         if (configItem.silent) {
                             listOptions.silent = configItem.silent;
@@ -643,8 +648,12 @@ class ConfigManager {
                     tunnels.forEach((name) => {
                         if (currentTunnels[`${name}_vxlan`]) {
                             // This will add VXLAN properties to a Tunnel object for later diffing
-                            patchVxlanTunnels.call(this, currentTunnels[name],
-                                currentTunnels[`${name}_vxlan`], configOptions.translateToNewId);
+                            patchVxlanTunnels.call(
+                                this,
+                                currentTunnels[name],
+                                currentTunnels[`${name}_vxlan`],
+                                configOptions.translateToNewId
+                            );
                         } else if (currentTunnels[name].encapsulationType) {
                             // encapsulationType is unique to VXLAN profiles, so we can use it to
                             // identify a VXLAN profile from a Tunnel. We need to remove the VXLAN
@@ -654,6 +663,19 @@ class ConfigManager {
                     });
                     // Remove pointless VXLAN profiles from tunnel object to fix diff
                     deleteAfter.forEach((name) => { delete currentTunnels[name]; });
+                }
+
+                if (currentConfig.System) {
+                    // The schema has 'preserveOrigDhcpRoutes', so we need to add that here so we don't
+                    // get a diff if they match.
+                    const mgmtDhcpId = getMappedId(PATHS.SysGlobalSettings, 'properties', 'mgmtDhcp', this.configItems);
+                    currentConfig.System.preserveOrigDhcpRoutes = currentConfig.System[mgmtDhcpId] === 'enabled';
+                    delete currentConfig.System[mgmtDhcpId];
+
+                    if (currentConfig.DbVariables) {
+                        // We also use the db var 'config.auditing' to represent System.mcpAuditLog
+                        currentConfig.System.mcpAuditLog = currentConfig.DbVariables['config.auditing'];
+                    }
                 }
 
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
@@ -810,6 +832,12 @@ function mapProperties(item, configItem, bigIpVersion, options) {
                             doUtil.deleteKeys(value, trans.removeKeys);
                         }
 
+                        if (trans.sort) {
+                            if (property.transformAsArray && Array.isArray(currentProperty)) {
+                                value = currentProperty.sort();
+                            }
+                        }
+
                         if (trans.truth !== undefined) {
                             value = mapTruth(currentProperty, trans, options);
                         }
@@ -838,7 +866,12 @@ function mapProperties(item, configItem, bigIpVersion, options) {
         }
 
         if (hasVal && property.stringToInt) {
-            mappedItem[property.id] = parseInt(mappedItem[property.id], 10);
+            // Some items can be either plain strings or string representations of ints.
+            // Only map if they are string representations of ints.
+            const possibleInt = parseInt(mappedItem[property.id], 10);
+            if (Number.isInteger(possibleInt)) {
+                mappedItem[property.id] = possibleInt;
+            }
         }
 
         if (options.translateToNewId && hasVal && property.newId !== undefined) {
@@ -1003,18 +1036,17 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo, optio
 }
 
 /**
- * Gets values we use to replace tokens in configItems.json
+ * Gets the hostname and device name
  *
  * @param {Object} deviceInfo - The deviceInfo for the BIG-IP.
  *
- * @returns {Promise} A promise which is resolved with the replacement
- *                    map
+ * @returns {Promise} A promise which is resolved with the device and host names
  *     {
  *         hostName: hostname from global settings
  *         deviceName: device name for the host
  *     }
  */
-function getTokenMap(deviceInfo) {
+function getDeviceAndHostNames(deviceInfo) {
     const hostName = deviceInfo.hostname;
     return this.bigIp.list('/tm/cm/device')
         .then((cmDeviceInfo) => {
@@ -1035,7 +1067,7 @@ function getTokenMap(deviceInfo) {
             return Promise.reject(new Error(message));
         })
         .catch((err) => {
-            logger.severe(`Error getting device info for tokens: ${err.message}`);
+            logger.severe(`Error getting device and host names: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -1128,12 +1160,14 @@ function patchSys(schemaMerge, sysClass, sysItem, options) {
     const sysClassCopy = !sysClass ? {} : JSON.parse(JSON.stringify(sysClass));
     const patchedItem = Object.assign({}, sysItem);
     patchedClass = mapSchemaMerge.call(this, sysClassCopy, patchedItem, schemaMerge);
+
     const idleTimeoutId = getMappedId(PATHS.CLI, 'properties', 'idleTimeout', this.configItems, options);
     if (sysItem[idleTimeoutId] === 'disabled') {
         patchedClass[idleTimeoutId] = 0;
     } else if (typeof sysItem[idleTimeoutId] !== 'undefined') {
         patchedClass[idleTimeoutId] = parseInt(patchedClass[idleTimeoutId], 10) * 60;
     }
+
     return patchedClass;
 }
 
@@ -1236,6 +1270,12 @@ function patchRoutingBGP(patchedItem) {
 function patchManagementRoute(patchedItem) {
     patchedItem.name = patchedItem.fullPath.split('/Common/')[1];
     delete patchedItem.fullPath;
+
+    // iControl REST can return a gateway of 'none' with a type, but posting that back
+    // to iControl rest is illegal. We love you BIG-IP.
+    if (patchedItem.gateway === 'none' && patchedItem.type) {
+        delete patchedItem.gateway;
+    }
 }
 
 /**
@@ -1349,7 +1389,9 @@ function classPresent(declaration, className) {
  *                                         in a field called 'transform'
  */
 function getMappedId(configPath, propertyPath, id, configItems, options) {
-    if (!options.translateToNewId) {
+    const configOptions = Object.assign({}, options);
+
+    if (!configOptions.translateToNewId) {
         return id;
     }
 
@@ -1363,8 +1405,8 @@ function getMappedId(configPath, propertyPath, id, configItems, options) {
         return id;
     }
 
-    if (options.transformId) {
-        properties = properties.find((prop) => prop.id === options.transformId).transform;
+    if (configOptions.transformId) {
+        properties = properties.find((prop) => prop.id === configOptions.transformId).transform;
     }
 
     const property = properties.find((prop) => prop.id === id);

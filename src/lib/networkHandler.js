@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -506,12 +506,14 @@ function handleRoute() {
                         routeBody.gw = route.gw;
                     }
 
-                    if (Object.keys(this.state.currentConfig.Common.Route)
-                        .find((routeName) => routeName === route.name) && !deleteRoute) {
-                        commands.push({
-                            method: 'delete',
-                            path: `${PATHS.Route}/~${targetPartition}~${route.name}`
-                        });
+                    if (this.state.currentConfig.Common.Route) {
+                        if (Object.keys(this.state.currentConfig.Common.Route)
+                            .find((routeName) => routeName === route.name) && !deleteRoute) {
+                            commands.push({
+                                method: 'delete',
+                                path: `${PATHS.Route}/~${targetPartition}~${route.name}`
+                            });
+                        }
                     }
 
                     commands.push({
@@ -540,19 +542,12 @@ function handleDnsResolver() {
     const promises = [];
     doUtil.forEach(this.declaration, 'DNS_Resolver', (tenant, resolver) => {
         if (resolver && resolver.name) {
-            let forwardZones = resolver.forwardZones;
-            if (forwardZones && forwardZones !== 'none') {
-                forwardZones = forwardZones.map((zone) => ({
-                    name: zone.name,
-                    nameservers: zone.nameservers.map((nameserver) => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })))
-                }));
-            }
             const resolverBody = {
                 name: resolver.name,
                 partition: tenant,
                 answerDefaultZones: resolver.answerDefaultZones,
                 cacheSize: resolver.cacheSize,
-                forwardZones,
+                forwardZones: resolver.forwardZones,
                 randomizeQueryNameCase: resolver.randomizeQueryNameCase,
                 routeDomain: resolver.routeDomain,
                 useIpv4: resolver.useIpv4,
@@ -703,9 +698,7 @@ function handleTunnel() {
             };
 
             // if we are changing the profile or trafficGroup, we first have to delete the tunnel
-            // (but we can't delete http-tunnel or socks-tunnel)
-            if (tunnel.name !== 'http-tunnel'
-                && tunnel.name !== 'socks-tunnel'
+            if (this.state.currentConfig[tenant].Tunnel
                 && this.state.currentConfig[tenant].Tunnel[tunnel.name]) {
                 if (tunnel.profile !== this.state.currentConfig[tenant].Tunnel[tunnel.name].profile
                     || tunnel.trafficGroup !== this.state.currentConfig[tenant].Tunnel[tunnel.name].trafficGroup) {
@@ -905,25 +898,29 @@ function handleRoutingBGP() {
     let promises = [];
     return Promise.resolve()
         .then(() => {
-            Object.keys(this.state.currentConfig.Common.RoutingBGP || []).forEach((name) => {
-                const declBgp = this.declaration.Common.RoutingBGP[name];
-                if (declBgp) {
-                    // BIGIP has a bug where a peerGroup with any members cannot be set to 'none' or overwritten.
-                    // Get around by preemptively deleting any matches found in current config that are to be modified.
-                    const curBgp = this.state.currentConfig.Common.RoutingBGP[name];
-                    if ((curBgp.peerGroups && curBgp.peerGroups.length > 0) || (curBgp.localAs !== declBgp.localAs)) {
+            if (this.state.currentConfig.Common.RoutingBGP) {
+                Object.keys(this.state.currentConfig.Common.RoutingBGP || []).forEach((name) => {
+                    const declBgp = this.declaration.Common.RoutingBGP[name];
+                    if (declBgp) {
+                        // BIGIP has a bug where a peerGroup with any members cannot be set to 'none' or overwritten.
+                        // Get around by preemptively deleting any matches found in current config that are to be
+                        // modified.
+                        const curBgp = this.state.currentConfig.Common.RoutingBGP[name];
+                        if ((curBgp.peerGroups && curBgp.peerGroups.length > 0)
+                            || (curBgp.localAs !== declBgp.localAs)) {
+                            promises.push(
+                                this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
+                            );
+                        }
+                    } else {
+                        // Process deletes here instead of in deleteHandler.  Can only have 1 RoutingBGP.
+                        // If renamed the delete handler is too late.  The new RoutingBGP will already be created.
                         promises.push(
                             this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
                         );
                     }
-                } else {
-                    // Process deletes here instead of in deleteHandler.  Can only have 1 RoutingBGP.  If renamed the
-                    // delete handler is too late.  The new RoutingBGP will already be created.
-                    promises.push(
-                        this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
-                    );
-                }
-            });
+                });
+            }
 
             return Promise.all(promises)
                 .catch((err) => {

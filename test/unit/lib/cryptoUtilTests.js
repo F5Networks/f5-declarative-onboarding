@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,11 @@ describe('cryptoUtil', () => {
             childProcessMock.exec = (command, callback) => {
                 callback(new Error(error));
             };
-            return assert.isRejected(cryptoUtil.decryptValue('foo'), 'decrypted error',
-                'Should have caught error');
+            return assert.isRejected(
+                cryptoUtil.decryptValue('foo'),
+                'decrypted error',
+                'Should have caught error'
+            );
         });
     });
 
@@ -82,8 +85,11 @@ describe('cryptoUtil', () => {
         it('should handle errors', () => {
             const error = 'tmsh error';
             sinon.stub(cloudUtil, 'runTmshCommand').rejects(new Error(error));
-            return assert.isRejected(cryptoUtil.decryptStoredValueById('foo'), 'tmsh error',
-                'should have caught error');
+            return assert.isRejected(
+                cryptoUtil.decryptStoredValueById('foo'),
+                'tmsh error',
+                'should have caught error'
+            );
         });
     });
 
@@ -112,8 +118,11 @@ describe('cryptoUtil', () => {
                 }
             });
 
-            return assert.isRejected(cryptoUtil.deleteEncryptedId('foo'), 'delete error',
-                'should have caught error');
+            return assert.isRejected(
+                cryptoUtil.deleteEncryptedId('foo'),
+                'delete error',
+                'should have caught error'
+            );
         });
     });
 
@@ -154,8 +163,11 @@ describe('cryptoUtil', () => {
                 }
             });
 
-            return assert.isRejected(cryptoUtil.encryptAndStoreValue(), 'create error',
-                'should have caught error');
+            return assert.isRejected(
+                cryptoUtil.encryptAndStoreValue(),
+                'create error',
+                'should have caught error'
+            );
         });
     });
 });

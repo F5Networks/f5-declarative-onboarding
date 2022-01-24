@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,39 +77,23 @@ function waitForDo(host, adminUsername, adminPassword) {
 function setupMachines(harnessInfo) {
     console.log('Setting up machines');
     console.log(JSON.stringify(harnessInfo, null, 4));
-    return new Promise((resolveOuter, rejectOuter) => {
-        const installPromises = [];
-        harnessInfo.forEach((machine) => {
-            installPromises.push(new Promise((resolve, reject) => {
-                const username = machine.ssh_user.username;
-                const password = machine.ssh_user.password;
-                const adminUsername = machine.f5_rest_user.username;
-                const adminPassword = machine.f5_rest_user.password;
-                const ipAddress = machine.admin_ip;
-                scpRpm(ipAddress, username, password)
-                    .then(() => installRpm(ipAddress, adminUsername, adminPassword))
-                    .then(JSON.parse)
-                    .then((response) => {
-                        if (response.status === 'CREATED') {
-                            waitForDo(ipAddress, adminUsername, adminPassword);
-                            resolve();
-                        } else {
-                            reject(new Error(`failed : ${response.status}`));
-                        }
-                    })
-                    .catch((error) => {
-                        reject(error);
-                    });
-            }));
-        });
-        return Promise.all(installPromises)
-            .then(() => {
-                resolveOuter();
-            })
-            .catch((err) => {
-                rejectOuter(err);
+    const installPromises = harnessInfo.map((machine) => {
+        const username = machine.ssh_user.username;
+        const password = machine.ssh_user.password;
+        const adminUsername = machine.f5_rest_user.username;
+        const adminPassword = machine.f5_rest_user.password;
+        const ipAddress = machine.admin_ip;
+        return scpRpm(ipAddress, username, password)
+            .then(() => installRpm(ipAddress, adminUsername, adminPassword))
+            .then(JSON.parse)
+            .then((response) => {
+                if (response.status === 'CREATED') {
+                    return waitForDo(ipAddress, adminUsername, adminPassword);
+                }
+                throw new Error(`failed : ${response.status}`);
             });
     });
+    return Promise.all(installPromises);
 }
 
 /**

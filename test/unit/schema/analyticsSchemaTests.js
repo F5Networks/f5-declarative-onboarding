@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -230,8 +230,11 @@ describe('analytics.schema.json', () => {
                         '10.10.33.33'
                     ]
                 };
-                assert.strictEqual(validate(data), false,
-                    'missing offboxTcpPort with tcp protocol should not be valid');
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'missing offboxTcpPort with tcp protocol should not be valid'
+                );
                 assert.strictEqual(/offboxTcpPort/.test(getErrorString(validate)), true);
             });
 
@@ -242,8 +245,11 @@ describe('analytics.schema.json', () => {
                     offboxProtocol: 'tcp',
                     offboxTcpPort: 666
                 };
-                assert.strictEqual(validate(data), false,
-                    'missing offboxTcpAddresses with tcp protocol should not be valid');
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'missing offboxTcpAddresses with tcp protocol should not be valid'
+                );
                 assert.strictEqual(/offboxTcpAddresses/.test(getErrorString(validate)), true);
             });
 
@@ -262,8 +268,11 @@ describe('analytics.schema.json', () => {
                     offboxEnabled: true,
                     offboxProtocol: 'tcp'
                 };
-                assert.strictEqual(validate(data), false,
-                    'missing offboxTcpAddresses, offboxTcpPort with tcp protocol should not be valid');
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'missing offboxTcpAddresses, offboxTcpPort with tcp protocol should not be valid'
+                );
 
                 const errorMsg = getErrorString(validate);
                 assert.strictEqual(/offboxTcpAddresses/.test(errorMsg) || /offboxTcpPort/.test(errorMsg), true);
@@ -275,8 +284,11 @@ describe('analytics.schema.json', () => {
                     offboxEnabled: true,
                     offboxTcpPort: 1
                 };
-                assert.strictEqual(validate(data), false,
-                    'missing offboxTcpAddresses, offboxProtocol when offboxTcpPort is not 0 should not be valid');
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'missing offboxTcpAddresses, offboxProtocol when offboxTcpPort is not 0 should not be valid'
+                );
 
                 const errorMsg = getErrorString(validate);
                 assert.strictEqual(/offboxTcpAddresses/.test(errorMsg) || /offboxProtocol/.test(errorMsg), true);
@@ -290,8 +302,11 @@ describe('analytics.schema.json', () => {
                         '10.0.0.10'
                     ]
                 };
-                assert.strictEqual(validate(data), false,
-                    'missing offboxProtocol, offboxTcpPort when offboxTcpAddresses is not empty should not be valid');
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'missing offboxProtocol, offboxTcpPort when offboxTcpAddresses is not empty should not be valid'
+                );
 
                 const errorMsg = getErrorString(validate);
                 assert.strictEqual(/offboxTcpPort/.test(errorMsg) || /offboxProtocol/.test(errorMsg), true);
@@ -303,8 +318,11 @@ describe('analytics.schema.json', () => {
                     offboxEnabled: true,
                     offboxProtocol: 'https'
                 };
-                assert.strictEqual(validate(data), false,
-                    'missing offboxTcpAddresses, offboxTcpPort with https protocol should not be valid');
+                assert.strictEqual(
+                    validate(data),
+                    false,
+                    'missing offboxTcpAddresses, offboxTcpPort with https protocol should not be valid'
+                );
 
                 const errorMsg = getErrorString(validate);
                 assert.strictEqual(/offboxTcpAddresses/.test(errorMsg) || /offboxTcpPort/.test(errorMsg), true);

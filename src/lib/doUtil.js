@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -354,8 +354,6 @@ module.exports = {
                         masked[key][index] = this.mask(item);
                     }
                 });
-            } else if (MASK_REGEX.test(key)) {
-                delete masked[key];
             }
         });
 
@@ -567,5 +565,19 @@ module.exports = {
 
             return 0;
         });
+    },
+
+    /**
+     * Removes elements from an array by index
+     *
+     * @param {Array} array - Array of objects from which to remove elements
+     * @param {Array} indicesToRemove - Array of indices to remove
+     */
+    removeElementsFromArray(array, indicesToRemove) {
+        for (let i = array.length; i >= 0; i -= 1) {
+            if (indicesToRemove.indexOf(i) !== -1) {
+                array.splice(i, 1);
+            }
+        }
     }
 };

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -250,8 +250,12 @@ describe('inspectHandler', () => {
 
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 408, 'Request Timeout',
-                            (errMsg) => errMsg.indexOf('Unable to complete request within specified timeout') !== -1);
+                        basicAssertsForFailedResponse(
+                            data,
+                            408,
+                            'Request Timeout',
+                            (errMsg) => errMsg.indexOf('Unable to complete request within specified timeout') !== -1
+                        );
                     });
             });
 
@@ -270,9 +274,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('Invalid value for parameter') !== -1
-                                        && errMsg.indexOf('targetHost') !== -1);
+                                        && errMsg.indexOf('targetHost') !== -1
+                        );
                     });
             });
 
@@ -282,9 +290,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf('targetPort') !== -1);
+                                && errMsg.indexOf('targetPort') !== -1
+                        );
                     });
             });
 
@@ -294,9 +306,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf('targetPort') !== -1);
+                                && errMsg.indexOf('targetPort') !== -1
+                        );
                     });
             });
 
@@ -306,9 +322,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf('targetPort') !== -1);
+                                && errMsg.indexOf('targetPort') !== -1
+                        );
                     });
             });
 
@@ -320,9 +340,13 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('should be specified') !== -1
-                                    && errMsg.indexOf('targetHost') !== -1);
+                                && errMsg.indexOf('targetHost') !== -1
+                        );
                     });
             });
 
@@ -334,10 +358,14 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 400, 'Bad Request',
+                        basicAssertsForFailedResponse(
+                            data,
+                            400,
+                            'Bad Request',
                             (errMsg) => errMsg.indexOf('Invalid value for parameter') !== -1
-                                        && errMsg.indexOf('should be in range') !== -1
-                                        && errMsg.indexOf('should be specified') !== -1);
+                                && errMsg.indexOf('should be in range') !== -1
+                                && errMsg.indexOf('should be specified') !== -1
+                        );
                     });
             });
 
@@ -345,8 +373,12 @@ describe('inspectHandler', () => {
                 customPlatform = PRODUCTS.BIGIQ;
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 403, 'Forbidden',
-                            (errMsg) => errMsg === 'Should be executed on BIG-IP or should specify "target*" parameters.');
+                        basicAssertsForFailedResponse(
+                            data,
+                            403,
+                            'Forbidden',
+                            (errMsg) => errMsg === 'Should be executed on BIG-IP or should specify "target*" parameters.'
+                        );
                     });
             });
 
@@ -378,8 +410,12 @@ describe('inspectHandler', () => {
                 };
                 return inspectHandler.process()
                     .then((data) => {
-                        basicAssertsForFailedResponse(data, 412, 'Precondition failed',
-                            (errMsg) => errMsg === 'Unable to verify declaration from existing state.');
+                        basicAssertsForFailedResponse(
+                            data,
+                            412,
+                            'Precondition failed',
+                            (errMsg) => errMsg === 'Unable to verify declaration from existing state.'
+                        );
                     });
             });
         });
@@ -1936,7 +1972,7 @@ describe('inspectHandler', () => {
                             servicePolicy: 'servicePolicy',
                             stagedFirewallPolicy: 'fwStagedPolicy',
                             strict: true,
-                            vlans: ['/Common/http-tunnel', '/Common/socks-tunnel', '/Common/internal']
+                            vlans: ['/Common/http-tunnel', '/Common/internal', '/Common/socks-tunnel']
                         },
                         rd1: {
                             bandWidthControllerPolicy: 'bwcPolicy',
@@ -1952,7 +1988,7 @@ describe('inspectHandler', () => {
                             servicePolicy: 'servicePolicy',
                             stagedFirewallPolicy: 'fwStagedPolicy',
                             strict: true,
-                            vlans: ['/Common/http-tunnel', '/Common/socks-tunnel', '/Common/internal']
+                            vlans: ['/Common/http-tunnel', '/Common/internal', '/Common/socks-tunnel']
                         },
                         mySnmpUser: {
                             class: 'SnmpUser',
@@ -2123,7 +2159,8 @@ describe('inspectHandler', () => {
                             autoCheck: true,
                             autoPhonehome: false,
                             tmshAuditLog: true,
-                            guiAuditLog: false
+                            guiAuditLog: false,
+                            preserveOrigDhcpRoutes: true
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',
@@ -2782,7 +2819,8 @@ describe('inspectHandler', () => {
                             },
                             currentSystem: {
                                 class: 'System',
-                                hostname: 'myhost.bigip.com'
+                                hostname: 'myhost.bigip.com',
+                                preserveOrigDhcpRoutes: false
                             },
                             currentHTTPD: {
                                 class: 'HTTPD',

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,7 @@ describe('User', function testAuthentication() {
     it('userType regular', () => {
         const options = {
             maxPathLength: 31,
-            mcpPath: '',
-            skipIdempotentCheck: true
+            mcpPath: ''
         };
 
         const guestRole = {
@@ -73,7 +72,7 @@ describe('User', function testAuthentication() {
             },
             {
                 name: 'password',
-                inputValue: [process.env.INTEGRATION_TEST_PASSWORD],
+                inputValue: [process.env.DO_PASSWORD],
                 skipAssert: true
             },
             {

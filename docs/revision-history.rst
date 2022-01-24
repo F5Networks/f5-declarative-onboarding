@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.27
+        - Updated the documentation for Declarative Onboarding v1.27.0.  This release contains the following resolved issues: |br| *  Items containing '.' or '-' characters in their names are not passing schema validation, `GitHub Issue 277 <https://github.com/F5Networks/f5-declarative-onboarding/issues/277>`_ |br| * DNS_Resolver is not idempotent |br| * Tunnel is not idempotent |br| * Cannot update only the description of ManagementIp |br| |br| Issues Resolved: |br| * Several idempotentcy issues are resolved, which required adding defaults for several items in the |system|
+        - 1-25-22
+
       * - 1.26
         - Updated the documentation for Declarative Onboarding v1.26.0.  This release contains the following changes: |br| * Added the **remark** field to GSLBDataCenter |br| * Added a new FAQ entry for HTTPD ciphersuite values (see :ref:`HTTPD Ciphersuite<cipher>`) |br| |br| Issues Resolved: |br| * Declaration fails when Management IP already exists, `GitHub Issue 254 <https://github.com/F5Networks/f5-declarative-onboarding/issues/254>`_ |br| * DO fails when a route with a '/' in the name is added manually between DO runs, `GitHub Issue 267 <https://github.com/F5Networks/f5-declarative-onboarding/issues/267>`_ |br| * Adding a Management Route Resets Management IP to DHCP, `GitHub Issue 269 <https://github.com/F5Networks/f5-declarative-onboarding/issues/269>`_ |br| * Unsupported httpd ciphersuite, `GitHub Issue 178 <https://github.com/F5Networks/f5-declarative-onboarding/issues/178>`_ |br| * Unable to modify SelfIp referenced by ConfigSync, `GitHub Issue 135 <https://github.com/F5Networks/f5-declarative-onboarding/issues/135>`_ |br| * When GTM is enabled, DO returns the error 'Monitor /Common/http is read only' on the second POST even when GSLB is not in the declaration.
         - 12-14-21
@@ -172,3 +176,7 @@ Document Revision History
 .. |supportmd| raw:: html
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/SUPPORT.md" target="_blank">Support page on GitHub</a>
+
+.. |system| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#system" target="_blank">System Class</a>

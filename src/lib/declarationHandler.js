@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ const ralv = new RoutingAccessListValidator();
 // run a diff against these classes and also apply defaults for them if they
 // are missing from the declaration
 const CLASSES_OF_TRUTH = [
-    'hostname',
+    'InternalUse', // This is a special internal class in which we store things that are hard to handle otherwise
     'DbVariables',
     'DNS',
     'NTP',
@@ -159,9 +159,12 @@ class DeclarationHandler {
             })
             .then((parsedDeclaration) => {
                 parsedNewDeclaration = parsedDeclaration;
+                parsedNewDeclaration.Common.InternalUse = {};
             })
             .then(() => {
                 applyDefaults(parsedNewDeclaration, state);
+                applyDnsResolverFixes(parsedNewDeclaration);
+                applyHostnameFixes(parsedNewDeclaration);
                 applyManagementIpFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyManagementIpFirewallFixes(parsedNewDeclaration);
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
@@ -177,9 +180,13 @@ class DeclarationHandler {
                 applyFirewallPortListFixes(parsedNewDeclaration);
                 applyFirewallPolicyFixes(parsedNewDeclaration);
                 applySelfIpFixes(parsedNewDeclaration);
+                applyTunnelFixes(parsedNewDeclaration);
                 applyManagementRouteFixes(parsedNewDeclaration, state.originalConfig);
                 origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
-
+            })
+            .then(() => removeEmptyObjects(parsedNewDeclaration))
+            .then(() => removeEmptyObjects(parsedOldDeclaration))
+            .then(() => {
                 const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
                 return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration, declaration);
             })
@@ -239,12 +246,9 @@ function applyDefaults(declaration, state) {
         }
         const original = commonOriginal[key];
         const item = commonDeclaration[key];
-        // if the missing or empty, fill in the original
+        // if the class is missing or empty, fill in the original
         if (!(key in commonDeclaration) || (typeof item === 'object' && Object.keys(item).length === 0)) {
             commonDeclaration[key] = original;
-            if (key === 'System' && commonDeclaration.hostname) {
-                delete commonDeclaration[key].hostname;
-            }
         } else if (key === 'Authentication') {
             // some more auth oddities
             if (typeof item.remoteUsersDefaults === 'undefined') {
@@ -252,6 +256,57 @@ function applyDefaults(declaration, state) {
             }
         }
     });
+}
+
+/**
+ * DNS Resolver fixes
+ *
+ * We allow a user to put DNS Resolver nameservers in an array of strings, but
+ * iControl REST represents them as an array of objects with a name property
+ *
+ * @param {Object} declaration - declaration
+ */
+function applyDnsResolverFixes(declaration) {
+    doUtil.forEach(declaration, 'DNS_Resolver', (tenant, resolver) => {
+        if (resolver && resolver.name) {
+            let forwardZones = resolver.forwardZones;
+            if (forwardZones) {
+                forwardZones = forwardZones.map((zone) => {
+                    if (zone.nameservers) {
+                        zone.nameservers = zone.nameservers.map((nameserver) => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })));
+                    }
+                    return zone;
+                });
+            }
+        }
+    });
+}
+
+/**
+ * Hostname fixes
+ *
+ * hostname can be in 2 places for historical reasons. Consolidate into the System class
+ *
+ * @param {Object} declaration - declaration
+ */
+function applyHostnameFixes(declaration) {
+    // Put the desired hostname in just one place
+    if (declaration.Common.hostname) {
+        if (!declaration.Common.System) {
+            declaration.Common.System = {};
+        }
+        declaration.Common.System.hostname = declaration.Common.hostname;
+        delete declaration.Common.hostname;
+    }
+
+    // If a hostname is in the declaration, copy it to the same place that configManager
+    // uses for the 2 possible BIG-IP device names
+    if (declaration.Common.System && declaration.Common.System.hostname) {
+        declaration.Common.InternalUse.deviceNames = {
+            hostName: declaration.Common.System.hostname,
+            deviceName: declaration.Common.System.hostname
+        };
+    }
 }
 
 /**
@@ -525,6 +580,17 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
         if (typeof rd !== 'undefined') {
             rd.vlans = rd.vlans || [];
             rd.vlans.push(vlanName);
+        }
+    });
+
+    // Sort the vlans so we don't get a diff just due to ordering
+    // Also, iControl REST returns route domain vlans w/ a full name, so make sure that is
+    // there.
+    Object.keys(decalrationRDs).forEach((rdName) => {
+        const rd = decalrationRDs[rdName];
+        if (rd.vlans) {
+            rd.vlans = rd.vlans.map((vlanName) => (vlanName.startsWith('/') ? vlanName : `/${commonPartition}/${vlanName}`));
+            rd.vlans.sort();
         }
     });
 }
@@ -953,6 +1019,24 @@ function applySelfIpFixes(declaration) {
 }
 
 /**
+ * Normalizes tunnel properties to what the configManager returns
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyTunnelFixes(declaration) {
+    const tunnels = (declaration.Common && declaration.Common.Tunnel) || {};
+    if (Object.keys(tunnels).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'Tunnel', (tenant, tunnel) => {
+        if (tunnel.trafficGroup && tunnel.trafficGroup.startsWith('/Common')) {
+            tunnel.trafficGroup = tunnel.trafficGroup.split('/Common/')[1];
+        }
+    });
+}
+
+/**
  * Convert LDAP SSL cert data to SHA1 checksum, name, and partition.
  *
  * @param {Object} declaration - User provided declaration
@@ -1007,6 +1091,13 @@ function applyManagementRouteFixes(declaration, originalConfig) {
         || !declaration.Common.System.preserveOrigDhcpRoutes) {
         return;
     }
+
+    // We need to separately save the preserveOrigDhcpRoutes settings to determine the proper
+    // mgmt-dhcp setting later. Otherwise, if it matches current config, we will lose the info in the diff.
+    if (!declaration.Common.InternalUse.System) {
+        declaration.Common.InternalUse.System = {};
+    }
+    declaration.Common.InternalUse.System.preserveOrigDhcpRoutes = declaration.Common.System.preserveOrigDhcpRoutes;
 
     Object.keys(origManagementRoutes).forEach((managementRoute) => {
         if (origManagementRoutes[managementRoute].description === 'configured-by-dhcp'
@@ -1103,7 +1194,7 @@ function removeEmptyObjects(declaration) {
     const common = declaration.Common;
     Object.keys(common).forEach((key) => {
         const configItem = common[key];
-        if (Object.keys(configItem).length === 0) {
+        if (typeof configItem === 'object' && Object.keys(configItem).length === 0) {
             delete common[key];
         }
     });
@@ -1111,7 +1202,6 @@ function removeEmptyObjects(declaration) {
 
 function makeUpdates(bigIp, eventEmitter, declaration, updateDeclaration, deleteDeclaration, state) {
     return Promise.resolve()
-        .then(() => removeEmptyObjects(updateDeclaration))
         .then(() => bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
         .then(() => {
             const handlers = [

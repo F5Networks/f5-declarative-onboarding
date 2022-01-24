@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ describe('Authentication', function testAuthentication() {
 
         it('radius', () => {
             const options = {
-                skipIdempotentCheck: true,
+                skipIdempotentCheck: true, // items with secrets are not idempotent
                 getMcpObject: {
                     className: 'AuthRadius',
                     itemKind: 'tm:auth:radius:radiusstate',
@@ -118,7 +118,7 @@ describe('Authentication', function testAuthentication() {
 
         it('radius - only primary server', () => {
             const options = {
-                skipIdempotentCheck: true,
+                skipIdempotentCheck: true, // items with secrets are not idempotent
                 getMcpObject: {
                     className: 'AuthRadius',
                     itemKind: 'tm:auth:radius:radiusstate',
@@ -168,7 +168,7 @@ describe('Authentication', function testAuthentication() {
 
         it('ldap', () => {
             const options = {
-                skipIdempotentCheck: true,
+                skipIdempotentCheck: true, // items with passwords are not idempotent
                 getMcpObject: {
                     className: 'AuthLdap',
                     itemKind: 'tm:auth:ldap:ldapstate',
@@ -337,7 +337,7 @@ describe('Authentication', function testAuthentication() {
 
         it('tacacs', () => {
             const options = {
-                skipIdempotentCheck: true,
+                skipIdempotentCheck: true, // items with secrets are not idempotent
                 getMcpObject: {
                     className: 'AuthTacacs',
                     itemKind: 'tm:auth:tacacs:tacacsstate',
@@ -427,7 +427,6 @@ describe('Authentication', function testAuthentication() {
         }
 
         const options = {
-            skipIdempotentCheck: true,
             getMcpObject: {
                 className: 'AuthRemoteRole',
                 itemKind: 'tm:auth:remote-role:role-info:role-infostate',

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 F5 Networks, Inc.
+ * Copyright 2022 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,7 +200,7 @@ function handleDhcpOptions() {
 }
 
 function handleManagementDhcp() {
-    const currentMgmtDhcpSetting = this.state.currentConfig.Common.System.mgmtDhcp;
+    const currentMgmtDhcpSetting = this.state.currentConfig.Common.System.preserveOrigDhcpRoutes ? 'enabled' : 'disabled';
 
     // DO currently only handles one management ip. If it is a dual-stack setting, leave it alone.
     if (currentMgmtDhcpSetting === 'dhcpv4' || currentMgmtDhcpSetting === 'dhcpv6') {
@@ -212,23 +212,19 @@ function handleManagementDhcp() {
     let desiredMgmtDhcpSetting;
 
     return Promise.resolve()
-        .then(() => getDesiredMgmtIpDhcpSetting.call(this))
+        .then(() => getDesiredMgmtIpDhcpSetting.call(this, currentMgmtDhcpSetting))
         .then((desiredSetting) => {
             desiredMgmtIpDhcpSetting = desiredSetting;
         })
-        .then(() => getDesiredMgmtRouteDhcpSetting.call(this))
+        .then(() => getDesiredMgmtRouteDhcpSetting.call(this, currentMgmtDhcpSetting))
         .then((desiredSetting) => {
             deisredMgmtRouteDhcpSetting = desiredSetting;
         })
         .then(() => {
-            if (!desiredMgmtIpDhcpSetting || !deisredMgmtRouteDhcpSetting) {
-                // At least one is undefined. Use the one that is defined if there is one
-                desiredMgmtDhcpSetting = desiredMgmtIpDhcpSetting || deisredMgmtRouteDhcpSetting;
-            } else {
-                // If ManagementRoute and ManagementIp disagree, favor disabled as that is safer.
-                // Enabling can modify the ManagementIp.
-                desiredMgmtDhcpSetting = desiredMgmtIpDhcpSetting === deisredMgmtRouteDhcpSetting ? desiredMgmtIpDhcpSetting : 'disabled';
-            }
+            // If ManagementRoute and ManagementIp disagree, favor disabled as that is safer.
+            // Enabling can modify the ManagementIp.
+            desiredMgmtDhcpSetting = desiredMgmtIpDhcpSetting === deisredMgmtRouteDhcpSetting ? desiredMgmtIpDhcpSetting : 'disabled';
+
             if (desiredMgmtDhcpSetting && desiredMgmtDhcpSetting !== currentMgmtDhcpSetting) {
                 return this.bigIp.modify(
                     PATHS.SysGlobalSettings,
@@ -242,7 +238,9 @@ function handleManagementDhcp() {
         .then(() => Promise.resolve(desiredMgmtDhcpSetting || currentMgmtDhcpSetting));
 }
 
-function getDesiredMgmtIpDhcpSetting() {
+function getDesiredMgmtIpDhcpSetting(currentMgmtDhcpSetting) {
+    let desiredMgmtDhcp = currentMgmtDhcpSetting;
+
     if (this.declaration.Common.ManagementIp) {
         // If there are two entries, the one w/ a name property is the new one. The other entry
         // is the old management-ip and should be empty because to ajv it looks like a delete
@@ -250,7 +248,6 @@ function getDesiredMgmtIpDhcpSetting() {
         const newName = names.find((name) => this.declaration.Common.ManagementIp[name].name);
         if (newName) {
             const mgmtIpInfo = this.declaration.Common.ManagementIp[newName];
-            let desiredMgmtDhcp = 'disabled';
             // Determining the mgmt-dhcp setting is tricky. Maybe this is a rollback.
             // As there is no metadata on a management-ip, it is hard to know whether we are
             // rolling back to a management-ip that was static or dynamic. We use the description field
@@ -260,28 +257,29 @@ function getDesiredMgmtIpDhcpSetting() {
             if (mgmtIpInfo.description) {
                 desiredMgmtDhcp = mgmtIpInfo.description.indexOf('configured-by-dhcp') === -1 ? 'disabled' : 'enabled';
             }
-            return Promise.resolve(desiredMgmtDhcp);
         }
     }
-    return Promise.resolve();
+    return Promise.resolve(desiredMgmtDhcp);
 }
 
-function getDesiredMgmtRouteDhcpSetting() {
+function getDesiredMgmtRouteDhcpSetting(currentMgmtDhcpSetting) {
+    let desiredMgmtDhcp = currentMgmtDhcpSetting;
+
     if (this.declaration.Common.ManagementRoute) {
         // Check to see if we have any entries with name properties
         const names = Object.keys(this.declaration.Common.ManagementRoute);
         const hasRoutes = names.some((name) => typeof this.declaration.Common.ManagementRoute[name].name !== 'undefined');
 
         if (hasRoutes) {
-            let desiredMgmtDhcp = 'disabled';
-            if (this.declaration.Common.System
-                && typeof this.declaration.Common.System.preserveOrigDhcpRoutes !== 'undefined') {
-                desiredMgmtDhcp = this.declaration.Common.System.preserveOrigDhcpRoutes ? 'enabled' : 'disabled';
+            const preserveOrigDhcpRoutes = doUtil.getDeepValue(this.declaration.Common, 'InternalUse.System');
+            if (typeof preserveOrigDhcpRoutes !== 'undefined') {
+                desiredMgmtDhcp = this.declaration.Common.InternalUse.System.preserveOrigDhcpRoutes ? 'enabled' : 'disabled';
+            } else {
+                desiredMgmtDhcp = 'disabled';
             }
-            return Promise.resolve(desiredMgmtDhcp);
         }
     }
-    return Promise.resolve();
+    return Promise.resolve(desiredMgmtDhcp);
 }
 
 function handleNTP() {
@@ -436,24 +434,22 @@ function handleSystem() {
         return Promise.resolve();
     }
 
-    // Handle both 'hostname' and 'System.hostname'
     const system = common.System;
-    let hostname;
-    if (system && system.hostname) {
-        hostname = system.hostname;
-        delete system.hostname;
-    } else if (common.hostname) {
-        hostname = common.hostname;
-    }
-    if (hostname) {
-        promises.push(this.bigIp.onboard.hostname(hostname));
-    } else {
-        promises.push(this.bigIp.list(PATHS.SysGlobalSettings)
-            .then((globalSettings) => {
-                if (globalSettings && globalSettings.hostname) {
-                    this.bigIp.onboard.hostname(globalSettings.hostname);
-                }
-            }));
+
+    const deviceNames = doUtil.getDeepValue(common.InternalUse, 'deviceNames');
+    if (deviceNames && Object.keys(deviceNames).length !== 0) {
+        // There is some diff in the hostname, so grab what the user put in, or, if that
+        // is missing, set both hostname and device name to the current global setting
+        if (system && system.hostname) {
+            promises.push(this.bigIp.onboard.hostname(system.hostname));
+        } else {
+            promises.push(this.bigIp.list(PATHS.SysGlobalSettings)
+                .then((globalSettings) => {
+                    if (globalSettings && globalSettings.hostname) {
+                        this.bigIp.onboard.hostname(globalSettings.hostname);
+                    }
+                }));
+        }
     }
 
     if (system) {
@@ -780,6 +776,10 @@ function handleManagementIp(mgmtDhcp) {
                     const currentAddress = getCurrentManagementAddress(
                         this.state.currentConfig.Common.ManagementIp
                     );
+                    const currentDescription = getCurrentManagementDescription(
+                        this.state.currentConfig.Common.ManagementIp,
+                        currentAddress
+                    );
                     // In case of ManagementIP in declaration is the same as one in current state,
                     // don't create and proceed.
                     if (mgmtDhcp === 'disabled' && currentAddress !== address) {
@@ -787,6 +787,17 @@ function handleManagementIp(mgmtDhcp) {
                             PATHS.ManagementIp,
                             {
                                 name: address,
+                                description: mgmtIpInfo.description
+                            }
+                        );
+                    }
+                    // If it is just a description change...
+                    if (mgmtDhcp === 'disabled'
+                        && mgmtIpInfo.description
+                        && currentDescription !== mgmtIpInfo.description) {
+                        return this.bigIp.modify(
+                            `${PATHS.ManagementIp}/${address.replace('/', '~')}`,
+                            {
                                 description: mgmtIpInfo.description
                             }
                         );
@@ -830,12 +841,6 @@ function handleManagementRoute() {
                                 null,
                                 cloudUtil.NO_RETRY
                             ));
-                        }
-
-                        // iControl REST can return a gateway of 'none' with a type, but posting that back
-                        // to iControl rest is illegal. We love you BIG-IP.
-                        if (managementRoute.gateway === 'none' && managementRoute.type) {
-                            delete managementRoute.gateway;
                         }
 
                         const routeBody = {
@@ -1483,6 +1488,10 @@ function areFilesDifferent(fileA, fileB) {
 
 function getCurrentManagementAddress(managementIpInfo) {
     return Object.keys(managementIpInfo)[0];
+}
+
+function getCurrentManagementDescription(managementIpInfo, address) {
+    return managementIpInfo[address].description;
 }
 
 function isMaskChangeOnly(oldAddress, newAddress) {
