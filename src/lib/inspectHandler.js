@@ -28,10 +28,11 @@ const Logger = require('./logger');
 const State = require('./state');
 
 const LOCALHOST_ADDRS = ['localhost', '127.0.0.1'];
-const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 const PROCESS_MAX_TIMEOUT = require('./sharedConstants').ENDPOINT_MAX_TIMEOUT;
 const SCHEMA_VERSION = require('../schema/latest/base.schema.json').properties.schemaVersion.enum[0];
 const STATUS = require('./sharedConstants').STATUS;
+
+const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
 
 const logger = new Logger(module);
 
@@ -534,6 +535,9 @@ function makeDeclarationFromConfig(config) {
         const duplicates = {};
 
         configItems.forEach((configItem) => {
+            if (!configItem.path) {
+                return;
+            }
             processConfigItem(configItem, tenantConfig, (declKey, declObj) => {
                 // undefined means that item should be removed from declaration
                 if (typeof declObj === 'undefined') {

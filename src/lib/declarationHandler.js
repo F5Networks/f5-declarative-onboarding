@@ -23,6 +23,7 @@ const ipUtil = require('@f5devcentral/atg-shared-utilities').ipUtils;
 const DeclarationParser = require('./declarationParser');
 const DiffHandler = require('./diffHandler');
 const Logger = require('./logger');
+const ConfigManager = require('./configManager');
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
 const DscHandler = require('./dscHandler');
@@ -34,12 +35,13 @@ const AuthHandler = require('./authHandler');
 const GSLBHandler = require('./gslbHandler');
 const TraceManager = require('./traceManager');
 const RoutingAccessListValidator = require('./routingAccessListValidator');
+const configItems = require('./configItems.json');
 const doUtil = require('./doUtil');
-
-const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 
 const logger = new Logger(module);
 const ralv = new RoutingAccessListValidator();
+
+const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
 
 // They are the classes for which we are the source of truth. We will
 // run a diff against these classes and also apply defaults for them if they

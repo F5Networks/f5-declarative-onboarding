@@ -51,6 +51,7 @@
         ],
         "singleValue": true,
         "silent": true,
+        "nameless": true,
         "declaration": false
     },
     {
@@ -73,6 +74,7 @@
             { "id": "level" }
         ],
         "singleValue": true,
+        "nameless": true,
         "declaration": {
             "properties": [
                 {
@@ -89,7 +91,8 @@
         "properties": [
             { "id": "servers" },
             { "id": "timezone" }
-        ]
+        ],
+        "nameless": true
     },
     {
         "path": "/tm/sys/dns",
@@ -97,7 +100,8 @@
         "properties": [
             { "id": "nameServers" },
             { "id": "search" }
-        ]
+        ],
+        "nameless": true
     },
     {
         "path": "/tm/net/dns-resolver",
@@ -380,10 +384,9 @@
         "path": "/tm/cm/traffic-group",
         "schemaClass": "MAC_Masquerade",
         "properties": [
-            { "id": "mac"}
+            { "id": "mac" }
         ],
-        "declaration": false,
-        "nameless": true
+        "declaration": false
     },
     {
         "path": "/tm/analytics/global-settings",
@@ -399,6 +402,7 @@
             { "id": "sourceId", "defaultWhenOmitted": "none" },
             { "id": "tenantId", "defaultWhenOmitted": "default" }
         ],
+        "nameless": true,
         "declaration": {
             "properties": [
                 { "id": "offboxProtocol", "removeIfValue": "none" }
@@ -1132,5 +1136,15 @@
             ]
         },
         "nameless": true
+    },
+    {
+        "schemaClass": "License",
+        "nameless": true,
+        "properties": []
+    },
+    {
+        "schemaClass": "DeviceTrust",
+        "nameless": true,
+        "properties": []
     }
 ]

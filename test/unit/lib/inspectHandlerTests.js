@@ -461,6 +461,10 @@ describe('inspectHandler', () => {
                 return Promise.resolve({ hostname, version });
             },
             list(path) {
+                if (!path) {
+                    return Promise.resolve();
+                }
+
                 // The path name here does not have a domain, but does include
                 // a query. listResponses are set up with just the pathname part.
                 const parsedURL = URL.parse(path, 'https://foo');
@@ -2594,7 +2598,7 @@ describe('inspectHandler', () => {
 
             configItems.forEach((item) => {
                 if (item.declaration !== false) {
-                    if (typeof item.schemaClass !== 'undefined') {
+                    if (typeof item.schemaClass !== 'undefined' && item.properties.length > 0) {
                         classes[item.schemaClass] = true;
                         if (typeof item.schemaMerge !== 'undefined') {
                             subProps[item.schemaClass] = subProps[item.schemaClass] || [];

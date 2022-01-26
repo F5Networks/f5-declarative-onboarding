@@ -105,31 +105,6 @@ module.exports = {
         TRACE_CONFIG: 'TRACE_CONFIG',
         TRACE_DIFF: 'TRACE_DIFF'
     },
-    NAMELESS_CLASSES: [
-        'DbVariables',
-        'DNS',
-        'NTP',
-        'License',
-        'Provision',
-        'ConfigSync',
-        'FailoverUnicast',
-        'FailoverMulticast',
-        'DeviceTrust',
-        'Analytics',
-        'Authentication',
-        'RemoteAuthRoles',
-        'SnmpAgent',
-        'SnmpTrapEvents',
-        'DagGlobals',
-        'System',
-        'TrafficControl',
-        'HTTPD',
-        'SSHD',
-        'Disk',
-        'MirrorIp',
-        'GSLBGlobals',
-        'ManagementIpFirewall'
-    ],
     AUTH: {
         SUBCLASSES_NAME: 'system-auth'
     },

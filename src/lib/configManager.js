@@ -179,6 +179,10 @@ class ConfigManager {
                 // properties we want
                 return Promise.all(this.configItems
                     .map((configItem) => {
+                        if (!configItem.path) {
+                            return Promise.resolve(false);
+                        }
+
                         if (configItem.requiredModules) {
                             const targetInfo = { version: this.bigIpVersion };
                             if (!checkRequiredModules(configItem.requiredModules, provisionedModules, targetInfo)) {
@@ -687,6 +691,12 @@ class ConfigManager {
                 logger.severe(`Error getting current config: ${err.message}`);
                 return Promise.reject(err);
             });
+    }
+
+    static getNamelessClasses(configItems) {
+        return configItems
+            .filter((configItem) => configItem.nameless)
+            .map((configItem) => configItem.schemaClass);
     }
 }
 

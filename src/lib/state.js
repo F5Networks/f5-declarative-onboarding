@@ -21,8 +21,9 @@ const uuidv4 = require('uuid/v4');
 const doUtil = require('./doUtil');
 const parserUtil = require('./parserUtil');
 const configItems = require('./configItems.json');
+const ConfigManager = require('./configManager');
 
-const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
+const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
 
 const TASK_RETENTION_DAYS = 7;
 

@@ -17,10 +17,12 @@
 'use strict';
 
 const Logger = require('./logger');
-const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
+const ConfigManager = require('./configManager');
 const doUtil = require('./doUtil');
 const parserUtil = require('./parserUtil');
 const configItems = require('./configItems.json');
+
+const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
 
 const logger = new Logger(module);
 
@@ -191,6 +193,7 @@ class DeclarationParser {
             const parsed = {};
 
             const tenants = getTenants(this.declaration);
+
             tenants.forEach((tenantName) => {
                 if (!parsed[tenantName]) {
                     parsed[tenantName] = {};
