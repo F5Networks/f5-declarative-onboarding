@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.28
+        - Updated the documentation for Declarative Onboarding v1.28.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| *  Licensing in GCP multi-NIC fails (Upgrade to f5-cloud-libs 4.26.7), `GitHub Issue 248 <https://github.com/F5Networks/f5-declarative-onboarding/issues/248>`_ |br| * 
+        - 3-8-22
+
       * - 1.27
         - Updated the documentation for Declarative Onboarding v1.27.0.  This release contains the following resolved issues: |br| *  Items containing '.' or '-' characters in their names are not passing schema validation, `GitHub Issue 277 <https://github.com/F5Networks/f5-declarative-onboarding/issues/277>`_ |br| * DNS_Resolver is not idempotent |br| * Tunnel is not idempotent |br| * Cannot update only the description of ManagementIp |br| |br| Issues Resolved: |br| * Several idempotentcy issues are resolved, which required adding defaults for several items in the |system|
         - 1-25-22
