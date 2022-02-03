@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/remote.schema.json",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/remote.schema.json",
     "title": "F5 Declarative Onboarding request declaration",
     "description": "Wrapper for remote onboarding of a BIG-IP device using F5 Declarative Onboarding",
     "type": "object",
