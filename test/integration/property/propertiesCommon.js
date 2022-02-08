@@ -1039,5 +1039,6 @@ module.exports = {
     getProvisionedModules,
     getBigIpVersion,
     getItemName,
+    getMcpObject,
     postDeclaration
 };

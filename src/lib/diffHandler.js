@@ -111,7 +111,7 @@ class DiffHandler {
                 // diff.path looks like ['Common', 'SelfIp', 'external', 'trafficGroup']
                 // so if diff.path is longer than 3, it's just a property being deleted
                 // and this will be handled by the applyChange
-                if (diff.kind === 'D' && diff.path.length === 3) {
+                if (diff.kind === 'D' && diff.path.length <= 3) {
                     if (!toDelete.Common[schemaClass]) {
                         toDelete.Common[schemaClass] = {};
                     }
@@ -125,7 +125,11 @@ class DiffHandler {
                     //             }
                     //         }
                     // }
-                    toDelete.Common[schemaClass][diff.path[2]] = {};
+                    if (diff.path.length === 3) {
+                        // It's a specific item - otherwise, we're deleting all of the items
+                        // of this class and leave an empty object here.
+                        toDelete.Common[schemaClass][diff.path[2]] = {};
+                    }
                 }
             }
         });

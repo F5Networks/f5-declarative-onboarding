@@ -20,6 +20,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2930: DNS_Resolver is not idempotent
 - AUTOTOOL-2931: Tunnel is not idempotent
 - AUTOTOOL-2939: Can't update just the description of ManagementIp
+- AUTOTOOL-3006: Can't remove all items of a class
 
 ### Changed
 - AUTOTOOL-1898: Several idempotentcy issues are resolved. This required adding defaults for several items in the System class.

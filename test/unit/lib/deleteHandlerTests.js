@@ -92,6 +92,40 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const state = {
             currentConfig: {
                 Common: {
+                    SelfIp: {
+                        deleteThisSelfIp1: {},
+                        deleteThisSelfIp2: {}
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                SelfIp: {}
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.strictEqual(deletedPaths.length, 2);
+                assert.strictEqual(deletedPaths[0], '/tm/net/self/~Common~deleteThisSelfIp1');
+                assert.strictEqual(deletedPaths[1], '/tm/net/self/~Common~deleteThisSelfIp2');
+            });
+    });
+
+    it('should delete all items if there is an empty schema class', () => {
+        bigIpMock.delete = (path) => new Promise((resolve) => {
+            deletedPaths.push(path);
+            setTimeout(() => {
+                resolve();
+            }, path.includes(PATHS.Route) ? 50 : 0);
+        });
+
+        const state = {
+            currentConfig: {
+                Common: {
                     Route: {
                         deleteThisRoute: {
                             name: 'deleteThisRoute',

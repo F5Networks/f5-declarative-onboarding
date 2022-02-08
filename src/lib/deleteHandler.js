@@ -125,7 +125,14 @@ class DeleteHandler {
                 return Promise.resolve();
             }
 
-            Object.keys(this.declaration.Common[deletableClass]).forEach((itemToDelete) => {
+            let itemNames = Object.keys(this.declaration.Common[deletableClass]);
+
+            // If we get an empty class, that means we are deleting all of the items for that class
+            if (itemNames.length === 0) {
+                itemNames = Object.keys(this.state.currentConfig.Common[deletableClass]);
+            }
+
+            itemNames.forEach((itemToDelete) => {
                 // Special case for device groups
                 if (deletableClass === 'DeviceGroup') {
                     if (READ_ONLY_DEVICE_GROUPS.indexOf(itemToDelete) === -1) {
