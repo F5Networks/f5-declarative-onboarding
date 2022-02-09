@@ -94,7 +94,7 @@ describe('base.schema.json', () => {
                     "foo": "bar"
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+                assert(getErrorString().includes('should NOT have additional properties'));
             });
         });
     });
@@ -149,7 +149,7 @@ describe('base.schema.json', () => {
                 assert.strictEqual(
                     validate(data), false, 'username/password with tokens should not be valid'
                 );
-                assert.notStrictEqual(getErrorString().indexOf('dependencies/username/not'), -1);
+                assert(getErrorString().includes('dependencies/username/not'));
             });
 
             it('should invalidate credentials with long values', () => {
@@ -167,7 +167,7 @@ describe('base.schema.json', () => {
                 assert.strictEqual(
                     validate(data), false, 'long token should not be valid'
                 );
-                assert.notStrictEqual(getErrorString().indexOf('Credentials/items/properties/tokens/patternProperties'), -1);
+                assert(getErrorString().includes('Credentials/items/properties/tokens/patternProperties'));
             });
         });
     });
@@ -240,7 +240,7 @@ describe('base.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'Bad classes should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
 
             it('should invalidate item names that are too long', () => {
@@ -255,7 +255,7 @@ describe('base.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'Item names that are too long should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf(`property name 'myLongItem_12345678901234567890123456789012345678' is invalid`), -1);
+                assert(getErrorString().includes(`property name 'myLongItem_12345678901234567890123456789012345678' is invalid`));
             });
 
             it('should invalidate item names that invalid characters', () => {
@@ -270,7 +270,7 @@ describe('base.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'Item names that are too long should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                assert(getErrorString().includes('should match pattern'));
             });
         });
     });

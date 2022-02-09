@@ -6,6 +6,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ### Fixed
 - AUTOTOOL-2612: ([GitHub Issue 248](https://github.com/F5Networks/f5-declarative-onboarding/issues/248)): Licensing in GCP multi-NIC fails (Upgrade to f5-cloud-libs 4.26.7)
+- AUTOTOOL-2941: ([GitHub Issue 285](https://github.com/F5Networks/f5-declarative-onboarding/issues/285)): URL is incorrect in schema files
 
 ### Changed
 
@@ -19,6 +20,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2930: DNS_Resolver is not idempotent
 - AUTOTOOL-2931: Tunnel is not idempotent
 - AUTOTOOL-2939: Can't update just the description of ManagementIp
+- AUTOTOOL-3006: Can't remove all items of a class
 
 ### Changed
 - AUTOTOOL-1898: Several idempotentcy issues are resolved. This required adding defaults for several items in the System class.

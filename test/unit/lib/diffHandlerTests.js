@@ -102,6 +102,39 @@ describe('diffHandler', () => {
             });
     });
 
+    it('should report diffs and deletes when deleting all items of a class', () => {
+        const toDeclaration = {
+            Common: {
+                class2: {
+                    foo: 'bar'
+                }
+            }
+        };
+        const fromDeclaration = {
+            Common: {
+                class1: {
+                    hello: 'world'
+                },
+                class2: {
+                    foo: 'bar'
+                },
+                class4: {
+                    myKey: 'myValue'
+                }
+            }
+        };
+
+        const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
+        return diffHandler.process(toDeclaration, fromDeclaration, {})
+            .then((diff) => {
+                assert.deepStrictEqual(diff.toUpdate.Common.class1, {});
+                assert.deepStrictEqual(diff.toUpdate.Common.class4, {});
+                assert.deepStrictEqual(diff.toDelete.Common.class1, {});
+                assert.deepStrictEqual(diff.toDelete.Common.class4, {});
+                assert.strictEqual(diff.toDelete.Common.class2, undefined);
+            });
+    });
+
     it('should only modify the updated object for named classes', () => {
         const toDeclaration = {
             Common: {

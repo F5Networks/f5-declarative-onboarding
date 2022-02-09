@@ -95,30 +95,23 @@ describe('restWorker', () => {
             const success = () => {
                 resolve();
             };
-            const error = () => {
-                reject(new Error('should have called success'));
+            const error = (err) => {
+                reject(new Error(`Should have called success, but got error: ${err}`));
             };
 
-            try {
-                restWorker.onStart(success, error);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onStart(success, error);
         }));
 
-        it('should handle error', () => new Promise((resolve, reject) => {
+        it('should handle error', () => new Promise((resolve) => {
             const success = () => {
                 throw new Error('should have called error');
             };
-            const error = () => {
+            const error = (err) => {
+                assert.strictEqual(err, 'Error creating declarative onboarding worker: Error: should have called error');
                 resolve();
             };
 
-            try {
-                restWorker.onStart(success, error);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onStart(success, error);
         }));
 
         it('should set dependencies', () => new Promise((resolve, reject) => {
@@ -128,15 +121,11 @@ describe('restWorker', () => {
                 assert.strictEqual(restWorker.dependencies[0], 'https://path/to/deviceInfo');
                 resolve();
             };
-            const error = () => {
-                reject(new Error('should have called success'));
+            const error = (err) => {
+                reject(new Error(`Should have called success, but got error: ${err}`));
             };
 
-            try {
-                restWorker.onStart(success, error);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onStart(success, error);
         }));
     });
 
@@ -150,15 +139,12 @@ describe('restWorker', () => {
             const success = () => {
                 reject(new Error('should have called error'));
             };
-            const error = () => {
+            const error = (err) => {
+                assert.strictEqual(err, 'error loading state on start: error message');
                 resolve();
             };
 
-            try {
-                restWorker.onStartCompleted(success, error, null, 'error message');
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onStartCompleted(success, error, null, 'error message');
         }));
 
         it('should load state', () => {
@@ -187,14 +173,11 @@ describe('restWorker', () => {
                     assert.ok(loadStateCalled);
                     resolve();
                 };
-                const error = () => {
-                    reject(new Error('Shoud have called success'));
+                const error = (err) => {
+                    reject(new Error(`Should have called success, but got error: ${err}`));
                 };
-                try {
-                    restWorker.onStartCompleted(success, error);
-                } catch (err) {
-                    reject(err);
-                }
+
+                restWorker.onStartCompleted(success, error);
             });
         });
 
@@ -210,14 +193,12 @@ describe('restWorker', () => {
                 const success = () => {
                     reject(new Error('should have called error'));
                 };
-                const error = () => {
+                const error = (err) => {
+                    assert.strictEqual(err, 'error creating state: foo');
                     resolve();
                 };
-                try {
-                    restWorker.onStartCompleted(success, error);
-                } catch (err) {
-                    reject(err);
-                }
+
+                restWorker.onStartCompleted(success, error);
             });
         });
 
@@ -251,11 +232,8 @@ describe('restWorker', () => {
             RestWorker.prototype.saveState = (foo, state, callback) => {
                 callback();
             };
-            try {
-                restWorker.onStartCompleted(success, error);
-            } catch (err) {
-                reject(err);
-            }
+
+            restWorker.onStartCompleted(success, error);
         }));
 
         describe('traces', () => {
@@ -301,11 +279,7 @@ describe('restWorker', () => {
                     reject(new Error('should have called success'));
                 };
 
-                try {
-                    restWorker.onStartCompleted(success, error);
-                } catch (err) {
-                    reject(err);
-                }
+                restWorker.onStartCompleted(success, error);
             }));
         });
 
@@ -397,22 +371,21 @@ describe('restWorker', () => {
                 };
 
                 bigIpMock.reboot = () => {
-                    assert.strictEqual(
-                        restWorker
-                            .state.doState.tasks[1234].internalDeclaration.Common.myLicense.revokeFrom,
-                        undefined
-                    );
-                    resolve();
+                    try {
+                        assert.strictEqual(
+                            restWorker.state.doState.tasks[1234].internalDeclaration.Common.myLicense.revokeFrom,
+                            undefined
+                        );
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
                 };
 
-                try {
-                    restWorker.onStartCompleted(success, error);
-                } catch (err) {
-                    reject(err);
-                }
+                restWorker.onStartCompleted(success, error);
             }));
 
-            it('should decrypt ids if neccessary after revoking', () => new Promise((resolve, reject) => {
+            it('should decrypt ids if necessary after revoking', () => new Promise((resolve, reject) => {
                 const success = () => {};
                 const error = () => {
                     reject(new Error('should have called success'));
@@ -442,30 +415,28 @@ describe('restWorker', () => {
                 };
 
                 bigIpMock.reboot = () => {
-                    assert.strictEqual(decryptedIds.length, 2);
-                    assert.strictEqual(
-                        restWorker
-                            .state.doState.tasks[1234].internalDeclaration.Common.myLicense.bigIpPassword,
-                        undefined,
-                        'Stored state should not save decryptedId'
-                    );
-                    assert.strictEqual(
-                        restWorker
-                            .state.doState.tasks[1234].internalDeclaration.Common.myLicense.bigIqPassword,
-                        undefined,
-                        'Stored state should not save decryptedId'
-                    );
-                    resolve();
+                    try {
+                        assert.strictEqual(decryptedIds.length, 2);
+                        assert.strictEqual(
+                            restWorker.state.doState.tasks[1234].internalDeclaration.Common.myLicense.bigIpPassword,
+                            undefined,
+                            'Stored state should not save decryptedId'
+                        );
+                        assert.strictEqual(
+                            restWorker.state.doState.tasks[1234].internalDeclaration.Common.myLicense.bigIqPassword,
+                            undefined,
+                            'Stored state should not save decryptedId'
+                        );
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
                 };
 
-                try {
-                    restWorker.onStartCompleted(success, error);
-                } catch (err) {
-                    reject(err);
-                }
+                restWorker.onStartCompleted(success, error);
             }));
 
-            it('should not decrypt ids if not neccessary after revoking', () => new Promise((resolve, reject) => {
+            it('should not decrypt ids if not necessary after revoking', () => new Promise((resolve, reject) => {
                 const success = () => {};
                 const error = () => {
                     reject(new Error('should have called success'));
@@ -493,15 +464,15 @@ describe('restWorker', () => {
                 };
 
                 bigIpMock.reboot = () => {
-                    assert.strictEqual(decryptedIds.length, 0);
-                    resolve();
+                    try {
+                        assert.strictEqual(decryptedIds.length, 0);
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
                 };
 
-                try {
-                    restWorker.onStartCompleted(success, error);
-                } catch (err) {
-                    reject(err);
-                }
+                restWorker.onStartCompleted(success, error);
             }));
         });
 
@@ -513,9 +484,13 @@ describe('restWorker', () => {
             cryptoUtilMock.encryptAndStoreValue = (value) => {
                 encryptedValues.push(value);
                 if (encryptedValues.length === 2) {
-                    assert.strictEqual(encryptedValues[0], 'myBigIpPassword');
-                    assert.strictEqual(encryptedValues[1], 'myBigIqPassword');
-                    resolve();
+                    try {
+                        assert.strictEqual(encryptedValues[0], 'myBigIpPassword');
+                        assert.strictEqual(encryptedValues[1], 'myBigIqPassword');
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
                 }
             };
 
@@ -531,12 +506,8 @@ describe('restWorker', () => {
                 reject(new Error('should have called success'));
             };
 
-            try {
-                restWorker.platform = 'BIG-IP';
-                restWorker.onStartCompleted(success, error);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.platform = 'BIG-IP';
+            restWorker.onStartCompleted(success, error);
         }));
 
         it('should emit READY_FOR_REVOKE from LICENSE_WILL_BE_REVOKED event', () => new Promise((resolve, reject) => {
@@ -567,12 +538,8 @@ describe('restWorker', () => {
                 reject(new Error('should have called success'));
             };
 
-            try {
-                restWorker.platform = 'BIG-IP';
-                restWorker.onStartCompleted(success, error);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.platform = 'BIG-IP';
+            restWorker.onStartCompleted(success, error);
         }));
     });
 
@@ -623,10 +590,14 @@ describe('restWorker', () => {
 
         it('should return state for most recent task if no path is specified', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.strictEqual(Array.isArray(responseBody), false);
-                assert.deepEqual(responseBody.declaration, { foo: 'bar' });
-                assert.strictEqual(responseBody.result.code, 200);
-                resolve();
+                try {
+                    assert.strictEqual(Array.isArray(responseBody), false);
+                    assert.deepEqual(responseBody.declaration, { foo: 'bar' });
+                    assert.strictEqual(responseBody.result.code, 200);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding'
@@ -634,104 +605,100 @@ describe('restWorker', () => {
 
             restWorker.state.doState.mostRecentTask = 1234;
 
-            try {
-                restWorker.onGet(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onGet(restOperationMock);
         }));
 
         it('should return state for all tasks if tasks path is specified with no task', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.ok(Array.isArray(responseBody));
-                assert.deepEqual(responseBody[0].declaration, { foo: 'bar' });
-                assert.strictEqual(responseBody[0].result.code, 200);
-                assert.deepEqual(responseBody[1].declaration, { hello: 'world' });
-                assert.strictEqual(responseBody[1].result.code, 300);
-                resolve();
+                try {
+                    assert.ok(Array.isArray(responseBody));
+                    assert.deepEqual(responseBody[0].declaration, { foo: 'bar' });
+                    assert.strictEqual(responseBody[0].result.code, 200);
+                    assert.deepEqual(responseBody[1].declaration, { hello: 'world' });
+                    assert.strictEqual(responseBody[1].result.code, 300);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/task'
             });
 
-            try {
-                restWorker.onGet(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onGet(restOperationMock);
         }));
 
         it('should return state for specified task if tasks path is specified with a task', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.strictEqual(Array.isArray(responseBody), false);
-                assert.deepEqual(responseBody.declaration, { foo: 'bar' });
-                assert.strictEqual(responseBody.result.code, 200);
-                resolve();
+                try {
+                    assert.strictEqual(Array.isArray(responseBody), false);
+                    assert.deepEqual(responseBody.declaration, { foo: 'bar' });
+                    assert.strictEqual(responseBody.result.code, 200);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/task/1234'
             });
 
-            try {
-                restWorker.onGet(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onGet(restOperationMock);
         }));
 
         it('should return 200 for an invalid task using experimental statusCodes', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.strictEqual(Array.isArray(responseBody), false);
-                assert.strictEqual(responseBody.result.code, 422);
-                assert.strictEqual(statusCode, 200);
-                resolve();
+                try {
+                    assert.strictEqual(Array.isArray(responseBody), false);
+                    assert.strictEqual(responseBody.result.code, 422);
+                    assert.strictEqual(statusCode, 200);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/task/8888',
                 query: { statusCodes: 'experimental' }
             });
 
-            try {
-                restWorker.onGet(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onGet(restOperationMock);
         }));
 
         it('should return 422 for an invalid task using legacy statusCodes', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.strictEqual(Array.isArray(responseBody), false);
-                assert.strictEqual(responseBody.result.code, 422);
-                assert.strictEqual(statusCode, 422);
-                resolve();
+                try {
+                    assert.strictEqual(Array.isArray(responseBody), false);
+                    assert.strictEqual(responseBody.result.code, 422);
+                    assert.strictEqual(statusCode, 422);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/task/8888',
                 query: { statusCodes: 'legacy' }
             });
 
-            try {
-                restWorker.onGet(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onGet(restOperationMock);
         }));
 
         it('should not set non-numeric status code', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.strictEqual(statusCode, 500);
-                resolve();
+                try {
+                    assert.strictEqual(statusCode, 500);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/task/9999',
                 query: { statusCodes: 'legacy' }
             });
 
-            try {
-                restWorker.onGet(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onGet(restOperationMock);
         }));
     });
 
@@ -791,34 +758,34 @@ describe('restWorker', () => {
 
         it('should delete original config', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.strictEqual(deletedId, '1234');
-                resolve();
+                try {
+                    assert.strictEqual(deletedId, '1234');
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/config/1234'
             });
 
-            try {
-                restWorker.onDelete(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onDelete(restOperationMock);
         }));
 
         it('should return 404 for non-existing id', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.strictEqual(statusCode, 404);
-                resolve();
+                try {
+                    assert.strictEqual(statusCode, 404);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
             restOperationMock.getUri = () => ({
                 pathname: '/shared/declarative-onboarding/config/9999'
             });
 
-            try {
-                restWorker.onDelete(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onDelete(restOperationMock);
         }));
     });
 
@@ -890,15 +857,15 @@ describe('restWorker', () => {
             };
 
             restOperationMock.complete = () => {
-                assert.strictEqual(bigIpOptionsCalled.authToken, '1234ABCD');
-                resolve();
+                try {
+                    assert.strictEqual(bigIpOptionsCalled.authToken, '1234ABCD');
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should dereference json-pointers in the DO wrapper', () => new Promise((resolve, reject) => {
@@ -915,16 +882,16 @@ describe('restWorker', () => {
             };
 
             restOperationMock.complete = () => {
-                assert.strictEqual(bigIpOptionsCalled.user, 'my user');
-                assert.strictEqual(bigIpOptionsCalled.password, 'my password');
-                resolve();
+                try {
+                    assert.strictEqual(bigIpOptionsCalled.user, 'my user');
+                    assert.strictEqual(bigIpOptionsCalled.password, 'my password');
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should handle validation errors', () => new Promise((resolve, reject) => {
@@ -933,72 +900,67 @@ describe('restWorker', () => {
             });
 
             restOperationMock.complete = () => {
-                assert.strictEqual(responseBody.result.code, 400);
-                assert.strictEqual(responseBody.result.status, 'ERROR');
-                assert.notStrictEqual(responseBody.result.message.indexOf('bad declaration'), -1);
-                resolve();
+                try {
+                    assert.strictEqual(responseBody.result.code, 400);
+                    assert.strictEqual(responseBody.result.status, 'ERROR');
+                    assert(responseBody.result.message.includes('bad declaration'));
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should handle missing content header with valid content', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
                 try {
                     assert.strictEqual(statusCode, 200);
+                    resolve();
                 } catch (err) {
                     reject(err);
-                    return;
                 }
-                resolve();
             };
 
             restOperationMock.getContentType = () => {};
             restOperationMock.getBody = () => '{}';
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should handle the charset in the Content-Type header', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.strictEqual(statusCode, 200);
-                resolve();
+                try {
+                    assert.strictEqual(statusCode, 200);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
             restOperationMock.getContentType = () => 'application/json; charset=UTF-8';
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should handle missing content header with invalid content', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.strictEqual(responseBody.result.code, 400);
-                assert.strictEqual(responseBody.result.status, 'ERROR');
-                assert.notStrictEqual(responseBody.result.message.indexOf('bad declaration'), -1);
-                assert.notStrictEqual(responseBody.result.errors[0].indexOf('Should be JSON format'), -1);
-                resolve();
+                try {
+                    assert.strictEqual(responseBody.result.code, 400);
+                    assert.strictEqual(responseBody.result.status, 'ERROR');
+                    assert(responseBody.result.message.includes('bad declaration'));
+                    assert(responseBody.result.errors[0].includes('Should be JSON format'));
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
             restOperationMock.getContentType = () => {};
             restOperationMock.getBody = () => 'foobar';
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should handle failure to get/initialize a device', () => new Promise((resolve, reject) => {
@@ -1009,17 +971,17 @@ describe('restWorker', () => {
                 return Promise.reject(error);
             });
             restOperationMock.complete = () => {
-                assert.strictEqual(responseBody.result.code, 503);
-                assert.strictEqual(responseBody.result.status, 'ERROR');
-                assert.notStrictEqual(responseBody.result.errors.indexOf('failed to initialize'), -1);
-                resolve();
+                try {
+                    assert.strictEqual(responseBody.result.code, 503);
+                    assert.strictEqual(responseBody.result.status, 'ERROR');
+                    assert.notStrictEqual(responseBody.result.errors.indexOf('failed to initialize'), -1);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should add defaults to the declaration', () => new Promise((resolve, reject) => {
@@ -1037,33 +999,33 @@ describe('restWorker', () => {
             restWorker.validator = new RealValidator();
 
             restOperationMock.complete = () => {
-                const state = restWorker.state.doState;
-                const taskId = Object.keys(state.tasks)[0];
-                assert.strictEqual(
-                    state.tasks[taskId].internalDeclaration.Common.mySelfIp.trafficGroup,
-                    'traffic-group-local-only'
-                );
-                resolve();
+                try {
+                    const state = restWorker.state.doState;
+                    const taskId = Object.keys(state.tasks)[0];
+                    assert.strictEqual(
+                        state.tasks[taskId].internalDeclaration.Common.mySelfIp.trafficGroup,
+                        'traffic-group-local-only'
+                    );
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should save sys config', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.ok(saveCalled);
-                resolve();
+                try {
+                    assert.ok(saveCalled);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should not save sys config if dry run', () => new Promise((resolve, reject) => {
@@ -1076,28 +1038,28 @@ describe('restWorker', () => {
                 Common: {}
             };
             restOperationMock.complete = () => {
-                assert.strictEqual(saveCalled, false);
-                resolve();
+                try {
+                    assert.strictEqual(saveCalled, false);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should save state', () => new Promise((resolve, reject) => {
             restOperationMock.complete = () => {
-                assert.ok(saveStateCalled, 'State should have been saved');
-                resolve();
+                try {
+                    assert.ok(saveStateCalled, 'State should have been saved');
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
             };
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should set status to rebooting if reboot is required', () => new Promise((resolve, reject) => {
@@ -1107,18 +1069,13 @@ describe('restWorker', () => {
                 try {
                     assert.strictEqual(responseBody.result.status, 'REBOOTING');
                     assert.ok(saveStateCalled, 'State should have been saved after updating');
+                    resolve();
                 } catch (err) {
                     reject(err);
                 }
-
-                resolve();
             };
 
-            try {
-                restWorker.onPost(restOperationMock);
-            } catch (err) {
-                reject(err);
-            }
+            restWorker.onPost(restOperationMock);
         }));
 
         it('should set status to rolled back if an error occurs', () => {
@@ -1137,17 +1094,17 @@ describe('restWorker', () => {
                 };
 
                 restOperationMock.complete = () => {
-                    assert.strictEqual(responseBody.result.status, 'ERROR');
-                    assert.notStrictEqual(responseBody.result.message.indexOf('rolled back'), -1);
-                    assert.strictEqual(responseBody.result.errors[0], 'this it the rollback reason');
-                    resolve();
+                    try {
+                        assert.strictEqual(responseBody.result.status, 'ERROR');
+                        assert(responseBody.result.message.includes('rolled back'));
+                        assert.strictEqual(responseBody.result.errors[0], 'this it the rollback reason');
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
                 };
 
-                try {
-                    restWorker.onPost(restOperationMock);
-                } catch (err) {
-                    reject(err);
-                }
+                restWorker.onPost(restOperationMock);
             });
         });
 
@@ -1168,26 +1125,26 @@ describe('restWorker', () => {
                 };
 
                 restOperationMock.complete = () => {
-                    const runningArgs = updateResultSpy.getCall(0).args;
-                    assert.deepStrictEqual(runningArgs[1], 202);
-                    assert.deepStrictEqual(runningArgs[2], 'RUNNING');
+                    try {
+                        const runningArgs = updateResultSpy.getCall(0).args;
+                        const rollingBackArgs = updateResultSpy.getCall(1).args;
+                        const rolledBackArgs = updateResultSpy.getCall(2).args;
 
-                    const rollingBackArgs = updateResultSpy.getCall(1).args;
-                    assert.deepStrictEqual(rollingBackArgs[1], 202);
-                    assert.deepStrictEqual(rollingBackArgs[2], 'ROLLING_BACK');
+                        assert.deepStrictEqual(runningArgs[1], 202);
+                        assert.deepStrictEqual(runningArgs[2], 'RUNNING');
 
-                    const rolledBackArgs = updateResultSpy.getCall(2).args;
-                    assert.deepStrictEqual(rolledBackArgs[1], 500);
-                    assert.deepStrictEqual(rolledBackArgs[2], 'ERROR');
+                        assert.deepStrictEqual(rollingBackArgs[1], 202);
+                        assert.deepStrictEqual(rollingBackArgs[2], 'ROLLING_BACK');
 
-                    resolve();
+                        assert.deepStrictEqual(rolledBackArgs[1], 500);
+                        assert.deepStrictEqual(rolledBackArgs[2], 'ERROR');
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
                 };
 
-                try {
-                    restWorker.onPost(restOperationMock);
-                } catch (err) {
-                    reject(err);
-                }
+                restWorker.onPost(restOperationMock);
             });
         });
 
@@ -1208,18 +1165,18 @@ describe('restWorker', () => {
                 };
 
                 restOperationMock.complete = () => {
-                    assert.strictEqual(responseBody.result.status, 'ERROR');
-                    assert.notStrictEqual(responseBody.result.message.indexOf('rollback failed'), -1);
-                    assert.strictEqual(responseBody.result.errors[0], 'this it the rollback reason');
-                    assert.strictEqual(responseBody.result.errors[1], 'this is the rollback fail reason');
-                    resolve();
+                    try {
+                        assert.strictEqual(responseBody.result.status, 'ERROR');
+                        assert(responseBody.result.message.includes('rollback failed'));
+                        assert.strictEqual(responseBody.result.errors[0], 'this it the rollback reason');
+                        assert.strictEqual(responseBody.result.errors[1], 'this is the rollback fail reason');
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
                 };
 
-                try {
-                    restWorker.onPost(restOperationMock);
-                } catch (err) {
-                    reject(err);
-                }
+                restWorker.onPost(restOperationMock);
             });
         });
 
@@ -1249,7 +1206,7 @@ describe('restWorker', () => {
                 assert.strictEqual(opstionsSaved, 'http://some.place.test');
             });
 
-            it('should call postWebhook', () => new Promise((resolve, reject) => {
+            it('should call postWebhook', () => new Promise((resolve) => {
                 webhook = 'http://some.place.test';
                 declaration = {
                     schemaVersion: '1.0.0',
@@ -1265,11 +1222,7 @@ describe('restWorker', () => {
                     resolve();
                 };
 
-                try {
-                    restWorker.onPost(restOperationMock);
-                } catch (err) {
-                    reject(err);
-                }
+                restWorker.onPost(restOperationMock);
             }));
         });
 
@@ -1332,17 +1285,17 @@ describe('restWorker', () => {
 
             it('should pass initial request to TCW if running on BIG-IQ', () => new Promise((resolve, reject) => {
                 restOperationMock.complete = () => {
-                    assert.notStrictEqual(taskId, undefined);
-                    // the responseBody.id is randomized
-                    assert.strictEqual(taskId, responseBody.id);
-                    resolve();
+                    try {
+                        assert.strictEqual(taskId.length, 36);
+                        // the responseBody.id is a mostly randomized 36 characters
+                        assert.strictEqual(taskId, responseBody.id);
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
                 };
 
-                try {
-                    restWorker.onPost(restOperationMock);
-                } catch (err) {
-                    reject(err);
-                }
+                restWorker.onPost(restOperationMock);
             }));
 
             it('should poll TCW until FINISHED and report success', () => {
@@ -1362,16 +1315,16 @@ describe('restWorker', () => {
 
                 return new Promise((resolve, reject) => {
                     restOperationMock.complete = () => {
-                        assert.strictEqual(pollRequests, 2);
-                        assert.strictEqual(responseBody.result.status, 'OK');
-                        resolve();
+                        try {
+                            assert.strictEqual(pollRequests, 2);
+                            assert.strictEqual(responseBody.result.status, 'OK');
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 });
             });
 
@@ -1392,16 +1345,16 @@ describe('restWorker', () => {
 
                 return new Promise((resolve, reject) => {
                     restOperationMock.complete = () => {
-                        assert.strictEqual(pollRequests, 2);
-                        assert.strictEqual(responseBody.result.status, 'ERROR');
-                        resolve();
+                        try {
+                            assert.strictEqual(pollRequests, 2);
+                            assert.strictEqual(responseBody.result.status, 'ERROR');
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 });
             });
 
@@ -1439,17 +1392,18 @@ describe('restWorker', () => {
 
                 return new Promise((resolve, reject) => {
                     restOperationMock.complete = () => {
-                        assert.strictEqual(Object.keys(restWorker.bigIps).length, 2);
-                        assert.notStrictEqual(restWorker.bigIps[externalId], undefined);
-                        clearTimeout(timerId);
-                        resolve();
+                        try {
+                            assert.strictEqual(Object.keys(restWorker.bigIps).length, 2);
+                            assert.strictEqual(typeof restWorker.bigIps[externalId].save, 'function');
+                            assert.strictEqual(typeof restWorker.bigIps[externalId].reboot, 'function');
+                            clearTimeout(timerId);
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 });
             });
 
@@ -1472,16 +1426,16 @@ describe('restWorker', () => {
 
                 return new Promise((resolve, reject) => {
                     restOperationMock.complete = () => {
-                        assert.ok(saveCalled);
-                        assert.strictEqual(pollRequests, 0);
-                        resolve();
+                        try {
+                            assert.ok(saveCalled);
+                            assert.strictEqual(pollRequests, 0);
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 });
             });
 
@@ -1495,16 +1449,16 @@ describe('restWorker', () => {
 
                 return new Promise((resolve, reject) => {
                     restOperationMock.complete = () => {
-                        assert.ok(saveCalled);
-                        assert.notStrictEqual(restWorker.bigIps.myExternalId, undefined);
-                        resolve();
+                        try {
+                            assert.ok(saveCalled);
+                            assert.notStrictEqual(restWorker.bigIps.myExternalId, undefined);
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 });
             });
 
@@ -1537,19 +1491,19 @@ describe('restWorker', () => {
 
                     restWorker.state.doState.updateResult = (id, code, status) => {
                         if (status === STATUS.STATUS_OK) {
-                            assert.strictEqual(readyCalled, true);
-                            resolve();
+                            try {
+                                assert.strictEqual(readyCalled, true);
+                                resolve();
+                            } catch (err) {
+                                reject(err);
+                            }
                         }
                     };
 
                     doUtilMock.rebootRequired.restore();
                     sinon.stub(doUtilMock, 'rebootRequired').resolves(true);
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 });
             });
 
@@ -1583,16 +1537,15 @@ describe('restWorker', () => {
 
                     restOperationMock.complete = () => {};
                     restWorker.restRequestSender.sendPatch = (restOperation) => {
-                        assert.strictEqual(restOperation.getBody().password, 'foofoo');
-                        resolve();
-                        return Promise.resolve();
+                        try {
+                            assert.strictEqual(restOperation.getBody().password, 'foofoo');
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 }));
 
                 it('should ssh to BIG-IP if an ssh key is provided and shell is bash', (done) => {
@@ -1624,8 +1577,12 @@ describe('restWorker', () => {
                     };
 
                     restOperationMock.complete = () => {
-                        assert.strictEqual(sshCommand, 'tmsh modify auth user admin password foofoo');
-                        done();
+                        try {
+                            assert.strictEqual(sshCommand, 'tmsh modify auth user admin password foofoo');
+                            done();
+                        } catch (err) {
+                            done(err);
+                        }
                     };
 
                     restWorker.onPost(restOperationMock);
@@ -1650,8 +1607,12 @@ describe('restWorker', () => {
                     };
 
                     restOperationMock.complete = () => {
-                        assert.strictEqual(sshCommand, 'modify auth user admin password foofoo');
-                        done();
+                        try {
+                            assert.strictEqual(sshCommand, 'modify auth user admin password foofoo');
+                            done();
+                        } catch (err) {
+                            done(err);
+                        }
                     };
 
                     restWorker.onPost(restOperationMock);
@@ -1681,15 +1642,15 @@ describe('restWorker', () => {
                     };
 
                     restOperationMock.complete = () => {
-                        assert.strictEqual(sshCommand, 'modify auth user admin password foofoo');
-                        resolve();
+                        try {
+                            assert.strictEqual(sshCommand, 'modify auth user admin password foofoo');
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 }));
 
                 it('should delete targetSshKey when setting targetPassphrase', () => new Promise((resolve, reject) => {
@@ -1716,16 +1677,16 @@ describe('restWorker', () => {
                     };
 
                     restOperationMock.complete = () => {
-                        assert.strictEqual(bodySet.declaration.targetPassphrase, 'foofoo');
-                        assert.strictEqual(bodySet.declaration.targetSshKey, undefined);
-                        resolve();
+                        try {
+                            assert.strictEqual(bodySet.declaration.targetPassphrase, 'foofoo');
+                            assert.strictEqual(bodySet.declaration.targetSshKey, undefined);
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 }));
 
                 it('should update password used to create bigIp', () => new Promise((resolve, reject) => {
@@ -1756,15 +1717,15 @@ describe('restWorker', () => {
                     });
 
                     restOperationMock.complete = () => {
-                        assert.strictEqual(bigIpOptionsCalled.password, 'foofoo');
-                        resolve();
+                        try {
+                            assert.strictEqual(bigIpOptionsCalled.password, 'foofoo');
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 }));
 
                 it('should use password value if it is not really a pointer', () => new Promise((resolve, reject) => {
@@ -1791,18 +1752,18 @@ describe('restWorker', () => {
                     };
 
                     restOperationMock.complete = () => {
-                        assert.strictEqual(
-                            sshCommand,
-                            'modify auth user admin password /Credentials/foo/bar'
-                        );
-                        resolve();
+                        try {
+                            assert.strictEqual(
+                                sshCommand,
+                                'modify auth user admin password /Credentials/foo/bar'
+                            );
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
                     };
 
-                    try {
-                        restWorker.onPost(restOperationMock);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    restWorker.onPost(restOperationMock);
                 }));
             });
 
@@ -1855,12 +1816,16 @@ describe('restWorker', () => {
                     };
 
                     restWorker.restRequestSender.sendPost = (restOperation) => {
-                        // This is not called for the root password check.
-                        // This is called later in the code for passToTcw and will have body.id which the password check
-                        // POST doesn't.
-                        assert.ok(!patchCalled);
-                        assert.notStrictEqual(restOperation.body.id, undefined);
-                        done();
+                        try {
+                            // This is not called for the root password check.
+                            // This is called later in the code for passToTcw and will have body.id
+                            // which the password check POST doesn't.
+                            assert.ok(!patchCalled);
+                            assert.strictEqual(restOperation.body.id.length, 36);
+                            done();
+                        } catch (err) {
+                            done(err);
+                        }
                     };
 
                     restWorker.onPost(restOperationMock);
@@ -1895,20 +1860,34 @@ describe('restWorker', () => {
                     };
 
                     restWorker.restRequestSender.sendPatch = (restOperation) => {
-                        // This is called by initialPasswordSet because the admin password is changing.
-                        assert.strictEqual(restOperation.body.oldPassword, 'admin');
-                        assert.strictEqual(restOperation.body.password, 'foofoo');
+                        try {
+                            // This is called by initialPasswordSet because the admin password is changing.
+                            assert.strictEqual(restOperation.body.oldPassword, 'admin');
+                            assert.strictEqual(restOperation.body.password, 'foofoo');
+                        } catch (err) {
+                            done(err);
+                        }
                     };
 
                     restWorker.restRequestSender.sendPost = (restOperation) => {
-                        // This is a POST from rootAccountSetup.  This is called to test if the root password is now
-                        // the admin's new password.  This POST tries to change the root password from the admin's new
-                        // passowrd to the admin's new password. (yes both values are the same).  This is a trick to
-                        // test the root password.  It will respond with an error if the oldPassword is wrong that is
+                        // This is a POST from rootAccountSetup.  This is called to test if the root
+                        // password is now the admin's new password.  This POST tries to change the
+                        // root password from the admin's new password to the admin's new password.
+                        // (yes both values are the same).  This is a trick to test the root password.
+                        // It will respond with an error if the oldPassword is wrong that is
                         // caught.
-                        assert.strictEqual(restOperation.body.oldPassword, 'foofoo');
-                        assert.strictEqual(restOperation.body.newPassword, 'foofoo');
-                        done();
+                        // sendPost is called multiple times and only some times are the passwords
+                        // in the body, so we need to check if there is an id in object. If so,
+                        // the passwords would not be present.
+                        try {
+                            if (!restOperation.body.id) {
+                                assert.strictEqual(restOperation.body.oldPassword, 'foofoo');
+                                assert.strictEqual(restOperation.body.newPassword, 'foofoo');
+                                done();
+                            }
+                        } catch (err) {
+                            done(err);
+                        }
                     };
 
                     restWorker.onPost(restOperationMock);
@@ -1957,10 +1936,16 @@ describe('restWorker', () => {
                         // passowrd to the admin's new password. (yes both values are the same).  This is a trick to
                         // test the root password.  It will respond with an error if the oldPassword is wrong that is
                         // caught.
-                        assert.ok(!patchCalled);
-                        assert.strictEqual(restOperation.body.oldPassword, 'foofoo');
-                        assert.strictEqual(restOperation.body.newPassword, 'foofoo');
-                        done();
+                        try {
+                            if (!restOperation.body.id) {
+                                assert.ok(!patchCalled);
+                                assert.strictEqual(restOperation.body.oldPassword, 'foofoo');
+                                assert.strictEqual(restOperation.body.newPassword, 'foofoo');
+                                done();
+                            }
+                        } catch (err) {
+                            done(err);
+                        }
                     };
 
                     restWorker.onPost(restOperationMock);

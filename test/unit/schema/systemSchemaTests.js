@@ -66,7 +66,7 @@ describe('system.schema.json', () => {
                     "nameServers": ["foo"]
                 };
                 assert.strictEqual(validate(data), false, 'non ip address should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"format": "ipv4"'), -1);
+                assert(getErrorString().includes('"format": "ipv4"'));
             });
 
             it('should invalidate search domains that are not hostnames', () => {
@@ -75,7 +75,7 @@ describe('system.schema.json', () => {
                     "search": ["foo@bar"]
                 };
                 assert.strictEqual(validate(data), false, 'non ip address should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"format": "hostname"'), -1);
+                assert(getErrorString().includes('"format": "hostname"'));
             });
 
             it('should invalidate additional properties', () => {
@@ -84,7 +84,7 @@ describe('system.schema.json', () => {
                     "foo": "bar"
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+                assert(getErrorString().includes('should NOT have additional properties'));
             });
         });
     });
@@ -115,6 +115,10 @@ describe('system.schema.json', () => {
                         ]
                     };
                     assert.strictEqual(validate(data), false, 'missing license type not be valid');
+                    assert.notStrictEqual(
+                        getErrorString().indexOf('should have required property \'licenseType\''),
+                        -1
+                    );
                 });
             });
         });
@@ -162,7 +166,7 @@ describe('system.schema.json', () => {
                         "regKey": "ABCD-FGHIJ-KLMNO-PQRST-UVWXYZZ"
                     };
                     assert.strictEqual(validate(data), false, 'bad reg keys should not be valid');
-                    assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                    assert(getErrorString().includes('should match pattern'));
                 });
 
                 it('should invalidate bad addOnKeys', () => {
@@ -175,7 +179,7 @@ describe('system.schema.json', () => {
                         ]
                     };
                     assert.strictEqual(validate(data), false, 'bad add on keys should not be valid');
-                    assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                    assert(getErrorString().includes('should match pattern'));
                 });
             });
         });
@@ -364,10 +368,7 @@ describe('system.schema.json', () => {
                         false,
                         'using bigIqPassword and bigIqPasswordUri should be invalid'
                     );
-                    assert.notStrictEqual(
-                        getErrorString().indexOf('should match exactly one schema in oneOf'),
-                        -1
-                    );
+                    assert(getErrorString().includes('should match exactly one schema in oneOf'));
                 });
 
                 it('should invalidate reachable false without hypervisor', () => {
@@ -406,6 +407,10 @@ describe('system.schema.json', () => {
                         validate(data),
                         false,
                         'if reachable is false, hypervisor should be required and should be valid'
+                    );
+                    assert.notStrictEqual(
+                        getErrorString().indexOf('should be equal to one of the allowed values'),
+                        -1
                     );
                 });
 
@@ -446,7 +451,7 @@ describe('system.schema.json', () => {
                         false,
                         'if revokeFrom is an object, licensePool is required'
                     );
-                    assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "licensePool"'), -1);
+                    assert(getErrorString().includes('"missingProperty": "licensePool"'));
                 });
 
                 it('should invalidate bigIqHost !== localhost with no bigIqUsername', () => {
@@ -530,7 +535,7 @@ describe('system.schema.json', () => {
                     "servers": ["foo@bar"]
                 };
                 assert.strictEqual(validate(data), false, 'non ip address should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"format": "ipv4"'), -1);
+                assert(getErrorString().includes('"format": "ipv4"'));
             });
 
             it('should invalidate additional properties', () => {
@@ -539,7 +544,7 @@ describe('system.schema.json', () => {
                     "foo": "bar"
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+                assert(getErrorString().includes('should NOT have additional properties'));
             });
         });
     });
@@ -828,7 +833,7 @@ describe('system.schema.json', () => {
                     "shell": "bash"
                 };
                 assert.strictEqual(validate(data), false, 'password property for root should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "password"'), -1);
+                assert(getErrorString().includes('"additionalProperty": "password"'));
             });
 
             it('should invalidate missing role in partition access', () => {
@@ -844,7 +849,7 @@ describe('system.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'partitionAccess missing role should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf("should NOT have additional properties"), -1);
+                assert(getErrorString().includes("should NOT have additional properties"));
             });
 
             it('should invalidate bad partition value', () => {
@@ -864,7 +869,7 @@ describe('system.schema.json', () => {
                     false,
                     'partitionAccess bad partition should not be valid'
                 );
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+                assert(getErrorString().includes('should NOT have additional properties'));
             });
         });
     });
@@ -886,7 +891,7 @@ describe('system.schema.json', () => {
                 address: '1.2.3.4'
             };
             assert.strictEqual(validate(data), false, 'Should not accept IP without prefix');
-            assert.notStrictEqual(getErrorString().indexOf('ipWithRequiredPrefix'), -1);
+            assert(getErrorString().includes('ipWithRequiredPrefix'));
         });
     });
 
@@ -945,7 +950,7 @@ describe('system.schema.json', () => {
                     network: '9.9.9.9'
                 };
                 assert.strictEqual(validate(data), false, 'Missing required property gw');
-                assert.notStrictEqual(getErrorString().indexOf('should have required property \'.gw\''), -1);
+                assert(getErrorString().includes('should have required property \'.gw\''));
             });
 
             it('should invalidate when mtu is out of range', () => {
@@ -955,7 +960,7 @@ describe('system.schema.json', () => {
                     mtu: 65536
                 };
                 assert.strictEqual(validate(data), false, 'mtu is out of range');
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+                assert(getErrorString().includes('should be <= 65535'));
             });
 
             it('should invalidate when invalid type', () => {
@@ -965,7 +970,7 @@ describe('system.schema.json', () => {
                     type: 'New Type'
                 };
                 assert.strictEqual(validate(data), false, 'not a valid type');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
 
             it('should invalidate incorrect gw format', () => {
@@ -975,7 +980,7 @@ describe('system.schema.json', () => {
                     gw: 'theGateway'
                 };
                 assert.strictEqual(validate(data), false, 'must be ipv4 or ipv6');
-                assert.notStrictEqual(getErrorString().indexOf('should match format \\"ipv4\\"'), -1);
+                assert(getErrorString().includes('should match format \\"ipv4\\"'));
             });
 
             it('should invalidate incorrect format or value for network', () => {
@@ -984,7 +989,7 @@ describe('system.schema.json', () => {
                     network: 'theNetwork'
                 };
                 assert.strictEqual(validate(data), false, 'must be f5ip, \'default\', or \'default-inet6\'');
-                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+                assert(getErrorString().includes('should match format \\"f5ip\\"'));
             });
 
             it('should invalidate with both gw and type', () => {
@@ -994,7 +999,7 @@ describe('system.schema.json', () => {
                     type: 'blackhole'
                 };
                 assert.strictEqual(validate(data), false, 'gw and type should not both be allowed');
-                assert.notStrictEqual(getErrorString().indexOf('dependencies/gw/not'), -1);
+                assert(getErrorString().includes('dependencies/gw/not'));
             });
         });
     });
@@ -1017,7 +1022,7 @@ describe('system.schema.json', () => {
             };
 
             assert.strictEqual(validate(data), false, 'host should be required');
-            assert.notStrictEqual(getErrorString().indexOf('should have required property \'host\''), -1);
+            assert(getErrorString().includes('should have required property \'host\''));
         });
     });
 
@@ -1050,7 +1055,7 @@ describe('system.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'consoleInactivityTimeout is out of range');
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 2147483647'), -1);
+                assert(getErrorString().includes('should be <= 2147483647'));
             });
 
             it('should invalidate when invalid type', () => {
@@ -1059,7 +1064,7 @@ describe('system.schema.json', () => {
                     "consoleInactivityTimeout": "five"
                 };
                 assert.strictEqual(validate(data), false, 'not a valid type');
-                assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
+                assert(getErrorString().includes('should be integer'));
             });
 
             it('should invalidate when consoleInactivity is not a multple of 60', () => {
@@ -1068,7 +1073,7 @@ describe('system.schema.json', () => {
                     "cliInactivityTimeout": 121
                 };
                 assert.strictEqual(validate(data), false, 'not a valid value');
-                assert.notStrictEqual(getErrorString().indexOf('should be multiple of 60'), -1);
+                assert(getErrorString().includes('should be multiple of 60'));
             });
         });
     });
@@ -1113,7 +1118,7 @@ describe('system.schema.json', () => {
                     "acceptIpSourceRoute": true
                 };
                 assert.strictEqual(validate(data), false, 'acceptIpSourceRoute should require acceptIpOptions to be enabled');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to constant'), -1);
+                assert(getErrorString().includes('should be equal to constant'));
             });
 
             it('should invalidate when allowIpSourceRoute is true and acceptIpOptions is false', () => {
@@ -1123,7 +1128,7 @@ describe('system.schema.json', () => {
                     "allowIpSourceRoute": true
                 };
                 assert.strictEqual(validate(data), false, 'allowIpSourceRoute should require acceptIpOptions to be enabled');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to constant'), -1);
+                assert(getErrorString().includes('should be equal to constant'));
             });
         });
     });
@@ -1199,7 +1204,7 @@ describe('system.schema.json', () => {
                     ]
                 };
                 assert.strictEqual(validate(data), false, 'allow should not contain route domains');
-                assert.notStrictEqual(getErrorString().indexOf('should match exactly one schema in oneOf'), -1);
+                assert(getErrorString().includes('should match exactly one schema in oneOf'));
             });
 
             it('should invalidate characters not in the pattern for sslCiphersuite', () => {
@@ -1210,7 +1215,7 @@ describe('system.schema.json', () => {
                     ]
                 };
                 assert.strictEqual(validate(data), false, 'sslCiphersuite values should match the pattern');
-                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                assert(getErrorString().includes('should match pattern'));
             });
         });
     });
@@ -1253,7 +1258,7 @@ describe('system.schema.json', () => {
                     "inactivityTimeout": 9999999999999
                 };
                 assert.strictEqual(validate(data), false, 'inactivityTimeout should be within the range');
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 2147483647'), -1);
+                assert(getErrorString().includes('should be <= 2147483647'));
             });
 
             it('should invalidate invalid cipher', () => {
@@ -1264,7 +1269,7 @@ describe('system.schema.json', () => {
                     ]
                 };
                 assert.strictEqual(validate(data), false, 'ciphers should only contain one of the allowed values');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
 
             it('should invalidate invalid MAC', () => {
@@ -1275,7 +1280,7 @@ describe('system.schema.json', () => {
                     ]
                 };
                 assert.strictEqual(validate(data), false, 'MACS should only contain one of the allowed values');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
 
             it('should invalidate additional properties', () => {
@@ -1284,7 +1289,7 @@ describe('system.schema.json', () => {
                     "newProp": "value"
                 };
                 assert.strictEqual(validate(data), false, 'there should not be additional properties');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+                assert(getErrorString().includes('should NOT have additional properties'));
             });
         });
     });
@@ -1314,7 +1319,7 @@ describe('system.schema.json', () => {
                     "newData": 12345
                 };
                 assert.strictEqual(validate(data), false, 'there should not be additional properties');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have additional properties'), -1);
+                assert(getErrorString().includes('should NOT have additional properties'));
             });
 
             it('should invalidate invalid applicationData', () => {
@@ -1323,7 +1328,7 @@ describe('system.schema.json', () => {
                     "applicationData": "hello"
                 };
                 assert.strictEqual(validate(data), false, 'should be type integer');
-                assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
+                assert(getErrorString().includes('should be integer'));
             });
 
             it('should invalidate non-multiples of 4k', () => {
@@ -1332,7 +1337,7 @@ describe('system.schema.json', () => {
                     "applicationData": 1025
                 };
                 assert.strictEqual(validate(data), false, 'should be multiple of 4096');
-                assert.notStrictEqual(getErrorString().indexOf('should be multiple of 4096'), -1);
+                assert(getErrorString().includes('should be multiple of 4096'));
             });
         });
     });

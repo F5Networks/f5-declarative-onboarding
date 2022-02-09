@@ -61,7 +61,7 @@ describe('auth.schema.json', () => {
                     "fallback": true
                 };
                 assert.strictEqual(validate(data), false, 'addtl properties should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "extraProp"'), -1);
+                assert(getErrorString().includes('"additionalProperty": "extraProp"'));
             });
         });
     });
@@ -146,7 +146,7 @@ describe('auth.schema.json', () => {
                     "enabledSourceType": "radius"
                 };
                 assert.strictEqual(validate(data), false, 'missing radius should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": ".radius"'), -1);
+                assert(getErrorString().includes('"missingProperty": ".radius"'));
             });
 
             it('should invalidate data with missing servers', () => {
@@ -157,7 +157,7 @@ describe('auth.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'missing servers should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "servers"'), -1);
+                assert(getErrorString().includes('"missingProperty": "servers"'));
             });
 
             it('should invalidate data without primary server', () => {
@@ -174,7 +174,7 @@ describe('auth.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'missing primary server should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "primary"'), -1);
+                assert(getErrorString().includes('"missingProperty": "primary"'));
             });
 
             it('should invalidate data with extra server item', () => {
@@ -199,7 +199,7 @@ describe('auth.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'servers should only have primary and secondary');
-                assert.notStrictEqual(getErrorString().indexOf('"additionalProperty": "tertiary"'), -1);
+                assert(getErrorString().includes('"additionalProperty": "tertiary"'));
             });
 
             it('should invalidate data with missing secret', () => {
@@ -216,7 +216,7 @@ describe('auth.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'missing secret should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "secret"'), -1);
+                assert(getErrorString().includes('"missingProperty": "secret"'));
             });
         });
     });
@@ -319,7 +319,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'tacacs property should be mandatory for tacacs authentication');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": ".tacacs"'), -1);
+                assert(getErrorString().includes('"missingProperty": ".tacacs"'));
             });
 
             it('should fail if empty servers array', () => {
@@ -334,6 +334,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'servers property should be mandatory for tacacs authentication');
+                assert(getErrorString().includes('should NOT have fewer than 1 items'));
             });
 
             it('should fail if no servers are provided', () => {
@@ -347,7 +348,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'servers property should be mandatory for tacacs authentication');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "servers"'), -1);
+                assert(getErrorString().includes('"missingProperty": "servers"'));
             });
 
             it('should fail if no secret are provided', () => {
@@ -361,7 +362,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'secret property should be mandatory for tacacs authentication');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "secret"'), -1);
+                assert(getErrorString().includes('"missingProperty": "secret"'));
             });
 
             it('should fail if no service are provided', () => {
@@ -375,7 +376,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'service property should be mandatory for tacacs authentication');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "service"'), -1);
+                assert(getErrorString().includes('"missingProperty": "service"'));
             });
         });
     });
@@ -432,7 +433,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'ldap should be mandatory for ldap authentication');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": ".ldap"'), -1);
+                assert(getErrorString().includes('"missingProperty": ".ldap"'));
             });
 
             it('should invalidate data with missing ldap when enabling activeDirectory', () => {
@@ -442,7 +443,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'ldap should be mandatory for ldap authentication');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": ".ldap"'), -1);
+                assert(getErrorString().includes('"missingProperty": ".ldap"'));
             });
 
             it('should invalidate data with missing servers', () => {
@@ -454,7 +455,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'servers should be mandatory for ldap authentication');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "servers"'), -1);
+                assert(getErrorString().includes('"missingProperty": "servers"'));
             });
 
             it('should invalidate data with less than one server', () => {
@@ -467,7 +468,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'at least one server in servers array should be mandatory for ldap authentication');
-                assert.notStrictEqual(getErrorString().indexOf('"limit": 1'), -1);
+                assert(getErrorString().includes('"limit": 1'));
             });
 
             it('should invalidate data with unexpected ssl value', () => {
@@ -483,7 +484,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'expected values for ssl should be mandatory for ldap authentication');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
 
             it('should invalidate data with unknown cipher', () => {
@@ -501,7 +502,7 @@ describe('auth.schema.json', () => {
                 };
 
                 assert.strictEqual(validate(data), false, 'contents should match');
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
         });
     });

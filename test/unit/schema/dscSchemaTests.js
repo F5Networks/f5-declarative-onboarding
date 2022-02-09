@@ -347,6 +347,7 @@ describe('dsc.schema.json', () => {
                     "type": "sync-only"
                 };
                 assert.strictEqual(validate(data), false, 'owner property is required');
+                assert.notStrictEqual(getErrorString().indexOf('should have required property \'owner\''), -1);
             });
 
             it('should invalidate bad sync type', () => {
@@ -356,6 +357,7 @@ describe('dsc.schema.json', () => {
                     "owner": "/foo/bar/0"
                 };
                 assert.strictEqual(validate(data), false, 'bad type should not be valid');
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
             });
 
             it('should invalidate additional properties', () => {
@@ -383,6 +385,7 @@ describe('dsc.schema.json', () => {
                     false,
                     'sync-failover with autosync and fullLoadOnSync should not be valid'
                 );
+                assert.notStrictEqual(getErrorString().indexOf('should be equal to constant'), -1);
             });
         });
     });
