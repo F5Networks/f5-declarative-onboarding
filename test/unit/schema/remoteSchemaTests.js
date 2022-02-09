@@ -77,7 +77,7 @@ describe('remote.schema.json', () => {
                     "class": "DO"
                 };
                 assert.strictEqual(validate(data), false, 'missing declaration should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "declaration"'), -1);
+                assert(getErrorString().includes('"missingProperty": "declaration"'));
             });
 
             it('should invalidate declaration that does not match base schema', () => {
@@ -92,7 +92,7 @@ describe('remote.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'bad declaration should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"allowedValue": "Tenant"'), -1);
+                assert(getErrorString().includes('"allowedValue": "Tenant"'));
             });
         });
     });
@@ -123,6 +123,7 @@ describe('remote.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'bogus targetHost should not be valid');
+                assert(getErrorString().includes('should match format \\"hostname\\"'));
             });
         });
     });
@@ -153,7 +154,7 @@ describe('remote.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'bogus targetPort should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
+                assert(getErrorString().includes('should be integer'));
             });
         });
     });
@@ -196,7 +197,7 @@ describe('remote.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'bogus targetUsername should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should match pattern'), -1);
+                assert(getErrorString().includes('should match pattern'));
             });
         });
     });
@@ -246,7 +247,7 @@ describe('remote.schema.json', () => {
                     false,
                     'including targetPassphrase and targetSshKey should not be valid'
                 );
-                assert.notStrictEqual(getErrorString().indexOf('dependencies/targetSshKey/not'), -1);
+                assert(getErrorString().includes('dependencies/targetSshKey/not'));
             });
         });
     });
@@ -313,7 +314,7 @@ describe('remote.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'bogus targetTokens should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should be object'), -1);
+                assert(getErrorString().includes('should be object'));
             });
         });
     });
@@ -344,7 +345,7 @@ describe('remote.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'bogus targetTimeout should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('should be integer'), -1);
+                assert(getErrorString().includes('should be integer'));
             });
         });
     });

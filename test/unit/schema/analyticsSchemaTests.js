@@ -186,7 +186,7 @@ describe('analytics.schema.json', () => {
                     offboxTcpPort: 666
                 };
                 assert.strictEqual(validate(data), false, 'illegal ip address should not be valid');
-                assert.notStrictEqual(getErrorString().indexOf('"format": "ipv4"'), -1);
+                assert(getErrorString().includes('"format": "ipv4"'));
             });
 
             it('should invalidate illegal offboxTcpPort value', () => {

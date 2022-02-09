@@ -50,7 +50,7 @@ describe('formats', () => {
                 assert.strictEqual(formats.f5ip('1.2.3.4%65535'), true, 'route domain 65535 should be valid');
             });
 
-            it('should invalidate addresses with invlaid route domain', () => {
+            it('should invalidate addresses with invalid route domain', () => {
                 assert.strictEqual(
                     formats.f5ip('1.2.3.4%65536'), false, 'route domain 65536 should be invalid'
                 );

@@ -74,7 +74,7 @@ describe('gslb.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'synchronizationTimeTolerance should be in the 0-600 range');
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 600'), -1);
+                assert(getErrorString().includes('should be <= 600'));
             });
 
             it('should invalidate synchronizationTimeout value that is out of range', () => {
@@ -85,7 +85,7 @@ describe('gslb.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'synchronizationTimeout should be in the 0-4294967295 range');
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 4294967295'), -1);
+                assert(getErrorString().includes('should be <= 4294967295'));
             });
 
             it('should invalidate values 0 and 4 for synchronizationTimeTolerance', () => {
@@ -96,7 +96,7 @@ describe('gslb.schema.json', () => {
                     }
                 };
                 assert.strictEqual(validate(data), false, 'synchronizationTimeTolerance should not allow values 1-4');
-                assert.notStrictEqual(getErrorString().indexOf('should NOT be valid'), -1);
+                assert(getErrorString().includes('should NOT be valid'));
             });
         });
     });
@@ -132,7 +132,7 @@ describe('gslb.schema.json', () => {
                     proberPreferred: 'invalid'
                 };
                 assert.strictEqual(validate(data), false, '');
-                assert.notStrictEqual(getErrorString().indexOf(''), -1);
+                assert(getErrorString().includes(''));
             });
 
             it('should invalidate invalid proberFallback value', () => {
@@ -141,7 +141,7 @@ describe('gslb.schema.json', () => {
                     proberFallback: 'invalid'
                 };
                 assert.strictEqual(validate(data), false, '');
-                assert.notStrictEqual(getErrorString().indexOf(''), -1);
+                assert(getErrorString().includes(''));
             });
 
             it('should invalidate use of proberPool when proberPreferred or proberFallback are not pool', () => {
@@ -152,7 +152,7 @@ describe('gslb.schema.json', () => {
                     proberPool: '/Common/proberPool'
                 };
                 assert.strictEqual(validate(data), false, '');
-                assert.notStrictEqual(getErrorString().indexOf(''), -1);
+                assert(getErrorString().includes(''));
             });
         });
     });
@@ -256,121 +256,121 @@ describe('gslb.schema.json', () => {
             it('should invalidate invalid proberPreferred value', () => {
                 data.proberPreferred = 'badValue';
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
 
             it('should invalidate invalid proberFallback value', () => {
                 data.proberFallback = 'badValue';
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
 
             it('should invalidate GSLBServer with no devices', () => {
                 data.devices = [];
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should NOT have fewer than 1 items'), -1);
+                assert(getErrorString().includes('should NOT have fewer than 1 items'));
             });
 
             it('should invalidate GSLBServer with invalid device address value', () => {
                 data.devices[0].address = 'badIP';
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+                assert(getErrorString().includes('should match format \\"f5ip\\"'));
             });
 
             it('should invalidate GSLBServer with invalid device addressTranslation value', () => {
                 data.devices[0].addressTranslation = 'badIP';
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+                assert(getErrorString().includes('should match format \\"f5ip\\"'));
             });
 
             it('should invalidate invalid virtualServerDiscoveryMode value', () => {
                 data.virtualServerDiscoveryMode = 'badValue';
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
 
             it('should invalidate invalid bpsLimit value of less than 0', () => {
                 data.bpsLimit = -1;
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+                assert(getErrorString().includes('should be >= 0'));
             });
 
             it('should invalidate invalid ppsLimit value of less than 0', () => {
                 data.ppsLimit = -1;
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+                assert(getErrorString().includes('should be >= 0'));
             });
 
             it('should invalidate invalid connectionsLimit value of less than 0', () => {
                 data.connectionsLimit = -1;
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+                assert(getErrorString().includes('should be >= 0'));
             });
 
             it('should invalidate invalid cpuUsageLimit value of less than 0', () => {
                 data.cpuUsageLimit = -1;
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+                assert(getErrorString().includes('should be >= 0'));
             });
 
             it('should invalidate invalid memoryLimit value of less than 0', () => {
                 data.memoryLimit = -1;
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+                assert(getErrorString().includes('should be >= 0'));
             });
 
             it('should invalidate GSLBServer with proberPreferred value as pool and no proberPool', () => {
                 data.proberPreferred = 'pool';
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should have required property \'.proberPool\''), -1);
+                assert(getErrorString().includes('should have required property \'.proberPool\''));
             });
 
             it('should invalidate GSLBServer with proberFallback value as pool and no proberPool', () => {
                 data.proberFallback = 'pool';
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should have required property \'.proberPool\''), -1);
+                assert(getErrorString().includes('should have required property \'.proberPool\''));
             });
 
             it('should invalidate GSLBServer with invalid virtual server address value', () => {
                 data.virtualServers = [{ address: 'badIP' }];
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+                assert(getErrorString().includes('should match format \\"f5ip\\"'));
             });
 
             it('should invalidate GSLBServer with invalid virtual server addressTranslation value', () => {
                 data.virtualServers = [{ address: '192.0.2.12', addressTranslation: 'badIP' }];
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should match format \\"f5ip\\"'), -1);
+                assert(getErrorString().includes('should match format \\"f5ip\\"'));
             });
 
             it('should invalidate GSLBServer with virtual server without address property', () => {
                 data.virtualServers = [{ port: 8080 }];
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should have required property \'address\''), -1);
+                assert(getErrorString().includes('should have required property \'address\''));
             });
 
             it('should invalidate GSLBServer with virtual server with port value of less than 0', () => {
                 data.virtualServers = [{ address: '192.0.2.12', port: -1 }];
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+                assert(getErrorString().includes('should be >= 0'));
             });
 
             it('should invalidate GSLBServer with virtual server with addressTranslationPort value of less than 0', () => {
                 data.virtualServers = [{ address: '192.0.2.12', addressTranslationPort: -1 }];
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be >= 0'), -1);
+                assert(getErrorString().includes('should be >= 0'));
             });
 
             it('should invalidate GSLBServer with virtual server with port value of more than 65535', () => {
                 data.virtualServers = [{ address: '192.0.2.12', port: 65536 }];
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+                assert(getErrorString().includes('should be <= 65535'));
             });
 
             it('should invalidate GSLBServer with virtual server with addressTranslationPort value of more than 65535', () => {
                 data.virtualServers = [{ address: '192.0.2.12', addressTranslationPort: 65536 }];
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be <= 65535'), -1);
+                assert(getErrorString().includes('should be <= 65535'));
             });
         });
     });
@@ -679,7 +679,7 @@ describe('gslb.schema.json', () => {
             it('should invalidate invalid lbMode value', () => {
                 data.lbMode = 'badValue';
                 assert.strictEqual(validate(data), false);
-                assert.notStrictEqual(getErrorString().indexOf('should be equal to one of the allowed values'), -1);
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
         });
     });
