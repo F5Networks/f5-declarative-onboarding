@@ -163,6 +163,7 @@ class DeclarationHandler {
                 parsedNewDeclaration = parsedDeclaration;
                 parsedNewDeclaration.Common.InternalUse = {};
             })
+            .then(() => removeUnwantedProperties(parsedNewDeclaration, parsedOldDeclaration))
             .then(() => {
                 applyDefaults(parsedNewDeclaration, state);
                 applyDnsResolverFixes(parsedNewDeclaration);
@@ -1281,4 +1282,18 @@ function handleTeemReport(declaration) {
     }
     return Promise.resolve();
 }
+
+/**
+ * Remove properties from the currentConfig that aren't in the declaration
+ * and that we don't want diffs for.
+ *
+ * @param {Object} declaration - declaration
+ * @param {Object} currentConfig - current configuration
+ */
+function removeUnwantedProperties(declaration, currentConfig) {
+    if (declaration && declaration.Common.System && !declaration.Common.System.mgmtDhcp) {
+        delete currentConfig.Common.System.mgmtDhcp;
+    }
+}
+
 module.exports = DeclarationHandler;

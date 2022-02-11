@@ -6,18 +6,9 @@
             { "id": "hostname" },
             { "id": "consoleInactivityTimeout" },
             { "id": "guiAudit", "newId": "guiAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
-            { "id": "mgmtDhcp" }
+            { "id": "mgmtDhcp", "newId": "mgmtDhcpEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
         ],
-        "nameless": true,
-        "declaration": {
-            "properties": [
-                {
-                    "$comment": "We need to know this value for rollback but it is not in the schema",
-                    "id": "mgmtDhcp",
-                    "remove": true
-                }
-            ]
-        }
+        "nameless": true
     },
     {
         "path": "/tm/cli/global-settings",

@@ -3126,7 +3126,8 @@ describe('declarationHandler', () => {
                                 gw: '10.20.30.40',
                                 mtu: 0
                             }
-                        }
+                        },
+                        System: {}
                     }
                 },
                 originalConfig: {
@@ -3181,7 +3182,8 @@ describe('declarationHandler', () => {
                                 gw: '10.20.30.40',
                                 mtu: 0
                             }
-                        }
+                        },
+                        System: {}
                     }
                 },
                 originalConfig: {
@@ -3203,6 +3205,48 @@ describe('declarationHandler', () => {
                 .then(() => {
                     const actualManagementRoutes = diffHandlerStub.args[0][0].Common.ManagementRoute;
                     assert.deepStrictEqual(Object.keys(actualManagementRoutes), ['newManagementRoute']);
+                });
+        });
+
+        it('should remove mgmtDhcp from currentConfig when it is not in the declaration', () => {
+            const declaration = {
+                parsed: true,
+                Common: {
+                    System: {
+                        preserveOrigDhcpRoutes: false
+                    }
+                }
+            };
+            const state = {
+                currentConfig: {
+                    name: 'current',
+                    parsed: true,
+                    Common: {
+                        System: {
+                            mgmtDhcp: 'enabled'
+                        }
+                    }
+                },
+                originalConfig: {
+                    Common: {
+                        System: {
+                            mgmtDhcp: 'disabled'
+                        }
+                    }
+                }
+            };
+            const handler = new DeclarationHandler(bigIpMock);
+            return handler.process(declaration, state)
+                .then(() => {
+                    console.log(JSON.stringify(state));
+                    assert.deepStrictEqual(
+                        state.currentConfig,
+                        {
+                            Common: {},
+                            name: 'current',
+                            parsed: true
+                        }
+                    );
                 });
         });
     });

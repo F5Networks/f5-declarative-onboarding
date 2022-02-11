@@ -977,8 +977,7 @@ describe('configManager', () => {
                         assert.deepEqual(
                             state.currentConfig.Common.System,
                             {
-                                idleTimeout: 1800, // minutes converted to seconds
-                                preserveOrigDhcpRoutes: false
+                                idleTimeout: 1800 // minutes converted to seconds
                             }
                         );
                     });

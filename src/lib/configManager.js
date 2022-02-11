@@ -670,12 +670,6 @@ class ConfigManager {
                 }
 
                 if (currentConfig.System) {
-                    // The schema has 'preserveOrigDhcpRoutes', so we need to add that here so we don't
-                    // get a diff if they match.
-                    const mgmtDhcpId = getMappedId(PATHS.SysGlobalSettings, 'properties', 'mgmtDhcp', this.configItems);
-                    currentConfig.System.preserveOrigDhcpRoutes = currentConfig.System[mgmtDhcpId] === 'enabled';
-                    delete currentConfig.System[mgmtDhcpId];
-
                     if (currentConfig.DbVariables) {
                         // We also use the db var 'config.auditing' to represent System.mcpAuditLog
                         currentConfig.System.mcpAuditLog = currentConfig.DbVariables['config.auditing'];
@@ -1159,6 +1153,11 @@ function patchAuth(schemaMerge, authClass, authItem) {
 
 function patchSys(schemaMerge, sysClass, sysItem, options) {
     let patchedClass = {};
+
+    // The schema has 'preserveOrigDhcpRoutes', so we need to add that here so we don't
+    // get a diff if they match.
+    const mgmtDhcpId = getMappedId(PATHS.SysGlobalSettings, 'properties', 'mgmtDhcp', this.configItems, options);
+    patchedClass.preserveOrigDhcpRoutes = sysItem[mgmtDhcpId] === 'enabled' || sysItem[mgmtDhcpId] === true;
 
     // mapping the first object in configItems.json which should not have schemaMerge defined
     if (!schemaMerge) {
