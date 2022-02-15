@@ -211,6 +211,17 @@ function handleManagementDhcp() {
     let deisredMgmtRouteDhcpSetting;
     let desiredMgmtDhcpSetting;
 
+    if (this.declaration.Common.System && this.declaration.Common.System.mgmtDhcp) {
+        desiredMgmtDhcpSetting = this.declaration.Common.System.mgmtDhcp;
+        return this.bigIp.modify(
+            PATHS.SysGlobalSettings,
+            {
+                mgmtDhcp: desiredMgmtDhcpSetting
+            }
+        )
+            .then(() => Promise.resolve(desiredMgmtDhcpSetting));
+    }
+
     return Promise.resolve()
         .then(() => getDesiredMgmtIpDhcpSetting.call(this, currentMgmtDhcpSetting))
         .then((desiredSetting) => {

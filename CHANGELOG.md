@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.28.0
 ### Added
+- AUTOTOOL-2871: Allow user to explicitly specify the mgmt-dhcp setting
 
 ### Fixed
 - AUTOTOOL-2612: ([GitHub Issue 248](https://github.com/F5Networks/f5-declarative-onboarding/issues/248)): Licensing in GCP multi-NIC fails (Upgrade to f5-cloud-libs 4.26.7)

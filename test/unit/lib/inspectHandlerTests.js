@@ -2164,7 +2164,8 @@ describe('inspectHandler', () => {
                             autoPhonehome: false,
                             tmshAuditLog: true,
                             guiAuditLog: false,
-                            preserveOrigDhcpRoutes: true
+                            preserveOrigDhcpRoutes: true,
+                            mgmtDhcpEnabled: true
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',

@@ -2070,6 +2070,46 @@ describe('systemHandler', () => {
                     assert.deepStrictEqual(mgmtDhcp, undefined);
                 });
         });
+
+        it('should change mgmtDhcp to enabled when mgmtDhcp is true', () => {
+            state.currentConfig.Common.System.mgmtDhcp = 'disabled';
+            declaration.Common.System = {};
+            declaration.Common.System.mgmtDhcp = 'enabled';
+            declaration.Common.System.preserveOrigDhcpRoutes = true;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcp = dataSent['/tm/sys/global-settings'];
+                    assert.deepStrictEqual(
+                        mgmtDhcp,
+                        [
+                            {
+                                mgmtDhcp: 'enabled'
+                            }
+                        ]
+                    );
+                });
+        });
+
+        it('should change mgmtDhcp to disabled when mgmtDhcp is false', () => {
+            state.currentConfig.Common.System.mgmtDhcp = 'enabled';
+            declaration.Common.System = {};
+            declaration.Common.System.mgmtDhcp = false;
+            declaration.Common.System.preserveOrigDhcpRoutes = false;
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const mgmtDhcp = dataSent['/tm/sys/global-settings'];
+                    assert.deepStrictEqual(
+                        mgmtDhcp,
+                        [
+                            {
+                                mgmtDhcp: 'disabled'
+                            }
+                        ]
+                    );
+                });
+        });
     });
 
     it('should handle SnmpAgent', () => {

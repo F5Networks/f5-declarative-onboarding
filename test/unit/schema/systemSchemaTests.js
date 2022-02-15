@@ -1041,7 +1041,8 @@ describe('system.schema.json', () => {
                     "hostname": "bigip.example.com",
                     "consoleInactivityTimeout": 50,
                     "cliInactivityTimeout": 60,
-                    "preserveOrigDhcpRoutes": true
+                    "preserveOrigDhcpRoutes": true,
+                    "mgmtDhcpEnabled": true
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });

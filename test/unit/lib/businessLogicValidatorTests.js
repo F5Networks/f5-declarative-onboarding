@@ -135,5 +135,34 @@ describe('businessLogicValidator', () => {
                     assert.strictEqual(validation.errors[0], 'multiple hostnames in declaration');
                 });
         });
+
+        it('should invalidate when mgmtDhcpEnabled and preserveOrigDhcpRoutes conflict', () => {
+            const data = {
+                class: 'DO',
+                declaration: {
+                    schemaVersion: '1.0.0',
+                    class: 'Device',
+                    Common: {
+                        hostname: '111.bigip.com',
+                        class: 'Tenant',
+                        mySystem: {
+                            class: 'System',
+                            mgmtDhcpEnabled: true,
+                            preserveOrigDhcpRoutes: false
+                        }
+                    }
+                }
+            };
+
+            return validator.validate(data)
+                .then((validation) => {
+                    assert.strictEqual(validation.isValid, false);
+                    assert.strictEqual(Array.isArray(validation.errors), true);
+                    assert.strictEqual(
+                        validation.errors[0],
+                        'the values of mgmtDhcpEnabled and preserveOrigDhcpRoutes must match'
+                    );
+                });
+        });
     });
 });

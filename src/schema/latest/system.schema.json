@@ -876,6 +876,10 @@
                         "description": "Determines if DHCP ManagementRoute objects are preserved.",
                         "type": "boolean",
                         "default": false
+                    },
+                    "mgmtDhcpEnabled": {
+                        "description": "Determines if Management DHCP is enabled or not.",
+                        "type": "boolean"
                     }
                 },
                 "additionalProperties": false
