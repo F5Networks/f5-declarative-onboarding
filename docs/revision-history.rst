@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.28
-        - Updated the documentation for Declarative Onboarding v1.28.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| *  Licensing in GCP multi-NIC fails (Upgrade to f5-cloud-libs 4.26.7), `GitHub Issue 248 <https://github.com/F5Networks/f5-declarative-onboarding/issues/248>`_ |br| * URL is incorrect in schema files, `GitHub Issue 285 <https://github.com/F5Networks/f5-declarative-onboarding/issues/285>`_
+        - Updated the documentation for Declarative Onboarding v1.28.0.  This release contains the following changes: |br| * Added support for explicitly enabling management DHCP (see :ref:`Management DHCP <mandhcp>`) |br| |br| Issues Resolved: |br| *  Licensing in GCP multi-NIC fails (Upgrade to f5-cloud-libs 4.26.7), `GitHub Issue 248 <https://github.com/F5Networks/f5-declarative-onboarding/issues/248>`_ |br| * URL is incorrect in schema files, `GitHub Issue 285 <https://github.com/F5Networks/f5-declarative-onboarding/issues/285>`_
         - 3-8-22
 
       * - 1.27
