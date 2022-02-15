@@ -442,9 +442,28 @@ The following example contains a VXLAN tunnel, but no other DO configuration.  Y
    :language: json
 
 |
-    
+
+.. _mandhcp:
+
+Enabling management DHCP in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+    Support for enabling management DHCP is available in DO 1.28 and later.
+
+This example shows how you can explicitly enable or disable DHCP for management IP addresses and routes in the |sysclass| class using the new **mgmtDhcpEnabled** property in DO 1.28 and later.  
+
+This property is associated with the **preserveOrigDhcpRoutes** property, which provides the ability to preserve those DHCP routes (see the :ref:`Preserve DHCP routes<dhcpresv>` example on this page).
+
+.. IMPORTANT:: When you use both **mgmtDhcpEnabled** and **preserveOrigDhcpRoutes**, the values MUST match.
+
+See |sysclass| for more information and DO usage.
 
 
+.. literalinclude:: ../../examples/mgmtDhcpEnabled.json
+    :language: json
+
+|
 
 
     
