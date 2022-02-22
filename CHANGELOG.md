@@ -10,6 +10,11 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2941: ([GitHub Issue 285](https://github.com/F5Networks/f5-declarative-onboarding/issues/285)): URL is incorrect in schema files
 
 ### Changed
+## 1.27.1
+### Added
+### Fixed
+### Changed
+- Promoted to LTS
 
 ### Removed
 

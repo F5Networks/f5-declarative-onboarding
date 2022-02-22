@@ -1,0 +1,599 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/auth.schema.json",
+    "title": "F5 Declarative Onboarding Authentication declaration",
+    "description": "Authentication properties for onboarding a BIG-IP.",
+    "allOf": [
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "RemoteAuthRole" } }
+            },
+            "then": {
+                "oneOf": [
+                    { "$ref": "#/definitions/remoteAuthRole" }
+                ]
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "Authentication" } }
+            },
+            "then": {
+                "oneOf": [
+                    { "$ref": "#/definitions/remoteInfo" }
+                ]
+            }
+        }
+    ],
+    "definitions": {
+        "remoteInfo": {
+            "required": ["class", "enabledSourceType"],
+            "type": "object",
+            "description": "Remote authentication info.",
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains authentication configuration.",
+                    "type": "string",
+                    "const": "Authentication"
+                },
+                "enabledSourceType": {
+                    "description": "Type of remote authentication source to enable for the system.",
+                    "type": "string",
+                    "enum": ["radius", "local", "tacacs", "ldap", "activeDirectory"],
+                    "default": "local"
+                },
+                "remoteUsersDefaults": {
+                    "description": "The default values that the BIG-IP system applies to any user account that is not part of a remotely-stored user group.",
+                    "type": "object",
+                    "required": [ "partitionAccess", "terminalAccess", "role" ],
+                    "properties": {
+                        "role": {
+                            "description": "Role for the remote users.",
+                            "type": "string",
+                            "enum": [
+                                "acceleration-policy-editor",
+                                "admin",
+                                "application-editor",
+                                "auditor",
+                                "certificate-manager",
+                                "firewall-manager",
+                                "fraud-protection-manager",
+                                "guest",
+                                "irule-manager",
+                                "manager",
+                                "no-access",
+                                "operator",
+                                "resource-admin",
+                                "user-manager",
+                                "web-application-security-administrator",
+                                "web-application-security-editor"
+                            ],
+                            "default": "no-access"
+                        },
+                        "partitionAccess": {
+                            "description": "Default accessible partitions for remote users.",
+                            "type": "string",
+                            "enum": ["Common", "all"],
+                            "default": "all"
+                        },
+                        "terminalAccess": {
+                            "description": "Default terminal access for remote users.",
+                            "type": "string",
+                            "enum": ["tmsh", "disabled"],
+                            "default": "disabled"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "fallback": {
+                    "description": "Specifies that the system uses the Local authentication method if the remote authentication method is not available.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "radius": {
+                    "$ref": "#/definitions/radius"
+                },
+                "tacacs": {
+                    "$ref": "#/definitions/tacacs"
+                },
+                "ldap": {
+                    "$ref": "#/definitions/ldap"
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "required": ["enabledSourceType"],
+                        "properties": { "enabledSourceType": { "const": "radius"} }
+                    },
+                    "then": { "required": ["radius"] }
+                },
+                {
+                    "if": {
+                        "required": ["enabledSourceType"],
+                        "properties": { "enabledSourceType": { "const": "tacacs"} }
+                    },
+                    "then": { "required": ["tacacs"] }
+                },
+                {
+                    "if": {
+                        "required": ["enabledSourceType"],
+                        "properties": { "enabledSourceType": { "oneOf": [
+                            { "const": "ldap" },
+                            { "const": "activeDirectory" }
+                        ] } }
+                    },
+                    "then": { "required": ["ldap"] }
+                }
+            ],
+            "additionalProperties": false
+        },
+        "variableString": {
+            "description": "Variable string value. Should always start with %.",
+            "type": "string",
+            "pattern": "^%.+"
+        },
+        "remoteAuthRole": {
+            "description": "Creates a file used by LDAP, Active Directory(r), RADIUS, or TACAS+ server to determine specific access rights.",
+            "type": "object",
+            "required": [ "class", "attribute", "lineOrder", "userPartition" ],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains RemoteAuthRole configuration.",
+                    "type": "string",
+                    "const": "RemoteAuthRole"
+                },
+                "attribute": {
+                    "description": "Specifies an attribute-value pair that an authentication server supplies to the BIG-IP system to match against entries in /config/bigip/auth/remoterole. The specified pair typically identifies users with access rights in common. This option is required.",
+                    "type": "string"
+                },
+                "console": {
+                    "description": "Specifes if the remotely-authenticated users have tmsh console access or not. Accepted values are 'disabled' and 'tmsh'.",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "disabled",
+                                "tmsh"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/variableString"
+                        }
+                    ],
+                    "default": "disabled"
+                },
+                "remoteAccess": {
+                    "description": "Enables the specified group of remotely-authenticated users, remote access.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "lineOrder": {
+                    "description": "The BIG-IP only allows one role per user for each partition/tenant.  Because some remote servers allow multiple user roles, the BIG-IP uses the lineOrder parameter to choose one of the conflicting roles for the user at login time. In these cases, the system chooses the role with the lowest line-order number.  See line order in the BIG-IP documentation for more information and examples.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295
+                },
+                "role": {
+                    "description": "Specifies the role that you want to grant to the specified group of remotely-authenticated users.",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "admin",
+                                "application-editor",
+                                "auditor",
+                                "certificate-manager",
+                                "firewall-manager",
+                                "fraud-protection-manager",
+                                "guest",
+                                "irule-manager",
+                                "manager",
+                                "no-access",
+                                "operator",
+                                "resource-admin",
+                                "user-manager",
+                                "web-application-security-administrator",
+                                "web-application-security-editor"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/variableString"
+                        }
+                    ],
+                    "default": "no-access"
+                },
+                "userPartition": {
+                    "description": "Specifies the BIG-IP partition to which you are assigning access to the specified group of remotely-authenticated users. The default value is Common. This option is required.",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all",
+                                "Common"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/variableString"
+                        }
+                    ],
+                    "default": "Common"
+                }
+            },
+            "additionalProperties": false
+        },
+        "radius": {
+            "description": "Remote RADIUS authentication info.",
+            "type": "object",
+            "required": [ "servers"],
+            "properties": {
+                "serviceType": {
+                    "description": "Type of service used for the RADIUS server.",
+                    "type": "string",
+                    "enum": [
+                        "administrative",
+                        "authenticate-only",
+                        "call-check",
+                        "callback-administrative",
+                        "callback-framed",
+                        "callback-login",
+                        "callback-nas-prompt",
+                        "default",
+                        "framed",
+                        "login",
+                        "nas-prompt",
+                        "outbound"
+                    ],
+                    "default": "default"
+                },
+                "servers": {
+                    "description": "RADIUS servers settings",
+                    "required": ["primary"],
+                    "properties": {
+                        "primary": {
+                            "description": "Server connection settings for the primary RADIUS server",
+                            "allOf": [ {"$ref": "#/definitions/radiusServer"} ]
+                        },
+                        "secondary": {
+                            "description": "Server connection settings for the secondary RADIUS server (optional)",
+                            "allOf": [ {"$ref": "#/definitions/radiusServer"} ]
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        "radiusServer": {
+            "description": "RADIUS server connection settings.",
+            "type": "object",
+            "required": [ "server", "secret" ],
+            "properties": {
+                "server": {
+                    "type": "string",
+                    "description": "The RADIUS server IP address or hostname.",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6" },
+                        { "format": "hostname" }
+                    ]
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port to use when connecting to the RADIUS server.",
+                    "default": 1812
+                },
+                "secret": {
+                    "description": "Password to use when connection to the RADIUS server.",
+                    "type": "string"
+                }
+            }
+        },
+        "tacacs": {
+            "description": "TACACS+ authentication info",
+            "type": "object",
+            "required": [ "secret", "servers", "service" ],
+            "properties": {
+                "accounting": {
+                    "description": "Specifies how the system returns accounting information, such as which services users access and how much network resources they consume, to the TACACS+ server. The default setting is Send to first available server.",
+                    "type": "string",
+                    "enum": [
+                        "send-to-all-servers",
+                        "send-to-first-server"
+                    ],
+                    "default": "send-to-first-server"
+                },
+                "authentication": {
+                    "description": "Specifies the process the system employs when sending authentication requests. The default is Authenticate to first server.",
+                    "type": "string",
+                    "enum": [
+                        "use-all-servers",
+                        "use-first-server"
+                    ],
+                    "default": "use-first-server"
+                },
+                "debug": {
+                    "description": "Specifies whether to log Syslog debugging information at the LOG_DEBUG level. We do not recommend enabling this setting for normal use. The default is Disabled.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "encryption": {
+                    "description": "Specifies whether to use encryption of TACACS+ packets. The default is Enabled.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "protocol": {
+                    "description": "Specifies the protocol associated with the value specified in Service Name, which is a subset of the associated service being used for client authorization or system accounting. You can use following values: lcp, ip, ipx, atalk, vines, lat, xremote, tn3270, telnet, rlogin, pad, vpdn, ftp, http, deccp, osicp, and unknown. Note that the majority of TACACS+ implementations are of protocol type ip, so try that first.",
+                    "type": "string",
+                    "enum": [
+                        "lcp",
+                        "ip",
+                        "ipx",
+                        "atalk",
+                        "vines",
+                        "lat",
+                        "xremote",
+                        "tn3270",
+                        "telnet",
+                        "rlogin",
+                        "pad",
+                        "vpdn",
+                        "ftp",
+                        "http",
+                        "deccp",
+                        "osicp",
+                        "unknown"
+                    ]
+                },
+                "secret": {
+                    "description": "Type the secret key used to encrypt and decrypt packets sent or received from the server. Do not use the pound sign ( # ) in the secret for TACACS+ servers.",
+                    "type": "string"
+                },
+                "servers": {
+                    "description": "Specifies a list of the IPv4 addresses for servers using the Terminal Access Controller Access System (TACACS)+ protocol with which the system communicates to obtain authorization data. For each address, an alternate TCP port number may be optionally specified by entering the address in the format address:port. If no port number is specified, the default port 49 is used.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "service": {
+                    "description": "Specifies the name of the service that the user is requesting to be authorized to use. Identifying what the user is asking to be authorized for, enables the TACACS+ server to behave differently for different types of authorization requests. You can use following values: slip, ppp, arap, shell, tty-daemon, connection, system, and firewall. Specifying this setting is required. Note that the majority of TACACS+ implementations are of service type ppp, so try that first.",
+                    "type": "string",
+                    "enum": [
+                        "slip",
+                        "ppp",
+                        "arap",
+                        "shell",
+                        "tty-daemon",
+                        "connection",
+                        "system",
+                        "firewall"
+                    ]
+                }
+            }
+        },
+        "ldap": {
+            "description": "Remote LDAP authentication info",
+            "type": "object",
+            "required": ["servers"],
+            "properties": {
+                "bindDn": {
+                    "description": "Distinguished name of the server account. If server is a Microsoft Windows Active Directory server, the name must be an email address",
+                    "type": "string"
+                },
+                "bindPassword": {
+                    "description": "Password for the server account",
+                    "type": "string"
+                },
+                "bindTimeout": {
+                    "description": "Timeout limit in seconds to bind to remote authentication server",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295,
+                    "default": 30
+                },
+                "checkBindPassword": {
+                    "description": "Confirms the password for the server account",
+                    "type": "boolean",
+                    "default": false
+                },
+                "checkRemoteRole": {
+                    "description": "Verifies a user's group membership based on the remote-role definition, formatted as *member*of=\"group-dn\"",
+                    "type": "boolean",
+                    "default": false
+                },
+                "filter": {
+                    "description": "Filter used for authorizing client traffic",
+                    "type": "string"
+                },
+                "groupDn": {
+                    "description": "Group distinguished name for authorizing client traffic",
+                    "type": "string"
+                },
+                "groupMemberAttribute": {
+                    "description": "Group member attribute for authorizing client traffic",
+                    "type": "string"
+                },
+                "idleTimeout": {
+                    "description": "Connection timeout limit in seconds",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295,
+                    "default": 3600
+                },
+                "ignoreAuthInfoUnavailable": {
+                    "description": "Ignores authentication information if not available",
+                    "type": "boolean",
+                    "default": false
+                },
+                "ignoreUnknownUser": {
+                    "description": "Ignores a user that is unknown",
+                    "type": "boolean",
+                    "default": false
+                },
+                "loginAttribute": {
+                    "description": "Logon attribute. If server is a Microsoft Windows Active Directory server, the value must be the account name \"samaccountname\"",
+                    "type": "string"
+                },
+                "port": {
+                    "description": "Port number for the LDAP service",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "default": 389
+                },
+                "referrals": {
+                    "description": "Specifies whether automatic referral chasing should be enabled. This is for BIG-IP 15.1+",
+                    "type": "boolean",
+                    "default": true
+                },
+                "searchScope": {
+                    "description": "Level of remote server's directory to search for user authentication, either base object, one level, or subtree",
+                    "type": "string",
+                    "enum": ["base", "one", "sub"],
+                    "default": "sub"
+                },
+                "searchBaseDn": {
+                    "description": "Search base distinguished name",
+                    "type": "string"
+                },
+                "searchTimeout": {
+                    "description": "Search timeout limit in seconds",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967295,
+                    "default": 30
+                },
+                "servers": {
+                    "description": "IP addresses or hostnames of the remote authentication servers.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "ssl": {
+                    "description": "Enables SSL",
+                    "type": "string",
+                    "enum": [ "enabled", "disabled", "start-tls" ],
+                    "default": "disabled"
+                },
+                "sslCaCert": {
+                    "description": "SSL certificate issued by a certificate authority",
+                    "allOf": [
+                        { "$ref": "definitions.schema.json#/definitions/pkiCertificate" },
+                        { "not": { "required": ["privateKey"] } }
+                    ]
+                },
+                "sslCheckPeer": {
+                    "description": "Specifies whether the system checks an SSL peer",
+                    "type": "boolean",
+                    "default": false
+                },
+                "sslCiphers": {
+                    "description": "Specifies SSL ciphers",
+                    "$comment": "References: https://support.f5.com/csp/article/K13163 https://support.f5.com/csp/article/K97098157 https://support.f5.com/csp/article/K86554600",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "ECDHE-RSA-AES128-GCM-SHA256",
+                            "ECDHE-RSA-AES128-CBC-SHA",
+                            "ECDHE-RSA-AES128-SHA256",
+                            "ECDHE-RSA-AES256-GCM-SHA384",
+                            "ECDHE-RSA-AES256-CBC-SHA",
+                            "ECDHE-RSA-AES256-SHA384",
+                            "ECDHE-RSA-CHACHA20-POLY1305-SHA256",
+                            "ECDH-RSA-AES128-GCM-SHA256",
+                            "ECDH-RSA-AES128-SHA256",
+                            "ECDH-RSA-AES128-SHA",
+                            "ECDH-RSA-AES256-GCM-SHA384",
+                            "ECDH-RSA-AES256-SHA384",
+                            "ECDH-RSA-AES256-SHA",
+                            "AES128-GCM-SHA256",
+                            "AES128-SHA",
+                            "AES128-SHA256",
+                            "AES256-GCM-SHA384",
+                            "AES256-SHA",
+                            "AES256-SHA256",
+                            "CAMELLIA128-SHA",
+                            "CAMELLIA256-SHA",
+                            "ECDHE-ECDSA-AES128-GCM-SHA256",
+                            "ECDHE-ECDSA-AES128-SHA",
+                            "ECDHE-ECDSA-AES128-SHA256",
+                            "ECDHE-ECDSA-AES256-GCM-SHA384",
+                            "ECDHE-ECDSA-AES256-SHA",
+                            "ECDHE-ECDSA-AES256-SHA384",
+                            "ECDHE-ECDSA-CHACHA20-POLY1305-SHA256",
+                            "ECDH-ECDSA-AES128-GCM-SHA256",
+                            "ECDH-ECDSA-AES128-SHA",
+                            "ECDH-ECDSA-AES128-SHA256",
+                            "ECDH-ECDSA-AES256-GCM-SHA384",
+                            "ECDH-ECDSA-AES256-SHA",
+                            "ECDH-ECDSA-AES256-SHA384",
+                            "DHE-RSA-AES128-GCM-SHA256",
+                            "DHE-RSA-AES128-SHA",
+                            "DHE-RSA-AES128-SHA256",
+                            "DHE-RSA-AES256-GCM-SHA384",
+                            "DHE-RSA-AES256-SHA",
+                            "DHE-RSA-AES256-SHA256",
+                            "DHE-RSA-CAMELLIA128-SHA",
+                            "DHE-RSA-CAMELLIA256-SHA",
+                            "DHE-DSS-AES128-GCM-SHA256",
+                            "DHE-DSS-AES128-SHA",
+                            "DHE-DSS-AES128-SHA256",
+                            "DHE-DSS-AES256-GCM-SHA384",
+                            "DHE-DSS-AES256-SHA",
+                            "DHE-DSS-AES256-SHA256",
+                            "DHE-DSS-CAMELLIA128-SHA",
+                            "DHE-DSS-CAMELLIA256-SHA",
+                            "ADH-AES128-GCM-SHA256",
+                            "ADH-AES128-SHA",
+                            "ADH-AES256-GCM-SHA384",
+                            "ADH-AES256-SHA",
+                            "ECDHE-RSA-DES-CBC3-SHA",
+                            "ECDH-RSA-DES-CBC3-SHA",
+                            "DES-CBC3-SHA",
+                            "ECDHE-ECDSA-DES-CBC3-SHA",
+                            "ECDH-ECDSA-DES-CBC3-SHA",
+                            "DHE-RSA-DES-CBC3-SHA",
+                            "ADH-DES-CBC3-SHA",
+                            "DHE-RSA-DES-CBC-SHA",
+                            "DES-CBC-SHA",
+                            "ADH-DES-CBC-SHA",
+                            "RC4-SHA",
+                            "RC4-MD5",
+                            "ADH-RC4-MD5",
+                            "EXP1024-DES-CBC-SHA",
+                            "EXP1024-RC4-SHA",
+                            "EXP-RC4-MD5",
+                            "EXP-DES-CBC-SHA",
+                            "TLS13-AES128-GCM-SHA256",
+                            "TLS13-AES256-GCM-SHA384",
+                            "TLS13-CHACHA20-POLY1305-SHA256",
+                            "NULL-SHA",
+                            "NULL-MD5"
+                        ]
+                    },
+                    "default": []
+                },
+                "userTemplate": {
+                    "description": "Specifies a user template for the LDAP application to use for authentication.",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Specifies the version number of the LDAP application.",
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 3,
+                    "default": 3
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}
