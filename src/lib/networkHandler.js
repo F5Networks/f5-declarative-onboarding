@@ -117,11 +117,7 @@ class NetworkHandler {
                 return handleRoutingPrefixList.call(this);
             })
             .then(() => {
-                logger.info('Checking RouteMap');
-                return handleRouteMap.call(this);
-            })
-            .then(() => {
-                logger.info('Checking RoutingBGP');
+                logger.info('Checking RoutingBGP and RouteMap');
                 return handleRoutingBGP.call(this);
             })
             .then(() => {
@@ -857,11 +853,27 @@ function handleRoutingPrefixList() {
 }
 
 function handleRouteMap() {
-    const promises = [];
+    if (!this.declaration.Common.RouteMap) {
+        return Promise.resolve();
+    }
+
+    const routeMapsToDelete = [];
+    const routeMapsToCreateOrModify = [];
+
     doUtil.forEach(this.declaration, 'RouteMap', (tenant, map) => {
+        // If RouteMap already exists with a different route domain then
+        // must delete it first and recreate later because routeDomain cannot be changed.
+        if (this.state.currentConfig.Common.RouteMap
+            && this.state.currentConfig.Common.RouteMap[map.name]
+            && this.state.currentConfig.Common.RouteMap[map.name].routeDomain !== map.routeDomain) {
+            routeMapsToDelete.push({
+                tenant,
+                name: map.name
+            });
+        }
+
         if (map && Object.keys(map).length !== 0) {
             const entries = {};
-
             if (map.entries) {
                 map.entries.forEach((entry) => {
                     entries[entry.name] = {
@@ -871,28 +883,46 @@ function handleRouteMap() {
                 });
             }
 
-            const body = {
+            const routeMapBody = {
                 name: map.name,
                 partition: tenant,
-                entries
+                entries,
+                routeDomain: map.routeDomain
             };
 
-            promises.push(
-                this.bigIp.createOrModify(PATHS.RouteMap, body, null, cloudUtil.MEDIUM_RETRY)
-            );
+            routeMapsToCreateOrModify.push(routeMapBody);
         }
     });
 
-    return Promise.all(promises)
+    return Promise.resolve()
+        .then(() => {
+            const promises = [];
+            routeMapsToDelete.forEach((map) => {
+                promises.push(
+                    this.bigIp.delete(`${PATHS.RouteMap}/~${map.tenant}~${map.name}`, null, null, cloudUtil.NO_RETRY)
+                );
+            });
+            return Promise.all(promises);
+        })
+        .then(() => {
+            const promises = [];
+            routeMapsToCreateOrModify.forEach((map) => {
+                promises.push(
+                    this.bigIp.createOrModify(PATHS.RouteMap, map, null, cloudUtil.NO_RETRY)
+                );
+            });
+            return Promise.all(promises);
+        })
         .catch((err) => {
-            logger.severe(`Error creating RouteMap: ${err.message}`);
+            logger.severe(`Error creating route maps: ${err.message}`);
             throw err;
         });
 }
 
 function handleRoutingBGP() {
     if (!this.declaration.Common.RoutingBGP) {
-        return Promise.resolve();
+        logger.info('Checking RouteMap');
+        return handleRouteMap.call(this);
     }
 
     let promises = [];
@@ -908,6 +938,7 @@ function handleRoutingBGP() {
                         const curBgp = this.state.currentConfig.Common.RoutingBGP[name];
                         if ((curBgp.peerGroups && curBgp.peerGroups.length > 0)
                             || (curBgp.localAs !== declBgp.localAs)) {
+                            logger.info('Pre-deleting RoutingBGP');
                             promises.push(
                                 this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
                             );
@@ -927,6 +958,12 @@ function handleRoutingBGP() {
                     logger.severe(`Error deleting existing RoutingBGP: ${err.message}`);
                     throw err;
                 });
+        })
+        .then(() => {
+            // This is the best time to do this if a RouteMap referenced by a peer group in the singleton RoutingBGP has
+            // a route domain change.
+            logger.info('Checking RouteMap before creating RoutingBGP');
+            return handleRouteMap.call(this);
         })
         .then(() => {
             promises = [];
@@ -1002,6 +1039,7 @@ function handleRoutingBGP() {
                         localAs: bgp.localAs,
                         neighbor,
                         peerGroup,
+                        routeDomain: bgp.routeDomain,
                         routerId: bgp.routerId
                     };
 

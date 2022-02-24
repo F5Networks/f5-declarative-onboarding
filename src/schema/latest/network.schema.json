@@ -929,6 +929,11 @@
                             "additionalProperties": false
                         },
                         "default": []
+                    },
+                    "routeDomain": {
+                        "description": "Specifies the name of the route domain used by the route map",
+                        "type": "string",
+                        "default": "0"
                     }
                 },
                 "additionalProperties": false
@@ -1120,6 +1125,11 @@
                             "additionalProperties": false
                         },
                         "default": []
+                    },
+                    "routeDomain": {
+                        "description": "Specifies the name of the route domain used by the routing bgp",
+                        "type": "string",
+                        "default": "0"
                     },
                     "routerId": {
                         "description": "Manually override current router identifier (peers will reset)",

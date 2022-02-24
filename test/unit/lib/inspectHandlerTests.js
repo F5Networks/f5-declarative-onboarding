@@ -741,6 +741,7 @@ describe('inspectHandler', () => {
             '/tm/net/routing/route-map': [
                 {
                     name: 'exampleRouteMap',
+                    routeDomain: '/Common/one',
                     entriesReference: {
                         link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleRouteMap/entries?ver=14.1.2.8'
                     }
@@ -802,7 +803,8 @@ describe('inspectHandler', () => {
                     peerGroupReference: {
                         link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~exampleBGP/peer-group?ver=14.1.2.8'
                     },
-                    routerId: '10.1.1.1'
+                    routerId: '10.1.1.1',
+                    routeDomain: '/Common/4'
                 }
             ],
             '/tm/net/routing/bgp/~Common~exampleBGP/neighbor': [
@@ -1860,7 +1862,8 @@ describe('inspectHandler', () => {
                                         }
                                     }
                                 }
-                            ]
+                            ],
+                            routeDomain: 'one'
                         },
                         exampleBGP: {
                             class: 'RoutingBGP',
@@ -1911,7 +1914,8 @@ describe('inspectHandler', () => {
                                     ]
                                 }
                             ],
-                            routerId: '10.1.1.1'
+                            routerId: '10.1.1.1',
+                            routeDomain: '4'
                         },
                         currentConfigSync: {
                             configsyncIp: '10.0.0.2',

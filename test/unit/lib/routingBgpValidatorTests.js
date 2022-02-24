@@ -200,4 +200,90 @@ describe('routingBgpValidator', () => {
             });
         });
     });
+
+    describe('routeMaps in peerGroups', () => {
+        let wrapper;
+
+        beforeEach(() => {
+            wrapper = {
+                targetHost: '1.2.3.4',
+                declaration: {
+                    Common: {
+                        exampleRouteMap1: {
+                            class: 'RouteMap',
+                            routeDomain: 'one'
+                        },
+                        exampleRouteMap2: {
+                            class: 'RouteMap',
+                            routeDomain: 'one'
+                        },
+                        exampleRouteMap3: {
+                            class: 'RouteMap',
+                            routeDomain: 'one'
+                        },
+                        exampleRouteMap4: {
+                            class: 'RouteMap',
+                            routeDomain: 'one'
+                        },
+                        exampleRoutingBgp: {
+                            class: 'RoutingBGP',
+                            localAS: 1,
+                            peerGroups: [
+                                {
+                                    name: 'Neighbor1',
+                                    addressFamilies: [
+                                        {
+                                            internetProtocol: 'ipv4',
+                                            routeMap: {
+                                                in: 'exampleRouteMap1',
+                                                out: 'exampleRouteMap2'
+                                            }
+                                        },
+                                        {
+                                            internetProtocol: 'ipv6',
+                                            routeMap: {
+                                                in: 'exampleRouteMap1',
+                                                out: 'exampleRouteMap3'
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    name: 'Neighbor2',
+                                    addressFamilies: [
+                                        {
+                                            internetProtocol: 'ipv4',
+                                            routeMap: {
+                                                in: 'exampleRouteMap2',
+                                                out: 'exampleRouteMap4'
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+        });
+
+        it('should validate if all peer group address families route domains match bgp', () => {
+            wrapper.declaration.Common.exampleRoutingBgp.routeDomain = 'one';
+            return validator.validate(wrapper)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
+                });
+        });
+
+        it('should invalidate if peer group address families route domains do not match bgp', () => {
+            wrapper.declaration.Common.exampleRoutingBgp.routeDomain = 'two';
+            return validator.validate(wrapper)
+                .then((validation) => {
+                    assert.ok(!validation.isValid);
+                    [0, 1, 2, 3].forEach((i) => {
+                        assert.strictEqual(validation.errors[i], `RoutingBGP peerGroups addressFamilies routeMap exampleRouteMap${i + 1} must use the same routeDomain as RoutingBGP (two)`);
+                    });
+                });
+        });
+    });
 });

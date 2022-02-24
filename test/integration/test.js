@@ -495,7 +495,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                 }
                             }
                         }
-                    ]
+                    ],
+                    routeDomain: '0'
                 }
             }
         ));
@@ -554,6 +555,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             remoteAs: 65020
                         }
                     ],
+                    routeDomain: '0',
                     routerId: '10.1.1.1'
                 }
             }

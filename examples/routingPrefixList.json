@@ -11,13 +11,13 @@
                 {
                     "name": 10,
                     "action": "permit",
-                    "prefix": "1111:2222::/127",
+                    "prefix": "2001:db8::/127",
                     "prefixLengthRange": "128"
                 },
                 {
                     "name": 15,
                     "action": "deny",
-                    "prefix": "f5f5:f5f5::/64",
+                    "prefix": "2001:db8::/64",
                     "prefixLengthRange": "80:"
                 }
             ]
@@ -28,14 +28,14 @@
                 {
                     "name": 20,
                     "action": "permit",
-                    "prefix": "10.3.3.0/24",
+                    "prefix": "192.0.2.0/24",
                     "prefixLengthRange": ":30"
                 },
                 {
                     "name": 30,
                     "action": "deny",
-                    "prefix": "10.4.4.0/22",
-                    "prefixLengthRange": "23:25"
+                    "prefix": "198.51.100.0/24",
+                    "prefixLengthRange": "25:27"
                 }
             ]
         }

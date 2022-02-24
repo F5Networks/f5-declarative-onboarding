@@ -214,7 +214,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "routeDomain": "0"
         },
         "testRoutingBGP": {
             "class": "RoutingBGP",
@@ -258,6 +259,7 @@
                     "remoteAS": 65020
                 }
             ],
+            "routeDomain": "0",
             "routerId": "10.1.1.1"
         }
     }
