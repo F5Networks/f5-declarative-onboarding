@@ -961,6 +961,7 @@ describe('network.schema.json', () => {
                     localAS: 1,
                     neighbors: [],
                     peerGroups: [],
+                    routeDomain: '0',
                     routerId: 'any6'
                 });
             });
@@ -1010,6 +1011,7 @@ describe('network.schema.json', () => {
                             remoteAS: 65020
                         }
                     ],
+                    routeDomain: '1',
                     routerId: '10.1.1.1'
                 };
 
@@ -1058,6 +1060,7 @@ describe('network.schema.json', () => {
                             remoteAS: 65020
                         }
                     ],
+                    routeDomain: '1',
                     routerId: '10.1.1.1'
                 });
             });
@@ -1496,7 +1499,8 @@ describe('network.schema.json', () => {
                             name: 20,
                             action: 'permit'
                         }
-                    ]
+                    ],
+                    routeDomain: '0'
                 };
 
                 assert.ok(validate(data), getErrorString(validate));
@@ -1597,7 +1601,8 @@ describe('network.schema.json', () => {
                                 }
                             }
                         }
-                    ]
+                    ],
+                    routeDomain: 'one'
                 };
 
                 assert.ok(validate(data), getErrorString(validate));

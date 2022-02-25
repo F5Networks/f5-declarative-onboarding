@@ -11,16 +11,16 @@
                 {
                     "name": "11",
                     "action": "permit",
-                    "destination": "10.10.0.0/16",
+                    "destination": "192.0.2.0/25",
                     "exactMatchEnabled": false,
-                    "source": "10.11.0.0/16"
+                    "source": "192.0.2.80/25"
                 },
                 {
                     "name": "22",
                     "action": "deny",
-                    "destination": "10.12.13.14",
+                    "destination": "198.51.100.10",
                     "exactMatchEnabled": false,
-                    "source": "10.13.14.15"
+                    "source": "198.51.100.11"
                 }
             ]
         },
@@ -31,12 +31,12 @@
                     "name": "33",
                     "action": "permit",
                     "exactMatchEnabled": true,
-                    "source": "1111:2222::/64"
+                    "source": "2001:db8::/65"
                 },
                 {
                     "name": 44,
                     "action": "permit",
-                    "source": "1111:3333::/64"
+                    "source": "2001:db9::/65"
                 }
             ]
         }

@@ -2203,6 +2203,7 @@ describe('configManager', () => {
                         keepAlive: 10,
                         localAs: 65010,
                         routerId: '10.1.1.1',
+                        routeDomain: '/Common/0',
                         addressFamily: [
                             {
                                 name: 'ipv4',
@@ -2342,6 +2343,7 @@ describe('configManager', () => {
                                 keepAlive: 10,
                                 localAs: 65010,
                                 routerId: '10.1.1.1',
+                                routeDomain: '0',
                                 addressFamily: [
                                     {
                                         name: 'ipv4',

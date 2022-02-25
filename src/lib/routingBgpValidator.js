@@ -42,17 +42,17 @@ class RoutingBgpValidator {
         }
 
         Object.keys(routingBgpWrapper).forEach((name) => {
-            const wrapper = routingBgpWrapper[name];
-            if (wrapper.holdTime !== 0 && wrapper.holdTime < 3 * wrapper.keepAlive) {
+            const routingBgp = routingBgpWrapper[name];
+            if (routingBgp.holdTime !== 0 && routingBgp.holdTime < 3 * routingBgp.keepAlive) {
                 isValid = false;
                 errors.push('RoutingBGP holdTime must be 0 or at least 3 times keepAlive');
             }
-            if (wrapper.addressFamilies) {
+            if (routingBgp.addressFamilies) {
                 let hasAll = false;
                 let hasIpv4 = false;
                 let hasIpv6 = false;
 
-                wrapper.addressFamilies.forEach((family) => {
+                routingBgp.addressFamilies.forEach((family) => {
                     hasAll = family.internetProtocol === 'all' ? true : hasAll;
                     hasIpv4 = family.internetProtocol === 'ipv4' ? true : hasIpv4;
                     hasIpv6 = family.internetProtocol === 'ipv6' ? true : hasIpv6;
@@ -62,6 +62,35 @@ class RoutingBgpValidator {
                     isValid = false;
                     errors.push('RoutingBGP addressFamilies internetProtocol value "all" must not be used with any other internetProtocol value');
                 }
+            }
+
+            if (routingBgp.peerGroups) {
+                const peerGroupRouteMaps = [];
+                routingBgp.peerGroups.forEach((peer) => {
+                    if (peer.addressFamilies) {
+                        peer.addressFamilies.forEach((family) => {
+                            if (family.routeMap) {
+                                if (family.routeMap.in && peerGroupRouteMaps.indexOf(family.routeMap.in) === -1) {
+                                    peerGroupRouteMaps.push(family.routeMap.in);
+                                }
+                                if (family.routeMap.out && peerGroupRouteMaps.indexOf(family.routeMap.out) === -1) {
+                                    peerGroupRouteMaps.push(family.routeMap.out);
+                                }
+                            }
+                        });
+                    }
+                });
+                const routeMapWrapper = doUtil.getClassObjects(data.declaration, 'RouteMap');
+                Object.keys(routeMapWrapper).forEach((mapName) => {
+                    const routeMap = routeMapWrapper[mapName];
+                    if (peerGroupRouteMaps.indexOf(mapName) !== -1) {
+                        if (routeMap.routeDomain !== routingBgp.routeDomain) {
+                            isValid = false;
+                            errors.push(`RoutingBGP peerGroups addressFamilies routeMap ${mapName}`
+                                + ` must use the same routeDomain as RoutingBGP (${routingBgp.routeDomain})`);
+                        }
+                    }
+                });
             }
         });
 

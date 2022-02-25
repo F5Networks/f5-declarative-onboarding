@@ -1169,7 +1169,8 @@ describe('declarationHandler', () => {
                                         }
                                     }
                                 }
-                            ]
+                            ],
+                            routeDomain: 'one'
                         }
                     }
                 }
@@ -1224,7 +1225,8 @@ describe('declarationHandler', () => {
                                         }
                                     }
                                 }
-                            ]
+                            ],
+                            routeDomain: 'one'
                         }
                     );
                 });
