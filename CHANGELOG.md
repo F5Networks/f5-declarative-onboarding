@@ -1,6 +1,12 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.29.0
+### Added
+### Fixed
+### Changed
+### Removed
+
 ## 1.28.0
 ### Added
 - AUTOTOOL-2871: Allow user to explicitly specify the mgmt-dhcp setting
@@ -11,6 +17,8 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-2941: ([GitHub Issue 285](https://github.com/F5Networks/f5-declarative-onboarding/issues/285)): URL is incorrect in schema files
 
 ### Changed
+### Removed
+
 ## 1.27.1
 ### Added
 ### Fixed
