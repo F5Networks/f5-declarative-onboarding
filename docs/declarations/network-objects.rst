@@ -254,12 +254,15 @@ The **RoutingBGP** class contains a number of properties used in the following e
 **New in DO 1.24** |br|
 Declarative Onboarding 1.24 introduced the **ebgpMultihop** property for BGP neighbors. This property allows you to specify between 1 and 255 external BGP members that are not on directly connected networks (the default is **1**). See |ebgp| in the Schema Reference for more information.
 
-.. IMPORTANT:: If you try to use the following example with a version prior to 1.24, it will fail.  For previous versions, remove the lines in yellow.
+**New in DO 1.28** |br|
+Declarative Onboarding 1.28 adds support for specifying route domains in |routingbgp| and |routemap|.
+
+.. IMPORTANT:: If you try to use the following example with a version prior to 1.28, it will fail.  For previous versions, remove the lines in yellow.  You can leave the **ebgpMultihop** lines if using a DO version between 1.24 and 1.27.
 
 
 .. literalinclude:: ../../examples/bgp.json
    :language: json
-   :emphasize-lines: 110, 115
+   :emphasize-lines: 85, 103, 133, 138, 158
 
 |
 
