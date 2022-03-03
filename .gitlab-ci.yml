@@ -24,6 +24,9 @@ variables:
     TF_CLI_ARGS_apply: "-auto-approve"
     TF_CLI_ARGS_destroy: "-auto-approve"
     TF_STATE_URL: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state"
+    # terraform will try to update state 5(4+1) times every 3 minutes.
+    TF_HTTP_RETRY_MAX: 4
+    TF_HTTP_RETRY_WAIT_MIN: 3
 
 # This inherits all the jobs defined in the parent template
 # Override variables in this project as needed
