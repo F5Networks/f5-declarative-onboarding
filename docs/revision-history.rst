@@ -15,6 +15,10 @@ Document Revision History
         - Updated the documentation for Declarative Onboarding v1.28.0.  This release contains the following changes: |br| * Added support for explicitly enabling management DHCP (see :ref:`Management DHCP <mandhcp>`) |br| * Added support for specifying route domains in the RoutingBGP and RouteMap classes (see the updated :ref:`BGP example<bgprouting>`) |br| |br| Issues Resolved: |br| *  Licensing in GCP multi-NIC fails (Upgrade to f5-cloud-libs 4.26.7), `GitHub Issue 248 <https://github.com/F5Networks/f5-declarative-onboarding/issues/248>`_ |br| * URL is incorrect in schema files, `GitHub Issue 285 <https://github.com/F5Networks/f5-declarative-onboarding/issues/285>`_
         - 3-8-22
 
+      * - 1.27.1
+        - Released Declarative Onboarding 1.27.1 as a LTS (Long Term Support) version. See the Declarative Onboarding |supportmd| for information about the Declarative Onboarding support policy.
+        - 3-8-22
+
       * - 1.27
         - Updated the documentation for Declarative Onboarding v1.27.0.  This release contains the following resolved issues: |br| *  Items containing '.' or '-' characters in their names are not passing schema validation, `GitHub Issue 277 <https://github.com/F5Networks/f5-declarative-onboarding/issues/277>`_ |br| * DNS_Resolver is not idempotent |br| * Tunnel is not idempotent |br| * Cannot update only the description of ManagementIp |br| |br| Issues Resolved: |br| * Several idempotentcy issues are resolved, which required adding defaults for several items in the |system|
         - 1-25-22
@@ -158,6 +162,7 @@ Document Revision History
       * - 1.0
         - Documentation for the initial release of F5 Declarative Onboarding
         - 11-13-18
+
 
 
 .. |br| raw:: html
