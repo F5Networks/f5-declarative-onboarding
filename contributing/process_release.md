@@ -39,7 +39,7 @@ At some point in the sprint we create a release branch. This should happen when 
 * git push origin
 * Go to the DO schedule in the `atg-build` project.
   * Ping the Teams "AS3-DO General" channel to not push anything to the develop/release branch, until after pipeline is complete. Additionally, please provide a link to the pipeline as an edit or follow up comment, for other's convenience.
-  * Make sure the `gitBranch` CI/CD variable is set to the develop/release branch.
+  * Make sure the schedule's `gitBranch` CI/CD variable is set to the develop/release branch. NOTE: Do NOT change the variable back until after the pipeline completes
   * Run the schedule. This will:
     * Update and commit the build number in `package.json` and `package-lock.json` and commit those changes.
     * Tag the appropriate branch with the updated version (e.g. v1.13.0-4). The tag will kick off a DO pipeline with integration tests.
@@ -53,4 +53,3 @@ At some point in the sprint we create a release branch. This should happen when 
   * Do not squash commits.
   * You can self-approve and merge these MRs.
 * Using the GUI, create a tag on the `master` branch in the format `v<version>` (e.g. `v1.13.0`).
-* Add a `released` property with a value of `true` to the released RPM in Artifactory.
