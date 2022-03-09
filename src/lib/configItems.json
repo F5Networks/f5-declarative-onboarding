@@ -358,7 +358,8 @@
             { "name": "^dos-global-dg$" },
             { "name": "^gtm$" }
         ],
-        "declaration": false
+        "declaration": false,
+        "classOfTruth": false
     },
     {
         "path": "/tm/cm/traffic-group",
@@ -379,7 +380,8 @@
         "properties": [
             { "id": "mac" }
         ],
-        "declaration": false
+        "declaration": false,
+        "classOfTruth": false
     },
     {
         "path": "/tm/analytics/global-settings",
@@ -424,7 +426,8 @@
             "properties": [
                 { "id": "localIp", "removeIfValue": "none" }
             ]
-        }
+        },
+        "classOfTruth": false
     },
     {
         "path": "/tm/auth/source",
@@ -1133,10 +1136,17 @@
     {
         "schemaClass": "License",
         "nameless": true,
-        "properties": []
+        "properties": [],
+        "classOfTruth": false
     },
     {
         "schemaClass": "DeviceTrust",
+        "nameless": true,
+        "properties": [],
+        "classOfTruth": false
+    },
+    {
+        "schemaClass": "InternalUse",
         "nameless": true,
         "properties": []
     }

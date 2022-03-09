@@ -3767,4 +3767,24 @@ describe('configManager', () => {
             assert.deepStrictEqual(namelessClasses, ['nameless1', 'nameless2']);
         });
     });
+
+    describe('getClassesOfTruth', () => {
+        it('should return only classes of truth', () => {
+            const configItems = [
+                {
+                    schemaClass: 'classOfTruth1',
+                    classOfTruth: true
+                },
+                {
+                    schemaClass: 'notClassOfTruth1',
+                    classOfTruth: false
+                },
+                {
+                    schemaClass: 'classOfTruth2'
+                }
+            ];
+            const classesOfTruth = ConfigManager.getClassesOfTruth(configItems);
+            assert.deepStrictEqual(classesOfTruth, ['classOfTruth1', 'classOfTruth2']);
+        });
+    });
 });

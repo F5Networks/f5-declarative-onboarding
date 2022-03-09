@@ -80,6 +80,7 @@ class ConfigManager {
      *         nameless: <true_if_we_do_not_want_the_name_property_in_the_result>,
      *         enforceArray: <true_if_we_require_this_object_to_always_be_an_array>,
      *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>,
+     *         classOfTruth: <true_if_class_is_source_of_truth_(default is true)>,
      *         ignore: [
      *             { <key_to_possibly_ignore>: <regex_for_value_to_ignore> }
      *         ],
@@ -690,6 +691,13 @@ class ConfigManager {
     static getNamelessClasses(configItems) {
         return configItems
             .filter((configItem) => configItem.nameless)
+            .map((configItem) => configItem.schemaClass);
+    }
+
+    // Return list of classes for which we are the source of truth.
+    static getClassesOfTruth(configItems) {
+        return configItems
+            .filter((configItem) => configItem.classOfTruth !== false)
             .map((configItem) => configItem.schemaClass);
     }
 }

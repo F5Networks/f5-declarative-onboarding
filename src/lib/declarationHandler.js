@@ -42,59 +42,9 @@ const logger = new Logger(module);
 const ralv = new RoutingAccessListValidator();
 
 const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
-
-// They are the classes for which we are the source of truth. We will
-// run a diff against these classes and also apply defaults for them if they
-// are missing from the declaration
-const CLASSES_OF_TRUTH = [
-    'InternalUse', // This is a special internal class in which we store things that are hard to handle otherwise
-    'DbVariables',
-    'DNS',
-    'NTP',
-    'Provision',
-    'VLAN',
-    'DNS_Resolver',
-    'Trunk',
-    'SelfIp',
-    'Route',
-    'ConfigSync',
-    'FailoverUnicast',
-    'FailoverMulticast',
-    'Analytics',
-    'ManagementIp',
-    'ManagementIpFirewall',
-    'ManagementRoute',
-    'RouteDomain',
-    'Authentication',
-    'RemoteAuthRole',
-    'SnmpAgent',
-    'SnmpTrapEvents',
-    'SnmpUser',
-    'SnmpCommunity',
-    'SnmpTrapDestination',
-    'DagGlobals',
-    'System',
-    'TrafficControl',
-    'HTTPD',
-    'SSHD',
-    'Tunnel',
-    'TrafficGroup',
-    'Disk',
-    'MirrorIp',
-    'RoutingAccessList',
-    'RoutingAsPath',
-    'RoutingPrefixList',
-    'RoutingBGP',
-    'RouteMap',
-    'GSLBGlobals',
-    'GSLBDataCenter',
-    'GSLBServer',
-    'GSLBMonitor',
-    'GSLBProberPool',
-    'FirewallPolicy',
-    'FirewallAddressList',
-    'FirewallPortList'
-];
+// We will run a diff against these classes and also apply
+// defaults for them if they are missing from the declaration
+const CLASSES_OF_TRUTH = ConfigManager.getClassesOfTruth(configItems);
 
 /**
  * Main processing for a parsed declaration.
