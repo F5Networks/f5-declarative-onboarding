@@ -202,6 +202,42 @@ describe('restWorker', () => {
             });
         });
 
+        it('should continue if state is RUNNING', () => new Promise((resolve, reject) => {
+            const restWorker = new RestWorker();
+            const success = () => {
+                assert.strictEqual(restWorker.state.doState.tasks[1234].result.status, 'RUNNING');
+                resolve();
+            };
+            const error = () => {
+                reject(new Error('should have called success'));
+            };
+
+            RestWorker.prototype.loadState = (foo, callback) => {
+                const state = {
+                    doState: {
+                        mostRecentTask: 1234,
+                        tasks: {
+                            1234: {
+                                result: {
+                                    status: STATUS.STATUS_RUNNING
+                                },
+                                internalDeclaration: {
+                                    Common: {}
+                                },
+                                requestOptions: {}
+                            }
+                        }
+                    }
+                };
+                callback(null, state);
+            };
+            RestWorker.prototype.saveState = (foo, state, callback) => {
+                callback();
+            };
+
+            restWorker.onStartCompleted(success, error);
+        }));
+
         it('should reset status if rebooting', () => new Promise((resolve, reject) => {
             const restWorker = new RestWorker();
             const success = () => {

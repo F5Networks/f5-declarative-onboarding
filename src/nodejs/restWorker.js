@@ -770,15 +770,17 @@ function handleStartupState(success, error) {
                 return;
             }
 
-            logger.info(`Handling startup state for task: ${currentTaskId}`);
+            const currentTaskStatus = this.state.doState.getStatus(currentTaskId);
+            logger.info(`Handling startup state for task: ${currentTaskId}. Task status: ${currentTaskStatus}`);
 
-            switch (this.state.doState.getStatus(currentTaskId)) {
+            switch (currentTaskStatus) {
             case STATUS.STATUS_REBOOTING:
                 updateStateAfterReboot.call(this, currentTaskId, success, error);
                 break;
+            case STATUS.STATUS_RUNNING:
             case STATUS.STATUS_REVOKING:
             case STATUS.STATUS_REBOOTING_AND_RESUMING:
-                // If our status is REVOKING, restnoded was just restarted
+                // If our status is RUNNING or REVOKING, restnoded was just restarted
                 // and we need to finish processing the declaration.
                 // This should only be the case when we are running on a BIG-IP.
 
