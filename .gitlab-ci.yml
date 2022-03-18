@@ -1,6 +1,7 @@
 image: $DOCKER_URL/node:12-buster
 
 stages:
+    - update
     - atg-shared-checks
     - lint
     - test
@@ -36,6 +37,24 @@ include:
   - project: automation-toolchain/atg-shared-templates
     file: security/base.gitlab-ci.yml
     ref: v1.0.6
+
+# UPDATE #
+# only pipelines on 'develop' should check for new changes
+update_autotool_deps:
+  stage: update
+  only: [develop]
+  needs: []
+  image: $DOCKER_URL/node:lts
+  variables:
+    UPDATE_BRANCH_NAME: update_autotool_deps
+  script:
+    - . ./scripts/dev/update-do-deps.sh
+    - >
+      if [ "$AUTOTOOL_DIFF" = "true" ]; then
+        git push -f origin ${UPDATE_BRANCH_NAME}
+        node ./scripts/dev/createMR.js
+      fi
+  tags: [cm-official-docker-executor]
 
 lint:
     stage: lint
