@@ -44,7 +44,7 @@ update_autotool_deps:
   stage: update
   only: [develop]
   needs: []
-  image: $DOCKER_URL/node:lts
+  image: $DOCKER_URL/node:14
   variables:
     UPDATE_BRANCH_NAME: update_autotool_deps
   script:
