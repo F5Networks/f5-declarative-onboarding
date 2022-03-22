@@ -316,7 +316,7 @@ integration-test:
         - export ESR_BIG_IP_VERSION=$(echo $BIGIP_IMAGE | cut -d '-' -f 2)
         - export GIT_SSL_NO_VERIFY=1
         - echo BIGIP_VERSION $ESR_BIG_IP_VERSION
-        - npm install
+        - npm install --no-optional
     script:
         - if [[ $PROPERTY_TEST == true ]]; then
         -     export DO_HOST=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].admin_ip')

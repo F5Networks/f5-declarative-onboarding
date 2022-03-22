@@ -128,16 +128,12 @@ function installRpm(host, adminUsername, adminPassword) {
 */
 function waitForMcpd(ssh) {
     console.log('Waiting for MCPD');
-    return new Promise((resolve, reject) => {
-        ssh.execCommand('tmsh -a show sys mcp-state field-fmt | grep -q running')
-            .then((result) => {
-                if (result.code === null) {
-                    resolve();
-                } else {
-                    reject(new Error('MCPD is not up yet'));
-                }
-            });
-    });
+    return ssh.execCommand('tmsh -a show sys mcp-state field-fmt | grep -q running')
+        .then((result) => {
+            if (result.code !== 0) {
+                throw new Error('MCPD is not up yet');
+            }
+        });
 }
 
 /**
