@@ -55,6 +55,10 @@ update_autotool_deps:
         node ./scripts/dev/createMR.js
       fi
   tags: [cm-official-docker-executor]
+  allow_failure: true
+  retry:
+    max: 1
+    when: script_failure
 
 lint:
     stage: lint
