@@ -352,6 +352,17 @@ describe('network.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate network data with allow service:port and default', () => {
+                const data = {
+                    class: 'SelfIp',
+                    address: '1.2.3.4/32',
+                    vlan: 'myVlan',
+                    allowService: ['foo:1234', 'default'],
+                    trafficGroup: 'traffic-group-1'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
@@ -450,6 +461,17 @@ describe('network.schema.json', () => {
                     };
                     assert.strictEqual(validate(data), false, 'allow service bar should not be valid port');
                     assert(getErrorString().includes('should match pattern'));
+                });
+
+                it('should invalidate misspelled default in port array', () => {
+                    const data = {
+                        class: 'SelfIp',
+                        address: '1.2.3.4',
+                        vlan: 'myVlan',
+                        allowService: ['foo:1234', 'defalt']
+                    };
+                    assert.strictEqual(validate(data), false, 'default should be spelled correctly');
+                    assert(getErrorString().includes('should match pattern \\"(\\\\w+:\\\\d+|default)\\"'));
                 });
             });
         });
