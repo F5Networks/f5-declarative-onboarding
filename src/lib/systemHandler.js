@@ -1265,46 +1265,9 @@ function restartDhcp() {
         .then((globalSettings) => globalSettings && globalSettings.mgmtDhcp === 'enabled')
         .then((canRestartDhcp) => {
             if (canRestartDhcp) {
-                return restartService.call(this, 'dhclient');
+                return doUtil.restartService(this.bigIp, 'dhclient');
             }
             return Promise.resolve();
-        });
-}
-
-function restartService(service) {
-    return this.bigIp.create(
-        '/tm/sys/service',
-        {
-            command: 'restart',
-            name: service
-        },
-        null,
-        cloudUtil.NO_RETRY
-    )
-        .catch((err) => {
-            logger.debug(`Ingoring expected socket hangup: ${err}`);
-        })
-        .then(() => {
-            function isServiceRunning() {
-                return this.bigIp.list(`/tm/sys/service/${service}/stats`, undefined, cloudUtil.NO_RETRY)
-                    .then((serviceStats) => {
-                        if (serviceStats.apiRawValues
-                            && serviceStats.apiRawValues.apiAnonymous
-                            && serviceStats.apiRawValues.apiAnonymous.indexOf('running') !== -1) {
-                            return Promise.resolve();
-                        }
-
-                        let message;
-                        if (serviceStats.apiRawValues && serviceStats.apiRawValues.apiAnonymous) {
-                            message = `${service} status is ${serviceStats.apiRawValues.apiAnonymous}`;
-                        } else {
-                            message = `Unable to read ${service} status`;
-                        }
-                        return Promise.reject(new Error(message));
-                    });
-            }
-
-            return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isServiceRunning);
         });
 }
 

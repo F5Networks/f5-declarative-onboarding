@@ -442,6 +442,59 @@ module.exports = {
     },
 
     /**
+     *
+     * @param {Object} bigIp - Big-IP object.
+     * @param {String} service - The name of the service to restart
+     * @param {String[]} [servicesToWaitFor] - Optional list of other services to wait for after restarting
+     * @returns
+     */
+    restartService(bigIp, service, servicesToWaitFor) {
+        function isServiceRunning(serviceToCheck) {
+            return bigIp.list(`/tm/sys/service/${serviceToCheck}/stats`, undefined, cloudUtil.NO_RETRY)
+                .then((serviceStats) => {
+                    if (serviceStats.apiRawValues
+                        && serviceStats.apiRawValues.apiAnonymous
+                        && serviceStats.apiRawValues.apiAnonymous.indexOf('run') !== -1) {
+                        return Promise.resolve();
+                    }
+
+                    let message;
+                    if (serviceStats.apiRawValues && serviceStats.apiRawValues.apiAnonymous) {
+                        message = `${service} status is ${serviceStats.apiRawValues.apiAnonymous}`;
+                    } else {
+                        message = `Unable to read ${service} status`;
+                    }
+                    return Promise.reject(new Error(message));
+                });
+        }
+
+        const serviceRunningRetryArgs = {
+            maxRetries: cloudUtil.MEDIUM_RETRY.maxRetries,
+            retryIntervalMs: cloudUtil.MEDIUM_RETRY.retryIntervalMs,
+            continueOnError: true
+        };
+
+        return bigIp.create(
+            '/tm/sys/service',
+            {
+                command: 'restart',
+                name: service
+            },
+            null,
+            cloudUtil.NO_RETRY
+        )
+            .catch((err) => {
+                logger.debug(`Ignoring expected socket hangup: ${err}`);
+            })
+            .then(() => cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isServiceRunning, [service]))
+            .then(() => promiseUtil.series(
+                (servicesToWaitFor || []).map((aService) => () => cloudUtil.tryUntil(
+                    this, serviceRunningRetryArgs, isServiceRunning, [aService]
+                ))
+            ));
+    },
+
+    /**
      * Wait for Big-IP to reboot.
      *
      * @param {Object} bigIp - Big-IP object.

@@ -44,6 +44,7 @@ class NetworkHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.needsMcpdRestart = false;
     }
 
     /**
@@ -122,6 +123,40 @@ class NetworkHandler {
             })
             .then(() => {
                 logger.info('Done processing network declartion.');
+                return Promise.resolve();
+            })
+            .then(() => {
+                if (this.needsMcpdRestart) {
+                    logger.info('Saving config');
+                    return this.bigIp.save();
+                }
+                return Promise.resolve();
+            })
+            .then(() => {
+                if (this.needsMcpdRestart) {
+                    logger.info('Restarting mcpd');
+                    const servicesToWaitFor = [
+                        'cbrd',
+                        'alertd',
+                        'tamd',
+                        'lind',
+                        'lacpd',
+                        'merged',
+                        'devmgmtd',
+                        'pccd',
+                        'logstatd',
+                        'statsd',
+                        'icr_eventd',
+                        'zxfrd',
+                        'wccpd',
+                        'tmm',
+                        'vxland',
+                        'dynconfd',
+                        'named',
+                        'bigd'
+                    ];
+                    return doUtil.restartService(this.bigIp, 'mcpd', servicesToWaitFor);
+                }
                 return Promise.resolve();
             })
             .catch((err) => {
@@ -618,6 +653,7 @@ function handleRouteDomain() {
             if (this.state.currentConfig.Common.RouteDomain
                 && this.state.currentConfig.Common.RouteDomain[routeDomain.name]) {
                 method = 'modify';
+                this.needsMcpdRestart = true;
             }
             commands.push({
                 method,
