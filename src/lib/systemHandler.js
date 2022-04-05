@@ -920,6 +920,12 @@ function handleSnmpUsers() {
         if (snmpUser && snmpUser.name) {
             const user = JSON.parse(JSON.stringify(snmpUser));
 
+            if (user.authPassword) {
+                user.securityLevel = user.privacyPassword ? 'auth-privacy' : 'auth-no-privacy';
+            } else {
+                user.securityLevel = 'no-auth-no-privacy';
+            }
+
             // 'none' is only a valid option for 14.0+
             if (cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
                 user.authPassword = user.authPassword || 'none';
