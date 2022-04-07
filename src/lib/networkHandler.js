@@ -86,6 +86,14 @@ class NetworkHandler {
                 return handleFirewallPolicy.call(this);
             })
             .then(() => {
+                logger.fine('Checking Net Address Lists');
+                return handleNetAddressList.call(this);
+            })
+            .then(() => {
+                logger.fine('Checking Net Port Lists');
+                return handleNetPortList.call(this);
+            })
+            .then(() => {
                 logger.fine('Checking ManagementIpFirewall.');
                 return handleManagementIpFirewall.call(this);
             })
@@ -323,6 +331,56 @@ function handleFirewallPortList() {
     return Promise.all(promises)
         .catch((err) => {
             logger.severe(`Error creating Firewall Port List: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleNetAddressList() {
+    const promises = [];
+
+    doUtil.forEach(this.declaration, 'NetAddressList', (tenant, netAddressList) => {
+        if (netAddressList && netAddressList.name) {
+            const body = {
+                name: netAddressList.name,
+                description: netAddressList.description
+            };
+
+            if (netAddressList.addresses) {
+                body.addresses = netAddressList.addresses || [];
+            }
+
+            promises.push(this.bigIp.createOrModify(PATHS.NetAddressList, body, null, cloudUtil.MEDIUM_RETRY));
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Net Address List: ${err.message}`);
+            throw err;
+        });
+}
+
+function handleNetPortList() {
+    const promises = [];
+
+    doUtil.forEach(this.declaration, 'NetPortList', (tenant, netPortList) => {
+        if (netPortList && netPortList.name) {
+            const body = {
+                name: netPortList.name,
+                description: netPortList.description
+            };
+
+            if (netPortList.ports) {
+                body.ports = netPortList.ports.map((port) => port.toString());
+            }
+
+            promises.push(this.bigIp.createOrModify(PATHS.NetPortList, body, null, cloudUtil.MEDIUM_RETRY));
+        }
+    });
+
+    return Promise.all(promises)
+        .catch((err) => {
+            logger.severe(`Error creating Net Port List: ${err.message}`);
             throw err;
         });
 }

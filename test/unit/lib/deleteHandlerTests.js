@@ -1066,4 +1066,72 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.deepStrictEqual(deletedPaths, ['/tm/security/firewall/policy/~Common~firewallPolicy']);
             });
     });
+
+    it('should delete a NetAddressList', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    NetAddressList: {
+                        netAddressList: {
+                            name: 'netAddressList',
+                            rules: [
+                                {
+                                    name: 'my netAddressList',
+                                    addresses: ['192.0.2.10', '192.1.2.0/24']
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                NetAddressList: {
+                    netAddressList: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/address-list/~Common~netAddressList']);
+            });
+    });
+
+    it('should delete a NetPortList', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    NetPortList: {
+                        netPortList: {
+                            name: 'netPortList',
+                            rules: [
+                                {
+                                    name: 'my netPortList',
+                                    ports: ['8123', '8234', '8300-8350']
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                NetPortList: {
+                    netPortList: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/port-list/~Common~netPortList']);
+            });
+    });
 });

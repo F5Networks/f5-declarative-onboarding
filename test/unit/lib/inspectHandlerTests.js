@@ -1598,6 +1598,36 @@ describe('inspectHandler', () => {
                     link: 'https://localhost/mgmt/tm/security/firewall/management-ip-rules/rules'
                 }
             },
+            '/tm/net/address-list': [
+                {
+                    name: 'currentNetAddressList',
+                    description: 'net address list description',
+                    fullPath: '/Common/currentNetAddressList',
+                    addresses: [
+                        {
+                            name: '10.1.1.1'
+                        },
+                        {
+                            name: '10.2.1.0/24'
+                        }
+                    ]
+                }
+            ],
+            '/tm/net/port-list': [
+                {
+                    name: 'currentNetPortList',
+                    description: 'net port list description',
+                    fullPath: '/Common/currentNetPortList',
+                    ports: [
+                        {
+                            name: '8081'
+                        },
+                        {
+                            name: '8889'
+                        }
+                    ]
+                }
+            ],
             '/tm/security/firewall/management-ip-rules/rules': [
                 {
                     name: 'firewallRuleOne',
@@ -1619,22 +1649,22 @@ describe('inspectHandler', () => {
                     source: {
                         identity: {},
                         addressLists: [
-                            '/Common/myAddressList1',
-                            '/Common/myAddressList2'
+                            '/Common/currentNetAddressList',
+                            '/Common/currentNetAddressList1'
                         ],
                         portLists: [
-                            '/Common/myPortList1',
-                            '/Common/myPortList2'
+                            '/Common/currentNetPortList',
+                            '/Common/currentNetPortList1'
                         ]
                     },
                     destination: {
                         addressLists: [
-                            '/Common/myAddressList1',
-                            '/Common/myAddressList2'
+                            '/Common/currentNetAddressList',
+                            '/Common/currentNetAddressList1'
                         ],
                         portLists: [
-                            '/Common/myPortList1',
-                            '/Common/myPortList2'
+                            '/Common/currentNetPortList',
+                            '/Common/currentNetPortList1'
                         ]
                     }
                 }
@@ -2524,6 +2554,16 @@ describe('inspectHandler', () => {
                             remark: 'none',
                             rules: []
                         },
+                        currentNetAddressList: {
+                            class: 'NetAddressList',
+                            remark: 'net address list description',
+                            addresses: ['10.1.1.1', '10.2.1.0/24']
+                        },
+                        currentNetPortList: {
+                            class: 'NetPortList',
+                            remark: 'net port list description',
+                            ports: ['8081', '8889']
+                        },
                         currentManagementIpFirewall: {
                             class: 'ManagementIpFirewall',
                             remark: 'management IP firewall description',
@@ -2545,22 +2585,22 @@ describe('inspectHandler', () => {
                                     loggingEnabled: true,
                                     source: {
                                         addressLists: [
-                                            '/Common/myAddressList1',
-                                            '/Common/myAddressList2'
+                                            '/Common/currentNetAddressList',
+                                            '/Common/currentNetAddressList1'
                                         ],
                                         portLists: [
-                                            '/Common/myPortList1',
-                                            '/Common/myPortList2'
+                                            '/Common/currentNetPortList',
+                                            '/Common/currentNetPortList1'
                                         ]
                                     },
                                     destination: {
                                         addressLists: [
-                                            '/Common/myAddressList1',
-                                            '/Common/myAddressList2'
+                                            '/Common/currentNetAddressList',
+                                            '/Common/currentNetAddressList1'
                                         ],
                                         portLists: [
-                                            '/Common/myPortList1',
-                                            '/Common/myPortList2'
+                                            '/Common/currentNetPortList',
+                                            '/Common/currentNetPortList1'
                                         ]
                                     }
                                 }
