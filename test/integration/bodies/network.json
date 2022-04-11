@@ -38,7 +38,8 @@
             "address": "10.148.75.46/24",
             "vlan": "myVlan",
             "allowService": [
-                "tcp:80"
+                "tcp:80",
+                "default"
             ]
         },
         "myIpv6SelfIp": {
@@ -46,7 +47,8 @@
             "address": "::ffff:0a94:552e/ffff:ffff:0:0:0:0:0:0",
             "vlan": "myVlan",
             "allowService": [
-                "tcp:80"
+                "tcp:80",
+                "default"
             ],
             "trafficGroup": "traffic-group-local-only"
         },

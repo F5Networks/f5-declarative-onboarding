@@ -33,7 +33,7 @@
                 "bindDn": "searchingName",
                 "bindPassword": "pass1w0rd",
                 "bindTimeout": 40,
-                "checkBindPassword": true,
+                "checkBindPassword": false,
                 "checkRemoteRole": true,
                 "filter": "filter",
                 "groupDn": "groupName",

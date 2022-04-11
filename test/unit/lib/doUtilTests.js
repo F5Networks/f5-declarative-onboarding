@@ -413,6 +413,103 @@ describe('doUtil', () => {
         });
     });
 
+    describe('restartService', () => {
+        let bigIpMock;
+        let bigIpCreateSpy;
+        let bigIpListSpy;
+
+        beforeEach(() => {
+            bigIpMock = new BigIpMock();
+            sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value(
+                {
+                    maxRetries: 3,
+                    retryIntervalMs: 10
+                }
+            );
+            bigIpCreateSpy = sinon.stub(bigIpMock, 'create').resolves();
+        });
+
+        it('should call restart and wait for service to be running', () => {
+            bigIpListSpy = sinon.stub(bigIpMock, 'list')
+                .onFirstCall().resolves(
+                    {
+                        apiRawValues: {
+                            apiAnonymous: 'down'
+                        }
+                    }
+                )
+                .onSecondCall()
+                .resolves(
+                    {
+                        apiRawValues: {
+                            apiAnonymous: 'run'
+                        }
+                    }
+                );
+
+            return doUtil.restartService(bigIpMock, 'myService')
+                .then(() => {
+                    assert.strictEqual(bigIpCreateSpy.calledOnce, true);
+                    assert.strictEqual(bigIpCreateSpy.args[0][1].name, 'myService');
+                    assert.strictEqual(bigIpListSpy.callCount, 2);
+                });
+        });
+
+        it('should wait for extra services to be running if specified', () => {
+            bigIpListSpy = sinon.stub(bigIpMock, 'list').resolves(
+                {
+                    apiRawValues: {
+                        apiAnonymous: 'run'
+                    }
+                }
+            );
+
+            return doUtil.restartService(bigIpMock, 'myService', ['myExtraService1', 'myExtraService2'])
+                .then(() => {
+                    assert.strictEqual(bigIpListSpy.callCount, 3);
+                    assert.strictEqual(bigIpListSpy.args[0][0], '/tm/sys/service/myService/stats');
+                    assert.strictEqual(bigIpListSpy.args[1][0], '/tm/sys/service/myExtraService1/stats');
+                    assert.strictEqual(bigIpListSpy.args[2][0], '/tm/sys/service/myExtraService2/stats');
+                });
+        });
+
+        it('should handle missing apiRawValues', () => {
+            bigIpListSpy = sinon.stub(bigIpMock, 'list')
+                .onFirstCall().resolves({})
+                .onSecondCall()
+                .resolves(
+                    {
+                        apiRawValues: {
+                            apiAnonymous: 'run'
+                        }
+                    }
+                );
+
+            return doUtil.restartService(bigIpMock, 'myService')
+                .then(() => {
+                    assert.strictEqual(bigIpListSpy.callCount, 2);
+                });
+        });
+
+        it('should handle socket hangup', () => {
+            bigIpMock.create.restore();
+            sinon.stub(bigIpMock, 'create').rejects();
+
+            bigIpListSpy = sinon.stub(bigIpMock, 'list').resolves(
+                {
+                    apiRawValues: {
+                        apiAnonymous: 'run'
+                    }
+                }
+            );
+
+            return doUtil.restartService(bigIpMock, 'myService')
+                .then(() => {
+                    assert.strictEqual(bigIpListSpy.callCount, 1);
+                });
+        });
+    });
+
     describe('waitForReboot', () => {
         let bigIpMock;
 

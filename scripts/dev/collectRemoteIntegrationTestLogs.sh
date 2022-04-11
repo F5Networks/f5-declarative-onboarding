@@ -9,8 +9,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 TEST_HARNESS_FILE=$1
 TEST_IPS=($(cat "$TEST_HARNESS_FILE" | jq -r .[].admin_ip))
-TEST_USERS=($(cat "$TEST_HARNESS_FILE" | jq -r .[].admin_username))
-TEST_PASSWORDS=($(cat "$TEST_HARNESS_FILE" | jq -r .[].admin_password))
+TEST_USERS=($(cat "$TEST_HARNESS_FILE" | jq -r .[].ssh_user.username))
+TEST_PASSWORDS=($(cat "$TEST_HARNESS_FILE" | jq -r .[].ssh_user.password))
 
 i=0
 for IP in "${TEST_IPS[@]}"; do

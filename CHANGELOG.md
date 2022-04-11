@@ -4,7 +4,11 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.29.0
 ### Added
 ### Fixed
+- AUTOTOOL-3040: SelfIp with RouteDomain cannot reach directly connected network
 - AUTOTOOL-3051: Licensing can fail if restnoded restarts during processing.
+- AUTOTOOL-2845: ([GitHub Issue 276](https://github.com/F5Networks/f5-declarative-onboarding/issues/276)): SelfIp allowService property does not accept a mix of service:port and default
+- AUTOTOOL-2881: ([GitHub Issue 282](https://github.com/F5Networks/f5-declarative-onboarding/issues/282)): Security level is not automatically set in SnmpUser class.
+- AUTOTOOL-2850: ([GitHub Issue 279](https://github.com/F5Networks/f5-declarative-onboarding/issues/279)): Management firewall policy does not work without AFM module for version 15.1.2.1
 
 ### Changed
 ### Removed

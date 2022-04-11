@@ -3439,6 +3439,36 @@ describe('configManager', () => {
                 };
             });
 
+            it('should skip NetAddressList on BIG-IP 13.1', () => {
+                const configItems = getConfigItems('NetAddressList');
+
+                bigIpMock.deviceInfo = () => Promise.resolve({ hostname, version: '13.1' });
+
+                const configManager = new ConfigManager(configItems, bigIpMock);
+                return configManager.get({}, state, doState)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            state.currentConfig.Common.NetAddressList,
+                            undefined
+                        );
+                    });
+            });
+
+            it('should skip NetPortList on BIG-IP 13.1', () => {
+                const configItems = getConfigItems('NetPortList');
+
+                bigIpMock.deviceInfo = () => Promise.resolve({ hostname, version: '13.1' });
+
+                const configManager = new ConfigManager(configItems, bigIpMock);
+                return configManager.get({}, state, doState)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            state.currentConfig.Common.NetPortList,
+                            undefined
+                        );
+                    });
+            });
+
             it('should handle ManagementIpFirewall', () => {
                 const configItems = getConfigItems('ManagementIpFirewall');
 
@@ -3452,23 +3482,7 @@ describe('configManager', () => {
                     });
             });
 
-            it('should include ManagementIpFirewall if AFM is provisioned on BIG-IP 13.1', () => {
-                const configItems = getConfigItems('ManagementIpFirewall');
-
-                bigIpMock.deviceInfo = () => Promise.resolve({ hostname, version: '13.1' });
-                listResponses['/tm/sys/provision'] = [{ name: 'afm', level: 'nominal' }];
-
-                const configManager = new ConfigManager(configItems, bigIpMock);
-                return configManager.get({}, state, doState)
-                    .then(() => {
-                        assert.deepStrictEqual(
-                            state.currentConfig.Common.ManagementIpFirewall,
-                            expectedConfig
-                        );
-                    });
-            });
-
-            it('should skip ManagementIpFirewall if AFM is not provisioned on BIG-IP 13.1', () => {
+            it('should skip ManagementIpFirewall on BIG-IP 13.1', () => {
                 const configItems = getConfigItems('ManagementIpFirewall');
 
                 bigIpMock.deviceInfo = () => Promise.resolve({ hostname, version: '13.1' });

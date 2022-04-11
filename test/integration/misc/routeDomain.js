@@ -27,14 +27,16 @@ const {
     getMcpObject
 } = require('../property/propertiesCommon');
 
-describe('Delete items', function DeleteItems() {
+// We need a misc test because we need to test route domains with vlans, which are
+// separate classes
+describe('Route Domain', function RouteDomain() {
     this.timeout(600000);
 
-    it('should delete created items', () => {
+    it('should create route domains', () => {
         const decl = {
             async: true,
             class: 'Device',
-            schemaVersion: '1.24.0',
+            schemaVersion: '1.0.0',
             Common: {
                 class: 'Tenant',
                 myVlan: {
@@ -48,11 +50,11 @@ describe('Delete items', function DeleteItems() {
                         }
                     ]
                 },
-                mySelfIp: {
-                    class: 'SelfIp',
-                    address: '192.0.1.1/32',
-                    vlan: 'myVlan',
-                    allowService: 'default'
+                myRouteDomain: {
+                    class: 'RouteDomain',
+                    id: 1,
+                    strict: true,
+                    vlans: ['/Common/myVlan']
                 }
             }
         };
@@ -61,55 +63,30 @@ describe('Delete items', function DeleteItems() {
             declarationIndex: 0
         };
 
+        const getMcpOptions = {
+            tenantName: 'Common',
+            getMcpObject: {
+                itemName: 'myRouteDomain'
+            }
+        };
         return Promise.resolve()
             .then(() => postDeclaration(decl, logInfo))
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);
             })
-            .then(() => {
-                const getMcpOptions = {
-                    tenantName: 'Common',
-                    getMcpObject: {
-                        itemName: 'mySelfIp'
-                    }
-                };
-                return getMcpObject('SelfIp', getMcpOptions);
-            })
-            .then((selfIps) => {
-                assert.strictEqual(selfIps.name, 'mySelfIp');
+            .then(() => getMcpObject('RouteDomain', getMcpOptions))
+            .then((routeDomain) => {
+                assert.strictEqual(routeDomain.vlans.length, 1);
+                assert.strictEqual(routeDomain.vlans[0], '/Common/myVlan');
             })
             .then(() => {
                 logInfo.declarationIndex = 1;
-                delete decl.Common.mySelfIp;
+                delete decl.Common.myRouteDomain;
                 delete decl.Common.myVlan;
                 return postDeclaration(decl, logInfo);
             })
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);
-            })
-            .then(() => {
-                const getMcpOptions = {
-                    tenantName: 'Common',
-                    getMcpObject: {
-                        itemName: 'mySelfIp'
-                    }
-                };
-                return getMcpObject('SelfIp', getMcpOptions);
-            })
-            .catch((err) => {
-                assert.strictEqual(err.message, 'Unable to find /Common/mySelfIp on BIG-IP. Found: []');
-            })
-            .then(() => {
-                const getMcpOptions = {
-                    tenantName: 'Common',
-                    getMcpObject: {
-                        itemName: 'myVlan'
-                    }
-                };
-                return getMcpObject('VLAN', getMcpOptions);
-            })
-            .catch((err) => {
-                assert.strictEqual(err.message, 'Unable to find /Common/myVlan on BIG-IP. Found: []');
             });
     });
 });

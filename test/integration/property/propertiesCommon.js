@@ -169,7 +169,7 @@ function createDeclarations(targetClass, properties, options) {
             [itemName]: itemDeclaration
         };
 
-        const tenant = declaration[options.tenantName][options.applicationName];
+        const tenant = declaration[options.tenantName];
 
         properties.forEach((property) => {
             if (property.referenceObjects) {
@@ -198,9 +198,10 @@ function _waitForCompleteStatus(id) {
 
     return sendRequest(reqOpts, { trials: 3, timeInterval: 500 })
         .then((response) => {
-            // If result still has a code of 0, the request is still processing
+            // If result still has a code of 202, the request is still processing
+            // If there is no result, services may be restarting, so continue waiting
             const result = response.body.result;
-            if (result.code === 202) {
+            if (!result || result.code === 202) {
                 return promiseUtil.delay(1000).then(() => _waitForCompleteStatus(id));
             }
             return response.body;
@@ -973,8 +974,9 @@ beforeEach(function setupBeforeEach() {
                 return Promise.resolve()
                     .then(() => getAuthToken())
                     .then((token) => { DEFAULT_OPTIONS.token = token; })
+                    .then(() => common.deleteOriginalConfig(`${bigIpUrl}${constants.DO_API}`, getAuth()))
                     .catch((error) => {
-                        error.message = `Unable to fetch auth token: ${error.message}`;
+                        error.message = `Error during test setup: ${error.message}`;
                         throw error;
                     });
             }

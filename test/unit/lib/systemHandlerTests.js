@@ -2190,6 +2190,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyPassword, 'P@ssW0rd');
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, 'aes');
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].oidSubset, '.1');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].securityLevel, 'auth-privacy');
             });
     });
 
@@ -2213,6 +2214,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyPassword, 'none');
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].securityLevel, 'no-auth-no-privacy');
             });
     });
 
@@ -2237,6 +2239,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyPassword, undefined);
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyProtocol, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].securityLevel, 'no-auth-no-privacy');
             });
     });
 
