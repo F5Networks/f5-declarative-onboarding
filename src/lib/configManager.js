@@ -265,11 +265,7 @@ class ConfigManager {
                                     }
                                     delete item.partition; // Must be removed for the diffs
 
-                                    if (schemaClass === 'FirewallPolicy'
-                                        || schemaClass === 'FirewallAddressList'
-                                        || schemaClass === 'FirewallPortList'
-                                        || schemaClass === 'NetAddressList'
-                                        || schemaClass === 'NetPortList') {
+                                    if (schemaClass === 'FirewallPolicy' || schemaClass === 'FirewallAddressList' || schemaClass === 'FirewallPortList') {
                                         patchFirewall.call(this, item);
                                     }
 
