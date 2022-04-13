@@ -169,7 +169,7 @@ function createDeclarations(targetClass, properties, options) {
             [itemName]: itemDeclaration
         };
 
-        const tenant = declaration[options.tenantName];
+        const tenant = declaration[options.tenantName][options.applicationName];
 
         properties.forEach((property) => {
             if (property.referenceObjects) {

@@ -34,8 +34,6 @@ const DELETABLE_CLASSES = [
     'FirewallPolicy',
     'FirewallAddressList',
     'FirewallPortList',
-    'NetAddressList',
-    'NetPortList',
     'VLAN',
     'Trunk',
     'RouteMap',

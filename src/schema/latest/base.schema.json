@@ -166,8 +166,6 @@
                             "ManagementIpFirewall",
                             "ManagementRoute",
                             "MirrorIp",
-                            "NetAddressList",
-                            "NetPortList",
                             "NTP",
                             "Provision",
                             "RemoteAuthRole",

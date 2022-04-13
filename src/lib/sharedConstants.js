@@ -58,8 +58,6 @@ module.exports = {
         ManagementDHCPConfig: '/tm/sys/management-dhcp/sys-mgmt-dhcp-config',
         ManagementIp: '/tm/sys/management-ip',
         ManagementIpFirewall: '/tm/security/firewall/management-ip-rules',
-        NetAddressList: '/tm/net/address-list',
-        NetPortList: '/tm/net/port-list',
         ManagementRoute: '/tm/sys/management-route',
         NTP: '/tm/sys/ntp',
         Route: '/tm/net/route',

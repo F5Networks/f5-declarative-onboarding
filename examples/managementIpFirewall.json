@@ -4,16 +4,16 @@
     "async": true,
     "Common": {
         "class": "Tenant",
-        "netAddressList1": {
-            "class": "NetAddressList",
+        "firewallAddressList1": {
+            "class": "FirewallAddressList",
             "addresses": ["192.0.2.10", "192.1.2.0/24"]
         },
-        "netPortList1": {
-            "class": "NetPortList",
+        "firewallPortList1": {
+            "class": "FirewallPortList",
             "ports": [8080, 8888]
         },
-        "netPortList2": {
-            "class": "NetPortList",
+        "firewallPortList2": {
+            "class": "FirewallPortList",
             "ports": ["8123", "8234", "8300-8350"]
         },
         "managementIpFirewall": {
@@ -30,20 +30,20 @@
                     "loggingEnabled": true,
                     "source": {
                         "addressLists": [
-                            "/Common/netAddressList1"
+                            "/Common/firewallAddressList1"
                         ],
                         "portLists": [
-                            "/Common/netPortList1",
-                            "/Common/netPortList2"
+                            "/Common/firewallPortList1",
+                            "/Common/firewallPortList2"
                         ]
                     },
                     "destination": {
                         "addressLists": [
-                            "/Common/netAddressList1"
+                            "/Common/firewallAddressList1"
                         ],
                         "portLists": [
-                            "/Common/netPortList1",
-                            "/Common/netPortList2"
+                            "/Common/firewallPortList1",
+                            "/Common/firewallPortList2"
                         ]
                     }
                 }

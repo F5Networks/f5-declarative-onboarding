@@ -131,8 +131,6 @@ class DeclarationHandler {
                 applyGSLBProberPoolFixes(parsedNewDeclaration);
                 applyFirewallAddressListFixes(parsedNewDeclaration);
                 applyFirewallPortListFixes(parsedNewDeclaration);
-                applyNetAddressListFixes(parsedNewDeclaration);
-                applyNetPortListFixes(parsedNewDeclaration);
                 applyFirewallPolicyFixes(parsedNewDeclaration);
                 applySelfIpFixes(parsedNewDeclaration);
                 applyTunnelFixes(parsedNewDeclaration);
@@ -896,45 +894,6 @@ function applyFirewallPortListFixes(declaration) {
             // The schema allows for integer or string, so coerce to string since that's
             // what iControl REST will return for these
             firewallPortList.ports = firewallPortList.ports.map((port) => port.toString());
-        }
-    });
-}
-
-/**
- * Normalizes the Net Address List section of a declaration
- *
- * @param {Object} declaration - declaration to fix
- */
-function applyNetAddressListFixes(declaration) {
-    const netAddressLists = (declaration.Common && declaration.Common.NetAddressList) || {};
-    if (Object.keys(netAddressLists).length === 0) {
-        return;
-    }
-
-    // MCP returns these arrays sorted
-    doUtil.forEach(declaration, 'NetAddressList', (tenant, netAddressList) => {
-        if (netAddressList.addresses) {
-            netAddressList.addresses = netAddressList.addresses.sort();
-        }
-    });
-}
-
-/**
- * Normalizes the Net Port List section of a declaration
- *
- * @param {Object} declaration - declaration to fix
- */
-function applyNetPortListFixes(declaration) {
-    const netPortLists = (declaration.Common && declaration.Common.NetPortList) || {};
-    if (Object.keys(netPortLists).length === 0) {
-        return;
-    }
-
-    doUtil.forEach(declaration, 'NetPortList', (tenant, netPortList) => {
-        if (netPortList.ports) {
-            // The schema allows for integer or string, so coerce to string since that's
-            // what iControl REST will return for these
-            netPortList.ports = netPortList.ports.map((port) => port.toString());
         }
     });
 }
