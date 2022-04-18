@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.29
+        - Updated the documentation for Declarative Onboarding v1.29.0.  This release contains the following issues resolved: |br| * SelfIp with RouteDomain cannot reach directly connected network |br| *  Licensing can fail if restnoded restarts during processing |br| * SelfIp allowService property does not accept a mix of service:port and default, `GitHub Issue 276 <https://github.com/F5Networks/f5-declarative-onboarding/issues/276>`_ |br| *  Security level is not automatically set in the SnmpUser class, `GitHub Issue 282 <https://github.com/F5Networks/f5-declarative-onboarding/issues/282>`_ |br| * Management firewall policy does not work without AFM module for version 15.1.2.1, `GitHub Issue 279 <https://github.com/F5Networks/f5-declarative-onboarding/issues/279>`_ 
+        - 4-19-22
+
       * - 1.28
         - Updated the documentation for Declarative Onboarding v1.28.0.  This release contains the following changes: |br| * Added support for explicitly enabling management DHCP (see :ref:`Management DHCP <mandhcp>`) |br| * Added support for specifying route domains in the RoutingBGP and RouteMap classes (see the updated :ref:`BGP example<bgprouting>`) |br| |br| Issues Resolved: |br| *  Licensing in GCP multi-NIC fails (Upgrade to f5-cloud-libs 4.26.7), `GitHub Issue 248 <https://github.com/F5Networks/f5-declarative-onboarding/issues/248>`_ |br| * URL is incorrect in schema files, `GitHub Issue 285 <https://github.com/F5Networks/f5-declarative-onboarding/issues/285>`_
         - 3-8-22
