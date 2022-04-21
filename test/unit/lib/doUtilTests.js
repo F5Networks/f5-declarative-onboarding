@@ -455,14 +455,18 @@ describe('doUtil', () => {
                 });
         });
 
-        it('should wait for extra services to be running if specified', () => {
-            bigIpListSpy = sinon.stub(bigIpMock, 'list').resolves(
-                {
+        it('should wait for extra services to be running or down due to provisioning if specified', () => {
+            bigIpListSpy = sinon.stub(bigIpMock, 'list').callsFake((path) => {
+                const response = {
                     apiRawValues: {
                         apiAnonymous: 'run'
                     }
+                };
+                if (path === '/tm/sys/service/myExtraService2/stats') {
+                    response.apiRawValues.apiAnonymous = 'myExtraService2 down, Not provisioned\n';
                 }
-            );
+                return Promise.resolve(response);
+            });
 
             return doUtil.restartService(bigIpMock, 'myService', ['myExtraService1', 'myExtraService2'])
                 .then(() => {

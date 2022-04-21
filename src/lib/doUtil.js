@@ -452,15 +452,14 @@ module.exports = {
         function isServiceRunning(serviceToCheck) {
             return bigIp.list(`/tm/sys/service/${serviceToCheck}/stats`, undefined, cloudUtil.NO_RETRY)
                 .then((serviceStats) => {
-                    if (serviceStats.apiRawValues
-                        && serviceStats.apiRawValues.apiAnonymous
-                        && serviceStats.apiRawValues.apiAnonymous.indexOf('run') !== -1) {
+                    const status = module.exports.getDeepValue(serviceStats, 'apiRawValues.apiAnonymous');
+                    if (status && (status.indexOf('run') !== -1 || status.indexOf('Not provisioned') !== -1)) {
                         return Promise.resolve();
                     }
 
                     let message;
-                    if (serviceStats.apiRawValues && serviceStats.apiRawValues.apiAnonymous) {
-                        message = `${service} status is ${serviceStats.apiRawValues.apiAnonymous}`;
+                    if (status) {
+                        message = `${service} status is ${status}`;
                     } else {
                         message = `Unable to read ${service} status`;
                     }

@@ -1,7 +1,13 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.30.0
+### Added
+### Fixed
+- AUTOTOOL-3156: Declaration can fail while waiting for unprovisioned service to run
 
+### Changed
+### Removed
 
 ## 1.29.0
 ### Added
