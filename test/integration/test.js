@@ -249,9 +249,26 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     body.controls = {
                         dryRun: true
                     };
-
-                    originalDns = JSON.parse(JSON.stringify(body.Common.myDns));
-                    body.Common.myDns.nameServers = [];
+                })
+                .then(() => {
+                    const url = `${common.hostname(bigIpAddress, constants.PORT)}${constants.ICONTROL_API}/tm/sys/dns`;
+                    const options = common.buildBody(url, null, bigIpAuth, 'GET');
+                    const retryOptions = {
+                        trials: 3,
+                        timeInterval: 1000
+                    };
+                    return common.sendRequest(options, retryOptions);
+                })
+                .then((response) => {
+                    const dns = JSON.parse(response.body);
+                    originalDns = {
+                        nameServers: dns.nameServers,
+                        search: dns.search
+                    };
+                    body.Common.myDns.nameServers = ['10.10.10.10'];
+                    body.Common.myDns.search = ['example.com'];
+                    assert.notDeepStrictEqual(body.Common.myDns.nameServers, originalDns.nameServers, 'Original and updated nameServers should not match');
+                    assert.notDeepStrictEqual(body.Common.myDns.search, originalDns.search, 'Original and updated search should not match');
                 })
                 .then(() => common.testRequest(
                     body,
