@@ -18,6 +18,7 @@
 
 const Ajv = require('ajv');
 
+const doSchema = require('../schema/latest/do.schema.json');
 const remoteSchema = require('../schema/latest/remote.schema.json');
 const baseSchema = require('../schema/latest/base.schema.json');
 const systemSchema = require('../schema/latest/system.schema.json');
@@ -54,7 +55,8 @@ class AjvValidator {
             .addSchema(authSchema)
             .addSchema(gslbSchema)
             .addSchema(baseSchema)
-            .compile(remoteSchema);
+            .addSchema(remoteSchema)
+            .compile(doSchema);
     }
 
     validate(data) {

@@ -3,6 +3,8 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.30.0
 ### Added
+- AUTOTOOL-3011: Can now validate with either 'Device' or 'DO' class using do.schema.json
+
 ### Fixed
 - AUTOTOOL-3156: Declaration can fail while waiting for unprovisioned service to run
 
