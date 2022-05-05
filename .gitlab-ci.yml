@@ -88,7 +88,7 @@ test_node:6:
     tags:
         - cm-official-docker-executor
     script:
-        - npm install
+        - npm install --no-optional
         - npm install mocha@6.2.2
         - npm test -- $TEST_REPORTER_OPTIONS
     artifacts:
