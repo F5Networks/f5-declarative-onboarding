@@ -6,7 +6,7 @@ In this section, we show you how to validate a Declarative Onboarding declaratio
 
 For more information on editing JSON with Visual Studio Code, see this |json|.
 
-.. NOTE:: Starting with DO 1.30, we use **do.schema.json** for validating declarations (in prior versions, it was **base.schema.json**).
+.. NOTE:: Starting with DO 1.30, you can validate declarations with either the Device or DO class by using **do.schema.json** rather than **base.schema.json**.
 
 
 To validate a declaration
