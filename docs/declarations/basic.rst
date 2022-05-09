@@ -1,8 +1,8 @@
 .. _basic-examples:
 
-HTTP Services
--------------
-This section contains examples of declarations that create HTTP and/or HTTP services.  
+Basic examples
+--------------
+This section contains general Declarative Onboarding example declarations.
 
 
 
