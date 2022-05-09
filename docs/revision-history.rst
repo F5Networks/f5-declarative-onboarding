@@ -12,8 +12,8 @@ Document Revision History
         - Date
 
       * - 1.30
-        - Updated the documentation for Declarative Onboarding v1.30.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Declaration can fail while waiting for unprovisioned service to run
-        - 5-31-22
+        - Updated the documentation for Declarative Onboarding v1.30.0.  This release contains the following changes: |br| * Added support for validating declarations with either Device or DO class using do.schema.json (see :ref:`Validating a declaration<validate>`) |br| |br| Issues Resolved: |br| * Declaration can fail while waiting for unprovisioned service to run
+        - 6-7-22
 
       * - 1.29
         - Updated the documentation for Declarative Onboarding v1.29.0.  This release contains the following issues resolved: |br| * SelfIp with RouteDomain cannot reach directly connected network |br| *  Licensing can fail if restnoded restarts during processing |br| * SelfIp allowService property does not accept a mix of service:port and default, `GitHub Issue 276 <https://github.com/F5Networks/f5-declarative-onboarding/issues/276>`_ |br| *  Security level is not automatically set in the SnmpUser class, `GitHub Issue 282 <https://github.com/F5Networks/f5-declarative-onboarding/issues/282>`_ |br| * Management firewall policy does not work without AFM module for version 15.1.2.1, `GitHub Issue 279 <https://github.com/F5Networks/f5-declarative-onboarding/issues/279>`_ 
