@@ -23,14 +23,14 @@ Use the following procedure to validate a declaration.
 3. Open Visual Studio Code, and use **File > New File** start a new JSON file. In our example, we name our file **myDeclaration.json**.  You must save the file in order for Visual Studio Code to recognize it as a JSON file.
 4. At the top of your schema file, type the following code:
 
-    .. code-block:: json
+   .. code-block:: json
 
         {
             "$schema": "",
 
 5. Paste the GitHub raw URL you copied (if you downloaded the schema file, use the path to the file on your device) between the quotes.  When you are finished with this step, your code should look like the following (you may have a different directory than **latest**):
 
-    .. code-block:: json
+   .. code-block:: json
 
         {
             "$schema": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/do.schema.json",
