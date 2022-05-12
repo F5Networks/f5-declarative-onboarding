@@ -38,11 +38,10 @@ include:
     file: security/base.gitlab-ci.yml
     ref: v1.0.6
 
-# UPDATE #
-# only pipelines on 'develop' should check for new changes
 update_autotool_deps:
   stage: update
-  only: [develop]
+  rules:
+    - if: '$UPDATE_DEPS =~ /true/i'
   needs: []
   image: $DOCKER_URL/node:14
   variables:
@@ -55,10 +54,6 @@ update_autotool_deps:
         node ./scripts/dev/createMR.js
       fi
   tags: [cm-official-docker-executor]
-  allow_failure: true
-  retry:
-    max: 1
-    when: script_failure
 
 lint:
     stage: lint
