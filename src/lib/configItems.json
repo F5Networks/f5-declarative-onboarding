@@ -1108,6 +1108,54 @@
         ]
     },
     {
+        "path": "/tm/net/address-list",
+        "schemaClass": "NetAddressList",
+        "requiredModules": [
+            {
+                "maxVersion": "13.1"
+            }
+        ],
+        "properties": [
+            { "id": "description", "newId": "remark", "defaultWhenOmitted": "none" },
+            { "id": "fullPath" },
+            {
+                "id": "addresses",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "addresses", "extract": "name" }
+                ]
+            }
+        ],
+        "ignore": [
+            { "fullPath": "^/Common/Shared/" }
+        ]
+    },
+    {
+        "path": "/tm/net/port-list",
+        "schemaClass": "NetPortList",
+        "requiredModules": [
+            {
+                "maxVersion": "13.1"
+            }
+        ],
+        "properties": [
+            { "id": "description", "newId": "remark", "defaultWhenOmitted": "none" },
+            { "id": "fullPath" },
+            {
+                "id": "ports",
+                "transformAsArray": true,
+                "transform": [
+                    { "id": "ports", "extract": "name" }
+                ]
+            }
+        ],
+        "ignore": [
+            { "name": "^_sys_self_allow_tcp_defaults$" },
+            { "name": "^_sys_self_allow_udp_defaults$" },
+            { "fullPath": "^/Common/Shared/" }
+        ]
+    },
+    {
         "path": "/tm/security/firewall/management-ip-rules",
         "schemaClass": "ManagementIpFirewall",
         "requiredModules": [

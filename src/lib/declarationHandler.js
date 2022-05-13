@@ -129,8 +129,10 @@ class DeclarationHandler {
                 applyRouteMapFixes(parsedNewDeclaration);
                 applyRoutingBgpFixes(parsedNewDeclaration);
                 applyGSLBProberPoolFixes(parsedNewDeclaration);
-                applyFirewallAddressListFixes(parsedNewDeclaration);
-                applyFirewallPortListFixes(parsedNewDeclaration);
+                applyFirewallAddressListFixes(parsedNewDeclaration, parsedOldDeclaration);
+                applyFirewallPortListFixes(parsedNewDeclaration, parsedOldDeclaration);
+                applyNetAddressListFixes(parsedNewDeclaration, parsedOldDeclaration);
+                applyNetPortListFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFirewallPolicyFixes(parsedNewDeclaration);
                 applySelfIpFixes(parsedNewDeclaration);
                 applyTunnelFixes(parsedNewDeclaration);
@@ -858,7 +860,7 @@ function applyGSLBProberPoolFixes(declaration) {
  *
  * @param {Object} declaration - declaration to fix
  */
-function applyFirewallAddressListFixes(declaration) {
+function applyFirewallAddressListFixes(declaration, originalConfig) {
     const firewallAddressLists = (declaration.Common && declaration.Common.FirewallAddressList) || {};
     if (Object.keys(firewallAddressLists).length === 0) {
         return;
@@ -875,6 +877,16 @@ function applyFirewallAddressListFixes(declaration) {
         if (firewallAddressList.geo) {
             firewallAddressList.geo = firewallAddressList.geo.sort();
         }
+        // In case we've a AFM provisioned NetAddressList will be created automatically,
+        // we need to remove it from originalConfig to process.
+        if (originalConfig.Common && originalConfig.Common.NetAddressList) {
+            const originalConfigList = originalConfig.Common.NetAddressList;
+            Object.keys(originalConfigList).forEach((netAddressList) => {
+                if (netAddressList in firewallAddressLists) {
+                    delete originalConfigList[netAddressList];
+                }
+            });
+        }
     });
 }
 
@@ -882,8 +894,9 @@ function applyFirewallAddressListFixes(declaration) {
  * Normalizes the Firewall Port List section of a declaration
  *
  * @param {Object} declaration - declaration to fix
+ * @param {Object} originalConfig - current configuration
  */
-function applyFirewallPortListFixes(declaration) {
+function applyFirewallPortListFixes(declaration, originalConfig) {
     const firewallPortLists = (declaration.Common && declaration.Common.FirewallPortList) || {};
     if (Object.keys(firewallPortLists).length === 0) {
         return;
@@ -894,6 +907,77 @@ function applyFirewallPortListFixes(declaration) {
             // The schema allows for integer or string, so coerce to string since that's
             // what iControl REST will return for these
             firewallPortList.ports = firewallPortList.ports.map((port) => port.toString());
+        }
+        // In case we've a AFM provisioned NetPortList will be created automatically,
+        // we need to remove it from originalConfig to process.
+        if (originalConfig.Common && originalConfig.Common.NetPortList) {
+            const originalConfigList = originalConfig.Common.NetPortList;
+            Object.keys(originalConfigList).forEach((netPortList) => {
+                if (netPortList in firewallPortLists) {
+                    delete originalConfigList[netPortList];
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Normalizes the Net Address List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ * @param {Object} originalConfig - current configuration
+ */
+function applyNetAddressListFixes(declaration, originalConfig) {
+    const netAddressLists = (declaration.Common && declaration.Common.NetAddressList) || {};
+    if (Object.keys(netAddressLists).length === 0) {
+        return;
+    }
+
+    // MCP returns these arrays sorted
+    doUtil.forEach(declaration, 'NetAddressList', (tenant, netAddressList) => {
+        if (netAddressList.addresses) {
+            netAddressList.addresses = netAddressList.addresses.sort();
+        }
+        // In case we've a AFM provisioned FirewallAddressList will be created automatically,
+        // we need to remove it from originalConfig to process.
+        if (originalConfig.Common && originalConfig.Common.FirewallAddressList) {
+            const originalConfigList = originalConfig.Common.FirewallAddressList;
+            Object.keys(originalConfigList).forEach((firewallAddressList) => {
+                if (firewallAddressList in netAddressLists) {
+                    delete originalConfigList[firewallAddressList];
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Normalizes the Net Port List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ * @param {Object} originalConfig - current configuration
+ */
+function applyNetPortListFixes(declaration, originalConfig) {
+    const netPortLists = (declaration.Common && declaration.Common.NetPortList) || {};
+    if (Object.keys(netPortLists).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'NetPortList', (tenant, netPortList) => {
+        if (netPortList.ports) {
+            // The schema allows for integer or string, so coerce to string since that's
+            // what iControl REST will return for these
+            netPortList.ports = netPortList.ports.map((port) => port.toString());
+        }
+        // In case we've a AFM provisioned FirewallPortList will be created automatically,
+        // we need to remove it from originalConfig to process.
+        if (originalConfig.Common && originalConfig.Common.FirewallPortList) {
+            const originalConfigList = originalConfig.Common.FirewallPortList;
+            Object.keys(originalConfigList).forEach((firewallPortList) => {
+                if (firewallPortList in netPortLists) {
+                    delete originalConfigList[firewallPortList];
+                }
+            });
         }
     });
 }

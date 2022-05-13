@@ -175,6 +175,22 @@
         {
             "if": {
                 "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "NetAddressList" } }
+            },
+            "then": { "$ref": "#/definitions/netAddressList" }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "NetPortList" } }
+            },
+            "then": { "$ref": "#/definitions/netPortList" }
+        },
+        {
+            "if": {
+                "required": ["class"],
                 "properties": { "class": { "const": "SelfIp" } }
             },
             "then": {
@@ -1397,6 +1413,65 @@
                 }
             },
             "additionalProperties": false
+        },
+        "netAddressList": {
+            "title": "Network Address List",
+            "description": "Declares an address-list for use by management IP firewall rules. This property doesn't need an AFM to be provisioned. An address list is a list of IP-address prefixes to compare against the source-IP address and/or destination-IP address in an IP packet",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "title": "Class",
+                    "type": "string",
+                    "const": "NetAddressList"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "addresses": {
+                    "type": "array",
+                    "description": "A list of IPv4 and IPv6 addresses and address ranges. You can specify a network with CIDR slash notation.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "class",
+                "addresses"
+            ]
+        },
+        "netPortList": {
+            "title": "Network Port List",
+            "description": "Declares a port-list for use by management IP firewall rules. This property doesn't need an AFM to be provisioned. A firewall rule can match a packet's source port or destination port against one of the ports in a port list, and can take some action (such as ACCEPT or DROP) for a matching packet.",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "title": "Class",
+                    "type": "string",
+                    "const": "NetPortList"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "ports": {
+                    "type": "array",
+                    "description": "A list of ports and port ranges (for example, 80, \"8080-8090\").",
+                    "items": {
+                        "type": [
+                            "integer",
+                            "string"
+                        ]
+                    },
+                    "minItems": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "class",
+                "ports"
+            ]
         },
         "managementIpFirewall": {
             "description": "Configures the management IP firewall",

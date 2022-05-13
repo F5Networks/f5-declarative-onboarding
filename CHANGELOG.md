@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ### Fixed
 - AUTOTOOL-3156: Declaration can fail while waiting for unprovisioned service to run
+- AUTOTOOL-2850: ([GitHub Issue 279](https://github.com/F5Networks/f5-declarative-onboarding/issues/279)): Management firewall policy does not work without AFM module for version 15.1.2.1
 
 ### Changed
 ### Removed

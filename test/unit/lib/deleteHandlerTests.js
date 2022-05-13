@@ -1066,4 +1066,256 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.deepStrictEqual(deletedPaths, ['/tm/security/firewall/policy/~Common~firewallPolicy']);
             });
     });
+
+    it('should delete a NetAddressList', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    NetAddressList: {
+                        netAddressList: {
+                            name: 'netAddressList',
+                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                NetAddressList: {
+                    netAddressList: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/address-list/~Common~netAddressList']);
+            });
+    });
+
+    it('should delete a NetAddressList from state if FirewallAddressList is posted', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    NetAddressList: {
+                        netAddressList: {
+                            name: 'netAddressList',
+                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                        }
+                    },
+                    FirewallAddressList: {
+                        netAddressList: {
+                            name: 'netAddressList',
+                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                FirewallAddressList: {}
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/address-list/~Common~netAddressList']);
+                assert.deepStrictEqual(state.currentConfig.Common.NetAddressList, {});
+            });
+    });
+
+    it('should delete a NetPortList', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    NetPortList: {
+                        netPortList: {
+                            name: 'netPortList',
+                            ports: ['8123', '8234', '8300-8350']
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                NetPortList: {
+                    netPortList: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/port-list/~Common~netPortList']);
+            });
+    });
+
+    it('should delete a NetPortList from state if FirewallPortList is posted', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    NetPortList: {
+                        netPortList: {
+                            name: 'netPortList',
+                            ports: ['8123', '8234', '8300-8350']
+                        }
+                    },
+                    FirewallPortList: {
+                        netPortList: {
+                            name: 'netPortList',
+                            ports: ['8123', '8234', '8300-8350']
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                FirewallPortList: {}
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/net/port-list/~Common~netPortList']);
+                assert.deepStrictEqual(state.currentConfig.Common.NetPortList, {});
+            });
+    });
+
+    it('should delete a FirewallAddressList', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    FirewallAddressList: {
+                        firewallAddressList: {
+                            name: 'firewallAddressList',
+                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                FirewallAddressList: {
+                    firewallAddressList: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/security/firewall/address-list/~Common~firewallAddressList']);
+            });
+    });
+
+    it('should delete a FirewallAddressList from state if NetAddressList is posted', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    NetAddressList: {
+                        netAddressList: {
+                            name: 'netAddressList',
+                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                        }
+                    },
+                    FirewallAddressList: {
+                        netAddressList: {
+                            name: 'netAddressList',
+                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                NetAddressList: {}
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/security/firewall/address-list/~Common~netAddressList']);
+                assert.deepStrictEqual(state.currentConfig.Common.FirewallAddressList, {});
+            });
+    });
+
+    it('should delete a FirewallPortList', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    FirewallPortList: {
+                        firewallPortList: {
+                            name: 'firewallPortList',
+                            ports: ['8123', '8234', '8300-8350']
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                FirewallPortList: {
+                    firewallPortList: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/security/firewall/port-list/~Common~firewallPortList']);
+            });
+    });
+
+    it('should delete a FirewallPortList from state if NetPortList is posted', () => {
+        const state = {
+            currentConfig: {
+                Common: {
+                    FirewallPortList: {
+                        netPortList: {
+                            name: 'netPortList',
+                            ports: ['8123', '8234', '8300-8350']
+                        }
+                    },
+                    NetPortList: {
+                        netPortList: {
+                            name: 'netPortList',
+                            ports: ['8123', '8234', '8300-8350']
+                        }
+                    }
+                }
+            }
+        };
+
+        const declaration = {
+            Common: {
+                NetPortList: {}
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, ['/tm/security/firewall/port-list/~Common~netPortList']);
+                assert.deepStrictEqual(state.currentConfig.Common.FirewallPortList, {});
+            });
+    });
 });
