@@ -268,7 +268,11 @@ deploy_for_this_project:
       TF_VAR_nic_count: "$NIC_COUNT"
     before_script:
       - export TRIM_VERSION="$(echo $BIGIP_IMAGE | cut -d '-' -f 2 | tr '.' -)"
-      - export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - if [[ $PROPERTY_TEST == true ]]; then
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION-property"
+      - else
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - fi
       - export TF_HTTP_LOCK_ADDRESS="$TF_HTTP_ADDRESS/lock"
       - export TF_HTTP_UNLOCK_ADDRESS=$TF_HTTP_LOCK_ADDRESS
       - echo using RPM from our pipeline
@@ -287,7 +291,11 @@ deploy_for_other_project:
       TF_VAR_nic_count: "$NIC_COUNT"
     before_script:
       - export TRIM_VERSION="$(echo $BIGIP_IMAGE | cut -d '-' -f 2 | tr '.' -)"
-      - export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - if [[ $PROPERTY_TEST == true ]]; then
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION-property"
+      - else
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - fi
       - export TF_HTTP_LOCK_ADDRESS="$TF_HTTP_ADDRESS/lock"
       - export TF_HTTP_UNLOCK_ADDRESS=$TF_HTTP_LOCK_ADDRESS
       - echo using RPM from cross-project pipeline
@@ -345,7 +353,11 @@ integration-test:
     before_script:
       # terraform doesn't support '.' in backend address.
       - export TRIM_VERSION="$(echo $BIGIP_IMAGE | cut -d '-' -f 2 | tr '.' -)"
-      - export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - if [[ $PROPERTY_TEST == true ]]; then
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION-property"
+      - else
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - fi
     script:
       - cd $TF_DIRECTORY/plans/openstack
       - terraform init
