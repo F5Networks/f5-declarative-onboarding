@@ -454,6 +454,15 @@ module.exports = {
                 .then((serviceStats) => {
                     const status = module.exports.getDeepValue(serviceStats, 'apiRawValues.apiAnonymous');
                     if (status && (status.indexOf('run') !== -1 || status.indexOf('Not provisioned') !== -1)) {
+                        // In case of dhclient we need to be sure child process spawned by dhclient daemon
+                        // finished before proceeding. This prevents us from unexpected hostname change.
+                        if (serviceToCheck === 'dhclient') {
+                            return this.executeBashCommandIControl(
+                                bigIp,
+                                'while [ "$(pgrep dhclient-script)" ] || [ "$(pgrep arping)" ]; do sleep 1; done; sleep 10'
+                            )
+                                .then(() => Promise.resolve());
+                        }
                         return Promise.resolve();
                     }
 

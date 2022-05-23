@@ -634,6 +634,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         let bigIpAuth;
         let oldAuditLink;
         let newAuditLink;
+        let currentState;
 
         before(() => {
             thisMachine = machines[2];
@@ -658,6 +659,9 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .then((body) => common.testRequest(body, `${common.hostname(bigIpAddress, constants.PORT)}`
                     + `${constants.DO_API}`, bigIpAuth, constants.HTTP_ACCEPTED, 'POST'))
                 .then(() => common.testGetStatus(20, 60 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS))
+                .then((response) => {
+                    currentState = response.currentConfig.Common;
+                })
                 .catch((error) => logError(error, bigIpAddress, bigIpAuth));
         });
 
@@ -674,6 +678,10 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     assert.ok(auditLink);
                 })
                 .catch((error) => logError(error, bigIpAddress, bigIpAuth));
+        });
+
+        it('should have hostname set', () => {
+            assert.deepStrictEqual(currentState.System.hostname, 'do-integration-test.local');
         });
 
         it('should have re-licensed with new pool', () => {
@@ -707,7 +715,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         describe('Test Firewall', function testFirewall() {
             this.timeout(1000 * 60 * 30); // 30 minutes
             let body;
-            let currentState;
 
             before(() => {
                 const bodyFile = `${BODIES}/firewall.json`;
@@ -862,7 +869,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         describe('Test GSLB', function testGslb() {
-            let currentState;
             let body;
 
             before(() => {

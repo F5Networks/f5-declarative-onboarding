@@ -512,6 +512,24 @@ describe('doUtil', () => {
                     assert.strictEqual(bigIpListSpy.callCount, 1);
                 });
         });
+
+        it('should wait for child process to complete in case of dhclient', () => {
+            bigIpListSpy = sinon.stub(bigIpMock, 'list').callsFake(() => {
+                const response = {
+                    apiRawValues: {
+                        apiAnonymous: 'run'
+                    }
+                };
+                return Promise.resolve(response);
+            });
+
+            const doUtilStub = sinon.stub(doUtil, 'executeBashCommandIControl').resolves();
+            return doUtil.restartService(bigIpMock, 'dhclient')
+                .then(() => {
+                    assert.strictEqual(doUtilStub.callCount, 1);
+                    assert.strictEqual(bigIpListSpy.args[0][0], '/tm/sys/service/dhclient/stats');
+                });
+        });
     });
 
     describe('waitForReboot', () => {
