@@ -1,6 +1,12 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.31.0
+### Added
+### Fixed
+### Changed
+### Removed
+
 ## 1.30.0
 ### Added
 - AUTOTOOL-3011: Can now validate with either 'Device' or 'DO' class using do.schema.json
