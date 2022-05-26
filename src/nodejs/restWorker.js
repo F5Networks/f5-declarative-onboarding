@@ -315,6 +315,17 @@ class RestWorker {
                                     ))
                                     .catch((err) => {
                                         logger.info(`TCW task failed: ${err.message}`);
+                                        this.state.doState.updateResult(
+                                            taskId,
+                                            500,
+                                            STATUS.STATUS_ERROR,
+                                            'failed',
+                                            err.message
+                                        );
+                                        if (!declaration.async) {
+                                            logger.fine('Sending response.');
+                                            sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
+                                        }
                                         return getAndSaveCurrentConfig.call(
                                             this,
                                             this.bigIps[taskId],

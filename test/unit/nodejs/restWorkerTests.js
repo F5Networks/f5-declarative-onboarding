@@ -1394,6 +1394,26 @@ describe('restWorker', () => {
                 });
             });
 
+            it('should handle TCW immediate fail', () => {
+                restWorker.restRequestSender.sendPost = () => Promise.reject(new Error('tcw error'));
+                return new Promise((resolve, reject) => {
+                    restOperationMock.complete = () => {
+                        try {
+                            const state = restWorker.state.doState;
+                            const tid = Object.keys(state.tasks)[0];
+                            const result = state.tasks[tid].result;
+                            assert.strictEqual(result.code, 500);
+                            assert.strictEqual(result.errors[0], 'tcw error');
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
+            });
+
             it('should handle TCW fail before onboard complete', () => {
                 let numCalls = 0;
                 let timerId;

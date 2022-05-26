@@ -4,6 +4,8 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.31.0
 ### Added
 ### Fixed
+- AUTOTOOL-3323: Improve exception handling when running on BIG-IQ
+
 ### Changed
 ### Removed
 
