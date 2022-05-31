@@ -5,7 +5,6 @@ Basic examples
 This section contains general Declarative Onboarding example declarations.
 
 
-
 .. _example1:
 
 Standalone declaration
