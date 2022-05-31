@@ -1472,6 +1472,53 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should ignore NetAddressList in original config if processing FirewallAddressList', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    FirewallAddressList: {
+                        myNetAddressList: {
+                            class: 'FirewallAddressList',
+                            addresses: ['192.168.10.10', '192.168.11.11']
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {
+                        NetAddressList: {
+                            myNetAddressList: {
+                                class: 'NetAddressList',
+                                addresses: ['192.168.10.10', '192.168.11.11']
+                            }
+                        }
+                    }
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const firewallAddressList = declarationWithDefaults.Common.FirewallAddressList;
+                    assert.deepStrictEqual(
+                        firewallAddressList,
+                        {
+                            myNetAddressList: {
+                                class: 'FirewallAddressList',
+                                addresses: ['192.168.10.10', '192.168.11.11']
+                            }
+                        }
+                    );
+                    assert.deepStrictEqual(state.currentConfig.Common.NetAddressList, undefined);
+                });
+        });
+
         it('should apply firewall port list fix', () => {
             const newDeclaration = {
                 parsed: true,
@@ -1508,6 +1555,53 @@ describe('declarationHandler', () => {
                             }
                         }
                     );
+                });
+        });
+
+        it('should ignore NetPortList in original config if processing FirewallPortList', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    FirewallPortList: {
+                        myNetPortList: {
+                            class: 'FirewallPortList',
+                            ports: ['8080', '8081']
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {
+                        NetPortList: {
+                            myNetPortList: {
+                                class: 'NetPortList',
+                                ports: ['8080', '8081']
+                            }
+                        }
+                    }
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const firewallPortList = declarationWithDefaults.Common.FirewallPortList;
+                    assert.deepStrictEqual(
+                        firewallPortList,
+                        {
+                            myNetPortList: {
+                                class: 'FirewallPortList',
+                                ports: ['8080', '8081']
+                            }
+                        }
+                    );
+                    assert.deepStrictEqual(state.currentConfig.Common.NetPortList, undefined);
                 });
         });
 
@@ -3291,6 +3385,53 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should ignore FirewallAddressList in original config if processing NetAddressList', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    NetAddressList: {
+                        myNetAddressList: {
+                            class: 'NetAddressList',
+                            addresses: ['192.168.10.10', '192.168.11.11']
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {
+                        FirewallAddressList: {
+                            myNetAddressList: {
+                                class: 'FirewallAddressList',
+                                addresses: ['192.168.10.10', '192.168.11.11']
+                            }
+                        }
+                    }
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const netAddressList = declarationWithDefaults.Common.NetAddressList;
+                    assert.deepStrictEqual(
+                        netAddressList,
+                        {
+                            myNetAddressList: {
+                                class: 'NetAddressList',
+                                addresses: ['192.168.10.10', '192.168.11.11']
+                            }
+                        }
+                    );
+                    assert.deepStrictEqual(state.currentConfig.Common.FirewallAddressList, undefined);
+                });
+        });
+
         it('should apply net port list fix', () => {
             const newDeclaration = {
                 parsed: true,
@@ -3327,6 +3468,53 @@ describe('declarationHandler', () => {
                             }
                         }
                     );
+                });
+        });
+
+        it('should ignore FirewallPortList in original config if processing NetPortList', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    NetPortList: {
+                        myNetPortList: {
+                            class: 'NetPortList',
+                            ports: ['8080', '8081']
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {
+                        FirewallPortList: {
+                            myNetPortList: {
+                                class: 'FirewallPortList',
+                                ports: ['8080', '8081']
+                            }
+                        }
+                    }
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const netPortList = declarationWithDefaults.Common.NetPortList;
+                    assert.deepStrictEqual(
+                        netPortList,
+                        {
+                            myNetPortList: {
+                                class: 'NetPortList',
+                                ports: ['8080', '8081']
+                            }
+                        }
+                    );
+                    assert.deepStrictEqual(state.currentConfig.Common.FirewallPortList, undefined);
                 });
         });
     });

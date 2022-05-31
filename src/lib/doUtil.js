@@ -452,15 +452,23 @@ module.exports = {
         function isServiceRunning(serviceToCheck) {
             return bigIp.list(`/tm/sys/service/${serviceToCheck}/stats`, undefined, cloudUtil.NO_RETRY)
                 .then((serviceStats) => {
-                    if (serviceStats.apiRawValues
-                        && serviceStats.apiRawValues.apiAnonymous
-                        && serviceStats.apiRawValues.apiAnonymous.indexOf('run') !== -1) {
+                    const status = module.exports.getDeepValue(serviceStats, 'apiRawValues.apiAnonymous');
+                    if (status && (status.indexOf('run') !== -1 || status.indexOf('Not provisioned') !== -1)) {
+                        // In case of dhclient we need to be sure child process spawned by dhclient daemon
+                        // finished before proceeding. This prevents us from unexpected hostname change.
+                        if (serviceToCheck === 'dhclient') {
+                            return this.executeBashCommandIControl(
+                                bigIp,
+                                'while [ "$(pgrep dhclient-script)" ] || [ "$(pgrep arping)" ]; do sleep 1; done; sleep 10'
+                            )
+                                .then(() => Promise.resolve());
+                        }
                         return Promise.resolve();
                     }
 
                     let message;
-                    if (serviceStats.apiRawValues && serviceStats.apiRawValues.apiAnonymous) {
-                        message = `${service} status is ${serviceStats.apiRawValues.apiAnonymous}`;
+                    if (status) {
+                        message = `${service} status is ${status}`;
                     } else {
                         message = `Unable to read ${service} status`;
                     }

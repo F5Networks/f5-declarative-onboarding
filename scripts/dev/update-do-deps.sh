@@ -1,5 +1,11 @@
 # Update deps to latest using npm-check-updates
 # exlude version-pinned deps
+# ---------------------------------------------
+# ajv 6.x - Node.js incompatibility in newer major versions
+# uuid 3.x - Node.js incompatibility in newer major versions
+# sinon 7.x - Node.js incompatibility in newer major versions
+# winston 2.4.5 - breaking API change in 3.x (AUTOTOOL-1520), see (https://github.com/winstonjs/winston/issues/2130)
+# eslint 7.x - requires devs to use Node.js 16+ in newer major verisons
 npx npm-check-updates -u -x ajv,uuid,sinon,winston,eslint
 npm i
 npm upgrade

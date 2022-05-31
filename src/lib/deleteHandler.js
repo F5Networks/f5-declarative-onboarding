@@ -173,6 +173,56 @@ class DeleteHandler {
                         ));
                     }
                     classPromises.push(tunnelPromise);
+                // Special cases for NetAddressList/FirewallAddressList: On BIGIP with provisioned AFM module
+                // if you create NetAddressList then FirewallAddressList will be created and vice versa.
+                // By deleting one of them second will delete automatically, so let's delete only one of them.
+                } else if (deletableClass === 'NetAddressList') {
+                    const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
+                    if (this.state.currentConfig.Common.FirewallAddressList
+                     && this.state.currentConfig.Common.FirewallAddressList[itemToDelete]) {
+                        const path = `${PATHS.FirewallAddressList}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        delete this.state.currentConfig.Common.FirewallAddressList[itemToDelete];
+                    } else {
+                        const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    }
+                } else if (deletableClass === 'FirewallAddressList') {
+                    const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
+                    if (this.state.currentConfig.Common.NetAddressList
+                     && this.state.currentConfig.Common.NetAddressList[itemToDelete]) {
+                        const path = `${PATHS.NetAddressList}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        delete this.state.currentConfig.Common.NetAddressList[itemToDelete];
+                    } else {
+                        const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    }
+                // Special cases for NetPortList/FirewallPortList: On BIGIP with provisioned AFM module
+                // if you create NetPortList then FirewallPortList will be created and vice versa.
+                // By deleting one of them second will delete automatically, so let's delete only one of them.
+                } else if (deletableClass === 'NetPortList') {
+                    const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
+                    if (this.state.currentConfig.Common.FirewallPortList
+                     && this.state.currentConfig.Common.FirewallPortList[itemToDelete]) {
+                        const path = `${PATHS.FirewallPortList}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        delete this.state.currentConfig.Common.FirewallPortList[itemToDelete];
+                    } else {
+                        const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    }
+                } else if (deletableClass === 'FirewallPortList') {
+                    const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
+                    if (this.state.currentConfig.Common.NetPortList
+                     && this.state.currentConfig.Common.NetPortList[itemToDelete]) {
+                        const path = `${PATHS.NetPortList}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        delete this.state.currentConfig.Common.NetPortList[itemToDelete];
+                    } else {
+                        const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
+                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    }
                 } else if (!isRetainedItem(deletableClass, itemToDelete)) {
                     const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
                     const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;

@@ -1,7 +1,17 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.30.0
+### Added
+- AUTOTOOL-3011: Can now validate with either 'Device' or 'DO' class using do.schema.json
 
+### Fixed
+- AUTOTOOL-3156: Declaration can fail while waiting for unprovisioned service to run
+- AUTOTOOL-2850: ([GitHub Issue 279](https://github.com/F5Networks/f5-declarative-onboarding/issues/279)): Management firewall policy does not work without AFM module for version 15.1.2.1
+- AUTOTOOL-3012: ([GitHub Issue 292](https://github.com/F5Networks/f5-declarative-onboarding/issues/292)): DO unable to change hostname correctly in Google Cloud
+
+### Changed
+### Removed
 
 ## 1.29.0
 ### Added
@@ -10,7 +20,6 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-3051: Licensing can fail if restnoded restarts during processing.
 - AUTOTOOL-2845: ([GitHub Issue 276](https://github.com/F5Networks/f5-declarative-onboarding/issues/276)): SelfIp allowService property does not accept a mix of service:port and default
 - AUTOTOOL-2881: ([GitHub Issue 282](https://github.com/F5Networks/f5-declarative-onboarding/issues/282)): Security level is not automatically set in SnmpUser class.
-- AUTOTOOL-2850: ([GitHub Issue 279](https://github.com/F5Networks/f5-declarative-onboarding/issues/279)): Management firewall policy does not work without AFM module for version 15.1.2.1
 
 ### Changed
 ### Removed

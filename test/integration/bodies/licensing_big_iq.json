@@ -20,6 +20,7 @@
         },
         "mySystem": {
             "class": "System",
+            "hostname": "do-integration-test.local",
             "autoPhonehome": false
         }
     }

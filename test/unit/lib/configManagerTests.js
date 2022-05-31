@@ -3482,6 +3482,22 @@ describe('configManager', () => {
                     });
             });
 
+            it('should include ManagementIpFirewall if AFM is provisioned on BIG-IP 13.1', () => {
+                const configItems = getConfigItems('ManagementIpFirewall');
+
+                bigIpMock.deviceInfo = () => Promise.resolve({ hostname, version: '13.1' });
+                listResponses['/tm/sys/provision'] = [{ name: 'afm', level: 'nominal' }];
+
+                const configManager = new ConfigManager(configItems, bigIpMock);
+                return configManager.get({}, state, doState)
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            state.currentConfig.Common.ManagementIpFirewall,
+                            expectedConfig
+                        );
+                    });
+            });
+
             it('should skip ManagementIpFirewall on BIG-IP 13.1', () => {
                 const configItems = getConfigItems('ManagementIpFirewall');
 
