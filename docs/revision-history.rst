@@ -13,7 +13,7 @@ Document Revision History
 
       * - 1.31
         - Updated the documentation for Declarative Onboarding v1.31.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Improve exception handling when running on BIG-IQ
-        - 6-12-22
+        - 7-12-22
 
       * - 1.30
         - Updated the documentation for Declarative Onboarding v1.30.0.  This release contains the following changes: |br| * Added support for validating declarations with either Device or DO class using do.schema.json (see :ref:`Validating a declaration<validate>`) |br| |br| Issues Resolved: |br| * Declaration can fail while waiting for unprovisioned service to run |br| * Management firewall policy does not work without AFM module for version 15.1.2.1, `GitHub Issue 279 <https://github.com/F5Networks/f5-declarative-onboarding/issues/279>`_ |br| * DO unable to change hostname correctly in Google Cloud, `GitHub Issue 292 <https://github.com/F5Networks/f5-declarative-onboarding/issues/292>`_
