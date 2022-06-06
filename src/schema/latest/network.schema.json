@@ -217,7 +217,7 @@
                         "type": "string"
                     },
                     "allowService": {
-                        "description": "Which services (ports) to allow on the self IP. Value should be 'all', 'none', 'default', or array of '<service:port>",
+                        "description": "Which services (ports) to allow on the self IP. Value should be 'all', 'none', 'default', or array of '<service:port>'. NOTE: The default value is not recommended and a value of 'none' should be used if possible.",
                         "oneOf": [
                             {
                                 "type": "string",
