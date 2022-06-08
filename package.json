@@ -20,7 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@f5devcentral/atg-shared-utilities": "^0.4.5",
-    "@f5devcentral/f5-cloud-libs": "^4.26.8",
+    "@f5devcentral/f5-cloud-libs": "^4.27.1",
     "@f5devcentral/f5-teem": "^1.5.0",
     "ajv": "6.12.6",
     "deep-diff": "^1.0.2",
@@ -30,8 +30,8 @@
   "devDependencies": {
     "@f5devcentral/atg-shared-utilities-dev": "^0.2.6",
     "@f5devcentral/eslint-config-f5-atg": "^0.1.7",
-    "@stryker-mutator/core": "^6.0.1",
-    "@stryker-mutator/mocha-runner": "^6.0.1",
+    "@stryker-mutator/core": "^6.0.2",
+    "@stryker-mutator/mocha-runner": "^6.0.2",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "colors": "^1.4.0",
