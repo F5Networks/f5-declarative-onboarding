@@ -4,6 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.31.0
 ### Added
 ### Fixed
+- AUTOTOOL-3155: ([GitHub Issue 306](https://github.com/F5Networks/f5-declarative-onboarding/issues/306)): DO 1.29.0 unable to find /mgmt/tm/sys/provision
 - AUTOTOOL-3323: Improve exception handling when running on BIG-IQ
 
 ### Changed

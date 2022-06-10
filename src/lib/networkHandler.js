@@ -688,6 +688,9 @@ function handleTrunk() {
 }
 function handleRouteDomain() {
     const commands = [];
+    let hasModify = false;
+    let hasNonDefaultRD = false;
+
     doUtil.forEach(this.declaration, 'RouteDomain', (tenant, routeDomain) => {
         if (routeDomain && routeDomain.name) {
             const routeDomainBody = {
@@ -707,17 +710,28 @@ function handleRouteDomain() {
                 routingProtocol: routeDomain.routingProtocol,
                 vlans: routeDomain.vlans
             };
+
+            if (routeDomain.name !== '0') {
+                hasNonDefaultRD = true;
+            }
+
             let method = 'create';
             if (this.state.currentConfig.Common.RouteDomain
                 && this.state.currentConfig.Common.RouteDomain[routeDomain.name]) {
                 method = 'modify';
-                this.needsMcpdRestart = true;
+                hasModify = true;
             }
+
             commands.push({
                 method,
                 path: method === 'create' ? PATHS.RouteDomain : `${PATHS.RouteDomain}/~${tenant}~${routeDomain.name}`,
                 body: routeDomainBody
             });
+        }
+
+        // This can be removed once BZ 1091953 is resolved and back-ported
+        if (hasModify && hasNonDefaultRD) {
+            this.needsMcpdRestart = true;
         }
     });
 
