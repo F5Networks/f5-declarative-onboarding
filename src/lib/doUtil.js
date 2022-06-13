@@ -477,8 +477,8 @@ module.exports = {
         }
 
         const serviceRunningRetryArgs = {
-            maxRetries: cloudUtil.MEDIUM_RETRY.maxRetries,
-            retryIntervalMs: cloudUtil.MEDIUM_RETRY.retryIntervalMs,
+            maxRetries: cloudUtil.LONG_RETRY.maxRetries,
+            retryIntervalMs: cloudUtil.LONG_RETRY.retryIntervalMs,
             continueOnError: true
         };
 

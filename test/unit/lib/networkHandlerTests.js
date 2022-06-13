@@ -1142,6 +1142,66 @@ describe('networkHandler', () => {
                     assert.strictEqual(restartServiceSpy.calledOnce, true);
                 });
         });
+
+        it('should not restart services a modify occurs but only route domain 0 is present', () => {
+            declaration.Common.RouteDomain = {
+                0: {
+                    name: '0',
+                    id: 0,
+                    parent: '/Common/rd1',
+                    strict: 'enabled'
+                }
+            };
+
+            state = {
+                currentConfig: {
+                    Common: {
+                        RouteDomain: {
+                            0: {
+                                name: '0',
+                                id: 0
+                            }
+                        }
+                    }
+                }
+            };
+            const restartServiceSpy = sinon.stub(doUtil, 'restartService').resolves();
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIpMockSpy.modify.callCount, 1);
+                    assert.strictEqual(restartServiceSpy.called, false);
+                });
+        });
+
+        it('should restart services a modify occurs and a non-default route domain is present', () => {
+            declaration.Common.RouteDomain[0] = {
+                name: '0',
+                id: 0,
+                parent: '/Common/rd1',
+                strict: 'enabled'
+            };
+
+            state = {
+                currentConfig: {
+                    Common: {
+                        RouteDomain: {
+                            0: {
+                                name: '0',
+                                id: 0
+                            }
+                        }
+                    }
+                }
+            };
+            const restartServiceSpy = sinon.stub(doUtil, 'restartService').resolves();
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIpMockSpy.modify.callCount, 1);
+                    assert.strictEqual(restartServiceSpy.calledOnce, true);
+                });
+        });
     });
 
     describe('DagGlobals', () => {
