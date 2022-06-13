@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.31
-        - Updated the documentation for Declarative Onboarding v1.31.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Improve exception handling when running on BIG-IQ
+        - Updated the documentation for Declarative Onboarding v1.31.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Improve exception handling when running on BIG-IQ |br| * DO 1.29.0 unable to find /mgmt/tm/sys/provision, `GitHub Issue 306 <https://github.com/F5Networks/f5-declarative-onboarding/issues/306>`_ |br| * 
         - 7-12-22
 
       * - 1.30
