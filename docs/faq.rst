@@ -122,6 +122,19 @@ Prior to Declarative Onboarding 1.26, HTTPD ciphersuite values were contained in
 
 For a list of valid ciphersuite values, see https://httpd.apache.org/docs/2.4/mod/mod_ssl.html#sslciphersuite.  You can also see https://support.f5.com/csp/article/K86554600 for a list of SSL ciphers supported on BIG-IP platforms.
 
+| 
+
+.. _apidoc:
+
+**Where can I find the API documentation?**
+
+You can find the API documentation here: |api|
+
+
+.. |api| raw:: html
+
+   <a href="apidocs.html" target="_blank">API documentation</a>
+
 
 .. |AS3| raw:: html
 
