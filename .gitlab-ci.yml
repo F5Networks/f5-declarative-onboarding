@@ -5,8 +5,8 @@ stages:
     - atg-shared-checks
     - lint
     - test
-    - build
     - apidocs
+    - build
     - docs
     - deploy
     - integration-test
