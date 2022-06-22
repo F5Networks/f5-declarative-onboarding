@@ -217,7 +217,7 @@ build_api_docs:
 
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
-    stage: build
+    stage: docs
     allow_failure: true
     needs: 
         - build_api_docs
