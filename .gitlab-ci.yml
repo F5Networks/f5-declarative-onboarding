@@ -198,6 +198,23 @@ reactivate_big_iq_license:
       - npm ci
       - node scripts/dev/reactivateBigIq.js
 
+build_api_docs:
+  image: $DOCKER_URL/node:12
+  stage: build
+  needs: []
+  script:
+    # install packages
+    - npm install
+    # generate docs
+    - npm run make-api-docs
+    - mkdir apidocs && mv redoc-static.html apidocs/index.html
+  tags:
+    - cm-official-docker-executor
+  artifacts:
+    name: docs
+    paths:
+      - apidocs
+
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build
