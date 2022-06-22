@@ -29,6 +29,7 @@ variables:
     # terraform will try to update state 5(4+1) times every 3 minutes.
     TF_HTTP_RETRY_MAX: 4
     TF_HTTP_RETRY_WAIT_MIN: 3
+    DOCS_BUILD_DIR: "docs/_build/html"
 
 # This inherits all the jobs defined in the parent template
 # Override variables in this project as needed
