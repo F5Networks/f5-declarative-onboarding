@@ -215,9 +215,9 @@ build_api_docs:
     paths:
       - apidocs
 
-create docs:
+create_docs:
     image: ${CONTAINTHEDOCS_IMAGE}
-    stage: docs
+    stage: build
     allow_failure: true
     needs: 
         - build_api_docs
@@ -421,7 +421,7 @@ pages:
     tags:
         - cm-official-docker-executor
     needs:
-        - create docs
+        - create_docs
     script:
         # create public directory
         - PUBLIC_DIR='./public'
@@ -470,7 +470,7 @@ publish docs to production:
     tags:
         - cm-official-docker-executor
     needs:
-        - create docs
+        - create_docs
     script:
         # Publish docs to clouddocs.f5.com (live site).
         - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
