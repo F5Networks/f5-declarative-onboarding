@@ -201,9 +201,9 @@ reactivate_big_iq_license:
 create docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build
-    needs: 
-      - build_api_docs
     allow_failure: true
+    needs: 
+        - build_api_docs
     script:
         - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
         -   rm -rf docs/_templates
