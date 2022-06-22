@@ -6,6 +6,7 @@ stages:
     - lint
     - test
     - build
+    - apidocs
     - docs
     - deploy
     - integration-test
@@ -200,7 +201,7 @@ reactivate_big_iq_license:
 
 build_api_docs:
   image: $DOCKER_URL/node:12
-  stage: build
+  stage: apidocs
   needs: []
   script:
     # install packages
