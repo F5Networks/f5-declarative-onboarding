@@ -227,13 +227,13 @@ create_docs:
         -   rm -rf docs/_templates
         - fi
         - make html
+        - API_DOCS_INDEX=${DOCS_BUILD_DIR}/apidocs.html
+        - cp apidocs/index.html ${API_DOCS_INDEX}
         - echo "Checking grammar and style"
         # Runs the grammar check on everything except the /docs/drafts directory
         - vale --glob='*.rst' .
         - echo "Checking links"
         - make linkcheck
-        - API_DOCS_INDEX=${DOCS_BUILD_DIR}/apidocs.html
-        - cp apidocs/index.html ${API_DOCS_INDEX}
     tags:
         - cm-official-docker-executor
     artifacts:

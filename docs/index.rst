@@ -37,6 +37,7 @@ To provide feedback on this documentation, you can file a GitHub Issue or email 
    troubleshooting
    examples
    schema-reference
+   api-documentation
    revision-history
 
 
