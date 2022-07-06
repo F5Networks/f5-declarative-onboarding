@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Draft DO API Specification
   description: F5 Declarative Onboarding
-  version: 1.13.0
+  version: 1.32.0
   contact:
     name: Declarative Onboarding
     email: solutionsfeedback@f5.com
@@ -133,7 +133,7 @@ paths:
           schema:
             type : string
             default: admin
-        - name: targetPassword 
+        - name: targetPassword
           in: query
           required: false
           description: The password for the targetHost

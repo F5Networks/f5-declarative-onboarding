@@ -23,6 +23,7 @@ At some point in the sprint we create a release branch. This should happen when 
   * Edit package.json and package-lock.json to update the minor release number to the next version and reset the build number to 0. For example if you just created release branch 1.13.0, update to 1.14.0-0
   * Add the next version (without the build number) to the `schemaVersion` array in `base.schema.json`
   * Adding a new block to `CHANGELOG.md`
+  * Update the `info.version` property in `src/schema/latest/openapi.yaml` to the new DO version (e.g. 1.14.0).
   * git add and commit
   * Submit an MR for these changes and wait for approval.
 
@@ -43,8 +44,7 @@ At some point in the sprint we create a release branch. This should happen when 
   * Run the schedule. This will:
     * Update and commit the build number in `package.json` and `package-lock.json` and commit those changes.
     * Tag the appropriate branch with the updated version (e.g. v1.13.0-4). The tag will kick off a DO pipeline with integration tests.
-    * Send you a release email.
-* If the DO pipeline is successful, that pipeline will upload the build artifacts to Artifactory. Once this happens, forward the release email to the `f5-declarative-onboarding` distribution list.
+* If the DO pipeline is successful, that pipeline will upload the build artifacts to Artifactory and send the release email to the `f5-declarative-onboarding` distribution list.
 
 ## Process for release
 * Using the GUI, create 2 MRs.
