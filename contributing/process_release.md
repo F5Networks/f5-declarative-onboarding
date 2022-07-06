@@ -53,3 +53,16 @@ At some point in the sprint we create a release branch. This should happen when 
   * Do not squash commits.
   * You can self-approve and merge these MRs.
 * Using the GUI, create a tag on the `master` branch in the format `v<version>` (e.g. `v1.13.0`).
+
+## Documentation Release process
+* After the third sprint is finished and the release branch has been created, checkout out the dev release branch and then merge it into **doc-release-branch**.
+* Make any additions or modifications to the **doc-release-branch** for items specific to the release.
+  * Update the release version in the **conf.py** file.
+  * Update the latest version in the **versions.json** files (in doc-release branch and any LTS doc branches (for example **docs-3.36.1**, and **doc-3.32.1**)). Do NOT push the versions.json file for the LTS branches until the release has gone out.
+  * Update the support.md file if applicable (currently not applicable for AS3, but is applicable for DO)
+  * Make sure the **revision-history.rst** file is up-to-date with all work done and the Issues resolved from the changelog.md file.
+* On release day, wait for the announcement that the code has been pushed to Github.
+* Checkout out **docs-latest**, and then merge the **doc-release-branch** into docs-latest.
+* Push **docs-latest** which starts the publishing process to clouddocs.f5.com.
+* Checkout each of the LTS doc branches and push the changes to the **versions.json** files.
+* Merge **docs-latest** back into **develop**.
