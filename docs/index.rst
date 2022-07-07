@@ -36,8 +36,8 @@ To provide feedback on this documentation, you can file a GitHub Issue or email 
    using-do
    troubleshooting
    examples
-   schema-reference
    apidocs
+   schema-reference
    revision-history
 
 
