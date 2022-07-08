@@ -443,7 +443,7 @@ describe('Authentication', function testAuthentication() {
             {
                 name: 'console',
                 inputValue: ['disabled', 'tmsh', 'disabled'],
-                expectedValue: ['disabled', 'tmsh', 'disabled']
+                expectedValue: ['disable', 'tmsh', 'disable']
             },
             {
                 name: 'lineOrder',

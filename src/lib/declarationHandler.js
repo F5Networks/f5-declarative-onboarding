@@ -124,6 +124,7 @@ class DeclarationHandler {
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
                 applyGSLBServerFixes(parsedNewDeclaration);
+                applyRemoteAuthRoleFixes(parsedNewDeclaration);
                 applyRoutingAccessListFixes(parsedNewDeclaration);
                 applyRoutingPrefixListFixes(parsedNewDeclaration);
                 applyRouteMapFixes(parsedNewDeclaration);
@@ -603,6 +604,17 @@ function applyGSLBServerFixes(declaration) {
         });
         server.monitor = server.monitor || [];
         delete server.label;
+    });
+}
+
+function applyRemoteAuthRoleFixes(declaration) {
+    const remoteAuthRoles = (declaration.Common && declaration.Common.RemoteAuthRole) || {};
+    if (Object.keys(remoteAuthRoles).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RemoteAuthRole', (tenant, role) => {
+        role.console = (role.console === 'disabled') ? 'disable' : role.console;
     });
 }
 

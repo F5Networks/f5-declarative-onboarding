@@ -1429,6 +1429,45 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should apply remote auth role fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    RemoteAuthRole: {
+                        myRemoteAuthRole: {
+                            class: 'RemoteAuthRole',
+                            console: 'disabled'
+                        }
+                    }
+                }
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {}
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const remoteAuthRole = declarationWithDefaults.Common.RemoteAuthRole;
+                    assert.deepStrictEqual(
+                        remoteAuthRole,
+                        {
+                            myRemoteAuthRole: {
+                                class: 'RemoteAuthRole',
+                                console: 'disable'
+                            }
+                        }
+                    );
+                });
+        });
+
         it('should apply firewall address list fix', () => {
             const newDeclaration = {
                 parsed: true,
