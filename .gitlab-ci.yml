@@ -478,4 +478,4 @@ publish docs to production:
         - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
         - aws s3 cp versions.json s3://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/versions.json
         # create invalidation to clear cloudfront cache
-        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
+        # - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
