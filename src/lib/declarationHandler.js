@@ -123,6 +123,7 @@ class DeclarationHandler {
                 applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
                 applyHttpdFixes(parsedNewDeclaration);
+                applyGSLBGlobalsFixes(parsedNewDeclaration, state);
                 applyGSLBServerFixes(parsedNewDeclaration);
                 applyRemoteAuthRoleFixes(parsedNewDeclaration);
                 applyRoutingAccessListFixes(parsedNewDeclaration);
@@ -571,6 +572,30 @@ function applyHttpdFixes(declaration) {
             httpdDeclaration.allow = [httpdDeclaration.allow];
         }
     }
+}
+
+/**
+ * Handles the nested classes in GSLB globals (like 'general')
+ */
+function applyGSLBGlobalsFixes(newDeclaration, state) {
+    const originalGslbGlobals = JSON.parse(JSON.stringify(state.originalConfig.Common.GSLBGlobals || {}));
+    const newGslbGlobals = newDeclaration.Common.GSLBGlobals || {};
+
+    Object.keys(originalGslbGlobals).forEach((gslbGlobalSection) => {
+        // Copy all the globals sections into the declaration if they are missing
+        if (typeof newGslbGlobals[gslbGlobalSection] === 'undefined') {
+            newGslbGlobals[gslbGlobalSection] = originalGslbGlobals[gslbGlobalSection];
+        }
+
+        // If any keys in the globals sections are missing, copy those too
+        const originalGlobal = originalGslbGlobals[gslbGlobalSection];
+        Object.keys(originalGlobal).forEach((setting) => {
+            const newSetting = newGslbGlobals[gslbGlobalSection][setting];
+            if (typeof newSetting === 'undefined') {
+                newGslbGlobals[gslbGlobalSection][setting] = originalGlobal[setting];
+            }
+        });
+    });
 }
 
 /**

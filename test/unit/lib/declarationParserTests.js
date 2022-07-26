@@ -20,130 +20,171 @@ const assert = require('assert');
 
 let DeclarationParser;
 
-/* eslint-disable quote-props, quotes, global-require */
+/* eslint-disable global-require */
 
 describe('declarationParser', () => {
     before(() => {
         DeclarationParser = require('../../../src/lib/declarationParser');
     });
 
-    it('should transform declaration', () => {
+    it('should transform a simple declaration', () => {
         const declaration = {
-            "schemaVersion": "1.0.0",
-            "class": "Device",
-            "Common": {
-                "class": "Tenant",
-                "hostname": "bigip.example.com",
-                "myLicense": {
-                    "class": "License",
-                    "licenseType": "regKey",
-                    "regKey": "MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ"
-                },
-                "mySystem": {
-                    "class": "System"
-                },
-                "myDns": {
-                    "class": "DNS",
-                    "nameServers": [
-                        "1.2.3.4",
-                        "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+            schemaVersion: '1.0.0',
+            class: 'Device',
+            Common: {
+                class: 'Tenant',
+                hostname: 'bigip.example.com',
+                myNtp: {
+                    class: 'NTP',
+                    servers: [
+                        '0.pool.ntp.org',
+                        '1.pool.ntp.org'
                     ],
-                    "search": [
-                        "f5.com"
+                    timezone: 'UTC'
+                }
+            }
+        };
+
+        const declarationParser = new DeclarationParser(declaration);
+        const parsed = declarationParser.parse();
+        const parsedDeclaration = parsed.parsedDeclaration;
+        const tenants = parsed.tenants;
+
+        // tenants
+        assert.strictEqual(tenants.length, 1);
+        assert.strictEqual(tenants[0], 'Common');
+        assert.deepStrictEqual(
+            parsedDeclaration.Common,
+            {
+                hostname: 'bigip.example.com',
+                NTP: {
+                    servers: [
+                        '0.pool.ntp.org',
+                        '1.pool.ntp.org'
+                    ],
+                    timezone: 'UTC'
+                }
+            }
+        );
+    });
+
+    it('should transform complex declaration', () => {
+        const declaration = {
+            schemaVersion: '1.0.0',
+            class: 'Device',
+            Common: {
+                class: 'Tenant',
+                hostname: 'bigip.example.com',
+                myLicense: {
+                    class: 'License',
+                    licenseType: 'regKey',
+                    regKey: 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ'
+                },
+                mySystem: {
+                    class: 'System'
+                },
+                myDns: {
+                    class: 'DNS',
+                    nameServers: [
+                        '1.2.3.4',
+                        'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                    ],
+                    search: [
+                        'f5.com'
                     ]
                 },
-                "myNtp": {
-                    "class": "NTP",
-                    "servers": [
-                        "0.pool.ntp.org",
-                        "1.pool.ntp.org"
+                myNtp: {
+                    class: 'NTP',
+                    servers: [
+                        '0.pool.ntp.org',
+                        '1.pool.ntp.org'
                     ],
-                    "timezone": "UTC"
+                    timezone: 'UTC'
                 },
-                "myHTTPD": {
-                    "class": "HTTPD",
-                    "allow": [
-                        "10.10.0.0/24"
+                myHTTPD: {
+                    class: 'HTTPD',
+                    allow: [
+                        '10.10.0.0/24'
                     ]
                 },
-                "root": {
-                    "class": "User",
-                    "userType": "root",
-                    "oldPassword": "foo",
-                    "newPassword": "bar"
+                root: {
+                    class: 'User',
+                    userType: 'root',
+                    oldPassword: 'foo',
+                    newPassword: 'bar'
                 },
-                "admin": {
-                    "class": "User",
-                    "userType": "regular",
-                    "password": "asdfjkl",
-                    "shell": "bash"
+                admin: {
+                    class: 'User',
+                    userType: 'regular',
+                    password: 'asdfjkl',
+                    shell: 'bash'
                 },
-                "anotherUser": {
-                    "class": "User",
-                    "userType": "regular",
-                    "password": "foobar",
-                    "partitionAccess": {
-                        "Common": {
-                            "role": "guest"
+                anotherUser: {
+                    class: 'User',
+                    userType: 'regular',
+                    password: 'foobar',
+                    partitionAccess: {
+                        Common: {
+                            role: 'guest'
                         }
                     }
                 },
-                "commonVlan": {
-                    "class": "VLAN",
-                    "tag": 1111,
-                    "mtu": 2222,
-                    "1.3": {
-                        "class": "Interface",
-                        "tagged": true
+                commonVlan: {
+                    class: 'VLAN',
+                    tag: 1111,
+                    mtu: 2222,
+                    1.3: {
+                        class: 'Interface',
+                        tagged: true
                     }
                 },
-                "commonMac": {
-                    "class": "MAC_Masquerade",
-                    "source": {
-                        "interface": "1.1"
+                commonMac: {
+                    class: 'MAC_Masquerade',
+                    source: {
+                        interface: '1.1'
                     }
                 },
-                "commonMac2": {
-                    "class": "MAC_Masquerade",
-                    "source": {
-                        "interface": "1.2"
+                commonMac2: {
+                    class: 'MAC_Masquerade',
+                    source: {
+                        interface: '1.2'
                     },
-                    "trafficGroup": "traffic-group-local-only"
+                    trafficGroup: 'traffic-group-local-only'
                 },
-                "commonDNS": {
-                    "class": "DNS_Resolver",
-                    "forwardZones": [
+                commonDNS: {
+                    class: 'DNS_Resolver',
+                    forwardZones: [
                         {
-                            "name": "google.public.dns",
-                            "nameservers": [
-                                "8.8.8.8:53"
+                            name: 'google.public.dns',
+                            nameservers: [
+                                '8.8.8.8:53'
                             ]
                         }
                     ]
                 }
             },
-            "Tenant1": {
-                "class": "Tenant",
-                "app1Vlan": {
-                    "class": "VLAN",
-                    "tag": 1234,
-                    "mtu": 1500,
-                    "1.1": {
-                        "class": "Interface",
-                        "tagged": true
+            Tenant1: {
+                class: 'Tenant',
+                app1Vlan: {
+                    class: 'VLAN',
+                    tag: 1234,
+                    mtu: 1500,
+                    1.1: {
+                        class: 'Interface',
+                        tagged: true
                     }
                 },
-                "app2Vlan": {
-                    "class": "VLAN",
-                    "tag": 3456,
-                    "1.1": {
-                        "class": "Interface",
-                        "tagged": true
+                app2Vlan: {
+                    class: 'VLAN',
+                    tag: 3456,
+                    1.1: {
+                        class: 'Interface',
+                        tagged: true
                     }
                 },
-                "app1SelfIp": {
-                    "class": "SelfIp",
-                    "vlan": "app1Vlan"
+                app1SelfIp: {
+                    class: 'SelfIp',
+                    vlan: 'app1Vlan'
                 }
             }
         };
@@ -176,6 +217,8 @@ describe('declarationParser', () => {
         // network
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, 'commonVlan');
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.tag, 1111);
+        assert.strictEqual(parsedDeclaration.Common.NTP.timezone, 'UTC');
+        assert.deepStrictEqual(parsedDeclaration.Common.NTP.servers, ['0.pool.ntp.org', '1.pool.ntp.org']);
         assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac.name, 'commonMac');
         assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac.source.interface, '1.1');
         assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac2.name, 'commonMac2');
@@ -194,15 +237,50 @@ describe('declarationParser', () => {
         );
     });
 
+    it('should move nested classes to the top level', () => {
+        const declaration = {
+            schemaVersion: '1.32.0',
+            class: 'Device',
+            controls: {
+                class: 'Controls',
+                traceResponse: true
+            },
+            Common: {
+                class: 'Tenant',
+                myGslbSettings: {
+                    general: {
+                        class: 'GSLBGlobals',
+                        synchronizationEnabled: true,
+                        synchronizationGroupName: 'my-sync-group-name'
+                    }
+                }
+            }
+        };
+
+        const declarationParser = new DeclarationParser(declaration);
+        const parsed = declarationParser.parse();
+        const parsedDeclaration = parsed.parsedDeclaration;
+
+        assert.deepStrictEqual(
+            parsedDeclaration.Common.GSLBGlobals,
+            {
+                general: {
+                    synchronization: 'yes',
+                    synchronizationGroupName: 'my-sync-group-name'
+                }
+            }
+        );
+    });
+
     it('should not overwrite name property if provided', () => {
         const declaration = {
-            "schemaVersion": "1.0.0",
-            "class": "Device",
-            "Common": {
-                "class": "Tenant",
-                "commonVlan": {
-                    "class": "VLAN",
-                    "name": "my provided name"
+            schemaVersion: '1.0.0',
+            class: 'Device',
+            Common: {
+                class: 'Tenant',
+                commonVlan: {
+                    class: 'VLAN',
+                    name: 'my provided name'
                 }
             }
         };
@@ -217,14 +295,14 @@ describe('declarationParser', () => {
     describe('newId', () => {
         it('should map newId to id', () => {
             const declaration = {
-                "schemaVersion": "1.0.0",
-                "class": "Device",
-                "Common": {
-                    "class": "Tenant",
-                    "commonSelfIp": {
-                        "class": "SelfIp",
-                        "enforcedFirewallPolicy": "myEnforcedFirewallPolicy",
-                        "stagedFirewallPolicy": "myStagedFirewallPolicy"
+                schemaVersion: '1.0.0',
+                class: 'Device',
+                Common: {
+                    class: 'Tenant',
+                    commonSelfIp: {
+                        class: 'SelfIp',
+                        enforcedFirewallPolicy: 'myEnforcedFirewallPolicy',
+                        stagedFirewallPolicy: 'myStagedFirewallPolicy'
                     }
                 }
             };
@@ -241,24 +319,24 @@ describe('declarationParser', () => {
 
         it('should handle newId of "name"', () => {
             const declaration = {
-                "schemaVersion": "1.0.0",
-                "class": "Device",
-                "Common": {
-                    "class": "Tenant",
-                    "snmpCommunityWithSpecialChar": {
-                        "class": "SnmpCommunity",
-                        "name": "special!community",
-                        "ipv6": false,
-                        "source": "all",
-                        "oid": ".1",
-                        "access": "ro"
+                schemaVersion: '1.0.0',
+                class: 'Device',
+                Common: {
+                    class: 'Tenant',
+                    snmpCommunityWithSpecialChar: {
+                        class: 'SnmpCommunity',
+                        name: 'special!community',
+                        ipv6: false,
+                        source: 'all',
+                        oid: '.1',
+                        access: 'ro'
                     },
-                    "nothingSpecial": {
-                        "class": "SnmpCommunity",
-                        "ipv6": false,
-                        "source": "all",
-                        "oid": ".1",
-                        "access": "ro"
+                    nothingSpecial: {
+                        class: 'SnmpCommunity',
+                        ipv6: false,
+                        source: 'all',
+                        oid: '.1',
+                        access: 'ro'
                     }
                 }
             };
@@ -275,15 +353,15 @@ describe('declarationParser', () => {
 
         it('should handle dotted newIds', () => {
             const declaration = {
-                "schemaVersion": "1.0.0",
-                "class": "Device",
-                "Common": {
-                    "class": "Tenant",
-                    "snmpUser1": {
-                        "class": "SnmpUser",
-                        "authentication": {
-                            "protocol": "sha",
-                            "password": "pass1W0rd!"
+                schemaVersion: '1.0.0',
+                class: 'Device',
+                Common: {
+                    class: 'Tenant',
+                    snmpUser1: {
+                        class: 'SnmpUser',
+                        authentication: {
+                            protocol: 'sha',
+                            password: 'pass1W0rd!'
                         }
                     }
                 }
@@ -306,43 +384,43 @@ describe('declarationParser', () => {
 
     it('should dereference pointers', () => {
         const declaration = {
-            "Credentials": [
+            Credentials: [
                 {
-                    "username": "myUser",
-                    "password": "myPassword"
+                    username: 'myUser',
+                    password: 'myPassword'
                 },
                 {
-                    "username": "myOtherUser",
-                    "password": "myOtherPassword"
+                    username: 'myOtherUser',
+                    password: 'myOtherPassword'
                 }
             ],
-            "Common": {
-                "class": "Tenant",
-                "myVlan": {
-                    "class": "VLAN",
-                    "tag": 1111,
-                    "mtu": 2222
+            Common: {
+                class: 'Tenant',
+                myVlan: {
+                    class: 'VLAN',
+                    tag: 1111,
+                    mtu: 2222
                 },
-                "mySelfIp": {
-                    "class": "SelfIp",
-                    "address": "1.2.3.4",
-                    "vlan": "/Common/myVlan"
+                mySelfIp: {
+                    class: 'SelfIp',
+                    address: '1.2.3.4',
+                    vlan: '/Common/myVlan'
                 },
-                "myConfigSync": {
-                    "class": "ConfigSync",
-                    "configsyncIp": "/Common/mySelfIp/address"
+                myConfigSync: {
+                    class: 'ConfigSync',
+                    configsyncIp: '/Common/mySelfIp/address'
                 },
-                "myLicense": {
-                    "class": "License",
-                    "bigIpUsername": "/Credentials/0/username",
-                    "bigIqUsername": "/Credentials/1/username",
-                    "notAPointer": "/foo/bar"
+                myLicense: {
+                    class: 'License',
+                    bigIpUsername: '/Credentials/0/username',
+                    bigIqUsername: '/Credentials/1/username',
+                    notAPointer: '/foo/bar'
                 },
-                "myFailoverUnicast": {
-                    "class": "FailoverUnicast",
-                    "addressPorts": [
+                myFailoverUnicast: {
+                    class: 'FailoverUnicast',
+                    addressPorts: [
                         {
-                            "address": "/Common/mySelfIp/address"
+                            address: '/Common/mySelfIp/address'
                         }
                     ]
                 }
@@ -363,15 +441,15 @@ describe('declarationParser', () => {
 
     it('should not change an array to an object when parsing and dereferencing', () => {
         const declaration = {
-            "Common": {
-                "class": "Tenant",
-                "myNtp": {
-                    "class": "NTP",
-                    "servers": [
-                        "0.pool.ntp.org",
-                        "1.pool.ntp.org"
+            Common: {
+                class: 'Tenant',
+                myNtp: {
+                    class: 'NTP',
+                    servers: [
+                        '0.pool.ntp.org',
+                        '1.pool.ntp.org'
                     ],
-                    "timezone": "UTC"
+                    timezone: 'UTC'
                 }
             }
         };

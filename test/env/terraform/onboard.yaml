@@ -16,7 +16,8 @@ write_files:
       /usr/bin/passwd admin ${admin_password} >/dev/null 2>&1
       tmsh modify auth user admin shell bash
       tmsh modify sys software update auto-phonehome disabled
-      tmsh modify /sys disk directory /appdata new-size 130985984
+      tmsh modify sys disk directory /appdata new-size 130985984
+      tmsh modify sys provision gtm level nominal
 
       tmsh save /sys config
 

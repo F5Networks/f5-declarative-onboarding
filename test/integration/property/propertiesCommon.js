@@ -26,8 +26,8 @@ const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const schema = require('../../../src/schema/latest/base.schema.json');
 const common = require('../common');
 const constants = require('../constants');
-const classMap = require('../../../src/lib/sharedConstants').PATHS;
 const propertyMap = require('../../../src/lib/configItems.json');
+const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 
 const consoleOptions = {
     declarations: false, // display the declarations that are created
@@ -164,9 +164,10 @@ function createDeclarations(targetClass, properties, options) {
         });
 
         const itemName = getItemName(options);
+        const itemContainer = options.innerContainer ? { [options.innerContainer]: itemDeclaration } : itemDeclaration;
         declaration[options.tenantName] = {
             class: 'Tenant',
-            [itemName]: itemDeclaration
+            [itemName]: itemContainer
         };
 
         const tenant = declaration[options.tenantName];
@@ -495,9 +496,9 @@ function getMcpObject(targetClass, inputOptions) {
 
     const className = options.getMcpObject.className ? options.getMcpObject.className : targetClass;
 
-    const classPath = classMap[className];
+    const classPath = PATHS[className];
     if (!classPath) {
-        throw new Error(`Class ${className} not found in sharedConstants.PATH`);
+        throw new Error(`Class ${className} not found in sharedConstants.PATHS`);
     }
 
     const url = `${bigIpUrl}${constants.ICONTROL_API}${classPath}`;
@@ -516,6 +517,10 @@ function getMcpObject(targetClass, inputOptions) {
                 }
 
                 return results;
+            }
+
+            if (isNameless(classPath)) {
+                return [response.body];
             }
 
             if (!response.body.items) {
@@ -544,6 +549,13 @@ function getMcpObject(targetClass, inputOptions) {
         });
 }
 
+function getPropertyFromPath(path) {
+    if (path.startsWith('/')) {
+        path = path.slice(1);
+    }
+    return propertyMap.find((item) => (item.path || '').slice(1) === path);
+}
+
 function getPropertyFromKind(kind) {
     const pathComponents = kind.split(':');
     let subMap = null;
@@ -553,11 +565,16 @@ function getPropertyFromKind(kind) {
         if (path === '') {
             throw new Error(`Unable to find an entry in configItems.json for ${kind}`);
         }
-        subMap = propertyMap.find((item) => item.path.slice(1) === path);
+        subMap = getPropertyFromPath(path);
         pathComponents.pop();
     }
 
     return subMap.properties;
+}
+
+function isNameless(path) {
+    const property = getPropertyFromPath(path) || {};
+    return property.nameless;
 }
 
 function isObjectAsArray(value) {

@@ -1232,6 +1232,56 @@ describe('declarationHandler', () => {
                 });
         });
 
+        it('should apply GSLB globals fix', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    GSLBGlobals: {
+                        existing: {
+                            foo: 'bar'
+                        }
+                    }
+                }
+            };
+            const state = {
+                originalConfig: {
+                    Common: {
+                        GSLBGlobals: {
+                            missingSection: {
+                                hello: 'goodbye'
+                            },
+                            existing: {
+                                foo: 'baz',
+                                missingKey: 'ok'
+                            }
+                        }
+                    }
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock);
+            return declarationHandler.process(newDeclaration, state)
+                .then(() => {
+                    const gslbGlobals = declarationWithDefaults.Common.GSLBGlobals;
+                    assert.deepStrictEqual(
+                        gslbGlobals,
+                        {
+                            existing: {
+                                foo: 'bar',
+                                missingKey: 'ok'
+                            },
+                            missingSection: {
+                                hello: 'goodbye'
+                            }
+                        }
+                    );
+                });
+        });
+
         it('should apply GSLB server fix', () => {
             const newDeclaration = {
                 parsed: true,
