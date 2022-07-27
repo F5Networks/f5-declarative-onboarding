@@ -280,7 +280,14 @@
                                 "name": {
                                     "description": "Name of a forward zone.",
                                     "type": "string",
-                                    "format": "hostname"
+                                    "anyOf": [
+                                        {
+                                            "format": "hostname"
+                                        },
+                                        {
+                                            "pattern": "^\\.$"
+                                        }
+                                    ]
                                 },
                                 "nameservers": {
                                     "description": "Specifies the IP address and service port of a recursive nameserver that answers DNS queries when the response cannot be found in the internal DNS resolver cache.  Enter each address in the format address:port (IPv4) or addrss.port (IPv6).  The port is usually 53.",

@@ -72,6 +72,22 @@ describe('network.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate when using . for a forward zone name', () => {
+                const data = {
+                    class: 'DNS_Resolver',
+                    forwardZones: [
+                        {
+                            name: '.',
+                            nameservers: [
+                                '8.8.8.8:53',
+                                '8.8.4.4:53'
+                            ]
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
