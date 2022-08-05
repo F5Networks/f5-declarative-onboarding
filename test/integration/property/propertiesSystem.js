@@ -42,6 +42,20 @@ describe('System', function testSystem() {
                 name: 'mgmtDhcpEnabled',
                 inputValue: [false, true, false],
                 expectedValue: ['disabled', 'enabled', 'disabled']
+            },
+            {
+                name: 'guiSecurityBanner',
+                inputValue: [true, false, true],
+                expectedValue: ['enabled', 'disabled', 'enabled']
+            },
+            {
+                name: 'guiSecurityBannerText',
+                inputValue: [undefined, 'Sunday\nMonday\nTuesday', undefined],
+                expectedValue: [
+                    'Welcome to the BIG-IP Configuration Utility.\n\nLog in with your username and password using the fields on the left.',
+                    'Sunday\nMonday\nTuesday',
+                    'Welcome to the BIG-IP Configuration Utility.\n\nLog in with your username and password using the fields on the left.'
+                ]
             }
         ];
 

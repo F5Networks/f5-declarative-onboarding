@@ -880,6 +880,16 @@
                     "mgmtDhcpEnabled": {
                         "description": "Determines if Management DHCP is enabled or not.",
                         "type": "boolean"
+                    },
+                    "guiSecurityBanner": {
+                        "description": "Specifies whether the system presents on the login screen the text you specify in guiSecurityBannerText. If you disable this option, the system presents an empty frame in the right portion of the login screen.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "guiSecurityBannerText": {
+                        "description": "Specifies the text to present on the login screen when the guiSecurityBanner is enabled.",
+                        "type": "string",
+                        "default": "Welcome to the BIG-IP Configuration Utility.\n\nLog in with your username and password using the fields on the left."
                     }
                 },
                 "additionalProperties": false

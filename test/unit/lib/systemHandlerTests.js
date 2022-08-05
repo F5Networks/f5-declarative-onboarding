@@ -736,6 +736,26 @@ describe('systemHandler', () => {
                     assert.deepStrictEqual(dataSent[PATHS.CLI][0], { idleTimeout: 0 });
                 });
         });
+
+        it('should handle the gui security banner', () => {
+            const declaration = {
+                Common: {
+                    System: {
+                        guiSecurityBanner: true,
+                        guiSecurityBannerText: 'Y\'all need to log in.\n\nLogin to the text boxes yonder.'
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent[PATHS.SysGlobalSettings][0], {
+                        guiSecurityBanner: true,
+                        guiSecurityBannerText: 'Y\'all need to log in.\n\nLogin to the text boxes yonder.'
+                    });
+                });
+        });
     });
 
     it('should handle autoPhonehome', () => {

@@ -6,7 +6,9 @@
             { "id": "hostname" },
             { "id": "consoleInactivityTimeout" },
             { "id": "guiAudit", "newId": "guiAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
-            { "id": "mgmtDhcp", "newId": "mgmtDhcpEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
+            { "id": "mgmtDhcp", "newId": "mgmtDhcpEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
+            { "id": "guiSecurityBanner", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": "true" },
+            { "id": "guiSecurityBannerText" }
         ],
         "nameless": true
     },

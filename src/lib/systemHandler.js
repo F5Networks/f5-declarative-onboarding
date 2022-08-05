@@ -492,6 +492,17 @@ function handleSystem() {
             const guiAudit = system.guiAudit;
             promises.push(this.bigIp.modify(PATHS.SysGlobalSettings, { guiAudit }));
         }
+
+        const guiSecuritySettings = {};
+        if (typeof system.guiSecurityBanner !== 'undefined') {
+            guiSecuritySettings.guiSecurityBanner = system.guiSecurityBanner;
+        }
+        if (typeof system.guiSecurityBannerText !== 'undefined') {
+            guiSecuritySettings.guiSecurityBannerText = system.guiSecurityBannerText;
+        }
+        if (Object.keys(guiSecuritySettings).length !== 0) {
+            promises.push(this.bigIp.modify(PATHS.SysGlobalSettings, guiSecuritySettings));
+        }
     }
 
     return Promise.all(promises);
