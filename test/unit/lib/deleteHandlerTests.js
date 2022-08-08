@@ -1318,4 +1318,38 @@ describe(('deleteHandler'), function testDeleteHandler() {
                 assert.deepStrictEqual(state.currentConfig.Common.FirewallPortList, {});
             });
     });
+
+    it('should ignore 404 error when deleting', () => {
+        const errorMsg = 'The requested Management Route (/Common/managementRoute) was not found';
+        bigIpMock.delete = (path) => new Promise((resolve, reject) => {
+            if (path.indexOf('managementRoute') !== -1) {
+                const err = new Error(errorMsg);
+                err.code = 404;
+                reject(err);
+            } else {
+                deletedPaths.push(path);
+                resolve();
+            }
+        });
+        const declaration = {
+            Common: {
+                ManagementRoute: {
+                    managementRoute: {}
+                }
+            }
+        };
+        const state = {
+            currentConfig: {
+                Common: {
+                    ManagementRoute: {}
+                }
+            }
+        };
+
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
+        return deleteHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(deletedPaths, []);
+            });
+    });
 });

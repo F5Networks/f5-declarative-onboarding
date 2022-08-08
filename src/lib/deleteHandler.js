@@ -142,35 +142,33 @@ class DeleteHandler {
                     }
                 } else if (deletableClass === 'RemoteAuthRole') {
                     const path = `${PATHS.AuthRemoteRole}/${itemToDelete}`;
-                    classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    classPromises.push(getDeletePromise(this.bigIp, path));
                 } else if (deletableClass === 'Route') {
                     const partition = this.state.currentConfig.Common.Route[itemToDelete].localOnly
                         ? 'LOCAL_ONLY' : 'Common';
                     const path = `${PATHS.Route}/~${partition}~${itemToDelete}`;
-                    classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    classPromises.push(getDeletePromise(this.bigIp, path));
                 } else if (deletableClass === 'RoutingAsPath' || deletableClass === 'RoutingPrefixList') {
                     const path = `${PATHS[deletableClass]}/~Common~${itemToDelete}`;
                     const retryOptions = { continueOnError: true };
                     Object.assign(retryOptions, cloudUtil.SHORT_RETRY);
-                    classPromises.push(this.bigIp.delete(path, null, null, retryOptions));
+                    classPromises.push(getDeletePromise(this.bigIp, path, retryOptions));
                 } else if (deletableClass === 'GSLBMonitor'
                     && !isRetainedItem(deletableClass, itemToDelete)) {
                     // GSLB Monitors have their monitor type as part of the path instead of a property
                     const currMon = this.state.currentConfig.Common.GSLBMonitor[itemToDelete];
                     const path = `${PATHS.GSLBMonitor}/${currMon.monitorType}/~Common~${itemToDelete}`;
-                    classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                    classPromises.push(getDeletePromise(this.bigIp, path));
                 } else if (deletableClass === 'Tunnel'
                     && !isRetainedItem(deletableClass, itemToDelete)) {
                     const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
                     const path = `${PATHS.Tunnel}/${commonPrefix}${itemToDelete}`;
-                    const tunnelPromise = this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY);
+                    const tunnelPromise = getDeletePromise(this.bigIp, path);
                     if (this.state.currentConfig.Common.Tunnel[itemToDelete].profile === 'vxlan') {
                         // Check if the itemToDelete has a vxlan profile if so that must be deleted
                         // too vxlan profiles need deleted AFTER the tunnel deletion
                         const pathVxlan = `${PATHS.VXLAN}/${commonPrefix}${itemToDelete}_vxlan`;
-                        tunnelPromise.then(() => this.bigIp.delete(
-                            pathVxlan, null, null, cloudUtil.NO_RETRY
-                        ));
+                        tunnelPromise.then(() => getDeletePromise(this.bigIp, pathVxlan));
                     }
                     classPromises.push(tunnelPromise);
                 // Special cases for NetAddressList/FirewallAddressList: On BIGIP with provisioned AFM module
@@ -181,22 +179,22 @@ class DeleteHandler {
                     if (this.state.currentConfig.Common.FirewallAddressList
                      && this.state.currentConfig.Common.FirewallAddressList[itemToDelete]) {
                         const path = `${PATHS.FirewallAddressList}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(getDeletePromise(this.bigIp, path));
                         delete this.state.currentConfig.Common.FirewallAddressList[itemToDelete];
                     } else {
                         const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(getDeletePromise(this.bigIp, path));
                     }
                 } else if (deletableClass === 'FirewallAddressList') {
                     const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
                     if (this.state.currentConfig.Common.NetAddressList
                      && this.state.currentConfig.Common.NetAddressList[itemToDelete]) {
                         const path = `${PATHS.NetAddressList}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(getDeletePromise(this.bigIp, path));
                         delete this.state.currentConfig.Common.NetAddressList[itemToDelete];
                     } else {
                         const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(getDeletePromise(this.bigIp, path));
                     }
                 // Special cases for NetPortList/FirewallPortList: On BIGIP with provisioned AFM module
                 // if you create NetPortList then FirewallPortList will be created and vice versa.
@@ -206,22 +204,22 @@ class DeleteHandler {
                     if (this.state.currentConfig.Common.FirewallPortList
                      && this.state.currentConfig.Common.FirewallPortList[itemToDelete]) {
                         const path = `${PATHS.FirewallPortList}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(getDeletePromise(this.bigIp, path));
                         delete this.state.currentConfig.Common.FirewallPortList[itemToDelete];
                     } else {
                         const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(getDeletePromise(this.bigIp, path));
                     }
                 } else if (deletableClass === 'FirewallPortList') {
                     const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
                     if (this.state.currentConfig.Common.NetPortList
                      && this.state.currentConfig.Common.NetPortList[itemToDelete]) {
                         const path = `${PATHS.NetPortList}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(getDeletePromise(this.bigIp, path));
                         delete this.state.currentConfig.Common.NetPortList[itemToDelete];
                     } else {
                         const path = `${PATHS[deletableClass]}/${commonPrefix}${itemToDelete.replace(/\//g, '~')}`;
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(getDeletePromise(this.bigIp, path));
                     }
                 } else if (!isRetainedItem(deletableClass, itemToDelete)) {
                     const commonPrefix = deletableClass === 'Trunk' ? '' : '~Common~';
@@ -232,7 +230,7 @@ class DeleteHandler {
                             path
                         });
                     } else {
-                        classPromises.push(this.bigIp.delete(path, null, null, cloudUtil.NO_RETRY));
+                        classPromises.push(getDeletePromise(this.bigIp, path));
                     }
                 }
             });
@@ -299,12 +297,7 @@ function getAuthClassPromises() {
                     const shouldDelete = items.some((item) => item.fullPath === `/Common/${name}`);
 
                     if (shouldDelete) {
-                        return this.bigIp.delete(
-                            `${path}/~Common~${name}`,
-                            null,
-                            null,
-                            cloudUtil.NO_RETRY
-                        );
+                        return getDeletePromise(this.bigIp, `${path}/~Common~${name}`);
                     }
                     return Promise.resolve();
                 }));
@@ -321,12 +314,7 @@ function getAuthClassPromises() {
                     const shouldDelete = items.some((item) => item.fullPath === `/Common/${AUTH.SUBCLASSES_NAME}`);
 
                     if (shouldDelete) {
-                        return this.bigIp.delete(
-                            `/tm/auth/${authItem}/${AUTH.SUBCLASSES_NAME}`,
-                            null,
-                            null,
-                            cloudUtil.NO_RETRY
-                        );
+                        return getDeletePromise(this.bigIp, `/tm/auth/${authItem}/${AUTH.SUBCLASSES_NAME}`);
                     }
                     return Promise.resolve();
                 });
@@ -345,12 +333,7 @@ function getAuthClassPromises() {
                                 );
 
                                 if (shouldDelete) {
-                                    return this.bigIp.delete(
-                                        `${PATHS.AuthRadiusServer}/~Common~${server}`,
-                                        null,
-                                        null,
-                                        cloudUtil.NO_RETRY
-                                    );
+                                    return getDeletePromise(this.bigIp, `${PATHS.AuthRadiusServer}/~Common~${server}`);
                                 }
                                 return Promise.resolve();
                             })
@@ -371,6 +354,17 @@ function getAuthClassPromises() {
         });
     }
     return authPromises;
+}
+
+function getDeletePromise(bigIp, path, options) {
+    const retryOptions = options || cloudUtil.SHORT_RETRY;
+    return bigIp.delete(path, null, null, retryOptions)
+        .catch((err) => {
+            if (err.code === 404) {
+                return Promise.resolve();
+            }
+            throw err;
+        });
 }
 
 module.exports = DeleteHandler;

@@ -2130,6 +2130,44 @@ describe('systemHandler', () => {
                     );
                 });
         });
+
+        it('should handle rename case where network is the same between two objects', () => {
+            declaration.Common.ManagementRoute = {
+                managementRoute: {},
+                managementRoute1: {
+                    name: 'managementRoute1',
+                    gateway: '1.2.3.4',
+                    network: '4.3.2.1'
+                }
+            };
+            state.currentConfig.Common.ManagementRoute = {
+                managementRoute: {
+                    name: 'managementRoute',
+                    gateway: '1.2.3.4',
+                    network: '4.3.2.1'
+                }
+            };
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then(() => {
+                    const managementRoute = dataSent['/tm/sys/management-route'];
+                    assert.deepStrictEqual(
+                        managementRoute,
+                        [
+                            {
+                                name: 'managementRoute1',
+                                description: undefined,
+                                partition: 'Common',
+                                gateway: '1.2.3.4',
+                                network: '4.3.2.1/32',
+                                mtu: undefined,
+                                type: undefined
+                            }
+                        ]
+                    );
+                    assert.deepStrictEqual(deletedPaths, ['/tm/sys/management-route/~Common~managementRoute']);
+                });
+        });
     });
 
     it('should handle SnmpAgent', () => {
