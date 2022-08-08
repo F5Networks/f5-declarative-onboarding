@@ -10,6 +10,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-3346: ([GitHub Issue 314](https://github.com/F5Networks/f5-declarative-onboarding/issues/314)): RemoteAuthRole console property misconfigured when set to disabled
 - AUTOTOOL-3337: ([GitHub Issue 308](https://github.com/F5Networks/f5-declarative-onboarding/issues/308)): Fail quicker on bad targetPassphrase value
 - AUTOTOOL-3328: ([GitHub Issue 311](https://github.com/F5Networks/f5-declarative-onboarding/issues/311)): GSLBGlobals not processed
+- AUTOTOOL-3349: ([Github Issue 315](https://github.com/F5Networks/f5-declarative-onboarding/issues/315)): ManagementRoute Inconsistency
 
 ### Changed
 ### Removed

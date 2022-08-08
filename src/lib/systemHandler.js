@@ -839,9 +839,38 @@ function handleManagementIp(mgmtDhcp) {
 
 function handleManagementRoute() {
     if (this.declaration.Common.ManagementRoute) {
-        return doUtil.getCurrentPlatform()
+        let promises = [];
+        return Promise.resolve()
+            .then(() => {
+                Object.keys(this.state.currentConfig.Common.ManagementRoute || []).forEach((name) => {
+                    let promise = Promise.resolve();
+                    const declManagementRoute = this.declaration.Common.ManagementRoute[name]
+                        && this.declaration.Common.ManagementRoute[name].name;
+                    const isRename = Object.keys(this.declaration.Common.ManagementRoute)
+                        .find((key) => this.declaration.Common.ManagementRoute[key].name !== name
+                            && this.declaration.Common.ManagementRoute[key].network === this.state
+                                .currentConfig.Common.ManagementRoute[name].network);
+
+                    if (!declManagementRoute && isRename) {
+                        promise = promise.then(() => this.bigIp.delete(
+                            `${PATHS.ManagementRoute}/~Common~${name}`,
+                            null,
+                            null,
+                            cloudUtil.NO_RETRY
+                        ));
+                    }
+                    promises.push(promise);
+                });
+
+                return Promise.all(promises)
+                    .catch((err) => {
+                        logger.severe(`Error deleting existing ManagementRoute: ${err.message}`);
+                        throw err;
+                    });
+            })
+            .then(() => doUtil.getCurrentPlatform())
             .then((platform) => {
-                const promises = [];
+                promises = [];
                 doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
                     let promise = Promise.resolve();
                     if (managementRoute && managementRoute.name) {
