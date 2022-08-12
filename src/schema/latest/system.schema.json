@@ -299,6 +299,16 @@
                             "type": "string",
                             "format": "f5ip"
                         }
+                    },
+                    "snmpV1": {
+                        "description": "Enables snmpd daemon support of snmpV1 queries.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "snmpV2c": {
+                        "description": "Enables snmpd daemon support of snmpV2c queries.",
+                        "type": "boolean",
+                        "default": true
                     }
                 },
                 "additionalProperties": false

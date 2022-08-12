@@ -562,7 +562,9 @@ describe('system.schema.json', () => {
                         "10.8.100.0/32",
                         "10.30.10.100",
                         "10.30.10.200"
-                    ]
+                    ],
+                    "snmpV1": false,
+                    "snmpV2c": true
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });

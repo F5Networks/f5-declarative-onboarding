@@ -644,7 +644,9 @@
         "properties": [
             { "id": "sysContact", "newId": "contact", "defaultWhenOmitted": "" },
             { "id": "sysLocation", "newId": "location", "defaultWhenOmitted": "" },
-            { "id": "allowedAddresses", "newId": "allowList", "defaultWhenOmitted": [] }
+            { "id": "allowedAddresses", "newId": "allowList", "defaultWhenOmitted": [] },
+            { "id": "snmpv1", "newId": "snmpV1", "truth": "enable", "falsehood": "disabled" },
+            { "id": "snmpv2c", "newId": "snmpV2c", "truth": "enable", "falsehood": "disabled" }
         ],
         "nameless": true
     },

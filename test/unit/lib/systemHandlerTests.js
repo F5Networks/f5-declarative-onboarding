@@ -741,7 +741,7 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     System: {
-                        guiSecurityBanner: true,
+                        guiSecurityBanner: 'enabled',
                         guiSecurityBannerText: 'Y\'all need to log in.\n\nLogin to the text boxes yonder.'
                     }
                 }
@@ -751,7 +751,7 @@ describe('systemHandler', () => {
             return systemHandler.process()
                 .then(() => {
                     assert.deepStrictEqual(dataSent[PATHS.SysGlobalSettings][0], {
-                        guiSecurityBanner: true,
+                        guiSecurityBanner: 'enabled',
                         guiSecurityBannerText: 'Y\'all need to log in.\n\nLogin to the text boxes yonder.'
                     });
                 });
@@ -2182,7 +2182,9 @@ describe('systemHandler', () => {
                         '10.8.100.0/32',
                         '10.30.10.100',
                         '10.30.10.200'
-                    ]
+                    ],
+                    snmpv1: 'disabled',
+                    snmpv2c: 'disabled'
                 }
             }
         };
@@ -2201,13 +2203,18 @@ describe('systemHandler', () => {
                         '10.30.10.100',
                         '10.30.10.200'
                     ]);
+                assert.strictEqual(dataSent[PATHS.SnmpAgent][0].snmpv1, 'disabled');
+                assert.strictEqual(dataSent[PATHS.SnmpAgent][0].snmpv2c, 'disabled');
             });
     });
 
     it('should handle SnmpAgent defaults', () => {
         const declaration = {
             Common: {
-                SnmpAgent: {}
+                SnmpAgent: {
+                    snmpv1: 'enable',
+                    snmpv2c: 'enable'
+                }
             }
         };
 
@@ -2217,6 +2224,8 @@ describe('systemHandler', () => {
                 assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysContact, undefined);
                 assert.deepEqual(dataSent[PATHS.SnmpAgent][0].sysLocation, undefined);
                 assert.deepEqual(dataSent[PATHS.SnmpAgent][0].allowedAddresses, undefined);
+                assert.strictEqual(dataSent[PATHS.SnmpAgent][0].snmpv1, 'enable');
+                assert.strictEqual(dataSent[PATHS.SnmpAgent][0].snmpv2c, 'enable');
             });
     });
 

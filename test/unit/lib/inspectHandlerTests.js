@@ -947,7 +947,9 @@ describe('inspectHandler', () => {
                 ],
                 bigipTraps: 'enabled',
                 authTrap: 'disabled',
-                agentTrap: 'enabled'
+                agentTrap: 'enabled',
+                snmpv1: 'enable',
+                snmpv2c: 'enable'
             },
             '/tm/sys/snmp/users': [
                 {
@@ -2050,7 +2052,9 @@ describe('inspectHandler', () => {
                             location: 'F5 Tower',
                             allowList: [
                                 '1.2.3.4/32'
-                            ]
+                            ],
+                            snmpV1: true,
+                            snmpV2c: true
                         },
                         currentSnmpTrapEvents: {
                             class: 'SnmpTrapEvents',
@@ -2852,7 +2856,9 @@ describe('inspectHandler', () => {
                                 class: 'SnmpAgent',
                                 allowList: [],
                                 contact: '',
-                                location: ''
+                                location: '',
+                                snmpV1: false,
+                                snmpV2c: false
                             },
                             currentSnmpTrapEvents: {
                                 class: 'SnmpTrapEvents',
