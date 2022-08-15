@@ -15,7 +15,9 @@
                 "10.8.100.0/32",
                 "10.30.10.100",
                 "10.30.10.200"
-            ]
+            ],
+            "snmpV1": false,
+            "snmpV2c": true
         },
         "snmpUser1": {
             "class": "SnmpUser",

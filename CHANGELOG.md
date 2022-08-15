@@ -4,7 +4,8 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.32.0
 ### Added
 - AUTOTOOL-3308: ([GitHub Issue 280](https://github.com/F5Networks/f5-declarative-onboarding/issues/280)): DNS_Resolver_forwardZones/name should accept “.” as FQDN
-- AUTOTOOL-3413: ([partial implementation of GitHub Issue 316](https://github.com/F5Networks/f5-declarative-onboarding/issues/316)): Enable/disable and set GUI Security Banner in System class 
+- AUTOTOOL-3413: ([partial implementation of GitHub Issue 316](https://github.com/F5Networks/f5-declarative-onboarding/issues/316)): Enable/disable and set GUI Security Banner in System class
+- AUTOTOOL-3414: ([partial implementation of GitHub Issue 316](https://github.com/F5Networks/f5-declarative-onboarding/issues/316)): Properties to enable/disable SNMP V1 and V2c queries in the SnmpAgent class
 
 ### Fixed
 - AUTOTOOL-3346: ([GitHub Issue 314](https://github.com/F5Networks/f5-declarative-onboarding/issues/314)): RemoteAuthRole console property misconfigured when set to disabled

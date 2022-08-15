@@ -519,7 +519,7 @@ function getMcpObject(targetClass, inputOptions) {
                 return results;
             }
 
-            if (isNameless(classPath)) {
+            if (isNameless(classPath, targetClass)) {
                 return [response.body];
             }
 
@@ -549,14 +549,15 @@ function getMcpObject(targetClass, inputOptions) {
         });
 }
 
-function getPropertyFromPath(path) {
+function getPropertyFromPath(path, targetClass) {
     if (path.startsWith('/')) {
         path = path.slice(1);
     }
-    return propertyMap.find((item) => (item.path || '').slice(1) === path);
+
+    return propertyMap.find((item) => (item.path || '').slice(1) === path && targetClass === item.schemaClass);
 }
 
-function getPropertyFromKind(kind) {
+function getPropertyFromKind(kind, targetClass) {
     const pathComponents = kind.split(':');
     let subMap = null;
 
@@ -565,15 +566,15 @@ function getPropertyFromKind(kind) {
         if (path === '') {
             throw new Error(`Unable to find an entry in configItems.json for ${kind}`);
         }
-        subMap = getPropertyFromPath(path);
+        subMap = getPropertyFromPath(path, targetClass);
         pathComponents.pop();
     }
 
     return subMap.properties;
 }
 
-function isNameless(path) {
-    const property = getPropertyFromPath(path) || {};
+function isNameless(path, targetClass) {
+    const property = getPropertyFromPath(path, targetClass) || {};
     return property.nameless;
 }
 
@@ -590,18 +591,19 @@ function isObjectAsArray(value) {
     return true;
 }
 
-function extractMcpValue(mcpObject, mcpProperties, property) {
+function extractMcpValue(mcpObject, mcpProperties, property, targetClass) {
     const declPath = property.name.split('.');
     let mcpValue = mcpObject;
     let kind = mcpObject.kind.replace(/:[^:]*$/, '');
     let entry = null;
+
     while (declPath.length > 0) {
         const name = declPath.shift();
         if (!Number.isNaN(parseInt(name, 10))) {
             entry = {};
             mcpValue = mcpValue[parseInt(name, 10)];
         } else {
-            const propMap = getPropertyFromKind(kind);
+            const propMap = getPropertyFromKind(kind, targetClass);
             entry = propMap.find((p) => p.id === name || p.newId === name);
             if (!entry) {
                 throw new Error(`No entry with id or newId of ${name}`);
@@ -647,7 +649,7 @@ function getMcpValue(targetClass, properties, index, options) {
                         return Promise.resolve(property.extractFunction(result, expected))
                             .then((extracted) => { mcpProperties[property.name] = extracted; });
                     }
-                    return Promise.resolve(extractMcpValue(result, mcpProperties, property));
+                    return Promise.resolve(extractMcpValue(result, mcpProperties, property, targetClass));
                 });
 
             return Promise.all(extractPromises)

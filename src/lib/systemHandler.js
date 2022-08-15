@@ -934,7 +934,9 @@ function handleSnmp() {
             {
                 sysContact: agent.sysContact,
                 sysLocation: agent.sysLocation,
-                allowedAddresses: agent.allowedAddresses
+                allowedAddresses: agent.allowedAddresses,
+                snmpv1: agent.snmpv1,
+                snmpv2c: agent.snmpv2c
             }
         ));
     }

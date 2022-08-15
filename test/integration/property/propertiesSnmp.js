@@ -26,6 +26,60 @@ const {
 describe('Snmp', function testSnmp() {
     this.timeout(600000);
 
+    describe('Snmp Agent', () => {
+        function assertSnmpAgentClass(properties, options) {
+            return assertClass('SnmpAgent', properties, options);
+        }
+
+        const options = {};
+
+        it('All Properties', () => {
+            const properties = [
+                {
+                    name: 'contact',
+                    inputValue: ['Customer Name <admin@customer.com>', 'Op Center <ops@example.com>', 'Customer Name <admin@customer.com>'],
+                    expectedValue: ['Customer Name <admin@customer.com>', 'Op Center <ops@example.com>', 'Customer Name <admin@customer.com>']
+                },
+                {
+                    name: 'location',
+                    inputValue: ['Network Closet 1', 'Seattle, WA', 'Network Closet 1'],
+                    expectedValue: ['Network Closet 1', 'Seattle, WA', 'Network Closet 1']
+                },
+                {
+                    name: 'allowList',
+                    inputValue: [
+                        ['127.0.0.0/8'],
+                        [
+                            '10.30.100.0/23',
+                            '10.40.100.0/23'
+                        ],
+                        ['127.0.0.0/8']
+                    ],
+                    expectedValue: [
+                        ['127.0.0.0/8'],
+                        [
+                            '10.30.100.0/23',
+                            '10.40.100.0/23'
+                        ],
+                        ['127.0.0.0/8']
+                    ]
+                },
+                {
+                    name: 'snmpV1',
+                    inputValue: [true, false, true],
+                    expectedValue: ['enable', 'disabled', 'enable']
+                },
+                {
+                    name: 'snmpV2c',
+                    inputValue: [true, false, true],
+                    expectedValue: ['enable', 'disabled', 'enable']
+                }
+            ];
+
+            return assertSnmpAgentClass(properties, options);
+        });
+    });
+
     describe('Snmp Community', () => {
         function assertSnmpCommunityClass(properties, options) {
             return assertClass('SnmpCommunity', properties, options);
