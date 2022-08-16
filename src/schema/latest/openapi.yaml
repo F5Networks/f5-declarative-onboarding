@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: DO
   description: This reference describes the DO API and available endpoints. For more details, see https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/using-do.html.
-  version: 1.32.0
+  version: 1.33.0
   contact:
     name: Declarative Onboarding
     email: solutionsfeedback@f5.com

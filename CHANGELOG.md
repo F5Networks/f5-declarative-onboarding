@@ -1,6 +1,12 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.33.0
+### Added
+### Fixed
+### Changed
+### Removed
+
 ## 1.32.0
 ### Added
 - AUTOTOOL-3308: ([GitHub Issue 280](https://github.com/F5Networks/f5-declarative-onboarding/issues/280)): DNS_Resolver_forwardZones/name should accept “.” as FQDN
