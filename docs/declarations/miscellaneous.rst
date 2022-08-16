@@ -36,13 +36,16 @@ For usage and options, see |sysclass| in the Schema Reference.
 
 DO 1.13 introduced the ability to disable the automatic update check feature.  The autoCheck property controls whether the BIG-IP checks for and recommends software updates.  See |k15000| for more information. 
 
-In the following declaration, we show only the System class (including autoCheck introduced in 1.13).  You can use this class as a part of a larger Declarative Onboarding declaration. 
+DO 1.32 introduced the ability to add a security banner on the logon screen of the user interface using the **guiSecurityBanner** and **guiSecurityBannerText** properties. When **guiSecurityBanner** is set to **true**, you specify the text you want to display in the **guiSecurityBannerText** property.  If you set **guiSecurityBanner** to **false**, the system presents an empty frame in the right portion of the login screen.
 
-**Important**: If you try to use this declaration with a DO version prior to 1.13, it will fail.  Either upgrade to 1.13, or remove the autoCheck line.
+In the following declaration, we show only the System class (including autoCheck introduced in 1.13, and the GUI security banner options in 1.32).  You can use this class as a part of a larger Declarative Onboarding declaration. 
+
+**Important**: If you try to use this declaration with a DO version prior to 1.32, it will fail.  Either upgrade DO to 1.32, or remove the guiSecurityBanner lines (highlighted in yellow).
 
 
 .. literalinclude:: ../../examples/system.json
    :language: json
+   :emphasize-lines: 15, 16
 
 :ref:`Back to top<misc-examples>`
 
