@@ -13,7 +13,7 @@ Document Revision History
 
       * - 1.32
         - Updated the documentation for Declarative Onboarding v1.30.0.  This release contains the following changes: |br| * DNS_Resolver_forwardZones/name now accept "." as FQDN, `GitHub Issue 280 <https://github.com/F5Networks/f5-declarative-onboarding/issues/280>`_ |br| |br| Issues Resolved: |br| * RemoteAuthRole console property misconfigured when set to disabled, `GitHub Issue 314 <https://github.com/F5Networks/f5-declarative-onboarding/issues/314>`_ |br| * Fail quicker on bad targetPassphrase value, `GitHub Issue 308 <https://github.com/F5Networks/f5-declarative-onboarding/issues/308>`_ |br| * Fail quicker on bad targetPassphrase value, `GitHub Issue 308 <https://github.com/F5Networks/f5-declarative-onboarding/issues/308>`_ |br| * GSLBGlobals not processed, `GitHub Issue 311 <https://github.com/F5Networks/f5-declarative-onboarding/issues/311>`_
-        - 8-26-22
+        - 8-23-22
 
       * - 1.31
         - Updated the documentation for Declarative Onboarding v1.31.0.  This release contains the following Issues Resolved: |br| * Improve exception handling when running on BIG-IQ |br| * DO 1.29.0 unable to find /mgmt/tm/sys/provision, `GitHub Issue 306 <https://github.com/F5Networks/f5-declarative-onboarding/issues/306>`_  
