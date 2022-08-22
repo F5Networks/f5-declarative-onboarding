@@ -26,11 +26,11 @@ Configuring SNMP in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In this example, we show how to configure SNMP in a Declarative Onboarding declaration.  You can use DO to configure SNMP agents, users, communities, trap events, and trap destinations.  See the |snmpdoc| in the BIG-IP documentation for specific information.
 
-DO 1.32 and later add the ability to enable **snmpd** daemon support of snmpV1 and snmpV2 queries using the **snmpV1** and **snmpV2** properties set to **true** in the SNMP class.
+DO 1.32 and later add the ability to enable or disable **snmpd** daemon support of snmpV1 and snmpV2c queries using the **snmpV1** and **snmpV2c** properties in the SNMP class. Using a value of **true** (default) enables support, **false** disables support.
 
 In the following declaration snippet we show only the classes related to SNMP.  You can use this class as a part of a larger Declarative Onboarding declaration.
 
-**Important**: If you try to use this declaration with a DO version prior to 1.32, it will fail.  Either upgrade DO to 1.32, or remove the snmpV1 and snmpv2 lines (highlighted in yellow).
+**Important**: If you try to use this declaration with a DO version prior to 1.32, it will fail.  Either upgrade DO to 1.32, or remove the snmpV1 and snmpV2c lines (highlighted in yellow).
 
 .. literalinclude:: ../../examples/snmp.json
    :language: json
