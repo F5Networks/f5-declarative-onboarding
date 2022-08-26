@@ -23,65 +23,65 @@ const state = require('./stateMock');
 
 let taskResponse;
 
-state.tasks = {
-    1234: {
-        result: {
-            code: 200,
-            status: 'my status 1234',
-            message: 'my message 1234',
-            errors: ['error 1', 'error 2']
-        },
-        declaration: {
-            hello: 'declaration for 1234'
-        },
-        currentConfig: {
-            foo: 'config for 1234'
-        },
-        originalConfig: {
-            hello: 'original config for 1234'
-        },
-        traceCurrent: {
-            current: 'config for 1234'
-        },
-        traceDesired: {
-            desired: 'config for 1234'
-        },
-        traceDiff: {
-            diff: 'for 1234'
-        },
-        lastUpdate: 'last update 1234'
-    },
-    5678: {
-        result: {
-            code: 400,
-            status: 'my status 5678',
-            message: 'my message 5678',
-            errors: ['error 3', 'error 4']
-        },
-        declaration: {
-            hello: 'declaration for 1234'
-        },
-        currentConfig: {
-            foo: 'config for 5678'
-        },
-        originalConfig: {
-            hello: 'original config for 5678'
-        },
-        traceCurrent: {
-            current: 'config for 5678'
-        },
-        traceDesired: {
-            desired: 'config for 5678'
-        },
-        traceDiff: {
-            diff: 'for 5678'
-        },
-        lastUpdate: 'last update 5678'
-    }
-};
-
 describe('taskResponse', () => {
     beforeEach(() => {
+        state.tasks = {
+            1234: {
+                result: {
+                    code: 200,
+                    status: 'my status 1234',
+                    message: 'my message 1234',
+                    errors: ['error 1', 'error 2'],
+                    warnings: ['this is a warning', 'you have been warned']
+                },
+                declaration: {
+                    hello: 'declaration for 1234'
+                },
+                currentConfig: {
+                    foo: 'config for 1234'
+                },
+                originalConfig: {
+                    hello: 'original config for 1234'
+                },
+                traceCurrent: {
+                    current: 'config for 1234'
+                },
+                traceDesired: {
+                    desired: 'config for 1234'
+                },
+                traceDiff: {
+                    diff: 'for 1234'
+                },
+                lastUpdate: 'last update 1234'
+            },
+            5678: {
+                result: {
+                    code: 400,
+                    status: 'my status 5678',
+                    message: 'my message 5678',
+                    errors: ['error 3', 'error 4']
+                },
+                declaration: {
+                    hello: 'declaration for 1234'
+                },
+                currentConfig: {
+                    foo: 'config for 5678'
+                },
+                originalConfig: {
+                    hello: 'original config for 5678'
+                },
+                traceCurrent: {
+                    current: 'config for 5678'
+                },
+                traceDesired: {
+                    desired: 'config for 5678'
+                },
+                traceDiff: {
+                    diff: 'for 5678'
+                },
+                lastUpdate: 'last update 5678'
+            }
+        };
         taskResponse = new TaskResponse(state, 'GET');
     });
 
@@ -123,6 +123,10 @@ describe('taskResponse', () => {
 
     it('should return the proper errors for a task', () => {
         assert.deepEqual(taskResponse.getErrors(1234), ['error 1', 'error 2']);
+    });
+
+    it('should return the proper warnings for a task', () => {
+        assert.deepEqual(taskResponse.getWarnings(1234), ['this is a warning', 'you have been warned']);
     });
 
     it('should return the proper data for a task', () => {

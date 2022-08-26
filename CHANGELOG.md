@@ -5,6 +5,8 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 ### Fixed
 ### Changed
+AUTOTOOL-3419: Issue warning when a SelfIp is modified that the default for 'allowService' will change to 'none' in version 1.35.0
+
 ### Removed
 
 ## 1.32.0

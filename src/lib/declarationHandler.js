@@ -1301,7 +1301,8 @@ function makeUpdates(bigIp, eventEmitter, declaration, updateDeclaration, delete
         })
         .then((handlerStatuses) => {
             const status = {
-                rollbackInfo: {}
+                rollbackInfo: {},
+                warnings: []
             };
             handlerStatuses.forEach((handlerStatus) => {
                 if (handlerStatus.rebootRequired === true) {
@@ -1311,6 +1312,9 @@ function makeUpdates(bigIp, eventEmitter, declaration, updateDeclaration, delete
                     Object.keys(handlerStatus.rollbackInfo).forEach((key) => {
                         status.rollbackInfo[key] = JSON.parse(JSON.stringify(handlerStatus.rollbackInfo[key]));
                     });
+                }
+                if (handlerStatus.warnings) {
+                    status.warnings = status.warnings.concat(handlerStatus.warnings);
                 }
             });
             logger.info('Done processing declaration.');
