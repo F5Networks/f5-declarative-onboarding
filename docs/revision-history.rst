@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.33
+        - Updated the documentation for Declarative Onboarding v1.30.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Issue warning when a SelfIp is modified that the default for 'allowService' will change to 'none' in version 1.35.0
+        - 10-4-22
+
       * - 1.32
         - Updated the documentation for Declarative Onboarding v1.30.0.  This release contains the following changes: |br| * Added support for a GUI security banner in the System class (see the updated :ref:`System example<system>`), `GitHub Issue 316 <https://github.com/F5Networks/f5-declarative-onboarding/issues/316>`_ |br| * Added the ability to enable or disable **snmpd** daemon support of snmpV1 and snmpV2c queries (see the updated :ref:`SNMP example<snmp>`), `GitHub Issue 316 <https://github.com/F5Networks/f5-declarative-onboarding/issues/316>`_ |br| * DNS_Resolver_forwardZones/name now accept "." as an FQDN, `GitHub Issue 280 <https://github.com/F5Networks/f5-declarative-onboarding/issues/280>`_ |br| |br| Issues Resolved: |br| * RemoteAuthRole console property misconfigured when set to disabled, `GitHub Issue 314 <https://github.com/F5Networks/f5-declarative-onboarding/issues/314>`_ |br| * Fail quicker on bad targetPassphrase value, `GitHub Issue 308 <https://github.com/F5Networks/f5-declarative-onboarding/issues/308>`_ |br| * Fail quicker on bad targetPassphrase value, `GitHub Issue 308 <https://github.com/F5Networks/f5-declarative-onboarding/issues/308>`_ |br| * GSLBGlobals not processed, `GitHub Issue 311 <https://github.com/F5Networks/f5-declarative-onboarding/issues/311>`_ |br| * ManagementRoute Inconsistency, `GitHub Issue 315 <https://github.com/F5Networks/f5-declarative-onboarding/issues/315>`_
         - 8-23-22
