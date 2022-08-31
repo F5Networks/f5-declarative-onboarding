@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.33
-        - Updated the documentation for Declarative Onboarding v1.30.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Issue warning when a SelfIp is modified that the default for 'allowService' will change to 'none' in version 1.35.0
+        - Updated the documentation for Declarative Onboarding v1.30.0.  This release contains the following changes: |br| * Added a note to self IP stating the default behavior will change in DO 1.35 (see :ref:`Self IP class<selfip-class>`)  |br| |br| Issues Resolved: |br| * Issue warning in the API response when a SelfIp is modified that the default for **allowService** will change to **none** in DO version 1.35.0
         - 10-4-22
 
       * - 1.32
