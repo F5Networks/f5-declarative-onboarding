@@ -551,6 +551,8 @@ Self IP class
 `````````````
 The next lines of the declaration configure self IP address(es) on the BIG-IP system. In this case, the name you give the Self IP class is used for the name of the Self IP on the BIG-IP.  
 
+.. IMPORTANT:: Beginning with DO 1.35.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP. This change will help DO be more secure.
+
 For more information, see |ntpclass| in the Schema Reference.
 
 
