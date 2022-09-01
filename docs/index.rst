@@ -3,7 +3,7 @@ F5 Declarative Onboarding Documentation
 
 Welcome to the F5 Declarative Onboarding documentation.
 
-.. IMPORTANT:: This the documentation for the **latest** version of Declarative Onboarding, if you want to see the documentation for a long term support (LTS) version, use the version selector on the top left (for details, see |supportmd|). 
+This the documentation for the **latest** version of Declarative Onboarding, if you want to see the documentation for a long term support (LTS) version, use the version selector on the top left (for details, see |supportmd|). 
 
 F5 Declarative onboarding uses a |declare| model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.  If you want to use a declarative model to configure applications and services on a BIG-IP device that already has these initial settings, see the |as3| documentation.
 
@@ -14,6 +14,8 @@ A declarative model means you provide a JSON declaration rather than a set of im
 You can use Microsoft Visual Studio Code to validate your declarations, see :doc:`validate` for information.
 
 This guide contains information on downloading, installing, and using F5 Declarative Onboarding.
+
+.. IMPORTANT:: Beginning with DO 1.35.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.
 
 .. NOTE:: To see what's new in Declarative Onboarding, see the the :ref:`revision-history`.
 
