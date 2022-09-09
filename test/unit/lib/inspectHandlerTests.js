@@ -1024,6 +1024,20 @@ describe('inspectHandler', () => {
                     userPartition: 'All'
                 }
             ],
+            '/tm/auth/password-policy': {
+                expirationWarning: 7,
+                lockoutDuration: 99999,
+                maxDuration: 99999,
+                maxLoginFailures: 0,
+                minDuration: 0,
+                minimumLength: 6,
+                passwordMemory: 0,
+                policyEnforcement: 'enabled',
+                requiredLowercase: 0,
+                requiredNumeric: 0,
+                requiredSpecial: 0,
+                requiredUppercase: 0
+            },
             '/tm/auth/radius': {
                 name: 'system-auth',
                 serviceType: 'authenticate-only'
@@ -2126,6 +2140,21 @@ describe('inspectHandler', () => {
                             role: 'operator',
                             userPartition: 'all'
                         },
+                        currentPasswordPolicy: {
+                            class: 'PasswordPolicy',
+                            expirationWarningDays: 7,
+                            lockoutDurationSeconds: 99999,
+                            maxDurationDays: 99999,
+                            maxLoginFailures: 0,
+                            minDurationDays: 0,
+                            minLength: 6,
+                            passwordMemory: 0,
+                            policyEnforcementEnabled: true,
+                            requiredLowercase: 0,
+                            requiredNumeric: 0,
+                            requiredSpecial: 0,
+                            requiredUppercase: 0
+                        },
                         currentAuthentication: {
                             class: 'Authentication',
                             enabledSourceType: 'local',
@@ -2846,6 +2875,10 @@ describe('inspectHandler', () => {
                                 offboxTcpPort: 0,
                                 sourceId: 'none',
                                 tenantId: 'default'
+                            },
+                            currentPasswordPolicy: {
+                                class: 'PasswordPolicy',
+                                policyEnforcementEnabled: false
                             },
                             currentAuthentication: {
                                 class: 'Authentication',

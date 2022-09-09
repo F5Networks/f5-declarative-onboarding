@@ -1186,6 +1186,25 @@
         "nameless": true
     },
     {
+        "path": "/tm/auth/password-policy",
+        "schemaClass": "PasswordPolicy",
+        "properties": [
+            { "id": "expirationWarning", "newId": "expirationWarningDays" },
+            { "id": "minimumLength", "newId": "minLength" },
+            { "id": "minDuration", "newId": "minDurationDays" },
+            { "id": "maxDuration", "newId": "maxDurationDays" },
+            { "id": "lockoutDuration", "newId": "lockoutDurationSeconds", "minVersion": "15.1" },
+            { "id": "maxLoginFailures" },
+            { "id": "passwordMemory" },
+            { "id": "policyEnforcement", "truth": "enabled", "falsehood": "disabled", "newId": "policyEnforcementEnabled" },
+            { "id": "requiredUppercase" },
+            { "id": "requiredLowercase" },
+            { "id": "requiredNumeric" },
+            { "id": "requiredSpecial" }
+        ],
+        "nameless": true
+    },
+    {
         "schemaClass": "License",
         "nameless": true,
         "properties": [],
