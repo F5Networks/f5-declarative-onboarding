@@ -2,11 +2,11 @@
 
 Validating a declaration
 ------------------------
-In this section, we show you how to validate a Declarative Onboarding declaration against the schema using Microsoft |vsc|. Using this type of validation is useful when composing a declaration manually, or to check the accuracy of a declaration before deployment.
+In this section, we show you how to validate a BIG-IP Declarative Onboarding declaration against the schema using Microsoft |vsc|. Using this type of validation is useful when composing a declaration manually, or to check the accuracy of a declaration before deployment.
 
 For more information on editing JSON with Visual Studio Code, see this |json|.
 
-.. NOTE:: Starting with DO 1.30, you can validate declarations with either the Device or DO class by using **do.schema.json** rather than **base.schema.json**.
+.. NOTE:: Starting with BIG-IP DO 1.30, you can validate declarations with either the Device or BIG-IP DO class by using **do.schema.json** rather than **base.schema.json**.
 
 
 To validate a declaration
@@ -14,9 +14,9 @@ To validate a declaration
 Use the following procedure to validate a declaration.
 
 1.  Download and install |vsc|.
-2.  Go to the |schema| directory of the Declarative Onboarding repo on GitHub.
+2.  Go to the |schema| directory of the BIG-IP Declarative Onboarding repo on GitHub.
 
-    - Click either **latest** or the specific Declarative Onboarding version you are using.
+    - Click either **latest** or the specific BIG-IP Declarative Onboarding version you are using.
     - Click the **do.schema.json** file and then click the **Raw** tab.
     - Copy the URL of the raw schema file.
 
