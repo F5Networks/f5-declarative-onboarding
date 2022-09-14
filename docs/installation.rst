@@ -1,7 +1,7 @@
 .. _installation:
 
 Downloading and installing the BIG-IP Declarative Onboarding package
--------------------------------------------------------------
+--------------------------------------------------------------------
 The BIG-IP Declarative Onboarding package is an RPM file you download, and then upload to the BIG-IP system using the iControl/iApp LX framework. Remember that your BIG-IP must have a management IP address and an **admin** user.
 
 Downloading the RPM file
@@ -14,7 +14,7 @@ The first task is to download the latest RPM file.  Go to the |github|, and down
 
 
 Uploading and installing the BIG-IP Declarative Onboarding RPM file on the BIG-IP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 After you download the RPM, you must upload and then install it on your BIG-IP system.  In this section, we show how to upload the RPM using :ref:`cURL<uploadcurl>` or :ref:`SCP<uploadscp>`.  Use only one of the following procedures.
 
 .. _14andlater:
@@ -30,7 +30,7 @@ If you are using BIG-IP 14.0 or later, the |14| is enforced. As mentioned in the
 .. _uploadscp:
 
 Uploading BIG-IP Declarative Onboarding using SCP
-``````````````````````````````````````````
+`````````````````````````````````````````````````
 
 You can use SCP to upload the RPM file to the BIG-IP system.  Even if you use SCP to upload the RPM file,  you still have to use cURL command to install the package.
 
@@ -44,7 +44,7 @@ You can use SCP to upload the RPM file to the BIG-IP system.  Even if you use SC
 .. _uploadcurl:
 
 Uploading BIG-IP Declarative Onboarding using cURL
-```````````````````````````````````````````
+``````````````````````````````````````````````````
 
 If you want to use cURL to install BIG-IP Declarative Onboarding, use the following command syntax.  First, set the file name and the BIG-IP credentials, making sure you use the appropriate RPM and build number, and BIG-IP credentials.  
 
@@ -80,7 +80,7 @@ If you are using a Mac, for the first command, use
 .. _installcurl-ref:
 
 Installing BIG-IP Declarative Onboarding using cURL from the Linux shell
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 No matter which method you used to upload the RPM onto the BIG-IP, you must use the following cURL commands. Copy the following commands to install the package.
 
 If you used SCP to upload the package, first set the BIG-IP IP address and credentials as described in :ref:`uploadcurl`.
@@ -132,7 +132,7 @@ You can also GET to send ``https://(IP address of BIG-IP)/mgmt/shared/declarativ
 
 
 Updating BIG-IP Declarative Onboarding
-```````````````````````````````
+``````````````````````````````````````
 When F5 releases a new version of BIG-IP Declarative Onboarding, use the same procedure you used to initially install the RPM.  
 
 
@@ -145,7 +145,7 @@ If for any reason you want to revert to a previous version of BIG-IP Declarative
 
 
 Viewing the BIG-IP Declarative Onboarding package in the BIG-IP Configuration utility
-``````````````````````````````````````````````````````````````````````````````
+`````````````````````````````````````````````````````````````````````````````````````
 If you are using BIG-IP v13.x and want to see the BIG-IP Declarative Onboarding package in the BIG-IP Configuration utility (GUI), from the BIG-IP CLI, you must type the following command:  ``touch /var/config/rest/iapps/enable``.  You only need to run this command once (per BIG-IP system). This is not necessary with 14.0 and later.
 
 After running that command, you can log into the Configuration utility, and then click **iApps > Package Management LX** and you see the BIG-IP Declarative Onboarding package.  If you already had the Configuration utility open, you may need to refresh the page.
