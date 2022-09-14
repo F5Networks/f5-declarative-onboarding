@@ -24,13 +24,13 @@ In this example, we are licensing a new BIG-IP, provisioning AVR, and creating a
 
 Configuring SNMP in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-In this example, we show how to configure SNMP in a Declarative Onboarding declaration.  You can use DO to configure SNMP agents, users, communities, trap events, and trap destinations.  See the |snmpdoc| in the BIG-IP documentation for specific information.
+In this example, we show how to configure SNMP in a BIG-IP Declarative Onboarding declaration.  You can use BIG-IP DO to configure SNMP agents, users, communities, trap events, and trap destinations.  See the |snmpdoc| in the BIG-IP documentation for specific information.
 
-DO 1.32 and later add the ability to enable or disable **snmpd** daemon support of snmpV1 and snmpV2c queries using the **snmpV1** and **snmpV2c** properties in the SNMP class. Using a value of **true** (default) enables support, **false** disables support.
+BIG-IP DO 1.32 and later add the ability to enable or disable **snmpd** daemon support of snmpV1 and snmpV2c queries using the **snmpV1** and **snmpV2c** properties in the SNMP class. Using a value of **true** (default) enables support, **false** disables support.
 
-In the following declaration snippet we show only the classes related to SNMP.  You can use this class as a part of a larger Declarative Onboarding declaration.
+In the following declaration snippet we show only the classes related to SNMP.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.
 
-**Important**: If you try to use this declaration with a DO version prior to 1.32, it will fail.  Either upgrade DO to 1.32, or remove the snmpV1 and snmpV2c lines (highlighted in yellow).
+**Important**: If you try to use this declaration with a BIG-IP DO version prior to 1.32, it will fail.  Either upgrade BIG-IP DO to 1.32, or remove the snmpV1 and snmpV2c lines (highlighted in yellow).
 
 .. literalinclude:: ../../examples/snmp.json
    :language: json
@@ -49,7 +49,7 @@ In this example, we show how to configure a syslog destination using the **Syslo
 
 **Important**: The remote syslog server must be accessible from your BIG-IP system on the default route domain (Domain 0) or management network, and conversely, your BIG-IP system is accessible from the remote syslog server.
 
-In the following declaration snippet we show only the SyslogRemoteServer class.  You can use this class as a part of a larger Declarative Onboarding declaration.
+In the following declaration snippet we show only the SyslogRemoteServer class.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.
 
 .. literalinclude:: ../../examples/syslogDestination.json
    :language: json
@@ -62,13 +62,9 @@ In the following declaration snippet we show only the SyslogRemoteServer class. 
 
 Configuring Audit Logging in a declaration  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+In this example, we show how you can configure audit logging in the System class of a BIG-IP Declarative Onboarding declaration.  This allows audit logging to start as early as possible.
 
-   Support for configuring audit logging is available in DO v1.13 and later
-
-In this example, we show how you can configure audit logging in the System class of a Declarative Onboarding declaration.  This allows audit logging to start as early as possible.
-
-See |sysclass| in the Schema Reference for DO usage and options. For detailed information about audit logging on the BIG-IP, see the |auditlog|.
+See |sysclass| in the Schema Reference for BIG-IP DO usage and options. For detailed information about audit logging on the BIG-IP, see the |auditlog|.
 
 .. IMPORTANT:: **guiAuditLog** is only available on TMOS v14.0 and later
 
