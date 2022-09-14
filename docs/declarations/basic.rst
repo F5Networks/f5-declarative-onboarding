@@ -2,7 +2,7 @@
 
 Basic examples
 --------------
-This section contains general Declarative Onboarding example declarations.
+This section contains general BIG-IP Declarative Onboarding example declarations.
 
 
 .. _example1:
@@ -52,7 +52,7 @@ User class
 ^^^^^^^^^^
 The following is an example of the :ref:`User Class<user-class>`.  The User class creates (or modifies) the users and their associated roles and access control. For more information, see |userclass| in the Schema Reference.
 
-In the following declaration, we show only the User class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+In the following declaration, we show only the User class.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration. 
 
 .. literalinclude:: ../../examples/user.json
    :language: json
