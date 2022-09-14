@@ -5,7 +5,7 @@ Welcome to the F5 BIG-IP Declarative Onboarding documentation.
 
 .. IMPORTANT:: This the documentation for the **latest** version of BIG-IP Declarative Onboarding, if you want to see the documentation for a long term support (LTS) version, use the version selector on the top left (for details, see |supportmd|). 
 
-BIG-IP Declarative onboarding uses a |declare| model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.  If you want to use a declarative model to configure applications and services on a BIG-IP device that already has these initial settings, see the |as3| documentation.
+BIG-IP Declarative onboarding (BIG-IP DO) uses a |declare| model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.  If you want to use a declarative model to configure applications and services on a BIG-IP device that already has these initial settings, see the |as3| documentation.
 
 A declarative model means you provide a JSON declaration rather than a set of imperative commands. The declaration represents the configuration which Declarative Onboarding is responsible for creating on a BIG-IP system.  You send a declaration file using a single Rest API call.
 
