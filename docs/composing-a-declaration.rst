@@ -6,7 +6,7 @@ Composing a BIG-IP Declarative Onboarding declaration for a standalone BIG-IP
 
 The most important part of using BIG-IP Declarative Onboarding is creating a declaration that includes the BIG-IP objects you want the system to configure.    
 
-To submit an BIG-IP Declarative Onboarding declaration, use a specialized RESTful API client such as Postman or a universal client such as cURL.
+To submit a BIG-IP Declarative Onboarding declaration, use a specialized RESTful API client such as Postman or a universal client such as cURL.
 
 To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP address>/mgmt/shared/declarative-onboarding``.  If you are using a single NIC BIG-IP, include port 8443: ``<BIG-IP IP address>:8443/mgmt/shared/declarative-onboarding``
 
