@@ -11,16 +11,16 @@ Adding Route Domains to a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for the **parent** property in the **routeDomain** class is available in DO v1.17.0 and later.
+   Support for the **parent** property in the **routeDomain** class is available in BIG-IP DO v1.17.0 and later.
 
 In this example, we show how to use a Route Domain in a declaration.  A route domain is a configuration object that isolates network traffic for a particular application on the network.  For more information on Route Domains, see |rddoc|.
 
 In the following declaration, we include a VLAN to show how to reference a VLAN that is being created.  The SelfIp and the Route both show using the RouteDomain with **%100**, which is the **id** of the RouteDomain.
 
-**New in DO 1.17** |br|
-Declarative Onboarding 1.17 added support for specifying a parent route domain.  This is the route domain the system searches when it cannot find a route in the configured domain.
+**New in BIG-IP DO 1.17** |br|
+BIG-IP Declarative Onboarding 1.17 added support for specifying a parent route domain.  This is the route domain the system searches when it cannot find a route in the configured domain.
 
-.. IMPORTANT:: The following declaration has been updated to include the **parent** property introduced in DO 1.17. If you attempt to use this declaration on a prior version, it will fail unless you remove the **parent** property.
+.. IMPORTANT:: The following declaration has been updated to include the **parent** property introduced in BIG-IP DO 1.17. If you attempt to use this declaration on a prior version, it will fail unless you remove the **parent** property.
 
 
 .. literalinclude:: ../../examples/routeDomains.json
@@ -36,13 +36,9 @@ Declarative Onboarding 1.17 added support for specifying a parent route domain. 
 
 Setting the DAG IPv6 prefix length
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   The **DagGlobals** class is available in DO v1.7.0 and later.
-
 In this example, we show how to use the DagGlobals class to set or modify the DAG global IPv6 prefix length.  DAG Globals contain the global disaggregation settings; see the |dagdoc| documentation for more information.
 
-In the following declaration snippet, we show only the DagGlobals class.  You can use this class as a part of a larger Declarative Onboarding declaration.
+In the following declaration snippet, we show only the DagGlobals class.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.
 
 
 
@@ -56,13 +52,9 @@ In the following declaration snippet, we show only the DagGlobals class.  You ca
 
 Configuring Traffic Control properties
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+In this example, we show how you can configure BIG-IP LTM global traffic control settings (ltm global-settings traffic-control) using a BIG-IP Declarative Onboarding declaration. For descriptions and usage details on these properties, see |tcref| in the Schema Reference.
 
-   Support for configuring all LTM global traffic control properties is available in DO v1.7.0 and later.
-
-In this example, we show how you can configure BIG-IP LTM global traffic control settings (ltm global-settings traffic-control) using a Declarative Onboarding declaration. For descriptions and usage details on these properties, see |tcref| in the Schema Reference.
-
-In the following declaration snippet we show only the classes related to Traffic Control.  You can use this class as a part of a larger Declarative Onboarding declaration.
+In the following declaration snippet we show only the classes related to Traffic Control.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.
 
 .. literalinclude:: ../../examples/trafficControl.json
    :language: json
@@ -75,13 +67,9 @@ In the following declaration snippet we show only the classes related to Traffic
 
 Using the CMP Hash property in a VLAN
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   The VLAN property **cmp-hash** is available in DO v1.7.0 and later.
-
 Starting in 1.7.0, you have the option of using the **cmp-hash** property on a VLAN.  The CMP Hash setting allows all connections from a client system to use the same set of TMMs, improving system performance. For more information, see |cmpdocs| in the BIG-IP documentation.  You can also see |cmpref| in the Schema Reference for usage options.
 
-In the following declaration snippet we show only the VLAN class with cmp-hash using Source Address as the traffic disaggregation method.  You can use this class as a part of a larger Declarative Onboarding declaration.
+In the following declaration snippet we show only the VLAN class with cmp-hash using Source Address as the traffic disaggregation method.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.
 
 .. literalinclude:: ../../examples/vlanCmpHash.json
    :language: json
@@ -94,15 +82,11 @@ In the following declaration snippet we show only the VLAN class with cmp-hash u
 
 Configuring MAC Masquerading on Traffic Groups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for MAC Masquerade on Traffic Groups is available in DO v1.13 and later
-
 In this example, we show how you can configure MAC Masquerading on Traffic Groups.  This is a part of the new **MAC_Masquerade** class.
 
 For detailed information about Mac Masquerade on the BIG-IP, see |mmkb|.
 
-See |macm| in the Schema Reference for DO usage and options.
+See |macm| in the Schema Reference for BIG-IP DO usage and options.
 
 
 .. literalinclude:: ../../examples/macMasquerade.json
@@ -116,15 +100,11 @@ See |macm| in the Schema Reference for DO usage and options.
 
 Configuring VLAN Failsafe
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for VLAN Failsafe is available in DO v1.14 and later
-
-In this example, we show how you can configure VLAN Failsafe settings in a Declarative Onboarding declaration.  This is a part of the |cmpref|, and includes the new properties **failsafeEnabled**, **failsafeAction**, and **failsafeTimeout**.
+In this example, we show how you can configure VLAN Failsafe settings in a BIG-IP Declarative Onboarding declaration.  This is a part of the |cmpref|, and includes the new properties **failsafeEnabled**, **failsafeAction**, and **failsafeTimeout**.
 
 For detailed information about VLAN Failsafe on the BIG-IP, see |vlanfs|.
 
-See |cmpref| in the Schema Reference for DO usage and options.
+See |cmpref| in the Schema Reference for BIG-IP DO usage and options.
 
 
 .. literalinclude:: ../../examples/vlanFailsafe.json
@@ -139,13 +119,9 @@ See |cmpref| in the Schema Reference for DO usage and options.
 
 Configuring a DNS Resolver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+In this example, we show how you create a DNS Resolver in a BIG-IP Declarative Onboarding declaration using the |dnsresolver| class introduced in BIG-IP DO 1.14. The DNS Resolver is the internal DNS resolver the BIG-IP system uses to fetch the internal proxy response.
 
-   Support for DNS Resolvers is available in DO v1.14 and later
-
-In this example, we show how you create a DNS Resolver in a Declarative Onboarding declaration using the |dnsresolver| class introduced in DO 1.14. The DNS Resolver is the internal DNS resolver the BIG-IP system uses to fetch the internal proxy response.
-
-See |dnsresolver| in the Schema Reference for DO usage and options.
+See |dnsresolver| in the Schema Reference for BIG-IP DO usage and options.
 
 For detailed information about the DNS Resolver, see |dnsdoc| on AskF5.
 
@@ -161,13 +137,13 @@ Configuring a TCP Forward Tunnel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for tunnel types **gre** and **geneve** is  available in DO v1.24 and later
+   Support for tunnel types **gre** and **geneve** is  available in BIG-IP DO v1.24 and later
 
-In this example, we show how you create a TCP Forward Network Tunnel in a Declarative Onboarding declaration using the |tunnel| class.
+In this example, we show how you create a TCP Forward Network Tunnel in a BIG-IP Declarative Onboarding declaration using the |tunnel| class.
 
-Declarative Onboarding 1.24 adds two tunnel types: **gre** and **geneve**.  In previous versions, **tcp_forward**, for forward proxy connections, was the only supported type of tunnel.  
+BIG-IP Declarative Onboarding 1.24 adds two tunnel types: **gre** and **geneve**.  In previous versions, **tcp_forward**, for forward proxy connections, was the only supported type of tunnel.  
 
-See |tunnel| in the Schema Reference for DO usage and options.  The following example only shows the **tcp_forward** tunnel type.
+See |tunnel| in the Schema Reference for BIG-IP DO usage and options.  The following example only shows the **tcp_forward** tunnel type.
 
 .. literalinclude:: ../../examples/tcpForwardTunnel.json
    :language: json
@@ -180,15 +156,11 @@ See |tunnel| in the Schema Reference for DO usage and options.  The following ex
 
 Configuring Traffic Groups
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+This example shows how to create Traffic Groups using BIG-IP Declarative Onboarding 1.14 and later. A traffic group is a group of configuration objects on a BIG-IP which is able to float to another device in a device group in case of failure.  For more information, see :ref:`trafficgroup` on the Clustering page, and |tgdoc|.
 
-   Support for Traffic Groups is available in DO v1.14 and later
+See |tg| in the Schema Reference for BIG-IP DO usage and options.
 
-This example shows how to create Traffic Groups using Declarative Onboarding 1.14 and later. A traffic group is a group of configuration objects on a BIG-IP which is able to float to another device in a device group in case of failure.  For more information, see :ref:`trafficgroup` on the Clustering page, and |tgdoc|.
-
-See |tg| in the Schema Reference for DO usage and options.
-
-.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br| |br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
+.. IMPORTANT:: The HA Score failover method is not currently supported. BIG-IP DO uses the HA Order failover method. |br| |br| Because BIG-IP DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the following example, the declaration defines a Device Group with a host name.  See :ref:`devicegroup` for information on Device Groups.
 
 
 .. literalinclude:: ../../examples/trafficGroups.json
@@ -202,20 +174,16 @@ See |tg| in the Schema Reference for DO usage and options.
 
 Configuring routing prefix lists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+This example shows how you can create network routing prefix lists using BIG-IP Declarative Onboarding 1.18 and later. These prefix lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for each prefix address.
 
-   Support for routing prefix lists is available in DO v1.18 and later
+See |prefix| and |prefixentry| in the Schema Reference for BIG-IP DO usage and options.
 
-This example shows how you can create network routing prefix lists using Declarative Onboarding 1.18 and later. These prefix lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for each prefix address.
-
-See |prefix| and |prefixentry| in the Schema Reference for DO usage and options.
-
-**New in DO 1.23** |br|
-DO 1.23 introduced the ability to use strings for the **prefixLengthRange** range property. Previous versions would only accept integers. |br|
+**New in BIG-IP DO 1.23** |br|
+BIG-IP DO 1.23 introduced the ability to use strings for the **prefixLengthRange** range property. Previous versions would only accept integers. |br|
 **Important** If you try to use the following example on versions prior to 1.23, it will fail. If using a previous version, replace the values in the highlighted lines with integers.
 
 
-The following example contains multiple prefix lists, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
+The following example contains multiple prefix lists, but no other BIG-IP DO configuration.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.
 
 
 .. literalinclude:: ../../examples/routingPrefixList.json
@@ -233,31 +201,31 @@ Configuring BGP Routing in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for BGP routing is available in DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP. |br| Support for the **ebgpMultihop** property is available in DO 1.24 and later.
+   Support for BGP routing is available in BIG-IP DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP. |br| Support for the **ebgpMultihop** property is available in BIG-IP DO 1.24 and later.
    
-This example shows how you can configure Border Gateway Protocol (BGP) routing in a Declarative Onboarding declaration.
+This example shows how you can configure Border Gateway Protocol (BGP) routing in a BIG-IP Declarative Onboarding declaration.
 
 For an excellent overview of BGP, see the F5 Lightboard lesson |bgpvid|.
 
 .. IMPORTANT:: BGP Routing is an experimental (Early Access) feature on the BIG-IP system.
 
-The BGP routing configuration uses the following Declarative Onboarding classes (some of the classes were introduced in previous versions of Declarative Onboarding, but the main **RoutingBGP** class, which is required to use BGP routing, was introduced in DO 1.20). The links go to the Schema Reference for descriptions and DO usage.
+The BGP routing configuration uses the following BIG-IP Declarative Onboarding classes (some of the classes were introduced in previous versions of BIG-IP Declarative Onboarding, but the main **RoutingBGP** class, which is required to use BGP routing, was introduced in BIG-IP DO 1.20). The links go to the Schema Reference for descriptions and BIG-IP DO usage.
 
 - |routingbgp|
 - |routingaspath|
 - |prefix|
 - |routemap|
-- |accesslist| (added in DO 1.24, not included in this example)
+- |accesslist| (added in BIG-IP DO 1.24, not included in this example)
 
 The **RoutingBGP** class contains a number of properties used in the following example, so be sure to see |routingbgp| for descriptions and options.
 
-**New in DO 1.24** |br|
-Declarative Onboarding 1.24 introduced the **ebgpMultihop** property for BGP neighbors. This property allows you to specify between 1 and 255 external BGP members that are not on directly connected networks (the default is **1**). See |ebgp| in the Schema Reference for more information.
+**New in BIG-IP DO 1.24** |br|
+BIG-IP Declarative Onboarding 1.24 introduced the **ebgpMultihop** property for BGP neighbors. This property allows you to specify between 1 and 255 external BGP members that are not on directly connected networks (the default is **1**). See |ebgp| in the Schema Reference for more information.
 
-**New in DO 1.28** |br|
-Declarative Onboarding 1.28 adds support for specifying route domains in |routingbgp| and |routemap|.
+**New in BIG-IP DO 1.28** |br|
+BIG-IP Declarative Onboarding 1.28 adds support for specifying route domains in |routingbgp| and |routemap|.
 
-.. IMPORTANT:: If you try to use the following example with a version prior to 1.28, it will fail.  For previous versions, remove the lines in yellow.  You can leave the **ebgpMultihop** lines if using a DO version between 1.24 and 1.27.
+.. IMPORTANT:: If you try to use the following example with a version prior to 1.28, it will fail.  For previous versions, remove the lines in yellow.  You can leave the **ebgpMultihop** lines if using a BIG-IP DO version between 1.24 and 1.27.
 
 
 .. literalinclude:: ../../examples/bgp.json
@@ -272,7 +240,7 @@ Configuring a Firewall policy in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for Firewall policies is available in DO v1.20 and later. You must have BIG-IP AFM licensed.
+   Support for Firewall policies is available in BIG-IP DO v1.20 and later. You must have BIG-IP AFM licensed.
 
 This example shows how you can configure a firewall policy in a declaration. BIG-IP Network Firewall policies combine one or more rules and apply them as a combined policy to one context, such as a self IP as shown.
 
@@ -280,9 +248,9 @@ The AFM features we use in this declaration are well-documented in the |afmdocs|
 
 You must have BIG-IP AFM provisioned as shown in the example.
 
-See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for descriptions and DO usage.
+See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for descriptions and BIG-IP DO usage.
 
-.. NOTE:: The **firewallAddressList** class supports using FQDNs, however, FQDNs require a DNS Resolver on the BIG-IP which is not yet configurable using DO.  If you want to use FQDNs, you must manually configure a DNS Resolver before submitting the declaration. See |dnsresolverdocs| for manual configuration information.
+.. NOTE:: The **firewallAddressList** class supports using FQDNs, however, FQDNs require a DNS Resolver on the BIG-IP which is not yet configurable using BIG-IP DO.  If you want to use FQDNs, you must manually configure a DNS Resolver before submitting the declaration. See |dnsresolverdocs| for manual configuration information.
 
 .. literalinclude:: ../../examples/firewallPolicy.json
    :language: json
@@ -293,17 +261,13 @@ See |fwp|, |fwal|, |fwpl|, and associated classes in the Schema Reference for de
 
 Configuring Auto Last Hop on VLANs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-    Support for Auto Last Hop on VLANs is available in DO 1.22 and later.
-
-This example shows how you can configure Auto Last Hop on VLANs in a Declarative Onboarding declaration.  Auto Last Hop allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route.
+This example shows how you can configure Auto Last Hop on VLANs in a BIG-IP Declarative Onboarding declaration.  Auto Last Hop allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route.
 
 There are three possible values for the **autoLastHop** property: **enabled**, **disabled**, and **default**, which inherits the value from the global settings.
 
 For detailed information on Auto Last Hop, see |alh| on AskF5.
 
-See |cmpref| for description and DO usage.
+See |cmpref| for description and BIG-IP DO usage.
 
 
 .. literalinclude:: ../../examples/vlanAutoLastHop.json
@@ -316,22 +280,18 @@ See |cmpref| for description and DO usage.
 
 Specifying a static management IP address in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-    Support for specifying a management IP address is available in DO 1.23 and later.
-
-This example shows how you can specify a management IP address in a Declarative Onboarding declaration using the **ManagementIp** class introduced in DO 1.23. The ability to set a static management IP address is useful in scenarios such as updating the BIG-IP after a NIC swap in the Google Cloud Platform.
+This example shows how you can specify a management IP address in a BIG-IP Declarative Onboarding declaration using the **ManagementIp** class introduced in BIG-IP DO 1.23. The ability to set a static management IP address is useful in scenarios such as updating the BIG-IP after a NIC swap in the Google Cloud Platform.
 
 When using **ManagementIp**, you must keep in mind the following:
 
 - You must also update the ManagementRoute for the new management IP.  See |mr|.
 - If running remotely (on BIG-IQ), the remote device must be able to route to the new management IP.
-- When polling for DO status, use the new management IP.
-- If you are *only* changing the mask, DO must delete the existing management IP address. This means it will only work when DO is running on the device being configured (not from BIG-IQ). This is a system limitation not a DO limitation.
+- When polling for BIG-IP DO status, use the new management IP.
+- If you are *only* changing the mask, BIG-IP DO must delete the existing management IP address. This means it will only work when BIG-IP DO is running on the device being configured (not from BIG-IQ). This is a system limitation not a BIG-IP DO limitation.
 - No response is returned if running in synchronous mode. Always use asynchronous mode when changing the management IP address (see |bc|).
 - To handle rollback to a dynamically configured IP, do not set the remark for the ManagementIp to 'configured-by-dhcp'. The default value is fine.
 
-See |mip| for DO usage.
+See |mip| for BIG-IP DO usage.
 
 
 .. literalinclude:: ../../examples/managementIp.json
@@ -343,17 +303,13 @@ See |mip| for DO usage.
 
 Preserving DHCP routes when adding new management routes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-    Support for preserving DHCP routes is available in DO 1.23 and later.
-
-This example shows how DO can preserve DHCP Management routes when you are adding new management routes in a DO declaration using 1.23 or later. By default, management routes are assigned by DHCP. In previous versions of DO, when you specified a new management route, DO would remove the route assigned by DHCP.  
+This example shows how BIG-IP DO can preserve DHCP Management routes when you are adding new management routes in a BIG-IP DO declaration using 1.23 or later. By default, management routes are assigned by DHCP. In previous versions of BIG-IP DO, when you specified a new management route, BIG-IP DO would remove the route assigned by DHCP.  
 
 This feature provides the ability to preserve those DHCP routes using the new **preserveOrigDhcpRoutes** property set to **true** in the |sysclass| class.
 
-.. IMPORTANT:: If you do not configure DO to preserve management routes (the default) but specify management routes in the declaration, DO disables DHCP for management routes. If you configure DO to preserve management routes, DHCP for management routes remains enabled. 
+.. IMPORTANT:: If you do not configure BIG-IP DO to preserve management routes (the default) but specify management routes in the declaration, BIG-IP DO disables DHCP for management routes. If you configure BIG-IP DO to preserve management routes, DHCP for management routes remains enabled. 
 
-See |sysclass| for more information and DO usage.
+See |sysclass| for more information and BIG-IP DO usage.
 
 
 .. literalinclude:: ../../examples/preserveOrigDhcpRoutes.json
@@ -367,15 +323,15 @@ Configuring firewall rules on the management interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-    Support for configuring firewall rules on the management interface is available in DO 1.24 and later. |br| If using BIG-IP 13.1, you must have the AFM module licensed and provisioned
+    Support for configuring firewall rules on the management interface is available in BIG-IP DO 1.24 and later. |br| If using BIG-IP 13.1, you must have the AFM module licensed and provisioned
 
-This example shows how you can configure firewall rules on the management interface in a DO declaration. If you are deploying on BIG-IP 13.1-13.x, you must have the AFM module licensed and provisioned. BIG-IP versions 14.1 and later do not have this requirement.
+This example shows how you can configure firewall rules on the management interface in a BIG-IP DO declaration. If you are deploying on BIG-IP 13.1-13.x, you must have the AFM module licensed and provisioned. BIG-IP versions 14.1 and later do not have this requirement.
 
 This feature uses the new |manfw| class, which includes the |manfwr| settings.
 
 For more detail on Firewall rules and manual configuration instructions, see |fwkb| on AskF5.
 
-For more information and DO usage on individual properties, see |manfw| and |manfwr|.
+For more information and BIG-IP DO usage on individual properties, see |manfw| and |manfwr|.
 
 .. literalinclude:: ../../examples/managementIpFirewall.json
     :language: json
@@ -387,11 +343,11 @@ For more information and DO usage on individual properties, see |manfw| and |man
 
 Configuring routes and managementRoutes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-These examples show how you can create routes and management routes in Declarative Onboarding declarations. DO has supported these objects, however an issue existed in DO prior to v1.23 that would not allow a type of **interface** on Management routes.
+These examples show how you can create routes and management routes in BIG-IP Declarative Onboarding declarations. BIG-IP DO has supported these objects, however an issue existed in BIG-IP DO prior to v1.23 that would not allow a type of **interface** on Management routes.
 
-See |route| and |manroute| in the Schema Reference for DO usage and options.
+See |route| and |manroute| in the Schema Reference for BIG-IP DO usage and options.
 
-The following examples contain route configuration, but no other DO configuration.  You can use these classes as a part of a larger Declarative Onboarding declaration.
+The following examples contain route configuration, but no other BIG-IP DO configuration.  You can use these classes as a part of a larger BIG-IP Declarative Onboarding declaration.
 
 
 .. literalinclude:: ../../examples/routeInterface.json
@@ -408,15 +364,11 @@ The following examples contain route configuration, but no other DO configuratio
 
 Configuring routing access lists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+This example shows how you can create network routing access lists using BIG-IP Declarative Onboarding 1.24 and later. These access lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for source and destination addresses (or ranges).
 
-   Support for routing access lists is available in DO v1.24 and later
+See |accesslist| and |accessentry| in the Schema Reference for BIG-IP DO usage and options.
 
-This example shows how you can create network routing access lists using Declarative Onboarding 1.24 and later. These access lists are a part of a larger BGP configuration, and enable you to specify allow and deny actions for source and destination addresses (or ranges).
-
-See |accesslist| and |accessentry| in the Schema Reference for DO usage and options.
-
-The following example contains multiple access lists, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
+The following example contains multiple access lists, but no other BIG-IP DO configuration.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.
 
 
 .. literalinclude:: ../../examples/routingAccessList.json
@@ -428,17 +380,13 @@ The following example contains multiple access lists, but no other DO configurat
 
 Configuring VXLAN tunnels
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for VXLAN tunnels is available in DO v1.25 and later
-
-This example shows how you can create VXLAN tunnels using Declarative Onboarding 1.25 and later. 
+This example shows how you can create VXLAN tunnels using BIG-IP Declarative Onboarding 1.25 and later. 
 
 Virtual eXtended LAN (VXLAN) is a network virtualization scheme that overlays Layer 2 over Layer 3. VLXAN uses Layer 3 multicast to support the transmission of multicast and broadcast traffic in the virtual network, while decoupling the virtualized network from the physical infrastructure. See |vxlant| for more information and manual configuration.
 
-See |tunnel| in the Schema Reference for DO usage and options.
+See |tunnel| in the Schema Reference for BIG-IP DO usage and options.
 
-The following example contains a VXLAN tunnel, but no other DO configuration.  You can use this class as a part of a larger Declarative Onboarding declaration.
+The following example contains a VXLAN tunnel, but no other BIG-IP DO configuration.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.
 
 
 .. literalinclude:: ../../examples/vxlanTunnel.json
@@ -452,15 +400,15 @@ Enabling management DHCP in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-    Support for enabling management DHCP is available in DO 1.28 and later.
+    Support for enabling management DHCP is available in BIG-IP DO 1.28 and later.
 
-This example shows how you can explicitly enable or disable DHCP for management IP addresses and routes in the |sysclass| class using the new **mgmtDhcpEnabled** property in DO 1.28 and later.  
+This example shows how you can explicitly enable or disable DHCP for management IP addresses and routes in the |sysclass| class using the new **mgmtDhcpEnabled** property in BIG-IP DO 1.28 and later.  
 
 This property is associated with the **preserveOrigDhcpRoutes** property, which provides the ability to preserve those DHCP routes (see the :ref:`Preserve DHCP routes<dhcpresv>` example on this page).
 
 .. IMPORTANT:: When you use both **mgmtDhcpEnabled** and **preserveOrigDhcpRoutes**, the values MUST match.
 
-See |sysclass| for more information and DO usage.
+See |sysclass| for more information and BIG-IP DO usage.
 
 
 .. literalinclude:: ../../examples/mgmtDhcpEnabled.json

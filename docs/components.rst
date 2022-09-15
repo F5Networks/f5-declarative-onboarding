@@ -1,24 +1,24 @@
-Components of Declarative Onboarding
-------------------------------------
+Components of BIG-IP Declarative Onboarding
+-------------------------------------------
 
-Declarative Onboarding Declaration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BIG-IP Declarative Onboarding Declaration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A Declarative Onboarding declaration describes the desired initial configuration of an Application
+A BIG-IP Declarative Onboarding declaration describes the desired initial configuration of an Application
 Delivery Controller (ADC) such as F5 BIG-IP.
 
-Declarative Onboarding JSON Schema
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BIG-IP Declarative Onboarding JSON Schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The |json| schema validates the declaration, and then produces a BIG-IP
-configuration.  The JSON Schema document prescribes the syntax of an Declarative Onboarding
+configuration.  The JSON Schema document prescribes the syntax of a BIG-IP Declarative Onboarding
 declaration. The declaration schema controls which
 objects may appear in a declaration, what name they may or must use, what
 properties they may have, which of those you must supply in the declaration, and
-which Declarative Onboarding may fill with default values. The schema also specifies the ranges of
+which BIG-IP Declarative Onboarding may fill with default values. The schema also specifies the ranges of
 values certain properties may take.  
 
-Declarative Onboarding contains two modules: a |rest| worker and an audit engine.  The REST worker
+BIG-IP Declarative Onboarding contains two modules: a |rest| worker and an audit engine.  The REST worker
 provides a |crud| interface for creating and modifying the declaration document.
 The audit engine is responsible for aligning BIG-IP configuration with the
 declaration document.

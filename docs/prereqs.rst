@@ -4,26 +4,26 @@
 Prerequisites and Requirements
 ------------------------------
 
-The following are prerequisites for using F5 Declarative Onboarding:
+The following are prerequisites for using F5 BIG-IP Declarative Onboarding:
 
-- Domain name resolution is used anywhere the declaration accepts a hostname. DO makes sure that any hostnames are resolvable and fails if they are not.  The exception is deviceGroup.members, which do not require hostname resolution as they have been added to the trust.
+- Domain name resolution is used anywhere the declaration accepts a hostname. BIG-IP DO makes sure that any hostnames are resolvable and fails if they are not.  The exception is deviceGroup.members, which do not require hostname resolution as they have been added to the trust.
 
 - You must have an existing BIG-IP device with a management IP address.  
 
 - The BIG-IP must be running version 13.1 or later.  
 
-- Declarative Onboarding is not intended to work on BIG-IP versions that have reached End of Life. See `here <https://support.f5.com/csp/article/K5903>`_ for more information about BIG-IP versions supported by F5. 
-   .. IMPORTANT:: Due to changes in TMOS v13.1.1.5 and v13.1.3.x, the Declarative Onboarding (DO) Extension is not compatible with this specific TMOS version. Versions before and after 13.1.1.5 are compatible.
+- BIG-IP Declarative Onboarding is not intended to work on BIG-IP versions that have reached End of Life. See `here <https://support.f5.com/csp/article/K5903>`_ for more information about BIG-IP versions supported by F5. 
+   .. IMPORTANT:: Due to changes in TMOS v13.1.1.5 and v13.1.3.x, the BIG-IP Declarative Onboarding (BIG-IP DO) Extension is not compatible with this specific TMOS version. Versions before and after 13.1.1.5 are compatible.
 
-- You must have an existing user account with the Administrator role. If you are using 13.1.x, the BIG-IP contains an admin user by default. If you are using 14.x, you **must** reset the admin password before installing Declarative Onboarding. See :ref:`14andlater` for instructions.  
+- You must have an existing user account with the Administrator role. If you are using 13.1.x, the BIG-IP contains an admin user by default. If you are using 14.x, you **must** reset the admin password before installing BIG-IP Declarative Onboarding. See :ref:`14andlater` for instructions.  
 
-- While Declarative onboarding is supported on F5 vCMP systems, network stitching to vCMP Guests or Hosts is not supported. Furthermore, creating vCMP guests with a DO declaration is not supported.
+- While Declarative onboarding is supported on F5 vCMP systems, network stitching to vCMP Guests or Hosts is not supported. Furthermore, creating vCMP guests with a BIG-IP DO declaration is not supported.
 
 - If you are using an F5 BYOL license, you must have a valid F5 Networks License Registration Key to include in your declaration.  If you do not have one, contact your F5 sales representative. If you do not use a valid F5 license key, your declaration will fail.  This is not a requirement if you are using a BIG-IP with pay-as-you-go licensing. 
 
 - If you are using a single NIC BIG-IP system, you must include port 8443 after the IP address of the BIG-IP in your POST and GET requests, such as ``https://<BIG-IP>:8443/mgmt/shared/declarative-onboarding``
 
-- You should be familiar with the F5 BIG-IP and F5 terminology.  The settings and features Declarative Onboarding uses are well-documented in the product documentation. For general information and documentation on the BIG-IP system, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.  
+- You should be familiar with the F5 BIG-IP and F5 terminology.  The settings and features BIG-IP Declarative Onboarding uses are well-documented in the product documentation. For general information and documentation on the BIG-IP system, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.  
 
 .. _notestips:
 
@@ -32,16 +32,16 @@ Notes and tips
 
 .. IMPORTANT:: Beginning with DO 1.35.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.
 
-- Beginning with DO 1.8.0, the DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in the Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
+- Beginning with BIG-IP DO 1.8.0, the BIG-IP DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in the BIG-IP Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
 
 - Archival of community supported container solution
-   .. IMPORTANT:: The community-supported solution for DO running in a Docker container is being archived as of DO 1.16.  F5 will no longer provide new versions of DO running in a container.
+   .. IMPORTANT:: The community-supported solution for BIG-IP DO running in a Docker container is being archived as of BIG-IP DO 1.16.  F5 will no longer provide new versions of BIG-IP DO running in a container.
 
-- Declarative Onboarding gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system's phone home feature as described in |phone|
+- BIG-IP Declarative Onboarding gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system's phone home feature as described in |phone|
 
-- With the release of Declarative Onboarding 1.2.0, the GitHub repository includes a |github| with all of the example declarations. For information on importing this collection and using Postman collections, see the |postman|.  
+- With the release of BIG-IP Declarative Onboarding 1.2.0, the GitHub repository includes a |github| with all of the example declarations. For information on importing this collection and using Postman collections, see the |postman|.  
 
-- The first time you POST a Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration. Declarative Onboarding is meant to initially configure a BIG-IP device. However, if you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.  **Important**: No matter what you send in a subsequent declaration, Declarative Onboarding will never unlicense a BIG-IP device, it will never delete a user, and it never break the device trust once it has been established. Thus, while Declarative Onboarding is declarative, it is not idempotent.
+- The first time you POST a BIG-IP Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration. BIG-IP Declarative Onboarding is meant to initially configure a BIG-IP device. However, if you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.  **Important**: No matter what you send in a subsequent declaration, BIG-IP Declarative Onboarding will never unlicense a BIG-IP device, it will never delete a user, and it never break the device trust once it has been established. Thus, while BIG-IP Declarative Onboarding is declarative, it is not idempotent.
 
 - You can use GET to retrieve a sample declaration.  Use GET to ``https://<BIG-IP>/mgmt/shared/declarative-onboarding/example``
 
@@ -49,7 +49,7 @@ Notes and tips
 
 - If you POST a declaration that modifies the password for the admin account, even if the declaration returns an error, the password can be changed.  Therefore you may need to update the admin password in the client you are using to send the declaration.
 
-- After using Declarative Onboarding, if you want to use a declarative model to configure applications and services on a BIG-IP device, see the |as3| documentation.
+- After using BIG-IP Declarative Onboarding, if you want to use a declarative model to configure applications and services on a BIG-IP device, see the |as3| documentation.
 
 
 .. |br| raw:: html
@@ -75,7 +75,7 @@ Notes and tips
 
 .. |github| raw:: html
 
-   <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/dist/do.examples.collection.json" target="_blank">Declarative Onboarding Postman collection</a>
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/dist/do.examples.collection.json" target="_blank">BIG-IP Declarative Onboarding Postman collection</a>
 
 .. |phone| raw:: html
 

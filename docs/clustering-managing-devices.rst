@@ -1,7 +1,7 @@
 Adding or removing members of a Device Group
 ============================================
 
-This page describes how to handle the scenario in which one BIG-IP in Device Group goes down (goes offline, is deleted, gets corrupted, etc.), and how to use DO on a BIG-IP in the group that is still available to add a new BIG-IP instance to the group.  It also applies if you want to simply add and/or remove a device from a cluster using Declarative Onboarding.
+This page describes how to handle the scenario in which one BIG-IP in Device Group goes down (goes offline, is deleted, gets corrupted, etc.), and how to use BIG-IP DO on a BIG-IP system in the group that is still available to add a new BIG-IP instance to the group.  It also applies if you want to simply add and/or remove a device from a cluster using BIG-IP Declarative Onboarding.
 
 In order to replace a device in a cluster, you must perform the following:
  

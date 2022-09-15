@@ -3,7 +3,7 @@
 
 Composing a declaration for licensing BIG-IP with a BIG-IQ
 ==========================================================
-If you have an existing BIG-IQ device with a pool of F5 licenses (BIG-IQ License Manager), you can reference it from your Declarative Onboarding declaration in order to license your BIG-IP device. 
+If you have an existing BIG-IQ device with a pool of F5 licenses (BIG-IQ License Manager), you can reference it from your BIG-IP Declarative Onboarding declaration in order to license your BIG-IP device. 
 
 To use this feature:
 
@@ -11,11 +11,11 @@ To use this feature:
 - The license pool can only be a Registration Key pool, Purchased Pool, or a Utility (subscription/ELA) pool. See the |bigiq| documentation for more detailed information on License pool types.
 - In the BIG-IQ UI, you must include a targetUsername and targetPassphrase.  BIG-IQ is able to pass a target token through the API, but the BIG-IQ **must** also have the target username and passphrase in the body so the BIG-IQ can discover and import the BIG-IP device after the onboarding process.
 
-Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
+Additionally, see :doc:`json-pointers` for information on using JSON/BIG-IP Declarative Onboarding pointers in your declaration.
 
 See :ref:`BIG-IQ examples<iqexamples>` for additional example declarations.  
 
-.. NOTE:: See |compat| for information on BIG-IQ and Declarative Onboarding compatibility.
+.. NOTE:: See |compat| for information on BIG-IQ and BIG-IP Declarative Onboarding compatibility.
 
 
 Declaration class licensing with BIG-IQ
@@ -104,12 +104,12 @@ See :ref:`BIG-IQ examples<iqexamples>` for additional example declarations.
 
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The ability to revoke a license using Declarative Onboarding is available in version 1.3.0 and later.
+   The ability to revoke a license using BIG-IP Declarative Onboarding is available in version 1.3.0 and later.
 
 Revoking a license from a BIG-IP with BIG-IQ
 ============================================
 
-If you are using Declarative Onboarding 1.3.0 or later, you can use a declaration to revoke a license from a BIG-IP VE that was issued from a BIG-IQ license pool, and optionally relicense the BIG-IP VE with a new license.
+If you are using BIG-IP Declarative Onboarding 1.3.0 or later, you can use a declaration to revoke a license from a BIG-IP VE that was issued from a BIG-IQ license pool, and optionally relicense the BIG-IP VE with a new license.
 
 .. IMPORTANT:: If the BIG-IP is not reachable from the BIG-IQ ("reachable": false), you must use **overwrite** if you want to relicense a BIG-IP VE (as the BIG-IP will not know the license was revoked). 
 
@@ -173,10 +173,10 @@ Relicensing a BIG-IP (no route)
 ```````````````````````````````
 If you want to relicense a BIG-IP VE that is **unreachable** from the BIG-IQ device, in your *unreachable* declaration you must also use the **overwrite** property (``"overwrite": true``) in addition to the **revokeFrom** property with name of the license pool you want to revoke the license from (for example ``"revokeFrom": "myPool"``). In the licensePool property, use the new license pool from which you want to give the BIG-IP a license.
 
-**New in DO 1.15** |br| 
-DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the DO property, it becomes *DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
+**New in BIG-IP DO 1.15** |br| 
+BIG-IP DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The BIG-IP DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the BIG-IP DO property, it becomes *BIG-IP DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
 
-.. IMPORTANT:: The following declaration snippet has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom.
+.. IMPORTANT:: The following declaration snippet has been updated to include the new Tenant property introduced in BIG-IP DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom.
 
 
 So the entire license class might look like the following, which revokes the license from the BIG-IP VE from the **myPool** license pool and relicenses it using the **myOtherPool** license pool (while telling the BIG-IP VE to overwrite the existing license).
@@ -207,10 +207,10 @@ Relicensing a BIG-IP (no route) using a different BIG-IQ device
 ```````````````````````````````````````````````````````````````
 This section shows how to relicense a BIG-IP VE that is **unreachable**, AND you are using a different BIG-IQ device than the one you used to initially license the BIG-IP device. In this case, you also use the **revokeFrom** property, but you supply information about the BIG-IQ device you used to license the BIG-IP.  You must also use the **overwrite** property (``"overwrite": true``) in addition to the **revokeFrom** property. 
 
-**New in DO 1.15** |br| 
-DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the DO property, it becomes *DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
+**New in BIG-IP DO 1.15** |br| 
+BIG-IP DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The BIG-IP DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the BIG-IP DO property, it becomes *BIG-IP DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
 
-.. IMPORTANT:: The following declaration snippet has been updated to include the new Tenant property introduced in DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom.
+.. IMPORTANT:: The following declaration snippet has been updated to include the new Tenant property introduced in BIG-IP DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom.
 
 For example, to revoke a license issued from the BIG-IQ at 10.0.2.200 and re-license with a license from the BIG-IQ at 10.0.1.200, the entire license class might look like the following:
 

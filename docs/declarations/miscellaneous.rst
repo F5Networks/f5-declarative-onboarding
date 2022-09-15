@@ -10,11 +10,11 @@ The following are miscellaneous example declarations for BIG-IP.
 
 Configuring HTTPD settings in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-In this example, we show how you can configure HTTPD (HTTP daemon) settings in a Declarative Onboarding declaration. For usage and options, see |httpd| in the Schema Reference.
+In this example, we show how you can configure HTTPD (HTTP daemon) settings in a BIG-IP Declarative Onboarding declaration. For usage and options, see |httpd| in the Schema Reference.
 
 .. NOTE:: If you use the BIG-IP Configuration utility, we recommend you exit the utility before changes are made to the system using the HTTPD component. Making changes to the system using this component causes a restart of the httpd daemon, and restarting the httpd daemon requires a restart of the Configuration utility.
 
-In the following declaration, we show only the HTTPD class.  You can use this class as a part of a larger Declarative Onboarding declaration. 
+In the following declaration, we show only the HTTPD class.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration. 
 
 
 .. literalinclude:: ../../examples/httpd.json
@@ -28,19 +28,19 @@ In the following declaration, we show only the HTTPD class.  You can use this cl
 
 Configuring System settings in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-In this example, we show how you can configure some System settings in a Declarative Onboarding declaration. This enables you to set auto-timeout values for serial console (CLI) and TMSH interactive mode sessions, as well as set a hostname, if you have not set one in the Common class. 
+In this example, we show how you can configure some System settings in a BIG-IP Declarative Onboarding declaration. This enables you to set auto-timeout values for serial console (CLI) and TMSH interactive mode sessions, as well as set a hostname, if you have not set one in the Common class. 
 
 .. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class; they are mutually exclusive.
 
 For usage and options, see |sysclass| in the Schema Reference.
 
-DO 1.13 introduced the ability to disable the automatic update check feature.  The autoCheck property controls whether the BIG-IP checks for and recommends software updates.  See |k15000| for more information. 
+BIG-IP DO 1.13 introduced the ability to disable the automatic update check feature.  The autoCheck property controls whether the BIG-IP checks for and recommends software updates.  See |k15000| for more information. 
 
-DO 1.32 introduced the ability to modify the default security banner on the logon screen of the user interface using the **guiSecurityBanner** and **guiSecurityBannerText** properties. When **guiSecurityBanner** is set to **true**, you specify the text you want to display in the **guiSecurityBannerText** property.  If you set **guiSecurityBanner** to **false**, the system presents an empty frame in the right portion of the login screen.
+BIG-IP DO 1.32 introduced the ability to modify the default security banner on the logon screen of the user interface using the **guiSecurityBanner** and **guiSecurityBannerText** properties. When **guiSecurityBanner** is set to **true**, you specify the text you want to display in the **guiSecurityBannerText** property.  If you set **guiSecurityBanner** to **false**, the system presents an empty frame in the right portion of the login screen.
 
-In the following declaration, we show only the System class (including autoCheck introduced in 1.13, and the GUI security banner options in 1.32).  You can use this class as a part of a larger Declarative Onboarding declaration. 
+In the following declaration, we show only the System class (including autoCheck introduced in 1.13, and the GUI security banner options in 1.32).  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration. 
 
-**Important**: If you try to use this declaration with a DO version prior to 1.32, it will fail.  Either upgrade DO to 1.32, or remove the guiSecurityBanner lines (highlighted in yellow).
+**Important**: If you try to use this declaration with a BIG-IP DO version prior to 1.32, it will fail.  Either upgrade BIG-IP DO to 1.32, or remove the guiSecurityBanner lines (highlighted in yellow).
 
 
 .. literalinclude:: ../../examples/system.json
@@ -55,10 +55,6 @@ In the following declaration, we show only the System class (including autoCheck
 
 Using the userAgent Controls property 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for **userAgent** is available in DO v1.13 and later
-
 In this example, we show how you can use the **userAgent** property in the new **Controls** class. The userAgent property allows you to set a unique identifier in usage data.
 
 This declaration includes the Controls class with userAgent set to **BIG-IQ/7.1 Configured by API**.  
@@ -75,17 +71,13 @@ See |controls| in the Schema Reference for more information.
 
 .. _example27:
 
-Enabling traces in DO responses 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for **trace** and **traceResponse** is available in DO v1.15 and later. 
-
-In this example, we show how you can use the **trace** and **traceResponse** properties to enable more visibility into what DO is configuring.  These properties are included in the |controls| class.
+Enabling traces in BIG-IP DO responses
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In this example, we show how you can use the **trace** and **traceResponse** properties to enable more visibility into what BIG-IP DO is configuring.  These properties are included in the |controls| class.
 
 .. WARNING:: Trace files may contain sensitive configuration data.
 
-When **trace** is set to **true** (the default is false), DO creates a detailed trace of the configuration process for subsequent analysis. This information is written to files in the **/tmp** directory where DO is running. |br|
+When **trace** is set to **true** (the default is false), BIG-IP DO creates a detailed trace of the configuration process for subsequent analysis. This information is written to files in the **/tmp** directory where BIG-IP DO is running. |br|
 The files are:
 
 - /tmp/DO_current.json
@@ -95,7 +87,7 @@ The files are:
 
 When **traceResponse** is set to **true** (the default is false), the response (or response to a subsequent GET request in the case of asynchronous requests) contains the same information that would be found in the trace files.
 
-This example shows both the declaration and the response from DO.  
+This example shows both the declaration and the response from BIG-IP DO.  
 
 .. literalinclude:: ../../examples/debugTrace.json
    :language: json
@@ -103,7 +95,7 @@ This example shows both the declaration and the response from DO.
 |
 
 **Example Response** |br|
-Here is the response returned by DO from the declaration, showing the trace for the tenant (your output will vary based on the configuration of your device).
+Here is the response returned by BIG-IP DO from the declaration, showing the trace for the tenant (your output will vary based on the configuration of your device).
 
 
 .. literalinclude:: trace-response.json
@@ -116,19 +108,15 @@ Here is the response returned by DO from the declaration, showing the trace for 
 
 Creating Routes in the LOCAL_ONLY partition 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for creating routes in the LOCAL_ONLY partition is available in DO v1.15 and later
-
-This example shows how to create a route in a special LOCAL_ONLY partition/tenant using the new **localOnly** property in the Route class. When using this feature, if this partition doesn't exist, Declarative Onboarding creates it. 
+This example shows how to create a route in a special LOCAL_ONLY partition/tenant using the new **localOnly** property in the Route class. When using this feature, if this partition doesn't exist, BIG-IP Declarative Onboarding creates it. 
 
 This partition is required to configure an Amazon Web Services (AWS) *Across Network* cluster.
 
-See |route| in the Schema Reference for DO usage and options.  
+See |route| in the Schema Reference for BIG-IP DO usage and options.  
 
 **Important notes:**
- - While DO can create the LOCAL_ONLY partition if it does not exist, it cannot currently delete it, and the partition will remain even if you delete the DO configuration.
- - A Route cannot be directly swapped from one partition to another. If you attempt to swap value of **localOnly**, the declaration will fail. As a workaround, change the network of the Route to another IP and set localOnly to what you want it to be. Submit that using DO. Once that is complete, you can change the network to the desired value. 
+ - While BIG-IP DO can create the LOCAL_ONLY partition if it does not exist, it cannot currently delete it, and the partition will remain even if you delete the BIG-IP DO configuration.
+ - A Route cannot be directly swapped from one partition to another. If you attempt to swap value of **localOnly**, the declaration will fail. As a workaround, change the network of the Route to another IP and set localOnly to what you want it to be. Submit that using BIG-IP DO. Once that is complete, you can change the network to the desired value. 
 
 .. literalinclude:: ../../examples/localOnlyRoutes.json
    :language: json
@@ -141,7 +129,7 @@ See |route| in the Schema Reference for DO usage and options.
 
 Warning users the BIG-IP is under AS3 automation  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This example shows how you can use Declarative Onboarding to discourage unintended configuration changes to a device that is managed by AS3. This example configures an advisory banner using the **DbVariables** class.
+This example shows how you can use BIG-IP Declarative Onboarding to discourage unintended configuration changes to a device that is managed by AS3. This example configures an advisory banner using the **DbVariables** class.
 
 .. literalinclude:: ../../examples/banner.json
    :language: json
@@ -154,7 +142,7 @@ This example shows how you can use Declarative Onboarding to discourage unintend
 
 Increasing the memory allocated to the restjavad daemon  
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This example shows how you can use Declarative Onboarding to increase the amount of memory allocated to restjavad, using the **DbVariables** class.
+This example shows how you can use BIG-IP Declarative Onboarding to increase the amount of memory allocated to restjavad, using the **DbVariables** class.
   
 See (see :ref:`restjavad`) for reasons you may want to increase this memory allocation.
 
@@ -170,15 +158,11 @@ See (see :ref:`restjavad`) for reasons you may want to increase this memory allo
 
 Using the dryRun Controls property to test the declaration without deploying it
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for **dryRun** is available in DO v1.23 and later
-
 In this example, we show how you can use the **dryRun** property in the |controls| class. 
 
-When **dryRun** is set to **true** (the default is **false**) Declarative Onboarding sends the declaration through all validation checks but does not attempt to deploy the configuration on the target device. The response contains information on what would have been deployed (a diff between the existing configuration and what the declaration would deploy). This can be useful for testing and debugging declarations.
+When **dryRun** is set to **true** (the default is **false**) BIG-IP Declarative Onboarding sends the declaration through all validation checks but does not attempt to deploy the configuration on the target device. The response contains information on what would have been deployed (a diff between the existing configuration and what the declaration would deploy). This can be useful for testing and debugging declarations.
 
-.. NOTE:: Declarative Onboarding does not report information (diffs) on items such as licensing, users, or device trust.
+.. NOTE:: BIG-IP Declarative Onboarding does not report information (diffs) on items such as licensing, users, or device trust.
 
 
 See |controls| in the Schema Reference for more information.

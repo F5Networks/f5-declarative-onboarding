@@ -1,20 +1,16 @@
 .. _do-bigiq:
 
-Using DO on BIG-IQ
-==================
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+Using BIG-IP DO on BIG-IQ
+=========================
+You can use the BIG-IP Declarative Onboarding endpoint on the BIG-IQ v7.0 and later to configure your BIG-IP devices.  After you onboard the BIG-IPs using BIG-IP Declarative Onboarding, you can manage them from the BIG-IQ system, including using |as3|.
 
-   DO is available in BIG-IQ v7.0 and later
+See |kb| for information on BIG-IQ Centralized Management compatibility with F5 BIG-IP Declarative Onboarding.
 
-You can use the Declarative Onboarding endpoint on the BIG-IQ v7.0 and later to configure your BIG-IP devices.  After you onboard the BIG-IPs using Declarative Onboarding, you can manage them from the BIG-IQ system, including using |as3|.
+See the |bigiqdo| for information on BIG-IP DO and BIG-IQ.
 
-See |kb| for information on BIG-IQ Centralized Management compatibility with F5 Declarative Onboarding.
-
-See the |bigiqdo| for information on DO and BIG-IQ.
-
-Verifying DO is installed on the BIG-IQ
----------------------------------------
-You can ensure DO is installed on the BIG-IQ device using the following methods:
+Verifying BIG-IP DO is installed on the BIG-IQ
+----------------------------------------------
+You can ensure BIG-IP DO is installed on the BIG-IQ device using the following methods:
 
 - From your RESTful client, after entering your credentials, use **GET** to send |br| ``https://(IP address of BIG-IQ)/mgmt/shared/declarative-onboarding/info``  
 
@@ -48,15 +44,15 @@ You can also GET to send ``https://(IP address of BIG-IQ)/mgmt/shared/declarativ
 
 .. _do-bigiq-table:
 
-Sending a DO declaration to BIG-IQ
-----------------------------------
-The request to send a Declarative Onboarding declaration to BIG-IQ is the same as the request for BIG-IP, just the IP address is different: |br|
+Sending a BIG-IP DO declaration to BIG-IQ
+-----------------------------------------
+The request to send a BIG-IP Declarative Onboarding declaration to BIG-IQ is the same as the request for BIG-IP, just the IP address is different: |br|
 ``https://(IP address of BIQ-IP)/mgmt/shared/declarative-onboarding/info`` 
 
 
 The JSON in the body of the POST request can include the parameters in the |bigiqapi| in the BIG-IQ API documentation. 
 
-See :ref:`bigiqdo1` an example declaration for using DO on BIG-IQ.
+See :ref:`bigiqdo1` an example declaration for using BIG-IP DO on BIG-IQ.
 
 
 
@@ -79,6 +75,6 @@ See :ref:`bigiqdo1` an example declaration for using DO on BIG-IQ.
 
 .. |bigiqapi| raw:: html
 
-   <a href="https://clouddocs.f5.com/products/big-iq/mgmt-api/latest/ApiReferences/bigiq_public_api_ref/r_do_onboarding.html#post-mgmt-shared-declarative-onboarding" target="_blank">DO/BIG-IQ parameter table</a>
+   <a href="https://clouddocs.f5.com/products/big-iq/mgmt-api/latest/ApiReferences/bigiq_public_api_ref/r_do_onboarding.html#post-mgmt-shared-declarative-onboarding" target="_blank">BIG-IP DO/BIG-IQ parameter table</a>
 
 
