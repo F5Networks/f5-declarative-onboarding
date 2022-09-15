@@ -3,11 +3,11 @@ Example Declarations
 
 This section contains a number of additional example declarations you can use. Use the following index, or the links on the right to go to a specific category of declaration.
 
-The following categories were introduced with the release of DO 1.17.
+The following categories were introduced with the release of BIG-IP DO 1.17.
 
 .. IMPORTANT:: The following examples include passwords that may not be valid for BIG-IP v14.0 and later.  See |pass| for specific requirements.
 
-.. NOTE:: All of the examples will work on BIG-IP and BIG-IQ, however, when using DO on a BIG-IQ, you must add the BIG-IQ section to the declaration (see :doc:`do-on-bigiq` and the :ref:`BIG-IQ examples<iqexamples>` for details).
+.. NOTE:: All of the examples will work on BIG-IP and BIG-IQ, however, when using BIG-IP DO on a BIG-IQ, you must add the BIG-IQ section to the declaration (see :doc:`do-on-bigiq` and the :ref:`BIG-IQ examples<iqexamples>` for details).
 
 
 Basic Examples

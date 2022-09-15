@@ -1,16 +1,16 @@
 .. _clustering:  
 
 
-Composing a Declarative Onboarding declaration for a cluster of BIG-IPs
-=======================================================================
+Composing a BIG-IP Declarative Onboarding declaration for a cluster of BIG-IPs
+==============================================================================
 
-Declarative Onboarding can also create a clustered configuration (Device Service Cluster) between two or more BIG-IP systems. You must install Declarative Onboarding and submit a declaration on each device in the cluster, and all BIG-IP devices must be on the same BIG-IP version.  You specify one BIG-IP system as the 'owner' and the other BIG-IPs as 'members' (see :ref:`devicegroup`).  
+BIG-IP Declarative Onboarding can also create a clustered configuration (Device Service Cluster) between two or more BIG-IP systems. You must install BIG-IP Declarative Onboarding and submit a declaration on each device in the cluster, and all BIG-IP devices must be on the same BIG-IP version.  You specify one BIG-IP system as the 'owner' and the other BIG-IPs as 'members' (see :ref:`devicegroup`).  
 
 BIG-IP clustering is well-documented in the product documentation; for detailed information about clustering on the BIG-IP system, see |cluster|.
 
 .. TIP:: You can use GET to the URI ``https://<BIG-IP>/mgmt/shared/declarative-onboarding`` to track whether a declaration is successful or get information on why it failed.
 
-Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
+Additionally, see :doc:`json-pointers` for information on using JSON/BIG-IP Declarative Onboarding pointers in your declaration.
 
 
 Declaration classes for a cluster of BIG-IPs
@@ -18,7 +18,7 @@ Declaration classes for a cluster of BIG-IPs
 
 In this example, we include the classes that are specific to clustering.  For a complete declaration, you could add the classes shown in :doc:`composing-a-declaration` to configure DNS, NTP, VLANs, Routes and more.  For the full clustering example declaration, see :ref:`example2`.
 
-.. NOTE:: Some classes are only available in certain versions of Declarative Onboarding.  See the individual class sections for any version notices.
+.. NOTE:: Some classes are only available in certain versions of BIG-IP Declarative Onboarding.  See the individual class sections for any version notices.
 
 For some of the clustering components, like ConfigSync and failoverAddress, you can use JSON pointers to reference objects/properties in declarations.
 
@@ -90,7 +90,7 @@ Configsync class
 ````````````````
 The first class specific to clustering is the configsync class. This class contains the properties responsible for propagating BIG-IP configuration changes, including device trust information, to all devices in a device group. For more information on configsync on the BIG-IP, see |cs|.  Because this example assumes we are using this class together with the  standalone declaration, we can use a JSON pointer to the self IP address we defined. 
 
-.. NOTE::  As of DO 1.7.0, **none** is a valid value for configsyncIP.
+.. NOTE::  As of BIG-IP DO 1.7.0, **none** is a valid value for configsyncIP.
 
 .. code-block:: javascript
    :linenos:
@@ -160,7 +160,7 @@ For more information on Device Groups on the BIG-IP, see |group|.  In this examp
 
 **Important**: You cannot use *autoSync* and *fullLoadOnSync* together. 
 
-.. NOTE::  In Declarative Onboarding v1.11.0 and later, the member and owner parameters can be IP addresses.  See :ref:`Example 17<example17>` for an example declaration.
+.. NOTE::  In BIG-IP Declarative Onboarding v1.11.0 and later, the member and owner parameters can be IP addresses.  See :ref:`Example 17<example17>` for an example declaration.
 
 
 
@@ -216,7 +216,7 @@ The next class specific to clustering is the traffic group class. A traffic grou
 
 For detailed information about Traffic Groups and clustering on the BIG-IP, see |tgdoc|.  See :ref:`Traffic Groups<example25>` for an example declaration.
 
-.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br| |br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the example, the declaration defines a Device Group with a host name.  
+.. IMPORTANT:: The HA Score failover method is not currently supported. BIG-IP DO uses the HA Order failover method. |br| |br| Because BIG-IP DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the example, the declaration defines a Device Group with a host name.  
 
 
 .. code-block:: javascript
@@ -299,13 +299,9 @@ The next class specific to clustering is the device trust class. Device trust es
 
 MirrorIp class
 ``````````````
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+The next class specific to clustering is the MirrorIP class, introduced in BIG-IP DO v1.16. The MirrorIP class allows you to configure connection and persistence mirroring information in a BIG-IP Declarative Onboarding declaration.  This allows you to configure clustered BIG-IPs to duplicate connection and persistence information to peer members of the BIG-IP device group, providing higher reliability but may affect system performance.  
 
-   Support for the MirrorIp class is available in DO v1.16 and later
-
-The next class specific to clustering is the MirrorIP class, introduced in DO v1.16. The MirrorIP class allows you to configure connection and persistence mirroring information in a Declarative Onboarding declaration.  This allows you to configure clustered BIG-IPs to duplicate connection and persistence information to peer members of the BIG-IP device group, providing higher reliability but may affect system performance.  
-
-For more information and DO usage, see |mirrorref|.  See :ref:`example29` for an example declaration.
+For more information and BIG-IP DO usage, see |mirrorref|.  See :ref:`example29` for an example declaration.
 
 
 .. code-block:: javascript

@@ -1,6 +1,6 @@
 HTTP Methods
 ------------
-This section contains the current HTTP methods available with Declarative Onboarding.
+This section contains the current HTTP methods available with BIG-IP Declarative Onboarding.
 
 
 POST
@@ -12,11 +12,11 @@ echoes your declaration back to you.
 
 .. NOTE:: If you are using a single NIC BIG-IP system, you must include port 8443 after your IP address in your POST: **https://<BIG-IP>:8443/mgmt/shared/declarative-onboarding**
 
-The first time you POST a Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration.  If you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.
+The first time you POST a BIG-IP Declarative Onboarding declaration, the system records the configuration that exists prior to processing the declaration.  If you POST subsequent declarations to the same BIG-IP system, and leave out some of the properties you initially used, the system restores the original properties for those items.
 
 .. _postnote:
 
-**NOTE**: When using Declarative Onboarding 1.4.0 and later, the response to a POST includes additional fields that help identify asynchronous Declarative Onboarding tasks.  These fields are **id** and **selfLink**.  For example, a POST using 1.4.0 returns the following:
+**NOTE**: When using BIG-IP Declarative Onboarding 1.4.0 and later, the response to a POST includes additional fields that help identify asynchronous BIG-IP Declarative Onboarding tasks.  These fields are **id** and **selfLink**.  For example, a POST using 1.4.0 returns the following:
 
 .. code-block:: bash
    :emphasize-lines: 2-3
@@ -39,9 +39,9 @@ The first time you POST a Declarative Onboarding declaration, the system records
 
 GET
 ~~~
-You can use the GET method to retrieve the status of declarations you previously sent to Declarative Onboarding. Use the GET method to the URI
+You can use the GET method to retrieve the status of declarations you previously sent to BIG-IP Declarative Onboarding. Use the GET method to the URI
 ``https://<BIG-IP>/mgmt/shared/declarative-onboarding``.  Only declarations you create
-in Declarative Onboarding return, GET does not return anything that was not created by Declarative Onboarding.
+in BIG-IP Declarative Onboarding return, GET does not return anything that was not created by BIG-IP Declarative Onboarding.
 
 .. NOTE:: If you are using a single NIC BIG-IP system, you must include port 8443 after your IP address in your GET: **https://<BIG-IP>:8443/mgmt/shared/declarative-onboarding**
 
@@ -52,11 +52,11 @@ GET query parameters
 
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   **statusCodes** is available in DO v1.9.0 and later. 
+   **statusCodes** is available in BIG-IP DO v1.9.0 and later. 
 
 You can use the following optional URL query parameters with a GET request.  
 
-The statusCodes parameter is only available in DO 1.9.0 and later.  
+The statusCodes parameter is only available in BIG-IP DO 1.9.0 and later.  
 
 +-------------------------+----------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Query Parameter         | Options              | Description/Notes                                                                                                                                                                                                                                                                                                                                                   |
@@ -68,7 +68,7 @@ The statusCodes parameter is only available in DO 1.9.0 and later.
 
 **Examples**
 
--	``https://MGMT_IP/mgmt/shared/declarative-onboarding?show=full`` |br| DO returns the original and current configuration.
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding?show=full`` |br| BIG-IP DO returns the original and current configuration.
 -	``https://MGMT_IP/mgmt/shared/declarative-onboarding?statusCodes=legacy``  |br| If there is an error, the GET response would return that error as the HTTP status, but the GET request itself would not error.
 -	``https://MGMT_IP/mgmt/shared/declarative-onboarding?statusCodes=experimental``  |br| Returns a 200 HTTP status code unless there is an issue with the request.  The results contain the status. 
 
@@ -78,10 +78,10 @@ The statusCodes parameter is only available in DO 1.9.0 and later.
 
 Additional endpoints for GET
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Declarative Onboarding v1.4 introduced two new endpoints for the GET method
+BIG-IP Declarative Onboarding v1.4 introduced two new endpoints for the GET method
 
 - ``/shared/declarative-onboarding/task`` with optional ``/<taskId>``  
-  If you do not specify a taskId, DO returns an array of all tasks. If you use the taskId, DO returns the specific task.  The response looks like that for the POST response.
+  If you do not specify a taskId, BIG-IP DO returns an array of all tasks. If you use the taskId, BIG-IP DO returns the specific task.  The response looks like that for the POST response.
 
   For example, sending a GET to the **/task** endpoint looks like the following when the task is in progress:
 
@@ -129,7 +129,7 @@ When the task has completed, you see the code, status and message change:
 |
 
 - ``/shared/declarative-onboarding/config/<machineId>``  
-  Returns the original configuration of the specified device (identified by device machineId), or all devices if no machineId is given.  This endpoint is for informational/debugging purposes only, and is not something you need in the day-to-day use of Declarative Onboarding.
+  Returns the original configuration of the specified device (identified by device machineId), or all devices if no machineId is given.  This endpoint is for informational/debugging purposes only, and is not something you need in the day-to-day use of BIG-IP Declarative Onboarding.
   
 Example response from sending GET to /shared/declarative-onboarding/config:
 
@@ -190,11 +190,7 @@ Example response from sending GET to /shared/declarative-onboarding/config:
 
 Using GET with the /inspect endpoint
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   The **/inspect** endpoint for GET is available in DO v1.7.0 and later. 
-
-In DO version 1.7.0 and later, you can use a GET request to the /inspect endpoint to retrieve the current BIG-IP configuration. This information can be used for modifying the DO declaration before the first POST.  The response returns the classes that DO is aware of and their current state, in the format of a DO declaration.
+In BIG-IP DO version 1.7.0 and later, you can use a GET request to the /inspect endpoint to retrieve the current BIG-IP configuration. This information can be used for modifying the BIG-IP DO declaration before the first POST.  The response returns the classes BIG-IP DO is aware of and their current state, in the format of a BIG-IP DO declaration.
 
 The full endpoint is **https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect**
 
@@ -214,9 +210,9 @@ You can use the following optional URL query parameters with a GET request to th
 
 **Examples**
 
--	``https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect`` |br| DO will try to fetch configuration from localhost (allowed only when running on BIG-IP).
--	``https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect?targetHost=X.X.X.X``  |br| DO will try to fetch configuration from host X.X.X.X, port 443 or 8443, username === admin and password === admin 
--	``https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect?targetHost=X.X.X.X&targetPort=443&targetUsername=ZZZ&targetPassword=AAA``  |br| DO will try to fetch configuration from host X.X.X.X, port 443, username === ZZZ and password === AAA 
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect`` |br| BIG-IP DO will try to fetch configuration from localhost (allowed only when running on BIG-IP).
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect?targetHost=X.X.X.X``  |br| BIG-IP DO will try to fetch configuration from host X.X.X.X, port 443 or 8443, username === admin and password === admin 
+-	``https://MGMT_IP/mgmt/shared/declarative-onboarding/inspect?targetHost=X.X.X.X&targetPort=443&targetUsername=ZZZ&targetPassword=AAA``  |br| BIG-IP DO will try to fetch configuration from host X.X.X.X, port 443, username === ZZZ and password === AAA 
 
 
 Example response from a GET request to the /inspect endpoint:
@@ -293,11 +289,11 @@ Example response from a GET request to the /inspect endpoint:
 
       * - 408
         - Request Timeout
-        - DO unable to return declaration after 60sec.
+        - BIG-IP DO unable to return declaration after 60sec.
 
       * - 412
         - Precondition failed
-        - DO unable to verify declaration produced by Inspect Handler (/inspect).
+        - BIG-IP DO unable to verify declaration produced by Inspect Handler (/inspect).
 
       * - 400
         - Bad Request
@@ -305,11 +301,11 @@ Example response from a GET request to the /inspect endpoint:
 
       * - 403
         - Forbidden
-        - DO should be executed on BIG-IP or the user should specify target* parameter(s).
+        - BIG-IP DO should be executed on BIG-IP or the user should specify target* parameter(s).
 
       * - 409
         - Conflict
-        - DO cannot provide valid declaration because some of the objects share the same name (for instance VLAN and SelfIp can share **internal** name). Response stills contain declaration which contains INVALID items (suffixed with INVALID_X). See the following example.
+        - BIG-IP DO cannot provide valid declaration because some of the objects share the same name (for instance VLAN and SelfIp can share **internal** name). Response stills contain declaration which contains INVALID items (suffixed with INVALID_X). See the following example.
 
 
 Example of the response for error 409

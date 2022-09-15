@@ -1,12 +1,12 @@
 .. _composing:  
 
 
-Composing a Declarative Onboarding declaration for a standalone BIG-IP
-======================================================================
+Composing a BIG-IP Declarative Onboarding declaration for a standalone BIG-IP
+=============================================================================
 
-The most important part of using Declarative Onboarding is creating a declaration that includes the BIG-IP objects you want the system to configure.    
+The most important part of using BIG-IP Declarative Onboarding is creating a declaration that includes the BIG-IP objects you want the system to configure.    
 
-To submit an Declarative Onboarding declaration, use a specialized RESTful API client such as Postman or a universal client such as cURL.
+To submit a BIG-IP Declarative Onboarding declaration, use a specialized RESTful API client such as Postman or a universal client such as cURL.
 
 To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP address>/mgmt/shared/declarative-onboarding``.  If you are using a single NIC BIG-IP, include port 8443: ``<BIG-IP IP address>:8443/mgmt/shared/declarative-onboarding``
 
@@ -14,11 +14,11 @@ To transmit the declaration, you POST the declaration to the URI ``<BIG-IP IP ad
 
 In this section, we first show the sample declaration, and then we break it down and describe its parts. If you are unfamiliar with any of the BIG-IP terminology, see the `F5 Knowledge Center <https://support.f5.com/csp/knowledge-center/software/BIG-IP?module=BIG-IP%20LTM&version=13.1.0>`_.
 
-Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
+Additionally, see :doc:`json-pointers` for information on using JSON/BIG-IP Declarative Onboarding pointers in your declaration.
 
 To see how to use BIG-IQ to license your BIG-IP VEs, see :doc:`big-iq-licensing`.  
 
-.. IMPORTANT:: Domain name resolution is used anywhere the declaration accepts a hostname. DO makes sure that any hostnames are resolvable and fails if they are not. The exception is deviceGroup.members, which do not require hostname resolution as they have been added to the trust)
+.. IMPORTANT:: Domain name resolution is used anywhere the declaration accepts a hostname. BIG-IP DO makes sure that any hostnames are resolvable and fails if they are not. The exception is deviceGroup.members, which do not require hostname resolution as they have been added to the trust)
 
 
 
@@ -124,13 +124,13 @@ For more information, see |deviceclass| in the Schema Reference.
 
 Common class
 ````````````
-The next lines of the declaration set the partition (tenant) on the BIG-IP in which all other objects are placed.  This **must** be Common.  All of the other parameters in Declarative Onboarding are under this Common class. 
+The next lines of the declaration set the partition (tenant) on the BIG-IP in which all other objects are placed.  This **must** be Common.  All of the other parameters in BIG-IP Declarative Onboarding are under this Common class. 
 
-While not strictly required, you must include Common and the tenant class to set any other parameters in Declarative Onboarding; therefore the required column is set to Yes for the Tenant class.
+While not strictly required, you must include Common and the tenant class to set any other parameters in BIG-IP Declarative Onboarding; therefore the required column is set to Yes for the Tenant class.
 
 For more information, see |devicecommon| in the Schema Reference.
 
-.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class (introduced in DO 1.8.0). We recommend using the :ref:`system-class` for hostname (and have updated this example to move hostname to System).  
+.. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class (introduced in BIG-IP DO 1.8.0). We recommend using the :ref:`system-class` for hostname (and have updated this example to move hostname to System).  
 
 .. NOTE:: For the rest of the classes on this page, the required column in the tables applies only if you are using the class in the heading.  None of the classes are required.
 
@@ -162,11 +162,7 @@ For more information, see |devicecommon| in the Schema Reference.
 
 System class
 ````````````
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   The **autoCheck** property is available in DO 1.13 and later. The **autoPhonehome** property is available in DO v1.10.0 and later.
-
-The next lines of the declaration set the system-level options. This includes inactivity timeouts for CLI and Console sessions, and the ability to disable the phonehome property (see the table for details) in DO 1.10.0 and later. 
+The next lines of the declaration set the system-level options. This includes inactivity timeouts for CLI and Console sessions, and the ability to disable the phonehome property (see the table for details) in BIG-IP DO 1.10.0 and later. 
 
 For more information, see |systemclass| in the Schema Reference. Also see :ref:`The System Class example<systemex>` for an example declaration.
 
@@ -223,7 +219,7 @@ For more information and a full list of properties, see |licenseclass| in the Sc
 
 The name *myLicense* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
 
-Declarative Onboarding 1.24 introduced the optional **chargebackTag** property, the value of which is a text string that can be used as a charge back tag, making it easier to track license costs.
+BIG-IP Declarative Onboarding 1.24 introduced the optional **chargebackTag** property, the value of which is a text string that can be used as a charge back tag, making it easier to track license costs.
 
 
 
@@ -268,7 +264,7 @@ The next lines of the declaration set the DNS options on the BIG-IP system. For 
 
 The name *myDNS* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
 
-.. IMPORTANT:: If you are configuring DNS in your declaration, Declarative Onboarding disables DHCP for DNS.
+.. IMPORTANT:: If you are configuring DNS in your declaration, BIG-IP Declarative Onboarding disables DHCP for DNS.
 
 
 .. code-block:: javascript
@@ -312,7 +308,7 @@ The next lines of the declaration set the NTP (network time protocol) options on
 
 The name *myNTP* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
 
-.. IMPORTANT:: If you are configuring NTP in your declaration, Declarative Onboarding disables DHCP for NTP.
+.. IMPORTANT:: If you are configuring NTP in your declaration, BIG-IP Declarative Onboarding disables DHCP for NTP.
 
 For instructions on how to get a current list of timezones on the BIG-IP, see https://support.f5.com/csp/article/K9098.  To quickly view a static list that 
 
@@ -355,7 +351,7 @@ User class
 ``````````
 The next lines of the declaration create (or modify) the users and their associated roles and access control. For more information, see |userclass| in the Schema Reference.
 
-If you are modifying the root password, you must supply the existing root password (**default** on a new BIG-IP). All other user accounts, including admin, do not have this requirement. As mentioned in the :ref:`prereqs`, if you are using BIG-IP v14.0 or later, the root password may be the same as your admin password you reset before installing Declarative Onboarding. 
+If you are modifying the root password, you must supply the existing root password (**default** on a new BIG-IP). All other user accounts, including admin, do not have this requirement. As mentioned in the :ref:`prereqs`, if you are using BIG-IP v14.0 or later, the root password may be the same as your admin password you reset before installing BIG-IP Declarative Onboarding. 
 
 .. IMPORTANT:: The following examples include passwords that may not be valid for BIG-IP v14.0 and later.  See |pass| for specific requirements.
 
@@ -451,7 +447,7 @@ The next lines of the declaration set the provisioning options on the BIG-IP.  F
 
 The name *myProvisioning* we use in this example is arbitrary; it is not used anywhere in the BIG-IP configuration. You can name this object anything, but it must have a name.
 
-.. NOTE:: Provisioning CGNAT is currently only available in TMOS versions 15.0 and later. |br|  Provisioning SSL Orchestrator (SSLO) is available in DO 1.11 and later.
+.. NOTE:: Provisioning CGNAT is currently only available in TMOS versions 15.0 and later. |br|  Provisioning SSL Orchestrator (SSLO) is available in BIG-IP DO 1.11 and later.
 
 
 
@@ -489,8 +485,8 @@ VLAN class
 ``````````
 The next lines of the declaration configure VLANs on the BIG-IP system. In this case, the name you give the VLAN class is used for the name of the VLAN on the BIG-IP. For more information, see |vlanclass| in the Schema Reference.
 
-**New in DO 1.7.0 and later**
-Declarative Onboarding v1.7.0 and later includes the **cmp-hash** property, which is not included in this example declaration.  For information on this property, see the table below the example, and :ref:`CMP Hash example<cmphash>`.
+**New in BIG-IP DO 1.7.0 and later**
+BIG-IP Declarative Onboarding v1.7.0 and later includes the **cmp-hash** property, which is not included in this example declaration.  For information on this property, see the table below the example, and :ref:`CMP Hash example<cmphash>`.
 
 
 
@@ -681,7 +677,7 @@ For more information, see |mgmtrouteclass| in the Schema Reference.
 
 Route Domain class
 ``````````````````
-The next lines of the declaration configure route domains on the BIG-IP system.  For specific information on Route Domains, see the |rddocs|. For more information on Route Domains in DO, see |routedomainclass| in the Schema Reference.
+The next lines of the declaration configure route domains on the BIG-IP system.  For specific information on Route Domains, see the |rddocs|. For more information on Route Domains in BIG-IP DO, see |routedomainclass| in the Schema Reference.
 
 With Route Domains, the **id** is required, and you use the id as an identifier in other parts of the declaration.  You can see a specific example of this in :ref:`Route Domain example<rdomain>`.
 
@@ -750,7 +746,7 @@ With Route Domains, the **id** is required, and you use the id as an identifier 
 
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for database variables is available in Declarative Onboarding 1.1.0 and later.
+   Support for database variables is available in BIG-IP Declarative Onboarding 1.1.0 and later.
 
 
 DB Variable class
@@ -800,9 +796,6 @@ The next lines of the declaration enable the ability to set arbitrary database v
 .. |prov| raw:: html
 
    <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-essentials-13-1-0/7.html" target="_blank">Provisioning Levels</a>
-
-
-
 
 .. |f5| raw:: html
 
