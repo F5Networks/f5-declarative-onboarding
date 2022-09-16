@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/analytics.schema.json",
-    "title": "F5 Declarative Onboarding Global Analytics declaration",
+    "title": "F5 BIG-IP Declarative Onboarding Global Analytics declaration",
     "description": "Global analytics properties for onboarding a BIG-IP.",
     "if": {
         "required": ["class"],

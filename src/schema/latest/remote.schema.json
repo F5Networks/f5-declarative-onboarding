@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/remote.schema.json",
-    "title": "F5 Declarative Onboarding request declaration",
-    "description": "Wrapper for remote onboarding of a BIG-IP device using F5 Declarative Onboarding",
+    "title": "F5 BIG-IP Declarative Onboarding request declaration",
+    "description": "Wrapper for remote onboarding of a BIG-IP device using F5 BIG-IP Declarative Onboarding",
     "type": "object",
     "required": ["class", "declaration"],
     "if": {
@@ -29,7 +29,7 @@
     },
     "properties": {
         "class": {
-            "description": "Indicates that this is a Declarative Onboarding request",
+            "description": "Indicates that this is a BIG-IP Declarative Onboarding request",
             "type": "string",
             "const": "DO"
         },
@@ -56,7 +56,7 @@
             "default": 0
         },
         "targetUsername": {
-            "description": "Username of principal authorized to modify configuration of targetHost (may not include the character ':').  NOTE:  this is generally not required to configure 'localhost' because client authentication and authorization precede invocation of DO.  It is also not required for any targetHost if you populate targetTokens",
+            "description": "Username of principal authorized to modify configuration of targetHost (may not include the character ':').  NOTE:  this is generally not required to configure 'localhost' because client authentication and authorization precede invocation of BIG-IP DO.  It is also not required for any targetHost if you populate targetTokens",
             "type": "string",
             "anyOf": [
                 { "format": "json-pointer" },
@@ -72,7 +72,7 @@
             ]
         },
         "targetSshKey": {
-            "description": "Private key for use in ssh operations. Corresponding public key must be in the targetUsername's ~/.ssh/authorized_keys file on the targetHost. This is only used to do initial account creation in environments where that is necessary. If this value is present, DO will look in the declaration for a user matching targetUsername and set its password via ssh.",
+            "description": "Private key for use in ssh operations. Corresponding public key must be in the targetUsername's ~/.ssh/authorized_keys file on the targetHost. This is only used to do initial account creation in environments where that is necessary. If this value is present, BIG-IP DO will look in the declaration for a user matching targetUsername and set its password via ssh.",
             "type": "object",
             "required": ["path"],
             "properties": {
