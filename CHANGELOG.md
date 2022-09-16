@@ -3,6 +3,8 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.33.0
 ### Added
+AUTOTOOL-3415: ([partial implementation of GitHub Issue 316](https://github.com/F5Networks/f5-declarative-onboarding/issues/316)): Support for auth password policy
+
 ### Fixed
 ### Changed
 AUTOTOOL-3419: Issue warning when a SelfIp is modified that the default for 'allowService' will change to 'none' in version 1.35.0

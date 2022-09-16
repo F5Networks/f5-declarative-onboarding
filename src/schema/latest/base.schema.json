@@ -172,6 +172,7 @@
                             "NetAddressList",
                             "NetPortList",
                             "NTP",
+                            "PasswordPolicy",
                             "Provision",
                             "RemoteAuthRole",
                             "Route",
