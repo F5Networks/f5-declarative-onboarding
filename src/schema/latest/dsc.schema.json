@@ -60,7 +60,11 @@
                         "maximum": 65535
                     },
                     "addressPorts": {
+<<<<<<< HEAD
                         "description": "An array of address and port objects, that will create multiple failover unicast objects in the BIG-IP device. This array is mutually exclusive from using the other address and port features. Available in BIG-IP DO 1.15 and later.",
+=======
+                        "description": "An array of address and port objects, that will create multiple failover unicast objects in the BIG-IP device. This array is mutually exclusive from using the other address and port features. Available in BIG-IP DO  1.15 and later.",
+>>>>>>> develop
                         "type": "array",
                         "items": {
                             "type": "object",

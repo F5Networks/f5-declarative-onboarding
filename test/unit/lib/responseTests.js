@@ -21,39 +21,6 @@ const assert = require('assert');
 const Response = require('../../../src/lib/response');
 const state = require('./stateMock');
 
-state.tasks = {
-    1234: {
-        result: {
-            code: 200,
-            status: 'my status',
-            message: 'my message',
-            errors: ['error 1', 'error 2']
-        },
-        currentConfig: {
-            foo: 'bar'
-        },
-        originalConfig: {
-            hello: 'world'
-        },
-        lastUpdate: 'foo'
-    },
-    5678: {
-        result: {
-            code: 200,
-            status: 'my status',
-            message: 'my message',
-            errors: ['error 1', 'error 2']
-        },
-        currentConfig: {
-            foo: 'bar'
-        },
-        originalConfig: {
-            hello: 'world'
-        },
-        lastUpdate: 'bar'
-    }
-};
-
 class Responder {
     constructor(aState) {
         this.state = aState;
@@ -90,6 +57,10 @@ class Responder {
         return this.state.getErrors(id);
     }
 
+    getWarnings(id) {
+        return this.state.getWarnings(id);
+    }
+
     getData(id, options) {
         const data = {
             declaration: this.state.getDeclaration(id)
@@ -104,17 +75,56 @@ class Responder {
     }
 }
 
-const responder = new Responder(state);
+let responder;
 
 describe('response', () => {
+    beforeEach(() => {
+        state.tasks = {
+            1234: {
+                result: {
+                    code: 200,
+                    status: 'my status',
+                    message: 'my message',
+                    errors: ['error 1234 1', 'error 1234 2'],
+                    warnings: ['warning 1234 1', 'warning 1234 2']
+                },
+                currentConfig: {
+                    foo: 'bar'
+                },
+                originalConfig: {
+                    hello: 'world'
+                },
+                lastUpdate: 'foo'
+            },
+            5678: {
+                result: {
+                    code: 200,
+                    status: 'my status',
+                    message: 'my message',
+                    errors: ['error 5678 1', 'error 5678 2'],
+                    warnings: []
+                },
+                currentConfig: {
+                    foo: 'bar'
+                },
+                originalConfig: {
+                    hello: 'world'
+                },
+                lastUpdate: 'bar'
+            }
+        };
+        responder = new Responder(state);
+    });
+
     it('should set success response in result',
         () => new Response(1234, responder).getResponse()
             .then((response) => {
                 assert.strictEqual(response.id, 1234);
                 assert.strictEqual(response.result.code, 200);
-                assert.strictEqual(response.result.status, 'my status 1234');
-                assert.strictEqual(response.result.message, 'my message 1234');
-                assert.deepEqual(response.result.errors, ['error 1', 'error 2']);
+                assert.strictEqual(response.result.status, 'my status');
+                assert.strictEqual(response.result.message, 'my message');
+                assert.deepEqual(response.result.errors, ['error 1234 1', 'error 1234 2']);
+                assert.deepEqual(response.result.warnings, ['warning 1234 1', 'warning 1234 2']);
                 assert.strictEqual(response.currentConfig, undefined);
                 assert.strictEqual(response.originalConfig, undefined);
             }));
@@ -122,9 +132,9 @@ describe('response', () => {
     it('should include full response if options say so',
         () => new Response(1234, responder, { show: 'full' }).getResponse()
             .then((response) => {
-                assert.deepEqual(response.currentConfig, { foo: 'config for 1234' });
-                assert.deepEqual(response.originalConfig, { hello: 'original config for 1234' });
-                assert.deepEqual(response.lastUpdate, 'last update 1234');
+                assert.deepEqual(response.currentConfig, { foo: 'bar' });
+                assert.deepEqual(response.originalConfig, { hello: 'world' });
+                assert.deepEqual(response.lastUpdate, 'foo');
             }));
 
     it('should return an array of tasks if no task id is set',

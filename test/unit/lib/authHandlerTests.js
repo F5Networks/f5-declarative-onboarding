@@ -67,6 +67,51 @@ describe('authHandler', () => {
         sinon.restore();
     });
 
+    describe('passwordPolicy', () => {
+        it('should process a password policy', () => {
+            const declaration = {
+                Common: {
+                    PasswordPolicy: {
+                        expirationWarning: 1,
+                        lockoutDuration: 2,
+                        maxDuration: 3,
+                        maxLoginFailures: 4,
+                        minDuration: 5,
+                        minimumLength: 6,
+                        passwordMemory: 7,
+                        policyEnforcement: 'enabled',
+                        requiredLowercase: 8,
+                        requiredNumeric: 9,
+                        requiredSpecial: 10,
+                        requiredUppercase: 11
+                    }
+                }
+            };
+            const authHandler = new AuthHandler(declaration, bigIpMock);
+            return authHandler.process()
+                .then(() => {
+                    assert.strictEqual(pathsSent[0], '/tm/auth/password-policy');
+                    assert.deepStrictEqual(
+                        dataSent[0],
+                        {
+                            expirationWarning: 1,
+                            lockoutDuration: 2,
+                            maxDuration: 3,
+                            maxLoginFailures: 4,
+                            minDuration: 5,
+                            minimumLength: 6,
+                            passwordMemory: 7,
+                            policyEnforcement: 'enabled',
+                            requiredLowercase: 8,
+                            requiredNumeric: 9,
+                            requiredSpecial: 10,
+                            requiredUppercase: 11
+                        }
+                    );
+                });
+        });
+    });
+
     describe('radius', () => {
         it('should be able to process a radius declaration', () => {
             const declaration = {

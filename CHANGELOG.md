@@ -1,6 +1,17 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.33.0
+### Added
+- AUTOTOOL-3415: ([partial implementation of GitHub Issue 316](https://github.com/F5Networks/f5-declarative-onboarding/issues/316)): Support for auth password policy
+
+### Fixed
+### Changed
+- AUTOTOOL-3419: Issue warning when a SelfIp is modified that the default for 'allowService' will change to 'none' in version 1.35.0
+- AUTOTOOL-3057: ([GitHub Issue 297](https://github.com/F5Networks/f5-declarative-onboarding/issues/297)): Declarations with deviceCertificate via BIG-IQ fail
+
+### Removed
+
 ## 1.32.0
 ### Added
 - AUTOTOOL-3308: ([GitHub Issue 280](https://github.com/F5Networks/f5-declarative-onboarding/issues/280)): DNS_Resolver_forwardZones/name should accept “.” as FQDN

@@ -1216,6 +1216,26 @@ describe('restWorker', () => {
             });
         });
 
+        it('should save warnings to the state if there are any', () => {
+            sinon.stub(DeclarationHandlerMock.prototype, 'process').resolves({ warnings: ['warning 1'] });
+            return new Promise((resolve, reject) => {
+                restOperationMock.complete = () => {
+                    try {
+                        const taskId = Object.keys(restWorker.state.doState.tasks)[0];
+                        assert.deepStrictEqual(
+                            restWorker.state.doState.tasks[taskId].result.warnings,
+                            ['warning 1']
+                        );
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+
+                restWorker.onPost(restOperationMock);
+            });
+        });
+
         describe('POST to webhook', () => {
             let stubHttpUtil;
             let webhook;

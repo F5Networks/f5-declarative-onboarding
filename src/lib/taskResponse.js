@@ -56,6 +56,10 @@ class TaskResponse {
         return this.state.getErrors(id);
     }
 
+    getWarnings(id) {
+        return this.state.getWarnings(id);
+    }
+
     getData(id, options) {
         if (!this.exists(id)) {
             return { httpStatus: 404 };

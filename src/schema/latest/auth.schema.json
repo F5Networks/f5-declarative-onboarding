@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/auth.schema.json",
-    "title": "F5 Declarative Onboarding Authentication declaration",
+    "title": "F5 BIG-IP Declarative Onboarding Authentication declaration",
     "description": "Authentication properties for onboarding a BIG-IP.",
     "allOf": [
         {
@@ -27,9 +27,114 @@
                     { "$ref": "#/definitions/remoteInfo" }
                 ]
             }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "PasswordPolicy" } }
+            },
+            "then": {
+                "$ref": "#/definitions/passwordPolicy"
+            }
         }
     ],
     "definitions": {
+        "passwordPolicy": {
+            "required": ["class"],
+            "type": "object",
+            "description": "Password policy info.",
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains password policy configuration.",
+                    "type": "string",
+                    "const": "PasswordPolicy"
+                },
+                "expirationWarningDays": {
+                    "description": "Specifies the number of days prior to password expiration that the system sends a warning message to users.",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 255,
+                    "default": 7
+                },
+                "minLength": {
+                    "description": "Specifies the minimum number of characters in a valid password.",
+                    "type": "integer",
+                    "minimum": 6,
+                    "maximum": 255,
+                    "default": 6
+                },
+                "minDurationDays": {
+                    "description": "Specifies the minimum number of days a password is valid.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255,
+                    "default": 0
+                },
+                "maxDurationDays": {
+                    "description": "Specifies the maximum number of days a password is valid.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 99999,
+                    "default": 99999
+                },
+                "lockoutDurationSeconds": {
+                    "description": "Specifies number of seconds in which to automatically reinstate users after being locked out. 0 means users must be manually reinstated. This is for BIG-IP 15.1+",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 999999,
+                    "default": 0
+                },
+                "maxLoginFailures": {
+                    "description": "Specifies the number of consecutive unsuccessful login attempts that the system allows before locking out the user. 0 means disabled.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "default": 0
+                },
+                "passwordMemory": {
+                    "description": "Specifies the number of former passwords that the BIG-IP system retains to prevent the user from reusing a recent password.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 127,
+                    "default": 0
+                },
+                "policyEnforcementEnabled": {
+                    "description": "Enables or disables the password policy.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "requiredUppercase": {
+                    "description": "Specifies the number of uppercase alpha characters that must be present in a password for the password to be valid.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 127,
+                    "default": 0
+                },
+                "requiredLowercase": {
+                    "description": "Specifies the number of lowercase alpha characters that must be present in a password for the password to be valid.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 127,
+                    "default": 0
+                },
+                "requiredNumeric": {
+                    "description": "Specifies the number of numeric characters that must be present in a password for the password to be valid.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 127,
+                    "default": 0
+                },
+                "requiredSpecial": {
+                    "description": "Specifies the number of special characters that must be present in a password for the password to be valid.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 127,
+                    "default": 0
+                }
+            },
+            "additionalProperties": false
+        },
         "remoteInfo": {
             "required": ["class", "enabledSourceType"],
             "type": "object",

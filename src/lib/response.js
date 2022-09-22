@@ -76,16 +76,17 @@ function getResponse(id, responder, options) {
 
             // optional methods
             const dryRun = responder.getDryRun && responder.getDryRun(id);
+            const warnings = responder.getWarnings && responder.getWarnings(id);
 
             // For error statuses, restnoded requires message at the top level
             // Other items at the top level for backwards compatibility
             if (code >= 300) {
                 Object.assign(response, {
-                    code, status, message, errors
+                    code, status, message, errors, warnings
                 });
             }
             response.result = {
-                class: 'Result', code, status, dryRun, message, errors
+                class: 'Result', code, status, dryRun, message, errors, warnings
             };
             Object.assign(response, data);
             return Promise.resolve(response);
