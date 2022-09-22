@@ -170,4 +170,48 @@ describe('cryptoUtil', () => {
             );
         });
     });
+
+    describe('encryptValue', () => {
+        const value = 'myValue';
+
+        it('should encrypt value on BIG-IP', () => {
+            let bodySent;
+
+            sinon.stub(doUtil, 'getBigIp').resolves({
+                create(path, body) {
+                    bodySent = body;
+                    return Promise.resolve({
+                        secret: 'encryptedValue'
+                    });
+                }
+            });
+
+            sinon.stub(doUtil, 'getCurrentPlatform').resolves('BIG-IP');
+
+            return cryptoUtil.encryptValue(value, undefined)
+                .then(() => {
+                    assert.strictEqual(bodySent.secret, 'myValue');
+                });
+        });
+
+        it('should encrypt value on BIG-IQ', () => {
+            let bodySent;
+
+            const bigIp = {
+                create(path, body) {
+                    bodySent = body;
+                    return Promise.resolve({
+                        secret: 'encryptedValue'
+                    });
+                }
+            };
+
+            sinon.stub(doUtil, 'getCurrentPlatform').resolves('BIG-IQ');
+
+            return cryptoUtil.encryptValue(value, bigIp)
+                .then(() => {
+                    assert.strictEqual(bodySent.secret, 'myValue');
+                });
+        });
+    });
 });

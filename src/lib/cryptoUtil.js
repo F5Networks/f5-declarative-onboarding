@@ -19,6 +19,7 @@
 const childProcess = require('child_process');
 const crypto = require('crypto');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
 
@@ -132,9 +133,9 @@ module.exports = {
      *                    split into chunks and there will be more than one element
      *                    in the array.
      */
-    encryptValue(value) {
+    encryptValue(value, bigIp) {
         const splitData = value.match(/[^]{1,500}/g);
-        return encryptValuesInArray(splitData, []);
+        return encryptValuesInArray(splitData, [], undefined, bigIp);
     }
 };
 
@@ -154,11 +155,20 @@ function encryptValueOnBigIp(value, id, bigIp) {
         .then(() => encryptedData);
 }
 
-function encryptValuesInArray(valueArray, encryptedData, index) {
+function encryptValuesInArray(valueArray, encryptedData, index, currentBigIp) {
     index = index || 0;
     const id = `declarative_onboarding_delete_me_${index}_${crypto.randomBytes(6).toString('hex')}`;
     let bigIp;
-    return doUtil.getBigIp(logger)
+
+    return Promise.resolve()
+        .then(() => doUtil.getCurrentPlatform())
+        .then((platform) => {
+            if (platform !== PRODUCTS.BIGIP && currentBigIp) {
+                return Promise.resolve(currentBigIp);
+            }
+
+            return doUtil.getBigIp(logger);
+        })
         .then((theBigIp) => {
             bigIp = theBigIp;
             return encryptValueOnBigIp(valueArray[index], id, bigIp);
@@ -169,7 +179,7 @@ function encryptValuesInArray(valueArray, encryptedData, index) {
         .then(() => {
             index += 1;
             if (index < valueArray.length) {
-                return encryptValuesInArray(valueArray, encryptedData, index);
+                return encryptValuesInArray(valueArray, encryptedData, index, currentBigIp);
             }
             return encryptedData;
         });

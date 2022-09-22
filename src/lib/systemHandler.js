@@ -16,6 +16,8 @@
 
 'use strict';
 
+const fs = require('fs');
+
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
@@ -331,7 +333,7 @@ function handleDeviceCertificate() {
 
     if (this.declaration.Common.DeviceCertificate) {
         const certificateName = Object.keys(this.declaration.Common.DeviceCertificate)[0];
-        const decryptScript = `${__dirname}/../scripts/decryptConfValue`;
+        const decryptScript = fs.readFileSync(`${__dirname}/../scripts/decryptConfValue`, 'utf8').toString();
         const writePromises = [];
         let certificatePromise = Promise.resolve();
         let keyPromise = Promise.resolve();
@@ -409,10 +411,10 @@ function handleDeviceCertificate() {
                         .then(() => {
                             if (needsWrite) {
                                 writePromises.push(
-                                    cryptoUtil.encryptValue(newKey)
+                                    cryptoUtil.encryptValue(newKey, this.bigIp)
                                         .then((results) => doUtil.executeBashCommandIControl(
                                             this.bigIp,
-                                            `/usr/bin/php -f ${decryptScript} '${results}' ${keyFullPath}`
+                                            `/usr/bin/php -r '${decryptScript}' '${results}' ${keyFullPath}`
                                         ))
                                 );
                             }
