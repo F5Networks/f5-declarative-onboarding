@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: DO
-  description: This reference describes the DO API and available endpoints. For more details, see https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/using-do.html.
+  title: F5 BIG-IP Declarative Onboarding
+  description: This reference describes the BIG-IP DO API and available endpoints. For more details, see https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/using-do.html.
   version: 1.32.0
   contact:
     name: Declarative Onboarding
@@ -33,7 +33,7 @@ paths:
           in: query
           required: false
           description: |
-            Determines how DO returns HTTP status codes.
+            Determines how BIG-IP DO returns HTTP status codes.
               - *legacy*: Returns any errors as the HTTP status.
               - *experimental*: Returns a 200 HTTP status code unless there is an actual error with the request. The result in the body of the response contains the status of the task.
           schema:
@@ -59,13 +59,13 @@ paths:
         500:
           $ref: '#/components/responses/500'
     post:
-      summary: Apply DO configuration
+      summary: Apply BIG-IP DO configuration
       description: Configure the device per the declaration.
       operationId: postDeclaration
       tags:
         - Configuration
       requestBody:
-        description: DO Declaration.
+        description: BIG-IP DO Declaration.
         required: true
         content:
           application/json:
@@ -162,7 +162,7 @@ paths:
           $ref: '#/components/responses/500'
     delete:
       summary: Delete the stored original configuration by config ID
-      description: Delete the stored original configuration by config ID. This can be used in some cases when DO has gotten into an unusable state.
+      description: Delete the stored original configuration by config ID. This can be used in some cases when BIG-IP DO has gotten into an unusable state.
       operationId: deleteConfig
       tags:
         - Configuration
@@ -193,8 +193,8 @@ paths:
       tags:
         - Information
       description: |
-        This returns version and release information for the instance of DO you are using.
-        It also shows current and minimum required versions of the DO schema.
+        This returns version and release information for the instance of BIG-IP DO you are using.
+        It also shows current and minimum required versions of the BIG-IP DO schema.
       responses:
         200:
           description: Successful response.
@@ -214,7 +214,7 @@ paths:
                     $ref: '#/components/schemas/result'
                   version:
                     type: string
-                    description: The version of DO.
+                    description: The version of BIG-IP DO.
                   release:
                     type: string
                     description: The build number of the current version.
@@ -257,7 +257,7 @@ paths:
         - name: targetPort
           in: query
           required: false
-          description: The port that is used with the targetHost to establish a connection to the device. By default, DO tries to establish a connection to the device using ports 443 and 8443.
+          description: The port that is used with the targetHost to establish a connection to the device. By default, BIG-IP DO tries to establish a connection to the device using ports 443 and 8443.
           schema:
             type : integer
             minimum: 0
@@ -366,7 +366,7 @@ components:
           description: A collection of sub-objects that describe the configuration state of a device.
           additionalProperties: true
     errorConfig:
-      title: DO Processing Error
+      title: BIG-IP DO Processing Error
       description: An error response caused by attempting to apply invalid config.
       type: object
       properties:
