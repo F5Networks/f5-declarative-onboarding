@@ -1,13 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/base.schema.json",
-    "title": "F5 Declarative Onboarding base declaration",
+    "title": "F5 BIG-IP Declarative Onboarding base declaration",
     "description": "Top level schema for onboarding a BIG-IP.",
     "type": "object",
     "required": ["schemaVersion", "class"],
     "properties": {
         "schemaVersion": {
-            "description": "Version of Declarative Onboarding schema this declaration uses.",
+            "description": "Version of BIG-IP Declarative Onboarding schema this declaration uses.",
             "type": "string",
             "enum": [
                 "1.32.0",

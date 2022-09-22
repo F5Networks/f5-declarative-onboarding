@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/dsc.schema.json",
-    "title": "F5 Declarative Onboarding DSC declaration",
+    "title": "F5 BIG-IP Declarative Onboarding DSC declaration",
     "description": "Clustering properties for onboarding a BIG-IP.",
     "allOf": [
         {
@@ -60,7 +60,7 @@
                         "maximum": 65535
                     },
                     "addressPorts": {
-                        "description": "An array of address and port objects, that will create multiple failover unicast objects in the BIG-IP device. This array is mutually exclusive from using the other address and port features. Available in DO 1.15 and later.",
+                        "description": "An array of address and port objects, that will create multiple failover unicast objects in the BIG-IP device. This array is mutually exclusive from using the other address and port features. Available in BIG-IP DO 1.15 and later.",
                         "type": "array",
                         "items": {
                             "type": "object",

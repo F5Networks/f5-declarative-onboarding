@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/network.schema.json",
-    "title": "F5 Declarative Onboarding network declaration",
+    "title": "F5 BIG-IP Declarative Onboarding network declaration",
     "description": "Network properties for onboarding a BIG-IP.",
     "allOf": [
         {
