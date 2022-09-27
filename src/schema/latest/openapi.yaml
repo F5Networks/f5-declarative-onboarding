@@ -366,7 +366,7 @@ components:
           description: A collection of sub-objects that describe the configuration state of a device.
           additionalProperties: true
     errorConfig:
-      title: DO Processing Error
+      title: BIG-IP DO Processing Error
       description: An error response caused by attempting to apply invalid config.
       type: object
       properties:
