@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.33
-        - Updated the documentation for Declarative Onboarding v1.33.0.  This release contains the following changes: |br| * Added a note to self IP stating the default behavior will change in DO 1.35 (see :ref:`Self IP class<selfip-class>`)  |br| |br| Issues Resolved: |br| * DO issues a warning in the API response when a Self Ip is modified that the default for **allowService** will change to **none** in DO version 1.35.0 |br| Declarations with deviceCertificate via BIG-IQ fail, `GitHub Issue 297 <https://github.com/F5Networks/f5-declarative-onboarding/issues/297>`_
+        - Updated the documentation for Declarative Onboarding v1.33.0.  This release contains the following changes: |br| * Added a Password Policy class (see :ref:`Password Policy <passwordPolicy>`) |br| * Added a note to self IP stating the default behavior will change in DO 1.35 (see :ref:`Self IP class<selfip-class>`)  |br| |br| Issues Resolved: |br| * DO issues a warning in the API response when a Self Ip is modified that the default for **allowService** will change to **none** in DO version 1.35.0 |br| Declarations with deviceCertificate via BIG-IQ fail, `GitHub Issue 297 <https://github.com/F5Networks/f5-declarative-onboarding/issues/297>`_
         - 10-4-22
 
       * - 1.32
