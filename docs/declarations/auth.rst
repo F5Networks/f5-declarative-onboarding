@@ -133,8 +133,8 @@ See |loref| in the schema reference for more information and usage for RemoteAut
 
 .. _passwordPolicy:
 
-Using the PasswordPolicy class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Configuring a BIG-IP password policy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
    Support for the **PasswordPolicy** class is available in BIG-IP DO v1.33 and later.
