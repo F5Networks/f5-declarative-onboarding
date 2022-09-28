@@ -129,6 +129,26 @@ See |loref| in the schema reference for more information and usage for RemoteAut
 
 :ref:`Back to top<auth-examples>`
 
+|
+
+.. _passwordPolicy:
+
+Using the PasswordPolicy class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for the **PasswordPolicy** class is available in BIG-IP DO v1.33 and later.
+
+
+This example shows how you can use the **PasswordPolicy** class introduced in BIG-IP DO 1.33. This class allows you to set a variety of parameters to define a password policy.
+
+See |pp| in the schema reference for specific details on each of the parameters in the PasswordPolicy class, as well as DO usage.
+
+.. literalinclude:: ../../examples/passwordPolicy.json
+   :language: json
+
+:ref:`Back to top<auth-examples>`
+
 
 
 .. |certclass| raw:: html
@@ -162,6 +182,10 @@ See |loref| in the schema reference for more information and usage for RemoteAut
 .. |authldap| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#authentication-ldap" target="_blank">Authentication_ldap</a>
+
+.. |pp| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#passwordpolicy" target="_blank">PasswordPolicy</a>
 
 
 
