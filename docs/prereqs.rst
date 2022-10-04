@@ -30,6 +30,8 @@ The following are prerequisites for using F5 BIG-IP Declarative Onboarding:
 Notes and tips
 ~~~~~~~~~~~~~~
 
+.. IMPORTANT:: Beginning with DO 1.35.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.
+
 - Beginning with BIG-IP DO 1.8.0, the BIG-IP DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in the BIG-IP Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
 
 - Archival of community supported container solution
@@ -48,7 +50,6 @@ Notes and tips
 - If you POST a declaration that modifies the password for the admin account, even if the declaration returns an error, the password can be changed.  Therefore you may need to update the admin password in the client you are using to send the declaration.
 
 - After using BIG-IP Declarative Onboarding, if you want to use a declarative model to configure applications and services on a BIG-IP device, see the |as3| documentation.
-
 
 
 .. |br| raw:: html

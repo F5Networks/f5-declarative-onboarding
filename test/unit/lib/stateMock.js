@@ -35,6 +35,9 @@ module.exports = {
     getErrors(taskId) {
         return this.tasks[taskId].result.errors;
     },
+    getWarnings(taskId) {
+        return this.tasks[taskId].result.warnings;
+    },
     getDeclaration(taskId) {
         return this.tasks[taskId].declaration;
     },

@@ -469,6 +469,7 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
         .then((status) => {
             this.state.doState.setRebootRequired(taskId, status.rebootRequired);
             this.state.doState.setRollbackInfo(taskId, status.rollbackInfo);
+            this.state.doState.setWarnings(taskId, status.warnings);
             logger.fine('Saving sys config.');
             return saveConfig(this.bigIps[taskId], declaration);
         })

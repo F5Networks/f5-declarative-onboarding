@@ -279,13 +279,43 @@ class State {
     }
 
     /**
-     * Gets the current result message for a task
+     * Gets the current errors for a task
      *
      * @param {String} taskId - The id of the task.
      */
     getErrors(taskId) {
         if (this.tasks[taskId]) {
             return this.tasks[taskId].result.errors;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets the current warnings for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {String[]} warnings - The error array to set.
+     */
+    setWarnings(taskId, warnings) {
+        if (this.tasks[taskId]) {
+            if (warnings) {
+                this.tasks[taskId].result.warnings = warnings.slice();
+            } else if (this.tasks[taskId].result.warnings) {
+                this.tasks[taskId].result.warnings.length = 0;
+            }
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the current warnings for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getWarnings(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].result.warnings;
         }
         throw new Error('taskId does not exist');
     }

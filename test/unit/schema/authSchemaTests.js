@@ -66,6 +66,47 @@ describe('auth.schema.json', () => {
         });
     });
 
+    describe('PasswordPolicy class', () => {
+        describe('valid', () => {
+            it('should validate valid full password policy properties', () => {
+                const data = {
+                    class: 'PasswordPolicy',
+                    expirationWarningDays: 10,
+                    minLength: 10,
+                    minDurationDays: 10,
+                    maxDurationDays: 10,
+                    lockoutDurationSeconds: 10,
+                    maxLoginFailures: 10,
+                    passwordMemory: 10,
+                    policyEnforcementEnabled: true,
+                    requiredUppercase: 10,
+                    requiredLowercase: 10,
+                    requiredNumeric: 10,
+                    requiredSpecial: 10
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate valid minimal password policy properties', () => {
+                const data = {
+                    class: 'PasswordPolicy'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional properties', () => {
+                const data = {
+                    class: 'PasswordPolicy',
+                    foo: 'bar'
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert(getErrorString().includes('"additionalProperty": "foo"'));
+            });
+        });
+    });
+
     describe('Remote - Users Defaults', () => {
         describe('valid', () => {
             it('should validate remoteUsersDefaults', () => {

@@ -5,7 +5,7 @@ The following are frequently asked questions for Declarative Onboarding.
 
 **What is Declarative Onboarding?**
 
-F5 Declarative Onboarding (DO) is an F5 offering that provides a simple and consistent way to automate BIG-IP onboarding via Declarative REST APIs. A brother to |AS3|, DO provides a sustainable foundation to enable F5’s Infrastructure as Code (IaC) strategy. DO automates L1-L3 on-boarding for BIG-IP, making BIG-IP available on the network and ready to accept L4-L7 Application Services configurations. 
+F5 Declarative Onboarding (DO) is an F5 offering that provides a simple and consistent way to automate BIG-IP onboarding via Declarative REST APIs. A brother to |AS3|, DO provides a sustainable foundation to enable F5’s Infrastructure as Code (IaC) strategy. DO automates L1-L3 on-boarding for BIG-IP, making BIG-IP available on the network and ready to accept L4-L7 Application Services configurations. 
 
 For more information, return to :doc:`index`
 
@@ -30,7 +30,7 @@ The DO Container was a community-supported solution, and was deprecated in DO 1.
 
 |
 
-**How is DO different from onboarding with Ansible?**
+**How is DO different from onboarding with Ansible?**
 
 - Ansible is part of a large vendor ecosystem to manage and automate configuration of multiple platform types within the data center 
 - Ansible automates via imperative YAML playbooks which require knowledge of which BIG-IP modules need to be run and in which order 
@@ -42,16 +42,16 @@ See the |ansible| for more information.
 
 |
 
-**When is DO a good fit and when it is not?**
+**When is DO a good fit and when it is not?**
 
 DO is a good fit where: 
 
-  - Declarative interface is required to abstract away the complexity of BIG-IP onboarding 
+  - Declarative interface is required to abstract away the complexity of BIG-IP onboarding 
   - You need to onboard BIG-IP as Infrastructure as Code (IaC) via integration with DevOps pipelines 
 
-DO may not be a good fit where: 
+DO may not be a good fit where: 
 
-  - You do not want to use a Declarative interface
+  - You do not want to use a Declarative interface
   - You are unwilling or unable to deploy iControl Extension RPM on BIG-IP 
   - You require the BIG-IP to be the configuration source-of-truth 
   - You want to continue using imperative interfaces to configure (not just monitor or troubleshoot) BIG-IP: 
@@ -62,7 +62,7 @@ DO may not be a good fit where:
 
 |
 
- **Which TMOS versions does DO require?** 
+ **Which TMOS versions does DO require?** 
 
 DO requires TMOS 13.1+ 
 
@@ -86,7 +86,7 @@ Features specific to hardware platforms, such as creating vCMP guests and settin
 
 **What is the VSCode DO Declaration Validator?** 
 
-This capability enables you to validate an DO declaration against the DO schema using Microsoft Visual Studio Code (VSCode) editor, and is useful when composing a declaration manually or to check the accuracy of a declaration prior to deployment 
+This capability enables you to validate an DO declaration against the DO schema using Microsoft Visual Studio Code (VSCode) editor, and is useful when composing a declaration manually or to check the accuracy of a declaration prior to deployment 
 
 See :doc:`validate` for information.
 
@@ -100,7 +100,7 @@ See :doc:`validate` for information.
 
 **Does DO collect any usage data?** 
 
-The Declarative Onboarding (DO) Extension gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system’s phone home feature as described in |phone|. 
+The Declarative Onboarding (DO) Extension gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system's phone home feature as described in |phone|. 
 
 |
 

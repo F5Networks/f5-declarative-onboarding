@@ -53,19 +53,27 @@ class AuthHandler {
      */
     process() {
         logger.fine('Processing authentication declaration.');
-        const auth = (this.declaration.Common || {}).Authentication;
 
-        if (!auth) {
-            return handleRemoteAuthRoles.call(this);
-        }
-
-        return handleRemoteAuthRoles.call(this)
-            .then(() => handleRadius.call(this))
-            .then(() => handleTacacs.call(this))
-            .then(() => handleLdap.call(this))
-            .then(() => handleSource.call(this))
-            .then(() => handleRemoteUsersDefaults.call(this));
+        return Promise.resolve()
+            .then(() => handleRemoteAuthRoles.call(this))
+            .then(() => handleAuthentication.call(this))
+            .then(() => handlePasswordPolicy.call(this));
     }
+}
+
+function handleAuthentication() {
+    const auth = (this.declaration.Common || {}).Authentication;
+
+    if (!auth) {
+        return Promise.resolve();
+    }
+
+    return Promise.resolve()
+        .then(() => handleRadius.call(this))
+        .then(() => handleTacacs.call(this))
+        .then(() => handleLdap.call(this))
+        .then(() => handleSource.call(this))
+        .then(() => handleRemoteUsersDefaults.call(this));
 }
 
 function handleRemoteAuthRoles() {
@@ -254,6 +262,14 @@ function handleSource() {
             fallback: auth.fallback
         }
     );
+}
+
+function handlePasswordPolicy() {
+    if (!this.declaration.Common.PasswordPolicy) {
+        return Promise.resolve();
+    }
+
+    return this.bigIp.modify(PATHS.PasswordPolicy, this.declaration.Common.PasswordPolicy);
 }
 
 function handleRemoteUsersDefaults() {

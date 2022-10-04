@@ -490,6 +490,55 @@ describe('networkHandler', () => {
                 });
         });
 
+        it('should issue a warning if SelfIp is modified', () => {
+            const declaration = {
+                Common: {
+                    SelfIp: {
+                        selfIp1: {
+                            name: 'selfIp1',
+                            vlan: '/Common/vlan1'
+                        },
+                        selfIp2: {
+                            name: 'selfIp2',
+                            vlan: '/Common/vlan2'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then((status) => {
+                    assert.strictEqual(status.warnings.length, 1);
+                    assert.notStrictEqual(status.warnings[0].indexOf('allowService'), -1);
+                });
+        });
+
+        it('should not issue a warning if SelfIp is not modified', () => {
+            const declaration = {
+                Common: {
+                    VLAN: {
+                        external: {
+                            tag: 4094,
+                            mtu: 1500,
+                            interfaces: [
+                                {
+                                    name: '1.1',
+                                    tagged: false
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then((status) => {
+                    assert.strictEqual(status.warnings.length, 0);
+                });
+        });
+
         it('should prepend tenant if missing', () => {
             const declaration = {
                 Common: {

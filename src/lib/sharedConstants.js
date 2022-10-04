@@ -61,6 +61,7 @@ module.exports = {
         NetAddressList: '/tm/net/address-list',
         NetPortList: '/tm/net/port-list',
         ManagementRoute: '/tm/sys/management-route',
+        PasswordPolicy: '/tm/auth/password-policy',
         NTP: '/tm/sys/ntp',
         Route: '/tm/net/route',
         RouteDomain: '/tm/net/route-domain',

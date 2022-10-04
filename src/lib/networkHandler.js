@@ -56,80 +56,105 @@ class NetworkHandler {
     process() {
         logger.fine('Proessing network declaration.');
         logger.fine('Checking Trunks.');
-        return handleTrunk.call(this)
+
+        const status = { warnings: [] };
+        return Promise.resolve()
             .then(() => {
+                logger.fine('Checking trunk');
+                return handleTrunk.call(this);
+            })
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking VLANs');
                 return handleVlan.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking RouteDomains');
                 return handleRouteDomain.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking DNS_Resolvers');
                 return handleDnsResolver.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking Tunnels');
                 return handleTunnel.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking Firewall Address Lists');
                 return handleFirewallAddressList.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking Firewall Port Lists');
                 return handleFirewallPortList.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking Firewall Policies');
                 return handleFirewallPolicy.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking Net Address Lists');
                 return handleNetAddressList.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking Net Port Lists');
                 return handleNetPortList.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking ManagementIpFirewall.');
                 return handleManagementIpFirewall.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking SelfIps');
                 return handleSelfIp.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking Routes');
                 return handleRoute.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.fine('Checking DagGlobals');
                 return handleDagGlobals.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.info('Checking Enable Routing Module');
                 return handleEnableRouting.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.info('Checking RoutingAsPath');
                 return handleRoutingAsPath.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.info('Checking RoutingAccessList');
                 return handleRoutingAccessList.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.info('Checking RoutingPrefixList');
                 return handleRoutingPrefixList.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.info('Checking RoutingBGP and RouteMap');
                 return handleRoutingBGP.call(this);
             })
-            .then(() => {
+            .then((result) => {
+                updateStatus(status, result);
                 logger.info('Done processing network declartion.');
                 return Promise.resolve();
             })
@@ -165,12 +190,18 @@ class NetworkHandler {
                     ];
                     return doUtil.restartService(this.bigIp, 'mcpd', servicesToWaitFor);
                 }
-                return Promise.resolve();
+                return Promise.resolve(status);
             })
             .catch((err) => {
                 logger.severe(`Error processing network declaration: ${err.message}`);
                 return Promise.reject(err);
             });
+    }
+}
+
+function updateStatus(status, result) {
+    if (result && result.warnings) {
+        status.warnings = status.warnings.concat(result.warnings);
     }
 }
 
@@ -524,6 +555,15 @@ function handleSelfIp() {
                 );
             });
             return Promise.all(createPromises);
+        })
+        .then(() => {
+            let status;
+            if (this.declaration.Common.SelfIp) {
+                status = {
+                    warnings: ["The default value for 'allowService' on a 'SelfIp' will change from 'default' to 'none' in f5-declarative-onboarding version 1.35.0."]
+                };
+            }
+            return status;
         })
         .catch((err) => {
             logger.severe(`Error creating self IPs: ${err.message}`);

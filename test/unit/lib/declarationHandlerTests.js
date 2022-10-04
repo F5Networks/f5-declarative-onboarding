@@ -662,7 +662,8 @@ describe('declarationHandler', () => {
                         propA: 'hello',
                         propB: 'world'
                     }
-                }
+                },
+                warnings: ['something bad happened', 'this happened too']
             };
 
             systemHandlerStub.restore();
@@ -701,6 +702,10 @@ describe('declarationHandler', () => {
                             propA: 'hello',
                             propB: 'world'
                         }
+                    );
+                    assert.deepStrictEqual(
+                        status.warnings,
+                        ['something bad happened', 'this happened too']
                     );
                 });
         });

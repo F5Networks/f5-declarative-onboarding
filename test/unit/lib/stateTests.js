@@ -306,6 +306,7 @@ describe('state', () => {
         const message = 'foo';
         const status = 'bar';
         const errors = ['my', 'list', 'of', 'errors'];
+        const warnings = ['my', 'list', 'of', 'warnings'];
 
         const taskId = state.addTask();
 
@@ -313,11 +314,13 @@ describe('state', () => {
         state.setMessage(taskId, message);
         state.setStatus(taskId, status);
         state.setErrors(taskId, errors);
+        state.setWarnings(taskId, warnings);
 
         assert.strictEqual(state.getCode(taskId), 1);
         assert.strictEqual(state.getMessage(taskId), 'foo');
         assert.strictEqual(state.getStatus(taskId), 'bar');
         assert.deepStrictEqual(state.getErrors(taskId), ['my', 'list', 'of', 'errors']);
+        assert.deepStrictEqual(state.getWarnings(taskId), ['my', 'list', 'of', 'warnings']);
     });
 
     it('should set internalDeclaration', () => {
