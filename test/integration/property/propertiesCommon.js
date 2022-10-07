@@ -193,19 +193,24 @@ function createDeclarations(targetClass, properties, options) {
     return declarations;
 }
 
-function _waitForCompleteStatus(id) {
-    const url = `${bigIpUrl}${constants.DO_API}/task/${id}`;
+function getStatus(id) {
+    const url = `${bigIpUrl}${constants.DO_API}/task/${id}?statusCodes=experimental&show=full`;
     const reqOpts = common.buildBody(url, null, getAuth(), 'GET');
 
     return sendRequest(reqOpts, { trials: 3, timeInterval: 500 })
+        .then((response) => response.body);
+}
+
+function _waitForCompleteStatus(id) {
+    return getStatus(id)
         .then((response) => {
             // If result still has a code of 202, the request is still processing
             // If there is no result, services may be restarting, so continue waiting
-            const result = response.body.result;
+            const result = response.result;
             if (!result || result.code === 202) {
                 return promiseUtil.delay(1000).then(() => _waitForCompleteStatus(id));
             }
-            return response.body;
+            return response;
         });
 }
 
@@ -1061,5 +1066,6 @@ module.exports = {
     getBigIpVersion,
     getItemName,
     getMcpObject,
+    getStatus,
     postDeclaration
 };

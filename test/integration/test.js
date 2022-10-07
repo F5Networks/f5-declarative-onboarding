@@ -1205,64 +1205,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
     });
 
-    describe('Test Rollbacking', function testRollbacking() {
-        this.timeout(1000 * 60 * 30); // 30 minutes
-        let body;
-        let currentState;
-
-        before(() => {
-            const thisMachine = machines[0];
-            const bigIpAddress = thisMachine.ip;
-            const bodyFile = `${BODIES}/bogus.json`;
-            const bigIpAuth = {
-                username: thisMachine.adminUsername,
-                password: thisMachine.adminPassword
-            };
-            const query = { statusCodes: 'experimental' };
-
-            // get current configuration to compare against later
-            return common.testGetStatus(1, 1, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS)
-                .then((response) => {
-                    body = response.currentConfig.Common;
-                })
-                // send out request with invalid config declaration
-                .then(() => common.readFile(bodyFile))
-                .then((fileRead) => {
-                    const bodyRequest = JSON.parse(fileRead);
-                    return common.testRequest(bodyRequest,
-                        `${common.hostname(bigIpAddress, constants.PORT)}`
-                        + `${constants.DO_API}`,
-                        bigIpAuth,
-                        constants.HTTP_ACCEPTED,
-                        'POST');
-                })
-                .then(() => common.testGetStatus(3, 60 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS, query))
-                .then((response) => {
-                    currentState = response.currentConfig.Common;
-                })
-                .catch((error) => logError(error, bigIpAddress, bigIpAuth));
-        });
-
-        it('should have rollback status', () => {
-            logTestTitle(this.ctx.test.title);
-            // this is a bit weird, because testGetStatus will resolve if the status we passed in
-            // is the one found after the request. Since we asked for HTTP_UNPROCESSABLE, it will actually
-            // resolve if the configuration was indeed rollbacked. At this point then, since before has
-            // resolved, we can just assert the response
-            assert.ok(currentState);
-        });
-
-        it('should match VLAN', () => {
-            logTestTitle(this.ctx.test.title);
-            assert.ok(testVlan(body.VLAN.myVlan, currentState, 'myVlan'));
-        });
-
-        it('should match routing', () => {
-            logTestTitle(this.ctx.test.title);
-            assert.deepStrictEqual(body.Route.myRoute, currentState.Route.myRoute);
-        });
-    });
-
     describe('Test Inspect Endpoint', function testAuth() {
         this.timeout(1000 * 60 * 30); // 30 minutes
         const inspectEndpoint = `${constants.DO_API}/inspect`;

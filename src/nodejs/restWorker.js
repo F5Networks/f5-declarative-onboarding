@@ -489,7 +489,7 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
                     taskId,
                     err && err.code ? err.code : 500,
                     STATUS.STATUS_ERROR,
-                    'failed to initialze device',
+                    'failed to initialize device',
                     err.message
                 );
                 return undefined;
@@ -512,6 +512,7 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
                             rollbackTo,
                             this.state.doState.getTask(taskId)
                         ))
+                        .then(() => getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId))
                         .then(() => {
                             const deconCode = err.code === 400 ? 422 : (err.code || 500);
                             this.state.doState.updateResult(
