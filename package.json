@@ -30,8 +30,8 @@
   "devDependencies": {
     "@f5devcentral/atg-shared-utilities-dev": "^0.2.8",
     "@f5devcentral/eslint-config-f5-atg": "^0.1.7",
-    "@stryker-mutator/core": "^6.1.2",
-    "@stryker-mutator/mocha-runner": "^6.1.2",
+    "@stryker-mutator/core": "^6.2.3",
+    "@stryker-mutator/mocha-runner": "^6.2.3",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "colors": "^1.4.0",
