@@ -9,10 +9,6 @@ The following are example declarations that contain networking objects.
 
 Adding Route Domains to a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
-
-   Support for the **parent** property in the **routeDomain** class is available in BIG-IP DO v1.17.0 and later.
-
 In this example, we show how to use a Route Domain in a declaration.  A route domain is a configuration object that isolates network traffic for a particular application on the network.  For more information on Route Domains, see |rddoc|.
 
 In the following declaration, we include a VLAN to show how to reference a VLAN that is being created.  The SelfIp and the Route both show using the RouteDomain with **%100**, which is the **id** of the RouteDomain.
