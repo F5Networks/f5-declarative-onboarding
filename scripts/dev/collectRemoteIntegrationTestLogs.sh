@@ -18,5 +18,7 @@ for IP in "${TEST_IPS[@]}"; do
     PASSWORD=${TEST_PASSWORDS[$i]}
     "$SCRIPT_DIR"/scpRemoteFile.sh $IP $USER $PASSWORD /var/log/restnoded/restnoded.log test/logs/restnoded.bigip_$i.log
     "$SCRIPT_DIR"/scpRemoteFile.sh $IP $USER $PASSWORD /var/log/restnoded/restnoded1.log test/logs/restnoded1.bigip_$i.log
+    "$SCRIPT_DIR"/scpRemoteFile.sh $IP $USER $PASSWORD /var/log/restnoded/restnoded2.log test/logs/restnoded2.bigip_$i.log
+    "$SCRIPT_DIR"/scpRemoteFile.sh $IP $USER $PASSWORD /var/log/restnoded/restnoded3.log test/logs/restnoded3.bigip_$i.log
     i=$((i+1))
 done
