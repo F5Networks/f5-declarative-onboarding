@@ -51,6 +51,7 @@ module.exports = {
      * @param {String}  [options.user] - User for iControl REST commands. Default admin.
      * @param {String}  [options.password] - Password for iControl REST user. Default admin.
      * @param {Boolean} [options.authToken] - Use this auth token instead of a password.
+     * @param {Object}  [options.retryOptions] - Options for retrying the command. See f5-cloud-libs bigIp commands.
      */
     getBigIp(callingLogger, options) {
         const optionalArgs = {};
@@ -63,7 +64,8 @@ module.exports = {
             optionalArgs.user || 'admin',
             optionalArgs.authToken || optionalArgs.password || 'admin',
             {
-                passwordIsToken: !!optionalArgs.authToken
+                passwordIsToken: !!optionalArgs.authToken,
+                retryOptions: optionalArgs.retryOptions
             }
         );
     },
@@ -76,14 +78,15 @@ module.exports = {
             portPromise = this.getPort(host);
         }
         return portPromise
-            .then((managmentPort) => bigIp.init(
+            .then((managementPort) => bigIp.init(
                 host,
                 user,
                 password,
                 {
-                    port: managmentPort,
+                    port: managementPort,
                     product: 'BIG-IP',
-                    passwordIsToken: options.passwordIsToken
+                    passwordIsToken: options.passwordIsToken,
+                    retry: options.retryOptions
                 }
             ))
             .then(() => Promise.resolve(bigIp))
