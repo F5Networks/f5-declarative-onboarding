@@ -4,6 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.34.0
 ### Added
 ### Fixed
+- AUTOTOOL-3506: ([partial implementation of GitHub Issue 208](https://github.com/F5Networks/f5-declarative-onboarding/issues/208)):  Add sshd KexAlgorithms
 ### Changed
 ### Removed
 

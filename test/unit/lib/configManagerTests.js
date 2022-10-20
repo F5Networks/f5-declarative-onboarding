@@ -1441,6 +1441,58 @@ describe('configManager', () => {
             });
         });
 
+        describe('SSHD patches', () => {
+            it('Should set all include properties', () => {
+                const configItems = [
+                    {
+                        path: '/tm/sys/sshd',
+                        schemaClass: 'SSHD',
+                        properties: [
+                            { id: 'include' }
+                        ]
+                    }
+                ];
+
+                listResponses['/tm/sys/sshd'] = {
+                    include: 'Ciphers aes128-ctr\nKexAlgorithms diffie-hellman-group1-sha1\nLoginGraceTime 100\nMACs hmac-sha1\nMaxAuthTries 10\nMaxStartups 5\nProtocol 1\n'
+                };
+
+                const configManager = new ConfigManager(configItems, bigIpMock);
+
+                return configManager.get({}, state, doState)
+                    .then(() => {
+                        assert.deepEqual(state.originalConfig,
+                            {
+                                parsed: true,
+                                version: '0.0.0-0',
+                                Common: {
+                                    InternalUse: {
+                                        deviceNames: {
+                                            deviceName: 'device1',
+                                            hostName: 'myhost.bigip.com'
+                                        }
+                                    },
+                                    SSHD: {
+                                        ciphers: [
+                                            'aes128-ctr'
+                                        ],
+                                        MACS: [
+                                            'hmac-sha1'
+                                        ],
+                                        kexAlgorithms: [
+                                            'diffie-hellman-group1-sha1'
+                                        ],
+                                        loginGraceTime: 100,
+                                        maxAuthTries: 10,
+                                        maxStartups: '5',
+                                        protocol: 1
+                                    }
+                                }
+                            });
+                    });
+            });
+        });
+
         it('should set original config if missing', () => {
             const configItems = [
                 {

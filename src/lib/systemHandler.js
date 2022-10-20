@@ -1142,6 +1142,9 @@ function handleSSHD() {
     if (sshd.ciphers) {
         includeString = includeString.concat(`Ciphers ${sshd.ciphers.join(',')}\n`);
     }
+    if (sshd.kexAlgorithms) {
+        includeString = includeString.concat(`KexAlgorithms ${sshd.kexAlgorithms.join(',')}\n`);
+    }
     if (sshd.loginGraceTime) {
         includeString = includeString.concat(`LoginGraceTime ${sshd.loginGraceTime}\n`);
     }

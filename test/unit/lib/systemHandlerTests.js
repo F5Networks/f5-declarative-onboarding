@@ -2738,6 +2738,10 @@ describe('systemHandler', () => {
                             'hmac-ripemd160',
                             'hmac-md5'
                         ],
+                        kexAlgorithms: [
+                            'ecdh-sha2-nistp256',
+                            'ecdh-sha2-nistp384'
+                        ],
                         loginGraceTime: 100,
                         maxAuthTries: 10,
                         maxStartups: '3',
@@ -2759,7 +2763,7 @@ describe('systemHandler', () => {
                             banner: 'enabled',
                             bannerText: 'Text for banner',
                             inactivityTimeout: 12345,
-                            include: 'Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,aes192-cbc,aes256-cbc\nLoginGraceTime 100\nMACs hmac-sha1,hmac-ripemd160,hmac-md5\nMaxAuthTries 10\nMaxStartups 3\nProtocol 2\n'
+                            include: 'Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,aes192-cbc,aes256-cbc\nKexAlgorithms ecdh-sha2-nistp256,ecdh-sha2-nistp384\nLoginGraceTime 100\nMACs hmac-sha1,hmac-ripemd160,hmac-md5\nMaxAuthTries 10\nMaxStartups 3\nProtocol 2\n'
                         });
                 });
         });

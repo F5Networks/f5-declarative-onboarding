@@ -1203,6 +1203,9 @@ function patchSSHD(patchedItem) {
         if (currentInclude[0] === 'MACs') {
             patchedItem.MACS = currentInclude[1].split(',');
         }
+        if (currentInclude[0] === 'KexAlgorithms') {
+            patchedItem.kexAlgorithms = currentInclude[1].split(',');
+        }
         if (currentInclude[0] === 'LoginGraceTime') {
             patchedItem.loginGraceTime = parseInt(currentInclude[1], 10);
         }

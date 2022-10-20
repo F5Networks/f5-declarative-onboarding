@@ -1131,6 +1131,30 @@
                             ]
                         }
                     },
+                    "kexAlgorithms": {
+                        "description": "Specifies the KexAlgorithms that will be included.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "diffie-hellman-group1-sha1",
+                                "diffie-hellman-group14-sha1",
+                                "diffie-hellman-group14-sha256",
+                                "diffie-hellman-group16-sha512",
+                                "diffie-hellman-group18-sha512",
+                                "diffie-hellman-group-exchange-sha1",
+                                "diffie-hellman-group-exchange-sha256",
+                                "ecdh-sha2-nistp256",
+                                "ecdh-sha2-nistp384",
+                                "ecdh-sha2-nistp521",
+                                "curve25519-sha256",
+                                "curve25519-sha256@libssh.org",
+                                "gss-gex-sha1-",
+                                "gss-group1-sha1-",
+                                "gss-group14-sha1-"
+                            ]
+                        }
+                    },
                     "maxAuthTries": {
                         "description": "Specifies the max auth tries to be included.",
                         "type": "integer"
