@@ -630,29 +630,31 @@ function handleLicensePool(license) {
         .then((platform) => {
             currentPlatform = platform;
 
+            // We occasionally get an incorrect management IP from device info, so retry this whole thing
+            function getMyBigIp() {
+                return this.bigIp.deviceInfo()
+                    .then((deviceInfo) => doUtil.getBigIp(
+                        logger,
+                        {
+                            host: deviceInfo.managementAddress,
+                            port: this.bigIp.port,
+                            user: license.bigIpUsername,
+                            password: license.bigIpPassword,
+                            retryOptions: cloudUtil.MEDIUM_RETRY
+                        }
+                    ))
+                    .then((resolvedBigIp) => resolvedBigIp)
+                    .catch((err) => {
+                        logger.severe(`Error getting big ip for reachable API: ${err.message}`);
+                        throw err;
+                    });
+            }
+
             // If we're running on BIG-IP, get the real address info (since it might be 'localhost'
             // which won't work). Otherwise, assume we can already reach the BIG-IP through
             // it's current address and port (since that is what we've been using to get this far)
             if (currentPlatform === PRODUCTS.BIGIP && license.reachable) {
-                getBigIp = new Promise((resolve, reject) => {
-                    this.bigIp.deviceInfo()
-                        .then((deviceInfo) => doUtil.getBigIp(
-                            logger,
-                            {
-                                host: deviceInfo.managementAddress,
-                                port: this.bigIp.port,
-                                user: license.bigIpUsername,
-                                password: license.bigIpPassword
-                            }
-                        ))
-                        .then((resolvedBigIp) => {
-                            resolve(resolvedBigIp);
-                        })
-                        .catch((err) => {
-                            logger.severe(`Error getting big ip for reachable API: ${err.message}`);
-                            reject(err);
-                        });
-                });
+                getBigIp = cloudUtil.tryUntil(this, cloudUtil.SHORT_RETRY, getMyBigIp);
             } else {
                 getBigIp = Promise.resolve(this.bigIp);
             }
@@ -1141,6 +1143,9 @@ function handleSSHD() {
 
     if (sshd.ciphers) {
         includeString = includeString.concat(`Ciphers ${sshd.ciphers.join(',')}\n`);
+    }
+    if (sshd.kexAlgorithms) {
+        includeString = includeString.concat(`KexAlgorithms ${sshd.kexAlgorithms.join(',')}\n`);
     }
     if (sshd.loginGraceTime) {
         includeString = includeString.concat(`LoginGraceTime ${sshd.loginGraceTime}\n`);
