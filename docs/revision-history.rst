@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.34
-        - Updated the documentation for Declarative Onboarding v1.34.0.  This release contains the following changes: |br| *   |br| |br| Issues Resolved: |br| * 
+        - Updated the documentation for Declarative Onboarding v1.34.0.  This release contains the following changes: |br| *   |br| |br| Issues Resolved: |br| * Add sshd KexAlgorithms
         - 11-15-22
 
       * - 1.33
