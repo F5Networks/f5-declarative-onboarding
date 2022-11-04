@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.34
-        - Updated the documentation for Declarative Onboarding v1.34.0.  This release contains the following changes: |br| *   |br| |br| Issues Resolved: |br| * Add sshd KexAlgorithms
+        - Updated the documentation for Declarative Onboarding v1.34.0.  This release contains the following changes: |br| * Added KexAlgorithms for SSHD (see :ref:`SSHD` in the Schema Reference)  |br| |br| Issues Resolved: |br| 
         - 11-15-22
 
       * - 1.33
@@ -212,3 +212,7 @@ Document Revision History
 .. |system| raw:: html
 
    <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#system" target="_blank">System Class</a>
+
+.. |sshd| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#sshd" target="_blank">SSHD</a>
