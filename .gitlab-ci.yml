@@ -137,7 +137,7 @@ test-bigiq-ui:
     - 'grep -q "Total Failures :  0" output'
 
 coverage:
-  image: $DOCKER_URL/node:lts
+  image: $DOCKER_URL/node:16
   stage: test
   needs: []
   tags:
@@ -160,7 +160,7 @@ coverage:
         - public
 
 audit:
-  image: $DOCKER_URL/node:lts
+  image: $DOCKER_URL/node:16
   needs: []
   stage: test
   allow_failure: true
