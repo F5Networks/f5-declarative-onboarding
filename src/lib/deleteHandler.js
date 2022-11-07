@@ -23,8 +23,6 @@ const RADIUS = require('./sharedConstants').RADIUS;
 const LDAP = require('./sharedConstants').LDAP;
 const AUTH = require('./sharedConstants').AUTH;
 
-const logger = new Logger(module);
-
 // This is an ordered list - objects will be deleted in this order
 const DELETABLE_CLASSES = [
     'DeviceGroup',
@@ -72,6 +70,7 @@ class DeleteHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -91,7 +90,7 @@ class DeleteHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Processing deletes.');
+        this.logger.fine('Processing deletes.');
 
         function isRetainedItem(aClass, item) {
             const items = {
@@ -250,11 +249,11 @@ class DeleteHandler {
             }))))
             .then(() => Promise.all(getAuthClassPromises.call(this)))
             .catch((err) => {
-                logger.severe(`Error processing deletes: ${err.message}`);
+                this.logger.severe(`Error processing deletes: ${err.message}`);
                 return Promise.reject(err);
             })
             .then(() => {
-                logger.fine('Done processing deletes.');
+                this.logger.fine('Done processing deletes.');
                 return Promise.resolve();
             });
     }

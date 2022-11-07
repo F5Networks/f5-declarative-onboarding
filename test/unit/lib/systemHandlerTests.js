@@ -35,6 +35,7 @@ const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 const EVENTS = require('../../../src/lib/sharedConstants').EVENTS;
 
 const SystemHandler = require('../../../src/lib/systemHandler');
+const Logger = require('../../../src/lib/logger');
 
 /* eslint-disable global-require */
 
@@ -68,6 +69,7 @@ describe('systemHandler', () => {
         activeCalled = false;
 
         state = {
+            id: '123-abc',
             currentConfig: {
                 Common: {
                     System: {}
@@ -413,6 +415,7 @@ describe('systemHandler', () => {
         });
 
         it('should reject NTP if bad hostname is sent', () => {
+            const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
             doUtilMock.checkDnsResolution.restore();
             sinon.stub(doUtilMock, 'checkDnsResolution')
                 .callsFake((bigIp, address) => {
@@ -436,9 +439,17 @@ describe('systemHandler', () => {
             };
 
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
-            return assert.isRejected(systemHandler.process(),
+            return assert.isRejected(
+                systemHandler.process(),
                 'Unable to resolve host example.cant',
-                `All of these ${JSON.stringify(testServers)} exist, and one should NOT`);
+                `All of these ${JSON.stringify(testServers)} exist, and one should NOT`
+            ).then(() => {
+                assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'systemHandler.js | 123-abc');
+                assert.strictEqual(
+                    logSevereSpy.args[0][0],
+                    'Error processing system declaration: Unable to resolve host example.cant'
+                );
+            });
         });
 
         it('should reject if DNS configured after NTP is configured', () => {

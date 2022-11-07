@@ -28,8 +28,6 @@ const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const EVENTS = require('./sharedConstants').EVENTS;
 
-const logger = new Logger(module);
-
 const ORIGINAL_FILE_POSTFIX = 'DO.orig';
 
 /**
@@ -51,6 +49,7 @@ class SystemHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
         this.rebootRequired = false;
         this.rollbackInfo = {
             systemHandler: {}
@@ -66,13 +65,13 @@ class SystemHandler {
      *                    for details.
      */
     process() {
-        logger.fine('Processing system declaration.');
+        this.logger.fine('Processing system declaration.');
         if (!this.declaration.Common) {
             return Promise.resolve();
         }
         return Promise.resolve()
             .then(() => {
-                logger.fine('Getting Device-Info.');
+                this.logger.fine('Getting Device-Info.');
                 return this.bigIp.deviceInfo()
                     .then((info) => {
                         this.bigIpVersion = info.version;
@@ -80,94 +79,94 @@ class SystemHandler {
                     });
             })
             .then(() => {
-                logger.fine('Checking db variables.');
+                this.logger.fine('Checking db variables.');
                 return handleDbVars.call(this);
             })
             .then(() => {
-                logger.fine('Checking DHCP options.');
+                this.logger.fine('Checking DHCP options.');
                 return handleDhcpOptions.call(this);
             })
             .then(() => {
-                logger.fine('Checking management DHCP setting.');
+                this.logger.fine('Checking management DHCP setting.');
                 return handleManagementDhcp.call(this);
             })
             .then((updatedMgmtDhcpSetting) => {
-                logger.fine('Checking ManagementIp. Hold on to your hats.');
+                this.logger.fine('Checking ManagementIp. Hold on to your hats.');
                 return handleManagementIp.call(this, updatedMgmtDhcpSetting);
             })
             .then(() => {
-                logger.fine('Checking ManagementRoute.');
+                this.logger.fine('Checking ManagementRoute.');
                 return handleManagementRoute.call(this);
             })
             .then(() => {
-                logger.fine('Checking DNS.');
+                this.logger.fine('Checking DNS.');
                 return handleDNS.call(this);
             })
             .then(() => {
-                logger.fine('Checking NTP.');
+                this.logger.fine('Checking NTP.');
                 return handleNTP.call(this);
             })
             .then(() => {
-                logger.fine('Checking DeviceCertificate.');
+                this.logger.fine('Checking DeviceCertificate.');
                 return handleDeviceCertificate.call(this);
             })
             .then(() => {
-                logger.fine('Checking System.');
+                this.logger.fine('Checking System.');
                 return handleSystem.call(this);
             })
             .then(() => {
-                logger.fine('Checking Users.');
+                this.logger.fine('Checking Users.');
                 return handleUser.call(this);
             })
             .then(() => {
-                logger.fine('Checking License.');
+                this.logger.fine('Checking License.');
                 return handleLicense.call(this);
             })
             .then(() => {
-                logger.fine('Checking SNMP.');
+                this.logger.fine('Checking SNMP.');
                 return handleSnmp.call(this);
             })
             .then(() => {
-                logger.fine('Checking SNMP Users.');
+                this.logger.fine('Checking SNMP Users.');
                 return handleSnmpUsers.call(this);
             })
             .then(() => {
-                logger.fine('Checking SNMP Communities.');
+                this.logger.fine('Checking SNMP Communities.');
                 return handleSnmpCommunities.call(this);
             })
             .then(() => {
-                logger.fine('Checking SNMP Trap Destinations.');
+                this.logger.fine('Checking SNMP Trap Destinations.');
                 return handleSnmpTrapDestinations.call(this);
             })
             .then(() => {
-                logger.fine('Checking Syslog.');
+                this.logger.fine('Checking Syslog.');
                 return handleSyslog.call(this);
             })
             .then(() => {
-                logger.fine('Checking Traffic Control');
+                this.logger.fine('Checking Traffic Control');
                 return handleTrafficControl.call(this);
             })
             .then(() => {
-                logger.fine('Checking HTTPD');
+                this.logger.fine('Checking HTTPD');
                 return handleHTTPD.call(this);
             })
             .then(() => {
-                logger.fine('Checking SSHD');
+                this.logger.fine('Checking SSHD');
                 return handleSSHD.call(this);
             })
             .then(() => {
-                logger.fine('Checking Disk');
+                this.logger.fine('Checking Disk');
                 return handleDisk.call(this);
             })
             .then(() => {
-                logger.fine('Done processing system declaration.');
+                this.logger.fine('Done processing system declaration.');
                 return Promise.resolve({
                     rebootRequired: this.rebootRequired,
                     rollbackInfo: this.rollbackInfo
                 });
             })
             .catch((err) => {
-                logger.severe(`Error processing system declaration: ${err.message}`);
+                this.logger.severe(`Error processing system declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -411,7 +410,7 @@ function handleDeviceCertificate() {
                         .then(() => {
                             if (needsWrite) {
                                 writePromises.push(
-                                    cryptoUtil.encryptValue(newKey, this.bigIp)
+                                    cryptoUtil.encryptValue(newKey, this.bigIp, this.state.id)
                                         .then((results) => doUtil.executeBashCommandIControl(
                                             this.bigIp,
                                             `/usr/bin/php -r '${decryptScript}' '${results}' ${keyFullPath}`
@@ -576,7 +575,7 @@ function handleUser() {
                         })
                 );
             } else {
-                logger.warning(`${username} has userType root. Only the root user can have userType root.`);
+                this.logger.warning(`${username} has userType root. Only the root user can have userType root.`);
             }
         });
 
@@ -607,7 +606,7 @@ function handleRegKey(license) {
         .then(() => this.bigIp.active())
         .catch((err) => {
             const errorLicensing = `Error licensing: ${err.message}`;
-            logger.severe(errorLicensing);
+            this.logger.severe(errorLicensing);
             err.message = errorLicensing;
             return Promise.reject(err);
         });
@@ -626,7 +625,7 @@ function handleLicensePool(license) {
     }
 
     return promise
-        .then(() => doUtil.getCurrentPlatform())
+        .then(() => doUtil.getCurrentPlatform(this.state.id))
         .then((platform) => {
             currentPlatform = platform;
 
@@ -634,7 +633,7 @@ function handleLicensePool(license) {
             function getMyBigIp() {
                 return this.bigIp.deviceInfo()
                     .then((deviceInfo) => doUtil.getBigIp(
-                        logger,
+                        this.logger,
                         {
                             host: deviceInfo.managementAddress,
                             port: this.bigIp.port,
@@ -645,7 +644,7 @@ function handleLicensePool(license) {
                     ))
                     .then((resolvedBigIp) => resolvedBigIp)
                     .catch((err) => {
-                        logger.severe(`Error getting big ip for reachable API: ${err.message}`);
+                        this.logger.severe(`Error getting big ip for reachable API: ${err.message}`);
                         throw err;
                     });
             }
@@ -687,8 +686,8 @@ function handleLicensePool(license) {
 
                 // If our license is about to be revoked, let everyone know
                 if (licenseInfo.reachable) {
-                    logger.debug('Waiting for revoke ready');
-                    possiblyRevoke = possiblyRevoke.then(() => waitForRevokeReady(this.eventEmitter));
+                    this.logger.debug('Waiting for revoke ready');
+                    possiblyRevoke = possiblyRevoke.then(() => waitForRevokeReady.call(this));
                     process.nextTick(() => {
                         this.eventEmitter.emit(
                             EVENTS.LICENSE_WILL_BE_REVOKED,
@@ -868,11 +867,11 @@ function handleManagementRoute() {
 
                 return Promise.all(promises)
                     .catch((err) => {
-                        logger.severe(`Error deleting existing ManagementRoute: ${err.message}`);
+                        this.logger.severe(`Error deleting existing ManagementRoute: ${err.message}`);
                         throw err;
                     });
             })
-            .then(() => doUtil.getCurrentPlatform())
+            .then(() => doUtil.getCurrentPlatform(this.state.id))
             .then((platform) => {
                 promises = [];
                 doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
@@ -918,7 +917,7 @@ function handleManagementRoute() {
 
                 return Promise.all(promises)
                     .catch((err) => {
-                        logger.severe(`Error creating management routes: ${err.message}`);
+                        this.logger.severe(`Error creating management routes: ${err.message}`);
                         throw err;
                     });
             });
@@ -1090,7 +1089,7 @@ function handleTrafficControl() {
     return this.bigIp.modify(PATHS.TrafficControl, trafficControlObj)
         .catch((err) => {
             const errorTrafficControl = `Error modifying traffic control settings: ${err.message}`;
-            logger.severe(errorTrafficControl);
+            this.logger.severe(errorTrafficControl);
             err.message = errorTrafficControl;
             return Promise.reject(err);
         });
@@ -1125,7 +1124,7 @@ function handleHTTPD() {
             }
         ).catch((err) => {
             const errorHTTPD = `Error modifying HTTPD settings: ${err.message}`;
-            logger.severe(errorHTTPD);
+            this.logger.severe(errorHTTPD);
             err.message = errorHTTPD;
             return Promise.reject(err);
         });
@@ -1177,7 +1176,7 @@ function handleSSHD() {
     return this.bigIp.modify(PATHS.SSHD, sshdObj)
         .catch((err) => {
             const errorSSHD = `Error modifying SSHD settings: ${err.message}`;
-            logger.severe(errorSSHD);
+            this.logger.severe(errorSSHD);
             err.message = errorSSHD;
             return Promise.reject(err);
         });
@@ -1209,11 +1208,11 @@ function handleDisk() {
                 EVENTS.REBOOT_NOW,
                 this.state.id
             );
-            return doUtil.waitForReboot(this.bigIp);
+            return doUtil.waitForReboot(this.bigIp, this.state.id);
         })
         .catch((err) => {
             const errorDisk = `Error modifying Disk: ${err.message}`;
-            logger.severe(errorDisk);
+            this.logger.severe(errorDisk);
             err.message = errorDisk;
             return Promise.reject(err);
         });
@@ -1264,7 +1263,7 @@ function createOrUpdateUser(username, data) {
             return Promise.resolve();
         })
         .catch((err) => {
-            logger.severe(`Error creating/updating user: ${err.message}`);
+            this.logger.severe(`Error creating/updating user: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -1320,7 +1319,7 @@ function restartDhcp() {
         .then((globalSettings) => globalSettings && globalSettings.mgmtDhcp === 'enabled')
         .then((canRestartDhcp) => {
             if (canRestartDhcp) {
-                return doUtil.restartService(this.bigIp, 'dhclient');
+                return doUtil.restartService(this.bigIp, 'dhclient', { taskId: this.state.id });
             }
             return Promise.resolve();
         });
@@ -1469,15 +1468,15 @@ function storeDeviceCertRollbackInfo(originalFile) {
         });
 }
 
-function waitForRevokeReady(eventEmitter) {
+function waitForRevokeReady() {
     const REVOKE_READY_TIMEOUT = 30000; // 30 seconds
-    eventEmitter.removeAllListeners(EVENTS.READY_FOR_REVOKE);
+    this.eventEmitter.removeAllListeners(EVENTS.READY_FOR_REVOKE);
     return new Promise((resolve, reject) => {
         const readyTimer = setTimeout(() => {
             reject(new Error('Timed out waiting for revoke ready event'));
         }, REVOKE_READY_TIMEOUT);
-        eventEmitter.on(EVENTS.READY_FOR_REVOKE, () => {
-            logger.debug('Ready for revoke');
+        this.eventEmitter.on(EVENTS.READY_FOR_REVOKE, () => {
+            this.logger.debug('Ready for revoke');
             clearTimeout(readyTimer);
             resolve();
         });

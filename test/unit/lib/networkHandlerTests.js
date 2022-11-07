@@ -3545,10 +3545,11 @@ describe('networkHandler', () => {
 
             bigIpMock.modify = () => Promise.reject(new Error('test error'));
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, undefined, { id: '123-abc' });
             return assert.isRejected(networkHandler.process(), /test error/, 'should fail')
                 .then(() => {
                     assert.strictEqual(severeLogSpy.args[0][0], 'Error creating Management IP Firewall: test error');
+                    assert.strictEqual(severeLogSpy.thisValues[0].metadata, 'networkHandler.js | 123-abc');
                 });
         });
     });

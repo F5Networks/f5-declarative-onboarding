@@ -22,8 +22,6 @@ const PATHS = require('./sharedConstants').PATHS;
 const RADIUS = require('./sharedConstants').RADIUS;
 const AUTH = require('./sharedConstants').AUTH;
 
-const logger = new Logger(module);
-
 /**
  * Handles system parts of a declaration.
  *
@@ -43,6 +41,7 @@ class AuthHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -52,7 +51,7 @@ class AuthHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Processing authentication declaration.');
+        this.logger.fine('Processing authentication declaration.');
 
         return Promise.resolve()
             .then(() => handleRemoteAuthRoles.call(this))
@@ -149,7 +148,7 @@ function handleRadius() {
             return Promise.resolve();
         })
         .catch((err) => {
-            logger.severe(`Error configuring remote RADIUS auth: ${err.message}`);
+            this.logger.severe(`Error configuring remote RADIUS auth: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -176,7 +175,7 @@ function handleTacacs() {
 
     return this.bigIp.createOrModify(PATHS.AuthTacacs, tacacsObj)
         .catch((err) => {
-            logger.severe(`Error configuring remote TACACS auth: ${err.message}`);
+            this.logger.severe(`Error configuring remote TACACS auth: ${err.message}`);
         });
 }
 
@@ -242,7 +241,7 @@ function handleLdap() {
     return Promise.all(certPromises)
         .then(() => this.bigIp.createOrModify(PATHS.AuthLdap, ldapObj, undefined, undefined, options))
         .catch((err) => {
-            logger.severe(`Error configuring remote LDAP auth: ${err.message}`);
+            this.logger.severe(`Error configuring remote LDAP auth: ${err.message}`);
             return Promise.reject(err);
         });
 }

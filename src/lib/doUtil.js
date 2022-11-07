@@ -30,8 +30,6 @@ const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 const Logger = require('./logger');
 const ipF5 = require('../schema/latest/formats').f5ip;
 
-const logger = new Logger(module);
-
 /**
  * @module
  */
@@ -65,12 +63,14 @@ module.exports = {
             optionalArgs.authToken || optionalArgs.password || 'admin',
             {
                 passwordIsToken: !!optionalArgs.authToken,
-                retryOptions: optionalArgs.retryOptions
+                retryOptions: optionalArgs.retryOptions,
+                taskId: (callingLogger || {}).taskId
             }
         );
     },
 
     initializeBigIp(bigIp, host, port, user, password, options) {
+        const logger = new Logger(module, options.taskId);
         let portPromise;
         if (port) {
             portPromise = Promise.resolve(port);
@@ -127,9 +127,13 @@ module.exports = {
     /**
      * Determines the platform on which we are currently running
      *
+     * @param {String} [taskId] - The id of the task
+     *
      * @returns {Promise} A promise which is resolved with the platform.
      */
-    getCurrentPlatform() {
+    getCurrentPlatform(taskId) {
+        const logger = new Logger(module, taskId);
+
         function retryFunc() {
             return httpUtil.get('http://localhost:8100/shared/identified-devices/config/device-info')
                 .then((deviceInfo) => {
@@ -159,9 +163,13 @@ module.exports = {
      * In typical dev environments, there is no version file present. However, the
      * version file is created by the RPM spec file so will be there in production.
      *
+     * @param {String} [taskId] - The id of the task
+     *
      * @returns {Object} Object containing VERSION and RELEASE
      */
-    getDoVersion() {
+    getDoVersion(taskId) {
+        const logger = new Logger(module, taskId);
+
         let versionString = '0.0.0-0';
         try {
             versionString = fs.readFileSync(`${__dirname}/../version`, 'ascii');
@@ -187,12 +195,14 @@ module.exports = {
      *                      the BigIp requires a reboot.
      */
     rebootRequired(bigIp, state, taskId) {
+        const logger = new Logger(module, taskId);
+
         if (state && state.getRebootRequired(taskId)) {
             logger.debug('DO state indicates reboot required');
             return Promise.resolve(true);
         }
 
-        return this.getCurrentPlatform()
+        return this.getCurrentPlatform(taskId)
             .then((platform) => {
                 let promise;
                 if (platform === PRODUCTS.BIGIP) {
@@ -448,10 +458,12 @@ module.exports = {
      *
      * @param {Object} bigIp - Big-IP object.
      * @param {String} service - The name of the service to restart
-     * @param {String[]} [servicesToWaitFor] - Optional list of other services to wait for after restarting
+     * @param {Object} [options] - Optional parameters
+     * @param {String[]} [options.servicesToWaitFor] - List of other services to wait for after restarting
+     * @param {String} [options.taskId] - The id of the task
      * @returns
      */
-    restartService(bigIp, service, servicesToWaitFor) {
+    restartService(bigIp, service, options) {
         function isServiceRunning(serviceToCheck) {
             return bigIp.list(`/tm/sys/service/${serviceToCheck}/stats`, undefined, cloudUtil.NO_RETRY)
                 .then((serviceStats) => {
@@ -479,6 +491,8 @@ module.exports = {
                 });
         }
 
+        const opts = options || {};
+        const logger = new Logger(module, opts.taskId);
         const serviceRunningRetryArgs = {
             maxRetries: cloudUtil.LONG_RETRY.maxRetries,
             retryIntervalMs: cloudUtil.LONG_RETRY.retryIntervalMs,
@@ -499,7 +513,7 @@ module.exports = {
             })
             .then(() => cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isServiceRunning, [service]))
             .then(() => promiseUtil.series(
-                (servicesToWaitFor || []).map((aService) => () => cloudUtil.tryUntil(
+                (opts.servicesToWaitFor || []).map((aService) => () => cloudUtil.tryUntil(
                     this, serviceRunningRetryArgs, isServiceRunning, [aService]
                 ))
             ));
@@ -509,9 +523,10 @@ module.exports = {
      * Wait for Big-IP to reboot.
      *
      * @param {Object} bigIp - Big-IP object.
+     * @param {String} [taskId] - The id of the task
      */
-    waitForReboot(bigIp) {
-        return this.getCurrentPlatform()
+    waitForReboot(bigIp, taskId) {
+        return this.getCurrentPlatform(taskId)
             .then((platform) => {
                 if (platform !== PRODUCTS.BIGIP) {
                     // Wait for BIG-IP to be ready if not running on BIG-IP

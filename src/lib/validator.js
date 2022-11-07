@@ -41,11 +41,11 @@ class Validator {
         ];
     }
 
-    validate(data) {
+    validate(data, taskId) {
         // We want to run the validators serially so that we can control which errors
         // show up first. Namely, we want JSON validation errors first.
         const runInSerial = this.validators.reduce((promiseChain, currentValidator) => promiseChain
-            .then((results) => currentValidator.validate(data)
+            .then((results) => currentValidator.validate(data, taskId)
                 .then((currentResult) => {
                     results.push(currentResult);
                     return results;

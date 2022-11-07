@@ -30,6 +30,7 @@ const ENCRYPT_PATH = '/tm/auth/radius-server';
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const cryptoUtil = require('../../../src/lib/cryptoUtil');
 const doUtil = require('../../../src/lib/doUtil');
+const Logger = require('../../../src/lib/logger');
 
 describe('cryptoUtil', () => {
     afterEach(() => {
@@ -84,12 +85,16 @@ describe('cryptoUtil', () => {
 
         it('should handle errors', () => {
             const error = 'tmsh error';
+            const logWarningSpy = sinon.spy(Logger.prototype, 'warning');
             sinon.stub(cloudUtil, 'runTmshCommand').rejects(new Error(error));
             return assert.isRejected(
-                cryptoUtil.decryptStoredValueById('foo'),
+                cryptoUtil.decryptStoredValueById('foo', '123-abc'),
                 'tmsh error',
                 'should have caught error'
-            );
+            ).then(() => {
+                assert.strictEqual(logWarningSpy.thisValues[0].metadata, 'cryptoUtil.js | 123-abc');
+                assert.strictEqual(logWarningSpy.args[0][0], 'Failed to decrypt data with id');
+            });
         });
     });
 
@@ -112,6 +117,7 @@ describe('cryptoUtil', () => {
 
         it('should handle errors', () => {
             const error = 'delete error';
+            const logWarningSpy = sinon.spy(Logger.prototype, 'warning');
             sinon.stub(doUtil, 'getBigIp').resolves({
                 delete() {
                     return Promise.reject(new Error(error));
@@ -119,10 +125,13 @@ describe('cryptoUtil', () => {
             });
 
             return assert.isRejected(
-                cryptoUtil.deleteEncryptedId('foo'),
+                cryptoUtil.deleteEncryptedId('foo', '123-abc'),
                 'delete error',
                 'should have caught error'
-            );
+            ).then(() => {
+                assert.strictEqual(logWarningSpy.thisValues[0].metadata, 'cryptoUtil.js | 123-abc');
+                assert.strictEqual(logWarningSpy.args[0][0], 'Failed to delete encrypted data with id');
+            });
         });
     });
 
@@ -157,6 +166,7 @@ describe('cryptoUtil', () => {
 
         it('should handle errors', () => {
             const error = 'create error';
+            const logWarningSpy = sinon.spy(Logger.prototype, 'warning');
             sinon.stub(doUtil, 'getBigIp').resolves({
                 create() {
                     return Promise.reject(new Error(error));
@@ -164,10 +174,13 @@ describe('cryptoUtil', () => {
             });
 
             return assert.isRejected(
-                cryptoUtil.encryptAndStoreValue(),
+                cryptoUtil.encryptAndStoreValue(undefined, undefined, '123-abc'),
                 'create error',
                 'should have caught error'
-            );
+            ).then(() => {
+                assert.strictEqual(logWarningSpy.thisValues[0].metadata, 'cryptoUtil.js | 123-abc');
+                assert.strictEqual(logWarningSpy.args[0][0], 'Failed to encrypt data');
+            });
         });
     });
 

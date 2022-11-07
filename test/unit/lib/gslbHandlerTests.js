@@ -16,6 +16,7 @@
 
 'use strict';
 
+const sinon = require('sinon');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 
@@ -24,6 +25,7 @@ const assert = chai.assert;
 
 const GSLBHandler = require('../../../src/lib/gslbHandler');
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;
+const Logger = require('../../../src/lib/logger');
 
 describe('gslbHandler', () => {
     let bigIpMock;
@@ -81,6 +83,10 @@ describe('gslbHandler', () => {
                 Common: {}
             }
         };
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     describe('GSLB global-settings', () => {
@@ -500,6 +506,18 @@ describe('gslbHandler', () => {
                     }
                 }
             };
+        });
+
+        it('should handle errors', () => {
+            bigIpMock.createOrModify = () => Promise.reject(new Error('test error'));
+            const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
+            const gslbHandler = new GSLBHandler(declaration, bigIpMock, undefined, { id: '123-abc' });
+            return assert.isRejected(gslbHandler.process(), 'test error')
+                .then(() => {
+                    assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'gslbHandler.js | 123-abc');
+                    assert.strictEqual(logSevereSpy.args[0][0], 'Error creating Monitors: test error');
+                    assert.strictEqual(logSevereSpy.args[1][0], 'Error processing GSLB declaration: test error');
+                });
         });
 
         describe('http', () => {

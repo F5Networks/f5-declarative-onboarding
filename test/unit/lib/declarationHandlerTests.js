@@ -184,8 +184,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     assert.strictEqual(parsedDeclarations.length, 2);
                 });
@@ -206,8 +206,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            declarationHandler.process(newDeclaration)
                 .then(() => {
                     assert.strictEqual(parsedDeclarations.length, 1);
                     assert.strictEqual(parsedDeclarations[0].name, 'current');
@@ -260,8 +260,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     assert.deepStrictEqual(declarationWithDefaults.Common,
                         {
@@ -323,8 +323,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     assert.deepStrictEqual(
                         declarationWithDefaults.Common,
@@ -352,8 +352,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     assert.deepStrictEqual(
                         declarationWithDefaults.Common.System.hostname,
@@ -388,8 +388,8 @@ describe('declarationHandler', () => {
             ];
             handlersCalled.length = 0;
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     assert.strictEqual(handlersCalled.length, handlerNames.length);
                     handlerNames.forEach((handlerName) => {
@@ -418,8 +418,8 @@ describe('declarationHandler', () => {
 
             handlersCalled.length = 0;
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     assert.strictEqual(handlersCalled.length, 0);
                 });
@@ -473,8 +473,8 @@ describe('declarationHandler', () => {
                 record = recordIn;
             });
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     // Check that each class was called
                     assert.strictEqual(
@@ -574,8 +574,8 @@ describe('declarationHandler', () => {
                 record = recordIn;
             });
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     // Check that the record body object was filled with input
                     assert.deepStrictEqual(
@@ -613,8 +613,8 @@ describe('declarationHandler', () => {
             };
 
             sinon.stub(TeemDevice.prototype, 'reportRecord').rejects();
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state);
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration);
         });
 
         it('should report processing errors', () => {
@@ -635,8 +635,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return assert.isRejected(declarationHandler.process(newDeclaration, state),
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return assert.isRejected(declarationHandler.process(newDeclaration),
                 'this is a processing error',
                 'processing error should have been caught');
         });
@@ -685,8 +685,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then((status) => {
                     assert.strictEqual(status.rebootRequired, true);
                     assert.deepEqual(
@@ -741,8 +741,8 @@ describe('declarationHandler', () => {
                         Common: {}
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         assert.deepStrictEqual(
                             declarationWithDefaults.Common.DNS_Resolver,
@@ -791,8 +791,8 @@ describe('declarationHandler', () => {
                         Common: {}
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         assert.deepStrictEqual(
                             declarationWithDefaults.Common.ManagementIp,
@@ -826,8 +826,8 @@ describe('declarationHandler', () => {
                         }
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         assert.deepStrictEqual(
                             declarationWithDefaults.Common.ManagementIp,
@@ -855,8 +855,8 @@ describe('declarationHandler', () => {
                         Common: {}
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         assert.strictEqual(declarationWithDefaults.Common.RouteDomain, undefined);
                     });
@@ -896,8 +896,8 @@ describe('declarationHandler', () => {
                         }
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         const routeDomain = declarationWithDefaults.Common.RouteDomain;
                         assert.strictEqual(Object.keys(routeDomain).length, 2);
@@ -937,8 +937,8 @@ describe('declarationHandler', () => {
                         Common: {}
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         const routeDomain = declarationWithDefaults.Common.RouteDomain;
                         assert.notStrictEqual(routeDomain['0'], undefined);
@@ -997,8 +997,8 @@ describe('declarationHandler', () => {
                         }
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         const routeDomain = declarationWithDefaults.Common.RouteDomain;
                         assert.strictEqual(routeDomain['0'].id, 0);
@@ -1106,8 +1106,8 @@ describe('declarationHandler', () => {
                         }
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         const routeDomain = declarationWithDefaults.Common.RouteDomain;
                         assert.deepStrictEqual(routeDomain['0'].vlans, [
@@ -1191,8 +1191,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const routeMap = declarationWithDefaults.Common.RouteMap.rm1;
                     assert.deepStrictEqual(
@@ -1268,8 +1268,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const gslbGlobals = declarationWithDefaults.Common.GSLBGlobals;
                     assert.deepStrictEqual(
@@ -1354,8 +1354,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const gslbServer = declarationWithDefaults.Common.GSLBServer.gslbServer;
                     assert.deepStrictEqual(
@@ -1453,8 +1453,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const gslbProberPool = declarationWithDefaults.Common.GSLBProberPool;
                     assert.deepStrictEqual(
@@ -1507,8 +1507,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const remoteAuthRole = declarationWithDefaults.Common.RemoteAuthRole;
                     assert.deepStrictEqual(
@@ -1548,8 +1548,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const firewallAddressList = declarationWithDefaults.Common.FirewallAddressList;
                     assert.deepStrictEqual(
@@ -1596,8 +1596,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const firewallAddressList = declarationWithDefaults.Common.FirewallAddressList;
                     assert.deepStrictEqual(
@@ -1636,8 +1636,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const firewallPortList = declarationWithDefaults.Common.FirewallPortList;
                     assert.deepStrictEqual(
@@ -1682,8 +1682,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const firewallPortList = declarationWithDefaults.Common.FirewallPortList;
                     assert.deepStrictEqual(
@@ -1764,8 +1764,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const firewallPolicy = declarationWithDefaults.Common.FirewallPolicy;
                     assert.deepStrictEqual(
@@ -1879,8 +1879,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const managementIpFirewall = declarationWithDefaults.Common.ManagementIpFirewall;
                     assert.deepStrictEqual(
@@ -1951,8 +1951,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const managementIpFirewall = declarationWithDefaults.Common.ManagementIpFirewall;
                     assert.deepStrictEqual(
@@ -1997,8 +1997,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const selfIp = declarationWithDefaults.Common.SelfIp;
                     assert.deepStrictEqual(
@@ -2060,8 +2060,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '0.0.0.0/0');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '0.0.0.0/0');
@@ -2078,8 +2078,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '::');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '::');
@@ -2096,8 +2096,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '0.0.0.0/0');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '0.0.0.0/0');
@@ -2114,8 +2114,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.10.10/32');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '0.0.0.0/0');
@@ -2132,8 +2132,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.10.10/32');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '0.0.0.0/0');
@@ -2150,8 +2150,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '1111::/32');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '::/0');
@@ -2168,8 +2168,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '1111::/32');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '::/0');
@@ -2186,8 +2186,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '0.0.0.0/0');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '10.10.10.10/32');
@@ -2204,8 +2204,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '0.0.0.0/0');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '10.10.10.10/32');
@@ -2222,8 +2222,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '::/0');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '1111::/32');
@@ -2240,8 +2240,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '::/0');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '1111::/32');
@@ -2258,8 +2258,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.10.10/32');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '20.20.20.20/32');
@@ -2276,8 +2276,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '1111:2222:3333::/128');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '1111:2222:4444::/128');
@@ -2294,8 +2294,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.0.0/16');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '20.20.0.0/16');
@@ -2312,8 +2312,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '1111:2222:3333::/64');
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '1111:2222:4444::/64');
@@ -2360,8 +2360,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.equal(declarationWithDefaults.Common.RoutingPrefixList.list1.entries[0].prefixLenRange, '0:25');
                         });
@@ -2377,8 +2377,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.equal(declarationWithDefaults.Common.RoutingPrefixList.list1.entries[0].prefixLenRange, '25:0');
                         });
@@ -2394,8 +2394,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.equal(declarationWithDefaults.Common.RoutingPrefixList.list1.entries[0].prefixLenRange, '25:26');
                         });
@@ -2444,8 +2444,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
@@ -2486,8 +2486,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
@@ -2522,8 +2522,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
@@ -2548,8 +2548,8 @@ describe('declarationHandler', () => {
                 it('should fill in both unspecified ipv4 and ipv6 internetProtocol (name) with empty addressFamilies', () => {
                     newDeclaration.Common.RoutingBGP.bgp1.addressFamily = [];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
@@ -2566,8 +2566,8 @@ describe('declarationHandler', () => {
                 });
 
                 it('should fill in both unspecified ipv4 and ipv6 internetProtocol (name) with no addressFamilies', () => {
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
@@ -2605,8 +2605,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
@@ -2669,8 +2669,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
@@ -2729,8 +2729,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.addressFamily,
@@ -2771,8 +2771,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
@@ -2809,8 +2809,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
@@ -2841,8 +2841,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
@@ -2871,8 +2871,8 @@ describe('declarationHandler', () => {
                         {}
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
@@ -2914,8 +2914,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups.length, 4);
                             assert.deepStrictEqual(declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups[0].name, 'Neighbor_BAR');
@@ -2946,8 +2946,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.peerGroups,
@@ -3000,8 +3000,8 @@ describe('declarationHandler', () => {
                         }
                     ];
 
-                    const declarationHandler = new DeclarationHandler(bigIpMock);
-                    return declarationHandler.process(newDeclaration, state)
+                    const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                    return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.deepStrictEqual(
                                 declarationWithDefaults.Common.RoutingBGP.bgp1.neighbors,
@@ -3053,8 +3053,8 @@ describe('declarationHandler', () => {
                         Common: {}
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         const httpd = declarationWithDefaults.Common.HTTPD;
                         assert.deepStrictEqual(httpd, { allow: ['all'] });
@@ -3080,8 +3080,8 @@ describe('declarationHandler', () => {
                         Common: {}
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         const httpd = declarationWithDefaults.Common.HTTPD;
                         assert.deepStrictEqual(httpd, { allow: 'none' });
@@ -3107,8 +3107,8 @@ describe('declarationHandler', () => {
                         Common: {}
                     }
                 };
-                const declarationHandler = new DeclarationHandler(bigIpMock);
-                return declarationHandler.process(newDeclaration, state)
+                const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+                return declarationHandler.process(newDeclaration)
                     .then(() => {
                         const httpd = declarationWithDefaults.Common.HTTPD;
                         assert.deepStrictEqual(httpd, { allow: ['foo', 'all'] });
@@ -3150,8 +3150,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const ldap = declarationWithDefaults.Common.Authentication.ldap;
                     assert.deepStrictEqual(
@@ -3202,8 +3202,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const handler = new DeclarationHandler(bigIpMock);
-            return assert.isRejected(handler.process(declaration, state), /This is an error/);
+            const handler = new DeclarationHandler(bigIpMock, null, state);
+            return assert.isRejected(handler.process(declaration), /This is an error/);
         });
 
         it('should convert the declaration to an array of unicastAddress', () => {
@@ -3240,8 +3240,8 @@ describe('declarationHandler', () => {
                     }
                 }
             };
-            const handler = new DeclarationHandler(bigIpMock);
-            return handler.process(declaration, state)
+            const handler = new DeclarationHandler(bigIpMock, null, state);
+            return handler.process(declaration)
                 .then(() => {
                     assert.deepStrictEqual(declarationWithDefaults.Common.FailoverUnicast, {
                         unicastAddress: [
@@ -3282,8 +3282,8 @@ describe('declarationHandler', () => {
                     }
                 }
             };
-            const handler = new DeclarationHandler(bigIpMock);
-            return assert.isRejected(handler.process(declaration, state), /Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort./);
+            const handler = new DeclarationHandler(bigIpMock, null, state);
+            return assert.isRejected(handler.process(declaration), /Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort./);
         });
 
         it('should add DHCP Management Routes when preserveOrigDhcpRoutes is true', () => {
@@ -3334,8 +3334,8 @@ describe('declarationHandler', () => {
                     }
                 }
             };
-            const handler = new DeclarationHandler(bigIpMock);
-            return handler.process(declaration, state)
+            const handler = new DeclarationHandler(bigIpMock, null, state);
+            return handler.process(declaration)
                 .then(() => {
                     const actualManagementRoutes = diffHandlerStub.args[0][0].Common.ManagementRoute;
                     assert.deepStrictEqual(Object.keys(actualManagementRoutes), ['newManagementRoute', 'default']);
@@ -3390,8 +3390,8 @@ describe('declarationHandler', () => {
                     }
                 }
             };
-            const handler = new DeclarationHandler(bigIpMock);
-            return handler.process(declaration, state)
+            const handler = new DeclarationHandler(bigIpMock, null, state);
+            return handler.process(declaration)
                 .then(() => {
                     const actualManagementRoutes = diffHandlerStub.args[0][0].Common.ManagementRoute;
                     assert.deepStrictEqual(Object.keys(actualManagementRoutes), ['newManagementRoute']);
@@ -3425,8 +3425,8 @@ describe('declarationHandler', () => {
                     }
                 }
             };
-            const handler = new DeclarationHandler(bigIpMock);
-            return handler.process(declaration, state)
+            const handler = new DeclarationHandler(bigIpMock, null, state);
+            return handler.process(declaration)
                 .then(() => {
                     console.log(JSON.stringify(state));
                     assert.deepStrictEqual(
@@ -3463,8 +3463,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const netAddressList = declarationWithDefaults.Common.NetAddressList;
                     assert.deepStrictEqual(
@@ -3509,8 +3509,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const netAddressList = declarationWithDefaults.Common.NetAddressList;
                     assert.deepStrictEqual(
@@ -3549,8 +3549,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const netPortList = declarationWithDefaults.Common.NetPortList;
                     assert.deepStrictEqual(
@@ -3595,8 +3595,8 @@ describe('declarationHandler', () => {
                 }
             };
 
-            const declarationHandler = new DeclarationHandler(bigIpMock);
-            return declarationHandler.process(newDeclaration, state)
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
                 .then(() => {
                     const netPortList = declarationWithDefaults.Common.NetPortList;
                     assert.deepStrictEqual(
@@ -3703,8 +3703,8 @@ describe('declarationHandler', () => {
                     Common: {}
                 }
             };
-            const handler = new DeclarationHandler(new AvrBigIpMock());
-            return handler.process(declaration, state)
+            const handler = new DeclarationHandler(new AvrBigIpMock(), null, state);
+            return handler.process(declaration)
                 .then(() => {
                     assert(isAvrProvisioned, 'AVR was not provisioned');
                 });
@@ -3737,8 +3737,8 @@ describe('declarationHandler', () => {
                     }
                 }
             };
-            const handler = new DeclarationHandler(new AvrBigIpMock());
-            return handler.process(declaration, state)
+            const handler = new DeclarationHandler(new AvrBigIpMock(), null, state);
+            return handler.process(declaration)
                 .then(() => {
                     assert(!isAvrProvisioned, 'AVR was not de-provisioned');
                 });

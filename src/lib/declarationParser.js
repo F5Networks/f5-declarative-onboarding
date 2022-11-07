@@ -24,8 +24,6 @@ const configItems = require('./configItems.json');
 
 const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
 
-const logger = new Logger(module);
-
 /**
  * Parses a declaration into sub-components by class (DNS, License, etc).
  *
@@ -152,11 +150,13 @@ const logger = new Logger(module);
  * @class
  */
 class DeclarationParser {
-    constructor(declaration, modules) {
+    constructor(declaration, modules, state) {
         this.declaration = {};
         Object.assign(this.declaration, declaration);
 
         this.modules = Object.assign([], modules);
+        this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -193,7 +193,7 @@ class DeclarationParser {
                 parsedDeclaration: parsed
             };
         } catch (err) {
-            logger.error(`Error parsing declaration ${err.message}`);
+            this.logger.error(`Error parsing declaration ${err.message}`);
             throw err;
         }
     }
