@@ -1242,7 +1242,7 @@ function processHandlers(handlers, handlerStatuses, bigIp, eventEmitter, state, 
  *
  * @param {Object} declaration - declaration to count
  *
- * @returns {Object} - An object with integers: ldap, radius, and tacas
+ * @returns {Object} - An object with integers: ldap, radius, and tacacs
  */
 function countAuthenticationTypes(declaration, count) {
     // iterate through the declaration

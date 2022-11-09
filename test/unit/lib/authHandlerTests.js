@@ -391,6 +391,28 @@ describe('authHandler', () => {
                     );
                 });
         });
+
+        it('should handle errors', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        tacacs: {
+                            servers: []
+                        }
+                    }
+                }
+            };
+            const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
+            const authHandler = new AuthHandler(declaration, bigIpMock, undefined, { id: '123-abc' });
+
+            bigIpMock.createOrModify = () => Promise.reject(new Error('test error'));
+
+            return assert.isRejected(authHandler.process(), 'test error')
+                .then(() => {
+                    assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'authHandler.js | 123-abc');
+                    assert.strictEqual(logSevereSpy.args[0][0], 'Error configuring remote TACACS auth: test error');
+                });
+        });
     });
 
     describe('ldap', () => {

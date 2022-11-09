@@ -156,7 +156,7 @@ function handleRadius() {
 function handleTacacs() {
     const tacacs = this.declaration.Common.Authentication.tacacs;
 
-    if (!tacacs) {
+    if (!tacacs || !tacacs.servers) {
         return Promise.resolve();
     }
 
@@ -176,6 +176,7 @@ function handleTacacs() {
     return this.bigIp.createOrModify(PATHS.AuthTacacs, tacacsObj)
         .catch((err) => {
             this.logger.severe(`Error configuring remote TACACS auth: ${err.message}`);
+            return Promise.reject(err);
         });
 }
 

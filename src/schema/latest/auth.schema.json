@@ -243,7 +243,7 @@
             "pattern": "^%.+"
         },
         "remoteAuthRole": {
-            "description": "Creates a file used by LDAP, Active Directory(r), RADIUS, or TACAS+ server to determine specific access rights.",
+            "description": "Creates a file used by LDAP, Active Directory(r), RADIUS, or TACACS+ server to determine specific access rights.",
             "type": "object",
             "required": [ "class", "attribute", "lineOrder", "userPartition" ],
             "properties": {

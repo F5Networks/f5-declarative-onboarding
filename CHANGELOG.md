@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 
 ### Fixed
+- AUTOTOOL-3555: Configuring TACACS can skip reporting errors
 
 ### Changed
 
