@@ -191,7 +191,7 @@ module.exports = {
      * @param {Object} state - The [doState]{@link State} object
      * @param {String} taskId - The id of the task
      *
-     * @returns {Promise} - A promise which resolves true or false based on whehter or not
+     * @returns {Promise} - A promise which resolves true or false based on whether or not
      *                      the BigIp requires a reboot.
      */
     rebootRequired(bigIp, state, taskId) {
@@ -455,6 +455,53 @@ module.exports = {
     },
 
     /**
+     * Checks to see if a provisioned service is running.
+     *
+     * @param {Object} bigIp - Big-IP object.
+     * @param {String} service - The name of the service to restart
+     * @returns A promise which resolves if the service is running or rejects if not
+     */
+    isServiceRunning(bigIp, service) {
+        return bigIp.list(`/tm/sys/service/${service}/stats`, undefined, cloudUtil.NO_RETRY)
+            .then((serviceStats) => {
+                const status = module.exports.getDeepValue(serviceStats, 'apiRawValues.apiAnonymous');
+                if (status && (status.indexOf('run') !== -1)) {
+                    // In case of dhclient we need to be sure child process spawned by dhclient daemon
+                    // finished before proceeding. This prevents us from unexpected hostname change.
+                    if (service === 'dhclient') {
+                        return this.executeBashCommandIControl(
+                            bigIp,
+                            'while [ "$(pgrep dhclient-script)" ] || [ "$(pgrep arping)" ]; do sleep 1; done; sleep 10'
+                        )
+                            .then(() => Promise.resolve());
+                    }
+                    return Promise.resolve();
+                }
+
+                let message;
+                if (status) {
+                    message = `${service} status is ${status}`;
+                } else {
+                    message = `Unable to read ${service} status`;
+                }
+                return Promise.reject(new Error(message));
+            });
+    },
+
+    /**
+     * A version of isServiceRunning that resolves with true or false instead of rejecting in the false case
+     * @param {Object} bigIp - Big-IP object.
+     * @param {String} service - The name of the service to restart
+     * @returns A promise which resolves true or false
+     */
+    isServiceRunningBool(bigIp, service) {
+        return this.isServiceRunning(bigIp, service)
+            .then(() => true)
+            .catch(() => false);
+    },
+
+    /**
+     * Restarts a specified service.
      *
      * @param {Object} bigIp - Big-IP object.
      * @param {String} service - The name of the service to restart
@@ -464,59 +511,41 @@ module.exports = {
      * @returns
      */
     restartService(bigIp, service, options) {
-        function isServiceRunning(serviceToCheck) {
-            return bigIp.list(`/tm/sys/service/${serviceToCheck}/stats`, undefined, cloudUtil.NO_RETRY)
-                .then((serviceStats) => {
-                    const status = module.exports.getDeepValue(serviceStats, 'apiRawValues.apiAnonymous');
-                    if (status && (status.indexOf('run') !== -1 || status.indexOf('Not provisioned') !== -1)) {
-                        // In case of dhclient we need to be sure child process spawned by dhclient daemon
-                        // finished before proceeding. This prevents us from unexpected hostname change.
-                        if (serviceToCheck === 'dhclient') {
-                            return this.executeBashCommandIControl(
-                                bigIp,
-                                'while [ "$(pgrep dhclient-script)" ] || [ "$(pgrep arping)" ]; do sleep 1; done; sleep 10'
-                            )
-                                .then(() => Promise.resolve());
-                        }
-                        return Promise.resolve();
-                    }
-
-                    let message;
-                    if (status) {
-                        message = `${service} status is ${status}`;
-                    } else {
-                        message = `Unable to read ${service} status`;
-                    }
-                    return Promise.reject(new Error(message));
-                });
-        }
-
         const opts = options || {};
+        const servicesToWaitFor = opts.servicesToWaitFor || [];
         const logger = new Logger(module, opts.taskId);
-        const serviceRunningRetryArgs = {
-            maxRetries: cloudUtil.LONG_RETRY.maxRetries,
-            retryIntervalMs: cloudUtil.LONG_RETRY.retryIntervalMs,
-            continueOnError: true
-        };
+        let runningServices;
 
-        return bigIp.create(
-            '/tm/sys/service',
-            {
-                command: 'restart',
-                name: service
-            },
-            null,
-            cloudUtil.NO_RETRY
-        )
+        return Promise.all(servicesToWaitFor.map((aService) => this.isServiceRunningBool(bigIp, aService)))
+            .then((serviceStatuses) => {
+                runningServices = servicesToWaitFor.filter((aService, index) => serviceStatuses[index]);
+            })
+            .then(() => bigIp.create(
+                '/tm/sys/service',
+                {
+                    command: 'restart',
+                    name: service
+                },
+                null,
+                cloudUtil.NO_RETRY
+            ))
             .catch((err) => {
                 logger.debug(`Ignoring expected socket hangup: ${err}`);
             })
-            .then(() => cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isServiceRunning, [service]))
-            .then(() => promiseUtil.series(
-                (opts.servicesToWaitFor || []).map((aService) => () => cloudUtil.tryUntil(
-                    this, serviceRunningRetryArgs, isServiceRunning, [aService]
-                ))
-            ));
+            .then(() => cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, this.isServiceRunning, [bigIp, service]))
+            .then(() => {
+                const serviceRunningRetryArgs = {
+                    maxRetries: cloudUtil.LONG_RETRY.maxRetries,
+                    retryIntervalMs: cloudUtil.LONG_RETRY.retryIntervalMs,
+                    continueOnError: true
+                };
+
+                return promiseUtil.series(
+                    (runningServices || []).map((aService) => () => cloudUtil.tryUntil(
+                        this, serviceRunningRetryArgs, this.isServiceRunning, [bigIp, aService]
+                    ))
+                );
+            });
     },
 
     /**

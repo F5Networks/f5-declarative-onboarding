@@ -53,7 +53,7 @@ class NetworkHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        this.logger.fine('Proessing network declaration.');
+        this.logger.fine('Processing network declaration.');
         this.logger.fine('Checking Trunks.');
 
         const status = { warnings: [] };
@@ -154,7 +154,7 @@ class NetworkHandler {
             })
             .then((result) => {
                 updateStatus(status, result);
-                this.logger.info('Done processing network declartion.');
+                this.logger.info('Done processing network declaration.');
                 return Promise.resolve();
             })
             .then(() => {
@@ -166,28 +166,7 @@ class NetworkHandler {
             })
             .then(() => {
                 if (this.needsMcpdRestart) {
-                    this.logger.info('Restarting mcpd');
-                    const servicesToWaitFor = [
-                        'cbrd',
-                        'alertd',
-                        'tamd',
-                        'lind',
-                        'lacpd',
-                        'merged',
-                        'devmgmtd',
-                        'pccd',
-                        'logstatd',
-                        'statsd',
-                        'icr_eventd',
-                        'zxfrd',
-                        'wccpd',
-                        'tmm',
-                        'vxland',
-                        'dynconfd',
-                        'named',
-                        'bigd'
-                    ];
-                    return doUtil.restartService(this.bigIp, 'mcpd', { servicesToWaitFor, taskId: this.state.id });
+                    return restartMcpd.call(this);
                 }
                 return Promise.resolve(status);
             })
@@ -196,6 +175,31 @@ class NetworkHandler {
                 return Promise.reject(err);
             });
     }
+}
+
+function restartMcpd() {
+    this.logger.info('Restarting mcpd');
+    const servicesToWaitFor = [
+        'cbrd',
+        'alertd',
+        'tamd',
+        'lind',
+        'lacpd',
+        'merged',
+        'devmgmtd',
+        'pccd',
+        'logstatd',
+        'statsd',
+        'icr_eventd',
+        'zxfrd',
+        'wccpd',
+        'tmm',
+        'vxland',
+        'dynconfd',
+        'named',
+        'bigd'
+    ];
+    return doUtil.restartService(this.bigIp, 'mcpd', { servicesToWaitFor, taskId: this.state.id });
 }
 
 function updateStatus(status, result) {
@@ -1404,7 +1408,7 @@ function findMatchingFloatingSelfIps(selfIpsToDelete) {
 }
 
 /**
- * Finds all reoutes that are in the same subnet as the self ips we are about to delete
+ * Finds all routes that are in the same subnet as the self ips we are about to delete
  *
  * @param {Object[]} selfIpsToDelete - Self IPs we are going to delete
  */

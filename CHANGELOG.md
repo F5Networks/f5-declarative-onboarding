@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 
 ### Fixed
+- AUTOTOOL-3412: ([GitHub Issue 322](https://github.com/F5Networks/f5-declarative-onboarding/issues/322)): Restarting mcpd may wait for services that are not required
 - AUTOTOOL-3555: Configuring TACACS can skip reporting errors
 
 ### Changed

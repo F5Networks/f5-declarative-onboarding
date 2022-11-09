@@ -486,7 +486,7 @@ describe('doUtil', () => {
                 });
         });
 
-        it('should wait for extra services to be running or down due to provisioning if specified', () => {
+        it('should wait for extra services to be running if they were running when called', () => {
             bigIpListSpy = sinon.stub(bigIpMock, 'list').callsFake((path) => {
                 const response = {
                     apiRawValues: {
@@ -501,10 +501,13 @@ describe('doUtil', () => {
 
             return doUtil.restartService(bigIpMock, 'myService', { servicesToWaitFor: ['myExtraService1', 'myExtraService2'] })
                 .then(() => {
-                    assert.strictEqual(bigIpListSpy.callCount, 3);
-                    assert.strictEqual(bigIpListSpy.args[0][0], '/tm/sys/service/myService/stats');
-                    assert.strictEqual(bigIpListSpy.args[1][0], '/tm/sys/service/myExtraService1/stats');
-                    assert.strictEqual(bigIpListSpy.args[2][0], '/tm/sys/service/myExtraService2/stats');
+                    assert.strictEqual(bigIpListSpy.callCount, 4);
+                    // checks before restart to see if they are running
+                    assert.strictEqual(bigIpListSpy.args[0][0], '/tm/sys/service/myExtraService1/stats');
+                    assert.strictEqual(bigIpListSpy.args[1][0], '/tm/sys/service/myExtraService2/stats');
+                    // checks after restart to wait until they are running
+                    assert.strictEqual(bigIpListSpy.args[2][0], '/tm/sys/service/myService/stats');
+                    assert.strictEqual(bigIpListSpy.args[3][0], '/tm/sys/service/myExtraService1/stats');
                 });
         });
 
