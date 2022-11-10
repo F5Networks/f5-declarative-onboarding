@@ -1198,7 +1198,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                     throw err;
                                 });
                         };
-                        return common.tryOften(func, 10, 30 * 1000, [constants.HTTP_ACCEPTED, 'GRANTED'], true);
+                        return common.tryOften(func, 10, 30 * 1000, [constants.HTTP_ACCEPTED, 'GRANTED']);
                     })
                     .catch((error) => logError(error, bigIpAddress, bigIpAuth));
             }));

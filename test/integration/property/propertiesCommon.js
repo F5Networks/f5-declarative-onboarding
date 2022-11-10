@@ -193,20 +193,28 @@ function createDeclarations(targetClass, properties, options) {
     return declarations;
 }
 
-function getStatus(id) {
+function getStatus(id, retryOptions) {
     const url = `${bigIpUrl}${constants.DO_API}/task/${id}?statusCodes=experimental&show=full`;
     const reqOpts = common.buildBody(url, null, getAuth(), 'GET');
 
-    return sendRequest(reqOpts, { trials: 3, timeInterval: 500 })
+    return sendRequest(reqOpts, retryOptions || { trials: 3, timeInterval: 500 })
         .then((response) => response.body);
 }
 
-function _waitForCompleteStatus(id) {
-    return getStatus(id)
+function _waitForCompleteStatus(id, retryOptions) {
+    return getStatus(id, retryOptions)
         .then((response) => {
             // If result still has a code of 202, the request is still processing
             // If there is no result, services may be restarting, so continue waiting
             const result = response.result;
+            if (result && result.status === 'REBOOTING') {
+                const options = {
+                    trials: 120,
+                    timeInterval: 10000,
+                    acceptErrors: ['ECONNRESET', 'ECONNREFUSED', 'EHOSTUNREACH']
+                };
+                return promiseUtil.delay(30000).then(() => _waitForCompleteStatus(id, options));
+            }
             if (!result || result.code === 202) {
                 return promiseUtil.delay(1000).then(() => _waitForCompleteStatus(id));
             }
@@ -1023,6 +1031,62 @@ function getProvisionedModules() {
     return PROVISIONED_MODULES;
 }
 
+function provisionModules(modules) {
+    if (modules.length === 0 || DEFAULT_OPTIONS.dryRun) {
+        return Promise.resolve();
+    }
+
+    const modulesToProvision = modules
+        .filter((module) => !PROVISIONED_MODULES.find((provisioned) => module === provisioned))
+        .concat(PROVISIONED_MODULES);
+    const provisioningDeclaration = {
+        schemaVersion: '1.0.0',
+        class: 'Device',
+        async: true,
+        controls: {
+            trace: true,
+            traceResponse: true,
+            logLevel: 'debug'
+        },
+        Common: {
+            class: 'Tenant',
+            provisioning: {
+                class: 'Provision'
+            }
+        }
+    };
+
+    modulesToProvision.forEach((module) => {
+        provisioningDeclaration.Common.provisioning[module] = 'nominal';
+    });
+
+    return postDeclaration(provisioningDeclaration)
+        .then(() => {
+            PROVISIONED_MODULES = modulesToProvision;
+            return Promise.resolve();
+        })
+        .catch((error) => {
+            error.message = `Unable to POST provisioning declaration: ${error}`;
+            throw error;
+        });
+}
+
+function deProvisionModules(modules) {
+    if (modules.length === 0 || DEFAULT_OPTIONS.dryRun) {
+        return Promise.resolve();
+    }
+
+    const modulesToProvision = [];
+    PROVISIONED_MODULES.forEach((module) => {
+        if (!modules.find((mod) => mod === module)) {
+            modulesToProvision.push(module);
+        }
+    });
+    PROVISIONED_MODULES = modulesToProvision;
+
+    return provisionModules(modulesToProvision);
+}
+
 function getBigIpVersion() {
     return BIGIP_VERSION;
 }
@@ -1067,5 +1131,7 @@ module.exports = {
     getItemName,
     getMcpObject,
     getStatus,
-    postDeclaration
+    postDeclaration,
+    provisionModules,
+    deProvisionModules
 };
