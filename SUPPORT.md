@@ -11,7 +11,7 @@ Declarative Onboarding Extension (DO) Software Lifecycle:
 
 Currently supported versions:
 
-| Software Version | Release Type  | First Customer Ship |End of Support   |
+| Software Version | Release Type  | First Customer Ship | End of Support  |
 |------------------|---------------|---------------------|-----------------|
 | DO 1.27.1        | LTS           | 08-Mar-2022         | 08-Mar-2023     |
 | DO 1.32.0        | Feature       | 23-Aug-2022         | 23-Nov-2022     |
