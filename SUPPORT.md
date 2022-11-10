@@ -63,4 +63,3 @@ Versions no longer supported:
 \* Fix for updated Docker Container packaging only
 
 See the [Release notes](https://github.com/F5Networks/f5-declarative-onboarding/releases) and [Declarative Onboarding documentation](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/) for new features and issues resolved for each release.
-
