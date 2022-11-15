@@ -1246,6 +1246,9 @@ describe('system.schema.json', () => {
                     "MACS": [
                         "hmac-sha1"
                     ],
+                    "kexAlgorithms": [
+                        'ecdh-sha2-nistp256'
+                    ],
                     "maxAuthTries": 100,
                     "maxStartups": "4",
                     "protocol": 2
@@ -1283,6 +1286,17 @@ describe('system.schema.json', () => {
                     ]
                 };
                 assert.strictEqual(validate(data), false, 'MACS should only contain one of the allowed values');
+                assert(getErrorString().includes('should be equal to one of the allowed values'));
+            });
+
+            it('should invalidate bad KexAlgorithms key', () => {
+                const data = {
+                    "class": "SSHD",
+                    "kexAlgorithms": [
+                        "Invalid kex"
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'KexAlgorithms should only contain one of the allowed values');
                 assert(getErrorString().includes('should be equal to one of the allowed values'));
             });
 

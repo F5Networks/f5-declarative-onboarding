@@ -302,6 +302,23 @@ What happens in the system internals between request and response?
 - Heavy lifting provided by f5-cloud-libs.
 
 ---
+#### Anatomy of a Request on BIG-IQ
+When running on BIG-IQ, the processing happens mostly on BIG-IQ. DO uses iControl REST requests to get configuration and put configuration on the target BIG-IP device. Unlike AS3, DO does not have to be installed on the BIG-IP.
+
+BIG-IQ has a UI to show the user the status of requests. Also, we want the API on BIG-IQ to look just like on BIG-IP from a user perspective. Because of this, DO on BIG-IQ receives requests directly from the user but has to do extra processing to allow BIG-IQ to update it's UI. Here is the basic flow
+* User posts declaration to DO on BIG-IQ
+* DO returns taskId to user
+* User starts polling DO for status of task
+* DO forwards declaration to the task collection worker (TCW) which is a BIG-IQ process
+* TCW does what it needs to do to keep the BIG-IQ UI up to date
+* TCW posts the same declaration back to DO
+* DO returns a separate taskId to TCW
+* TCW polls DO for task status
+* DO processes declararation
+* DO polls TCW for its status (which is updated when TCW polling hears from DO that it is done)
+* When DO polling learns that TCW is done, DO updates original user taskId with status
+
+---
 ## Contributing
 
 Ok, overview done!  Now let's dive into the major areas to be aware of as a developer.

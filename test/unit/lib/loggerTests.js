@@ -19,7 +19,7 @@
 const assert = require('assert');
 const Logger = require('../../../src/lib/logger');
 
-const logger = new Logger(module);
+const logger = new Logger(module, '123-abc');
 
 const loggedMessages = {
     silly: [],
@@ -83,7 +83,7 @@ describe('logger', () => {
             const caller = logger;
             logger[level].apply(caller, args);
 
-            const fullMsg = `[f5-declarative-onboarding: loggerTests.js] ${expectedMsg}`;
+            const fullMsg = `[f5-declarative-onboarding: loggerTests.js | 123-abc] ${expectedMsg}`;
             assert.notStrictEqual(
                 loggedMessages[level][0].indexOf(fullMsg),
                 -1,

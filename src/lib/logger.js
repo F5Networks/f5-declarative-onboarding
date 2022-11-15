@@ -44,9 +44,11 @@ try {
  * @class
  */
 class Logger {
-    constructor(module) {
+    constructor(module, taskId) {
         this.tag = 'f5-declarative-onboarding';
         this.filename = path.basename(module.filename);
+        this.taskId = taskId;
+        this.metadata = getMetadataString.call(this);
 
         // If we weren't able to get the f5-logger, create a mock (so our unit tests run)
         this.logger = f5Logger
@@ -150,7 +152,7 @@ function log(level, message, extraArgs) {
         fullMessage = `${fullMessage} ${expandedArg}`;
     });
 
-    this.logger[level](`[${this.tag}: ${this.filename}] ${fullMessage}`);
+    this.logger[level](`[${this.tag}: ${this.metadata}] ${fullMessage}`);
 }
 
 function mask(message) {
@@ -194,6 +196,16 @@ function searchAndReplace(searched, matchRegex, replacementString) {
         masked = searched;
     }
     return masked;
+}
+
+function getMetadataString() {
+    const metadata = [this.filename];
+
+    if (this.taskId) {
+        metadata.push(this.taskId);
+    }
+
+    return metadata.join(' | ');
 }
 
 module.exports = Logger;

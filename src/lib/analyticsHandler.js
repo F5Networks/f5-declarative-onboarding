@@ -19,8 +19,6 @@
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 
-const logger = new Logger(module);
-
 /**
  * Handles system parts of a declaration.
  *
@@ -40,6 +38,7 @@ class AnalyticsHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -49,13 +48,13 @@ class AnalyticsHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Processing analytics declaration.');
+        this.logger.fine('Processing analytics declaration.');
         if (!this.declaration.Common) {
             return Promise.resolve();
         }
         return handleAnalytics.call(this)
             .catch((err) => {
-                logger.severe(`Error processing analytics declaration: ${err.message}`);
+                this.logger.severe(`Error processing analytics declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }

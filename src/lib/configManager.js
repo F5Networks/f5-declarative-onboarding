@@ -25,8 +25,6 @@ const RADIUS = require('./sharedConstants').RADIUS;
 const PATHS = require('./sharedConstants').PATHS;
 const doUtil = require('./doUtil');
 
-const logger = new Logger(module);
-
 /**
  * Manages config on a device.
  *
@@ -34,17 +32,20 @@ const logger = new Logger(module);
  *                                        If a String, should be the path to a file containing
  *                                        the items.
  * @param {Object} bigIp - BigIp object.
+ * @param {Object} state - The state of the current task. See {@link State}.
  *
  * @class
  */
 class ConfigManager {
-    constructor(configItems, bigIp) {
+    constructor(configItems, bigIp, state) {
         if (typeof configItems === 'string') {
             this.configItems = JSON.parse(fs.readFileSync(configItems));
         } else {
             this.configItems = configItems.slice();
         }
         this.bigIp = bigIp;
+        this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -101,7 +102,6 @@ class ConfigManager {
      * associated with the key, then that item will be ignored
      *
      * @param {Object} declaration - The delcaration we are processing
-     * @param {Object} state - The state of the current task. See {@link State}.
      * @param {State} doState - The doState object.
      * @param {Object} [options] - Optional parameters
      * @param {Boolean} [options.translateToNewId] - Set property names to the value in 'newId' if there is one.
@@ -110,8 +110,8 @@ class ConfigManager {
      * @returns {Promise} A promise which is resolved when the operation is complete
      *                    or rejected if an error occurs.
      */
-    get(declaration, state, doState, options) {
-        const currentCurrentConfig = state.currentConfig || {};
+    get(declaration, doState, options) {
+        const currentCurrentConfig = this.state.currentConfig || {};
         const currentConfig = {
             InternalUse: {}
         };
@@ -492,20 +492,20 @@ class ConfigManager {
                     }
                 });
 
-                state.currentConfig = {
+                this.state.currentConfig = {
                     parsed: true,
                     Common: currentConfig
                 };
 
-                if (state.originalConfig && !doState.getOriginalConfigByConfigId(this.configId)) {
+                if (this.state.originalConfig && !doState.getOriginalConfigByConfigId(this.configId)) {
                     // This state was saved from a prior version of DO
-                    doState.setOriginalConfigByConfigId(this.configId, state.originalConfig);
+                    doState.setOriginalConfigByConfigId(this.configId, this.state.originalConfig);
                 }
 
                 const originalConfig = doState.getOriginalConfigByConfigId(this.configId)
-                    || state.currentConfig;
+                    || this.state.currentConfig;
                 if (!originalConfig.version) {
-                    const doVersion = doUtil.getDoVersion();
+                    const doVersion = doUtil.getDoVersion(this.state.id);
                     const doVersionStr = `${doVersion.VERSION}-${doVersion.RELEASE}`;
                     originalConfig.version = doVersionStr;
                 }
@@ -514,7 +514,7 @@ class ConfigManager {
                 // a user does not set a db var on the first POST but does on a subsequent POST
                 // we need an original value to set it back to if the user does yet another
                 // POST with out the variable
-                const currentDbVariables = state.currentConfig.Common.DbVariables;
+                const currentDbVariables = this.state.currentConfig.Common.DbVariables;
                 if (currentDbVariables) {
                     if (!originalConfig.Common.DbVariables) {
                         originalConfig.Common.DbVariables = {};
@@ -526,7 +526,7 @@ class ConfigManager {
                     });
                 }
 
-                const currentDisk = state.currentConfig.Common.Disk;
+                const currentDisk = this.state.currentConfig.Common.Disk;
                 if (currentDisk && currentDisk.applicationData && originalConfig.Common) {
                     // We need to update the originalConfig.applicationData in case of rollback.
                     // applicationData cannot be reduced in size, so update if DISK information is
@@ -540,7 +540,7 @@ class ConfigManager {
                 }
 
                 // update originalConfig class defaults with the current provisioned module state
-                const currentProvision = state.currentConfig.Common.Provision;
+                const currentProvision = this.state.currentConfig.Common.Provision;
                 if (currentProvision && originalConfig.Common) {
                     const provisionState = Object.keys(currentProvision).reduce((result, module) => {
                         if (currentProvision[module] === 'none') {
@@ -568,7 +568,7 @@ class ConfigManager {
                 }
 
                 // Patch GSLB Prober Pool members after they've been dereferenced
-                const currentGSLBProberPool = state.currentConfig.Common.GSLBProberPool;
+                const currentGSLBProberPool = this.state.currentConfig.Common.GSLBProberPool;
                 if (currentGSLBProberPool) {
                     Object.keys(currentGSLBProberPool).forEach((key) => {
                         (currentGSLBProberPool[key].members || []).forEach((member) => {
@@ -580,7 +580,7 @@ class ConfigManager {
                 }
 
                 // Patch RoutingBGP neighbor members after they've been dereferenced
-                const currentRoutingBgp = state.currentConfig.Common.RoutingBGP;
+                const currentRoutingBgp = this.state.currentConfig.Common.RoutingBGP;
                 const nameId = getMappedId(PATHS.RoutingBGP, 'references.neighborReference', 'name', this.configItems, configOptions);
                 Object.keys(currentRoutingBgp || []).forEach((key) => {
                     doUtil.sortArrayByValueString(currentRoutingBgp[key].neighbor, nameId);
@@ -599,7 +599,7 @@ class ConfigManager {
                 });
 
                 // Patch GSLB Server virtual servers after they've been dereferenced
-                const currentGSLBServer = state.currentConfig.Common.GSLBServer;
+                const currentGSLBServer = this.state.currentConfig.Common.GSLBServer;
                 if (currentGSLBServer) {
                     const devicesOptions = Object.assign({}, configOptions, { transformId: 'addresses' });
                     const devicesNameId = getMappedId(PATHS.GSLBServer, 'references.devicesReference', 'name', this.configItems, devicesOptions);
@@ -634,7 +634,7 @@ class ConfigManager {
                 }
 
                 // Patch Firewall Policy rules after they've been dereferenced
-                const currentFirewallPolicy = state.currentConfig.Common.FirewallPolicy;
+                const currentFirewallPolicy = this.state.currentConfig.Common.FirewallPolicy;
                 if (currentFirewallPolicy) {
                     Object.keys(currentFirewallPolicy).forEach((key) => {
                         (currentFirewallPolicy[key].rules || []).forEach(filterFirewallRuleProps);
@@ -642,7 +642,7 @@ class ConfigManager {
                 }
 
                 // Patch Management IP Firewall rules after they've been dereferenced
-                const currentManagementIpFirewall = state.currentConfig.Common.ManagementIpFirewall;
+                const currentManagementIpFirewall = this.state.currentConfig.Common.ManagementIpFirewall;
                 if (currentManagementIpFirewall) {
                     (currentManagementIpFirewall.rules || []).forEach(filterFirewallRuleProps);
                 }
@@ -650,7 +650,7 @@ class ConfigManager {
                 // Tunnels and VXLAN profiles are already combined in the Common.Tunnel object
                 // Note: To possibly improve this, initially we could keep Tunnels and VXLAN profiles
                 // separate, then just ignore VXLAN profiles in the diffing process
-                const currentTunnels = state.currentConfig.Common.Tunnel;
+                const currentTunnels = this.state.currentConfig.Common.Tunnel;
                 if (currentTunnels) {
                     const tunnels = Object.keys(currentTunnels);
                     const deleteAfter = [];
@@ -682,12 +682,12 @@ class ConfigManager {
                 }
 
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
-                state.originalConfig = originalConfig;
+                this.state.originalConfig = originalConfig;
 
                 return Promise.resolve();
             })
             .catch((err) => {
-                logger.severe(`Error getting current config: ${err.message}`);
+                this.logger.severe(`Error getting current config: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -1079,11 +1079,11 @@ function getDeviceAndHostNames(deviceInfo) {
             }
 
             const message = 'Too many devices match our name';
-            logger.severe(message);
+            this.logger.severe(message);
             return Promise.reject(new Error(message));
         })
         .catch((err) => {
-            logger.severe(`Error getting device and host names: ${err.message}`);
+            this.logger.severe(`Error getting device and host names: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -1202,6 +1202,9 @@ function patchSSHD(patchedItem) {
         }
         if (currentInclude[0] === 'MACs') {
             patchedItem.MACS = currentInclude[1].split(',');
+        }
+        if (currentInclude[0] === 'KexAlgorithms') {
+            patchedItem.kexAlgorithms = currentInclude[1].split(',');
         }
         if (currentInclude[0] === 'LoginGraceTime') {
             patchedItem.loginGraceTime = parseInt(currentInclude[1], 10);

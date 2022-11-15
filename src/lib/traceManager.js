@@ -26,8 +26,6 @@ const currentConfigFile = '/tmp/DO_current.json';
 const desiredConfigFile = '/tmp/DO_desired.json';
 const diffFile = '/tmp/DO_diff.json';
 
-const logger = new Logger(module);
-
 /**
  * Handles tracing for debugging.
  *
@@ -46,6 +44,7 @@ class TraceManager {
         this.traceResponse = declaration.controls ? declaration.controls.traceResponse : false;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -64,8 +63,8 @@ class TraceManager {
 
         if (this.trace) {
             return Promise.resolve()
-                .then(() => writeFile(currentConfigFile, maskedCurrent))
-                .then(() => writeFile(desiredConfigFile, maskedDesired));
+                .then(() => writeFile.call(this, currentConfigFile, maskedCurrent))
+                .then(() => writeFile.call(this, desiredConfigFile, maskedDesired));
         }
         return Promise.resolve();
     }
@@ -83,7 +82,7 @@ class TraceManager {
         }
 
         if (this.trace) {
-            return writeFile(diffFile, maskedDiff);
+            return writeFile.call(this, diffFile, maskedDiff);
         }
         return Promise.resolve();
     }
@@ -93,7 +92,7 @@ function writeFile(fileName, contents) {
     return new Promise((resolve) => {
         fs.writeFile(fileName, JSON.stringify(contents, undefined, 2), (err) => {
             if (err) {
-                logger.error(`Error writing trace file ${err.message}`);
+                this.logger.error(`Error writing trace file ${err.message}`);
             }
             resolve();
         });

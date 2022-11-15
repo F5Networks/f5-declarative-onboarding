@@ -23,6 +23,7 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 const sinon = require('sinon');
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;
+const Logger = require('../../../src/lib/logger');
 
 let DeleteHandler;
 
@@ -266,12 +267,16 @@ describe(('deleteHandler'), function testDeleteHandler() {
             }
         };
 
-        const deleteHandler = new DeleteHandler(declaration, bigIpMock);
+        const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
+        const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, { id: '123-abc' });
         return assert.isRejected(
             deleteHandler.process(),
             'this is a processing error',
             'processing error should have been caught'
-        );
+        ).then(() => {
+            assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'deleteHandler.js | 123-abc');
+            assert.strictEqual(logSevereSpy.args[0][0], 'Error processing deletes: this is a processing error');
+        });
     });
 
     it('should not issue deletes for missing Authentication items', () => {

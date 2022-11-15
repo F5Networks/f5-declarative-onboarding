@@ -19,8 +19,6 @@
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 
-const logger = new Logger(module);
-
 /**
  * Handles provisioning parts of a declaration.
  *
@@ -40,6 +38,7 @@ class ProvisionHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
         this.isDeprovisioning = false;
     }
 
@@ -50,14 +49,14 @@ class ProvisionHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Processing provision declaration.');
+        this.logger.fine('Processing provision declaration.');
         if (!this.declaration.Common) {
             return Promise.resolve();
         }
 
         return Promise.resolve()
             .then(() => {
-                logger.info('Checking Provision.');
+                this.logger.info('Checking Provision.');
                 return handleProvision.call(this);
             });
     }

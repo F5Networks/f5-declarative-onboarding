@@ -34,8 +34,6 @@ const STATUS = require('./sharedConstants').STATUS;
 
 const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
 
-const logger = new Logger(module);
-
 /**
  * Handles inspecting device's configuration
  *
@@ -46,11 +44,14 @@ class InspectHandler {
      * Constructor
      *
      * @param {Object} queryParams - query params
+     * @param {String} [taskId] - The id of the task
      */
-    constructor(queryParams) {
+    constructor(queryParams, taskId) {
         this.processTimeout = PROCESS_MAX_TIMEOUT;
         this.queryParams = queryParams || {};
         this.errors = [];
+        this.taskId = taskId;
+        this.logger = new Logger(module, taskId);
     }
 
     /**
@@ -103,13 +104,13 @@ class InspectHandler {
      * @returns {Promise} A promise which is resolved when processing is complete
      */
     process() {
-        logger.fine('Processing Inspect request.');
+        this.logger.fine('Processing Inspect request.');
         return new Promise((resolve) => {
             // set timeout in case if request exceeded timeout (e.g. device not available)
             // if timeout exceeded then response will be empty object
             const timeoutID = setTimeout(() => {
                 const errMsg = `Unable to complete request within specified timeout (${this.processTimeout / 1000}s.)`;
-                logger.severe(`Error processing Inspect request: ${errMsg}`);
+                this.logger.severe(`Error processing Inspect request: ${errMsg}`);
 
                 this.code = 408;
                 this.message = 'Request Timeout';
@@ -125,7 +126,7 @@ class InspectHandler {
                 .catch((err) => {
                     // Unexpected error, response will be empty object
                     clearTimeout(timeoutID);
-                    logger.severe(`Error processing Inspect request: ${err.message}`);
+                    this.logger.severe(`Error processing Inspect request: ${err.message}`);
                     this.errors.push(err.message);
                     resolve({});
                 });
@@ -250,7 +251,7 @@ function validateRequest() {
  * @returns {Promise} resolved when platform is BIG-IP
  */
 function validatePlatform() {
-    return doUtil.getCurrentPlatform()
+    return doUtil.getCurrentPlatform(this.taskId)
         .then((platform) => {
             if (platform !== PRODUCTS.BIGIP) {
                 this.code = 403;
@@ -274,16 +275,16 @@ function validatePlatform() {
  */
 function fetchCurrentConfiguration(targetDevice) {
     // use empty State objects to avoid modifications to existing state
-    const state = {};
+    const state = { id: this.taskId };
     const doState = new State();
 
-    return doUtil.getBigIp(logger, targetDevice)
+    return doUtil.getBigIp(this.logger, targetDevice)
         .then((bigIp) => {
-            const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
+            const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp, state);
             const configOptions = {
                 translateToNewId: true
             };
-            return configManager.get({}, state, doState, configOptions);
+            return configManager.get({}, doState, configOptions);
         })
         .then(() => {
             const originalConfig = state.originalConfig || {};

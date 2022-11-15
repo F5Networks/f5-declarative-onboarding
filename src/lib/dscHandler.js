@@ -25,8 +25,6 @@ const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const ipF5 = require('../schema/latest/formats').f5ip;
 
-const logger = new Logger(module);
-
 /**
  * Handles DSC parts of a declaration.
  *
@@ -46,6 +44,7 @@ class DscHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -55,35 +54,35 @@ class DscHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Processing DSC declaration.');
-        logger.fine('Checking ConfigSync.');
+        this.logger.fine('Processing DSC declaration.');
+        this.logger.fine('Checking ConfigSync.');
         return handleConfigSync.call(this)
             .then(() => {
-                logger.fine('Checking FailoverUnicast.');
+                this.logger.fine('Checking FailoverUnicast.');
                 return handleFailoverUnicast.call(this);
             })
             .then(() => {
-                logger.fine('Checking FailoverMulticast.');
+                this.logger.fine('Checking FailoverMulticast.');
                 return handleFailoverMulticast.call(this);
             })
             .then(() => {
-                logger.fine('Checking DeviceTrust and DeviceGroup.');
+                this.logger.fine('Checking DeviceTrust and DeviceGroup.');
                 return handleDeviceTrustAndGroup.call(this);
             })
             .then(() => {
-                logger.fine('Checking Traffic-Groups');
+                this.logger.fine('Checking Traffic-Groups');
                 return handleTrafficGroup.call(this);
             })
             .then(() => {
-                logger.fine('Checking MAC_Masquerades');
+                this.logger.fine('Checking MAC_Masquerades');
                 return handleMacMasquerade.call(this);
             })
             .then(() => {
-                logger.fine('Checking MirrorIp');
+                this.logger.fine('Checking MirrorIp');
                 return handleMirrorIp.call(this);
             })
             .catch((err) => {
-                logger.severe(`Error processing DSC declaration: ${err.message}`);
+                this.logger.severe(`Error processing DSC declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -145,7 +144,7 @@ function handleFailoverUnicast() {
                 body
             ))
             .catch((err) => {
-                logger.severe(`Error setting failover unicast address: ${err.message}`);
+                this.logger.severe(`Error setting failover unicast address: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -169,7 +168,7 @@ function handleFailoverMulticast() {
                 body
             ))
             .catch((err) => {
-                logger.severe(`Error setting failover multicast address: ${err.message}`);
+                this.logger.severe(`Error setting failover multicast address: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -202,7 +201,7 @@ function handleDeviceTrustAndGroup() {
                 })
                 .then((isRemote) => {
                     if (!isRemote) {
-                        logger.fine('Passing off to join cluster function.');
+                        this.logger.fine('Passing off to join cluster function.');
                         return handleJoinCluster.call(this, convertedAddresses.members, deviceGroup);
                     }
                     // If this host is the remote host, we only create the device group and
@@ -210,7 +209,7 @@ function handleDeviceTrustAndGroup() {
                     return handleDeviceGroup.call(this, convertedAddresses, deviceGroup);
                 })
                 .catch((err) => {
-                    logger.severe(`Error creating/joining device trust/group: ${err.message}`);
+                    this.logger.severe(`Error creating/joining device trust/group: ${err.message}`);
                     return Promise.reject(err);
                 });
         });
@@ -238,7 +237,7 @@ function handleDeviceTrustAndGroup() {
             return promises;
         })
         .catch((err) => {
-            logger.severe(`Error handling device trust and group: ${err.message}`);
+            this.logger.severe(`Error handling device trust and group: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -295,7 +294,7 @@ function handleDeviceTrust() {
             // If we are not the remote, check to see if we need to request to be added
             return doUtil.checkDnsResolution(this.bigIp, deviceTrust.remoteHost)
                 .then(() => doUtil.getBigIp(
-                    logger,
+                    this.logger,
                     {
                         host: deviceTrust.remoteHost,
                         user: deviceTrust.remoteUsername,
@@ -310,12 +309,12 @@ function handleDeviceTrust() {
                 ))
                 .then(() => this.bigIp.cluster.syncComplete())
                 .catch((err) => {
-                    logger.severe(`Could not add to remote trust: ${err.message}`);
+                    this.logger.severe(`Could not add to remote trust: ${err.message}`);
                     return Promise.reject(err);
                 });
         })
         .catch((err) => {
-            logger.severe(`Error adding to trust: ${err.message}`);
+            this.logger.severe(`Error adding to trust: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -342,7 +341,7 @@ function handleDeviceGroup(convertedAddresses, deviceGroup) {
                     .then(() => pruneDeviceGroup.call(this, deviceGroup.name, convertedAddresses.members));
             })
             .catch((err) => {
-                logger.severe(`Error handling device group: ${err.message}`);
+                this.logger.severe(`Error handling device group: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -400,7 +399,7 @@ function createDeviceGroup(deviceGroupName, deviceGroup, convertedMembers) {
             { connectedDevices: convertedMembers }
         ))
         .catch((err) => {
-            logger.severe(`Error creating device group: ${err.message}`);
+            this.logger.severe(`Error creating device group: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -425,7 +424,7 @@ function joinDeviceGroup(deviceGroupName, hostname) {
     return waitForDeviceGroup.call(this, deviceGroupName)
         .then(() => this.bigIp.cluster.addToDeviceGroup(hostname, deviceGroupName))
         .catch((err) => {
-            logger.severe(`Error joining device group: ${err.message}`);
+            this.logger.severe(`Error joining device group: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -462,7 +461,7 @@ function isRemoteHost(deviceInfo, remoteHost) {
                     }
                 })
                 .catch((err) => {
-                    logger.severe(`Error determining if we are remote host: ${err.message}`);
+                    this.logger.severe(`Error determining if we are remote host: ${err.message}`);
                     reject(err);
                 });
         }
@@ -594,7 +593,7 @@ function handleTrafficGroup() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating traffic-groups: ${err.message}`);
+            this.logger.severe(`Error creating traffic-groups: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -639,7 +638,7 @@ function handleMacMasquerade() {
                 });
             })
             .catch((err) => {
-                logger.severe(`Error creating MAC Masquerade: ${err.message}`);
+                this.logger.severe(`Error creating MAC Masquerade: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -659,7 +658,7 @@ function handleMirrorIp() {
                 body
             ))
             .catch((err) => {
-                logger.severe(`Error setting mirror ip address: ${err.message}`);
+                this.logger.severe(`Error setting mirror ip address: ${err.message}`);
                 return Promise.reject(err);
             });
     }

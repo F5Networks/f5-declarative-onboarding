@@ -54,9 +54,9 @@ class InfoResponse {
         return [];
     }
 
-    getData() {
+    getData(id) {
         const schemaVersions = schema.properties.schemaVersion.enum;
-        const versionInfo = doUtil.getDoVersion();
+        const versionInfo = doUtil.getDoVersion(id);
         return {
             version: versionInfo.VERSION,
             release: versionInfo.RELEASE,

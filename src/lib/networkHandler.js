@@ -23,8 +23,6 @@ const doUtil = require('./doUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 
-const logger = new Logger(module);
-
 /**
  * Handles network parts of a declaration.
  *
@@ -44,6 +42,7 @@ class NetworkHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
         this.needsMcpdRestart = false;
     }
 
@@ -54,120 +53,120 @@ class NetworkHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Proessing network declaration.');
-        logger.fine('Checking Trunks.');
+        this.logger.fine('Proessing network declaration.');
+        this.logger.fine('Checking Trunks.');
 
         const status = { warnings: [] };
         return Promise.resolve()
             .then(() => {
-                logger.fine('Checking trunk');
+                this.logger.fine('Checking trunk');
                 return handleTrunk.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking VLANs');
+                this.logger.fine('Checking VLANs');
                 return handleVlan.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking RouteDomains');
+                this.logger.fine('Checking RouteDomains');
                 return handleRouteDomain.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking DNS_Resolvers');
+                this.logger.fine('Checking DNS_Resolvers');
                 return handleDnsResolver.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking Tunnels');
+                this.logger.fine('Checking Tunnels');
                 return handleTunnel.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking Firewall Address Lists');
+                this.logger.fine('Checking Firewall Address Lists');
                 return handleFirewallAddressList.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking Firewall Port Lists');
+                this.logger.fine('Checking Firewall Port Lists');
                 return handleFirewallPortList.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking Firewall Policies');
+                this.logger.fine('Checking Firewall Policies');
                 return handleFirewallPolicy.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking Net Address Lists');
+                this.logger.fine('Checking Net Address Lists');
                 return handleNetAddressList.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking Net Port Lists');
+                this.logger.fine('Checking Net Port Lists');
                 return handleNetPortList.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking ManagementIpFirewall.');
+                this.logger.fine('Checking ManagementIpFirewall.');
                 return handleManagementIpFirewall.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking SelfIps');
+                this.logger.fine('Checking SelfIps');
                 return handleSelfIp.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking Routes');
+                this.logger.fine('Checking Routes');
                 return handleRoute.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.fine('Checking DagGlobals');
+                this.logger.fine('Checking DagGlobals');
                 return handleDagGlobals.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.info('Checking Enable Routing Module');
+                this.logger.info('Checking Enable Routing Module');
                 return handleEnableRouting.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.info('Checking RoutingAsPath');
+                this.logger.info('Checking RoutingAsPath');
                 return handleRoutingAsPath.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.info('Checking RoutingAccessList');
+                this.logger.info('Checking RoutingAccessList');
                 return handleRoutingAccessList.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.info('Checking RoutingPrefixList');
+                this.logger.info('Checking RoutingPrefixList');
                 return handleRoutingPrefixList.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.info('Checking RoutingBGP and RouteMap');
+                this.logger.info('Checking RoutingBGP and RouteMap');
                 return handleRoutingBGP.call(this);
             })
             .then((result) => {
                 updateStatus(status, result);
-                logger.info('Done processing network declartion.');
+                this.logger.info('Done processing network declartion.');
                 return Promise.resolve();
             })
             .then(() => {
                 if (this.needsMcpdRestart) {
-                    logger.info('Saving config');
+                    this.logger.info('Saving config');
                     return this.bigIp.save();
                 }
                 return Promise.resolve();
             })
             .then(() => {
                 if (this.needsMcpdRestart) {
-                    logger.info('Restarting mcpd');
+                    this.logger.info('Restarting mcpd');
                     const servicesToWaitFor = [
                         'cbrd',
                         'alertd',
@@ -188,12 +187,12 @@ class NetworkHandler {
                         'named',
                         'bigd'
                     ];
-                    return doUtil.restartService(this.bigIp, 'mcpd', servicesToWaitFor);
+                    return doUtil.restartService(this.bigIp, 'mcpd', { servicesToWaitFor, taskId: this.state.id });
                 }
                 return Promise.resolve(status);
             })
             .catch((err) => {
-                logger.severe(`Error processing network declaration: ${err.message}`);
+                this.logger.severe(`Error processing network declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -259,7 +258,7 @@ function handleVlan() {
                 resolve();
             })
             .catch((err) => {
-                logger.severe(`Error creating vlans: ${err.message}`);
+                this.logger.severe(`Error creating vlans: ${err.message}`);
                 reject(err);
             });
     });
@@ -291,7 +290,7 @@ function handleFirewallAddressList() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating Firewall Address List: ${err.message}`);
+            this.logger.severe(`Error creating Firewall Address List: ${err.message}`);
             throw err;
         });
 }
@@ -313,7 +312,7 @@ function handleFirewallPolicy() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating Firewall Policies: ${err.message}`);
+            this.logger.severe(`Error creating Firewall Policies: ${err.message}`);
             throw err;
         });
 }
@@ -336,7 +335,7 @@ function handleManagementIpFirewall() {
 
     return this.bigIp.modify(PATHS.ManagementIpFirewall, body)
         .catch((err) => {
-            logger.severe(`Error creating Management IP Firewall: ${err.message}`);
+            this.logger.severe(`Error creating Management IP Firewall: ${err.message}`);
             throw err;
         });
 }
@@ -361,7 +360,7 @@ function handleFirewallPortList() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating Firewall Port List: ${err.message}`);
+            this.logger.severe(`Error creating Firewall Port List: ${err.message}`);
             throw err;
         });
 }
@@ -386,7 +385,7 @@ function handleNetAddressList() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating Net Address List: ${err.message}`);
+            this.logger.severe(`Error creating Net Address List: ${err.message}`);
             throw err;
         });
 }
@@ -411,7 +410,7 @@ function handleNetPortList() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating Net Port List: ${err.message}`);
+            this.logger.severe(`Error creating Net Port List: ${err.message}`);
             throw err;
         });
 }
@@ -566,7 +565,7 @@ function handleSelfIp() {
             return status;
         })
         .catch((err) => {
-            logger.severe(`Error creating self IPs: ${err.message}`);
+            this.logger.severe(`Error creating self IPs: ${err.message}`);
             throw err;
         });
 }
@@ -661,7 +660,7 @@ function handleRoute() {
             return promise
                 .then(() => this.bigIp.transaction(commands))
                 .catch((err) => {
-                    logger.severe(`Error creating routes: ${err.message}`);
+                    this.logger.severe(`Error creating routes: ${err.message}`);
                     throw err;
                 });
         });
@@ -693,7 +692,7 @@ function handleDnsResolver() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating DNS_Resolvers: ${err.message}`);
+            this.logger.severe(`Error creating DNS_Resolvers: ${err.message}`);
             throw err;
         });
 }
@@ -722,7 +721,7 @@ function handleTrunk() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating Trunks: ${err.message}`);
+            this.logger.severe(`Error creating Trunks: ${err.message}`);
             throw err;
         });
 }
@@ -778,7 +777,7 @@ function handleRouteDomain() {
     return Promise.resolve()
         .then(() => this.bigIp.transaction(commands))
         .catch((err) => {
-            logger.severe(`Error creating RouteDomains: ${err.message}`);
+            this.logger.severe(`Error creating RouteDomains: ${err.message}`);
             throw err;
         });
 }
@@ -869,7 +868,7 @@ function handleTunnel() {
         .then(() => promiseUtil.parallel(vxlanPromises))
         .then(() => promiseUtil.parallel(promises))
         .catch((err) => {
-            logger.severe(`Error creating Tunnels: ${err.message}`);
+            this.logger.severe(`Error creating Tunnels: ${err.message}`);
             throw err;
         });
 }
@@ -891,7 +890,7 @@ function handleEnableRouting() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error enabling routing module: ${err.message}`);
+            this.logger.severe(`Error enabling routing module: ${err.message}`);
             throw err;
         });
 }
@@ -925,7 +924,7 @@ function handleRoutingAsPath() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating RoutingAsPath: ${err.message}`);
+            this.logger.severe(`Error creating RoutingAsPath: ${err.message}`);
             throw err;
         });
 }
@@ -960,7 +959,7 @@ function handleRoutingAccessList() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating RoutingAccessList: ${err.message}`);
+            this.logger.severe(`Error creating RoutingAccessList: ${err.message}`);
             throw err;
         });
 }
@@ -995,7 +994,7 @@ function handleRoutingPrefixList() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating RoutingPrefixList: ${err.message}`);
+            this.logger.severe(`Error creating RoutingPrefixList: ${err.message}`);
             throw err;
         });
 }
@@ -1062,14 +1061,14 @@ function handleRouteMap() {
             return Promise.all(promises);
         })
         .catch((err) => {
-            logger.severe(`Error creating route maps: ${err.message}`);
+            this.logger.severe(`Error creating route maps: ${err.message}`);
             throw err;
         });
 }
 
 function handleRoutingBGP() {
     if (!this.declaration.Common.RoutingBGP) {
-        logger.info('Checking RouteMap');
+        this.logger.info('Checking RouteMap');
         return handleRouteMap.call(this);
     }
 
@@ -1086,7 +1085,7 @@ function handleRoutingBGP() {
                         const curBgp = this.state.currentConfig.Common.RoutingBGP[name];
                         if ((curBgp.peerGroups && curBgp.peerGroups.length > 0)
                             || (curBgp.localAs !== declBgp.localAs)) {
-                            logger.info('Pre-deleting RoutingBGP');
+                            this.logger.info('Pre-deleting RoutingBGP');
                             promises.push(
                                 this.bigIp.delete(`${PATHS.RoutingBGP}/~Common~${name}`, null, null, cloudUtil.NO_RETRY)
                             );
@@ -1103,14 +1102,14 @@ function handleRoutingBGP() {
 
             return Promise.all(promises)
                 .catch((err) => {
-                    logger.severe(`Error deleting existing RoutingBGP: ${err.message}`);
+                    this.logger.severe(`Error deleting existing RoutingBGP: ${err.message}`);
                     throw err;
                 });
         })
         .then(() => {
             // This is the best time to do this if a RouteMap referenced by a peer group in the singleton RoutingBGP has
             // a route domain change.
-            logger.info('Checking RouteMap before creating RoutingBGP');
+            this.logger.info('Checking RouteMap before creating RoutingBGP');
             return handleRouteMap.call(this);
         })
         .then(() => {
@@ -1199,7 +1198,7 @@ function handleRoutingBGP() {
 
             return Promise.all(promises)
                 .catch((err) => {
-                    logger.severe(`Error creating RoutingBGP: ${err.message}`);
+                    this.logger.severe(`Error creating RoutingBGP: ${err.message}`);
                     throw err;
                 });
         });
@@ -1332,7 +1331,7 @@ function deleteExistingSelfIps(selfIpBodies) {
             { deletedRoutes, deletedFloatingSelfIps, deletedConfigSyncIp }
         ))
         .catch((err) => {
-            logger.severe(`Error deleting SelfIp: ${err.message}`);
+            this.logger.severe(`Error deleting SelfIp: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -1399,7 +1398,7 @@ function findMatchingFloatingSelfIps(selfIpsToDelete) {
             return Promise.resolve(matchingSelfIps);
         })
         .catch((err) => {
-            logger.severe(`Error finding matching floating self ips: ${err.message}`);
+            this.logger.severe(`Error finding matching floating self ips: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -1433,7 +1432,7 @@ function findMatchingRoutes(selfIpsToDelete) {
             return Promise.resolve(matchingRoutes);
         })
         .catch((err) => {
-            logger.severe(`Error finding matching routes: ${err.message}`);
+            this.logger.severe(`Error finding matching routes: ${err.message}`);
             return Promise.reject(err);
         });
 }

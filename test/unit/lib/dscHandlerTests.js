@@ -30,6 +30,7 @@ const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 
 const doUtil = require('../../../src/lib/doUtil');
 const DscHandler = require('../../../src/lib/dscHandler');
+const Logger = require('../../../src/lib/logger');
 
 describe('dscHandler', () => {
     const hostname = 'my.bigip.com';
@@ -520,6 +521,7 @@ describe('dscHandler', () => {
         });
 
         it('should reject with an invalid remoteHost and we are not the remote', () => {
+            const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
             doUtil.checkDnsResolution.restore();
             sinon.stub(doUtil, 'checkDnsResolution')
                 .callsFake((bigIp, address) => Promise.reject(new Error(`Unable to resolve host ${address}`)));
@@ -543,8 +545,12 @@ describe('dscHandler', () => {
                 return Promise.reject(new Error('Unexpected path'));
             };
 
-            const dscHandler = new DscHandler(declaration, bigIpMock);
-            return assert.isRejected(dscHandler.process(), 'Unable to resolve host example.cant');
+            const dscHandler = new DscHandler(declaration, bigIpMock, undefined, { id: '123-abc' });
+            return assert.isRejected(dscHandler.process(), 'Unable to resolve host example.cant')
+                .then(() => {
+                    assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'dscHandler.js | 123-abc');
+                    assert.strictEqual(logSevereSpy.args[0][0], 'Could not add to remote trust: Unable to resolve host example.cant');
+                });
         });
     });
 
