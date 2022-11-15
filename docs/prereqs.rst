@@ -32,6 +32,8 @@ Notes and tips
 
 .. IMPORTANT:: Beginning with DO 1.35.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.
 
+- Beginning with DO 1.34, the task ID is included in the DO log output. BIG-IP DO records error messages in /var/log/restnoded/restnoded.log. 
+
 - Beginning with BIG-IP DO 1.8.0, the BIG-IP DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in the BIG-IP Declarative Onboarding repository on GitHub.  These files can be found on the |release|, as **Assets**.
 
 - Archival of community supported container solution
