@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.34
-        - Updated the documentation for Declarative Onboarding v1.34.0.  This release contains the following changes: |br| * Added KexAlgorithms for SSHD (see |sshd| in the Schema Reference) |br| * Added the task ID is now included in the DO log output (see the note in :ref:`Note and Tips<notestips>` )
+        - Updated the documentation for Declarative Onboarding v1.34.0.  This release contains the following changes: |br| * Added KexAlgorithms for SSHD (see |sshd| in the Schema Reference) |br| * The task ID is now included in the DO log output (see the note in :ref:`Note and Tips<notestips>` )
         - 11-15-22
 
       * - 1.33
