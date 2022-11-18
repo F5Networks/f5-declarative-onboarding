@@ -53,6 +53,9 @@
   * One MR to merge the release branch to `develop`.
   * Do not squash commits.
   * You can self-approve and merge these MRs.
+  * Note: If the GUI suggests a rebase, do a merge locally instead. DO NOT TRUST the GUI rebase tool.
+    * Make sure that the version numbers in `package.json`, `package-lock.json`, `CHANGELOG.md`, etc... is correct. Rebase can sometimes rebase `develop` into the release branch.
+    * Even though the MR was created via the GUI, pushing a local should be reflected in the MR
 * Using the GUI, create a tag on the `master` branch in the format `v<version>` (e.g. `v1.34.0`).
 
 ## Documentation Release process
