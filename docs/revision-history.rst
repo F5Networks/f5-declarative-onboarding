@@ -11,8 +11,12 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.35
+        - Updated the documentation for Declarative Onboarding v1.35.0.  This release contains the following changes: |br| * |br| |br| Issues Resolved: |br| * Restarting mcpd may wait for services that are not required, `GitHub Issue 322 <https://github.com/F5Networks/f5-declarative-onboarding/issues/322>`_ |br| * Configuring TACACS can skip reporting errors
+        - 12-21-22
+
       * - 1.34
-        - Updated the documentation for Declarative Onboarding v1.34.0.  This release contains the following changes: |br| * Added KexAlgorithms for SSHD (see :ref:`SSHD` in the Schema Reference)  |br| |br| Issues Resolved: |br| 
+        - Updated the documentation for Declarative Onboarding v1.34.0.  This release contains the following changes: |br| * Added KexAlgorithms for SSHD (see |sshd| in the Schema Reference) |br| * The task ID is now included in the DO log output (see the note in :ref:`Note and Tips<notestips>` )
         - 11-15-22
 
       * - 1.33
