@@ -13,6 +13,7 @@ BIG-IP DO general troubleshooting tips
 
   - A 400-level response will carry an error message with it
   - If this message is missing, incorrect, or misleading, please let us know by filing an issue on Github.
+  - Beginning with DO 1.34, the task ID is included in the DO log output.
 
 |
 

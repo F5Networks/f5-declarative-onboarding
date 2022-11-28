@@ -38,7 +38,6 @@ const RoutingAccessListValidator = require('./routingAccessListValidator');
 const configItems = require('./configItems.json');
 const doUtil = require('./doUtil');
 
-const logger = new Logger(module);
 const ralv = new RoutingAccessListValidator();
 
 const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
@@ -53,31 +52,33 @@ const CLASSES_OF_TRUTH = ConfigManager.getClassesOfTruth(configItems);
  *
  * @param {Object} bigIp - BigIp object.
  * @param {EventEmitter} - Restnoded event channel.
+ * @param {Object} state - The [doState]{@link State} object
  */
 class DeclarationHandler {
-    constructor(bigIp, eventEmitter) {
+    constructor(bigIp, eventEmitter, state) {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
+        this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
      * Starts processing.
      *
      * @param {Object} declaration - The declaration to process
-     * @param {Object} state - The [doState]{@link State} object
      *
      * @returns {Promise} A promise which is resolved when processing is complete
      *                    or rejected if an error occurs.
      */
-    process(declaration, state) {
-        logger.fine('Processing declaration.');
+    process(declaration) {
+        this.logger.fine('Processing declaration.');
         let parsedNewDeclaration;
         let parsedOldDeclaration;
         let origLdapCertData;
 
         const newDeclaration = JSON.parse(JSON.stringify(declaration));
         const oldDeclaration = {};
-        Object.assign(oldDeclaration, state.currentConfig);
+        Object.assign(oldDeclaration, this.state.currentConfig);
         let updateDeclaration;
         let deleteDeclaration;
         let status;
@@ -96,7 +97,7 @@ class DeclarationHandler {
                 if (oldDeclaration.parsed) {
                     return Object.assign({}, oldDeclaration);
                 }
-                const declarationParser = new DeclarationParser(oldDeclaration, modules);
+                const declarationParser = new DeclarationParser(oldDeclaration, modules, this.state);
                 return declarationParser.parse().parsedDeclaration;
             })
             .then((parsedDeclaration) => {
@@ -106,7 +107,7 @@ class DeclarationHandler {
                 if (newDeclaration.parsed) {
                     return Object.assign({}, newDeclaration);
                 }
-                const declarationParser = new DeclarationParser(newDeclaration, modules);
+                const declarationParser = new DeclarationParser(newDeclaration, modules, this.state);
                 return declarationParser.parse().parsedDeclaration;
             })
             .then((parsedDeclaration) => {
@@ -115,36 +116,36 @@ class DeclarationHandler {
             })
             .then(() => removeUnwantedProperties(parsedNewDeclaration, parsedOldDeclaration))
             .then(() => {
-                applyDefaults(parsedNewDeclaration, state);
-                applyDnsResolverFixes(parsedNewDeclaration);
-                applyHostnameFixes(parsedNewDeclaration);
-                applyManagementIpFixes(parsedNewDeclaration, parsedOldDeclaration);
-                applyManagementIpFirewallFixes(parsedNewDeclaration);
-                applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
-                applyFailoverUnicastFixes(parsedNewDeclaration, parsedOldDeclaration);
-                applyHttpdFixes(parsedNewDeclaration);
-                applyGSLBGlobalsFixes(parsedNewDeclaration, state);
-                applyGSLBServerFixes(parsedNewDeclaration);
-                applyRemoteAuthRoleFixes(parsedNewDeclaration);
-                applyRoutingAccessListFixes(parsedNewDeclaration);
-                applyRoutingPrefixListFixes(parsedNewDeclaration);
-                applyRouteMapFixes(parsedNewDeclaration);
-                applyRoutingBgpFixes(parsedNewDeclaration);
-                applyGSLBProberPoolFixes(parsedNewDeclaration);
-                applyFirewallAddressListFixes(parsedNewDeclaration, parsedOldDeclaration);
-                applyFirewallPortListFixes(parsedNewDeclaration, parsedOldDeclaration);
-                applyNetAddressListFixes(parsedNewDeclaration, parsedOldDeclaration);
-                applyNetPortListFixes(parsedNewDeclaration, parsedOldDeclaration);
-                applyFirewallPolicyFixes(parsedNewDeclaration);
-                applySelfIpFixes(parsedNewDeclaration);
-                applyTunnelFixes(parsedNewDeclaration);
-                applyManagementRouteFixes(parsedNewDeclaration, state.originalConfig);
-                origLdapCertData = applyLdapCertFixes(parsedNewDeclaration);
+                applyDefaults.call(this, parsedNewDeclaration);
+                applyDnsResolverFixes.call(this, parsedNewDeclaration);
+                applyHostnameFixes.call(this, parsedNewDeclaration);
+                applyManagementIpFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyManagementIpFirewallFixes.call(this, parsedNewDeclaration);
+                applyRouteDomainFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyFailoverUnicastFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyHttpdFixes.call(this, parsedNewDeclaration);
+                applyGSLBGlobalsFixes.call(this, parsedNewDeclaration);
+                applyGSLBServerFixes.call(this, parsedNewDeclaration);
+                applyRemoteAuthRoleFixes.call(this, parsedNewDeclaration);
+                applyRoutingAccessListFixes.call(this, parsedNewDeclaration);
+                applyRoutingPrefixListFixes.call(this, parsedNewDeclaration);
+                applyRouteMapFixes.call(this, parsedNewDeclaration);
+                applyRoutingBgpFixes.call(this, parsedNewDeclaration);
+                applyGSLBProberPoolFixes.call(this, parsedNewDeclaration);
+                applyFirewallAddressListFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyFirewallPortListFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyNetAddressListFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyNetPortListFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyFirewallPolicyFixes.call(this, parsedNewDeclaration);
+                applySelfIpFixes.call(this, parsedNewDeclaration);
+                applyTunnelFixes.call(this, parsedNewDeclaration);
+                applyManagementRouteFixes.call(this, parsedNewDeclaration);
+                origLdapCertData = applyLdapCertFixes.call(this, parsedNewDeclaration);
             })
             .then(() => removeEmptyObjects(parsedNewDeclaration))
             .then(() => removeEmptyObjects(parsedOldDeclaration))
             .then(() => {
-                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, state);
+                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, this.state);
                 return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration, declaration);
             })
             .then((declarationDiffs) => {
@@ -153,30 +154,28 @@ class DeclarationHandler {
 
                 applyLdapCertOrigData(updateDeclaration, origLdapCertData);
 
-                const traceManager = new TraceManager(declaration, this.eventEmitter, state);
+                const traceManager = new TraceManager(declaration, this.eventEmitter, this.state);
                 return traceManager.traceConfigs(parsedOldDeclaration, parsedNewDeclaration);
             })
             .then(() => {
                 if (declaration.controls && declaration.controls.dryRun) {
-                    logger.info('dryRun requested. Skipping updates.');
+                    this.logger.info('dryRun requested. Skipping updates.');
                     return Promise.resolve();
                 }
-                return makeUpdates(
-                    this.bigIp,
-                    this.eventEmitter,
+                return makeUpdates.call(
+                    this,
                     declaration,
                     updateDeclaration,
-                    deleteDeclaration,
-                    state
+                    deleteDeclaration
                 );
             })
             .then((result) => {
                 status = result || {};
-                return handleTeemReport(declaration);
+                return handleTeemReport.call(this, declaration);
             })
             .then(() => status)
             .catch((err) => {
-                logger.severe(`Error processing declaration: ${err.message}`);
+                this.logger.severe(`Error processing declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -189,13 +188,12 @@ class DeclarationHandler {
  * of truth for will be set back to its original state.
  *
  * @param {Object} declaration - The new declation to apply
- * @param {Object} state - The [doState]{@link State} object
  */
-function applyDefaults(declaration, state) {
+function applyDefaults(declaration) {
     const commonDeclaration = declaration.Common;
 
     // deep copy original item to avoid modifications of originalConfig.Common in handlers
-    const commonOriginal = JSON.parse(JSON.stringify(state.originalConfig.Common || {}));
+    const commonOriginal = JSON.parse(JSON.stringify(this.state.originalConfig.Common || {}));
 
     CLASSES_OF_TRUTH.forEach((key) => {
         if (!(key in commonOriginal)) {
@@ -335,7 +333,7 @@ function applyFailoverUnicastFixes(declaration) {
             // then the user supplied two different Failover Unicast objects.
             // DO cannot guarantee which to use, thus we need to throw an error.
             const message = 'Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort.';
-            logger.severe(message);
+            this.logger.severe(message);
             throw new Error(message);
         }
 
@@ -577,8 +575,8 @@ function applyHttpdFixes(declaration) {
 /**
  * Handles the nested classes in GSLB globals (like 'general')
  */
-function applyGSLBGlobalsFixes(newDeclaration, state) {
-    const originalGslbGlobals = JSON.parse(JSON.stringify(state.originalConfig.Common.GSLBGlobals || {}));
+function applyGSLBGlobalsFixes(newDeclaration) {
+    const originalGslbGlobals = JSON.parse(JSON.stringify(this.state.originalConfig.Common.GSLBGlobals || {}));
     const newGslbGlobals = newDeclaration.Common.GSLBGlobals || {};
 
     Object.keys(originalGslbGlobals).forEach((gslbGlobalSection) => {
@@ -1155,11 +1153,10 @@ function applyLdapCertFixes(declaration) {
  * Add original DHCP ManagementRoute objects to the declaration if we are preserving them.
  *
  * @param {Object} declaration - user provided declaration
- * @param {Object} originalConfig - the original DO config
  */
-function applyManagementRouteFixes(declaration, originalConfig) {
+function applyManagementRouteFixes(declaration) {
     const ManagementRoutes = declaration.Common.ManagementRoute;
-    const origManagementRoutes = originalConfig.Common.ManagementRoute;
+    const origManagementRoutes = this.state.originalConfig.Common.ManagementRoute;
 
     if (!origManagementRoutes || !ManagementRoutes || !declaration.Common.System
         || !declaration.Common.System.preserveOrigDhcpRoutes) {
@@ -1245,7 +1242,7 @@ function processHandlers(handlers, handlerStatuses, bigIp, eventEmitter, state, 
  *
  * @param {Object} declaration - declaration to count
  *
- * @returns {Object} - An object with integers: ldap, radius, and tacas
+ * @returns {Object} - An object with integers: ldap, radius, and tacacs
  */
 function countAuthenticationTypes(declaration, count) {
     // iterate through the declaration
@@ -1274,9 +1271,9 @@ function removeEmptyObjects(declaration) {
     });
 }
 
-function makeUpdates(bigIp, eventEmitter, declaration, updateDeclaration, deleteDeclaration, state) {
+function makeUpdates(declaration, updateDeclaration, deleteDeclaration) {
     return Promise.resolve()
-        .then(() => bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
+        .then(() => this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
         .then(() => {
             const handlers = [
                 [SystemHandler, updateDeclaration],
@@ -1294,9 +1291,9 @@ function makeUpdates(bigIp, eventEmitter, declaration, updateDeclaration, delete
             return processHandlers(
                 handlers,
                 handlerStatuses,
-                bigIp,
-                eventEmitter,
-                state
+                this.bigIp,
+                this.eventEmitter,
+                this.state
             );
         })
         .then((handlerStatuses) => {
@@ -1317,7 +1314,7 @@ function makeUpdates(bigIp, eventEmitter, declaration, updateDeclaration, delete
                     status.warnings = status.warnings.concat(handlerStatus.warnings);
                 }
             });
-            logger.info('Done processing declaration.');
+            this.logger.info('Done processing declaration.');
             return Promise.resolve(status);
         });
 }
@@ -1326,7 +1323,7 @@ function handleTeemReport(declaration) {
     if (!declaration.parsed) {
         const assetInfo = {
             name: 'Declarative Onboarding',
-            version: doUtil.getDoVersion().VERSION
+            version: doUtil.getDoVersion(this.state.id).VERSION
         };
         const teemDevice = new TeemDevice(assetInfo);
 
@@ -1352,7 +1349,7 @@ function handleTeemReport(declaration) {
             .then(() => record.addJsonObject(extraFields))
             .then(() => teemDevice.reportRecord(record))
             .catch((err) => {
-                logger.warning(`Unable to send device report: ${err.message}`);
+                this.logger.warning(`Unable to send device report: ${err.message}`);
             });
     }
     return Promise.resolve();

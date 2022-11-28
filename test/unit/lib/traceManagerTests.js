@@ -22,6 +22,7 @@ const sinon = require('sinon');
 const EventEmitter = require('events');
 
 const TraceManager = require('../../../src/lib/traceManager');
+const Logger = require('../../../src/lib/logger');
 const EVENTS = require('../../../src/lib/sharedConstants').EVENTS;
 
 let fileNames;
@@ -174,6 +175,24 @@ describe('traceManager', () => {
                     assert.deepEqual(responseDesiredConfig.password, undefined);
                 });
         });
+
+        it('should resolve if writing config file fails', () => {
+            fs.writeFile.restore();
+            sinon.stub(fs, 'writeFile').callsFake((name, data, cb) => {
+                cb(new Error('test error'));
+            });
+
+            const logErrorSpy = sinon.spy(Logger.prototype, 'error');
+            const controls = {
+                trace: true
+            };
+            const traceManager = new TraceManager({ controls }, undefined, { id: '123-abc' });
+            return traceManager.traceConfigs(currentConfig, desiredConfig)
+                .then(() => {
+                    assert.strictEqual(logErrorSpy.thisValues[0].metadata, 'traceManager.js | 123-abc');
+                    assert.strictEqual(logErrorSpy.args[0][0], 'Error writing trace file test error');
+                });
+        });
     });
 
     describe('diff files', () => {
@@ -222,6 +241,24 @@ describe('traceManager', () => {
             return traceManager.traceDiff(diff)
                 .then(() => {
                     assert.deepEqual(responseDiff, undefined);
+                });
+        });
+
+        it('should resolve if writing config file fails', () => {
+            fs.writeFile.restore();
+            sinon.stub(fs, 'writeFile').callsFake((name, data, cb) => {
+                cb(new Error('test error'));
+            });
+
+            const logErrorSpy = sinon.spy(Logger.prototype, 'error');
+            const controls = {
+                trace: true
+            };
+            const traceManager = new TraceManager({ controls }, undefined, { id: '123-abc' });
+            return traceManager.traceDiff(diff)
+                .then(() => {
+                    assert.strictEqual(logErrorSpy.thisValues[0].metadata, 'traceManager.js | 123-abc');
+                    assert.strictEqual(logErrorSpy.args[0][0], 'Error writing trace file test error');
                 });
         });
     });

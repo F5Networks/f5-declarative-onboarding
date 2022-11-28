@@ -31,6 +31,7 @@ const configItems = require('../../../src/lib/configItems.json');
 const ConfigManagerMock = require('../../../src/lib/configManager');
 const doUtilMock = require('../../../src/lib/doUtil');
 const InspectHandler = require('../../../src/lib/inspectHandler');
+const Logger = require('../../../src/lib/logger');
 
 describe('inspectHandler', () => {
     let expectedDeclaration;
@@ -55,7 +56,7 @@ describe('inspectHandler', () => {
         }
     };
 
-    after(() => {
+    afterEach(() => {
         sinon.restore();
     });
 
@@ -116,10 +117,10 @@ describe('inspectHandler', () => {
         let targetUsername;
         let targetPassword;
 
-        before(() => {
-            sinon.stub(ConfigManagerMock.prototype, 'get').callsFake((decl, state) => {
+        beforeEach(() => {
+            sinon.stub(ConfigManagerMock.prototype, 'get').callsFake(function get() {
                 if (customState) {
-                    Object.assign(state, customState);
+                    Object.assign(this.state, customState);
                 }
                 return Promise.resolve({});
             });
@@ -147,10 +148,7 @@ describe('inspectHandler', () => {
                     }
                     return Promise.resolve({});
                 }));
-        });
-
-        beforeEach(() => {
-            inspectHandler = new InspectHandler();
+            inspectHandler = new InspectHandler(undefined, '123-abc');
             customEndpointTimeout = undefined;
             customPlatform = undefined;
             customState = undefined;
@@ -159,10 +157,6 @@ describe('inspectHandler', () => {
             targetUsername = undefined;
             targetPassword = undefined;
             raiseUnhandledException = undefined;
-        });
-
-        after(() => {
-            sinon.restore();
         });
 
         describe('success response', () => {
@@ -242,6 +236,8 @@ describe('inspectHandler', () => {
 
             /* eslint-disable-next-line func-names */
             it('should fail when request timeout exceeded', function () {
+                const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
+
                 this.retries(0);
                 this.timeout('2s');
 
@@ -256,6 +252,11 @@ describe('inspectHandler', () => {
                             'Request Timeout',
                             (errMsg) => errMsg.indexOf('Unable to complete request within specified timeout') !== -1
                         );
+                        assert.strictEqual(
+                            logSevereSpy.args[0][0],
+                            'Error processing Inspect request: Unable to complete request within specified timeout (0.5s.)'
+                        );
+                        assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'inspectHandler.js | 123-abc');
                     });
             });
 
@@ -2648,22 +2649,15 @@ describe('inspectHandler', () => {
             }
         };
 
-        before(() => {
+        beforeEach(() => {
             sinon.stub(doUtilMock, 'getBigIp').callsFake(() => Promise.resolve(bigIpMock));
             sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve(PRODUCTS.BIGIP));
-        });
-
-        beforeEach(() => {
             // skip data asserts
             missedProperties = {};
             expectedDeclaration = undefined;
             failWhenNoPropertyInResponse = false;
             inspectHandler = new InspectHandler();
             listResponses = defaultResponses();
-        });
-
-        after(() => {
-            sinon.restore();
         });
 
         afterEach(() => {

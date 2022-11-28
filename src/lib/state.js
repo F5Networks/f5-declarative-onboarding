@@ -599,7 +599,7 @@ function cleanupOldTasks(tasks) {
 }
 
 function updateNewIdToId(existingState) {
-    const doVersion = doUtil.getDoVersion();
+    const doVersion = doUtil.getDoVersion(existingState.mostRecentTask);
     const doVersionStr = `${doVersion.VERSION}-${doVersion.RELEASE}`;
     Object.keys(existingState.originalConfig).forEach((configId) => {
         const configById = existingState.originalConfig[configId];

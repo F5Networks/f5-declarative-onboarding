@@ -1,11 +1,26 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.35.0
+### Added
+
+### Fixed
+- AUTOTOOL-3412: ([GitHub Issue 322](https://github.com/F5Networks/f5-declarative-onboarding/issues/322)): Restarting mcpd may wait for services that are not required
+- AUTOTOOL-3555: Configuring TACACS can skip reporting errors
+
+### Changed
+
+### Removed
+
 ## 1.34.0
 ### Added
+- AUTOTOOL-3482: ([GitHub Issue 320](https://github.com/F5Networks/f5-declarative-onboarding/issues/320)): Transaction ID in restnoded log output
+
 ### Fixed
 - AUTOTOOL-3506: ([partial implementation of GitHub Issue 208](https://github.com/F5Networks/f5-declarative-onboarding/issues/208)):  Add sshd KexAlgorithms
+
 ### Changed
+
 ### Removed
 
 ## 1.33.0

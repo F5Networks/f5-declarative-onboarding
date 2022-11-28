@@ -20,7 +20,7 @@ const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS
 const doUtil = require('./doUtil');
 
 class LicensePoolValidator {
-    validate(data) {
+    validate(data, taskId) {
         if (!data || !data.declaration) {
             return Promise.resolve({
                 isValid: true
@@ -44,7 +44,7 @@ class LicensePoolValidator {
         let isValid = true;
         const errors = [];
 
-        return doUtil.getCurrentPlatform()
+        return doUtil.getCurrentPlatform(taskId)
             .then((currentPlatform) => {
                 if (currentPlatform !== PRODUCTS.BIGIQ) {
                     if (!license.bigIqHost

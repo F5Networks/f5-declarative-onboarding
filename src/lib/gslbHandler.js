@@ -21,8 +21,6 @@ const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const doUtil = require('./doUtil');
 
-const logger = new Logger(module);
-
 /**
  * Handles GSLB parts of a declaration.
  *
@@ -42,6 +40,7 @@ class GSLBHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -51,27 +50,27 @@ class GSLBHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Processing GSLB declaration.');
+        this.logger.fine('Processing GSLB declaration.');
         if (!this.declaration.Common) {
             return Promise.resolve();
         }
         return handleGSLBGlobals.call(this)
             .then(() => {
-                logger.fine('Checking Monitors');
+                this.logger.fine('Checking Monitors');
                 return handleGSLBMonitor.call(this);
             })
             .then(() => {
                 const transactionCommands = [
                     (() => {
-                        logger.fine('Checking Data Centers');
+                        this.logger.fine('Checking Data Centers');
                         return handleGSLBDataCenter.call(this);
                     })(),
                     (() => {
-                        logger.fine('Checking Servers');
+                        this.logger.fine('Checking Servers');
                         return handleGSLBServer.call(this);
                     })(),
                     (() => {
-                        logger.fine('Checking Prober Pools');
+                        this.logger.fine('Checking Prober Pools');
                         return handleGSLBProberPool.call(this);
                     })()
                 ].reduce((array, commands) => array.concat(commands), []);
@@ -83,7 +82,7 @@ class GSLBHandler {
                 return this.bigIp.transaction(transactionCommands);
             })
             .catch((err) => {
-                logger.severe(`Error processing GSLB declaration: ${err.message}`);
+                this.logger.severe(`Error processing GSLB declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -194,7 +193,7 @@ function handleGSLBMonitor() {
 
     return Promise.all(promises)
         .catch((err) => {
-            logger.severe(`Error creating Monitors: ${err.message}`);
+            this.logger.severe(`Error creating Monitors: ${err.message}`);
             throw err;
         });
 }

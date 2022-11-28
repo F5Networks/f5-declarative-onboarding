@@ -1,4 +1,5 @@
 .vscode
+jsconfig.json
 *.tfstate*
 .nyc_output/
 out/

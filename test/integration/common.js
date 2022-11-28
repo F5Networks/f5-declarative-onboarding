@@ -68,17 +68,16 @@ module.exports = {
      * @timeInterval {Integer} - number of ms until new trial is triggered
      * @acceptErrors {Array} - if we get a reject on the targetFunction with the error message equal to any of
      *                         the errors in acceptErrors, we don't reject, and retry
-     * @checkError {Boolean} - determines whether to check for acceptError
-     *                         (i.e. is checkError is false, never rejects on error)
      * Returns a Promise which resolves with the targetFunction's result, or rejects with 'out of trials' or
      * targetFunction's error
      * (Inspired by the cloud-libs.util's tryUntil, except without some of the machinery we won't need here
     */
-    tryOften(targetFunction, trials, timeInterval, acceptErrors, checkError) {
+    tryOften(targetFunction, trials, timeInterval, acceptErrors) {
         return targetFunction.apply(this)
             .catch((error) => {
-                if (checkError) {
-                    if (!acceptErrors.some((err) => (err === parseInt(error.message, 10) || err === error.message))) {
+                if (acceptErrors) {
+                    if (!acceptErrors.some((err) => (err === parseInt(error.message, 10)
+                        || err === error.message || err === error.code))) {
                         // non-trivial error, we reject
                         throw new Error(`error is unrecoverable : ${error.message}`);
                     }
@@ -88,7 +87,7 @@ module.exports = {
                 }
                 return module.exports.delayPromise(timeInterval)
                     .then(() => module.exports.tryOften(
-                        targetFunction, trials - 1, timeInterval, acceptErrors, checkError
+                        targetFunction, trials - 1, timeInterval, acceptErrors
                     ));
             });
     },
@@ -124,7 +123,7 @@ module.exports = {
             });
         };
         const acceptableErrors = [constants.HTTP_UNAVAILABLE, constants.HTTP_BAD_REQUEST].concat(acceptErrors || []);
-        return module.exports.tryOften(func, 10, (interval || 60) * 1000, acceptableErrors, true);
+        return module.exports.tryOften(func, 10, (interval || 60) * 1000, acceptableErrors);
     },
 
     /**
@@ -174,7 +173,7 @@ module.exports = {
                     });
             });
         };
-        return module.exports.tryOften(func, trials, timeInterval, null, false);
+        return module.exports.tryOften(func, trials, timeInterval, null);
     },
 
     /**
@@ -290,8 +289,7 @@ module.exports = {
                 func,
                 retryOptions.trials,
                 retryOptions.timeInterval,
-                null,
-                false
+                retryOptions.acceptErrors || null
             );
         }
         return func();

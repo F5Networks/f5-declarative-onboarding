@@ -28,6 +28,7 @@ const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 const RADIUS = require('../../../src/lib/sharedConstants').RADIUS;
 
 const AuthHandler = require('../../../src/lib/authHandler');
+const Logger = require('../../../src/lib/logger');
 
 describe('authHandler', () => {
     let bigIpMock;
@@ -269,6 +270,30 @@ describe('authHandler', () => {
             const authHandler = new AuthHandler(declaration, bigIpMock);
             return assert.isFulfilled(authHandler.process());
         });
+
+        it('should handle errors', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        radius: {
+                            servers: {
+                                primary: {}
+                            }
+                        }
+                    }
+                }
+            };
+            const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
+            const authHandler = new AuthHandler(declaration, bigIpMock, undefined, { id: '123-abc' });
+
+            bigIpMock.createOrModify = () => Promise.reject(new Error('test error'));
+
+            return assert.isRejected(authHandler.process(), 'test error')
+                .then(() => {
+                    assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'authHandler.js | 123-abc');
+                    assert.strictEqual(logSevereSpy.args[0][0], 'Error configuring remote RADIUS auth: test error');
+                });
+        });
     });
 
     describe('tacacs', () => {
@@ -364,6 +389,28 @@ describe('authHandler', () => {
                             service: 'shell'
                         }
                     );
+                });
+        });
+
+        it('should handle errors', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        tacacs: {
+                            servers: []
+                        }
+                    }
+                }
+            };
+            const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
+            const authHandler = new AuthHandler(declaration, bigIpMock, undefined, { id: '123-abc' });
+
+            bigIpMock.createOrModify = () => Promise.reject(new Error('test error'));
+
+            return assert.isRejected(authHandler.process(), 'test error')
+                .then(() => {
+                    assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'authHandler.js | 123-abc');
+                    assert.strictEqual(logSevereSpy.args[0][0], 'Error configuring remote TACACS auth: test error');
                 });
         });
     });
@@ -708,6 +755,31 @@ describe('authHandler', () => {
                             version: 3
                         }
                     );
+                });
+        });
+
+        it('should handle errors', () => {
+            const declaration = {
+                Common: {
+                    Authentication: {
+                        ldap: {
+                            servers: [],
+                            sslCaCertFile: 'none',
+                            sslClientCert: 'none',
+                            sslClientKey: 'none'
+                        }
+                    }
+                }
+            };
+            const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
+            const authHandler = new AuthHandler(declaration, bigIpMock, undefined, { id: '123-abc' });
+
+            bigIpMock.createOrModify = () => Promise.reject(new Error('test error'));
+
+            return assert.isRejected(authHandler.process(), 'test error')
+                .then(() => {
+                    assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'authHandler.js | 123-abc');
+                    assert.strictEqual(logSevereSpy.args[0][0], 'Error configuring remote LDAP auth: test error');
                 });
         });
     });

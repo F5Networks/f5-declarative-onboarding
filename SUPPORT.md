@@ -11,12 +11,12 @@ Declarative Onboarding Extension (DO) Software Lifecycle:
 
 Currently supported versions:
 
-| Software Version | Release Type  | First Customer Ship |End of Support   |
+| Software Version | Release Type  | First Customer Ship | End of Support  |
 |------------------|---------------|---------------------|-----------------|
 | DO 1.27.1        | LTS           | 08-Mar-2022         | 08-Mar-2023     |
 | DO 1.32.0        | Feature       | 23-Aug-2022         | 23-Nov-2022     |
 | DO 1.33.0        | Feature       | 04-Oct-2022         | 04-Jan-2023     |
-| DO 1.34.0        | Feature       | 15-Nov-2022         | 15-Feb-2022     |
+| DO 1.34.0        | Feature       | 15-Nov-2022         | 15-Feb-2023     |
 
 \* Fix for Allowed schema version
 
@@ -63,4 +63,3 @@ Versions no longer supported:
 \* Fix for updated Docker Container packaging only
 
 See the [Release notes](https://github.com/F5Networks/f5-declarative-onboarding/releases) and [Declarative Onboarding documentation](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/) for new features and issues resolved for each release.
-

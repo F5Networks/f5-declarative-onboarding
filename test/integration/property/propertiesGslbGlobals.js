@@ -17,11 +17,23 @@
 'use strict';
 
 const {
-    assertClass
+    assertClass,
+    deProvisionModules,
+    provisionModules
 } = require('./propertiesCommon');
 
 describe('GSLB Globals', function testGslbGlobalsSuite() {
     this.timeout(600000);
+
+    before(() => {
+        const modules = ['gtm'];
+        return provisionModules(modules);
+    });
+
+    after(() => {
+        const modules = ['gtm'];
+        return deProvisionModules(modules);
+    });
 
     it('All properties', () => {
         const properties = [

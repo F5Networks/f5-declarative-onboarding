@@ -170,5 +170,5 @@ function scpRpm(host, username, password) {
         });
     };
     // try 30 times, with 1min for each time, and do not reject on error
-    return common.tryOften(func, 30, 60 * 1000, null, false);
+    return common.tryOften(func, 30, 60 * 1000, null);
 }

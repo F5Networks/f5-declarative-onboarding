@@ -30,8 +30,6 @@ const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 const Logger = require('./logger');
 const ipF5 = require('../schema/latest/formats').f5ip;
 
-const logger = new Logger(module);
-
 /**
  * @module
  */
@@ -65,12 +63,14 @@ module.exports = {
             optionalArgs.authToken || optionalArgs.password || 'admin',
             {
                 passwordIsToken: !!optionalArgs.authToken,
-                retryOptions: optionalArgs.retryOptions
+                retryOptions: optionalArgs.retryOptions,
+                taskId: (callingLogger || {}).taskId
             }
         );
     },
 
     initializeBigIp(bigIp, host, port, user, password, options) {
+        const logger = new Logger(module, options.taskId);
         let portPromise;
         if (port) {
             portPromise = Promise.resolve(port);
@@ -127,9 +127,13 @@ module.exports = {
     /**
      * Determines the platform on which we are currently running
      *
+     * @param {String} [taskId] - The id of the task
+     *
      * @returns {Promise} A promise which is resolved with the platform.
      */
-    getCurrentPlatform() {
+    getCurrentPlatform(taskId) {
+        const logger = new Logger(module, taskId);
+
         function retryFunc() {
             return httpUtil.get('http://localhost:8100/shared/identified-devices/config/device-info')
                 .then((deviceInfo) => {
@@ -159,9 +163,13 @@ module.exports = {
      * In typical dev environments, there is no version file present. However, the
      * version file is created by the RPM spec file so will be there in production.
      *
+     * @param {String} [taskId] - The id of the task
+     *
      * @returns {Object} Object containing VERSION and RELEASE
      */
-    getDoVersion() {
+    getDoVersion(taskId) {
+        const logger = new Logger(module, taskId);
+
         let versionString = '0.0.0-0';
         try {
             versionString = fs.readFileSync(`${__dirname}/../version`, 'ascii');
@@ -183,16 +191,18 @@ module.exports = {
      * @param {Object} state - The [doState]{@link State} object
      * @param {String} taskId - The id of the task
      *
-     * @returns {Promise} - A promise which resolves true or false based on whehter or not
+     * @returns {Promise} - A promise which resolves true or false based on whether or not
      *                      the BigIp requires a reboot.
      */
     rebootRequired(bigIp, state, taskId) {
+        const logger = new Logger(module, taskId);
+
         if (state && state.getRebootRequired(taskId)) {
             logger.debug('DO state indicates reboot required');
             return Promise.resolve(true);
         }
 
-        return this.getCurrentPlatform()
+        return this.getCurrentPlatform(taskId)
             .then((platform) => {
                 let promise;
                 if (platform === PRODUCTS.BIGIP) {
@@ -445,73 +455,107 @@ module.exports = {
     },
 
     /**
+     * Checks to see if a provisioned service is running.
      *
      * @param {Object} bigIp - Big-IP object.
      * @param {String} service - The name of the service to restart
-     * @param {String[]} [servicesToWaitFor] - Optional list of other services to wait for after restarting
+     * @returns A promise which resolves if the service is running or rejects if not
+     */
+    isServiceRunning(bigIp, service) {
+        return bigIp.list(`/tm/sys/service/${service}/stats`, undefined, cloudUtil.NO_RETRY)
+            .then((serviceStats) => {
+                const status = module.exports.getDeepValue(serviceStats, 'apiRawValues.apiAnonymous');
+                if (status && (status.indexOf('run') !== -1)) {
+                    // In case of dhclient we need to be sure child process spawned by dhclient daemon
+                    // finished before proceeding. This prevents us from unexpected hostname change.
+                    if (service === 'dhclient') {
+                        return this.executeBashCommandIControl(
+                            bigIp,
+                            'while [ "$(pgrep dhclient-script)" ] || [ "$(pgrep arping)" ]; do sleep 1; done; sleep 10'
+                        )
+                            .then(() => Promise.resolve());
+                    }
+                    return Promise.resolve();
+                }
+
+                let message;
+                if (status) {
+                    message = `${service} status is ${status}`;
+                } else {
+                    message = `Unable to read ${service} status`;
+                }
+                return Promise.reject(new Error(message));
+            });
+    },
+
+    /**
+     * A version of isServiceRunning that resolves with true or false instead of rejecting in the false case
+     * @param {Object} bigIp - Big-IP object.
+     * @param {String} service - The name of the service to restart
+     * @returns A promise which resolves true or false
+     */
+    isServiceRunningBool(bigIp, service) {
+        return this.isServiceRunning(bigIp, service)
+            .then(() => true)
+            .catch(() => false);
+    },
+
+    /**
+     * Restarts a specified service.
+     *
+     * @param {Object} bigIp - Big-IP object.
+     * @param {String} service - The name of the service to restart
+     * @param {Object} [options] - Optional parameters
+     * @param {String[]} [options.servicesToWaitFor] - List of other services to wait for after restarting
+     * @param {String} [options.taskId] - The id of the task
      * @returns
      */
-    restartService(bigIp, service, servicesToWaitFor) {
-        function isServiceRunning(serviceToCheck) {
-            return bigIp.list(`/tm/sys/service/${serviceToCheck}/stats`, undefined, cloudUtil.NO_RETRY)
-                .then((serviceStats) => {
-                    const status = module.exports.getDeepValue(serviceStats, 'apiRawValues.apiAnonymous');
-                    if (status && (status.indexOf('run') !== -1 || status.indexOf('Not provisioned') !== -1)) {
-                        // In case of dhclient we need to be sure child process spawned by dhclient daemon
-                        // finished before proceeding. This prevents us from unexpected hostname change.
-                        if (serviceToCheck === 'dhclient') {
-                            return this.executeBashCommandIControl(
-                                bigIp,
-                                'while [ "$(pgrep dhclient-script)" ] || [ "$(pgrep arping)" ]; do sleep 1; done; sleep 10'
-                            )
-                                .then(() => Promise.resolve());
-                        }
-                        return Promise.resolve();
-                    }
+    restartService(bigIp, service, options) {
+        const opts = options || {};
+        const servicesToWaitFor = opts.servicesToWaitFor || [];
+        const logger = new Logger(module, opts.taskId);
+        let runningServices;
 
-                    let message;
-                    if (status) {
-                        message = `${service} status is ${status}`;
-                    } else {
-                        message = `Unable to read ${service} status`;
-                    }
-                    return Promise.reject(new Error(message));
-                });
-        }
-
-        const serviceRunningRetryArgs = {
-            maxRetries: cloudUtil.LONG_RETRY.maxRetries,
-            retryIntervalMs: cloudUtil.LONG_RETRY.retryIntervalMs,
-            continueOnError: true
-        };
-
-        return bigIp.create(
-            '/tm/sys/service',
-            {
-                command: 'restart',
-                name: service
-            },
-            null,
-            cloudUtil.NO_RETRY
-        )
+        return Promise.all(servicesToWaitFor.map((aService) => this.isServiceRunningBool(bigIp, aService)))
+            .then((serviceStatuses) => {
+                runningServices = servicesToWaitFor.filter((aService, index) => serviceStatuses[index]);
+            })
+            .then(() => bigIp.create(
+                '/tm/sys/service',
+                {
+                    command: 'restart',
+                    name: service
+                },
+                null,
+                cloudUtil.NO_RETRY
+            ))
             .catch((err) => {
                 logger.debug(`Ignoring expected socket hangup: ${err}`);
             })
-            .then(() => cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isServiceRunning, [service]))
-            .then(() => promiseUtil.series(
-                (servicesToWaitFor || []).map((aService) => () => cloudUtil.tryUntil(
-                    this, serviceRunningRetryArgs, isServiceRunning, [aService]
-                ))
-            ));
+            .then(() => cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, this.isServiceRunning, [bigIp, service]))
+            .then(() => {
+                const serviceRunningRetryArgs = {
+                    maxRetries: cloudUtil.LONG_RETRY.maxRetries,
+                    retryIntervalMs: cloudUtil.LONG_RETRY.retryIntervalMs,
+                    continueOnError: true
+                };
+
+                return promiseUtil.series(
+                    (runningServices || []).map((aService) => () => cloudUtil.tryUntil(
+                        this, serviceRunningRetryArgs, this.isServiceRunning, [bigIp, aService]
+                    ))
+                );
+            });
     },
 
     /**
      * Wait for Big-IP to reboot.
      *
      * @param {Object} bigIp - Big-IP object.
+     * @param {String} [taskId] - The id of the task
      */
-    waitForReboot(bigIp) {
-        return this.getCurrentPlatform()
+    waitForReboot(bigIp, taskId) {
+        return this.getCurrentPlatform(taskId)
             .then((platform) => {
                 if (platform !== PRODUCTS.BIGIP) {
                     // Wait for BIG-IP to be ready if not running on BIG-IP

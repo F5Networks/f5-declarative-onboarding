@@ -31,6 +31,8 @@ const httpUtilMock = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtilMock = require('@f5devcentral/f5-cloud-libs').util;
 
 const doUtil = require('../../../src/lib/doUtil');
+const Logger = require('../../../src/lib/logger');
+const State = require('../../../src/lib/state');
 
 describe('doUtil', () => {
     const port = '1234';
@@ -118,14 +120,21 @@ describe('doUtil', () => {
 
         it('should raise initialization errors', () => {
             const initErr = new Error('my init error');
+            const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
+            const logger = new Logger(module, '123-abc');
             BigIpMock.prototype.init = (host, user, password, options) => {
                 bigIpInitOptions = options;
                 return Promise.reject(initErr);
             };
 
-            return assert.isRejected(doUtil.getBigIp(null, { port: 443 }),
+            return assert.isRejected(
+                doUtil.getBigIp(logger, { port: 443 }),
                 'my init error',
-                'should have raised initialization error');
+                'should have raised initialization error'
+            ).then(() => {
+                assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'doUtil.js | 123-abc');
+                assert.strictEqual(logSevereSpy.args[0][0], 'Error initializing BigIp: my init error');
+            });
         });
     });
 
@@ -164,20 +173,29 @@ describe('doUtil', () => {
 
         it('should handle errors', () => {
             const error = 'http error';
+            const logWarningSpy = sinon.spy(Logger.prototype, 'warning');
             sinon.stub(cloudUtilMock, 'MEDIUM_RETRY').value(cloudUtilMock.NO_RETRY);
 
             httpUtilMock.get = () => Promise.reject(new Error(error));
 
-            return assert.isRejected(doUtil.getCurrentPlatform(),
+            return assert.isRejected(
+                doUtil.getCurrentPlatform('123-abc'),
                 'http error',
-                'should have rejected');
+                'should have rejected'
+            ).then(() => {
+                assert.strictEqual(logWarningSpy.thisValues[0].metadata, 'doUtil.js | 123-abc');
+                assert.strictEqual(logWarningSpy.args[0][0], 'Error detecting current platform: http error');
+            });
         });
     });
 
     describe('getDoVersion', () => {
         it('should return default if no version file is found', () => {
+            const logDebugSpy = sinon.spy(Logger.prototype, 'debug');
             sinon.stub(fs, 'readFileSync').throws();
-            assert.deepEqual(doUtil.getDoVersion(), { VERSION: '0.0.0', RELEASE: '0' });
+            assert.deepEqual(doUtil.getDoVersion('123-abc'), { VERSION: '0.0.0', RELEASE: '0' });
+            assert.strictEqual(logDebugSpy.thisValues[0].metadata, 'doUtil.js | 123-abc');
+            assert.strictEqual(logDebugSpy.args[0][0], 'Version file not found');
         });
 
         it('should return real version if version file is found', () => {
@@ -208,6 +226,19 @@ describe('doUtil', () => {
         describe('running on BIG-IP', () => {
             beforeEach(() => {
                 doUtil.getCurrentPlatform = () => Promise.resolve('BIG-IP');
+            });
+
+            it('should return true if DO state indicates reboot required', () => {
+                const logDebugSpy = sinon.spy(Logger.prototype, 'debug');
+                const state = new State();
+                const taskId = state.addTask();
+                state.setRebootRequired(taskId, true);
+                return doUtil.rebootRequired(undefined, state, taskId)
+                    .then((rebootRequired) => {
+                        assert.strictEqual(logDebugSpy.thisValues[0].metadata, `doUtil.js | ${taskId}`);
+                        assert.strictEqual(logDebugSpy.args[0][0], 'DO state indicates reboot required');
+                        assert.strictEqual(rebootRequired, true);
+                    });
             });
 
             it('should return true if the prompt is REBOOT REQUIRED', () => {
@@ -455,7 +486,7 @@ describe('doUtil', () => {
                 });
         });
 
-        it('should wait for extra services to be running or down due to provisioning if specified', () => {
+        it('should wait for extra services to be running if they were running when called', () => {
             bigIpListSpy = sinon.stub(bigIpMock, 'list').callsFake((path) => {
                 const response = {
                     apiRawValues: {
@@ -468,12 +499,15 @@ describe('doUtil', () => {
                 return Promise.resolve(response);
             });
 
-            return doUtil.restartService(bigIpMock, 'myService', ['myExtraService1', 'myExtraService2'])
+            return doUtil.restartService(bigIpMock, 'myService', { servicesToWaitFor: ['myExtraService1', 'myExtraService2'] })
                 .then(() => {
-                    assert.strictEqual(bigIpListSpy.callCount, 3);
-                    assert.strictEqual(bigIpListSpy.args[0][0], '/tm/sys/service/myService/stats');
-                    assert.strictEqual(bigIpListSpy.args[1][0], '/tm/sys/service/myExtraService1/stats');
-                    assert.strictEqual(bigIpListSpy.args[2][0], '/tm/sys/service/myExtraService2/stats');
+                    assert.strictEqual(bigIpListSpy.callCount, 4);
+                    // checks before restart to see if they are running
+                    assert.strictEqual(bigIpListSpy.args[0][0], '/tm/sys/service/myExtraService1/stats');
+                    assert.strictEqual(bigIpListSpy.args[1][0], '/tm/sys/service/myExtraService2/stats');
+                    // checks after restart to wait until they are running
+                    assert.strictEqual(bigIpListSpy.args[2][0], '/tm/sys/service/myService/stats');
+                    assert.strictEqual(bigIpListSpy.args[3][0], '/tm/sys/service/myExtraService1/stats');
                 });
         });
 
@@ -496,6 +530,7 @@ describe('doUtil', () => {
         });
 
         it('should handle socket hangup', () => {
+            const logDebugSpy = sinon.spy(Logger.prototype, 'debug');
             bigIpMock.create.restore();
             sinon.stub(bigIpMock, 'create').rejects();
 
@@ -507,9 +542,11 @@ describe('doUtil', () => {
                 }
             );
 
-            return doUtil.restartService(bigIpMock, 'myService')
+            return doUtil.restartService(bigIpMock, 'myService', { taskId: '123-abc' })
                 .then(() => {
                     assert.strictEqual(bigIpListSpy.callCount, 1);
+                    assert.strictEqual(logDebugSpy.thisValues[0].metadata, 'doUtil.js | 123-abc');
+                    assert.strictEqual(logDebugSpy.args[0][0], 'Ignoring expected socket hangup: Error: Error');
                 });
         });
 

@@ -16,6 +16,7 @@
 
 'use strict';
 
+const sinon = require('sinon');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 
@@ -23,6 +24,7 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 const AnalyticsHandler = require('../../../src/lib/analyticsHandler');
+const Logger = require('../../../src/lib/logger');
 
 describe('analyticsHandler', () => {
     it('should handle declaration with no Common', () => {
@@ -95,5 +97,21 @@ describe('analyticsHandler', () => {
         const assertTranslate = makeAssertTranslate('tenantId', 'tenant-id');
         return Promise.resolve()
             .then(() => assertTranslate('tenantId', 'tenantId'));
+    });
+
+    it('should handle errors', () => {
+        const declaration = {
+            Common: { Analytics: {} }
+        };
+        const bigip = {
+            replace: () => Promise.reject(new Error('test error'))
+        };
+        const logSevereSpy = sinon.spy(Logger.prototype, 'severe');
+        const handler = new AnalyticsHandler(declaration, bigip, undefined, { id: '123-abc' });
+        return assert.isRejected(handler.process(), 'test error')
+            .then(() => {
+                assert.strictEqual(logSevereSpy.thisValues[0].metadata, 'analyticsHandler.js | 123-abc');
+                assert.strictEqual(logSevereSpy.args[0][0], 'Error processing analytics declaration: test error');
+            });
     });
 });

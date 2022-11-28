@@ -16,7 +16,11 @@
 
 'use strict';
 
+const sinon = require('sinon');
 const assert = require('assert');
+
+const Logger = require('../../../src/lib/logger');
+const parserUtil = require('../../../src/lib/parserUtil');
 
 let DeclarationParser;
 
@@ -25,6 +29,10 @@ let DeclarationParser;
 describe('declarationParser', () => {
     before(() => {
         DeclarationParser = require('../../../src/lib/declarationParser');
+    });
+
+    afterEach(() => {
+        sinon.restore();
     });
 
     it('should transform a simple declaration', () => {
@@ -290,6 +298,26 @@ describe('declarationParser', () => {
         const parsedDeclaration = parsed.parsedDeclaration;
 
         assert.strictEqual(parsedDeclaration.Common.VLAN.commonVlan.name, 'my provided name');
+    });
+
+    it('should handle errors', () => {
+        const declaration = {
+            Common: {
+                class: 'Tenant',
+                commonVlan: {
+                    class: 'VLAN',
+                    name: 'my provided name'
+                }
+            }
+        };
+        const logErrorSpy = sinon.spy(Logger.prototype, 'error');
+        const declarationParser = new DeclarationParser(declaration, undefined, { id: '123-abc' });
+
+        sinon.stub(parserUtil, 'updateIds').throws(new Error('test error'));
+
+        assert.throws(() => declarationParser.parse(), /test error/);
+        assert.strictEqual(logErrorSpy.thisValues[0].metadata, 'declarationParser.js | 123-abc');
+        assert.strictEqual(logErrorSpy.args[0][0], 'Error parsing declaration test error');
     });
 
     describe('newId', () => {

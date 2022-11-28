@@ -73,9 +73,9 @@ describe('infoResponse', () => {
             const schemaVersionMax = SCHEMA_VERSIONS[0];
             const schemaVersionMin = SCHEMA_VERSIONS[SCHEMA_VERSIONS.length - 1];
 
-            sinon.stub(doUtil, 'getDoVersion').returns({ VERSION: '1.2.3', RELEASE: '4' });
+            const getDoVersionSpy = sinon.stub(doUtil, 'getDoVersion').returns({ VERSION: '1.2.3', RELEASE: '4' });
 
-            const info = infoResponse.getData();
+            const info = infoResponse.getData('123-abc');
             assert.strictEqual(typeof info.version, 'string');
             assert.strictEqual(typeof info.release, 'string');
             assert.strictEqual(typeof info.schemaCurrent, 'string');
@@ -84,6 +84,7 @@ describe('infoResponse', () => {
             assert.strictEqual(info.release, '4', 'Release number should match release number from doUtil.getDoVersion');
             assert.strictEqual(info.schemaCurrent, schemaVersionMax, 'Currrent schema version should match version from base.schema.json');
             assert.strictEqual(info.schemaMinimum, schemaVersionMin, 'Minimal schema version should match version from base.schema.json');
+            assert.strictEqual(getDoVersionSpy.args[0][0], '123-abc', 'ID should be passed to getDoVersion');
         });
     });
 });
