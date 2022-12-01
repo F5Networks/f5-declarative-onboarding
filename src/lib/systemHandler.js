@@ -552,6 +552,12 @@ function handleUser() {
                 promises.push(
                     createOrUpdateUser.call(this, username, user)
                         .then(() => {
+                            if (!user.forceInitialPasswordChange) {
+                                return createOrUpdateUser.call(this, username, user);
+                            }
+                            return Promise.resolve();
+                        })
+                        .then(() => {
                             // If no keys are provided, skip setting the authorization keys
                             if (!user.keys) {
                                 return Promise.resolve();

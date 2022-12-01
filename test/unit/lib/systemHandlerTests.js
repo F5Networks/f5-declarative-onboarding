@@ -881,7 +881,8 @@ describe('systemHandler', () => {
                         userType: 'root',
                         oldPassword: 'foo',
                         newPassword: 'bar',
-                        keys: []
+                        keys: [],
+                        forceInitialPasswordChange: true
                     }
                 }
             }
@@ -920,7 +921,8 @@ describe('systemHandler', () => {
                         userType: 'root',
                         oldPassword: 'foo',
                         newPassword: 'bar',
-                        keys: [testKey]
+                        keys: [testKey],
+                        forceInitialPasswordChange: true
                     }
                 }
             }
@@ -964,7 +966,8 @@ describe('systemHandler', () => {
                     root: {
                         userType: 'root',
                         oldPassword: 'foo',
-                        newPassword: 'bar'
+                        newPassword: 'bar',
+                        forceInitialPasswordChange: true
                     }
                 }
             }
@@ -1015,7 +1018,8 @@ describe('systemHandler', () => {
                                 role: 'guest'
                             }
                         },
-                        shell: 'bash'
+                        shell: 'bash',
+                        forceInitialPasswordChange: true
                     },
                     user1: {
                         userType: 'regular',
@@ -1026,7 +1030,8 @@ describe('systemHandler', () => {
                             }
                         },
                         shell: 'bash',
-                        keys: [testKey]
+                        keys: [testKey],
+                        forceInitialPasswordChange: true
                     },
                     user2: {
                         userType: 'regular',
@@ -1040,7 +1045,8 @@ describe('systemHandler', () => {
                             }
                         },
                         shell: 'tmsh',
-                        keys: []
+                        keys: [],
+                        forceInitialPasswordChange: true
                     }
                 }
             }
@@ -1099,6 +1105,65 @@ describe('systemHandler', () => {
                         `chmod -R 700 ${sshPaths[1]}; `,
                         `chmod 600 ${sshPaths[1]}/authorized_keys`
                     ].join(''));
+            });
+    });
+
+    it('should modify user when forceInitialPasswordChange is set to false', () => {
+        const bodiesSent = [];
+        bigIpMock.isBigIq = () => false;
+        bigIpMock.createOrModify = (path, body) => {
+            pathSent = path;
+            bodiesSent.push(body);
+            return Promise.resolve();
+        };
+
+        const declaration = {
+            Common: {
+                User: {
+                    newUser: {
+                        userType: 'regular',
+                        partitionAccess: {
+                            Common: {
+                                role: 'guest'
+                            }
+                        },
+                        shell: 'bash',
+                        forceInitialPasswordChange: false
+                    }
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(bodiesSent.length, 2);
+                assert.deepStrictEqual(
+                    bodiesSent[0],
+                    {
+                        name: 'newUser',
+                        shell: 'bash',
+                        'partition-access': [
+                            {
+                                name: 'Common',
+                                role: 'guest'
+                            }
+                        ]
+                    }
+                );
+                assert.deepStrictEqual(
+                    bodiesSent[1],
+                    {
+                        name: 'newUser',
+                        shell: 'bash',
+                        'partition-access': [
+                            {
+                                name: 'Common',
+                                role: 'guest'
+                            }
+                        ]
+                    }
+                );
             });
     });
 

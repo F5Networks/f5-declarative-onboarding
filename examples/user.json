@@ -37,7 +37,8 @@
                 "all-partitions": {
                     "role": "guest"
                 }
-            }
+            },
+            "forceInitialPasswordChange": false
         }
     }
 }

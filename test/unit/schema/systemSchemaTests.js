@@ -810,7 +810,8 @@ describe('system.schema.json', () => {
                     },
                     "keys": [
                         "ssh-rsa RsaKeyGoBrrrrrrrrrr"
-                    ]
+                    ],
+                    "forceInitialPasswordChange": false
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });

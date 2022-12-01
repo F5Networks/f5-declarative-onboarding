@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.35.0
 ### Added
+- AUTOTOOL-3526: ([GitHub Issue 324](https://github.com/F5Networks/f5-declarative-onboarding/issues/324)): Add flag to User schema to disable the "enforce password change at first login" policy for the configured user
 
 ### Fixed
 - AUTOTOOL-3412: ([GitHub Issue 322](https://github.com/F5Networks/f5-declarative-onboarding/issues/322)): Restarting mcpd may wait for services that are not required

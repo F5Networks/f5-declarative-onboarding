@@ -608,6 +608,11 @@
                             "items": {
                                 "type": "string"
                             }
+                        },
+                        "forceInitialPasswordChange": {
+                            "description": "Determines if a password change will be required on the first user login.",
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     "additionalProperties": false
@@ -658,6 +663,11 @@
                             "items": {
                                 "type": "string"
                             }
+                        },
+                        "forceInitialPasswordChange": {
+                            "description": "Determines if a password change will be required on the first user login.",
+                            "type": "boolean",
+                            "default": true
                         }
                     },
                     "additionalProperties": false
