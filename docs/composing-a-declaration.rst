@@ -357,6 +357,8 @@ If you are modifying the root password, you must supply the existing root passwo
 
 The **keys** property is not included in the example at the top of this page, so the line numbers for this section will not line up with that example.
 
+.. NOTE:: DO 1.35 introduced the **forceInitialPasswordChange** property for the User class.  See the :ref:`User class example<example4>` for details.
+
 
 
 
