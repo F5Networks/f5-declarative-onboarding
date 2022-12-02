@@ -75,7 +75,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'F5 Declarative Onboarding'
-copyright = u'2022, F5 Networks'
+copyright = u'2023, F5 Networks'
 author = u'F5 Networks'
 
 # The version info for the project you're documenting, acts as replacement for
