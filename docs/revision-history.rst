@@ -13,7 +13,7 @@ Document Revision History
 
       * - 1.35
         - Updated the documentation for Declarative Onboarding v1.35.0.  This release contains the following changes: |br| * Added the **forceInitialPasswordChange** property for the User class (see the updated :ref:`User class example<example4>`) |br| |br| Issues Resolved: |br| * Restarting mcpd may wait for services that are not required, `GitHub Issue 322 <https://github.com/F5Networks/f5-declarative-onboarding/issues/322>`_ |br| * Configuring TACACS can skip reporting errors
-        - 12-21-22
+        - 1-10-23
 
       * - 1.34
         - Updated the documentation for Declarative Onboarding v1.34.0.  This release contains the following changes: |br| * Added KexAlgorithms for SSHD (see |sshd| in the Schema Reference) |br| * The task ID is now included in the DO log output (see the note in :ref:`Note and Tips<notestips>` )
