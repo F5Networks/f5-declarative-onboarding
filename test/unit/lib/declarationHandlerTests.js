@@ -1822,6 +1822,46 @@ describe('declarationHandler', () => {
                     );
                 });
         });
+
+        it('should handle case where there are no firewall policies', () => {
+            const newDeclaration = {
+                Common: {}
+            };
+
+            const state = {
+                originalConfig: {
+                    Common: {
+                        FirewallPolicy: {
+                            description: 'none'
+                        }
+                    }
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {
+                        FirewallPolicy: {
+                            description: 'none'
+                        }
+                    }
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        declarationWithDefaults,
+                        {
+                            Common: {
+                                FirewallPolicy: {
+                                    description: 'none'
+                                }
+                            }
+                        }
+                    );
+                });
+        });
+
         it('should apply management IP firewall fix with rules', () => {
             const newDeclaration = {
                 parsed: true,
@@ -3428,7 +3468,6 @@ describe('declarationHandler', () => {
             const handler = new DeclarationHandler(bigIpMock, null, state);
             return handler.process(declaration)
                 .then(() => {
-                    console.log(JSON.stringify(state));
                     assert.deepStrictEqual(
                         state.currentConfig,
                         {
