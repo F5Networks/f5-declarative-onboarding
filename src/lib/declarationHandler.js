@@ -1065,8 +1065,11 @@ function applyFirewallPolicyFixes(declaration) {
     }
 
     doUtil.forEach(declaration, 'FirewallPolicy', (tenant, firewallPolicy) => {
-        firewallPolicy.rules = applyFirewallRuleFixes(firewallPolicy.rules, tenant);
-        delete firewallPolicy.label;
+        // This check can be removed when AT-3590 is resolved.
+        if (typeof firewallPolicy === 'object') {
+            firewallPolicy.rules = applyFirewallRuleFixes(firewallPolicy.rules, tenant);
+            delete firewallPolicy.label;
+        }
     });
 }
 
