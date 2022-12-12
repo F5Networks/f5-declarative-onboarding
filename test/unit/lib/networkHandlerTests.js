@@ -1192,6 +1192,97 @@ describe('networkHandler', () => {
                 });
         });
 
+        it('should have transaction command use modify for modifying RouteDomains but not route domain 0', () => {
+            declaration.Common.RouteDomain['0'] = {
+                name: '0',
+                id: 0,
+                parent: '/Common/rd1',
+                strict: 'enabled',
+                vlans: ['http-tunnel', 'socks-tunnel']
+            };
+            state = {
+                currentConfig: {
+                    Common: {
+                        RouteDomain: {
+                            0: {
+                                name: '0',
+                                id: 0,
+                                strict: 'enabled',
+                                vlans: ['http-tunnel', 'socks-tunnel', 'vlan1', 'vlan2']
+                            },
+                            rd1: {
+                                name: 'rd1',
+                                id: 123
+                            },
+                            rd2: {
+                                name: 'rd2',
+                                id: 1234
+                            }
+                        }
+                    }
+                }
+            };
+
+            const restartServiceSpy = sinon.stub(doUtil, 'restartService').resolves();
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    assert.strictEqual(bigIpMockSpy.transaction.callCount, 1);
+                    assert.deepStrictEqual(bigIpMockSpy.transaction.args[0][0],
+                        [{
+                            method: 'modify',
+                            path: '/tm/net/route-domain/~Common~rd1',
+                            body: {
+                                name: 'rd1',
+                                partition: 'Common',
+                                id: 123,
+                                connectionLimit: 1000000,
+                                bwcPolicy: 'bandwidthControllerPolicy',
+                                flowEvictionPolicy: 'flowEvictionPolicy',
+                                fwEnforcedPolicy: 'enforcedFirewallPolicy',
+                                fwStagedPolicy: 'stagedFirewallPolicy',
+                                ipIntelligencePolicy: 'ipIntelligencePolicy',
+                                securityNatPolicy: 'securityNatPolicy',
+                                servicePolicy: 'servicePolicy',
+                                strict: 'disabled',
+                                parent: undefined,
+                                routingProtocol: [
+                                    'RIP'
+                                ],
+                                vlans: [
+                                    'vlan1',
+                                    'vlan2'
+                                ]
+                            }
+                        },
+                        {
+                            method: 'modify',
+                            path: '/tm/net/route-domain/~Common~rd2',
+                            body: {
+                                bwcPolicy: undefined,
+                                connectionLimit: undefined,
+                                flowEvictionPolicy: undefined,
+                                fwEnforcedPolicy: undefined,
+                                fwStagedPolicy: undefined,
+                                name: 'rd2',
+                                partition: 'Common',
+                                id: 1234,
+                                ipIntelligencePolicy: undefined,
+                                routingProtocol: undefined,
+                                securityNatPolicy: undefined,
+                                servicePolicy: undefined,
+                                parent: '/Common/rd1',
+                                strict: 'enabled',
+                                vlans: undefined
+                            }
+                        }]);
+                    assert.strictEqual(bigIpMockSpy.create.callCount, 0);
+                    assert.strictEqual(bigIpMockSpy.modify.callCount, 2);
+                    assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                    assert.strictEqual(restartServiceSpy.calledOnce, true);
+                });
+        });
+
         it('should not restart services a modify occurs but only route domain 0 is present', () => {
             declaration.Common.RouteDomain = {
                 0: {
@@ -1218,7 +1309,8 @@ describe('networkHandler', () => {
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
-                    assert.strictEqual(bigIpMockSpy.modify.callCount, 1);
+                    assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                    assert.strictEqual(bigIpMockSpy.modify.callCount, 0);
                     assert.strictEqual(restartServiceSpy.called, false);
                 });
         });
@@ -1247,7 +1339,8 @@ describe('networkHandler', () => {
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
-                    assert.strictEqual(bigIpMockSpy.modify.callCount, 1);
+                    assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                    assert.strictEqual(bigIpMockSpy.modify.callCount, 0);
                     assert.strictEqual(restartServiceSpy.calledOnce, true);
                 });
         });

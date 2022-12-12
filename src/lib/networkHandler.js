@@ -731,6 +731,7 @@ function handleTrunk() {
 }
 function handleRouteDomain() {
     const commands = [];
+    let rd0Body;
     let hasModify = false;
     let hasNonDefaultRD = false;
 
@@ -754,10 +755,6 @@ function handleRouteDomain() {
                 vlans: routeDomain.vlans
             };
 
-            if (routeDomain.name !== '0') {
-                hasNonDefaultRD = true;
-            }
-
             let method = 'create';
             if (this.state.currentConfig.Common.RouteDomain
                 && this.state.currentConfig.Common.RouteDomain[routeDomain.name]) {
@@ -765,11 +762,20 @@ function handleRouteDomain() {
                 hasModify = true;
             }
 
-            commands.push({
-                method,
-                path: method === 'create' ? PATHS.RouteDomain : `${PATHS.RouteDomain}/~${tenant}~${routeDomain.name}`,
-                body: routeDomainBody
-            });
+            if (routeDomain.name !== '0') {
+                hasNonDefaultRD = true;
+                commands.push({
+                    method,
+                    path: method === 'create' ? PATHS.RouteDomain : `${PATHS.RouteDomain}/~${tenant}~${routeDomain.name}`,
+                    body: routeDomainBody
+                });
+            } else {
+                // In the case of route domain 0, it needs run outside of a transaction to avoid known vlan-transaction
+                // error. To avoid the VLAN "removal" error in TMOS, we must not change the route domain 0 VLANs. The
+                // transaction will handle VLANs after the default is posted.
+                routeDomainBody.vlans = this.state.currentConfig.Common.RouteDomain[0].vlans;
+                rd0Body = routeDomainBody;
+            }
         }
 
         // This can be removed once BZ 1091953 is resolved and back-ported
@@ -779,6 +785,12 @@ function handleRouteDomain() {
     });
 
     return Promise.resolve()
+        .then(() => {
+            if (typeof rd0Body === 'undefined') {
+                return Promise.resolve();
+            }
+            return this.bigIp.createOrModify(PATHS.RouteDomain, rd0Body);
+        })
         .then(() => this.bigIp.transaction(commands))
         .catch((err) => {
             this.logger.severe(`Error creating RouteDomains: ${err.message}`);
