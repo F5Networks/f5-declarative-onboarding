@@ -14,6 +14,7 @@ write_files:
       # Begin BIG-IP configuration
       /usr/bin/passwd root ${admin_password} >/dev/null 2>&1
       /usr/bin/passwd admin ${admin_password} >/dev/null 2>&1
+      /usr/bin/chage -M -1 admin
       tmsh modify auth user admin shell bash
       tmsh modify sys software update auto-phonehome disabled
       tmsh modify sys disk directory /appdata new-size 130985984

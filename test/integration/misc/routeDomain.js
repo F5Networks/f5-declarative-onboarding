@@ -28,7 +28,7 @@ const {
 } = require('../property/propertiesCommon');
 
 // We need a misc test because we need to test route domains with vlans, which are
-// separate classes
+// separate classes. As well as the default Route Domain vlan issues (see AUTOTOOL-3498)
 describe('Route Domain', function RouteDomain() {
     this.timeout(600000);
 
@@ -50,6 +50,15 @@ describe('Route Domain', function RouteDomain() {
                         }
                     ]
                 },
+                Default: {
+                    class: 'RouteDomain',
+                    id: 0,
+                    strict: true,
+                    vlans: [
+                        'http-tunnel',
+                        'socks-tunnel'
+                    ]
+                },
                 myRouteDomain: {
                     class: 'RouteDomain',
                     id: 1,
@@ -63,10 +72,16 @@ describe('Route Domain', function RouteDomain() {
             declarationIndex: 0
         };
 
-        const getMcpOptions = {
+        const getRd1McpOptions = {
             tenantName: 'Common',
             getMcpObject: {
                 itemName: 'myRouteDomain'
+            }
+        };
+        const getRd0McpOptions = {
+            tenantName: 'Common',
+            getMcpObject: {
+                itemName: '0'
             }
         };
         return Promise.resolve()
@@ -74,10 +89,15 @@ describe('Route Domain', function RouteDomain() {
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);
             })
-            .then(() => getMcpObject('RouteDomain', getMcpOptions))
+            .then(() => getMcpObject('RouteDomain', getRd1McpOptions))
             .then((routeDomain) => {
                 assert.strictEqual(routeDomain.vlans.length, 1);
-                assert.strictEqual(routeDomain.vlans[0], '/Common/myVlan');
+                assert.deepStrictEqual(routeDomain.vlans, ['/Common/myVlan']);
+            })
+            .then(() => getMcpObject('RouteDomain', getRd0McpOptions))
+            .then((routeDomain) => {
+                assert.strictEqual(routeDomain.vlans.length, 2);
+                assert.deepStrictEqual(routeDomain.vlans, ['/Common/http-tunnel', '/Common/socks-tunnel']);
             })
             .then(() => {
                 logInfo.declarationIndex = 1;
