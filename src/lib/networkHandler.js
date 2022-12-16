@@ -43,7 +43,6 @@ class NetworkHandler {
         this.eventEmitter = eventEmitter;
         this.state = state;
         this.logger = new Logger(module, (state || {}).id);
-        this.needsMcpdRestart = false;
     }
 
     /**
@@ -155,19 +154,6 @@ class NetworkHandler {
             .then((result) => {
                 updateStatus(status, result);
                 this.logger.info('Done processing network declaration.');
-                return Promise.resolve();
-            })
-            .then(() => {
-                if (this.needsMcpdRestart) {
-                    this.logger.info('Saving config');
-                    return this.bigIp.save();
-                }
-                return Promise.resolve();
-            })
-            .then(() => {
-                if (this.needsMcpdRestart) {
-                    return restartMcpd.call(this);
-                }
                 return Promise.resolve(status);
             })
             .catch((err) => {
@@ -175,31 +161,6 @@ class NetworkHandler {
                 return Promise.reject(err);
             });
     }
-}
-
-function restartMcpd() {
-    this.logger.info('Restarting mcpd');
-    const servicesToWaitFor = [
-        'cbrd',
-        'alertd',
-        'tamd',
-        'lind',
-        'lacpd',
-        'merged',
-        'devmgmtd',
-        'pccd',
-        'logstatd',
-        'statsd',
-        'icr_eventd',
-        'zxfrd',
-        'wccpd',
-        'tmm',
-        'vxland',
-        'dynconfd',
-        'named',
-        'bigd'
-    ];
-    return doUtil.restartService(this.bigIp, 'mcpd', { servicesToWaitFor, taskId: this.state.id });
 }
 
 function updateStatus(status, result) {
@@ -732,8 +693,6 @@ function handleTrunk() {
 function handleRouteDomain() {
     const commands = [];
     let rd0Body;
-    let hasModify = false;
-    let hasNonDefaultRD = false;
 
     doUtil.forEach(this.declaration, 'RouteDomain', (tenant, routeDomain) => {
         if (routeDomain && routeDomain.name) {
@@ -759,11 +718,9 @@ function handleRouteDomain() {
             if (this.state.currentConfig.Common.RouteDomain
                 && this.state.currentConfig.Common.RouteDomain[routeDomain.name]) {
                 method = 'modify';
-                hasModify = true;
             }
 
             if (routeDomain.name !== '0') {
-                hasNonDefaultRD = true;
                 commands.push({
                     method,
                     path: method === 'create' ? PATHS.RouteDomain : `${PATHS.RouteDomain}/~${tenant}~${routeDomain.name}`,
@@ -776,11 +733,6 @@ function handleRouteDomain() {
                 delete routeDomainBody.vlans;
                 rd0Body = routeDomainBody;
             }
-        }
-
-        // This can be removed once BZ 1091953 is resolved and back-ported
-        if (hasModify && hasNonDefaultRD) {
-            this.needsMcpdRestart = true;
         }
     });
 

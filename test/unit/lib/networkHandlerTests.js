@@ -22,7 +22,6 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 const sinon = require('sinon');
-const doUtil = require('../../../src/lib/doUtil');
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 const Logger = require('../../../src/lib/logger');
 
@@ -1153,14 +1152,12 @@ describe('networkHandler', () => {
         });
 
         it('should have transaction command use create for creating RouteDomains', () => {
-            const restartServiceSpy = sinon.stub(doUtil, 'restartService').resolves();
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIpMockSpy.transaction.callCount, 1);
                     assert.strictEqual(bigIpMockSpy.create.callCount, 2);
                     assert.strictEqual(bigIpMockSpy.modify.callCount, 0);
-                    assert.strictEqual(restartServiceSpy.notCalled, true);
                 });
         });
 
@@ -1181,14 +1178,12 @@ describe('networkHandler', () => {
                     }
                 }
             };
-            const restartServiceSpy = sinon.stub(doUtil, 'restartService').resolves();
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIpMockSpy.transaction.callCount, 1);
                     assert.strictEqual(bigIpMockSpy.create.callCount, 0);
                     assert.strictEqual(bigIpMockSpy.modify.callCount, 2);
-                    assert.strictEqual(restartServiceSpy.calledOnce, true);
                 });
         });
 
@@ -1222,7 +1217,6 @@ describe('networkHandler', () => {
                 }
             };
 
-            const restartServiceSpy = sinon.stub(doUtil, 'restartService').resolves();
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
@@ -1299,7 +1293,6 @@ describe('networkHandler', () => {
                             parent: undefined,
                             routingProtocol: undefined
                         });
-                    assert.strictEqual(restartServiceSpy.calledOnce, true);
                 });
         });
 
@@ -1325,13 +1318,11 @@ describe('networkHandler', () => {
                     }
                 }
             };
-            const restartServiceSpy = sinon.stub(doUtil, 'restartService').resolves();
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
                     assert.strictEqual(bigIpMockSpy.modify.callCount, 0);
-                    assert.strictEqual(restartServiceSpy.called, false);
                 });
         });
 
@@ -1355,13 +1346,11 @@ describe('networkHandler', () => {
                     }
                 }
             };
-            const restartServiceSpy = sinon.stub(doUtil, 'restartService').resolves();
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
                     assert.strictEqual(bigIpMockSpy.modify.callCount, 0);
-                    assert.strictEqual(restartServiceSpy.calledOnce, true);
                 });
         });
     });
