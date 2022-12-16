@@ -1196,9 +1196,8 @@ describe('networkHandler', () => {
             declaration.Common.RouteDomain['0'] = {
                 name: '0',
                 id: 0,
-                parent: '/Common/rd1',
                 strict: 'enabled',
-                vlans: ['http-tunnel', 'socks-tunnel']
+                vlans: ['socks-tunnel', 'anotherVLAN']
             };
             state = {
                 currentConfig: {
@@ -1208,7 +1207,7 @@ describe('networkHandler', () => {
                                 name: '0',
                                 id: 0,
                                 strict: 'enabled',
-                                vlans: ['http-tunnel', 'socks-tunnel', 'vlan1', 'vlan2']
+                                vlans: ['http-tunnel', 'socks-tunnel']
                             },
                             rd1: {
                                 name: 'rd1',
@@ -1278,7 +1277,28 @@ describe('networkHandler', () => {
                         }]);
                     assert.strictEqual(bigIpMockSpy.create.callCount, 0);
                     assert.strictEqual(bigIpMockSpy.modify.callCount, 2);
+                    assert.strictEqual(bigIpMockSpy.modify.args[0][0],
+                        '/tm/net/route-domain/~Common~rd1');
+                    assert.strictEqual(bigIpMockSpy.modify.args[1][0],
+                        '/tm/net/route-domain/~Common~rd2'); // Confirm the only modifications are non-default
                     assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                    assert.deepStrictEqual(bigIpMockSpy.createOrModify.args[0][1],
+                        {
+                            name: '0',
+                            partition: 'Common',
+                            id: 0,
+                            connectionLimit: undefined,
+                            bwcPolicy: undefined,
+                            flowEvictionPolicy: undefined,
+                            fwEnforcedPolicy: undefined,
+                            fwStagedPolicy: undefined,
+                            ipIntelligencePolicy: undefined,
+                            securityNatPolicy: undefined,
+                            servicePolicy: undefined,
+                            strict: 'enabled',
+                            parent: undefined,
+                            routingProtocol: undefined
+                        });
                     assert.strictEqual(restartServiceSpy.calledOnce, true);
                 });
         });
@@ -1288,7 +1308,6 @@ describe('networkHandler', () => {
                 0: {
                     name: '0',
                     id: 0,
-                    parent: '/Common/rd1',
                     strict: 'enabled'
                 }
             };
@@ -1299,7 +1318,8 @@ describe('networkHandler', () => {
                         RouteDomain: {
                             0: {
                                 name: '0',
-                                id: 0
+                                id: 0,
+                                vlans: ['http-tunnel', 'socks-tunnel']
                             }
                         }
                     }
@@ -1319,7 +1339,6 @@ describe('networkHandler', () => {
             declaration.Common.RouteDomain[0] = {
                 name: '0',
                 id: 0,
-                parent: '/Common/rd1',
                 strict: 'enabled'
             };
 
@@ -1329,7 +1348,8 @@ describe('networkHandler', () => {
                         RouteDomain: {
                             0: {
                                 name: '0',
-                                id: 0
+                                id: 0,
+                                vlans: ['http-tunnel', 'socks-tunnel']
                             }
                         }
                     }

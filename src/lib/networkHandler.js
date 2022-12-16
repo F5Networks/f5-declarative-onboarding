@@ -771,9 +771,9 @@ function handleRouteDomain() {
                 });
             } else {
                 // In the case of route domain 0, it needs run outside of a transaction to avoid known vlan-transaction
-                // error. To avoid the VLAN "removal" error in TMOS, we must not change the route domain 0 VLANs. The
-                // transaction will handle VLANs after the default is posted.
-                routeDomainBody.vlans = this.state.currentConfig.Common.RouteDomain[0].vlans;
+                // error. To avoid the VLAN "removal" error in TMOS, route domain 0 needs to retain all the VLANs it
+                // had previously so we delete the desired VLANS. The following transaction handles configuring VLANs.
+                delete routeDomainBody.vlans;
                 rd0Body = routeDomainBody;
             }
         }
