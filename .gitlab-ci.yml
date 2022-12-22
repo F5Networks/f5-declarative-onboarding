@@ -158,6 +158,7 @@ coverage:
   artifacts:
       paths:
         - public
+  coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
 
 audit:
   image: $DOCKER_URL/node:16
