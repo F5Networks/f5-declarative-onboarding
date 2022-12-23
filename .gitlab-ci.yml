@@ -458,6 +458,7 @@ pages:
         - develop
         - doc-release-branch
         - joes-do-wip
+    coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
 
 publish docs to production:
     image: ${CONTAINTHEDOCS_IMAGE}
