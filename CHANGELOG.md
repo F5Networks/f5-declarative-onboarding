@@ -1,6 +1,15 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.36.0
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
 ## 1.35.0
 ### Added
 - AUTOTOOL-3526: ([GitHub Issue 324](https://github.com/F5Networks/f5-declarative-onboarding/issues/324)): Add flag to User schema to disable the "enforce password change at first login" policy for the configured user
