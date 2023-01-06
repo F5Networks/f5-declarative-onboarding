@@ -19,7 +19,7 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
-    "@f5devcentral/atg-shared-utilities": "^0.4.11",
+    "@f5devcentral/atg-shared-utilities": "^0.5.4",
     "@f5devcentral/f5-cloud-libs": "^4.28.1",
     "@f5devcentral/f5-teem": "^1.5.0",
     "ajv": "6.12.6",
@@ -28,10 +28,10 @@
     "uuid": "3.4.0"
   },
   "devDependencies": {
-    "@f5devcentral/atg-shared-utilities-dev": "^0.2.9",
-    "@f5devcentral/eslint-config-f5-atg": "^0.1.7",
-    "@stryker-mutator/core": "^6.3.0",
-    "@stryker-mutator/mocha-runner": "^6.3.0",
+    "@f5devcentral/atg-shared-utilities-dev": "^0.2.11",
+    "@f5devcentral/eslint-config-f5-atg": "^0.1.8",
+    "@stryker-mutator/core": "^6.3.1",
+    "@stryker-mutator/mocha-runner": "^6.3.1",
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "colors": "^1.4.0",
@@ -39,7 +39,7 @@
     "eslint": "7.32.0",
     "json-schema-ref-parser": "^9.0.9",
     "mkdirp": "^1.0.4",
-    "mocha": "^10.1.0",
+    "mocha": "^10.2.0",
     "mocha-multi-reporters": "^1.5.1",
     "nyc": "^15.1.0",
     "request": "^2.88.2",
