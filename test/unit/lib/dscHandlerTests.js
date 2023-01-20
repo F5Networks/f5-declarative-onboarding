@@ -42,6 +42,9 @@ describe('dscHandler', () => {
         bigIpMock = {
             deviceInfo() {
                 return Promise.resolve({ hostname });
+            },
+            list() {
+                return Promise.resolve();
             }
         };
     });
@@ -449,6 +452,9 @@ describe('dscHandler', () => {
                 if (path === PATHS.SelfIp) {
                     return Promise.resolve([]);
                 }
+                if (path === PATHS.DeviceGroup) {
+                    return Promise.resolve([]);
+                }
                 return Promise.reject(new Error('Unexpected path'));
             };
 
@@ -508,6 +514,9 @@ describe('dscHandler', () => {
                         ]
                     );
                 }
+                if (path === PATHS.DeviceGroup) {
+                    return Promise.resolve([]);
+                }
                 return Promise.reject(new Error('Unexpected path'));
             };
 
@@ -540,6 +549,9 @@ describe('dscHandler', () => {
 
             bigIpMock.list = (path) => {
                 if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                if (path === PATHS.DeviceGroup) {
                     return Promise.resolve([]);
                 }
                 return Promise.reject(new Error('Unexpected path'));
@@ -630,6 +642,9 @@ describe('dscHandler', () => {
             bigIpMock.list = (path) => {
                 if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
                     return Promise.resolve(deviceList);
+                }
+                if (path === PATHS.DeviceGroup) {
+                    return Promise.resolve([]);
                 }
 
                 return Promise.reject(new Error('Unexpected path'));
@@ -794,6 +809,9 @@ describe('dscHandler', () => {
                 if (path === PATHS.SelfIp) {
                     return Promise.resolve([]);
                 }
+                if (path === PATHS.DeviceGroup) {
+                    return Promise.resolve([]);
+                }
                 return Promise.reject(new Error('Unexpected path'));
             };
 
@@ -821,6 +839,9 @@ describe('dscHandler', () => {
 
             bigIpMock.list = (path) => {
                 if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                if (path === PATHS.DeviceGroup) {
                     return Promise.resolve([]);
                 }
                 if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
@@ -876,6 +897,9 @@ describe('dscHandler', () => {
                 }
                 if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
                     return Promise.resolve(deviceList);
+                }
+                if (path === PATHS.DeviceGroup) {
+                    return Promise.resolve([]);
                 }
                 if (path === '/tm/cm/device') {
                     return Promise.resolve([
@@ -941,6 +965,9 @@ describe('dscHandler', () => {
 
             bigIpMock.list = (path) => {
                 if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                if (path === PATHS.DeviceGroup) {
                     return Promise.resolve([]);
                 }
                 if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
@@ -1026,6 +1053,9 @@ describe('dscHandler', () => {
                 if (path === PATHS.SelfIp) {
                     return Promise.resolve([]);
                 }
+                if (path === PATHS.DeviceGroup) {
+                    return Promise.resolve([]);
+                }
                 return Promise.reject(new Error('Unexpected path'));
             };
 
@@ -1066,6 +1096,9 @@ describe('dscHandler', () => {
 
             bigIpMock.list = (path) => {
                 if (path === PATHS.SelfIp) {
+                    return Promise.resolve([]);
+                }
+                if (path === PATHS.DeviceGroup) {
                     return Promise.resolve([]);
                 }
                 if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`
@@ -1145,6 +1178,9 @@ describe('dscHandler', () => {
             };
 
             bigIpMock.list = (path) => {
+                if (path === PATHS.DeviceGroup) {
+                    return Promise.resolve([]);
+                }
                 if (path === `${PATHS.DeviceGroup}/~Common~failoverGroup/devices`) {
                     return Promise.resolve(deviceList);
                 }
@@ -1322,7 +1358,32 @@ describe('dscHandler', () => {
                     dataSent[path].push(data);
                     return Promise.resolve();
                 },
-                list() {
+                list(path) {
+                    if (path === PATHS.DeviceGroup) {
+                        return [
+                            {
+                                fullPath: '/Common/deviceGroup1',
+                                type: 'sync-failover'
+                            },
+                            {
+                                fullPath: '/Common/deviceGroup2',
+                                type: 'sync-failover'
+                            },
+                            {
+                                fullPath: '/Common/deviceGroup3',
+                                type: 'sync-failover'
+                            }
+                        ];
+                    }
+                    if (path === `${PATHS.DeviceGroup}/~Common~deviceGroup1/devices`) {
+                        return [{ name: 'device1' }];
+                    }
+                    if (path === `${PATHS.DeviceGroup}/~Common~deviceGroup2/devices`) {
+                        return [{ name: 'someOtherDevice' }];
+                    }
+                    if (path === `${PATHS.DeviceGroup}/~Common~deviceGroup3/devices`) {
+                        return [{ name: 'device3' }];
+                    }
                     return Promise.resolve();
                 },
                 delete() {
@@ -1397,6 +1458,42 @@ describe('dscHandler', () => {
                             autoFailbackTime: 500,
                             failoverMethod: 'ha-order',
                             haLoadFactor: 2
+                        });
+                });
+        });
+
+        it('should remove non-existing devices before creating', () => {
+            const declaration = {
+                Common: {
+                    TrafficGroup: {
+                        testTrafficGroup: {
+                            name: 'testTrafficGroup',
+                            autoFailbackEnabled: false,
+                            autoFailbackTime: 500,
+                            failoverMethod: 'ha-order',
+                            haLoadFactor: 2,
+                            haOrder: [
+                                'device1',
+                                'device2',
+                                'device3'
+                            ]
+                        }
+                    }
+                }
+            };
+
+            const dscHandler = new DscHandler(declaration, bigIpMock);
+            return dscHandler.process()
+                .then(() => {
+                    assert.deepStrictEqual(dataSent['/tm/cm/traffic-group'][0],
+                        {
+                            name: 'testTrafficGroup',
+                            partition: 'Common',
+                            autoFailbackEnabled: false,
+                            autoFailbackTime: 500,
+                            failoverMethod: 'ha-order',
+                            haLoadFactor: 2,
+                            haOrder: ['device1', 'device3']
                         });
                 });
         });

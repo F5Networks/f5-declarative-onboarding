@@ -19,6 +19,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-3555: Configuring TACACS can skip reporting errors
 - AUTOTOOL-3558: Issues when there are no Firewall Policies to be processed
 - AUTOTOOL-3498: ([GitHub Issue 323](https://github.com/F5Networks/f5-declarative-onboarding/issues/323)): Improve handling on route-domains, by fixing error: "tryuntil error: ioctl failed: No such device"
+- AUTOTOOL-3632: Can't refer to other devices in haOrder for a TrafficGroup during HA configuration
 
 ### Changed
 
