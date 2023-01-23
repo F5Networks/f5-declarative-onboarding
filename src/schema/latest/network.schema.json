@@ -231,7 +231,7 @@
                                 }
                             }
                         ],
-                        "default": "default"
+                        "default": "none"
                     },
                     "enforcedFirewallPolicy": {
                         "description": "Specifies an enforced firewall policy on the self IP.",

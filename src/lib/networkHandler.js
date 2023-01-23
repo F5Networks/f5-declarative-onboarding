@@ -524,7 +524,7 @@ function handleSelfIp() {
             let status;
             if (this.declaration.Common.SelfIp) {
                 status = {
-                    warnings: ["The default value for 'allowService' on a 'SelfIp' will change from 'default' to 'none' in f5-declarative-onboarding version 1.35.0."]
+                    warnings: ["The default value for 'allowService' on a 'SelfIp' changed from 'default' to 'none' in f5-declarative-onboarding version 1.36.0."]
                 };
             }
             return status;

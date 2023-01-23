@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 
 ### Changed
+- AUTOTOOL-3609: Change default value for 'allowService' on a 'SelfIp' to 'none'
 
 ### Removed
 
