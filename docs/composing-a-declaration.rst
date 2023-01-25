@@ -549,7 +549,7 @@ Self IP class
 `````````````
 The next lines of the declaration configure self IP address(es) on the BIG-IP system. In this case, the name you give the Self IP class is used for the name of the Self IP on the BIG-IP.  
 
-.. IMPORTANT:: Beginning with DO 1.36.0, the default value for **allowService** on a self IP address changed from **default** to **none** This change will help DO be more secure and consistent with TMSH.
+.. IMPORTANT:: Beginning with DO 1.36.0, the default value for **allowService** on a self IP address changed from **default** to **none**. This change helps DO be more secure and consistent with TMSH.
 
 For more information, see |ntpclass| in the Schema Reference.
 
