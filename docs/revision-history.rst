@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.36
+        - Updated the documentation for Declarative Onboarding v1.36.0.  This release contains the following changes: |br| * The default value for **allowService** on a **SelfIp** is now **none** (see :ref:`Self IP class<selfip-class>`) |br| |br| Issues Resolved: |br| * 
+        - 2-7-23
+
       * - 1.35
         - Updated the documentation for Declarative Onboarding v1.35.0.  This release contains the following changes: |br| * Added the **forceInitialPasswordChange** property for the User class (see the updated :ref:`User class example<example4>`) |br| |br| Issues Resolved: |br| * Restarting mcpd may wait for services that are not required, `GitHub Issue 322 <https://github.com/F5Networks/f5-declarative-onboarding/issues/322>`_ |br| * Configuring TACACS can skip reporting errors |br| * Issues when there are no Firewall Policies to be processed |br| * Improve handling on route-domains, by fixing error: "tryuntil error: ioctl failed: No such device", `GitHub Issue 323 <https://github.com/F5Networks/f5-declarative-onboarding/issues/323>`_
         - 1-12-23
