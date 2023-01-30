@@ -8,6 +8,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ### Changed
 - AUTOTOOL-3609: Change default value for 'allowService' on a 'SelfIp' to 'none'
+- AUTOTOOL-2935: Updated vxlan tunnel creation to respect TrafficControl acceptIpOptions values
 
 ### Removed
 

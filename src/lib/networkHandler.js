@@ -766,6 +766,7 @@ function handleTunnel() {
     const deleteTunnels = [];
     const deleteVxlans = [];
     const vxlanPromises = [];
+    const trafficControlPromises = [];
     const promises = [];
 
     doUtil.forEach(this.declaration, 'Tunnel', (tenant, tunnel) => {
@@ -788,6 +789,27 @@ function handleTunnel() {
                 vxlanPromises.push(() => this.bigIp.createOrModify(
                     PATHS.VXLAN, vxlanBody, null, cloudUtil.MEDIUM_RETRY
                 ));
+
+                // MCP will silently change the acceptIpOptions on the backend to true, if a
+                // vxlan tunnel is created. This code modifies the option to the user preference.
+                let acceptIpOptions = this.state.currentConfig.Common.TrafficControl.acceptIpOptions;
+                if (this.declaration.Common && this.declaration.Common.TrafficControl) {
+                    // If this is set, there was a diff and we should use the desired value
+                    acceptIpOptions = this.declaration.Common.TrafficControl.acceptIpOptions;
+                }
+                trafficControlPromises.push(() => {
+                    const trafficControlObj = {
+                        acceptIpOptions
+                    };
+                    return Promise.resolve()
+                        .then(() => this.bigIp.modify(PATHS.TrafficControl, trafficControlObj))
+                        .catch((err) => {
+                            const errorTrafficControl = `Error modifying traffic control settings after updating the vxlan tunnel: ${err.message}`;
+                            this.logger.severe(errorTrafficControl);
+                            err.message = errorTrafficControl;
+                            return Promise.reject(err);
+                        });
+                });
             }
 
             const tunnelBody = {
@@ -835,6 +857,8 @@ function handleTunnel() {
         .then(() => promiseUtil.parallel(deleteVxlans))
         .then(() => promiseUtil.parallel(vxlanPromises))
         .then(() => promiseUtil.parallel(promises))
+        // Traffic Control must be set after all the tunnel work is complete
+        .then(() => promiseUtil.parallel(trafficControlPromises))
         .catch((err) => {
             this.logger.severe(`Error creating Tunnels: ${err.message}`);
             throw err;

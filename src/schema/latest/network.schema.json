@@ -523,7 +523,7 @@
                         "$ref": "definitions.schema.json#/definitions/Remark"
                     },
                     "tunnelType": {
-                        "description": "Specifies the profile that you want to associate with the Tunnel.",
+                        "description": "Specifies the profile that you want to associate with the Tunnel. Note: As of 1.36.0, when creating a VXLAN Tunnel, accept-ip-options in traffic controls will no longer default to true. Instead it will remain the same or be set to the value in the declaration.",
                         "type": "string",
                         "enum": ["geneve", "gre", "tcp-forward", "vxlan"]
                     },
