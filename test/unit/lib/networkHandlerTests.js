@@ -1440,6 +1440,9 @@ describe('networkHandler', () => {
             const state = {
                 currentConfig: {
                     Common: {
+                        TrafficControl: {
+                            acceptIpOptions: false
+                        },
                         Tunnel: {}
                     }
                 }
@@ -1459,6 +1462,14 @@ describe('networkHandler', () => {
                                 floodingType: 'multicast',
                                 partition: 'Common',
                                 port: 4789
+                            }
+                        ]
+                    );
+                    assert.deepStrictEqual(
+                        dataSent[PATHS.TrafficControl],
+                        [
+                            {
+                                acceptIpOptions: false
                             }
                         ]
                     );
@@ -1519,6 +1530,92 @@ describe('networkHandler', () => {
                         ]
                     );
                 });
+        });
+
+        describe('setting the acceptIpOptions with vxlan tunnels', () => {
+            it('should handle when acceptIpOptions currentConfig is false, but declaration is true', () => {
+                const declaration = {
+                    Common: {
+                        TrafficControl: {
+                            acceptIpOptions: true
+                        },
+                        Tunnel: {
+                            tunnelVxlan: {
+                                name: 'tunnelVxlan',
+                                profile: 'vxlan'
+                            }
+                        }
+                    }
+                };
+
+                const state = {
+                    currentConfig: {
+                        Common: {
+                            TrafficControl: {
+                                acceptIpOptions: false
+                            },
+                            Tunnel: {}
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            dataSent[PATHS.TrafficControl],
+                            [
+                                {
+                                    acceptIpOptions: true
+                                }
+                            ]
+                        );
+                        // quick checks that something was sent
+                        assert.strictEqual(dataSent[PATHS.VXLAN].length, 1);
+                        assert.strictEqual(dataSent[PATHS.Tunnel].length, 1);
+                    });
+            });
+
+            it('should handle when acceptIpOptions is not in the declaration (e.g. nothing in the diff)', () => {
+                const declaration = {
+                    Common: {
+                        Tunnel: {
+                            tunnelVxlan: {
+                                name: 'tunnelVxlan',
+                                profile: 'vxlan'
+                            }
+                        }
+                    }
+                };
+
+                const state = {
+                    currentConfig: {
+                        Common: {
+                            TrafficControl: {
+                                acceptIpOptions: false
+                            },
+                            Tunnel: {}
+                        }
+                    }
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.deepStrictEqual(
+                            dataSent[PATHS.TrafficControl],
+                            [
+                                {
+                                    acceptIpOptions: false
+                                }
+                            ]
+                        );
+
+                        // quick checks that something was sent
+                        assert.strictEqual(dataSent[PATHS.VXLAN].length, 1);
+                        assert.strictEqual(dataSent[PATHS.Tunnel].length, 1);
+                    });
+            });
         });
 
         describe('pre-delete', () => {

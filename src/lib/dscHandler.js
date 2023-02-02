@@ -70,7 +70,7 @@ class DscHandler {
                 return handleDeviceTrustAndGroup.call(this);
             })
             .then(() => {
-                this.logger.fine('Checking Traffic-Groups');
+                this.logger.fine('Checking TrafficGroup');
                 return handleTrafficGroup.call(this);
             })
             .then(() => {
@@ -579,19 +579,38 @@ function pullDeviceGroup(Common) {
 }
 
 function handleTrafficGroup() {
-    const promises = [];
-    doUtil.forEach(this.declaration, 'TrafficGroup', (tenant, trafficGroup) => {
-        if (trafficGroup && trafficGroup.name) {
-            const tGBody = JSON.parse(JSON.stringify(trafficGroup));
-            tGBody.partition = tenant;
+    let existingDevices = [];
 
-            promises.push(
-                this.bigIp.createOrModify(PATHS.TrafficGroup, tGBody, null, cloudUtil.MEDIUM_RETRY)
-            );
-        }
-    });
+    return Promise.resolve()
+        .then(() => this.bigIp.list(PATHS.DeviceGroup))
+        .then((deviceGroups) => {
+            const membersPromises = (deviceGroups || []).filter((deviceGroup) => deviceGroup.type === 'sync-failover')
+                .map((deviceGroup) => this.bigIp.list(`${PATHS.DeviceGroup}/${deviceGroup.fullPath.replace(/\//g, '~')}/devices`));
+            return Promise.all(membersPromises);
+        })
+        .then((promiseResults) => {
+            existingDevices = promiseResults.reduce((acc, cur) => acc.concat(cur.map((c) => c.name)), existingDevices);
+        })
+        .then(() => {
+            const promises = [];
+            doUtil.forEach(this.declaration, 'TrafficGroup', (tenant, trafficGroup) => {
+                if (trafficGroup && trafficGroup.name) {
+                    if (trafficGroup.haOrder) {
+                        trafficGroup.haOrder = trafficGroup.haOrder.filter(
+                            (device) => existingDevices.indexOf(device) !== -1
+                        );
+                    }
+                    const body = JSON.parse(JSON.stringify(trafficGroup));
+                    body.partition = tenant;
 
-    return Promise.all(promises)
+                    promises.push(
+                        this.bigIp.createOrModify(PATHS.TrafficGroup, body, null, cloudUtil.MEDIUM_RETRY)
+                    );
+                }
+            });
+
+            return Promise.all(promises);
+        })
         .catch((err) => {
             this.logger.severe(`Error creating traffic-groups: ${err.message}`);
             return Promise.reject(err);
