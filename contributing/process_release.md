@@ -44,7 +44,7 @@
   * Add the next version (without the build number) to the `schemaVersion` array in `base.schema.json`.
   * Adding a new block to `CHANGELOG.md`.
   * Update the `info.version` property in `src/schema/latest/openapi.yaml` to the new DO version (e.g. 1.35.0).
-  * `git add, commit, and push
+  * git add, commit, and push
   * Submit an MR for these changes and wait for approval.
 
 ### Perform actions after go ahead from Go/No-Go meeting:

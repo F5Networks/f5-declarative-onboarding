@@ -1,6 +1,17 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.36.0
+### Added
+
+### Fixed
+
+### Changed
+- AUTOTOOL-3609: Change default value for 'allowService' on a 'SelfIp' to 'none'
+- AUTOTOOL-2935: Updated vxlan tunnel creation to respect TrafficControl acceptIpOptions values
+
+### Removed
+
 ## 1.35.0
 ### Added
 - AUTOTOOL-3526: ([GitHub Issue 324](https://github.com/F5Networks/f5-declarative-onboarding/issues/324)): Add flag to User schema to disable the "enforce password change at first login" policy for the configured user
@@ -10,6 +21,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-3555: Configuring TACACS can skip reporting errors
 - AUTOTOOL-3558: Issues when there are no Firewall Policies to be processed
 - AUTOTOOL-3498: ([GitHub Issue 323](https://github.com/F5Networks/f5-declarative-onboarding/issues/323)): Improve handling on route-domains, by fixing error: "tryuntil error: ioctl failed: No such device"
+- AUTOTOOL-3632: Can't refer to other devices in haOrder for a TrafficGroup during HA configuration
 
 ### Changed
 
