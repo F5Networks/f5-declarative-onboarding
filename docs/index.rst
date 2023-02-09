@@ -9,13 +9,14 @@ BIG-IP Declarative onboarding (BIG-IP DO) uses a |declare| model to initially co
 
 A declarative model means you provide a JSON declaration rather than a set of imperative commands. The declaration represents the configuration which BIG-IP Declarative Onboarding is responsible for creating on a BIG-IP system.  You send a declaration file using a single Rest API call.
 
-.. NOTE:: The DO RPM, Postman collection, and checksum files can be found on the |release|, as **Assets**. 
+.. IMPORTANT:: Beginning with DO 1.36.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.
+
+The DO RPM, Postman collection, and checksum files can be found on the |release|, as **Assets**. 
 
 You can use Microsoft Visual Studio Code to validate your declarations, see :doc:`validate` for information.
 
 This guide contains information on downloading, installing, and using F5 BIG-IP Declarative Onboarding.
 
-.. IMPORTANT:: Beginning with DO 1.36.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.
 
 .. NOTE:: To see what's new in BIG-IP Declarative Onboarding, see the the :ref:`revision-history`.
 
