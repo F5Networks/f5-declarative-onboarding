@@ -15,7 +15,7 @@ You can use Microsoft Visual Studio Code to validate your declarations, see :doc
 
 This guide contains information on downloading, installing, and using F5 BIG-IP Declarative Onboarding.
 
-.. IMPORTANT:: Beginning with DO 1.35.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.
+.. IMPORTANT:: Beginning with DO 1.36.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.
 
 .. NOTE:: To see what's new in BIG-IP Declarative Onboarding, see the the :ref:`revision-history`.
 
