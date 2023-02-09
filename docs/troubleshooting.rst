@@ -85,6 +85,20 @@ Increase the memory allocated for the restjavad daemon (e.g. 2 GB), you can eith
 ``bigstart restart restjavad``
 
 
+|
+
+.. _selfipchange:
+
+Why am I seeing a behavior change for allowService on a self IP address in DO 1.36?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+BIG-IP DO 1.36.0 introduced a behavior change: The default value for **allowService** on a self IP address changed from **default** to **none**. DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.  See :ref:`Self IP class<selfip-class>` for more information and self IP options.
+
+This change helps DO be more secure and consistent with TMSH.
+
+
+
+
+
 .. |br| raw:: html
 
    <br />

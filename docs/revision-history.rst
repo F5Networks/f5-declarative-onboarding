@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.36
-        - Updated the documentation for Declarative Onboarding v1.36.0.  This release contains the following changes: |br| * The default value for **allowService** on a **SelfIp** is now **none** (see :ref:`Self IP class<selfip-class>`) |br| * Updated VXLAN tunnel creation to respect TrafficControl acceptIpOptions values (see the note in :ref:`VXLAN tunnels<vxlan>`) 
+        - Updated the documentation for Declarative Onboarding v1.36.0.  This release contains the following changes: |br| * The default value for **allowService** on a **SelfIp** is now **none** (see :ref:`Troubleshooting<selfipchange>`) |br| * Updated VXLAN tunnel creation to respect TrafficControl acceptIpOptions values (see the note in :ref:`VXLAN tunnels<vxlan>`) 
         - 2-9-23
 
       * - 1.35
