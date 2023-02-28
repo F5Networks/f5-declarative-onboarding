@@ -94,7 +94,7 @@ describe('declarationParser', () => {
                 myDns: {
                     class: 'DNS',
                     nameServers: [
-                        '1.2.3.4',
+                        '192.0.2.20',
                         'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                     ],
                     search: [
@@ -163,9 +163,9 @@ describe('declarationParser', () => {
                     class: 'DNS_Resolver',
                     forwardZones: [
                         {
-                            name: 'google.public.dns',
+                            name: 'test.public.dns',
                             nameservers: [
-                                '8.8.8.8:53'
+                                '192.0.2.10:53'
                             ]
                         }
                     ]
@@ -233,8 +233,8 @@ describe('declarationParser', () => {
         assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac2.source.interface, '1.2');
         assert.strictEqual(parsedDeclaration.Common.MAC_Masquerade.commonMac2.trafficGroup, 'traffic-group-local-only');
         assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.name, 'commonDNS');
-        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.forwardZones[0].name, 'google.public.dns');
-        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.forwardZones[0].nameservers[0], '8.8.8.8:53');
+        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.forwardZones[0].name, 'test.public.dns');
+        assert.strictEqual(parsedDeclaration.Common.DNS_Resolver.commonDNS.forwardZones[0].nameservers[0], '192.0.2.10:53');
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.name, 'app1Vlan');
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app1Vlan.tag, 1234);
         assert.strictEqual(parsedDeclaration.Tenant1.VLAN.app2Vlan.tag, 3456);
@@ -431,7 +431,7 @@ describe('declarationParser', () => {
                 },
                 mySelfIp: {
                     class: 'SelfIp',
-                    address: '1.2.3.4',
+                    address: '192.0.2.20',
                     vlan: '/Common/myVlan'
                 },
                 myConfigSync: {
@@ -457,10 +457,10 @@ describe('declarationParser', () => {
         const declarationParser = new DeclarationParser(declaration);
         const parsedDeclaration = declarationParser.parse().parsedDeclaration;
         assert.strictEqual(parsedDeclaration.Common.SelfIp.mySelfIp.vlan, '/Common/myVlan');
-        assert.strictEqual(parsedDeclaration.Common.ConfigSync.configsyncIp, '1.2.3.4');
+        assert.strictEqual(parsedDeclaration.Common.ConfigSync.configsyncIp, '192.0.2.20');
         assert.strictEqual(parsedDeclaration.Common.License.bigIpUsername, 'myUser');
         assert.strictEqual(parsedDeclaration.Common.License.bigIqUsername, 'myOtherUser');
-        assert.strictEqual(parsedDeclaration.Common.FailoverUnicast.unicastAddress[0].ip, '1.2.3.4');
+        assert.strictEqual(parsedDeclaration.Common.FailoverUnicast.unicastAddress[0].ip, '192.0.2.20');
 
         // If we get a pointer that does not de-reference, we should just get back the
         // original pointer

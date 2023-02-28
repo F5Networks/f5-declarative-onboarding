@@ -151,7 +151,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             currentState.FailoverMulticast,
             {
                 multicastInterface: 'eth0',
-                multicastIp: '224.0.0.100',
+                multicastIp: '233.252.0.10',
                 multicastPort: 123
             }
         ));
@@ -214,9 +214,9 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             {
                 name: 'myManagementRoute',
                 description: 'not-configured-by-dhcp',
-                gateway: '4.3.2.1',
+                gateway: '192.0.2.14',
                 mtu: 0,
-                network: '1.2.3.4/32'
+                network: '192.0.2.13/32'
             }
         ));
 
@@ -1018,7 +1018,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     transparent: 'enabled',
                     monitorType: 'http',
                     description: 'description',
-                    destination: '1.1.1.1:80',
+                    destination: '192.0.2.10:80',
                     ignoreDownResponse: 'enabled',
                     reverse: 'enabled',
                     recv: 'HTTP'
@@ -1036,7 +1036,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     transparent: 'enabled',
                     monitorType: 'https',
                     description: 'description',
-                    destination: '2.2.2.2:80',
+                    destination: '192.0.2.16:80',
                     ignoreDownResponse: 'enabled',
                     reverse: 'enabled',
                     recv: 'HTTP',
@@ -1055,7 +1055,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     transparent: 'enabled',
                     monitorType: 'gateway-icmp',
                     description: 'description',
-                    destination: '3.3.3.3:80',
+                    destination: '192.0.2.15:80',
                     ignoreDownResponse: 'enabled',
                     probeInterval: 1,
                     probeAttempts: 3
@@ -1072,7 +1072,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     transparent: 'enabled',
                     monitorType: 'tcp',
                     description: 'description',
-                    destination: '4.4.4.4:80',
+                    destination: '192.0.2.12:80',
                     ignoreDownResponse: 'enabled',
                     reverse: 'enabled',
                     recv: 'example receive',
@@ -1091,7 +1091,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     transparent: 'enabled',
                     monitorType: 'udp',
                     description: 'description',
-                    destination: '5.5.5.5:80',
+                    destination: '192.0.2.18:80',
                     ignoreDownResponse: 'enabled',
                     reverse: 'enabled',
                     recv: 'udp receive',
@@ -1546,7 +1546,7 @@ function testDnsResolver(target, response) {
     const responseForwardZone = responseResolver.forwardZones[0];
     const validName = responseForwardZone.name === 'forward.net';
     const validNameserver = responseForwardZone.nameservers[0].name === '10.10.10.10:53';
-    const validIpv6Nameserver = responseForwardZone.nameservers[1].name === '20.20.20.20:53';
+    const validIpv6Nameserver = responseForwardZone.nameservers[1].name === '192.0.2.11:53';
     return validName
         && validNameserver
         && validIpv6Nameserver

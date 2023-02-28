@@ -25,7 +25,7 @@ describe('routingPrefixListValidator', () => {
     describe('valid', () => {
         it('should validate single-value prefixLengthRange', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList1: {
@@ -73,7 +73,7 @@ describe('routingPrefixListValidator', () => {
 
         it('should validate multi-value prefixLengthRange', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList1: {
@@ -121,7 +121,7 @@ describe('routingPrefixListValidator', () => {
 
         it('should validate when prefixLength range is 0', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList1: {
@@ -157,7 +157,7 @@ describe('routingPrefixListValidator', () => {
 
         it('should validate prefixLengthRange if start or end is 0', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList1: {
@@ -205,7 +205,7 @@ describe('routingPrefixListValidator', () => {
 
         it('should validate prefixLengthRange if start or end is missing', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList1: {
@@ -253,7 +253,7 @@ describe('routingPrefixListValidator', () => {
 
         it('should validate when there is nothing to validate', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {}
                 }
@@ -266,7 +266,7 @@ describe('routingPrefixListValidator', () => {
 
         it('should validate when entries property is missing', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList1: {
@@ -284,7 +284,7 @@ describe('routingPrefixListValidator', () => {
 
         it('should validate when entries property is empty', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList1: {
@@ -304,7 +304,7 @@ describe('routingPrefixListValidator', () => {
     describe('invalid', () => {
         it('should invalidate if prefixLengthRange is only a colon', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList: {
@@ -331,7 +331,7 @@ describe('routingPrefixListValidator', () => {
 
         it('should invalidate if prefixLengthRange is only empty string', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList: {
@@ -358,7 +358,7 @@ describe('routingPrefixListValidator', () => {
 
         it('should invalidate if range start greater than end unless end is 0', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingPrefixList: {
@@ -394,7 +394,7 @@ describe('routingPrefixListValidator', () => {
         describe('hard range limit exceeded', () => {
             it('should invalidate if prefixLengthRange is greater than 32 if prefix is an ipv4 address', () => {
                 const wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {
                             exampleRoutingPrefixList: {
@@ -429,7 +429,7 @@ describe('routingPrefixListValidator', () => {
 
             it('should invalidate if prefixLengthRange is greater than 128 if prefix is an ipv6 address', () => {
                 const wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {
                             exampleRoutingPrefixList: {
@@ -466,7 +466,7 @@ describe('routingPrefixListValidator', () => {
         describe('prefix length limit exceeded', () => {
             it('should invalidate if prefixLengthRange is equal to or less than ipv6 prefix property length', () => {
                 const wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {
                             exampleRoutingPrefixList: {
@@ -501,7 +501,7 @@ describe('routingPrefixListValidator', () => {
 
             it('should invalidate if prefixLengthRange is equal to or less than ipv4 prefix property length', () => {
                 const wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {
                             exampleRoutingPrefixList: {

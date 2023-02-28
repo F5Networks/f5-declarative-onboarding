@@ -30,7 +30,7 @@ const ConfigItems = require('../../../src/lib/configItems.json');
 describe('configManager', () => {
     const hostname = 'myhost.bigip.com';
     const deviceName = 'device1';
-    const version = '15.1.6.5';
+    const version = '15.1.6';
 
     let listResponses;
     let bigIpMock;
@@ -101,7 +101,7 @@ describe('configManager', () => {
                 {
                     name: 'default',
                     partition: 'Common',
-                    gw: '1.2.3.4',
+                    gw: '192.0.2.70',
                     network: 'default',
                     mtu: 0
                 },
@@ -109,13 +109,13 @@ describe('configManager', () => {
                     name: 'route1',
                     partition: 'LOCAL_ONLY',
                     tmInterface: '/Common/myVlan',
-                    network: '5.5.5.5',
+                    network: '192.0.2.90',
                     mtu: 1500
                 },
                 {
                     name: 'outsideDoRoute',
                     partition: 'otherPartition',
-                    gw: '3.3.3.5',
+                    gw: '192.0.2.60',
                     network: 'default',
                     mtu: 12
                 }
@@ -128,7 +128,7 @@ describe('configManager', () => {
                         state.currentConfig.Common.Route,
                         {
                             default: {
-                                gw: '1.2.3.4',
+                                gw: '192.0.2.70',
                                 mtu: 0,
                                 name: 'default',
                                 network: 'default'
@@ -137,7 +137,7 @@ describe('configManager', () => {
                                 tmInterface: 'myVlan',
                                 mtu: 1500,
                                 name: 'route1',
-                                network: '5.5.5.5',
+                                network: '192.0.2.90',
                                 localOnly: true
                             }
                         }
@@ -233,14 +233,14 @@ describe('configManager', () => {
             listResponses['/tm/net/route'] = [
                 {
                     name: 'default',
-                    gw: '1.2.3.4',
+                    gw: '192.0.2.70',
                     network: 'default',
                     mtu: 0
                 },
                 {
                     name: 'route1',
-                    gw: '5.6.7.8',
-                    network: '5.5.5.5',
+                    gw: '192.0.2.71',
+                    network: '192.0.2.90',
                     mtu: 1500
                 }
             ];
@@ -252,7 +252,7 @@ describe('configManager', () => {
                         state.currentConfig.Common.Route.default,
                         {
                             name: 'default',
-                            gw: '1.2.3.4',
+                            gw: '192.0.2.70',
                             network: 'default',
                             mtu: 0
                         }
@@ -261,8 +261,8 @@ describe('configManager', () => {
                         state.currentConfig.Common.Route.route1,
                         {
                             name: 'route1',
-                            gw: '5.6.7.8',
-                            network: '5.5.5.5',
+                            gw: '192.0.2.71',
+                            network: '192.0.2.90',
                             mtu: 1500
                         }
                     );
@@ -501,7 +501,7 @@ describe('configManager', () => {
                 {
                     name: 'default',
                     fullPath: '/Common/default',
-                    gateway: '8.8.8.8',
+                    gateway: '192.0.2.40',
                     network: 'default',
                     mtu: 0,
                     myProp1: 'my property 1',
@@ -518,7 +518,7 @@ describe('configManager', () => {
                 .then(() => {
                     assert.strictEqual(
                         state.currentConfig.Common.ManagementRoute.default.gw,
-                        '8.8.8.8'
+                        '192.0.2.40'
                     );
                     assert.strictEqual(
                         state.currentConfig.Common.ManagementRoute.default.gateway,
@@ -631,7 +631,7 @@ describe('configManager', () => {
                     {
                         name: 'examplePrefixList',
                         entriesReference: {
-                            link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                            link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2'
                         }
                     }
                 ];
@@ -750,15 +750,15 @@ describe('configManager', () => {
                     name: deviceName,
                     unicastAddress: [
                         {
-                            effectiveIp: '1.1.1.106',
+                            effectiveIp: '192.0.2.50',
                             effectivePort: 1026,
-                            ip: '1.1.1.106',
+                            ip: '192.0.2.50',
                             port: 1026
                         },
                         {
-                            effectiveIp: '1.1.1.2',
+                            effectiveIp: '192.0.2.51',
                             effectivePort: 777,
-                            ip: '1.1.1.2',
+                            ip: '192.0.2.51',
                             port: 777
                         }
                     ]
@@ -771,11 +771,11 @@ describe('configManager', () => {
                             {
                                 unicastAddress: [
                                     {
-                                        ip: '1.1.1.106',
+                                        ip: '192.0.2.50',
                                         port: 1026
                                     },
                                     {
-                                        ip: '1.1.1.2',
+                                        ip: '192.0.2.51',
                                         port: 777
                                     }
                                 ]
@@ -2271,14 +2271,14 @@ describe('configManager', () => {
                                         name: 'kernel',
                                         routeMap: '/Common/routeMap1',
                                         routeMapReference: {
-                                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2.8'
+                                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2'
                                         }
                                     },
                                     {
                                         name: 'static',
                                         routeMap: '/Common/routeMap1',
                                         routeMapReference: {
-                                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2.8'
+                                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2'
                                         }
                                     }
                                 ]
@@ -2297,24 +2297,24 @@ describe('configManager', () => {
                                         name: 'kernel',
                                         routeMap: '/Common/routeMap1',
                                         routeMapReference: {
-                                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2.8'
+                                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2'
                                         }
                                     },
                                     {
                                         name: 'static',
                                         routeMap: '/Common/routeMap1',
                                         routeMapReference: {
-                                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2.8'
+                                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2'
                                         }
                                     }
                                 ]
                             }
                         ],
                         neighborReference: {
-                            link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~peerGroup/neighbor?ver=14.1.2.8'
+                            link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~peerGroup/neighbor?ver=14.1.2'
                         },
                         peerGroupReference: {
-                            link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~peerGroup/peer-group?ver=14.1.2.8'
+                            link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~peerGroup/peer-group?ver=14.1.2'
                         }
                     }
                 ];
@@ -2352,11 +2352,11 @@ describe('configManager', () => {
                                 routeMap: {
                                     in: '/Common/routeMap1',
                                     inReference: {
-                                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2.8'
+                                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2'
                                     },
                                     out: '/Common/routeMap1',
                                     outReference: {
-                                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2.8'
+                                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMap1?ver=14.1.2'
                                     }
                                 },
                                 softReconfigurationInbound: 'enabled'
@@ -2492,7 +2492,7 @@ describe('configManager', () => {
                     {
                         name: 'exampleAsPath',
                         entriesReference: {
-                            link: 'https://localhost/mgmt/tm/net/routing/as-path/~Common~exampleAsPath/entries?ver=14.1.2.7'
+                            link: 'https://localhost/mgmt/tm/net/routing/as-path/~Common~exampleAsPath/entries?ver=14.1.2'
                         }
                     }
                 ];
@@ -2541,7 +2541,7 @@ describe('configManager', () => {
                     {
                         name: 'exampleRouteMap',
                         entriesReference: {
-                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleRouteMap/entries?ver=14.1.2.8'
+                            link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleRouteMap/entries?ver=14.1.2'
                         }
                     }
                 ];
@@ -2647,7 +2647,7 @@ describe('configManager', () => {
                     {
                         name: 'examplePrefixList',
                         entriesReference: {
-                            link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                            link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2'
                         }
                     }
                 ];
@@ -2880,7 +2880,7 @@ describe('configManager', () => {
                     {
                         name: 'virtualServer1',
                         description: 'virtual server description one',
-                        destination: '192.0.10.20:443',
+                        destination: '192.0.2.80:443',
                         enabled: false,
                         disabled: true,
                         translationAddress: '10.10.0.10',
@@ -2941,7 +2941,7 @@ describe('configManager', () => {
                                             name: 'virtualServer1',
                                             description: 'virtual server description one',
                                             enabled: false,
-                                            address: '192.0.10.20',
+                                            address: '192.0.2.80',
                                             port: 443,
                                             translationAddress: '10.10.0.10',
                                             translationPort: 23,
@@ -3064,7 +3064,7 @@ describe('configManager', () => {
                             selfLink: 'https://localhost/mgmt/tm/gtm/monitor/http/~Common~GSLBmonitor?ver=15.1.2',
                             defaultsFrom: '/Common/http',
                             description: 'description',
-                            destination: '1.1.1.1:80',
+                            destination: '192.0.2.20:80',
                             ignoreDownResponse: 'enabled',
                             interval: 100,
                             probeTimeout: 110,
@@ -3095,7 +3095,7 @@ describe('configManager', () => {
                                         description: 'description',
                                         reverse: 'enabled',
                                         send: 'HEAD / HTTP/1.0\\r\\n',
-                                        destination: '1.1.1.1:80',
+                                        destination: '192.0.2.20:80',
                                         timeout: 1000,
                                         transparent: 'enabled'
                                     }
@@ -3573,7 +3573,7 @@ describe('configManager', () => {
                 listResponses['/tm/sys/management-route'] = [
                     {
                         name: '24',
-                        fullPath: '/Common/8.8.8.8/32'
+                        fullPath: '/Common/192.0.2.40/32'
                     }
                 ];
 
@@ -3583,8 +3583,8 @@ describe('configManager', () => {
                         assert.deepStrictEqual(
                             state.currentConfig.Common.ManagementRoute,
                             {
-                                '8.8.8.8/32': {
-                                    name: '8.8.8.8/32',
+                                '192.0.2.40/32': {
+                                    name: '192.0.2.40/32',
                                     description: 'none'
                                 }
                             }
@@ -3662,7 +3662,7 @@ describe('configManager', () => {
                         tos: 'preserve',
                         usePmtu: 'enabled',
                         localAddress: '10.145.0.1',
-                        remoteAddress: '250.250.0.1',
+                        remoteAddress: '192.0.2.30',
                         secondaryAddress: 'any6',
                         key: 0,
                         mode: 'bidirectional',
@@ -3720,7 +3720,7 @@ describe('configManager', () => {
                                     tos: 'preserve',
                                     usePmtu: 'enabled',
                                     localAddress: '10.145.0.1',
-                                    remoteAddress: '250.250.0.1',
+                                    remoteAddress: '192.0.2.30',
                                     secondaryAddress: 'any6',
                                     key: 0,
                                     mode: 'bidirectional',

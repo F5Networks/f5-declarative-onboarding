@@ -54,10 +54,10 @@ describe('network.schema.json', () => {
                     class: 'DNS_Resolver',
                     forwardZones: [
                         {
-                            name: 'google.public-dns',
+                            name: 'test.public-dns',
                             nameservers: [
-                                '8.8.8.8:53',
-                                '8.8.4.4:53'
+                                '192.0.2.10:53',
+                                '192.0.2.20:53'
                             ]
                         }
                     ],
@@ -80,8 +80,8 @@ describe('network.schema.json', () => {
                         {
                             name: '.',
                             nameservers: [
-                                '8.8.8.8:53',
-                                '8.8.4.4:53'
+                                '192.0.2.10:53',
+                                '192.0.2.20:53'
                             ]
                         }
                     ]
@@ -105,10 +105,10 @@ describe('network.schema.json', () => {
                     class: 'DNS_Resolver',
                     forwardZones: [
                         {
-                            name: 'google.public.dns',
+                            name: 'test.public.dns',
                             nameservers: [
-                                '8.8.8.8:53',
-                                '8.8.4.4:53'
+                                '192.0.2.10:53',
+                                '192.0.2.20:53'
                             ],
                             rogueProperty: true
                         }
@@ -124,8 +124,8 @@ describe('network.schema.json', () => {
                     forwardZones: [
                         {
                             nameservers: [
-                                '8.8.8.8:53',
-                                '8.8.4.4:53'
+                                '192.0.2.10:53',
+                                '192.0.2.20:53'
                             ]
                         }
                     ]
@@ -337,7 +337,7 @@ describe('network.schema.json', () => {
             it('should validate network data with IPv4 address', () => {
                 const data = {
                     class: 'SelfIp',
-                    address: '1.2.3.4/32',
+                    address: '192.0.2.10/32',
                     vlan: 'myVlan',
                     allowService: 'all',
                     trafficGroup: 'traffic-group-1',
@@ -361,7 +361,7 @@ describe('network.schema.json', () => {
             it('should validate network data with allow service:port', () => {
                 const data = {
                     class: 'SelfIp',
-                    address: '1.2.3.4/32',
+                    address: '192.0.2.10/32',
                     vlan: 'myVlan',
                     allowService: ['foo:1234'],
                     trafficGroup: 'traffic-group-1'
@@ -372,7 +372,7 @@ describe('network.schema.json', () => {
             it('should validate network data with allow service:port and default', () => {
                 const data = {
                     class: 'SelfIp',
-                    address: '1.2.3.4/32',
+                    address: '192.0.2.10/32',
                     vlan: 'myVlan',
                     allowService: ['foo:1234', 'default'],
                     trafficGroup: 'traffic-group-1'
@@ -394,7 +394,7 @@ describe('network.schema.json', () => {
             it('should invalidate self ips with no vlan', () => {
                 const data = {
                     class: 'SelfIp',
-                    address: '1.2.3.4'
+                    address: '192.0.2.10'
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
                 assert(getErrorString().includes('"missingProperty": "vlan"'));
@@ -413,7 +413,7 @@ describe('network.schema.json', () => {
             it('should invalidate IPv4 selfIp with out of range CIDR', () => {
                 const data = {
                     class: 'SelfIp',
-                    address: '1.2.3.4/33',
+                    address: '192.0.2.10/33',
                     vlan: 'myVlan'
                 };
                 assert.strictEqual(validate(data), false, 'missing self ip vlan should not be valid');
@@ -433,7 +433,7 @@ describe('network.schema.json', () => {
             it('should invalidate bad traffic group', () => {
                 const data = {
                     class: 'SelfIp',
-                    address: '1.2.3.4',
+                    address: '192.0.2.10',
                     vlan: 'myVlan',
                     trafficGroup: 'traffic-group-foo'
                 };
@@ -445,7 +445,7 @@ describe('network.schema.json', () => {
                 it('should invalidate single words that are not all, default, or none', () => {
                     const data = {
                         class: 'SelfIp',
-                        address: '1.2.3.4',
+                        address: '192.0.2.10',
                         vlan: 'myVlan',
                         allowService: 'foo'
                     };
@@ -456,7 +456,7 @@ describe('network.schema.json', () => {
                 it('should invalidate service:port that is not in an array', () => {
                     const data = {
                         class: 'SelfIp',
-                        address: '1.2.3.4',
+                        address: '192.0.2.10',
                         vlan: 'myVlan',
                         allowService: 'tcp:1234'
                     };
@@ -471,7 +471,7 @@ describe('network.schema.json', () => {
                 it('should invalidate invalid port values', () => {
                     const data = {
                         class: 'SelfIp',
-                        address: '1.2.3.4',
+                        address: '192.0.2.10',
                         vlan: 'myVlan',
                         allowService: ['foo:bar']
                     };
@@ -482,7 +482,7 @@ describe('network.schema.json', () => {
                 it('should invalidate misspelled default in port array', () => {
                     const data = {
                         class: 'SelfIp',
-                        address: '1.2.3.4',
+                        address: '192.0.2.10',
                         vlan: 'myVlan',
                         allowService: ['foo:1234', 'defalt']
                     };
@@ -498,7 +498,7 @@ describe('network.schema.json', () => {
             it('should validate route data', () => {
                 const data = {
                     class: 'Route',
-                    gw: '1.2.3.4',
+                    gw: '192.0.2.10',
                     network: 'default',
                     mtu: 1234
                 };
@@ -518,7 +518,7 @@ describe('network.schema.json', () => {
             it('should allow route domains', () => {
                 const data = {
                     class: 'Route',
-                    gw: '1.2.3.4%10/24',
+                    gw: '192.0.2.10%10/24',
                     network: 'default',
                     mtu: 1234
                 };
@@ -528,7 +528,7 @@ describe('network.schema.json', () => {
             it('should validate route data to LOCAL_ONLY', () => {
                 const data = {
                     class: 'Route',
-                    gw: '1.2.3.4',
+                    gw: '192.0.2.10',
                     network: 'default',
                     mtu: 1234,
                     localOnly: true
@@ -541,7 +541,7 @@ describe('network.schema.json', () => {
             it('should invalidate additional properties', () => {
                 const data = {
                     class: 'Route',
-                    gw: '1.2.3.4',
+                    gw: '192.0.2.10',
                     foo: 'bar'
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
@@ -567,7 +567,7 @@ describe('network.schema.json', () => {
             it('should invalidate route data with bad network', () => {
                 const data = {
                     class: 'Route',
-                    gw: '1.2.3.4',
+                    gw: '192.0.2.10',
                     network: 'foo'
                 };
                 assert.strictEqual(validate(data), false, 'bad gateway IP address should not be valid');

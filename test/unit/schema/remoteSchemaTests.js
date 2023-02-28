@@ -102,7 +102,7 @@ describe('remote.schema.json', () => {
             it('should validate targetHost', () => {
                 const data = {
                     "class": "DO",
-                    "targetHost": "1.2.3.4",
+                    "targetHost": "192.0.2.10",
                     "declaration": {
                         "schemaVersion": "1.0.0",
                         "class": "Device"

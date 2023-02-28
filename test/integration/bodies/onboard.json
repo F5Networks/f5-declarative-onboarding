@@ -86,7 +86,7 @@
         "myFailoverMulticast": {
             "class": "FailoverMulticast",
             "interface": "eth0",
-            "address": "224.0.0.100",
+            "address": "233.252.0.10",
             "port": 123
         },
         "mySystem": {
@@ -139,8 +139,8 @@
         "myManagementRoute": {
             "class": "ManagementRoute",
             "remark": "not-configured-by-dhcp",
-            "network": "1.2.3.4",
-            "gw": "4.3.2.1",
+            "network": "192.0.2.13",
+            "gw": "192.0.2.14",
             "mtu": 0
         }
     }

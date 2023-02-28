@@ -69,7 +69,7 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     ConfigSync: {
-                        configsyncIp: '1.2.3.4'
+                        configsyncIp: '192.0.2.10'
                     }
                 }
             };
@@ -77,7 +77,7 @@ describe('dscHandler', () => {
             const dscHandler = new DscHandler(declaration, bigIpMock);
             return dscHandler.process()
                 .then(() => {
-                    assert.strictEqual(configSyncIpSent, '1.2.3.4');
+                    assert.strictEqual(configSyncIpSent, '192.0.2.10');
                 });
         });
 
@@ -85,7 +85,7 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     ConfigSync: {
-                        configsyncIp: '1.2.3.4/24'
+                        configsyncIp: '192.0.2.10/24'
                     }
                 }
             };
@@ -93,7 +93,7 @@ describe('dscHandler', () => {
             const dscHandler = new DscHandler(declaration, bigIpMock);
             return dscHandler.process()
                 .then(() => {
-                    assert.strictEqual(configSyncIpSent, '1.2.3.4');
+                    assert.strictEqual(configSyncIpSent, '192.0.2.10');
                 });
         });
 
@@ -129,7 +129,7 @@ describe('dscHandler', () => {
     });
 
     describe('FailoverUnicast', () => {
-        const address = '1.2.3.4';
+        const address = '192.0.2.10';
         const port = 1234;
 
         let pathSent;
@@ -148,7 +148,7 @@ describe('dscHandler', () => {
                     FailoverUnicast: {
                         unicastAddress: [
                             { ip: `${address}/24`, port },
-                            { ip: '5.6.7.8', port: 3456 }
+                            { ip: '192.0.2.50', port: 3456 }
                         ]
                     }
                 }
@@ -160,8 +160,8 @@ describe('dscHandler', () => {
                     assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
                     assert.deepStrictEqual(bodySent.unicastAddress,
                         [
-                            { ip: '1.2.3.4', port: 1234 },
-                            { ip: '5.6.7.8', port: 3456 }
+                            { ip: '192.0.2.10', port: 1234 },
+                            { ip: '192.0.2.50', port: 3456 }
                         ]);
                 });
         });
@@ -183,7 +183,7 @@ describe('dscHandler', () => {
             const dscHandler = new DscHandler(declaration, bigIpMock);
             return dscHandler.process()
                 .then(() => {
-                    assert.strictEqual(bodySent.unicastAddress[0].ip, '1.2.3.4');
+                    assert.strictEqual(bodySent.unicastAddress[0].ip, '192.0.2.10');
                 });
         });
 
@@ -224,7 +224,7 @@ describe('dscHandler', () => {
                     FailoverUnicast: {
                         unicastAddress: [
                             {
-                                ip: '224.0.0.100',
+                                ip: '192.0.2.40',
                                 port: 1026
                             }
                         ]
@@ -240,7 +240,7 @@ describe('dscHandler', () => {
                         [
                             {
                                 port: 1026,
-                                ip: '224.0.0.100'
+                                ip: '192.0.2.40'
                             }
                         ]
                     );
@@ -264,7 +264,7 @@ describe('dscHandler', () => {
                 Common: {
                     FailoverMulticast: {
                         multicastInterface: 'exampleInterface',
-                        multicastIp: '1.2.3.4',
+                        multicastIp: '192.0.2.10',
                         multicastPort: 765
                     }
                 }
@@ -275,7 +275,7 @@ describe('dscHandler', () => {
                 .then(() => {
                     assert.deepStrictEqual(bodySent, {
                         multicastInterface: 'exampleInterface',
-                        multicastIp: '1.2.3.4',
+                        multicastIp: '192.0.2.10',
                         multicastPort: 765
                     });
                     assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
@@ -338,7 +338,7 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        mirrorIp: '1.0.0.0',
+                        mirrorIp: '192.0.2.30',
                         mirrorSecondaryIp: 'any6'
                     }
                 }
@@ -348,7 +348,7 @@ describe('dscHandler', () => {
             return dscHandler.process()
                 .then(() => {
                     assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
-                    assert.strictEqual(bodySent.mirrorIp, '1.0.0.0');
+                    assert.strictEqual(bodySent.mirrorIp, '192.0.2.30');
                     assert.strictEqual(bodySent.mirrorSecondaryIp, 'any6');
                 });
         });
@@ -358,7 +358,7 @@ describe('dscHandler', () => {
                 Common: {
                     MirrorIp: {
                         mirrorIp: 'any6',
-                        mirrorSecondaryIp: '1.0.0.0'
+                        mirrorSecondaryIp: '192.0.2.30'
                     }
                 }
             };
@@ -368,7 +368,7 @@ describe('dscHandler', () => {
                 .then(() => {
                     assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
                     assert.strictEqual(bodySent.mirrorIp, 'any6');
-                    assert.strictEqual(bodySent.mirrorSecondaryIp, '1.0.0.0');
+                    assert.strictEqual(bodySent.mirrorSecondaryIp, '192.0.2.30');
                 });
         });
 
@@ -376,8 +376,8 @@ describe('dscHandler', () => {
             const declaration = {
                 Common: {
                     MirrorIp: {
-                        mirrorIp: '1.0.0.0',
-                        mirrorSecondaryIp: '2.0.0.0'
+                        mirrorIp: '192.0.2.30',
+                        mirrorSecondaryIp: '192.0.2.20'
                     }
                 }
             };
@@ -386,8 +386,8 @@ describe('dscHandler', () => {
             return dscHandler.process()
                 .then(() => {
                     assert.strictEqual(pathSent, '/tm/cm/device/~Common~my.bigip.com');
-                    assert.strictEqual(bodySent.mirrorIp, '1.0.0.0');
-                    assert.strictEqual(bodySent.mirrorSecondaryIp, '2.0.0.0');
+                    assert.strictEqual(bodySent.mirrorIp, '192.0.2.30');
+                    assert.strictEqual(bodySent.mirrorSecondaryIp, '192.0.2.20');
                 });
         });
 
@@ -1189,7 +1189,7 @@ describe('dscHandler', () => {
                         {
                             name: 'my.bigip.com',
                             configsyncIp: 'fdc3:eaf2:d8b9:123a::1',
-                            managementIp: '1.2.3.4'
+                            managementIp: '192.0.2.10'
                         }
                     ]);
                 }

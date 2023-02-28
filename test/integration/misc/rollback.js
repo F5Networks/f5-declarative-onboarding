@@ -57,7 +57,7 @@ describe('Rollback', function User() {
                 },
                 mySelfIp: {
                     class: 'SelfIp',
-                    address: '192.0.1.1/32',
+                    address: '192.0.2.10/32',
                     vlan: 'myVlan',
                     allowService: 'default'
                 }

@@ -39,7 +39,7 @@ describe('routingAccessListValidator', () => {
         describe('valid', () => {
             it('should validate single item entries', () => {
                 const wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {
                             exampleRoutingAccessList1: {
@@ -77,7 +77,7 @@ describe('routingAccessListValidator', () => {
 
             it('should validate multiple item entries with a single exactMatch true', () => {
                 const wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {
                             exampleRoutingAccessList1: {
@@ -145,7 +145,7 @@ describe('routingAccessListValidator', () => {
         describe('invalid', () => {
             it('should invalidate any non-any-address destination when any 1 entry has exactMatch true', () => {
                 const wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {
                             exampleRoutingAccessList: {
@@ -180,7 +180,7 @@ describe('routingAccessListValidator', () => {
 
             it('should invalidate mixing address families in the same entry', () => {
                 const wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {
                             exampleRoutingAccessList: {
@@ -208,7 +208,7 @@ describe('routingAccessListValidator', () => {
 
             it('should invalidate mixing address families across entries', () => {
                 const wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {
                             exampleRoutingAccessList: {
@@ -219,7 +219,7 @@ describe('routingAccessListValidator', () => {
                                         action: 'permit',
                                         source: '10.10.10.10',
                                         exactMatchEnabled: false,
-                                        destination: '20.20.20.20'
+                                        destination: '192.0.2.20'
                                     },
                                     {
                                         name: 20,

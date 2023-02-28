@@ -124,7 +124,7 @@ describe('authHandler', () => {
                             serviceType: 'callback-login',
                             servers: {
                                 primary: {
-                                    server: '1.2.3.4',
+                                    server: '192.0.2.10',
                                     port: 1811,
                                     secret: 'something'
                                 },
@@ -147,7 +147,7 @@ describe('authHandler', () => {
                     assert.strictEqual(pathsSent[0], '/tm/auth/radius-server');
                     assert.deepEqual(dataSent[0],
                         {
-                            server: '1.2.3.4',
+                            server: '192.0.2.10',
                             port: 1811,
                             secret: 'something',
                             name: 'system_auth_name1',
@@ -196,7 +196,7 @@ describe('authHandler', () => {
                             serviceType: 'callback-login',
                             servers: {
                                 primary: {
-                                    server: '1.2.3.4',
+                                    server: '192.0.2.10',
                                     port: 1811,
                                     secret: 'something'
                                 }
@@ -229,7 +229,7 @@ describe('authHandler', () => {
                             serviceType: 'callback-login',
                             servers: {
                                 primary: {
-                                    server: '1.2.3.4',
+                                    server: '192.0.2.10',
                                     port: 1811,
                                     secret: 'something'
                                 }
@@ -259,7 +259,7 @@ describe('authHandler', () => {
                         radius: {
                             servers: {
                                 name: 'foo',
-                                server: '1.2.3.4',
+                                server: '192.0.2.10',
                                 port: 1811,
                                 secret: 'something'
                             }
@@ -306,7 +306,7 @@ describe('authHandler', () => {
                         tacacs: {
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             secret: 'test',
@@ -333,7 +333,7 @@ describe('authHandler', () => {
                             secret: 'test',
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             service: 'ppp'
@@ -357,7 +357,7 @@ describe('authHandler', () => {
 
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             secret: 'test',
@@ -382,7 +382,7 @@ describe('authHandler', () => {
                             protocol: 'http',
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             secret: 'test',
@@ -442,7 +442,7 @@ describe('authHandler', () => {
                             searchTimeout: 30,
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'disabled',
@@ -485,7 +485,7 @@ describe('authHandler', () => {
                             searchTimeout: 30,
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'disabled',
@@ -527,7 +527,7 @@ describe('authHandler', () => {
                             searchTimeout: 687,
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'tls-start',
@@ -653,7 +653,7 @@ describe('authHandler', () => {
                             searchTimeout: 687,
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'tls-start',
@@ -688,7 +688,7 @@ describe('authHandler', () => {
                             searchTimeout: 30,
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'disabled',
@@ -742,7 +742,7 @@ describe('authHandler', () => {
                             searchTimeout: 30,
                             servers: [
                                 'my.host.com',
-                                '1.2.3.4',
+                                '192.0.2.10',
                                 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                             ],
                             ssl: 'disabled',
