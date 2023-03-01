@@ -1,0 +1,42 @@
+{
+    "async": true,
+    "schemaVersion": "1.37.0",
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "currentSecurityAnalytics": {
+            "class": "SecurityAnalytics",
+            "aclRules": {
+                "collectClientIpEnabled": true,
+                "collectClientPortEnabled": false,
+                "collectDestinationIpEnabled": true,
+                "collectDestinationPortEnabled": true,
+                "collectServerSideStatsEnabled": false
+            },
+            "collectAllDosStatsEnabled": false,
+            "collectedStatsExternalLoggingEnabled": false,
+            "collectedStatsInternalLoggingEnabled": false,
+            "dns": {
+                "collectClientIpEnabled": true,
+                "collectDestinationIpEnabled": true
+            },
+            "collectDnsStatsEnabled": true,
+            "dosL2L4": {
+                "collectClientIpEnabled": true,
+                "collectDestinationGeoEnabled": true
+            },
+            "collectDosL3StatsEnabled": true,
+            "collectFirewallAclStatsEnabled": true,
+            "collectFirewallDropsStatsEnabled": true,
+            "collectIpReputationStatsEnabled": true,
+            "l3L4Errors": {
+                "collectClientIpEnabled": true,
+                "collectDestinationIpEnabled": true
+            },
+            "collectSipStatsEnabled": true,
+            "collectStaleRulesEnabled": true,
+            "publisher": "none",
+            "smtpConfig": "none"
+        }
+    }
+}

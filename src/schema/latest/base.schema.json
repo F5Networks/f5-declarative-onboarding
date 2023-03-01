@@ -208,7 +208,8 @@
                             "GSLBProberPool",
                             "FirewallPolicy",
                             "FirewallAddressList",
-                            "FirewallPortList"
+                            "FirewallPortList",
+                            "SecurityAnalytics"
                         ]
                     }
                 },
@@ -218,7 +219,8 @@
                     { "$ref": "dsc.schema.json#" },
                     { "$ref": "analytics.schema.json#" },
                     { "$ref": "auth.schema.json#" },
-                    { "$ref": "gslb.schema.json#" }
+                    { "$ref": "gslb.schema.json#" },
+                    { "$ref": "security.schema.json#" }
                 ]
             },
             "default": {

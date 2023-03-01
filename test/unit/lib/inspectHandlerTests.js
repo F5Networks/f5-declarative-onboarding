@@ -1687,7 +1687,42 @@ describe('inspectHandler', () => {
                         ]
                     }
                 }
-            ]
+            ],
+            '/tm/security/analytics/settings': {
+                aclRules: {
+                    collectClientIp: 'enabled',
+                    collectClientPort: 'disabled',
+                    collectDestIp: 'enabled',
+                    collectDestPort: 'enabled',
+                    collectServerSideStats: 'disabled'
+                },
+                collectAllDosStatistic: 'disabled',
+                collectedStatsExternalLogging: 'disabled',
+                collectedStatsInternalLogging: 'disabled',
+                dns: {
+                    collectClientIp: 'enabled',
+                    collectDestinationIp: 'enabled'
+                },
+                dnsCollectStats: 'enabled',
+                dosL2L4: {
+                    collectClientIp: 'enabled',
+                    collectDestGeo: 'enabled'
+                },
+                dosl3CollectStats: 'enabled',
+                fwAclCollectStats: 'enabled',
+                fwDropsCollectStats: 'enabled',
+                ipReputationCollectStats: 'enabled',
+                l3L4Errors: {
+                    collectClientIp: 'enabled',
+                    collectDestIp: 'enabled'
+                },
+                sipCollectStats: 'enabled',
+                staleRules: {
+                    collect: 'disabled'
+                },
+                publisher: 'none',
+                smtpConfig: 'none'
+            }
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -2643,6 +2678,40 @@ describe('inspectHandler', () => {
                                     }
                                 }
                             ]
+                        },
+                        currentSecurityAnalytics: {
+                            class: 'SecurityAnalytics',
+                            aclRules: {
+                                collectClientIpEnabled: true,
+                                collectClientPortEnabled: false,
+                                collectDestinationIpEnabled: true,
+                                collectDestinationPortEnabled: true,
+                                collectServerSideStatsEnabled: false
+                            },
+                            collectAllDosStatsEnabled: false,
+                            collectedStatsExternalLoggingEnabled: false,
+                            collectedStatsInternalLoggingEnabled: false,
+                            dns: {
+                                collectClientIpEnabled: true,
+                                collectDestinationIpEnabled: true
+                            },
+                            collectDnsStatsEnabled: true,
+                            dosL2L4: {
+                                collectClientIpEnabled: true,
+                                collectDestinationGeoEnabled: true
+                            },
+                            collectDosL3StatsEnabled: true,
+                            collectFirewallAclStatsEnabled: true,
+                            collectFirewallDropsStatsEnabled: true,
+                            collectIpReputationStatsEnabled: true,
+                            l3L4Errors: {
+                                collectClientIpEnabled: true,
+                                collectDestinationIpEnabled: true
+                            },
+                            collectSipStatsEnabled: true,
+                            collectStaleRulesEnabled: false,
+                            publisher: 'none',
+                            smtpConfig: 'none'
                         }
                     }
                 }

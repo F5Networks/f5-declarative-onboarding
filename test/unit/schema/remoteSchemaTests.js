@@ -29,6 +29,7 @@ const requestSchema = require('../../../src/schema/latest/remote.schema.json');
 const customFormats = require('../../../src/schema/latest/formats');
 const defSchema = require('../../../src/schema/latest/definitions.schema.json');
 const gslbSchema = require('../../../src/schema/latest/gslb.schema.json');
+const securitySchema = require('../../../src/schema/latest/security.schema.json');
 
 const ajv = new Ajv(
     {
@@ -51,6 +52,7 @@ const validate = ajv
     .addSchema(analyticsSchema)
     .addSchema(authSchema)
     .addSchema(gslbSchema)
+    .addSchema(securitySchema)
     .addSchema(baseSchema)
     .compile(requestSchema);
 
