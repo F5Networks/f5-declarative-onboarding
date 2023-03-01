@@ -30,6 +30,30 @@
     * Tag the appropriate branch with the updated version (e.g. v1.34.0-4). The tag will kick off a DO pipeline with integration tests.
 * If the DO pipeline is successful, that pipeline will upload the build artifacts to Artifactory and send the release email to the `f5-declarative-onboarding` distribution list.
 
+## Process for LTS release
+* Using the GitLab GUI, create a branch from the release branch that we are declaring LTS. Bump the patch version by 1. For example, if we are declaring 1.36.0 to be LTS, then create a 1.36.1 branch from 1.36.0.
+* On your local machine, fetch and checkout the LTS branch.
+* Create a new local branch from the LTS branch (e.g. "prepare-1.36.1-release").
+* Update the patch version in `package.json` and `package-lock.json`.  The release number of the new version should start at 0 (e.g. 1.36.0-4 would become 1.36.1-0).
+* Add a new CHANGELOG section that looks like
+    ```
+    ## 1.36.1
+    ### Added
+
+    ### Fixed
+
+    ### Changed
+    - Promoted to LTS
+
+    ### Removed
+    ```
+* Create an MR for these changes. Important: Remember to set the branch you are merging into to the LTS branch.
+* Go to the atg-build project in GitLab
+  * Edit the DO schedule to set the `gitBranch` variable to the LTS branch.
+  * Run the DO schedule.
+  * After the build completes, edit the DO schedule to set the `gitBranch` variable back to develop.
+* Merge the release branch CHANGELOG into develop and create an MR for this.
+
 ## Process for release
 ### Begin process release at the very beginning of the first sprint of a new release, by performing the following actions:
 * Follow the instructions for setting up a release candidate (see [Process for release candidates](#Process-for-release-candidates)).
