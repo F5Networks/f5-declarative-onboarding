@@ -41,7 +41,7 @@
             }
         }
     },
-    "targetHost": "54.10.10.10",
+    "targetHost": "192.0.2.10",
     "targetUsername": "admin",
     "targetSshKey": {
         "path": "/var/ssh/restnoded/privatessh.key"

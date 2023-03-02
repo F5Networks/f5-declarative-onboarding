@@ -24,13 +24,13 @@
         },
         "selfTwo": {
             "class": "SelfIp",
-            "address": "192.0.3.20/24",
+            "address": "192.0.2.20/24",
             "vlan": "/Common/newVlan",
             "stagedFirewallPolicy": "/Common/firewallPolicy"
         },
         "firewallAddressList1": {
             "class": "FirewallAddressList",
-            "addresses": ["192.0.2.10", "192.1.2.0/24"]
+            "addresses": ["192.0.2.10", "192.0.2.0/24"]
         },
         "firewallPortList1": {
             "class": "FirewallPortList",

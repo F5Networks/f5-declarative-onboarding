@@ -6,7 +6,7 @@
         "class": "Tenant",
         "netAddressList1": {
             "class": "NetAddressList",
-            "addresses": ["192.0.2.10", "192.1.2.0/24"]
+            "addresses": ["192.0.2.10", "233.252.0.0/24"]
         },
         "netPortList1": {
             "class": "NetPortList",

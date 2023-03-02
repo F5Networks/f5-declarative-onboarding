@@ -121,8 +121,8 @@
         },
         "managementRoute": {
             "class": "ManagementRoute",
-            "gw": "1.2.3.4",
-            "network": "4.3.2.1",
+            "gw": "192.0.2.4",
+            "network": "192.0.2.1",
             "mtu": 1500
         },
         "myRouteDomain": {

@@ -1,6 +1,6 @@
 {
     "class": "DO",
-    "targetHost": "1.2.3.4",
+    "targetHost": "192.0.2.4",
     "targetUsername": "admin",
     "targetPassphrase": "myAdminPassword",
     "declaration": {

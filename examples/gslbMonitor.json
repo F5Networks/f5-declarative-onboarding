@@ -19,7 +19,7 @@
             "class": "GSLBServer",
             "devices": [
                 {
-                    "address": "10.10.10.10",
+                    "address": "192.0.2.10",
                     "addressTranslation": "192.0.2.12",
                     "remark": "GSLB server device description"
                 }
@@ -37,7 +37,7 @@
             "class": "GSLBMonitor",
             "remark": "description",
             "monitorType": "http",
-            "target": "1.1.1.1:80",
+            "target": "192.0.2.1:80",
             "interval": 100,
             "timeout": 1000,
             "probeTimeout": 110,
@@ -51,7 +51,7 @@
             "class": "GSLBMonitor",
             "remark": "description",
             "monitorType": "https",
-            "target": "2.2.2.2:80",
+            "target": "192.0.2.2:80",
             "interval": 100,
             "timeout": 1000,
             "probeTimeout": 110,
@@ -67,7 +67,7 @@
             "class": "GSLBMonitor",
             "remark": "description",
             "monitorType": "gateway-icmp",
-            "target": "3.3.3.3:80",
+            "target": "192.0.2.3:80",
             "interval": 100,
             "timeout": 1000,
             "probeTimeout": 110,
@@ -80,7 +80,7 @@
             "class": "GSLBMonitor",
             "remark": "description",
             "monitorType": "tcp",
-            "target": "4.4.4.4:80",
+            "target": "192.0.2.4:80",
             "interval": 100,
             "timeout": 1000,
             "probeTimeout": 110,
@@ -94,7 +94,7 @@
             "class": "GSLBMonitor",
             "remark": "description",
             "monitorType": "udp",
-            "target": "5.5.5.5:80",
+            "target": "192.0.2.55:80",
             "interval": 100,
             "timeout": 1000,
             "probeTimeout": 110,

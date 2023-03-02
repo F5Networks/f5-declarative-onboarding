@@ -58,7 +58,7 @@ For example, you have the following lines in your declaration.
 
     "external-self": {
             "class": "SelfIp",
-            "address": "1.2.3.4/24",
+            "address": "192.0.2.4/24",
             "vlan": "external",
             "allowService": "default",
             "trafficGroup": "traffic-group-1"
