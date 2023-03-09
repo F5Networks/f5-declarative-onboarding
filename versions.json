@@ -1,11 +1,11 @@
 {
   "versionMetaTimestamp": 1540928503,
   "latestVersion": {
-    "name": "1.35 (non-LTS)",
+    "name": "1.36 (non-LTS)",
     "url": "/products/extensions/f5-declarative-onboarding/latest/"
   },
   "otherVersions": [
-    { "name": "1.21.1 (LTS)", "url": "/products/extensions/f5-declarative-onboarding/1.21/"},
-    { "name": "1.27.1 (LTS)", "url": "/products/extensions/f5-declarative-onboarding/1.27/" }
+    { "name": "1.27.1 (LTS)", "url": "/products/extensions/f5-declarative-onboarding/1.27/"},
+    { "name": "1.36.1 (LTS)", "url": "/products/extensions/f5-declarative-onboarding/1.36/" }
   ]
 }
