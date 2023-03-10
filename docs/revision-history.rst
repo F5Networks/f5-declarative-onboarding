@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.36.1
+        - Released BIG-IP Declarative Onboarding 1.36.1 as a LTS (Long Term Support) version. See the BIG-IP Declarative Onboarding |supportmd| for information about the BIG-IP Declarative Onboarding support policy.
+        - 3-9-23
+
       * - 1.36
         - Updated the documentation for Declarative Onboarding v1.36.0.  This release contains the following changes: |br| * The default value for **allowService** on a **SelfIp** is now **none** (see :ref:`Troubleshooting<selfipchange>`) |br| * Updated VXLAN tunnel creation to respect TrafficControl acceptIpOptions values (see the note in :ref:`VXLAN tunnels<vxlan>`) 
         - 2-9-23
