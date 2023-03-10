@@ -440,8 +440,8 @@ describe('declarationParser', () => {
                 },
                 myLicense: {
                     class: 'License',
-                    bigIpUsername: '/Credentials/0/username',
-                    bigIqUsername: '/Credentials/1/username',
+                    bigIpUsername: '/Credentials/0/username', // #gitleaks:allow
+                    bigIqUsername: '/Credentials/1/username', // #gitleaks:allow
                     notAPointer: '/foo/bar'
                 },
                 myFailoverUnicast: {

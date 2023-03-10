@@ -907,7 +907,7 @@ describe('restWorker', () => {
         it('should dereference json-pointers in the DO wrapper', () => new Promise((resolve, reject) => {
             declaration = {
                 class: 'DO',
-                targetUsername: '/declaration/Credentials/0/username',
+                targetUsername: '/declaration/Credentials/0/username', // #gitleaks:allow
                 targetPassphrase: '/declaration/Credentials/1/password',
                 declaration: {
                     Credentials: [

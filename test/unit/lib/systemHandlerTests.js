@@ -2311,7 +2311,7 @@ describe('systemHandler', () => {
                 SnmpUser: {
                     myFirstSnmpUser: {
                         name: 'myFirstSnmpUser',
-                        username: 'my!name!withspecials',
+                        username: 'bigipUser!name!withspecials',
                         authProtocol: 'sha',
                         authPassword: 'pass1W0rd!',
                         privacyProtocol: 'aes',
@@ -2327,7 +2327,7 @@ describe('systemHandler', () => {
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].name, 'myFirstSnmpUser');
-                assert.strictEqual(dataSent[PATHS.SnmpUser][0].username, 'my!name!withspecials');
+                assert.strictEqual(dataSent[PATHS.SnmpUser][0].username, 'bigipUser!name!withspecials');
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].authPassword, 'pass1W0rd!');
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].authProtocol, 'sha');
                 assert.strictEqual(dataSent[PATHS.SnmpUser][0].privacyPassword, 'P@ssW0rd');
