@@ -3600,7 +3600,7 @@ describe('configManager', () => {
                 listResponses['/tm/sys/snmp/users'] = [
                     {
                         name: 'user1',
-                        username: 'special!username'
+                        username: 'bigipUsername'
                     }
                 ];
 
@@ -3611,7 +3611,7 @@ describe('configManager', () => {
                             state.currentConfig.Common.SnmpUser.user1,
                             {
                                 name: 'user1',
-                                username: 'special!username',
+                                username: 'bigipUsername',
                                 oidSubset: 'none',
                                 authProtocol: 'none',
                                 privacyProtocol: 'none'
