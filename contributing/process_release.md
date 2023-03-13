@@ -52,7 +52,8 @@
   * Edit the DO schedule to set the `gitBranch` variable to the LTS branch.
   * Run the DO schedule.
   * After the build completes, edit the DO schedule to set the `gitBranch` variable back to develop.
-* Merge the release branch CHANGELOG into develop and create an MR for this.
+* Merge the release branch (without updating the version) into develop and create an MR for this.
+* Merge the release branch (without updating the version) into master and create an MR for this.
 
 ## Process for release
 ### Begin process release at the very beginning of the first sprint of a new release, by performing the following actions:
