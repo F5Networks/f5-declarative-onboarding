@@ -57,7 +57,8 @@
   * The name of the tag should be the LTS version with a 'v' at the front (e.g. v1.36.1).
   * Update the `createFrom` to point at the LTS branch.
   * Set the message to: `LTS release v<LTS version>` (e.g. "LTS release v1.36.1")
-* Merge the release branch CHANGELOG into develop and create an MR for this.
+* Merge the release branch (without updating the package version) into develop and create an MR for this.
+* Merge the release branch (without updating the package version) into master and create an MR for this.
 
 ## Process for release
 ### Begin process release at the very beginning of the first sprint of a new release, by performing the following actions:
