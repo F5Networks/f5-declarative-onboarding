@@ -47,7 +47,7 @@ const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
  *             "myDns": {
  *                 "class": "DNS",
  *                 "nameServers": [
- *                     "1.2.3.4",
+ *                     "192.0.2.4",
  *                     "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
  *                 ],
  *                 "search": [
@@ -83,7 +83,7 @@ const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
  *             "app1SelfIp": {
  *                 "class": "SelfIp",
  *                 "vlan": "app1Vlan",
- *                 "address": "1.2.3.4/24"
+ *                 "address": "192.0.2.4/24"
  *             }
  *         }
  *     }
@@ -101,7 +101,7 @@ const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
  *             },
  *             "DNS": {
  *                 "nameServers": [
- *                     "1.2.3.4",
+ *                     "192.0.2.4",
  *                     "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
  *                 ],
  *                 "search": [
@@ -141,7 +141,7 @@ const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
  *                 "app1SelfIp": {
  *                     "name": "app1SelfIp",
  *                     "vlan": "app1Vlan",
- *                     "address": "1.2.3.4/24"
+ *                     "address": "192.0.2.4/24"
  *                 }
  *             }
  *         }

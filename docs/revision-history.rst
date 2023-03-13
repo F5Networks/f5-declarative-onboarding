@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.36.1
+        - Released BIG-IP Declarative Onboarding 1.36.1 as a LTS (Long Term Support) version. See the BIG-IP Declarative Onboarding |supportmd| for information about the BIG-IP Declarative Onboarding support policy.
+        - 3-9-23
+
       * - 1.36
         - Updated the documentation for Declarative Onboarding v1.36.0.  This release contains the following changes: |br| * The default value for **allowService** on a **SelfIp** is now **none** (see :ref:`Self IP class<selfip-class>`) |br| * Updated VXLAN tunnel creation to respect TrafficControl acceptIpOptions values (see the note in :ref:`VXLAN tunnels<vxlan>`) 
         - 2-9-23
@@ -36,11 +40,11 @@ Document Revision History
         - 7-15-22
 
       * - 1.30
-        - Updated the documentation for BIG-IP Declarative Onboarding v1.30.0.  This release contains the following changes: |br| * Added support for validating declarations with either Device or BIG-IP DO class using do.schema.json (see :ref:`Validating a declaration<validate>`) |br| |br| Issues Resolved: |br| * Declaration can fail while waiting for unprovisioned service to run |br| * Management firewall policy does not work without AFM module for version 15.1.2.1, `GitHub Issue 279 <https://github.com/F5Networks/f5-declarative-onboarding/issues/279>`_ |br| * BIG-IP DO unable to change hostname correctly in Google Cloud, `GitHub Issue 292 <https://github.com/F5Networks/f5-declarative-onboarding/issues/292>`_
+        - Updated the documentation for BIG-IP Declarative Onboarding v1.30.0.  This release contains the following changes: |br| * Added support for validating declarations with either Device or BIG-IP DO class using do.schema.json (see :ref:`Validating a declaration<validate>`) |br| |br| Issues Resolved: |br| * Declaration can fail while waiting for unprovisioned service to run |br| * Management firewall policy does not work without AFM module, `GitHub Issue 279 <https://github.com/F5Networks/f5-declarative-onboarding/issues/279>`_ |br| * BIG-IP DO unable to change hostname correctly in Google Cloud, `GitHub Issue 292 <https://github.com/F5Networks/f5-declarative-onboarding/issues/292>`_
         - 5-31-22
 
       * - 1.29
-        - Updated the documentation for BIG-IP Declarative Onboarding v1.29.0.  This release contains the following issues resolved: |br| * SelfIp with RouteDomain cannot reach directly connected network |br| *  Licensing can fail if restnoded restarts during processing |br| * SelfIp allowService property does not accept a mix of service:port and default, `GitHub Issue 276 <https://github.com/F5Networks/f5-declarative-onboarding/issues/276>`_ |br| *  Security level is not automatically set in the SnmpUser class, `GitHub Issue 282 <https://github.com/F5Networks/f5-declarative-onboarding/issues/282>`_ |br| * Management firewall policy does not work without AFM module for version 15.1.2.1, `GitHub Issue 279 <https://github.com/F5Networks/f5-declarative-onboarding/issues/279>`_ 
+        - Updated the documentation for BIG-IP Declarative Onboarding v1.29.0.  This release contains the following issues resolved: |br| * SelfIp with RouteDomain cannot reach directly connected network |br| *  Licensing can fail if restnoded restarts during processing |br| * SelfIp allowService property does not accept a mix of service:port and default, `GitHub Issue 276 <https://github.com/F5Networks/f5-declarative-onboarding/issues/276>`_ |br| *  Security level is not automatically set in the SnmpUser class, `GitHub Issue 282 <https://github.com/F5Networks/f5-declarative-onboarding/issues/282>`_ |br| * Management firewall policy does not work without AFM module, `GitHub Issue 279 <https://github.com/F5Networks/f5-declarative-onboarding/issues/279>`_
         - 4-19-22
 
       * - 1.28
