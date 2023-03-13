@@ -52,8 +52,13 @@
   * Edit the DO schedule to set the `gitBranch` variable to the LTS branch.
   * Run the DO schedule.
   * After the build completes, edit the DO schedule to set the `gitBranch` variable back to develop.
-* Merge the release branch (without updating the version) into develop and create an MR for this.
-* Merge the release branch (without updating the version) into master and create an MR for this.
+* Using the GUI create a tag off the LTS branch (e.g. 1.36.1)
+  * In the GUI go to `Repository -> Tags -> New tag`.
+  * The name of the tag should be the LTS version with a 'v' at the front (e.g. v1.36.1).
+  * Update the `createFrom` to point at the LTS branch.
+  * Set the message to: `LTS release v<LTS version>` (e.g. "LTS release v1.36.1")
+* Merge the release branch (without updating the package version) into develop and create an MR for this.
+* Merge the release branch (without updating the package version) into master and create an MR for this.
 
 ## Process for release
 ### Begin process release at the very beginning of the first sprint of a new release, by performing the following actions:
