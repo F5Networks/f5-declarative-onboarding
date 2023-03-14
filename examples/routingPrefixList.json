@@ -34,7 +34,7 @@
                 {
                     "name": 30,
                     "action": "deny",
-                    "prefix": "198.51.100.0/24",
+                    "prefix": "192.0.2.1/24",
                     "prefixLengthRange": "25:27"
                 }
             ]

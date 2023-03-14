@@ -61,7 +61,7 @@
                 {
                     "name": 30,
                     "action": "deny",
-                    "prefix": "198.51.100.0/24",
+                    "prefix": "192.0.2.0/24",
                     "prefixLengthRange": 25
                 }
             ]
@@ -129,12 +129,12 @@
             "keepAlive": 10,
             "neighbors": [
                 {
-                    "address": "203.0.113.1",
+                    "address": "192.0.2.1",
                     "ebgpMultihop": 2,
                     "peerGroup": "Neighbor"
                 },
                 {
-                    "address": "203.0.113.2",
+                    "address": "192.0.2.2",
                     "ebgpMultihop": 3,
                     "peerGroup": "Neighbor"
                 }
@@ -156,7 +156,7 @@
                 }
             ],
             "routeDomain": "exampleRouteDomain",
-            "routerId": "203.0.113.4"
+            "routerId": "192.0.2.4"
         }
     }
 }

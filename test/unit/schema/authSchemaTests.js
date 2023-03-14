@@ -166,7 +166,7 @@ describe('auth.schema.json', () => {
                     "radius": {
                         "servers": {
                             "primary": {
-                                "server": "1.2.3.4",
+                                "server": "192.0.2.10",
                                 "secret": "mumble"
                             },
                             "secondary": {
@@ -208,7 +208,7 @@ describe('auth.schema.json', () => {
                     "radius": {
                         "servers": {
                             "secondary": {
-                                "server": "5.6.7.8",
+                                "server": "192.0.2.10",
                                 "secret": "mumble"
                             }
                         }
@@ -336,7 +336,7 @@ describe('auth.schema.json', () => {
                     "tacacs": {
                         "servers": [
                             "my.host.com",
-                            "1.2.3.4",
+                            "192.0.2.10",
                             "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
                         ],
                         "accounting": "send-to-all-servers",
@@ -397,7 +397,7 @@ describe('auth.schema.json', () => {
                     "class": "Authentication",
                     "enabledSourceType": "tacacs",
                     "tacacs": {
-                        "servers": ["1.1.1.1"],
+                        "servers": ["192.0.2.10"],
                         "service": "ppp"
                     }
                 };
@@ -411,7 +411,7 @@ describe('auth.schema.json', () => {
                     "class": "Authentication",
                     "enabledSourceType": "tacacs",
                     "tacacs": {
-                        "servers": ["1.1.1.1"],
+                        "servers": ["192.0.2.10"],
                         "secret": "test"
                     }
                 };
@@ -448,7 +448,7 @@ describe('auth.schema.json', () => {
                         searchTimeout: 687,
                         servers: [
                             'my.host.com',
-                            '1.2.3.4',
+                            '192.0.2.10',
                             'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                         ],
                         ssl: "enabled",

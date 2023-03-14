@@ -25,7 +25,7 @@ describe('userValidator', () => {
     describe('valid', () => {
         it('should validate valid root user and 2 valid non-root users', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         root: {
@@ -57,7 +57,7 @@ describe('userValidator', () => {
     describe('invalid', () => {
         it('should invalidate a userType of "root" when user is not "root"', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         user1: {
@@ -76,7 +76,7 @@ describe('userValidator', () => {
 
         it('should invalidate a userType of "regular" when user is "root"', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         root: {
@@ -95,7 +95,7 @@ describe('userValidator', () => {
 
         it('should invalidate user names that are too long', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         userWithTooLongName_123456789012: {

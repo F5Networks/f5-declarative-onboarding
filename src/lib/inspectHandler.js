@@ -424,6 +424,11 @@ const customFunctions = {
         });
         return [configKey, configObject];
     },
+    // SecurityAnalytics
+    remapStaleRules: (configKey, configObject) => {
+        configObject.collectStaleRulesEnabled = configObject.collectStaleRulesEnabled.collect;
+        return [configKey, configObject];
+    },
     // Some items with schemaMerge are skipped in the general handling but
     // should be processed by processItem anyway
     remapItemWithSchemaMerge: (configKey, configObject) => [configKey, configObject]

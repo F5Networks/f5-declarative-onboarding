@@ -141,10 +141,10 @@ describe('networkHandler', () => {
                                     name: 'amazonaws.com',
                                     nameservers: [
                                         {
-                                            name: '8.8.8.8:53'
+                                            name: '192.0.2.12:53'
                                         },
                                         {
-                                            name: '8.8.8.7:53'
+                                            name: '192.0.2.13:53'
                                         }
                                     ]
                                 },
@@ -152,10 +152,10 @@ describe('networkHandler', () => {
                                     name: 'idservice.net',
                                     nameservers: [
                                         {
-                                            name: '8.8.4.4:53'
+                                            name: '192.0.2.11:53'
                                         },
                                         {
-                                            name: '8.8.4.3:53'
+                                            name: '192.0.2.14:53'
                                         }
                                     ]
                                 }
@@ -183,12 +183,12 @@ describe('networkHandler', () => {
 
                     assert.strictEqual(resolverData[0].forwardZones.length, 2);
                     assert.strictEqual(resolverData[0].forwardZones[0].name, 'amazonaws.com');
-                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '8.8.8.8:53');
-                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '8.8.8.7:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '192.0.2.12:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '192.0.2.13:53');
 
                     assert.strictEqual(resolverData[0].forwardZones[1].name, 'idservice.net');
-                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '8.8.4.4:53');
-                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '8.8.4.3:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '192.0.2.11:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '192.0.2.14:53');
 
                     assert.strictEqual(resolverData[0].randomizeQueryNameCase, 'yes');
                     assert.strictEqual(resolverData[0].routeDomain, '0');
@@ -211,10 +211,10 @@ describe('networkHandler', () => {
                                     name: 'amazonaws.com',
                                     nameservers: [
                                         {
-                                            name: '8.8.8.8:53'
+                                            name: '192.0.2.12:53'
                                         },
                                         {
-                                            name: '8.8.8.7:53'
+                                            name: '192.0.2.13:53'
                                         }
                                     ]
                                 },
@@ -222,10 +222,10 @@ describe('networkHandler', () => {
                                     name: 'idservice.net',
                                     nameservers: [
                                         {
-                                            name: '8.8.4.4:53'
+                                            name: '192.0.2.11:53'
                                         },
                                         {
-                                            name: '8.8.4.3:53'
+                                            name: '192.0.2.14:53'
                                         }
                                     ]
                                 }
@@ -244,11 +244,11 @@ describe('networkHandler', () => {
                     assert.strictEqual(resolverData[0].partition, 'Common');
                     assert.strictEqual(resolverData[0].forwardZones.length, 2);
                     assert.strictEqual(resolverData[0].forwardZones[0].name, 'amazonaws.com');
-                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '8.8.8.8:53');
-                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '8.8.8.7:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[0].name, '192.0.2.12:53');
+                    assert.strictEqual(resolverData[0].forwardZones[0].nameservers[1].name, '192.0.2.13:53');
                     assert.strictEqual(resolverData[0].forwardZones[1].name, 'idservice.net');
-                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '8.8.4.4:53');
-                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '8.8.4.3:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[0].name, '192.0.2.11:53');
+                    assert.strictEqual(resolverData[0].forwardZones[1].nameservers[1].name, '192.0.2.14:53');
                 });
         });
     });
@@ -441,7 +441,7 @@ describe('networkHandler', () => {
                         selfIp1: {
                             name: 'selfIp1',
                             vlan: '/Common/vlan1',
-                            address: '1.2.3.4',
+                            address: '192.0.2.60',
                             trafficGroup: '/Common/traffic-group-local-only',
                             allowService: ['tcp:1234', 'tcp:5678'],
                             fwEnforcedPolicy: 'firewallPolicy'
@@ -449,7 +449,7 @@ describe('networkHandler', () => {
                         selfIp2: {
                             name: 'selfIp2',
                             vlan: '/Common/vlan2',
-                            address: '5.6.7.8',
+                            address: '192.0.2.110',
                             trafficGroup: '/Common/traffic-group-local-only',
                             allowService: 'default',
                             fwStagedPolicy: 'firewallPolicy'
@@ -464,7 +464,7 @@ describe('networkHandler', () => {
                     const selfIpData = dataSent[PATHS.SelfIp];
                     assert.strictEqual(selfIpData[0].name, 'selfIp1');
                     assert.strictEqual(selfIpData[0].vlan, '/Common/vlan1');
-                    assert.strictEqual(selfIpData[0].address, '1.2.3.4');
+                    assert.strictEqual(selfIpData[0].address, '192.0.2.60');
                     assert.strictEqual(
                         selfIpData[0].trafficGroup, '/Common/traffic-group-local-only'
                     );
@@ -476,7 +476,7 @@ describe('networkHandler', () => {
                     assert.strictEqual(selfIpData[0].fwStagedPolicy, 'none');
                     assert.strictEqual(selfIpData[1].name, 'selfIp2');
                     assert.strictEqual(selfIpData[1].vlan, '/Common/vlan2');
-                    assert.strictEqual(selfIpData[1].address, '5.6.7.8');
+                    assert.strictEqual(selfIpData[1].address, '192.0.2.110');
                     assert.strictEqual(
                         selfIpData[1].trafficGroup, '/Common/traffic-group-local-only'
                     );
@@ -619,14 +619,14 @@ describe('networkHandler', () => {
                         selfIp1: {
                             name: 'selfIp1',
                             vlan: '/Common/vlan1',
-                            address: '1.2.3.4/24',
+                            address: '192.0.2.60/24',
                             trafficGroup: '/Common/traffic-group-local-only'
                         }
                     }
                 }
             };
             const device = {
-                configsyncIp: '1.2.3.4'
+                configsyncIp: '192.0.2.60'
             };
 
             bigIpMock.list = (path) => {
@@ -647,7 +647,7 @@ describe('networkHandler', () => {
             return networkHandler.process()
                 .then(() => {
                     assert.strictEqual(configSyncIpDataSent[0], 'none');
-                    assert.strictEqual(configSyncIpDataSent[1], '1.2.3.4');
+                    assert.strictEqual(configSyncIpDataSent[1], '192.0.2.60');
                 });
         });
 
@@ -866,7 +866,7 @@ describe('networkHandler', () => {
                         selfIp: {
                             name: 'selfIp',
                             vlan: '/Common/vlan',
-                            address: '1.2.3.4',
+                            address: '192.0.2.60',
                             allowService: 'default',
                             trafficGroup: '/Common/traffic-group-local-only'
                         }
@@ -899,13 +899,13 @@ describe('networkHandler', () => {
                         theRoute: {
                             name: 'theRoute',
                             gw: '10.11.12.13',
-                            network: '50.60.70.80',
+                            network: '192.0.2.20',
                             mtu: 1000
                         },
                         localRoute: {
                             name: 'localRoute',
                             tmInterface: 'targetVLAN',
-                            network: '50.60.70.81',
+                            network: '192.0.2.21',
                             mtu: 1120,
                             localOnly: true
                         }
@@ -919,13 +919,13 @@ describe('networkHandler', () => {
                             theRoute: {
                                 name: 'theRoute',
                                 gw: '10.11.12.13',
-                                network: '51.62.73.84/32',
+                                network: '192.0.2.21/32',
                                 mtu: 1000
                             },
                             localRoute: {
                                 name: 'localRoute',
                                 gw: '10.11.12.13',
-                                network: '51.62.73.85/32',
+                                network: '192.0.2.22/32',
                                 mtu: 1005,
                                 localOnly: true
                             }
@@ -947,14 +947,14 @@ describe('networkHandler', () => {
                         },
                         route2: {
                             name: 'route2',
-                            gw: '1.1.1.1',
-                            network: '2.2.2.2',
+                            gw: '192.0.2.10',
+                            network: '192.0.2.100',
                             mtu: 1400
                         },
                         route3: {
                             name: 'route3',
                             tmInterface: 'targetTunnel',
-                            network: '1.2.3.4',
+                            network: '192.0.2.60',
                             mtu: 100,
                             localOnly: false
                         },
@@ -987,13 +987,13 @@ describe('networkHandler', () => {
                     assert.strictEqual(routeData[0].mtu, 1500);
                     assert.strictEqual(routeData[0].partition, 'Common');
                     assert.strictEqual(routeData[1].name, 'route2');
-                    assert.strictEqual(routeData[1].gw, '1.1.1.1');
-                    assert.strictEqual(routeData[1].network, '2.2.2.2/32');
+                    assert.strictEqual(routeData[1].gw, '192.0.2.10');
+                    assert.strictEqual(routeData[1].network, '192.0.2.100/32');
                     assert.strictEqual(routeData[1].mtu, 1400);
                     assert.strictEqual(routeData[1].partition, 'Common');
                     assert.strictEqual(routeData[2].name, 'route3');
                     assert.strictEqual(routeData[2].interface, '/Common/targetTunnel');
-                    assert.strictEqual(routeData[2].network, '1.2.3.4/32');
+                    assert.strictEqual(routeData[2].network, '192.0.2.60/32');
                     assert.strictEqual(routeData[2].mtu, 100);
                     assert.strictEqual(routeData[2].partition, 'Common');
                     assert.deepStrictEqual(routeData[3], {
@@ -1061,19 +1061,19 @@ describe('networkHandler', () => {
                 localRoute: {
                     name: 'localRoute',
                     gw: '10.11.12.13',
-                    network: '51.62.73.85/32',
+                    network: '192.0.2.32/32',
                     mtu: 1005,
                     localOnly: true
                 }
             };
-            declaration.Common.Route.localRoute.network = '51.62.73.86/32';
+            declaration.Common.Route.localRoute.network = '192.0.2.31/32';
             const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     assert.strictEqual(bigIpMockSpy.create.callCount, 2);
                     assert.strictEqual(bigIpMockSpy.delete.callCount, 1);
                     assert.deepStrictEqual(deletedPaths, ['/tm/net/route/~LOCAL_ONLY~localRoute']);
-                    assert.strictEqual(dataSent[PATHS.Route][1].network, '51.62.73.86/32');
+                    assert.strictEqual(dataSent[PATHS.Route][1].network, '192.0.2.31/32');
                 });
         });
     });
@@ -1392,8 +1392,8 @@ describe('networkHandler', () => {
                             autoLasthop: 'default',
                             key: 0,
                             localAddress: '10.10.10.10',
-                            remoteAddress: '20.20.20.10',
-                            secondaryAddress: '30.30.30.10',
+                            remoteAddress: '192.0.2.50',
+                            secondaryAddress: '192.0.2.70',
                             mode: 'bidirectional',
                             transparent: 'disabled',
                             trafficGroup: 'traffic-group-local-only'
@@ -1407,8 +1407,8 @@ describe('networkHandler', () => {
                             autoLasthop: 'enabled',
                             key: 1,
                             localAddress: '10.10.10.20',
-                            remoteAddress: '20.20.20.20',
-                            secondaryAddress: '30.30.30.20',
+                            remoteAddress: '192.0.2.30',
+                            secondaryAddress: '192.0.2.80',
                             mode: 'inbound',
                             transparent: 'enabled',
                             trafficGroup: 'none'
@@ -1423,7 +1423,7 @@ describe('networkHandler', () => {
                             description: 'none',
                             key: 0,
                             localAddress: '10.10.0.0',
-                            remoteAddress: '20.20.0.0',
+                            remoteAddress: '192.0.2.40',
                             secondaryAddress: 'any6',
                             mode: 'bidirectional',
                             transparent: 'disabled',
@@ -1486,8 +1486,8 @@ describe('networkHandler', () => {
                                 tos: 'preserve',
                                 usePmtu: 'enabled',
                                 localAddress: '10.10.10.10',
-                                remoteAddress: '20.20.20.10',
-                                secondaryAddress: '30.30.30.10',
+                                remoteAddress: '192.0.2.50',
+                                secondaryAddress: '192.0.2.70',
                                 key: 0,
                                 mode: 'bidirectional',
                                 transparent: 'disabled',
@@ -1503,8 +1503,8 @@ describe('networkHandler', () => {
                                 tos: 12,
                                 usePmtu: 'disabled',
                                 localAddress: '10.10.10.20',
-                                remoteAddress: '20.20.20.20',
-                                secondaryAddress: '30.30.30.20',
+                                remoteAddress: '192.0.2.30',
+                                secondaryAddress: '192.0.2.80',
                                 key: 1,
                                 mode: 'inbound',
                                 transparent: 'enabled',
@@ -1520,7 +1520,7 @@ describe('networkHandler', () => {
                                 tos: 'preserve',
                                 usePmtu: 'enabled',
                                 localAddress: '10.10.0.0',
-                                remoteAddress: '20.20.0.0',
+                                remoteAddress: '192.0.2.40',
                                 secondaryAddress: 'any6',
                                 key: 0,
                                 mode: 'bidirectional',

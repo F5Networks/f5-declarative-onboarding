@@ -28,6 +28,7 @@ const analyticsSchema = require('../schema/latest/analytics.schema.json');
 const authSchema = require('../schema/latest/auth.schema.json');
 const definitionsSchema = require('../schema/latest/definitions.schema.json');
 const gslbSchema = require('../schema/latest/gslb.schema.json');
+const securitySchema = require('../schema/latest/security.schema.json');
 
 const customFormats = require('../schema/latest/formats');
 
@@ -54,6 +55,7 @@ class AjvValidator {
             .addSchema(analyticsSchema)
             .addSchema(authSchema)
             .addSchema(gslbSchema)
+            .addSchema(securitySchema)
             .addSchema(baseSchema)
             .addSchema(remoteSchema)
             .compile(doSchema);

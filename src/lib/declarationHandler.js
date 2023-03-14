@@ -33,6 +33,7 @@ const ProvisionHandler = require('./provisionHandler');
 const DeprovisionHandler = require('./deprovisionHandler');
 const AuthHandler = require('./authHandler');
 const GSLBHandler = require('./gslbHandler');
+const SecurityHandler = require('./securityHandler');
 const TraceManager = require('./traceManager');
 const RoutingAccessListValidator = require('./routingAccessListValidator');
 const configItems = require('./configItems.json');
@@ -679,8 +680,8 @@ function applyRouteMapFixes(declaration) {
  *
  * Examples
  *
- * source (0.0.0.0 or ::) with destination 1.1.1.1 sets source 0.0.0.0/0 and destination 10.10.10.10/32
- * source 1.1.1.1 with destination (0.0.0.0 or ::) sets source 10.10.10.10/32 and destination 0.0.0.0/0
+ * source (0.0.0.0 or ::) with destination 192.0.2.1 sets source 0.0.0.0/0 and destination 192.0.2.10/32
+ * source 192.0.2.1 with destination (0.0.0.0 or ::) sets source 192.0.2.10/32 and destination 0.0.0.0/0
  *
  * source 2001:0db8:: with destination (0.0.0.0 or ::) sets source 2001:0db8::/128 and destination ::/0
  * source (0.0.0.0 or ::) with destination 2001:0db8:: sets source ::/0 and destination 2001:0db8::/128
@@ -1286,6 +1287,7 @@ function makeUpdates(declaration, updateDeclaration, deleteDeclaration) {
                 [DscHandler, updateDeclaration],
                 [AnalyticsHandler, updateDeclaration],
                 [GSLBHandler, updateDeclaration],
+                [SecurityHandler, updateDeclaration],
                 [DeleteHandler, deleteDeclaration],
                 [DeprovisionHandler, updateDeclaration]
             ];

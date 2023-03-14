@@ -1205,6 +1205,72 @@
         "nameless": true
     },
     {
+        "path": "/tm/security/analytics/settings",
+        "schemaClass": "SecurityAnalytics",
+        "requiredModules": [{ "module": "afm" }],
+        "properties": [
+            {
+                "id": "aclRules",
+                "transform": [
+                    { "id": "collectClientIp", "newId": "collectClientIpEnabled", "truth": "enabled", "falsehood": "disabled" },
+                    { "id": "collectClientPort", "newId": "collectClientPortEnabled", "truth": "enabled", "falsehood": "disabled" },
+                    { "id": "collectDestIp", "newId": "collectDestinationIpEnabled", "truth": "enabled", "falsehood": "disabled" },
+                    { "id": "collectDestPort", "newId": "collectDestinationPortEnabled", "truth": "enabled", "falsehood": "disabled" },
+                    { "id": "collectServerSideStats", "newId": "collectServerSideStatsEnabled", "truth": "enabled", "falsehood": "disabled" }
+                ]
+            },
+            { "id": "collectAllDosStatistic", "newId": "collectAllDosStatsEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "collectedStatsExternalLogging", "newId": "collectedStatsExternalLoggingEnabled", "truth": "enabled", "falsehood": "disabled"  },
+            { "id": "collectedStatsInternalLogging", "newId": "collectedStatsInternalLoggingEnabled", "truth": "enabled", "falsehood": "disabled"  },
+            {
+                "id": "dns",
+                "transform": [
+                    { "id": "collectClientIp", "newId": "collectClientIpEnabled", "truth": "enabled", "falsehood": "disabled" },
+                    { "id": "collectDestinationIp", "newId": "collectDestinationIpEnabled", "truth": "enabled", "falsehood": "disabled" }
+                ]
+            },
+            { "id": "dnsCollectStats", "newId": "collectDnsStatsEnabled", "truth": "enabled", "falsehood": "disabled" },
+            {
+                "id": "dosL2L4",
+                "transform": [
+                    { "id": "collectClientIp", "newId": "collectClientIpEnabled", "truth": "enabled", "falsehood": "disabled" },
+                    { "id": "collectDestGeo", "newId": "collectDestinationGeoEnabled", "truth": "enabled", "falsehood": "disabled" }
+                ]
+            },
+            { "id": "dosl3CollectStats", "newId": "collectDosL3StatsEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "fwAclCollectStats", "newId": "collectFirewallAclStatsEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "fwDropsCollectStats", "newId": "collectFirewallDropsStatsEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "ipReputationCollectStats", "newId": "collectIpReputationStatsEnabled", "truth": "enabled", "falsehood": "disabled" },
+            {
+                "id": "l3L4Errors",
+                "transform": [
+                    { "id": "collectClientIp", "newId": "collectClientIpEnabled", "truth": "enabled", "falsehood": "disabled" },
+                    { "id": "collectDestIp", "newId": "collectDestinationIpEnabled", "truth": "enabled", "falsehood": "disabled" }
+                ]
+            },
+            { "id": "publisher", "defaultWhenOmitted": "none" },
+            { "id": "sipCollectStats", "newId": "collectSipStatsEnabled", "truth": "enabled", "falsehood": "disabled" },
+            { "id": "smtpConfig", "defaultWhenOmitted": "none" },
+            {
+                "id": "staleRules",
+                "newId": "collectStaleRulesEnabled",
+                "transformBooleanOrStringToObject": {
+                    "itemKey": "collectStaleRulesEnabled",
+                    "toKey": "collect"
+                },
+                "transform": [
+                    { "id": "collect", "truth": "enabled", "falsehood": "disabled" }
+                ]
+            }
+        ],
+        "nameless": true,
+        "declaration": {
+            "customFunctions": [
+                { "id": "remapStaleRules" }
+            ]
+        }
+    },
+    {
         "schemaClass": "License",
         "nameless": true,
         "properties": [],

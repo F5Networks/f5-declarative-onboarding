@@ -44,7 +44,7 @@ describe('dsc.schema.json', () => {
             it('should validate config sync data with IP configsyncIp', () => {
                 const data = {
                     "class": "ConfigSync",
-                    "configsyncIp": "1.2.3.4"
+                    "configsyncIp": "192.0.2.10"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -87,7 +87,7 @@ describe('dsc.schema.json', () => {
             it('should invalidate additional properties', () => {
                 const data = {
                     "class": "ConfigSync",
-                    "configsyncIp": "1.2.3.4",
+                    "configsyncIp": "192.0.2.10",
                     "foo": "bar"
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
@@ -101,7 +101,7 @@ describe('dsc.schema.json', () => {
             it('should validate minimal unicast address with ip', () => {
                 const data = {
                     "class": "FailoverUnicast",
-                    "address": "1.2.3.4"
+                    "address": "192.0.2.10"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -122,7 +122,7 @@ describe('dsc.schema.json', () => {
             it('should validate full unicast address', () => {
                 const data = {
                     "class": "FailoverUnicast",
-                    "address": "1.2.3.4",
+                    "address": "192.0.2.10",
                     "port": 8888
                 };
                 assert.ok(validate(data), getErrorString(validate));
@@ -132,16 +132,16 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "FailoverUnicast",
                     "addressPorts": [
-                        { "address": "2.3.4.5", "port": 876 },
-                        { "address": "1.2.3.4" }
+                        { "address": "192.0.2.20", "port": 876 },
+                        { "address": "192.0.2.10" }
                     ]
                 };
                 assert.ok(validate(data), getErrorString(validate));
                 assert.deepStrictEqual(data, {
                     class: 'FailoverUnicast',
                     addressPorts: [
-                        { address: '2.3.4.5', port: 876 },
-                        { address: '1.2.3.4', port: 1026 }
+                        { address: '192.0.2.20', port: 876 },
+                        { address: '192.0.2.10', port: 1026 }
                     ]
                 });
             });
@@ -175,7 +175,7 @@ describe('dsc.schema.json', () => {
             it('should invalidate bad port', () => {
                 const data = {
                     "class": "FailoverUnicast",
-                    "address": "1.2.3.4",
+                    "address": "192.0.2.10",
                     "port": 65536
                 };
                 assert.strictEqual(validate(data), false, 'additional properties should not be valid');
@@ -200,10 +200,10 @@ describe('dsc.schema.json', () => {
             it('should invalidate if an addressPorts is provided as well as address', () => {
                 const data = {
                     "class": "FailoverUnicast",
-                    "address": "1.2.3.4",
+                    "address": "192.0.2.10",
                     "addressPorts": [
                         {
-                            "address": "1.2.3.4"
+                            "address": "192.0.2.10"
                         }
                     ]
                 };
@@ -219,7 +219,7 @@ describe('dsc.schema.json', () => {
                     "port": 59,
                     "addressPorts": [
                         {
-                            "address": "1.2.3.4"
+                            "address": "192.0.2.10"
                         }
                     ]
                 };
@@ -234,7 +234,7 @@ describe('dsc.schema.json', () => {
                     "class": "FailoverUnicast",
                     "addressPorts": [
                         {
-                            "address": "1.2.3.4",
+                            "address": "192.0.2.10",
                             "port": 65536
                         }
                     ]
@@ -248,7 +248,7 @@ describe('dsc.schema.json', () => {
                     "class": "FailoverUnicast",
                     "addressPorts": [
                         {
-                            "address": "1.2.3.400"
+                            "address": "192.0.2.1000"
                         }
                     ]
                 };
@@ -267,7 +267,7 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "FailoverMulticast",
                     "interface": "exampleInterface",
-                    "address": "1.2.3.4",
+                    "address": "192.0.2.10",
                     "port": 123
                 };
                 assert.ok(validate(data), getErrorString(validate));
@@ -397,7 +397,7 @@ describe('dsc.schema.json', () => {
                     "class": "DeviceTrust",
                     "localUsername": "myUser",
                     "localPassword": "myPassword",
-                    "remoteHost": "1.2.3.4",
+                    "remoteHost": "192.0.2.10",
                     "remoteUsername": "yourUser",
                     "remotePassword": "yourPassword"
                 };
@@ -422,7 +422,7 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "DeviceTrust",
                     "localPassword": "myPassword",
-                    "remoteHost": "1.2.3.4",
+                    "remoteHost": "192.0.2.10",
                     "remoteUsername": "yourUser",
                     "remotePassword": "yourPassword"
                 };
@@ -434,7 +434,7 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "DeviceTrust",
                     "localUsername": "myUser",
-                    "remoteHost": "1.2.3.4",
+                    "remoteHost": "192.0.2.10",
                     "remoteUsername": "yourUser",
                     "remotePassword": "yourPassword"
                 };
@@ -459,7 +459,7 @@ describe('dsc.schema.json', () => {
                     "class": "DeviceTrust",
                     "localUsername": "myUser",
                     "localPassword": "myPassword",
-                    "remoteHost": "1.2.3.4",
+                    "remoteHost": "192.0.2.10",
                     "remotePassword": "yourPassword"
                 };
                 assert.strictEqual(validate(data), false, 'missing remoteUsername should not be valid');
@@ -471,7 +471,7 @@ describe('dsc.schema.json', () => {
                     "class": "DeviceTrust",
                     "localUsername": "myUser",
                     "localPassword": "myPassword",
-                    "remoteHost": "1.2.3.4",
+                    "remoteHost": "192.0.2.10",
                     "remoteUsername": "yourUser"
                 };
                 assert.strictEqual(validate(data), false, 'missing remotePassword should not be valid');

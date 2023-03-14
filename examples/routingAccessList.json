@@ -18,9 +18,9 @@
                 {
                     "name": "22",
                     "action": "deny",
-                    "destination": "198.51.100.10",
+                    "destination": "192.0.2.10",
                     "exactMatchEnabled": false,
-                    "source": "198.51.100.11"
+                    "source": "192.0.2.11"
                 }
             ]
         },

@@ -127,7 +127,7 @@ describe('declarationHandler', () => {
                                 name: 'afm',
                                 fullPath: 'afm',
                                 generation: 1,
-                                selfLink: 'https://localhost/mgmt/tm/sys/provision/afm?ver=12.1.5.1',
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/afm?ver=12.1.5',
                                 cpuRatio: 0,
                                 diskRatio: 0,
                                 level: 'none',
@@ -138,7 +138,7 @@ describe('declarationHandler', () => {
                                 name: 'avr',
                                 fullPath: 'avr',
                                 generation: 1,
-                                selfLink: 'https://localhost/mgmt/tm/sys/provision/avr?ver=12.1.5.1',
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/avr?ver=12.1.5',
                                 cpuRatio: 0,
                                 diskRatio: 0,
                                 level: 'none',
@@ -149,7 +149,7 @@ describe('declarationHandler', () => {
                                 name: 'urldb',
                                 fullPath: 'urldb',
                                 generation: 1,
-                                selfLink: 'https://localhost/mgmt/tm/sys/provision/urldb?ver=12.1.5.1',
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/urldb?ver=12.1.5',
                                 cpuRatio: 0,
                                 diskRatio: 0,
                                 level: 'none',
@@ -778,7 +778,7 @@ describe('declarationHandler', () => {
                     Common: {
                         ManagementIp: {
                             myManagementIp: {
-                                name: '1.2.3.4/5'
+                                name: '192.0.2.10/5'
                             }
                         }
                     }
@@ -797,8 +797,8 @@ describe('declarationHandler', () => {
                         assert.deepStrictEqual(
                             declarationWithDefaults.Common.ManagementIp,
                             {
-                                '1.2.3.4/5': {
-                                    name: '1.2.3.4/5'
+                                '192.0.2.10/5': {
+                                    name: '192.0.2.10/5'
                                 }
                             }
                         );
@@ -819,8 +819,8 @@ describe('declarationHandler', () => {
                     originalConfig: {
                         Common: {
                             ManagementIp: {
-                                '1.2.3.4/5': {
-                                    name: '1.2.3.4/5'
+                                '192.0.2.10/5': {
+                                    name: '192.0.2.10/5'
                                 }
                             }
                         }
@@ -832,8 +832,8 @@ describe('declarationHandler', () => {
                         assert.deepStrictEqual(
                             declarationWithDefaults.Common.ManagementIp,
                             {
-                                '1.2.3.4/5': {
-                                    name: '1.2.3.4/5'
+                                '192.0.2.10/5': {
+                                    name: '192.0.2.10/5'
                                 }
                             }
                         );
@@ -2294,7 +2294,7 @@ describe('declarationHandler', () => {
                             name: '20',
                             destination: '10.10.10.10',
                             action: 'deny',
-                            source: '20.20.20.20'
+                            source: '192.0.2.20'
                         }
                     ];
 
@@ -2302,7 +2302,7 @@ describe('declarationHandler', () => {
                     return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.10.10/32');
-                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '20.20.20.20/32');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '192.0.2.20/32');
                         });
                 });
 
@@ -2330,7 +2330,7 @@ describe('declarationHandler', () => {
                             name: '20',
                             destination: '10.10.0.0/16',
                             action: 'deny',
-                            source: '20.20.0.0/16'
+                            source: '192.0.2.20/16'
                         }
                     ];
 
@@ -2338,7 +2338,7 @@ describe('declarationHandler', () => {
                     return declarationHandler.process(newDeclaration)
                         .then(() => {
                             assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].destination, '10.10.0.0/16');
-                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '20.20.0.0/16');
+                            assert.strictEqual(declarationWithDefaults.Common.RoutingAccessList.list.entries[0].source, '192.0.2.20/16');
                         });
                 });
 
@@ -3336,8 +3336,8 @@ describe('declarationHandler', () => {
                     ManagementRoute: {
                         newManagementRoute: {
                             name: 'newManagementRoute',
-                            network: '1.2.3.4',
-                            gw: '4.3.2.1',
+                            network: '192.0.2.10',
+                            gw: '192.0.2.30',
                             mtu: 0
                         }
                     }
@@ -3392,8 +3392,8 @@ describe('declarationHandler', () => {
                     ManagementRoute: {
                         newManagementRoute: {
                             name: 'newManagementRoute',
-                            network: '1.2.3.4',
-                            gw: '4.3.2.1',
+                            network: '192.0.2.10',
+                            gw: '192.0.2.30',
                             mtu: 0
                         }
                     }
@@ -3678,7 +3678,7 @@ describe('declarationHandler', () => {
                                 name: 'afm',
                                 fullPath: 'afm',
                                 generation: 1,
-                                selfLink: 'https://localhost/mgmt/tm/sys/provision/afm?ver=12.1.5.1',
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/afm?ver=12.1.5',
                                 cpuRatio: 0,
                                 diskRatio: 0,
                                 level: 'none',
@@ -3689,7 +3689,7 @@ describe('declarationHandler', () => {
                                 name: 'avr',
                                 fullPath: 'avr',
                                 generation: 1,
-                                selfLink: 'https://localhost/mgmt/tm/sys/provision/avr?ver=12.1.5.1',
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/avr?ver=12.1.5',
                                 cpuRatio: 0,
                                 diskRatio: 0,
                                 level: 'none',
@@ -3700,7 +3700,7 @@ describe('declarationHandler', () => {
                                 name: 'urldb',
                                 fullPath: 'urldb',
                                 generation: 1,
-                                selfLink: 'https://localhost/mgmt/tm/sys/provision/urldb?ver=12.1.5.1',
+                                selfLink: 'https://localhost/mgmt/tm/sys/provision/urldb?ver=12.1.5',
                                 cpuRatio: 0,
                                 diskRatio: 0,
                                 level: 'none',

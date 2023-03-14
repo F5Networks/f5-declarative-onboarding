@@ -35,8 +35,8 @@ describe('HTTPD', function testAuthentication() {
         const properties = [
             {
                 name: 'allow',
-                inputValue: [undefined, ['1.2.3.4'], undefined],
-                expectedValue: [['All'], ['1.2.3.4'], ['All']]
+                inputValue: [undefined, ['192.0.2.10'], undefined],
+                expectedValue: [['All'], ['192.0.2.10'], ['All']]
             },
             {
                 name: 'authPamIdleTimeout',

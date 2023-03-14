@@ -487,7 +487,7 @@ describe('gslbHandler', () => {
                         gslbMonitor1: {
                             name: 'gslbMonitor1',
                             description: 'description',
-                            destination: '1.1.1.1:80',
+                            destination: '192.0.2.10:80',
                             interval: 100,
                             timeout: 1000,
                             probeTimeout: 110,
@@ -536,7 +536,7 @@ describe('gslbHandler', () => {
                             {
                                 name: 'gslbMonitor1',
                                 description: 'description',
-                                destination: '1.1.1.1:80',
+                                destination: '192.0.2.10:80',
                                 interval: 100,
                                 timeout: 1000,
                                 probeTimeout: 110,
@@ -585,7 +585,7 @@ describe('gslbHandler', () => {
                             {
                                 name: 'gslbMonitor1',
                                 description: 'description',
-                                destination: '1.1.1.1:80',
+                                destination: '192.0.2.10:80',
                                 interval: 100,
                                 timeout: 1000,
                                 probeTimeout: 110,
@@ -636,7 +636,7 @@ describe('gslbHandler', () => {
                             {
                                 name: 'gslbMonitor1',
                                 description: 'description',
-                                destination: '1.1.1.1:80',
+                                destination: '192.0.2.10:80',
                                 interval: 100,
                                 timeout: 1000,
                                 probeTimeout: 110,
@@ -681,7 +681,7 @@ describe('gslbHandler', () => {
                             {
                                 name: 'gslbMonitor1',
                                 description: 'description',
-                                destination: '1.1.1.1:80',
+                                destination: '192.0.2.10:80',
                                 interval: 100,
                                 timeout: 1000,
                                 probeTimeout: 110,
@@ -734,7 +734,7 @@ describe('gslbHandler', () => {
                             {
                                 name: 'gslbMonitor1',
                                 description: 'description',
-                                destination: '1.1.1.1:80',
+                                destination: '192.0.2.10:80',
                                 interval: 100,
                                 timeout: 1000,
                                 probeTimeout: 110,
