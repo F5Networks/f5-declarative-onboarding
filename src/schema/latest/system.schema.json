@@ -1234,7 +1234,13 @@
         },
         "regKeyInfo": {
             "description": "Registration key information.",
-            "required": ["class", "licenseType", "regKey"],
+            "required": ["class", "licenseType"],
+            "if": {
+                "properties": { "revokeCurrent": { "const": false }}
+            },
+            "then": {
+                "required": ["regKey"]
+            },
             "properties": {
                 "class": {
                     "description": "Indicates that this property contains licensing information.",
@@ -1261,7 +1267,12 @@
                     }
                 },
                 "overwrite": {
-                    "description": "Whether or not to overwrite the license if the device is already licensed.",
+                    "description": "Whether or not to overwrite the current license if the device is already licensed.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "revokeCurrent": {
+                    "description": "Whether or not to revoke the current license if the device is already licensed.",
                     "type": "boolean",
                     "default": false
                 }

@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.38.0
 ### Added
+- AUTOTOOL-118: ([Github Issue 9](https://github.com/F5Networks/f5-declarative-onboarding/issues/9)): Support for revoking license on a BIG-IP
 
 ### Fixed
 

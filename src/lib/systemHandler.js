@@ -593,7 +593,7 @@ function handleUser() {
 function handleLicense() {
     if (this.declaration.Common.License) {
         const license = this.declaration.Common.License;
-        if (license.regKey || license.addOnKeys) {
+        if (license.licenseType === 'regKey') {
             return handleRegKey.call(this, license);
         }
         return handleLicensePool.call(this, license);
@@ -602,13 +602,41 @@ function handleLicense() {
 }
 
 function handleRegKey(license) {
-    return this.bigIp.onboard.license(
-        {
-            registrationKey: license.regKey,
-            addOnKeys: license.addOnKeys,
-            overwrite: license.overwrite
+    let promise = Promise.resolve();
+    const getRevokePromise = () => {
+        let revokePromise = waitForRevokeReady.call(this);
+        process.nextTick(() => {
+            this.eventEmitter.emit(EVENTS.LICENSE_WILL_BE_REVOKED, this.state.id);
+        });
+        revokePromise = revokePromise.then(() => this.bigIp.onboard.revokeLicense());
+        return revokePromise;
+    };
+
+    if (license.revokeCurrent) {
+        if (license.regKey) {
+            promise = promise
+                .then(() => this.bigIp.list(PATHS.LicenseRegistration))
+                .then((response) => {
+                    if (response && response.registrationKey === license.regKey) {
+                        // Skip revoking if user is re-licensing with same license key.
+                        // We can't skip licensing here because the add-on keys may have changed.
+                        return Promise.resolve();
+                    }
+                    return getRevokePromise();
+                });
+        } else {
+            promise = promise.then(() => getRevokePromise());
         }
-    )
+    }
+
+    return promise
+        .then(() => this.bigIp.onboard.license(
+            {
+                registrationKey: license.regKey,
+                addOnKeys: license.addOnKeys,
+                overwrite: license.overwrite
+            }
+        ))
         .then(() => this.bigIp.active())
         .catch((err) => {
             const errorLicensing = `Error licensing: ${err.message}`;

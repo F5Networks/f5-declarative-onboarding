@@ -835,8 +835,10 @@ function handleStartupState(success, error) {
                         if (declaration.Common[key].class === 'License') {
                             licenseName = key;
                             delete declaration.Common[licenseName].revokeFrom;
-                            // Remove revokeFrom from the stored state as well
+                            delete declaration.Common[licenseName].revokeCurrent;
+                            // Remove revokeFrom and revokeCurrent from the stored state as well
                             delete stateDecRef.Common[licenseName].revokeFrom;
+                            delete stateDecRef.Common[licenseName].revokeCurrent;
 
                             if (declaration.Common[licenseName].bigIpUsername) {
                                 hasBigIpUser = true;
