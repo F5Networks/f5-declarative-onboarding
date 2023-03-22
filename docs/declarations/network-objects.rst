@@ -380,11 +380,7 @@ This example shows how you can create VXLAN tunnels using BIG-IP Declarative Onb
 
 Virtual eXtended LAN (VXLAN) is a network virtualization scheme that overlays Layer 2 over Layer 3. VLXAN uses Layer 3 multicast to support the transmission of multicast and broadcast traffic in the virtual network, while decoupling the virtualized network from the physical infrastructure. See |vxlant| for more information and manual configuration.
 
-<<<<<<< HEAD
-.. WARNING:: When you create a VXLAN tunnel, the BIG-IP silently sets ltm global-settings accept-ip-options to true.  F5 recommends that if you are using a VXLAN tunnel, you explicitly set TrafficControl acceptIpOptions to either true (default) or false.  See |tcref| for more information about Traffic Control and acceptIpOptions.  Also see the :ref:`Traffic Control example<trafcontrol>` on this page.
-=======
 .. IMPORTANT:: In BIG-IP DO 1.36 and later, when creating a VXLAN Tunnel, the **acceptIpOptions** property in the TraffficControls class no longer automatically to true. Instead it will remain the same or be set to the value in the declaration.  See |tcref| for more information about Traffic Control and acceptIpOptions.  Also see the :ref:`Traffic Control example<trafcontrol>` on this page.
->>>>>>> 1.36.0
 
 See |tunnel| in the Schema Reference for BIG-IP DO usage and options.
 
