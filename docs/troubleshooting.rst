@@ -102,13 +102,13 @@ Why isn't my clustering declaration working?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If you are experiencing difficulties getting clustering configured using Declarative Onboarding, use the following troubleshooting tips.
 
-When configuring a cluster using Declarative Onboarding, we recommend using new BIG-IPs (using new virtual machines if applicable). 
+When configuring a cluster using Declarative Onboarding, we recommend using new BIG-IPs (using new virtual machines if applicable).
 
 If your declaration does not work as expected, review the declaration and confirm all machines in the cluster can reach the **remoteHost** FQDN or IP address. DNS or other network limitations can cause issues on newer network setups.
 
 If the declaration appears correct and all machines in the cluster can reach the **remoteHost**, but you are still receiving failures, try one of the following methods.
 
-1. Send the declaration to a new BIG-IP device (most easily done in a virtual environment).  If the failures continue on the new device, it may be something else in the declaration causing the problem. In this case, we recommend openning a [GitHub Issues](https://github.com/F5Networks/f5-declarative-onboarding/issues). <br> If you cannot use a new BIG-IP device, use the following guidance to reset the BIG-IP.
+1. Send the declaration to a new BIG-IP device (most easily done in a virtual environment).  
 
 2. Reset the BIG-IP device by performing the following on whichever is device is failing.
 
@@ -116,11 +116,16 @@ If the declaration appears correct and all machines in the cluster can reach the
 
       - Send a GET request to ``https://host/mgmt/shared/declarative-onboarding/config``.
       - Copy the **id** value from the response.
-      - Send a DELETE request to ``https://host/mgmt/shared/declarative-onboarding/config/id_value``.  If the DELETE was successful, you receive **[]** as the response. (Sending a GET request to ``https://host/mgmt/shared/declarative-onboarding/config`` should give the same result if the DELETE was successful.)
+      - Send a DELETE request to ``https://host/mgmt/shared/declarative-onboarding/config/id_value``.  If the DELETE was successful, you receive **[]** as the response. 
+      - Confirm the deletion by sending a GET request to ``https://host/mgmt/shared/declarative-onboarding/config`` You should receive **[]** as the response. 
+      
+   - Send the cluster declaration again.  
 
-   - Reset the BIG-IP to its factory default state.  **This deletes any and all configuration on the BIG-IP device.**  With root privileges, from the BIG-IP command line, run ``tmsh load sys config default``
 
-After the machine(s) are available, you should be able to POST the declarations successfully.
+After trying these steps, if the declaration still does not work as expected, we recommend opening a |ghissue|.
+
+
+
 
 
 .. |br| raw:: html
@@ -134,3 +139,7 @@ After the machine(s) are available, you should be able to POST the declarations 
 .. |release| raw:: html
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/releases" target="_blank">GitHub Release</a>
+
+.. |ghissue| raw:: html
+
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/issues" target="_blank">GitHub issue</a>
