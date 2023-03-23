@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.37
-        - Updated the documentation for Declarative Onboarding v1.37.0.  This release contains the following changes: |br| * Added support for configuring Security analytics in a declaration (see :ref:`Security Analytics <secanalytics>`) 
+        - Updated the documentation for Declarative Onboarding v1.37.0.  This release contains the following changes: |br| * Added support for configuring Security analytics in a declaration (see :ref:`Security Analytics <secanalytics>`) |br| * Added a note to the :ref:`License Class <license-class>` section about new behavior when using DO to relicense a BIG-IP device.
         - 3-27-23
 
       * - 1.36.1
