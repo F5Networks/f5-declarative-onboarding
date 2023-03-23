@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.37
+        - Updated the documentation for Declarative Onboarding v1.37.0.  This release contains the following changes: |br| * Added support for configuring Security analytics in a declaration (see :ref:`Security Analytics <secanalytics>`) 
+        - 3-27-23
+
       * - 1.36.1
         - Released BIG-IP Declarative Onboarding 1.36.1 as a LTS (Long Term Support) version. See the BIG-IP Declarative Onboarding |supportmd| for information about the BIG-IP Declarative Onboarding support policy.
         - 3-9-23
