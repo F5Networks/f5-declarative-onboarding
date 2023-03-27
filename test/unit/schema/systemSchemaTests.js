@@ -48,7 +48,7 @@ describe('system.schema.json', () => {
                 const data = {
                     "class": "DNS",
                     "nameServers": [
-                        "1.2.3.4",
+                        "192.0.2.10",
                         "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
                     ],
                     "search": [
@@ -190,7 +190,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "licensePool": "myPool",
@@ -209,7 +209,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPasswordUri": "https://my.passwordscom/bigIq",
                         "licensePool": "myPool",
@@ -223,7 +223,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "licensePool": "myPool",
@@ -243,7 +243,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "licensePool": "myPool",
@@ -261,7 +261,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "licensePool": "myPool",
@@ -279,7 +279,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "licensePool": "myPool",
@@ -298,7 +298,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "reachable": true
@@ -310,7 +310,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "reachable": false
@@ -322,7 +322,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "reachable": false,
@@ -335,12 +335,12 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "reachable": false,
                         "revokeFrom": {
-                            "bigIqHost": "1.2.3.4",
+                            "bigIqHost": "192.0.2.10",
                             "bigIqUsername": "admin",
                             "bigIqPassword": "foofoo",
                             "licensePool": "barbar"
@@ -355,7 +355,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "bigIqPasswordUri": "https://my.passwordscom/bigIq",
@@ -375,7 +375,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "bigIqPasswordUri": "https://my.passwordscom/bigIq",
@@ -393,7 +393,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "licensePool": "myPool",
@@ -418,7 +418,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "bigIqPasswordUri": "https://my.passwordscom/bigIq",
@@ -436,12 +436,12 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "bigIqPassword": "foofoo",
                         "reachable": false,
                         "revokeFrom": {
-                            "bigIqHost": "1.2.3.4",
+                            "bigIqHost": "192.0.2.10",
                             "bigIqUsername": "admin",
                             "bigIqPassword": "foofoo"
                         }
@@ -458,7 +458,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqPassword": "foofoo",
                         "licensePool": "barbar",
                         "reachable": false,
@@ -479,7 +479,7 @@ describe('system.schema.json', () => {
                     const data = {
                         "class": "License",
                         "licenseType": "licensePool",
-                        "bigIqHost": "1.2.3.4",
+                        "bigIqHost": "192.0.2.10",
                         "bigIqUsername": "admin",
                         "licensePool": "barbar",
                         "reachable": false,
@@ -518,7 +518,7 @@ describe('system.schema.json', () => {
                 const data = {
                     "class": "NTP",
                     "servers": [
-                        "1.2.3.4",
+                        "192.0.2.10",
                         "FE80:0000:0000:0000:0202:B3FF:FE1E:8329",
                         "0.pool.ntp.org"
                     ],
@@ -687,7 +687,7 @@ describe('system.schema.json', () => {
             it('should validate minimal SnmpTrapDestination', () => {
                 const data = {
                     "class": "SnmpTrapDestination",
-                    "destination": "1.2.3.4",
+                    "destination": "192.0.2.10",
                     "community": "myCommunity"
                 };
                 assert.ok(validate(data), getErrorString(validate));
@@ -882,7 +882,7 @@ describe('system.schema.json', () => {
             it('should validate management ip with address and netmask', () => {
                 const data = {
                     class: 'ManagementIp',
-                    address: '1.2.3.4/24'
+                    address: '192.0.2.10/24'
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -891,7 +891,7 @@ describe('system.schema.json', () => {
         describe('invalid', () => {
             const data = {
                 class: 'ManagementIp',
-                address: '1.2.3.4'
+                address: '192.0.2.10'
             };
             assert.strictEqual(validate(data), false, 'Should not accept IP without prefix');
             assert(getErrorString().includes('ipWithRequiredPrefix'));
@@ -904,8 +904,8 @@ describe('system.schema.json', () => {
                 const data = {
                     class: 'ManagementRoute',
                     remark: 'Example description',
-                    gw: '1.2.3.4',
-                    network: '4.3.2.1',
+                    gw: '192.0.2.0',
+                    network: '192.0.2.50',
                     mtu: 1000
                 };
                 assert.ok(validate(data), getErrorString(validate));
@@ -930,7 +930,7 @@ describe('system.schema.json', () => {
             it('should validate with a non-default network and a type but no gw', () => {
                 const data = {
                     class: 'ManagementRoute',
-                    network: '4.3.2.1/8',
+                    network: '192.0.2.10/8',
                     type: 'interface'
                 };
                 assert.ok(validate(data), getErrorString(validate));
@@ -950,7 +950,7 @@ describe('system.schema.json', () => {
             it('should invalidate when only non-default network', () => {
                 const data = {
                     class: 'ManagementRoute',
-                    network: '9.9.9.9'
+                    network: '192.0.2.10'
                 };
                 assert.strictEqual(validate(data), false, 'Missing required property gw');
                 assert(getErrorString().includes('should have required property \'.gw\''));
@@ -979,7 +979,7 @@ describe('system.schema.json', () => {
             it('should invalidate incorrect gw format', () => {
                 const data = {
                     class: 'ManagementRoute',
-                    network: '100.100.200.200',
+                    network: '192.0.2.10',
                     gw: 'theGateway'
                 };
                 assert.strictEqual(validate(data), false, 'must be ipv4 or ipv6');

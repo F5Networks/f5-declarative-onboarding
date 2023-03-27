@@ -1,6 +1,16 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.37.0
+### Added
+- AUTOTOOL-3495: ([Github Issue 304](https://github.com/F5Networks/f5-declarative-onboarding/issues/304)): Support Security Reporting Settings
+
+### Fixed
+
+### Changed
+
+### Removed
+
 ## 1.36.1
 ### Added
 
@@ -89,7 +99,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ### Fixed
 - AUTOTOOL-3156: Declaration can fail while waiting for unprovisioned service to run
-- AUTOTOOL-2850: ([GitHub Issue 279](https://github.com/F5Networks/f5-declarative-onboarding/issues/279)): Management firewall policy does not work without AFM module for version 15.1.2.1
+- AUTOTOOL-2850: ([GitHub Issue 279](https://github.com/F5Networks/f5-declarative-onboarding/issues/279)): Management firewall policy does not work without AFM module
 - AUTOTOOL-3012: ([GitHub Issue 292](https://github.com/F5Networks/f5-declarative-onboarding/issues/292)): DO unable to change hostname correctly in Google Cloud
 
 ### Changed

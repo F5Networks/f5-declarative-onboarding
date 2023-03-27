@@ -25,7 +25,7 @@ describe('bigIqSettingsValidator', () => {
     describe('valid', () => {
         it('should validate declarations with no bigIqSettings', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                     }
@@ -39,7 +39,7 @@ describe('bigIqSettingsValidator', () => {
 
         it('should validate declarations with valid bigIqSettings', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 bigIqSettings: {
                     snapshotWorkingConfig: true
                 },
@@ -58,7 +58,7 @@ describe('bigIqSettingsValidator', () => {
     describe('clusterName', () => {
         it('should validate declarations with deviceGroup and clusterName', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 bigIqSettings: {
                     snapshotWorkingConfig: true,
                     clusterName: 'foo'
@@ -79,7 +79,7 @@ describe('bigIqSettingsValidator', () => {
 
         it('should invalidate declarations with deviceGroup but no clusterName', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 bigIqSettings: {
                     snapshotWorkingConfig: true
                 },
@@ -101,7 +101,7 @@ describe('bigIqSettingsValidator', () => {
     describe('accessModuleProperties', () => {
         it('should validate declarations with apm and accessModuleProperties', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 bigIqSettings: {
                     snapshotWorkingConfig: true,
                     accessModuleProperties: {
@@ -125,7 +125,7 @@ describe('bigIqSettingsValidator', () => {
 
         it('should validate declarations with apm none and no accessModuleProperties', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 bigIqSettings: {
                     snapshotWorkingConfig: true
                 },
@@ -146,7 +146,7 @@ describe('bigIqSettingsValidator', () => {
 
         it('should validate declarations with no apm and no accessModuleProperties', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 bigIqSettings: {
                     snapshotWorkingConfig: true
                 },
@@ -166,7 +166,7 @@ describe('bigIqSettingsValidator', () => {
 
         it('should invalidate declarations with apm but no accessModuleProperties', () => {
             const wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 bigIqSettings: {
                     snapshotWorkingConfig: true
                 },

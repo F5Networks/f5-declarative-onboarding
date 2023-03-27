@@ -18,7 +18,7 @@ If `npx` is available on your system, you can run the locally installed version 
     * Note: For future runs of the test, you'll need to delete and relaunch not only the BIG-IPs but the Stack object as well.
   * You will also need a BIG-IQ.
     * This BIG-IQ needs to be setup and running, make note of the login credentials for step 4.
-    * Get two "clpv2 license F5-BIG-MSP-LOADV2-LIC" eval (not dev) licenses from go/license.
+    * Get two "clpv2 license F5-BIG-MSP-LOADV2-LIC-DEV" dev (not eval) licenses from go/license.
       * Then add them to the BIG-IQ via Devices -> 'License Management' -> Licenses -> click 'Add License'
       * Name one 'myLicense' and the other 'myOtherLicensePool'
 2. A Harness file is required to run the functional testing. This file will need the following (example below):

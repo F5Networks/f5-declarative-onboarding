@@ -560,7 +560,7 @@ For more information, see |ntpclass| in the Schema Reference.
 
     "external-self": {
         "class": "SelfIp",
-        "address": "1.2.3.4/24",
+        "address": "192.0.2.4/24",
         "vlan": "external",
         "allowService": "none",
         "trafficGroup": "traffic-group-local-only"
@@ -649,8 +649,8 @@ For more information, see |mgmtrouteclass| in the Schema Reference.
 
         "managementRoute": {
             "class": "ManagementRoute",
-            "gw": "1.2.3.4",
-            "network": "4.3.2.1",
+            "gw": "192.0.2.4",
+            "network": "192.0.2.1",
             "mtu": 1000,
             "type": "interface"
         },

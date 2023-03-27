@@ -107,7 +107,7 @@
                     "name": "forward.net",
                     "nameservers": [
                         "10.10.10.10:53",
-                        "::ffff:1414:1414.53"
+                        "::ffff:c000:20b.53"
                     ]
                 }
             ]

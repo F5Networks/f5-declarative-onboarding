@@ -972,7 +972,7 @@ function handleSnmpUsers() {
             const user = JSON.parse(JSON.stringify(snmpUser));
 
             if (user.authPassword) {
-                user.securityLevel = user.privacyPassword ? 'auth-privacy' : 'auth-no-privacy';
+                user.securityLevel = user.privacyPassword ? 'auth-privacy' : 'auth-no-privacy'; // #gitleaks:allow
             } else {
                 user.securityLevel = 'no-auth-no-privacy';
             }

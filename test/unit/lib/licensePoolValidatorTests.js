@@ -74,7 +74,7 @@ describe('licensePoolValidator', () => {
                         myLicense: {
                             class: 'License',
                             licenseType: 'licensePool',
-                            bigIqHost: '1.2.3.4',
+                            bigIqHost: '192.0.2.10',
                             bigIqUsername: 'myUser',
                             bigIqPassword: 'myPassword'
                         }
@@ -133,7 +133,7 @@ describe('licensePoolValidator', () => {
                         myLicense: {
                             class: 'License',
                             licenseType: 'licensePool',
-                            bigIqHost: '1.2.3.4',
+                            bigIqHost: '192.0.2.10',
                             bigIqPassword: 'myPassword'
                         }
                     }
@@ -152,7 +152,7 @@ describe('licensePoolValidator', () => {
                         myLicense: {
                             class: 'License',
                             licenseType: 'licensePool',
-                            bigIqHost: '1.2.3.4',
+                            bigIqHost: '192.0.2.10',
                             bigIqUsername: 'myUser'
                         }
                     }

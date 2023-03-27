@@ -1,6 +1,5 @@
 # F5 BIG-IP Declarative Onboarding
 
-[![Slack Status](https://f5cloudsolutions.herokuapp.com/badge.svg)](https://f5cloudsolutions.herokuapp.com)
 [![Releases](https://img.shields.io/github/release/F5Networks/f5-declarative-onboarding.svg)](https://github.com/F5Networks/f5-declarative-onboarding/releases)
 [![Issues](https://img.shields.io/github/issues/F5Networks/f5-declarative-onboarding.svg)](https://github.com/F5Networks/f5-declarative-onboarding/issues)
 

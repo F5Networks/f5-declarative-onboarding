@@ -70,6 +70,7 @@ module.exports = {
         RoutingAsPath: '/tm/net/routing/as-path',
         RoutingBGP: '/tm/net/routing/bgp',
         RoutingPrefixList: '/tm/net/routing/prefix-list',
+        SecurityAnalytics: '/tm/security/analytics/settings',
         SelfIp: '/tm/net/self',
         SnmpAgent: '/tm/sys/snmp',
         SnmpCommunity: '/tm/sys/snmp/communities',

@@ -71,8 +71,8 @@ describe('Tunnel', function testAuthentication() {
             // Any6 is outside the remote address range of ips
             {
                 name: 'remoteAddress',
-                inputValue: ['any', '224.0.0.1', 'any'],
-                expectedValue: ['any', '224.0.0.1', 'any']
+                inputValue: ['any', '192.0.2.10', 'any'],
+                expectedValue: ['any', '192.0.2.10', 'any']
             },
             // Can only be configured with a NVGRE Tunnel
             {
@@ -170,12 +170,12 @@ describe('Tunnel', function testAuthentication() {
             // Any6 is outside the remote address range of ips
             {
                 name: 'remoteAddress',
-                inputValue: ['224.0.0.1', 'any', '224.0.0.1'],
+                inputValue: ['233.252.0.10', 'any', '233.252.0.10'],
                 skipAssert: true
             },
             {
                 name: 'localAddress',
-                inputValue: ['224.0.0.2'],
+                inputValue: ['192.0.2.11'],
                 skipAssert: true
             }
         ];

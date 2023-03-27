@@ -195,7 +195,7 @@ describe('Authentication', function testAuthentication() {
                 searchTimeout: 687,
                 servers: [
                     'a.host.com',
-                    '1.2.3.4',
+                    '192.0.2.10',
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                 ],
                 ssl: 'enabled',
@@ -228,7 +228,7 @@ describe('Authentication', function testAuthentication() {
                 searchTimeout: 888,
                 servers: [
                     'b.host.com',
-                    '5.6.7.8',
+                    '192.0.2.20',
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:1111'
                 ],
                 ssl: 'disabled',
@@ -265,7 +265,7 @@ describe('Authentication', function testAuthentication() {
                 searchTimeout: 687,
                 servers: [
                     'a.host.com',
-                    '1.2.3.4',
+                    '192.0.2.10',
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                 ],
                 ssl: 'enabled',
@@ -295,7 +295,7 @@ describe('Authentication', function testAuthentication() {
                 searchTimeout: 888,
                 servers: [
                     'b.host.com',
-                    '5.6.7.8',
+                    '192.0.2.20',
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:1111'
                 ],
                 ssl: 'disabled',
@@ -354,7 +354,7 @@ describe('Authentication', function testAuthentication() {
                 secret: 'test',
                 servers: [
                     'a.host.com',
-                    '1.2.3.4',
+                    '192.0.2.10',
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                 ],
                 service: 'ppp'
@@ -369,7 +369,7 @@ describe('Authentication', function testAuthentication() {
                 secret: 'test',
                 servers: [
                     'b.host.com',
-                    '5.6.7.8',
+                    '192.0.2.20',
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:1111'
                 ],
                 service: 'shell'
@@ -383,7 +383,7 @@ describe('Authentication', function testAuthentication() {
                 protocol: 'ip',
                 servers: [
                     'a.host.com',
-                    '1.2.3.4',
+                    '192.0.2.10',
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
                 ],
                 service: 'ppp'
@@ -397,7 +397,7 @@ describe('Authentication', function testAuthentication() {
                 protocol: 'ipx',
                 servers: [
                     'b.host.com',
-                    '5.6.7.8',
+                    '192.0.2.20',
                     'FE80:0000:0000:0000:0202:B3FF:FE1E:1111'
                 ],
                 service: 'shell'
