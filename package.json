@@ -69,6 +69,6 @@
   },
   "optionalDependencies": {
     "node-ssh": "^13.0.1",
-    "redoc-cli": "^0.13.20"
+    "redoc-cli": "^0.13.21"
   }
 }
