@@ -557,10 +557,10 @@ describe('inspectHandler', () => {
                             name: 'amazonaws.com',
                             nameservers: [
                                 {
-                                    name: '8.8.8.8:53'
+                                    name: '192.0.2.13:53'
                                 },
                                 {
-                                    name: '8.8.8.7:53'
+                                    name: '192.0.2.14:53'
                                 }
                             ]
                         },
@@ -568,10 +568,10 @@ describe('inspectHandler', () => {
                             name: 'idservice.net',
                             nameservers: [
                                 {
-                                    name: '8.8.4.4:53'
+                                    name: '192.0.2.12:53'
                                 },
                                 {
-                                    name: '8.8.4.3:53'
+                                    name: '192.0.2.15:53'
                                 }
                             ]
                         }
@@ -644,7 +644,7 @@ describe('inspectHandler', () => {
                 },
                 {
                     name: 'externalSelfIp',
-                    address: '11.0.0.2/24',
+                    address: '192.0.2.30/24',
                     vlan: '/Common/externalVlan',
                     trafficGroup: '/Common/traffic-group-local-only',
                     allowService: 'none',
@@ -661,7 +661,7 @@ describe('inspectHandler', () => {
                 },
                 {
                     name: 'testRoute2',
-                    gw: '11.0.0.11',
+                    gw: '192.0.2.11',
                     network: '30.0.0.0/24',
                     mtu: 0,
                     partition: 'Common'
@@ -669,7 +669,7 @@ describe('inspectHandler', () => {
                 {
                     name: 'testRoute3',
                     tmInterface: '/Common/tunnel',
-                    network: '1.2.3.4/32',
+                    network: '192.0.2.16/32',
                     mtu: 0,
                     partition: 'LOCAL_ONLY'
                 }
@@ -678,7 +678,7 @@ describe('inspectHandler', () => {
                 {
                     name: 'exampleAsPath',
                     entriesReference: {
-                        link: 'https://localhost/mgmt/tm/net/routing/as-path/~Common~exampleAsPath/entries?ver=14.1.2.7'
+                        link: 'https://localhost/mgmt/tm/net/routing/as-path/~Common~exampleAsPath/entries?ver=14.1.2'
                     }
                 }
             ],
@@ -687,7 +687,7 @@ describe('inspectHandler', () => {
                     name: 'exampleAccessList',
                     description: 'my description',
                     entriesReference: {
-                        link: 'https://localhost/mgmt/tm/net/routing/access-list/~Common~exampleAccessList/entries?ver=14.1.2.7'
+                        link: 'https://localhost/mgmt/tm/net/routing/access-list/~Common~exampleAccessList/entries?ver=14.1.2'
                     }
                 }
             ],
@@ -723,7 +723,7 @@ describe('inspectHandler', () => {
                 {
                     name: 'examplePrefixList',
                     entriesReference: {
-                        link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2.7'
+                        link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2'
                     }
                 }
             ],
@@ -746,7 +746,7 @@ describe('inspectHandler', () => {
                     name: 'exampleRouteMap',
                     routeDomain: '/Common/one',
                     entriesReference: {
-                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleRouteMap/entries?ver=14.1.2.8'
+                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleRouteMap/entries?ver=14.1.2'
                     }
                 }
             ],
@@ -786,7 +786,7 @@ describe('inspectHandler', () => {
                                     name: 'kernel',
                                     routeMap: '/Common/routeMap1',
                                     routeMapReference: {
-                                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleBGP?ver=14.1.2.8'
+                                        link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~exampleBGP?ver=14.1.2'
                                     }
                                 }
                             ]
@@ -801,10 +801,10 @@ describe('inspectHandler', () => {
                     keepAlive: 10,
                     localAs: 65010,
                     neighborReference: {
-                        link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~exampleBGP/neighbor?ver=14.1.2.8'
+                        link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~exampleBGP/neighbor?ver=14.1.2'
                     },
                     peerGroupReference: {
-                        link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~exampleBGP/peer-group?ver=14.1.2.8'
+                        link: 'https://localhost/mgmt/tm/net/routing/bgp/~Common~exampleBGP/peer-group?ver=14.1.2'
                     },
                     routerId: '10.1.1.1',
                     routeDomain: '/Common/4'
@@ -828,11 +828,11 @@ describe('inspectHandler', () => {
                             routeMap: {
                                 in: '/Common/routeMapIn',
                                 inReference: {
-                                    link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMapIn?ver=14.1.2.8'
+                                    link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMapIn?ver=14.1.2'
                                 },
                                 out: '/Common/routeMapOut',
                                 outReference: {
-                                    link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMapOut?ver=14.1.2.8'
+                                    link: 'https://localhost/mgmt/tm/net/routing/route-map/~Common~routeMapOut?ver=14.1.2'
                                 }
                             },
                             softReconfigurationInbound: 'enabled',
@@ -851,10 +851,10 @@ describe('inspectHandler', () => {
             [`/tm/cm/device/~Common~${deviceName}`]: {
                 configsyncIp: '10.0.0.2',
                 mirrorIp: '10.0.0.2',
-                mirrorSecondaryIp: '11.0.0.2',
+                mirrorSecondaryIp: '192.0.2.30',
                 unicastAddress: [{ ip: '10.0.0.2', port: 1026 }],
                 multicastInterface: 'exampleInterface',
-                multicastIp: '1.2.3.4',
+                multicastIp: '192.0.2.16',
                 multicastPort: 12
             },
             '/tm/analytics/global-settings': {
@@ -869,7 +869,7 @@ describe('inspectHandler', () => {
             },
             '/tm/sys/management-ip': [
                 {
-                    name: '1.2.3.4/5',
+                    name: '192.0.2.16/5',
                     description: 'configured-statically by DO'
                 }
             ],
@@ -944,7 +944,7 @@ describe('inspectHandler', () => {
                 sysContact: 'me@me.com',
                 sysLocation: 'F5 Tower',
                 allowedAddresses: [
-                    '1.2.3.4/32'
+                    '192.0.2.16/32'
                 ],
                 bigipTraps: 'enabled',
                 authTrap: 'disabled',
@@ -978,7 +978,7 @@ describe('inspectHandler', () => {
                 {
                     name: '/Common/otherTrapDestination',
                     version: '3',
-                    host: '1.2.3.4',
+                    host: '192.0.2.16',
                     port: 8080,
                     authPassword: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
                     authProtocol: 'sha',
@@ -992,7 +992,7 @@ describe('inspectHandler', () => {
                 {
                     name: '/Common/mgmtTrapDestination',
                     version: '3',
-                    host: '1.2.3.4',
+                    host: '192.0.2.16',
                     port: 8080,
                     authPassword: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
                     authProtocol: 'sha',
@@ -1053,7 +1053,7 @@ describe('inspectHandler', () => {
                 {
                     name: 'system_auth_name2',
                     port: 1812,
-                    server: '127.0.0.2',
+                    server: '192.0.2.32',
                     secret: 'secret'
                 }
             ],
@@ -1195,7 +1195,7 @@ describe('inspectHandler', () => {
                     autoLasthop: 'default',
                     localAddress: 'any6',
                     remoteAddress: 'any6',
-                    secondaryAddress: '30.30.30.30',
+                    secondaryAddress: '192.0.2.31',
                     key: 0,
                     mode: 'bidirectional',
                     transparent: 'disabled',
@@ -1303,7 +1303,7 @@ describe('inspectHandler', () => {
                 {
                     name: 'virtualServer1',
                     description: 'virtual server description one',
-                    destination: '192.0.10.20:443',
+                    destination: '192.0.2.20:443',
                     enabled: false,
                     disabled: true,
                     translationAddress: '10.10.0.10',
@@ -1328,7 +1328,7 @@ describe('inspectHandler', () => {
                     selfLink: 'https://localhost/mgmt/tm/gtm/monitor/http/~Common~currentGSLBMonitorHTTP?ver=15.1.2',
                     defaultsFrom: '/Common/http',
                     description: 'description',
-                    destination: '1.1.1.1:80',
+                    destination: '192.0.2.10:80',
                     ignoreDownResponse: 'enabled',
                     interval: 100,
                     probeTimeout: 110,
@@ -1351,7 +1351,7 @@ describe('inspectHandler', () => {
                     cert: '/Common/cert',
                     defaultsFrom: '/Common/https',
                     description: 'description',
-                    destination: '1.1.1.1:80',
+                    destination: '192.0.2.10:80',
                     ignoreDownResponse: 'enabled',
                     interval: 100,
                     probeTimeout: 110,
@@ -1372,7 +1372,7 @@ describe('inspectHandler', () => {
                     selfLink: 'https://localhost/mgmt/tm/gtm/monitor/gateway-icmp/~Common~currentGSLBMonitorICMP?ver=15.1.2',
                     defaultsFrom: '/Common/gateway-icmp',
                     description: 'description',
-                    destination: '1.1.1.1:80',
+                    destination: '192.0.2.10:80',
                     ignoreDownResponse: 'enabled',
                     interval: 100,
                     probeAttempts: 3,
@@ -1392,7 +1392,7 @@ describe('inspectHandler', () => {
                     selfLink: 'https://localhost/mgmt/tm/gtm/monitor/tcp/~Common~currentGSLBMonitorTCP?ver=15.1.2',
                     defaultsFrom: '/Common/tcp',
                     description: 'description',
-                    destination: '1.1.1.1:80',
+                    destination: '192.0.2.10:80',
                     ignoreDownResponse: 'enabled',
                     interval: 100,
                     probeTimeout: 110,
@@ -1414,7 +1414,7 @@ describe('inspectHandler', () => {
                     debug: 'no',
                     defaultsFrom: '/Common/udp',
                     description: 'description',
-                    destination: '1.1.1.1:80',
+                    destination: '192.0.2.10:80',
                     ignoreDownResponse: 'enabled',
                     interval: 100,
                     probeAttempts: 3,
@@ -1687,7 +1687,42 @@ describe('inspectHandler', () => {
                         ]
                     }
                 }
-            ]
+            ],
+            '/tm/security/analytics/settings': {
+                aclRules: {
+                    collectClientIp: 'enabled',
+                    collectClientPort: 'disabled',
+                    collectDestIp: 'enabled',
+                    collectDestPort: 'enabled',
+                    collectServerSideStats: 'disabled'
+                },
+                collectAllDosStatistic: 'disabled',
+                collectedStatsExternalLogging: 'disabled',
+                collectedStatsInternalLogging: 'disabled',
+                dns: {
+                    collectClientIp: 'enabled',
+                    collectDestinationIp: 'enabled'
+                },
+                dnsCollectStats: 'enabled',
+                dosL2L4: {
+                    collectClientIp: 'enabled',
+                    collectDestGeo: 'enabled'
+                },
+                dosl3CollectStats: 'enabled',
+                fwAclCollectStats: 'enabled',
+                fwDropsCollectStats: 'enabled',
+                ipReputationCollectStats: 'enabled',
+                l3L4Errors: {
+                    collectClientIp: 'enabled',
+                    collectDestIp: 'enabled'
+                },
+                sipCollectStats: 'enabled',
+                staleRules: {
+                    collect: 'disabled'
+                },
+                publisher: 'none',
+                smtpConfig: 'none'
+            }
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1741,15 +1776,15 @@ describe('inspectHandler', () => {
                                 {
                                     name: 'amazonaws.com',
                                     nameservers: [
-                                        '8.8.8.8:53',
-                                        '8.8.8.7:53'
+                                        '192.0.2.13:53',
+                                        '192.0.2.14:53'
                                     ]
                                 },
                                 {
                                     name: 'idservice.net',
                                     nameservers: [
-                                        '8.8.4.4:53',
-                                        '8.8.4.3:53'
+                                        '192.0.2.12:53',
+                                        '192.0.2.15:53'
                                     ]
                                 }
                             ],
@@ -1810,7 +1845,7 @@ describe('inspectHandler', () => {
                         },
                         externalSelfIp: {
                             stagedFirewallPolicy: 'currentFirewallPolicy',
-                            address: '11.0.0.2/24',
+                            address: '192.0.2.30/24',
                             vlan: 'externalVlan',
                             trafficGroup: 'traffic-group-local-only',
                             allowService: 'none',
@@ -1823,14 +1858,14 @@ describe('inspectHandler', () => {
                             class: 'Route'
                         },
                         testRoute2: {
-                            gw: '11.0.0.11',
+                            gw: '192.0.2.11',
                             network: '30.0.0.0/24',
                             mtu: 0,
                             class: 'Route'
                         },
                         testRoute3: {
                             target: 'tunnel',
-                            network: '1.2.3.4/32',
+                            network: '192.0.2.16/32',
                             mtu: 0,
                             class: 'Route',
                             localOnly: true
@@ -1981,7 +2016,7 @@ describe('inspectHandler', () => {
                         },
                         currentFailoverMulticast: {
                             interface: 'exampleInterface',
-                            address: '1.2.3.4',
+                            address: '192.0.2.16',
                             port: 12,
                             class: 'FailoverMulticast'
                         },
@@ -1998,7 +2033,7 @@ describe('inspectHandler', () => {
                         },
                         currentManagementIp: {
                             class: 'ManagementIp',
-                            address: '1.2.3.4/5',
+                            address: '192.0.2.16/5',
                             remark: 'configured-statically by DO'
                         },
                         'default-mgmt-route': {
@@ -2066,7 +2101,7 @@ describe('inspectHandler', () => {
                             contact: 'me@me.com',
                             location: 'F5 Tower',
                             allowList: [
-                                '1.2.3.4/32'
+                                '192.0.2.16/32'
                             ],
                             snmpV1: true,
                             snmpV2c: true
@@ -2080,7 +2115,7 @@ describe('inspectHandler', () => {
                         otherTrapDestination: {
                             class: 'SnmpTrapDestination',
                             version: '3',
-                            destination: '1.2.3.4',
+                            destination: '192.0.2.16',
                             community: 'communityName',
                             port: 8080,
                             network: 'other',
@@ -2098,7 +2133,7 @@ describe('inspectHandler', () => {
                         mgmtTrapDestination: {
                             class: 'SnmpTrapDestination',
                             version: '3',
-                            destination: '1.2.3.4',
+                            destination: '192.0.2.16',
                             community: 'communityName',
                             port: 8080,
                             network: 'management',
@@ -2175,7 +2210,7 @@ describe('inspectHandler', () => {
                                     },
                                     secondary: {
                                         port: 1812,
-                                        server: '127.0.0.2',
+                                        server: '192.0.2.32',
                                         secret: 'secret'
                                     }
                                 }
@@ -2328,7 +2363,7 @@ describe('inspectHandler', () => {
                             transparent: false,
                             localAddress: 'any6',
                             remoteAddress: 'any6',
-                            secondaryAddress: '30.30.30.30',
+                            secondaryAddress: '192.0.2.31',
                             key: 0,
                             mode: 'bidirectional',
                             trafficGroup: 'none',
@@ -2344,7 +2379,7 @@ describe('inspectHandler', () => {
                         currentMirrorIp: {
                             class: 'MirrorIp',
                             primaryIp: '10.0.0.2',
-                            secondaryIp: '11.0.0.2'
+                            secondaryIp: '192.0.2.30'
                         },
                         currentGSLBGlobals: {
                             class: 'GSLBGlobals',
@@ -2406,7 +2441,7 @@ describe('inspectHandler', () => {
                                     name: 'virtualServer1',
                                     remark: 'virtual server description one',
                                     enabled: false,
-                                    address: '192.0.10.20',
+                                    address: '192.0.2.20',
                                     port: 443,
                                     addressTranslation: '10.10.0.10',
                                     addressTranslationPort: 23,
@@ -2434,7 +2469,7 @@ describe('inspectHandler', () => {
                             class: 'GSLBMonitor',
                             remark: 'description',
                             monitorType: 'http',
-                            target: '1.1.1.1:80',
+                            target: '192.0.2.10:80',
                             interval: 100,
                             timeout: 1000,
                             probeTimeout: 110,
@@ -2448,7 +2483,7 @@ describe('inspectHandler', () => {
                             class: 'GSLBMonitor',
                             remark: 'description',
                             monitorType: 'https',
-                            target: '1.1.1.1:80',
+                            target: '192.0.2.10:80',
                             interval: 100,
                             timeout: 1000,
                             probeTimeout: 110,
@@ -2464,7 +2499,7 @@ describe('inspectHandler', () => {
                             class: 'GSLBMonitor',
                             remark: 'description',
                             monitorType: 'gateway-icmp',
-                            target: '1.1.1.1:80',
+                            target: '192.0.2.10:80',
                             interval: 100,
                             timeout: 1000,
                             probeTimeout: 110,
@@ -2477,7 +2512,7 @@ describe('inspectHandler', () => {
                             class: 'GSLBMonitor',
                             remark: 'description',
                             monitorType: 'tcp',
-                            target: '1.1.1.1:80',
+                            target: '192.0.2.10:80',
                             interval: 100,
                             timeout: 1000,
                             probeTimeout: 110,
@@ -2491,7 +2526,7 @@ describe('inspectHandler', () => {
                             class: 'GSLBMonitor',
                             remark: 'description',
                             monitorType: 'udp',
-                            target: '1.1.1.1:80',
+                            target: '192.0.2.10:80',
                             interval: 100,
                             timeout: 1000,
                             probeTimeout: 110,
@@ -2643,6 +2678,40 @@ describe('inspectHandler', () => {
                                     }
                                 }
                             ]
+                        },
+                        currentSecurityAnalytics: {
+                            class: 'SecurityAnalytics',
+                            aclRules: {
+                                collectClientIpEnabled: true,
+                                collectClientPortEnabled: false,
+                                collectDestinationIpEnabled: true,
+                                collectDestinationPortEnabled: true,
+                                collectServerSideStatsEnabled: false
+                            },
+                            collectAllDosStatsEnabled: false,
+                            collectedStatsExternalLoggingEnabled: false,
+                            collectedStatsInternalLoggingEnabled: false,
+                            dns: {
+                                collectClientIpEnabled: true,
+                                collectDestinationIpEnabled: true
+                            },
+                            collectDnsStatsEnabled: true,
+                            dosL2L4: {
+                                collectClientIpEnabled: true,
+                                collectDestinationGeoEnabled: true
+                            },
+                            collectDosL3StatsEnabled: true,
+                            collectFirewallAclStatsEnabled: true,
+                            collectFirewallDropsStatsEnabled: true,
+                            collectIpReputationStatsEnabled: true,
+                            l3L4Errors: {
+                                collectClientIpEnabled: true,
+                                collectDestinationIpEnabled: true
+                            },
+                            collectSipStatsEnabled: true,
+                            collectStaleRulesEnabled: false,
+                            publisher: 'none',
+                            smtpConfig: 'none'
                         }
                     }
                 }
@@ -2734,7 +2803,7 @@ describe('inspectHandler', () => {
             const sharedName = 'sharedName';
             listResponses['/tm/net/self'].push({
                 name: sharedName,
-                address: '11.0.0.2/24',
+                address: '192.0.2.30/24',
                 vlan: '/Common/externalVlan',
                 trafficGroup: '/Common/traffic-group-local-only',
                 allowService: 'none'

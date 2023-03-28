@@ -172,6 +172,15 @@ function updateProperty(property, itemToUpdate, propertyName, declarationItem, i
                 let dottedId = [property.id, trans.id].join('.');
                 let dottedNewId = [property.id, trans.newId || trans.id].join('.');
 
+                if (typeof property.transformBooleanOrStringToObject !== 'undefined'
+                    && typeof itemToUpdate[property.transformBooleanOrStringToObject.itemKey] !== 'undefined') {
+                    const toKey = property.transformBooleanOrStringToObject.toKey;
+                    itemToUpdate[property.id] = {
+                        [toKey]: itemToUpdate[property.transformBooleanOrStringToObject.itemKey]
+                    };
+                    delete itemToUpdate[property.transformBooleanOrStringToObject.itemKey];
+                }
+
                 // In some cases, the declaration only supports one item of an array
                 // and moves it up one or more levels of what is a named property in mcp.
                 // For example, GSLBServer devices.addresses[0].translation in mcp is

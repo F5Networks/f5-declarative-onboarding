@@ -33,6 +33,7 @@ const ProvisionHandler = require('./provisionHandler');
 const DeprovisionHandler = require('./deprovisionHandler');
 const AuthHandler = require('./authHandler');
 const GSLBHandler = require('./gslbHandler');
+const SecurityHandler = require('./securityHandler');
 const TraceManager = require('./traceManager');
 const RoutingAccessListValidator = require('./routingAccessListValidator');
 const configItems = require('./configItems.json');
@@ -1286,6 +1287,7 @@ function makeUpdates(declaration, updateDeclaration, deleteDeclaration) {
                 [DscHandler, updateDeclaration],
                 [AnalyticsHandler, updateDeclaration],
                 [GSLBHandler, updateDeclaration],
+                [SecurityHandler, updateDeclaration],
                 [DeleteHandler, deleteDeclaration],
                 [DeprovisionHandler, updateDeclaration]
             ];

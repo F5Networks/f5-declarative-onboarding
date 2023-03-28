@@ -210,7 +210,7 @@ describe('gslb.schema.json', () => {
                             remark: 'virtual server description one',
                             label: 'virtual server label one',
                             enabled: false,
-                            address: '192.0.10.20',
+                            address: '192.0.2.20',
                             port: 443,
                             addressTranslation: '10.10.0.10',
                             addressTranslationPort: 23,

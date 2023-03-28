@@ -738,5 +738,56 @@ describe('parserUtil', () => {
                 }
             );
         });
+
+        it('should handle converting a boolean or string to an object', () => {
+            const configItems = [
+                {
+                    schemaClass: 'MySchemaClass',
+                    properties: [
+                        {
+                            id: 'staleRules',
+                            newId: 'collectStaleRulesEnabled',
+                            transformBooleanOrStringToObject: {
+                                itemKey: 'collectStaleRulesEnabled',
+                                toKey: 'collect'
+                            },
+                            transform: [
+                                { id: 'collect', truth: 'enabled', falsehood: 'disabled' }
+                            ]
+                        },
+                        {
+                            id: 'testProp',
+                            transformBooleanOrStringToObject: {
+                                itemKey: 'testStringProp',
+                                toKey: 'objectKey'
+                            },
+                            transform: [
+                                { id: 'objectKey' }
+                            ]
+                        }
+                    ]
+                }
+            ];
+
+            const declarationItem = {
+                class: 'MySchemaClass',
+                collectStaleRulesEnabled: true,
+                testStringProp: 'string'
+            };
+
+            const updated = parserUtil.updateIds(configItems, 'MySchemaClass', declarationItem);
+            assert.deepStrictEqual(
+                updated,
+                {
+                    class: 'MySchemaClass',
+                    staleRules: {
+                        collect: 'enabled'
+                    },
+                    testProp: {
+                        objectKey: 'string'
+                    }
+                }
+            );
+        });
     });
 });

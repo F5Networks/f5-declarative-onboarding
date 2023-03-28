@@ -23,41 +23,41 @@ describe('formats', () => {
     describe('f5ip', () => {
         describe('ipv4', () => {
             it('should validate standalone address', () => {
-                assert.strictEqual(formats.f5ip('1.2.3.4'), true);
+                assert.strictEqual(formats.f5ip('192.0.2.10'), true);
             });
 
             it('should invalidate invalid address', () => {
-                assert.strictEqual(formats.f5ip('256.2.3.4'), false);
+                assert.strictEqual(formats.f5ip('256.2.3.4'), false); // gitleaks:allow
             });
 
             it('should validate addresses with valid prefixes', () => {
-                assert.strictEqual(formats.f5ip('1.2.3.4/32'), true, 'prefix 32 should be valid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/24'), true, 'prefix 24 should be valid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/16'), true, 'prefix 16 should be valid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/8'), true, 'prefix 8 should be valid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/0'), true, 'prefix 0 should be valid');
+                assert.strictEqual(formats.f5ip('192.0.2.10/32'), true, 'prefix 32 should be valid');
+                assert.strictEqual(formats.f5ip('192.0.2.10/24'), true, 'prefix 24 should be valid');
+                assert.strictEqual(formats.f5ip('192.0.2.10/16'), true, 'prefix 16 should be valid');
+                assert.strictEqual(formats.f5ip('192.0.2.10/8'), true, 'prefix 8 should be valid');
+                assert.strictEqual(formats.f5ip('192.0.2.10/0'), true, 'prefix 0 should be valid');
             });
 
             it('should invalidate addresses with invalid prefixes', () => {
-                assert.strictEqual(formats.f5ip('1.2.3.4/40'), false, 'prefix 40 should be invalid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/33'), false, 'prefix 33 should be invalid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/321'), false, 'prefix 321 should be invalid');
-                assert.strictEqual(formats.f5ip('1.2.3.4/200'), false, 'prefix 200 should be invalid');
+                assert.strictEqual(formats.f5ip('192.0.2.10/40'), false, 'prefix 40 should be invalid');
+                assert.strictEqual(formats.f5ip('192.0.2.10/33'), false, 'prefix 33 should be invalid');
+                assert.strictEqual(formats.f5ip('192.0.2.10/321'), false, 'prefix 321 should be invalid');
+                assert.strictEqual(formats.f5ip('192.0.2.10/200'), false, 'prefix 200 should be invalid');
             });
 
             it('should validate addresses with valid route domain', () => {
-                assert.strictEqual(formats.f5ip('1.2.3.4%0'), true, 'route domain 0 should be valid');
-                assert.strictEqual(formats.f5ip('1.2.3.4%65535'), true, 'route domain 65535 should be valid');
+                assert.strictEqual(formats.f5ip('192.0.2.10%0'), true, 'route domain 0 should be valid');
+                assert.strictEqual(formats.f5ip('192.0.2.10%65535'), true, 'route domain 65535 should be valid');
             });
 
             it('should invalidate addresses with invalid route domain', () => {
                 assert.strictEqual(
-                    formats.f5ip('1.2.3.4%65536'), false, 'route domain 65536 should be invalid'
+                    formats.f5ip('192.0.2.10%65536'), false, 'route domain 65536 should be invalid'
                 );
             });
 
             it('should validate address with valid prefix and route domain', () => {
-                assert.strictEqual(formats.f5ip('1.2.3.4%1/24'), true);
+                assert.strictEqual(formats.f5ip('192.0.2.10%1/24'), true);
             });
         });
 
@@ -160,35 +160,35 @@ describe('formats', () => {
             }
 
             it('should validate standalone address', () => {
-                testValid('1.2.3.4');
+                testValid('192.0.2.10');
             });
 
             it('should invalidate invalid address', () => {
-                testInvalid('256.2.3.4', 'address must be valid');
+                testInvalid('256.2.3.4', 'address must be valid'); // gitleaks:allow
             });
 
             it('should validate addresses with valid prefixes', () => {
-                testValid('1.2.3.4/32', 'prefix 32 should be valid');
-                testValid('1.2.3.4/24', 'prefix 24 should be valid');
-                testValid('1.2.3.4/16', 'prefix 16 should be valid');
-                testValid('1.2.3.4/8', 'prefix 8 should be valid');
-                testValid('1.2.3.4/0', 'prefix 0 should be valid');
+                testValid('192.0.2.10/32', 'prefix 32 should be valid');
+                testValid('192.0.2.10/24', 'prefix 24 should be valid');
+                testValid('192.0.2.10/16', 'prefix 16 should be valid');
+                testValid('192.0.2.10/8', 'prefix 8 should be valid');
+                testValid('192.0.2.10/0', 'prefix 0 should be valid');
             });
 
             it('should invalidate addresses with invalid prefix', () => {
-                testInvalid('1.2.3.4/40', 'prefix 40 should be invalid');
-                testInvalid('1.2.3.4/33', 'prefix 33 should be invalid');
-                testInvalid('1.2.3.4/321', 'prefix 321 should be invalid');
-                testInvalid('1.2.3.4/200', 'prefix 200 should be invalid');
+                testInvalid('192.0.2.10/40', 'prefix 40 should be invalid');
+                testInvalid('192.0.2.10/33', 'prefix 33 should be invalid');
+                testInvalid('192.0.2.10/321', 'prefix 321 should be invalid');
+                testInvalid('192.0.2.10/200', 'prefix 200 should be invalid');
             });
 
             it('should invalidate addresses with route domain', () => {
-                testInvalid('1.2.3.4%0', 'should not specify a route domain');
-                testInvalid('1.2.3.4%65535', 'should not specify a route domain');
+                testInvalid('192.0.2.10%0', 'should not specify a route domain');
+                testInvalid('192.0.2.10%65535', 'should not specify a route domain');
             });
 
             it('should invalidate address with prefix and route domain', () => {
-                testInvalid('1.2.3.4%1/24', 'should not specify a route domain');
+                testInvalid('192.0.2.10%1/24', 'should not specify a route domain');
             });
         });
 
@@ -309,7 +309,7 @@ describe('formats', () => {
             });
 
             it('should invalidate invalid address with prefix', () => {
-                testInvalid('256.2.3.4/24', 'address must be valid');
+                testInvalid('256.2.3.4/24', 'address must be valid'); // gitleaks:allow
             });
 
             it('should invalidate address without prefix', () => {
@@ -317,27 +317,27 @@ describe('formats', () => {
             });
 
             it('should validate addresses with valid prefixes', () => {
-                testValid('1.2.3.4/32', 'prefix 32 should be valid');
-                testValid('1.2.3.4/24', 'prefix 24 should be valid');
-                testValid('1.2.3.4/16', 'prefix 16 should be valid');
-                testValid('1.2.3.4/8', 'prefix 8 should be valid');
-                testValid('1.2.3.4/0', 'prefix 0 should be valid');
+                testValid('192.0.2.10/32', 'prefix 32 should be valid');
+                testValid('192.0.2.10/24', 'prefix 24 should be valid');
+                testValid('192.0.2.10/16', 'prefix 16 should be valid');
+                testValid('192.0.2.10/8', 'prefix 8 should be valid');
+                testValid('192.0.2.10/0', 'prefix 0 should be valid');
             });
 
             it('should invalidate addresses with invalid prefixes', () => {
-                testInvalid('1.2.3.4/40', 'prefix 40 should be invalid');
-                testInvalid('1.2.3.4/33', 'prefix 33 should be invalid');
-                testInvalid('1.2.3.4/321', 'prefix 321 should be invalid');
-                testInvalid('1.2.3.4/200', 'prefix 200 should be invalid');
+                testInvalid('192.0.2.10/40', 'prefix 40 should be invalid');
+                testInvalid('192.0.2.10/33', 'prefix 33 should be invalid');
+                testInvalid('192.0.2.10/321', 'prefix 321 should be invalid');
+                testInvalid('192.0.2.10/200', 'prefix 200 should be invalid');
             });
 
             it('should invalidate addresses with route domain', () => {
-                testInvalid('1.2.3.4%0', 'should not specify a route domain');
-                testInvalid('1.2.3.4%65535', 'should not specify a route domain');
+                testInvalid('192.0.2.10%0', 'should not specify a route domain');
+                testInvalid('192.0.2.10%65535', 'should not specify a route domain');
             });
 
             it('should invalidate address with prefix and route domain', () => {
-                testInvalid('1.2.3.4%1/24', 'should not specify a route domain');
+                testInvalid('192.0.2.10%1/24', 'should not specify a route domain');
             });
         });
 

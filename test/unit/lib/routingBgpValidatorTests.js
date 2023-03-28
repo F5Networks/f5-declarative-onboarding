@@ -27,7 +27,7 @@ describe('routingBgpValidator', () => {
 
         beforeEach(() => {
             wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingBgp: {
@@ -113,7 +113,7 @@ describe('routingBgpValidator', () => {
 
         beforeEach(() => {
             wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRoutingBgp: {
@@ -163,7 +163,7 @@ describe('routingBgpValidator', () => {
 
             it('should validate when there is nothing to validate', () => {
                 wrapper = {
-                    targetHost: '1.2.3.4',
+                    targetHost: '192.0.2.10',
                     declaration: {
                         Common: {}
                     }
@@ -206,7 +206,7 @@ describe('routingBgpValidator', () => {
 
         beforeEach(() => {
             wrapper = {
-                targetHost: '1.2.3.4',
+                targetHost: '192.0.2.10',
                 declaration: {
                     Common: {
                         exampleRouteMap1: {

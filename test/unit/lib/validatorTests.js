@@ -58,7 +58,7 @@ describe('validator', () => {
                     "class": "Tenant",
                     "mySelfIp": {
                         "class": "SelfIp",
-                        "address": "1.2.3.4",
+                        "address": "192.0.2.10",
                         "vlan": "foo"
                     }
                 }

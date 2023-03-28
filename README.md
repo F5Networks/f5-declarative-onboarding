@@ -1,6 +1,5 @@
 # F5 BIG-IP Declarative Onboarding
 
-[![Slack Status](https://f5cloudsolutions.herokuapp.com/badge.svg)](https://f5cloudsolutions.herokuapp.com)
 [![Releases](https://img.shields.io/github/release/F5Networks/f5-declarative-onboarding.svg)](https://github.com/F5Networks/f5-declarative-onboarding/releases)
 [![Issues](https://img.shields.io/github/issues/F5Networks/f5-declarative-onboarding.svg)](https://github.com/F5Networks/f5-declarative-onboarding/issues)
 
@@ -24,13 +23,9 @@ Because BIG-IP Declarative Onboarding versions 1.1.0 and later have been created
 
 Be sure to see the [Support page](SUPPORT.md) in this repo for more details and supported versions of BIG-IP Declarative Onboarding.
 
-### Community Help
-We encourage you to use our [Slack channel](https://f5cloudsolutions.herokuapp.com) for discussion and assistance on Declarative Onboarding templates (click the **declarative-onboard** channel). There are F5 employees who are members of this community who typically monitor the channel Monday-Friday 9-5 PST and will offer best-effort assistance. See the [Slack Channel Statement](slack-channel-statement.md) for guidelines on using this channel.
-
 ## Copyright
 
 Copyright 2014-2023 F5 Networks Inc.
-
 
 ### F5 Networks Contributor License Agreement
 

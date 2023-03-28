@@ -125,7 +125,7 @@ describe('systemHandler', () => {
                 return Promise.resolve();
             },
             deviceInfo() {
-                return Promise.resolve({ version: '15.1.0.1' });
+                return Promise.resolve({ version: '15.1.0' });
             },
             setHost() {
                 return Promise.resolve();
@@ -474,7 +474,7 @@ describe('systemHandler', () => {
                 Common: {
                     DNS: {
                         nameServers: [
-                            '8.8.8.8',
+                            '192.0.2.20',
                             '2001:4860:4860::8844'
                         ],
                         search: ['one.com', 'two.com']
@@ -495,7 +495,7 @@ describe('systemHandler', () => {
                 Common: {
                     DNS: {
                         nameServers: [
-                            '8.8.8.8',
+                            '192.0.2.20',
                             '2001:4860:4860::8844'
                         ],
                         search: ['one.com', 'two.com']
@@ -507,7 +507,7 @@ describe('systemHandler', () => {
             return systemHandler.process()
                 .then(() => {
                     assert.strictEqual(pathSent, PATHS.DNS);
-                    assert.deepEqual(dataSent['name-servers'], ['8.8.8.8', '2001:4860:4860::8844']);
+                    assert.deepEqual(dataSent['name-servers'], ['192.0.2.20', '2001:4860:4860::8844']);
                     assert.deepEqual(dataSent.search, ['one.com', 'two.com']);
                 });
         });
@@ -516,7 +516,7 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     DNS: {
-                        nameServers: ['1.2.3.4'],
+                        nameServers: ['192.0.2.10'],
                         search: ['f5.com']
                     }
                 }
@@ -539,7 +539,7 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     DNS: {
-                        nameServers: ['1.2.3.4'],
+                        nameServers: ['192.0.2.10'],
                         search: ['f5.com']
                     }
                 }
@@ -564,7 +564,7 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     DNS: {
-                        nameServers: ['1.2.3.4'],
+                        nameServers: ['192.0.2.10'],
                         search: ['f5.com']
                     }
                 }
@@ -834,7 +834,7 @@ describe('systemHandler', () => {
     });
 
     it('should ignore guiAudit if version < 14.0', () => {
-        sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1.3' });
+        sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1' });
         const declaration = {
             Common: {
                 System: {
@@ -1242,7 +1242,7 @@ describe('systemHandler', () => {
                 }
             }
         };
-        const host = '11.12.13.14';
+        const host = '192.0.2.50';
 
         let bigIqHostSent;
         let bigIqUsernameSent;
@@ -1302,8 +1302,8 @@ describe('systemHandler', () => {
                 }
             }
         };
-        const host = '11.12.13.14';
-        const managementAddress = '1.2.3.4';
+        const host = '192.0.2.50';
+        const managementAddress = '192.0.2.10';
         const managementPort = 5678;
 
         let optionsSent;
@@ -1336,7 +1336,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(optionsSent.noUnreachable, true);
                 assert.strictEqual(bigIpUsernameSent, 'mybigipuser');
                 assert.strictEqual(bigIpPasswordSent, 'barbar');
-                assert.strictEqual(bigIpHostSent, '1.2.3.4');
+                assert.strictEqual(bigIpHostSent, '192.0.2.10');
                 assert.strictEqual(bigIpPortSent, 5678);
                 assert.strictEqual(activeCalled, true);
             });
@@ -1352,7 +1352,7 @@ describe('systemHandler', () => {
                 }
             }
         };
-        const host = '11.12.13.14';
+        const host = '192.0.2.50';
 
         let bigIqHostSent;
         let optionsSent;
@@ -1374,7 +1374,7 @@ describe('systemHandler', () => {
         return systemHandler.process()
             .then(() => {
                 assert.strictEqual(bigIqHostSent, 'localhost');
-                assert.strictEqual(optionsSent.bigIpMgmtAddress, '11.12.13.14');
+                assert.strictEqual(optionsSent.bigIpMgmtAddress, '192.0.2.50');
                 assert.strictEqual(optionsSent.bigIqMgmtPort, 8100);
                 assert.strictEqual(optionsSent.tenant, 'Test tenant description');
             });
@@ -1393,7 +1393,7 @@ describe('systemHandler', () => {
                 }
             }
         };
-        const managementAddress = '1.2.3.4';
+        const managementAddress = '192.0.2.10';
 
         bigIpMock.onboard = {
             licenseViaBigIq() {}
@@ -1586,8 +1586,8 @@ describe('systemHandler', () => {
             hostSet = undefined;
 
             state.currentConfig.Common.ManagementIp = {
-                '4.5.6.7/8': {
-                    name: '4.5.6.7/8',
+                '192.0.2.40/8': {
+                    name: '192.0.2.40/8',
                     description: 'configured-by-dhcp'
                 }
             };
@@ -1603,8 +1603,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
+                        '192.0.2.10/5': {
+                            name: '192.0.2.10/5',
                             description: 'this is my description'
                         }
                     }
@@ -1619,7 +1619,7 @@ describe('systemHandler', () => {
                     assert.deepStrictEqual(
                         managementIpData,
                         {
-                            name: '1.2.3.4/5',
+                            name: '192.0.2.10/5',
                             description: 'this is my description'
                         }
                     );
@@ -1629,7 +1629,7 @@ describe('systemHandler', () => {
                             mgmtDhcp: 'disabled'
                         }
                     );
-                    assert.strictEqual(hostSet, '1.2.3.4');
+                    assert.strictEqual(hostSet, '192.0.2.10');
                 });
         });
 
@@ -1637,8 +1637,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
+                        '192.0.2.10/5': {
+                            name: '192.0.2.10/5',
                             description: 'this is my description'
                         }
                     }
@@ -1646,8 +1646,8 @@ describe('systemHandler', () => {
             };
 
             state.currentConfig.Common.ManagementIp = {
-                '4.5.6.7/8': {
-                    name: '4.5.6.7/8',
+                '192.0.2.40/8': {
+                    name: '192.0.2.40/8',
                     description: 'this is my description'
                 }
             };
@@ -1660,7 +1660,7 @@ describe('systemHandler', () => {
                     assert.deepStrictEqual(
                         managementIpData,
                         {
-                            name: '1.2.3.4/5',
+                            name: '192.0.2.10/5',
                             description: 'this is my description'
                         }
                     );
@@ -1670,7 +1670,7 @@ describe('systemHandler', () => {
                             mgmtDhcp: 'disabled'
                         }
                     );
-                    assert.strictEqual(hostSet, '1.2.3.4');
+                    assert.strictEqual(hostSet, '192.0.2.10');
                 });
         });
 
@@ -1678,8 +1678,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
+                        '192.0.2.10/5': {
+                            name: '192.0.2.10/5',
                             description: 'this is new'
                         }
                     }
@@ -1687,8 +1687,8 @@ describe('systemHandler', () => {
             };
 
             state.currentConfig.Common.ManagementIp = {
-                '1.2.3.4/5': {
-                    name: '1.2.3.4/5',
+                '192.0.2.10/5': {
+                    name: '192.0.2.10/5',
                     description: 'this is my description'
                 }
             };
@@ -1696,7 +1696,7 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
-                    const expectedPath = `${PATHS.ManagementIp}/1.2.3.4~5`;
+                    const expectedPath = `${PATHS.ManagementIp}/192.0.2.10~5`;
                     const managementIpData = dataSent[expectedPath][0];
                     const mgmtDhcpData = dataSent[PATHS.SysGlobalSettings][0];
                     assert.deepStrictEqual(
@@ -1711,7 +1711,7 @@ describe('systemHandler', () => {
                             mgmtDhcp: 'disabled'
                         }
                     );
-                    assert.strictEqual(hostSet, '1.2.3.4');
+                    assert.strictEqual(hostSet, '192.0.2.10');
                 });
         });
 
@@ -1719,8 +1719,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
+                        '192.0.2.10/5': {
+                            name: '192.0.2.10/5',
                             description: 'this is my description'
                         }
                     }
@@ -1737,13 +1737,13 @@ describe('systemHandler', () => {
         });
 
         it('should delete the current management ip if using localhost and only changing mask', () => {
-            // Note: the beforeAll hook sets the IP to '4.5.6.7/8'. So this test
+            // Note: the beforeAll hook sets the IP to '192.0.2.40/8'. So this test
             // is changing just the mask and looking for a delete call.
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '4.5.6.7/9': {
-                            name: '4.5.6.7/9',
+                        '192.0.2.40/9': {
+                            name: '192.0.2.40/9',
                             description: 'this is my description'
                         }
                     }
@@ -1755,7 +1755,7 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
-                    assert.strictEqual(deletePathSent, `${PATHS.ManagementIp}/4.5.6.7~8`);
+                    assert.strictEqual(deletePathSent, `${PATHS.ManagementIp}/192.0.2.40~8`);
                 });
         });
 
@@ -1763,8 +1763,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
+                        '192.0.2.10/5': {
+                            name: '192.0.2.10/5',
                             description: 'this is my description'
                         }
                     }
@@ -1784,8 +1784,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '4.5.6.7/9': {
-                            name: '4.5.6.7/9',
+                        '192.0.2.40/9': {
+                            name: '192.0.2.40/9',
                             description: 'this is my description'
                         }
                     }
@@ -1800,8 +1800,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
+                        '192.0.2.10/5': {
+                            name: '192.0.2.10/5',
                             description: 'this is my description'
                         }
                     }
@@ -1819,8 +1819,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
+                        '192.0.2.10/5': {
+                            name: '192.0.2.10/5',
                             description: 'configured-by-dhcp'
                         }
                     }
@@ -1832,7 +1832,7 @@ describe('systemHandler', () => {
             return systemHandler.process()
                 .then(() => {
                     assert.deepStrictEqual(dataSent, null);
-                    assert.strictEqual(hostSet, '1.2.3.4');
+                    assert.strictEqual(hostSet, '192.0.2.10');
                 });
         });
 
@@ -1840,8 +1840,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '4.5.6.7/8': {
-                            name: '4.5.6.7/8',
+                        '192.0.2.40/8': {
+                            name: '192.0.2.40/8',
                             description: 'configured-by-dhcp'
                         }
                     }
@@ -1856,7 +1856,7 @@ describe('systemHandler', () => {
                         dataSent,
                         null
                     );
-                    assert.strictEqual(hostSet, '4.5.6.7');
+                    assert.strictEqual(hostSet, '192.0.2.40');
                 });
         });
 
@@ -1864,8 +1864,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '4.5.6.7/8': {
-                            name: '4.5.6.7/8'
+                        '192.0.2.40/8': {
+                            name: '192.0.2.40/8'
                         }
                     }
                 }
@@ -1876,7 +1876,7 @@ describe('systemHandler', () => {
             return systemHandler.process()
                 .then(() => {
                     assert.deepStrictEqual(dataSent, null);
-                    assert.strictEqual(hostSet, '4.5.6.7');
+                    assert.strictEqual(hostSet, '192.0.2.40');
                 });
         });
 
@@ -1889,16 +1889,16 @@ describe('systemHandler', () => {
                         }
                     },
                     ManagementIp: {
-                        '1.2.3.4/5': {
-                            name: '1.2.3.4/5',
+                        '192.0.2.10/5': {
+                            name: '192.0.2.10/5',
                             description: 'configured-by-dhcp'
                         }
                     },
                     ManagementRoute: {
                         managementRoute1: {
                             name: 'managementRoute1',
-                            gateway: '1.2.3.4',
-                            network: '4.3.2.1',
+                            gateway: '192.0.2.10',
+                            network: '192.0.2.30',
                             mtu: 1
                         }
                     }
@@ -1923,8 +1923,8 @@ describe('systemHandler', () => {
             const declaration = {
                 Common: {
                     ManagementIp: {
-                        '4.5.6.7/8': {
-                            name: '4.5.6.7/8',
+                        '192.0.2.40/8': {
+                            name: '192.0.2.40/8',
                             description: 'this is my description'
                         }
                     }
@@ -1952,8 +1952,8 @@ describe('systemHandler', () => {
                     ManagementRoute: {
                         theManagementRoute: {
                             name: 'theManagementRoute',
-                            gateway: '4.3.2.1',
-                            network: '1.2.3.4',
+                            gateway: '192.0.2.30',
+                            network: '192.0.2.10',
                             mtu: 123
                         }
                     }
@@ -1963,7 +1963,7 @@ describe('systemHandler', () => {
             state.currentConfig.Common.ManagementRoute = {
                 theManagementRoute: {
                     name: 'theManagementRoute',
-                    gateway: '4.3.2.1',
+                    gateway: '192.0.2.30',
                     network: '10.20.30.40',
                     mtu: 123
                 }
@@ -1980,15 +1980,15 @@ describe('systemHandler', () => {
                 managementRoute1: {
                     name: 'managementRoute1',
                     description: 'Example description',
-                    gateway: '1.1.1.1',
+                    gateway: '192.0.2.10',
                     network: 'default-inet6',
                     mtu: 1234,
                     type: 'interface'
                 },
                 managementRoute2: {
                     name: 'managementRoute1',
-                    gateway: '1.2.3.4',
-                    network: '4.3.2.1',
+                    gateway: '192.0.2.10',
+                    network: '192.0.2.30',
                     mtu: 1
                 }
             };
@@ -2001,14 +2001,14 @@ describe('systemHandler', () => {
                     assert.strictEqual(managementRouteData[0].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[0].description, 'Example description');
                     assert.strictEqual(managementRouteData[0].partition, 'Common');
-                    assert.strictEqual(managementRouteData[0].gateway, '1.1.1.1');
+                    assert.strictEqual(managementRouteData[0].gateway, '192.0.2.10');
                     assert.strictEqual(managementRouteData[0].network, 'default-inet6');
                     assert.strictEqual(managementRouteData[0].mtu, 1234);
                     assert.strictEqual(managementRouteData[0].type, 'interface');
                     assert.strictEqual(managementRouteData[1].name, 'managementRoute1');
                     assert.strictEqual(managementRouteData[1].partition, 'Common');
-                    assert.strictEqual(managementRouteData[1].gateway, '1.2.3.4');
-                    assert.strictEqual(managementRouteData[1].network, '4.3.2.1/32');
+                    assert.strictEqual(managementRouteData[1].gateway, '192.0.2.10');
+                    assert.strictEqual(managementRouteData[1].network, '192.0.2.30/32');
                     assert.strictEqual(managementRouteData[1].mtu, 1);
                 });
         });
@@ -2021,8 +2021,8 @@ describe('systemHandler', () => {
                     assert.deepEqual(deletedPaths, ['/tm/sys/management-route/~Common~theManagementRoute']);
                     assert.strictEqual(managementRouteData[0].name, 'theManagementRoute');
                     assert.strictEqual(managementRouteData[0].partition, 'Common');
-                    assert.strictEqual(managementRouteData[0].gateway, '4.3.2.1');
-                    assert.strictEqual(managementRouteData[0].network, '1.2.3.4/32');
+                    assert.strictEqual(managementRouteData[0].gateway, '192.0.2.30');
+                    assert.strictEqual(managementRouteData[0].network, '192.0.2.10/32');
                     assert.strictEqual(managementRouteData[0].mtu, 123);
                 });
         });
@@ -2038,7 +2038,7 @@ describe('systemHandler', () => {
         });
 
         it('should not delete the existing ManagementRoute if network not updated', () => {
-            state.currentConfig.Common.ManagementRoute.theManagementRoute.network = '1.2.3.4/32';
+            state.currentConfig.Common.ManagementRoute.theManagementRoute.network = '192.0.2.10/32';
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then(() => {
@@ -2046,8 +2046,8 @@ describe('systemHandler', () => {
                     assert.deepEqual(deletedPaths, []);
                     assert.strictEqual(managementRouteData[0].name, 'theManagementRoute');
                     assert.strictEqual(managementRouteData[0].partition, 'Common');
-                    assert.strictEqual(managementRouteData[0].gateway, '4.3.2.1');
-                    assert.strictEqual(managementRouteData[0].network, '1.2.3.4/32');
+                    assert.strictEqual(managementRouteData[0].gateway, '192.0.2.30');
+                    assert.strictEqual(managementRouteData[0].network, '192.0.2.10/32');
                     assert.strictEqual(managementRouteData[0].mtu, 123);
                 });
         });
@@ -2093,10 +2093,10 @@ describe('systemHandler', () => {
                             '/tm/sys/management-route': [
                                 {
                                     description: undefined,
-                                    gateway: '4.3.2.1',
+                                    gateway: '192.0.2.30',
                                     mtu: 123,
                                     name: 'theManagementRoute',
-                                    network: '1.2.3.4/32',
+                                    network: '192.0.2.10/32',
                                     partition: 'Common',
                                     type: undefined
                                 }
@@ -2111,8 +2111,8 @@ describe('systemHandler', () => {
             declaration.Common.ManagementRoute = {
                 managementRoute: {
                     name: 'managementRoute1',
-                    gateway: '1.2.3.4',
-                    network: '4.3.2.1',
+                    gateway: '192.0.2.10',
+                    network: '192.0.2.30',
                     mtu: 1
                 }
             };
@@ -2212,15 +2212,15 @@ describe('systemHandler', () => {
                 managementRoute: {},
                 managementRoute1: {
                     name: 'managementRoute1',
-                    gateway: '1.2.3.4',
-                    network: '4.3.2.1'
+                    gateway: '192.0.2.10',
+                    network: '192.0.2.30'
                 }
             };
             state.currentConfig.Common.ManagementRoute = {
                 managementRoute: {
                     name: 'managementRoute',
-                    gateway: '1.2.3.4',
-                    network: '4.3.2.1'
+                    gateway: '192.0.2.10',
+                    network: '192.0.2.30'
                 }
             };
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
@@ -2234,8 +2234,8 @@ describe('systemHandler', () => {
                                 name: 'managementRoute1',
                                 description: undefined,
                                 partition: 'Common',
-                                gateway: '1.2.3.4',
-                                network: '4.3.2.1/32',
+                                gateway: '192.0.2.10',
+                                network: '192.0.2.30/32',
                                 mtu: undefined,
                                 type: undefined
                             }
@@ -2371,7 +2371,7 @@ describe('systemHandler', () => {
                 }
             }
         };
-        sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1.3' });
+        sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1' });
 
         const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
@@ -2597,7 +2597,7 @@ describe('systemHandler', () => {
                 }
             }
         };
-        sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1.3' });
+        sinon.stub(bigIpMock, 'deviceInfo').resolves({ version: '13.1.1' });
 
         const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
         return systemHandler.process()
@@ -2797,7 +2797,7 @@ describe('systemHandler', () => {
                     SSHD: {
                         allow: [
                             '192.168.*.*',
-                            '1.2.3.4/32'
+                            '192.0.2.10/32'
                         ],
                         bannerText: 'Text for banner',
                         inactivityTimeout: 12345,
@@ -2834,7 +2834,7 @@ describe('systemHandler', () => {
                         {
                             allow: [
                                 '192.168.*.*',
-                                '1.2.3.4/32'
+                                '192.0.2.10/32'
                             ],
                             banner: 'enabled',
                             bannerText: 'Text for banner',

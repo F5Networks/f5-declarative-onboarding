@@ -419,14 +419,14 @@ describe('doUtil', () => {
                 commandResult: 'status: NXDOMAIN'
             });
 
-            return assert.isRejected(doUtil.checkDnsResolution(bigIpMock, '260.84.18.2'), 'Unable to resolve host 260.84.18.2');
+            return assert.isRejected(doUtil.checkDnsResolution(bigIpMock, '260.84.18.2'), 'Unable to resolve host 260.84.18.2'); // gitleaks:allow
         });
 
         it('should resolve true if a valid ip is given', () => {
             bigIpMock.create = () => Promise.resolve({
                 commandResult: 'status: NOERROR'
             });
-            return assert.isFulfilled(doUtil.checkDnsResolution(bigIpMock, '160.84.18.2', true));
+            return assert.isFulfilled(doUtil.checkDnsResolution(bigIpMock, '192.0.2.10', true));
         });
 
         it('should resolve true if dig returns the address', () => {

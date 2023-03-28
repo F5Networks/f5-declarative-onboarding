@@ -1027,7 +1027,7 @@ describe('restWorker', () => {
                 Common: {
                     mySelfIp: {
                         class: 'SelfIp',
-                        address: '1.2.3.4',
+                        address: '192.0.2.10',
                         vlan: 'foo'
                     }
                 }
@@ -1597,7 +1597,7 @@ describe('restWorker', () => {
                 it('should handle initial password set if user/password is admin/admin', () => new Promise((resolve, reject) => {
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetPort: 443,
                         targetUsername: 'admin',
                         targetPassphrase: 'admin',
@@ -1637,7 +1637,7 @@ describe('restWorker', () => {
 
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetUsername: 'admin',
                         targetSshKey: {
                             path: '~/.ssh/id_rsa'
@@ -1667,7 +1667,7 @@ describe('restWorker', () => {
                 it('should ssh to BIG-IP if an ssh key is provided and shell is tmsh', (done) => {
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetUsername: 'admin',
                         targetSshKey: {
                             path: '~/.ssh/id_rsa'
@@ -1697,7 +1697,7 @@ describe('restWorker', () => {
                 it('should dereference user password if it is a pointer', () => new Promise((resolve, reject) => {
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetUsername: 'admin',
                         targetSshKey: {
                             path: '~/.ssh/id_rsa'
@@ -1732,7 +1732,7 @@ describe('restWorker', () => {
                 it('should delete targetSshKey when setting targetPassphrase', () => new Promise((resolve, reject) => {
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetUsername: 'admin',
                         targetSshKey: {
                             path: '~/.ssh/id_rsa'
@@ -1768,7 +1768,7 @@ describe('restWorker', () => {
                 it('should update password used to create bigIp', () => new Promise((resolve, reject) => {
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetUsername: 'admin',
                         targetSshKey: {
                             path: '~/.ssh/id_rsa'
@@ -1807,7 +1807,7 @@ describe('restWorker', () => {
                 it('should use password value if it is not really a pointer', () => new Promise((resolve, reject) => {
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetUsername: 'admin',
                         targetSshKey: {
                             path: '~/.ssh/id_rsa'
@@ -1865,7 +1865,7 @@ describe('restWorker', () => {
 
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetPort: 443,
                         targetUsername: 'admin',
                         targetPassphrase: 'admin',
@@ -1915,7 +1915,7 @@ describe('restWorker', () => {
 
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetPort: 443,
                         targetUsername: 'admin',
                         targetPassphrase: 'admin',
@@ -1977,7 +1977,7 @@ describe('restWorker', () => {
 
                     declaration = {
                         class: 'DO',
-                        targetHost: '1.2.3.4',
+                        targetHost: '192.0.2.10',
                         targetPort: 443,
                         targetUsername: 'admin',
                         targetSshKey: {

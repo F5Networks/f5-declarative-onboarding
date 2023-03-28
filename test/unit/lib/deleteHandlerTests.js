@@ -131,7 +131,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
                         deleteThisRoute: {
                             name: 'deleteThisRoute',
                             mtu: 0,
-                            network: '1.2.3.5'
+                            network: '192.0.2.10'
                         }
                     }
                 }
@@ -486,7 +486,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
                         deleteThisRoute: {
                             name: 'deleteThisRoute',
                             mtu: 0,
-                            network: '1.2.3.5'
+                            network: '192.0.2.10'
                         }
                     }
                 }
@@ -611,7 +611,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
                             description: 'none',
                             key: 0,
                             localAddress: '10.10.0.0',
-                            remoteAddress: '20.20.0.0',
+                            remoteAddress: '192.0.2.20',
                             secondaryAddress: 'any6',
                             mode: 'bidirectional',
                             transparent: 'disabled',
@@ -675,12 +675,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
                         route: {
                             name: 'route',
                             mtu: 0,
-                            netowrk: '1.2.3.5'
+                            netowrk: '192.0.2.10'
                         },
                         localRoute: {
                             name: 'localRoute',
                             mtu: 0,
-                            netowrk: '1.2.3.4',
+                            netowrk: '192.0.2.11',
                             localOnly: true
                         }
                     }
@@ -1079,7 +1079,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
                     NetAddressList: {
                         netAddressList: {
                             name: 'netAddressList',
-                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                            addresses: ['192.0.2.10', '192.0.2.0/24']
                         }
                     }
                 }
@@ -1108,13 +1108,13 @@ describe(('deleteHandler'), function testDeleteHandler() {
                     NetAddressList: {
                         netAddressList: {
                             name: 'netAddressList',
-                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                            addresses: ['192.0.2.10', '192.0.2.0/24']
                         }
                     },
                     FirewallAddressList: {
                         netAddressList: {
                             name: 'netAddressList',
-                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                            addresses: ['192.0.2.10', '192.0.2.0/24']
                         }
                     }
                 }
@@ -1205,7 +1205,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
                     FirewallAddressList: {
                         firewallAddressList: {
                             name: 'firewallAddressList',
-                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                            addresses: ['192.0.2.10', '192.0.2.0/24']
                         }
                     }
                 }
@@ -1234,13 +1234,13 @@ describe(('deleteHandler'), function testDeleteHandler() {
                     NetAddressList: {
                         netAddressList: {
                             name: 'netAddressList',
-                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                            addresses: ['192.0.2.10', '192.0.2.0/24']
                         }
                     },
                     FirewallAddressList: {
                         netAddressList: {
                             name: 'netAddressList',
-                            addresses: ['192.0.2.10', '192.1.2.0/24']
+                            addresses: ['192.0.2.10', '192.0.2.0/24']
                         }
                     }
                 }

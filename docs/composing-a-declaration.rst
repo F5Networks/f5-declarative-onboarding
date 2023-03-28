@@ -221,6 +221,11 @@ The name *myLicense* we use in this example is arbitrary; it is not used anywher
 
 BIG-IP Declarative Onboarding 1.24 introduced the optional **chargebackTag** property, the value of which is a text string that can be used as a charge back tag, making it easier to track license costs.
 
+**New behavior in DO 1.37**
+If the BIG-IP has its license revoked outside of DO using `tmsh revoke sys license`, and a declaration is submitted with a license object, the BIG-IP now attempts to license the machine. Previously, if the license on the device had been revoked, the overwrite setting did not re-install the license.
+
+Note that if the `overwrite` boolean is set to **true**, the BIG-IP will always attempt to license the machine.
+
 
 
 .. code-block:: javascript
