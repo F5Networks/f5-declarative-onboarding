@@ -11,12 +11,16 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.37
+        - Updated the documentation for Declarative Onboarding v1.37.0.  This release contains the following changes: |br| * Added support for configuring Security analytics in a declaration (see :ref:`Security Analytics <secanalytics>`) |br| * Added a note to the :ref:`License Class <license-class>` section about new behavior when using DO to relicense a BIG-IP device.
+        - 3-27-23
+
       * - 1.36.1
         - Released BIG-IP Declarative Onboarding 1.36.1 as a LTS (Long Term Support) version. See the BIG-IP Declarative Onboarding |supportmd| for information about the BIG-IP Declarative Onboarding support policy.
         - 3-9-23
 
       * - 1.36
-        - Updated the documentation for Declarative Onboarding v1.36.0.  This release contains the following changes: |br| * The default value for **allowService** on a **SelfIp** is now **none** (see :ref:`Self IP class<selfip-class>`) |br| * Updated VXLAN tunnel creation to respect TrafficControl acceptIpOptions values (see the note in :ref:`VXLAN tunnels<vxlan>`) 
+        - Updated the documentation for Declarative Onboarding v1.36.0.  This release contains the following changes: |br| * The default value for **allowService** on a **SelfIp** is now **none** (see :ref:`Troubleshooting<selfipchange>`) |br| * Updated VXLAN tunnel creation to respect TrafficControl acceptIpOptions values (see the note in :ref:`VXLAN tunnels<vxlan>`) 
         - 2-9-23
 
       * - 1.35

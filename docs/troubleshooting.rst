@@ -85,6 +85,49 @@ Increase the memory allocated for the restjavad daemon (e.g. 2 GB), you can eith
 ``bigstart restart restjavad``
 
 
+|
+
+.. _selfipchange:
+
+Why am I seeing a behavior change for allowService on a self IP address in DO 1.36?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+BIG-IP DO 1.36.0 introduced a behavior change: The default value for **allowService** on a self IP address changed from **default** to **none**. DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.  See :ref:`Self IP class<selfip-class>` for more information and self IP options.
+
+This change helps DO be more secure and consistent with TMSH.
+
+
+.. _clustering:
+
+Why isn't my clustering declaration working?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If you are experiencing difficulties getting clustering configured using Declarative Onboarding, use the following troubleshooting tips.
+
+When configuring a cluster using Declarative Onboarding, we recommend using new BIG-IPs (using new virtual machines if applicable).
+
+If your declaration does not work as expected, review the declaration and confirm all machines in the cluster can reach the **remoteHost** FQDN or IP address. DNS or other network limitations can cause issues on newer network setups.
+
+If the declaration appears correct and all machines in the cluster can reach the **remoteHost**, but you are still receiving failures, try one of the following methods.
+
+1. Send the declaration to a new BIG-IP device (most easily done in a virtual environment).  
+
+2. Reset the BIG-IP device by performing the following on whichever is device is failing.
+
+   - Clear the DO config (to prevent subsequent DO runs from having inaccurate information to work from):
+
+      - Send a GET request to ``https://host/mgmt/shared/declarative-onboarding/config``.
+      - Copy the **id** value from the response.
+      - Send a DELETE request to ``https://host/mgmt/shared/declarative-onboarding/config/id_value``.  If the DELETE was successful, you receive **[]** as the response. 
+      - Confirm the deletion by sending a GET request to ``https://host/mgmt/shared/declarative-onboarding/config`` You should receive **[]** as the response. 
+      
+   - Send the cluster declaration again.  
+
+
+After trying these steps, if the declaration still does not work as expected, we recommend opening a |ghissue|.
+
+
+
+
+
 .. |br| raw:: html
 
    <br />
@@ -96,3 +139,7 @@ Increase the memory allocated for the restjavad daemon (e.g. 2 GB), you can eith
 .. |release| raw:: html
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/releases" target="_blank">GitHub Release</a>
+
+.. |ghissue| raw:: html
+
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/issues" target="_blank">GitHub issue</a>
