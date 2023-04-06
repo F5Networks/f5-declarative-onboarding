@@ -176,6 +176,32 @@ See |controls| in the Schema Reference for more information.
 
 |
 
+.. _relic:
+
+Relicense a BIG-IP while revoking the current license
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for the revoking and relicensing in a declaration is available in BIG-IP DO v1.38 and later.
+
+In this example, we show how you can use DO to relicense a BIG-IP while at the same time revoke the existing license. 
+
+This declaration uses the **revokeCurrent** property in the |license| introduced in DO 1.38. 	This property determines whether or not to revoke the current license if the device is already licensed.
+
+.. NOTE:: Revoking the existing license is skipped if you are relicensing with the same registration key, no matter what value is used in the **revokeCurrent** property.
+
+
+See |controls| in the Schema Reference for more information.
+
+
+.. literalinclude:: ../../examples/reLicenseBigIp.json
+   :language: json
+
+:ref:`Back to top<misc-examples>`
+
+
+|
+
 .. |br| raw:: html
 
    <br />
@@ -191,6 +217,10 @@ See |controls| in the Schema Reference for more information.
 .. |snmpdoc| raw:: html
 
    <a href="https://techdocs.f5.com/en-us/bigip-14-0-0/external-monitoring-of-big-ip-systems-implementations-14-0-0/monitoring-big-ip-system-traffic-with-snmp.html" target="_blank">Monitoring BIG-IP System Traffic with SNMP</a>
+
+.. |license| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#license" target="_blank">License Class</a>
 
 .. |tcref| raw:: html
 
