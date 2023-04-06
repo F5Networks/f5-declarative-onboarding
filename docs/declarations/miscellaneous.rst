@@ -191,7 +191,7 @@ This declaration uses the **revokeCurrent** property in the |license| introduced
 .. NOTE:: Revoking the existing license is skipped if you are relicensing with the same registration key, no matter what value is used in the **revokeCurrent** property.
 
 
-See |license| in the Schema Reference and :ref:`License Class <license-class>` for more information.
+See |license| in the Schema Reference and :ref:`Composing a Declaration <license-class>` page for more information.
 
 
 .. literalinclude:: ../../examples/reLicenseBigIp.json
