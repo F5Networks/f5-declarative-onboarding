@@ -39,6 +39,7 @@ describe('restWorker', () => {
     let SshUtilMock;
     let httpUtilMock;
     let doUtilMock;
+    let fetchesMock;
 
     before(() => {
         cryptoUtilMock = require('../../../src/lib/cryptoUtil');
@@ -48,6 +49,7 @@ describe('restWorker', () => {
         RestWorker = require('../../../src/nodejs/restWorker');
         httpUtilMock = require('../../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
         doUtilMock = require('../../../src/lib/doUtil');
+        fetchesMock = require('../../../src/lib/fetchHandler');
     });
 
     beforeEach(() => {
@@ -833,7 +835,13 @@ describe('restWorker', () => {
     });
 
     describe('onPost', () => {
-        const validatorMock = {};
+        const validatorMock = {
+            validators: [
+                {
+                    fetches: []
+                }
+            ]
+        };
         let updateResultSpy;
 
         let restWorker;
@@ -865,6 +873,7 @@ describe('restWorker', () => {
                 return Promise.resolve(bigIpMock);
             });
             sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
+            sinon.stub(fetchesMock, 'handleFetches').resolves();
 
             validatorMock.validate = () => Promise.resolve({
                 isValid: true

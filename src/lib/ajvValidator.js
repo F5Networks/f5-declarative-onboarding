@@ -31,6 +31,7 @@ const gslbSchema = require('../schema/latest/gslb.schema.json');
 const securitySchema = require('../schema/latest/security.schema.json');
 
 const customFormats = require('../schema/latest/formats');
+const customKeywords = require('./customKeywords');
 
 class AjvValidator {
     constructor() {
@@ -47,6 +48,9 @@ class AjvValidator {
             ajv.addFormat(customFormat, customFormats[customFormat]);
         });
 
+        customKeywords.keywords.forEach((keyword) => ajv.addKeyword(keyword.name,
+            keyword.definition(this)));
+
         this.validator = ajv
             .addSchema(definitionsSchema)
             .addSchema(systemSchema)
@@ -62,6 +66,7 @@ class AjvValidator {
     }
 
     validate(data) {
+        this.fetches = [];
         const isValid = this.validator(data);
         return Promise.resolve({
             isValid,

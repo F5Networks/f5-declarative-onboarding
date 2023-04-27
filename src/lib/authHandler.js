@@ -223,19 +223,19 @@ function handleLdap() {
 
     const options = ldapObj.bindPw ? { silent: true } : {};
 
-    if (ldap.sslCaCertFile && ldap.sslCaCertFile.base64) {
+    if (ldap.sslCaCertFile && ldap.sslCaCertFile.sslCaCertFile) {
         certPromises.push(
-            handleCert.call(this, 'do_ldapCaCert.crt', ldap.sslCaCertFile, PATHS.SSLCert)
+            handleCert.call(this, 'do_ldapCaCert.crt', ldap.sslCaCertFile.sslCaCertFile, PATHS.SSLCert)
         );
     }
-    if (ldap.sslClientCert && ldap.sslClientCert.base64) {
+    if (ldap.sslClientCert && ldap.sslClientCert.sslClientCert) {
         certPromises.push(
-            handleCert.call(this, 'do_ldapClientCert.crt', ldap.sslClientCert, PATHS.SSLCert)
+            handleCert.call(this, 'do_ldapClientCert.crt', ldap.sslClientCert.sslClientCert, PATHS.SSLCert)
         );
     }
-    if (ldap.sslClientKey && ldap.sslClientKey.base64) {
+    if (ldap.sslClientKey && ldap.sslClientKey.sslClientKey) {
         certPromises.push(
-            handleCert.call(this, 'do_ldapClientCert.key', ldap.sslClientKey, PATHS.SSLKey)
+            handleCert.call(this, 'do_ldapClientCert.key', ldap.sslClientKey.sslClientKey, PATHS.SSLKey)
         );
     }
 
@@ -291,11 +291,10 @@ function handleRemoteUsersDefaults() {
     );
 }
 
-function handleCert(certName, certObj, certPath) {
+function handleCert(certName, certData, certPath) {
     const uploadCert = (name, data) => {
         const path = `${PATHS.Uploads}/${name}`;
-        const dataStr = Buffer.from(data, 'base64').toString().trim();
-        const dataSize = Buffer.byteLength(dataStr);
+        const dataSize = Buffer.byteLength(data);
         const reqOpts = {
             headers: {
                 'Content-Type': 'application/octet-stream',
@@ -307,7 +306,7 @@ function handleCert(certName, certObj, certPath) {
             silent: path.endsWith('.key')
         };
 
-        return this.bigIp.create(path, dataStr, reqOpts, undefined, opts);
+        return this.bigIp.create(path, data, reqOpts, undefined, opts);
     };
 
     const createCert = (name, path) => {
@@ -326,7 +325,7 @@ function handleCert(certName, certObj, certPath) {
         return this.bigIp.create(PATHS.UnixRm, data);
     };
 
-    return uploadCert(certName, certObj.base64)
+    return uploadCert(certName, certData)
         .then(() => createCert(certName, certPath))
         .then(() => deleteCert(certName));
 }

@@ -535,7 +535,7 @@ describe('authHandler', () => {
                                 name: 'do_ldapCaCert.crt',
                                 partition: 'Common',
                                 checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10',
-                                base64: 'ZjVmYWtlY2VydA=='
+                                sslCaCertFile: 'f5fakecert'
                             },
                             sslCheckPeer: 'enabled',
                             sslCiphers: [
@@ -547,13 +547,13 @@ describe('authHandler', () => {
                                 name: 'do_ldapClientCert.crt',
                                 partition: 'Common',
                                 checksum: 'SHA1:1704:a652cb34061c27d5343a742b1587f6211740fe10',
-                                base64: 'ZjVmYWtlY2VydA=='
+                                sslClientCert: 'f5fakecert'
                             },
                             sslClientKey: {
                                 name: 'do_ldapClientCert.key',
                                 partition: 'Common',
                                 checksum: 'SHA1:1703:a432012676a43bd8fc85496c9ed442f08e02d6a0',
-                                base64: 'ZjVmYWtla2V5'
+                                sslClientKey: 'f5fakekey'
                             },
                             userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
                             version: 2
@@ -669,7 +669,7 @@ describe('authHandler', () => {
                 });
         });
 
-        it('should skip creating ldap certs with missing base64 data', () => {
+        it('should skip creating ldap certs with missing sslCaCertFile data', () => {
             const declaration = {
                 Common: {
                     Authentication: {

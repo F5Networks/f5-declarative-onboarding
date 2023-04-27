@@ -1,0 +1,41 @@
+{
+    "class": "Device",
+    "schemaVersion": "1.38.0",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "test_item-foo.2345678901234567890123456789012345": {
+            "class": "Authentication",
+            "enabledSourceType": "ldap",
+            "ldap": {
+                "bindTimeout": 40,
+                "checkBindPassword": true,
+                "checkRemoteRole": true,
+                "idleTimeout": 20,
+                "ignoreAuthInfoUnavailable": true,
+                "ignoreUnknownUser": true,
+                "port": 654,
+                "searchScope": "base",
+                "searchTimeout": 687,
+                "servers": [
+                    "a.host.com",
+                    "192.0.2.10",
+                    "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
+                ],
+                "ssl": "enabled",
+                "sslCaCert": {
+                    "certificate": {
+                        "url": "https://exampleUrl/cert"
+                    }
+                },
+                "sslCheckPeer": true,
+                "sslCiphers": [
+                    "ECDHE-RSA-AES128-CBC-SHA",
+                    "ECDHE-RSA-AES128-SHA256"
+                ],
+                "userTemplate": "uid=%s,ou=people,dc=siterequest,dc=com",
+                "version": 2
+            }
+        }
+    }
+}

@@ -3163,17 +3163,11 @@ describe('declarationHandler', () => {
                     Authentication: {
                         ldap: {
                             sslCaCertFile: {
-                                certificate: {
-                                    base64: 'ZjVmYWtlY2VydA=='
-                                }
+                                certificate: 'f5fakecert'
                             },
                             sslClientCert: {
-                                certificate: {
-                                    base64: 'ZjVmYWtlY2VydA=='
-                                },
-                                privateKey: {
-                                    base64: 'ZjVmYWtla2V5'
-                                }
+                                certificate: 'f5fakecert',
+                                privateKey: 'f5fakekey'
                             }
                         }
                     }

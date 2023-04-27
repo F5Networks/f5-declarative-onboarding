@@ -231,12 +231,8 @@ describe('systemHandler', () => {
                 Common: {
                     DeviceCertificate: {
                         myCertificate: {
-                            certificate: {
-                                base64: 'Zm9vCg==' // 'foo'
-                            },
-                            privateKey: {
-                                base64: 'YmFyCg==' // 'bar'
-                            }
+                            certificate: 'foo',
+                            privateKey: 'bar'
                         }
                     }
                 }
@@ -274,12 +270,8 @@ describe('systemHandler', () => {
                 Common: {
                     DeviceCertificate: {
                         myCertificate: {
-                            certificate: {
-                                base64: 'b2xkIGNlcnQK' // 'old cert'
-                            },
-                            privateKey: {
-                                base64: 'b2xkIGtleQo=' // 'old key'
-                            }
+                            certificate: 'old cert',
+                            privateKey: 'old key'
                         }
                     }
                 }

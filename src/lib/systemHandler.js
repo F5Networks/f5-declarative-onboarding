@@ -347,78 +347,64 @@ function handleDeviceCertificate() {
         if (certificateName) {
             const certificateDeclaration = this.declaration.Common.DeviceCertificate[certificateName];
             if (certificateDeclaration.certificate) {
-                if (certificateDeclaration.certificate.base64) {
-                    newCertificate = Buffer.from(
-                        certificateDeclaration.certificate.base64,
-                        'base64'
-                    ).toString().trim();
-                }
-                if (newCertificate) {
-                    let needsWrite = false;
-                    certificatePromise = certificatePromise
-                        .then(() => doUtil.executeBashCommandIControl(
-                            this.bigIp,
-                            `cat ${certificateFullPath}`
-                        ))
-                        .then((data) => {
-                            originalCertificate = data.trim();
-                            if (newCertificate !== originalCertificate) {
-                                needsWrite = true;
-                                // Make a copy of the current file in case we need to rollback
-                                return storeDeviceCertRollbackInfo.call(this, certificateFullPath);
-                            }
-                            return Promise.resolve();
-                        })
-                        .then(() => {
-                            if (needsWrite) {
-                                writePromises.push(doUtil.executeBashCommandIControl(
-                                    this.bigIp,
-                                    `echo '${newCertificate}' > ${certificateFullPath}`,
-                                    cloudUtil.NO_RETRY,
-                                    { silent: true } // keeping it out of the logs just because it's a lot of data
-                                ));
-                            }
-                        });
-                }
+                let needsWrite = false;
+                newCertificate = certificateDeclaration.certificate;
+                certificatePromise = certificatePromise
+                    .then(() => doUtil.executeBashCommandIControl(
+                        this.bigIp,
+                        `cat ${certificateFullPath}`
+                    ))
+                    .then((data) => {
+                        originalCertificate = data.trim();
+                        if (newCertificate !== originalCertificate) {
+                            needsWrite = true;
+                            // Make a copy of the current file in case we need to rollback
+                            return storeDeviceCertRollbackInfo.call(this, certificateFullPath);
+                        }
+                        return Promise.resolve();
+                    })
+                    .then(() => {
+                        if (needsWrite) {
+                            writePromises.push(doUtil.executeBashCommandIControl(
+                                this.bigIp,
+                                `echo '${newCertificate}' > ${certificateFullPath}`,
+                                cloudUtil.NO_RETRY,
+                                { silent: true } // keeping it out of the logs just because it's a lot of data
+                            ));
+                        }
+                    });
             }
 
             if (certificateDeclaration.privateKey) {
-                if (certificateDeclaration.privateKey.base64) {
-                    newKey = Buffer.from(
-                        certificateDeclaration.privateKey.base64,
-                        'base64'
-                    ).toString().trim();
-                }
-                if (newKey) {
-                    let needsWrite = false;
-                    keyPromise = keyPromise
-                        .then(() => doUtil.executeBashCommandIControl(
-                            this.bigIp,
-                            `cat ${keyFullPath}`,
-                            null,
-                            { silent: true } // keeping it out of the logs because this is the private key
-                        ))
-                        .then((data) => {
-                            originalKey = data.trim();
-                            if (newKey !== originalKey) {
-                                needsWrite = true;
-                                // Make a copy of the current file in case we need to rollback
-                                return storeDeviceCertRollbackInfo.call(this, `${keyFullPath}`);
-                            }
-                            return Promise.resolve();
-                        })
-                        .then(() => {
-                            if (needsWrite) {
-                                writePromises.push(
-                                    cryptoUtil.encryptValue(newKey, this.bigIp, this.state.id)
-                                        .then((results) => doUtil.executeBashCommandIControl(
-                                            this.bigIp,
-                                            `/usr/bin/php -r '${decryptScript}' '${results}' ${keyFullPath}`
-                                        ))
-                                );
-                            }
-                        });
-                }
+                let needsWrite = false;
+                newKey = certificateDeclaration.privateKey;
+                keyPromise = keyPromise
+                    .then(() => doUtil.executeBashCommandIControl(
+                        this.bigIp,
+                        `cat ${keyFullPath}`,
+                        null,
+                        { silent: true } // keeping it out of the logs because this is the private key
+                    ))
+                    .then((data) => {
+                        originalKey = data.trim();
+                        if (newKey !== originalKey) {
+                            needsWrite = true;
+                            // Make a copy of the current file in case we need to rollback
+                            return storeDeviceCertRollbackInfo.call(this, `${keyFullPath}`);
+                        }
+                        return Promise.resolve();
+                    })
+                    .then(() => {
+                        if (needsWrite) {
+                            writePromises.push(
+                                cryptoUtil.encryptValue(newKey, this.bigIp, this.state.id)
+                                    .then((results) => doUtil.executeBashCommandIControl(
+                                        this.bigIp,
+                                        `/usr/bin/php -r '${decryptScript}' '${results}' ${keyFullPath}`
+                                    ))
+                            );
+                        }
+                    });
             }
 
             return Promise.resolve()

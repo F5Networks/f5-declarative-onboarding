@@ -13,8 +13,14 @@
                     "description": "Base64-encoded value (in JSON string)",
                     "type": "string",
                     "format": "f5base64"
+                },
+                "url": {
+                    "$ref": "#/definitions/Resource_URL"
                 }
-            }
+            },
+            "additionalProperties": false,
+            "minProperties": 1,
+            "maxProperties": 1
         },
         "pkiCertificate": {
             "description": "PKI certificate with optional chain",
@@ -24,13 +30,15 @@
                     "description": "X.509 public-key certificate",
                     "allOf": [
                         { "$ref": "#/definitions/F5string" }
-                    ]
+                    ],
+                    "f5fetch": "pki-cert"
                 },
                 "privateKey": {
                     "description": "Private key matching certificate's public key (optional)",
                     "allOf": [
                         { "$ref": "#/definitions/F5string" }
-                    ]
+                    ],
+                    "f5fetch": "pki-key"
                 }
             }
         },
@@ -45,6 +53,12 @@
           "description": "Arbitrary (brief) text pertaining to this object (optional)",
           "type": "string",
           "format": "f5remark"
+        },
+        "Resource_URL": {
+            "title": "Resource URL",
+            "description": "The URL for a required resource",
+            "type": "string",
+            "format": "uri"
         }
     }
 }
