@@ -62,7 +62,7 @@ describe('Delete items', function DeleteItems() {
         };
 
         return Promise.resolve()
-            .then(() => postDeclaration(decl, logInfo))
+            .then(() => postDeclaration(decl, { logInfo }))
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);
             })
@@ -82,7 +82,7 @@ describe('Delete items', function DeleteItems() {
                 logInfo.declarationIndex = 1;
                 delete decl.Common.mySelfIp;
                 delete decl.Common.myVlan;
-                return postDeclaration(decl, logInfo);
+                return postDeclaration(decl, { logInfo });
             })
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);

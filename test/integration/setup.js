@@ -91,7 +91,8 @@ function setupMachines(harnessInfo) {
                     return waitForDo(ipAddress, adminUsername, adminPassword);
                 }
                 throw new Error(`failed : ${response.status}`);
-            });
+            })
+            .then(() => installLicense(ipAddress, adminUsername, adminPassword));
     });
     return Promise.all(installPromises);
 }
@@ -116,6 +117,33 @@ function installRpm(host, adminUsername, adminPassword) {
         + '/shared/iapp/package-management-tasks',
         { username: adminUsername, password: adminPassword },
         constants.HTTP_ACCEPTED,
+        'POST',
+        60,
+        [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED]
+    );
+}
+
+/**
+ * installLicense - tries to install the license on the machine until we run out of attempts
+ * @host {String} : BIG-IP's ip address
+ * @adminUsername {String} : BIG-IP's admin username
+ * @adminPassword {String} : BIG-IP's admin password
+*/
+function installLicense(host, adminUsername, adminPassword) {
+    if (!process.env.BIGIP_LICENSE) {
+        return Promise.resolve();
+    }
+    console.log('Installing license');
+    const installBody = {
+        command: 'install',
+        registrationKey: process.env.BIGIP_LICENSE
+    };
+    return common.testRequest(
+        installBody,
+        `${common.hostname(host, constants.PORT)}${constants.ICONTROL_API}`
+        + '/tm/sys/license',
+        { username: adminUsername, password: adminPassword },
+        constants.HTTP_SUCCESS,
         'POST',
         60,
         [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED]
