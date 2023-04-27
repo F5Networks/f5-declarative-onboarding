@@ -70,7 +70,7 @@ describe('User', function User() {
 
         return Promise.resolve()
             .then(() => assert.isFulfilled(
-                postDeclaration(decl, logInfo)
+                postDeclaration(decl, { logInfo })
             ))
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);
@@ -86,7 +86,7 @@ describe('User', function User() {
             .then(() => {
                 logInfo.declarationIndex = 1;
                 decl.Common.root.keys = [];
-                return postDeclaration(decl, logInfo);
+                return postDeclaration(decl, { logInfo });
             })
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);

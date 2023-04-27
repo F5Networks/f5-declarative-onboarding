@@ -258,6 +258,7 @@ create_docs:
       -     export TF_VAR_bigip_count=1
       - else
       -     export TF_VAR_bigip_count=3
+      -     unset BIGIP_LICENSE # Licensing will be handled by integration testing
       - fi
       - cd "$TF_ROOT"
       - terraform init

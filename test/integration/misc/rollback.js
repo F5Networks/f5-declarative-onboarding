@@ -63,7 +63,7 @@ describe('Rollback', function User() {
                 }
             }
         };
-        return postDeclaration(goodDecl, logInfo)
+        return postDeclaration(goodDecl, { logInfo })
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);
             })
@@ -99,7 +99,7 @@ describe('Rollback', function User() {
                         }
                     }
                 };
-                return postDeclaration(badDecl, logInfo);
+                return postDeclaration(badDecl, { logInfo });
             })
             .then((response) => {
                 assert.strictEqual(response.result.code, 422);
@@ -142,7 +142,7 @@ describe('Rollback', function User() {
                         class: 'Tenant'
                     }
                 };
-                return postDeclaration(cleanUpDecl, logInfo);
+                return postDeclaration(cleanUpDecl, { logInfo });
             })
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);
