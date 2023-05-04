@@ -13,7 +13,7 @@ Document Revision History
 
       * - 1.38
         - Updated the documentation for Declarative Onboarding v1.38.0.  This release contains the following changes: |br| * Added support for revoking a license on a BIG-IP, allowing revoking and relicensing in a declaration (see :ref:`Revoke and relicense <relic>`) |br| * Added a note to the :ref:`License Class <license-class>` section about new behavior when using DO to relicense a BIG-IP device.
-        - 5-7-23
+        - 5-22-23
 
       * - 1.37
         - Updated the documentation for Declarative Onboarding v1.37.0.  This release contains the following changes: |br| * Added support for configuring Security analytics in a declaration (see :ref:`Security Analytics <secanalytics>`) |br| * Added a note to the :ref:`License Class <license-class>` section about new behavior when using DO to relicense a BIG-IP device.
