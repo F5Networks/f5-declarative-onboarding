@@ -45,7 +45,7 @@
     "nyc": "^15.1.0",
     "request": "^2.88.2",
     "sinon": "7.5.0",
-    "winston": "2.4.5"
+    "winston": "^2.4.7"
   },
   "scripts": {
     "build": "scripts/build/build.sh",
