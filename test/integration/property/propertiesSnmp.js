@@ -138,13 +138,16 @@ describe('Snmp', function testSnmp() {
                 this.skip();
             }
 
+            const authentication = cloudUtil.versionCompare(getBigIpVersion(), '15.1') < 0 ? 'sha' : 'sha256';
+            const privacy = cloudUtil.versionCompare(getBigIpVersion(), '15.1') < 0 ? 'aes' : 'aes256';
+
             const properties = [
                 {
                     name: 'authentication',
-                    inputValue: [undefined, { protocol: 'sha', password: 'pass1W0rd!' }, undefined],
+                    inputValue: [undefined, { protocol: authentication, password: 'pass1W0rd!' }, undefined],
                     expectedValue: [
                         { authProtocol: undefined, authPasswordExists: false },
-                        { authProtocol: 'sha', authPasswordExists: true },
+                        { authProtocol: authentication, authPasswordExists: true },
                         { authProtocol: undefined, authPasswordExists: false }
                     ],
                     extractFunction: (o) => {
@@ -158,10 +161,10 @@ describe('Snmp', function testSnmp() {
                 },
                 {
                     name: 'privacy',
-                    inputValue: [undefined, { protocol: 'aes', password: 'P@ssW0rd' }, undefined],
+                    inputValue: [undefined, { protocol: privacy, password: 'P@ssW0rd' }, undefined],
                     expectedValue: [
                         { privacyProtocol: undefined, privacyPasswordExists: false },
-                        { privacyProtocol: 'aes', privacyPasswordExists: true },
+                        { privacyProtocol: privacy, privacyPasswordExists: true },
                         { privacyProtocol: undefined, privacyPasswordExists: false }
                     ],
                     extractFunction: (o) => {

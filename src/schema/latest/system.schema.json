@@ -379,9 +379,9 @@
                         "required": [ "protocol", "password" ],
                         "properties": {
                             "protocol": {
-                                "description": "Authentication protocol.",
+                                "description": "Authentication protocol. Values other than 'sha' or 'md5' require BIGIP version 15.1 or above.",
                                 "type": "string",
-                                "enum": ["sha", "md5"],
+                                "enum": ["sha", "sha256", "sha512", "md5"],
                                 "default": "sha"
                             },
                             "password": {
@@ -397,9 +397,9 @@
                         "required": [ "protocol", "password" ],
                         "properties": {
                             "protocol": {
-                                "description": "Specifies the encryption protocol.",
+                                "description": "Specifies the encryption protocol. Values 'aes192', 'aes192c', 'aes256', and 'aes256c' require BIGIP version 15.1 or above.",
                                 "type": "string",
-                                "enum": ["aes", "des"],
+                                "enum": ["aes", "aes192", "aes192c", "aes256", "aes256c", "des"],
                                 "default": "aes"
                             },
                             "password": {
