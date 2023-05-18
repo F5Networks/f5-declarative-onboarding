@@ -64,7 +64,7 @@
   * `git checkout develop`
   * `git pull`
   * Determine the `<new-version-number>` by incrementing the minor release number, and setting the patch number to 0 (e.g. 1.35.0 becomes 1.36.0).
-  * `get checkout -b bump-to-<new-version-number>`
+  * `git checkout -b bump-to-<new-version-number>`
   * `git checkout <version> src/schema/<version>`
     * This pulls in the new schema directory from the release branch
   * Edit package.json and package-lock.json to `<new-version-number>-0` (e.g. 1.36.0-0).
