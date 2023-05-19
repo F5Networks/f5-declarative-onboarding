@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 
 ### Fixed
+- AUTOTOOL-3849: DeviceCertificate hangs on BIG-IQ with no error response to user
 
 ### Changed
 

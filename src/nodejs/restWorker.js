@@ -260,7 +260,6 @@ class RestWorker {
                     });
 
                     save.call(this, taskId)
-                        .then(() => fetches.handleFetches(this.validator.validators[0].fetches, taskId))
                         .then(() => doUtil.getCurrentPlatform(taskId))
                         .then((currentPlatform) => {
                             platform = currentPlatform;
@@ -347,7 +346,8 @@ class RestWorker {
                                     }
                                 });
 
-                                onboard.call(this, declaration, bigIpOptions, taskId, originalDoId)
+                                fetches.handleFetches(this.validator.validators[0].fetches, taskId)
+                                    .then(() => onboard.call(this, declaration, bigIpOptions, taskId, originalDoId))
                                     .then(() => {
                                         if (this.bigIps[taskId]) {
                                             logger.fine('Onboard configuration complete. Saving sys config.');
@@ -401,6 +401,15 @@ class RestWorker {
                             );
                         });
                 }
+            })
+            .catch((err) => {
+                this.state.doState.updateResult(
+                    taskId,
+                    500,
+                    STATUS.STATUS_ERROR,
+                    'error during validation',
+                    err.message
+                );
             });
     }
 
