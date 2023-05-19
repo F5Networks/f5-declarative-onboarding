@@ -37,6 +37,7 @@ const State = require('../lib/state');
 const SshUtil = require('../lib/sshUtil');
 const Validator = require('../lib/validator');
 const configItems = require('../lib/configItems.json');
+const fetches = require('../lib/fetchHandler');
 
 const STATUS = require('../lib/sharedConstants').STATUS;
 const EVENTS = require('../lib/sharedConstants').EVENTS;
@@ -259,6 +260,7 @@ class RestWorker {
                     });
 
                     save.call(this, taskId)
+                        .then(() => fetches.handleFetches(this.validator.validators[0].fetches, taskId))
                         .then(() => doUtil.getCurrentPlatform(taskId))
                         .then((currentPlatform) => {
                             platform = currentPlatform;
@@ -835,8 +837,10 @@ function handleStartupState(success, error) {
                         if (declaration.Common[key].class === 'License') {
                             licenseName = key;
                             delete declaration.Common[licenseName].revokeFrom;
-                            // Remove revokeFrom from the stored state as well
+                            delete declaration.Common[licenseName].revokeCurrent;
+                            // Remove revokeFrom and revokeCurrent from the stored state as well
                             delete stateDecRef.Common[licenseName].revokeFrom;
+                            delete stateDecRef.Common[licenseName].revokeCurrent;
 
                             if (declaration.Common[licenseName].bigIpUsername) {
                                 hasBigIpUser = true;

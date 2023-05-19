@@ -23,7 +23,7 @@ const {
 } = require('./propertiesCommon');
 
 // Remove the .skip once AUTOTOOL-3700 has been resolved.
-describe.skip('Security Analytics', function testSecurityAnalyticsSuite() {
+describe('Security Analytics', function testSecurityAnalyticsSuite() {
     this.timeout(900000);
 
     before(() => {

@@ -55,6 +55,7 @@ module.exports = {
         GSLBProberPool: '/tm/gtm/prober-pool',
         GSLBServer: '/tm/gtm/server',
         HTTPD: '/tm/sys/httpd',
+        LicenseRegistration: '/tm/shared/licensing/registration',
         ManagementDHCPConfig: '/tm/sys/management-dhcp/sys-mgmt-dhcp-config',
         ManagementIp: '/tm/sys/management-ip',
         ManagementIpFirewall: '/tm/security/firewall/management-ip-rules',

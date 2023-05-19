@@ -231,12 +231,8 @@ describe('systemHandler', () => {
                 Common: {
                     DeviceCertificate: {
                         myCertificate: {
-                            certificate: {
-                                base64: 'Zm9vCg==' // 'foo'
-                            },
-                            privateKey: {
-                                base64: 'YmFyCg==' // 'bar'
-                            }
+                            certificate: 'foo',
+                            privateKey: 'bar'
                         }
                     }
                 }
@@ -274,12 +270,8 @@ describe('systemHandler', () => {
                 Common: {
                     DeviceCertificate: {
                         myCertificate: {
-                            certificate: {
-                                base64: 'b2xkIGNlcnQK' // 'old cert'
-                            },
-                            privateKey: {
-                                base64: 'b2xkIGtleQo=' // 'old key'
-                            }
+                            certificate: 'old cert',
+                            privateKey: 'old key'
                         }
                     }
                 }
@@ -1180,9 +1172,14 @@ describe('systemHandler', () => {
         };
 
         let licenseArgs;
+        let revokeLicenseCalled = false;
         bigIpMock.onboard = {
             license(args) {
                 licenseArgs = args;
+                return Promise.resolve();
+            },
+            revokeLicense() {
+                revokeLicenseCalled = true;
                 return Promise.resolve();
             }
         };
@@ -1193,6 +1190,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(licenseArgs.registrationKey, 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ');
                 assert.deepEqual(licenseArgs.addOnKeys, ['ABCDEFG-HIJKLMN', 'OPQRSTU-VWXYZAB']);
                 assert.strictEqual(licenseArgs.overwrite, true);
+                assert.ok(!revokeLicenseCalled, 'revokeLicense should not have been called');
             });
     });
 
@@ -1576,6 +1574,87 @@ describe('systemHandler', () => {
                     assert.strictEqual(licensePoolSent, 'clpv2');
                     assert.strictEqual(optionsSent.noUnreachable, false);
                     assert.strictEqual(activeCalled, false);
+                });
+        });
+
+        it('should handle revoke from BIG-IP with reg key license', () => {
+            const declaration = {
+                Common: {
+                    License: {
+                        licenseType: 'regKey',
+                        regKey: 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ',
+                        addOnKeys: ['ABCDEFG-HIJKLMN', 'OPQRSTU-VWXYZAB'],
+                        overwrite: true,
+                        revokeCurrent: true
+                    }
+                }
+            };
+
+            let licenseArgs;
+            let revokeLicenseCalled = false;
+            bigIpMock.onboard = {
+                license(args) {
+                    licenseArgs = args;
+                    return Promise.resolve();
+                },
+                revokeLicense() {
+                    revokeLicenseCalled = true;
+                    return Promise.resolve();
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(licenseArgs.registrationKey, 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ');
+                    assert.deepEqual(licenseArgs.addOnKeys, ['ABCDEFG-HIJKLMN', 'OPQRSTU-VWXYZAB']);
+                    assert.strictEqual(licenseArgs.overwrite, true);
+                    assert.ok(revokeLicenseCalled, 'revokeLicense should have been called');
+                });
+        });
+
+        it('should skip if revoking from BIG-IP and re-licensing with same reg key', () => {
+            const declaration = {
+                Common: {
+                    License: {
+                        licenseType: 'regKey',
+                        regKey: 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ',
+                        addOnKeys: ['ABCDEFG-HIJKLMN', 'OPQRSTU-VWXYZAB'],
+                        overwrite: true,
+                        revokeCurrent: true
+                    }
+                }
+            };
+
+            let licenseArgs;
+            let revokeLicenseCalled = false;
+            bigIpMock.onboard = {
+                license(args) {
+                    licenseArgs = args;
+                    return Promise.resolve();
+                },
+                revokeLicense() {
+                    revokeLicenseCalled = true;
+                    return Promise.resolve();
+                }
+            };
+
+            sinon.stub(bigIpMock, 'list').callsFake((path) => {
+                if (path === PATHS.LicenseRegistration) {
+                    return Promise.resolve({
+                        registrationKey: 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ'
+                    });
+                }
+                return Promise.resolve();
+            });
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, eventEmitter, state);
+            return systemHandler.process()
+                .then(() => {
+                    assert.strictEqual(licenseArgs.registrationKey, 'MMKGX-UPVPI-YIEMK-OAZIS-KQHSNAZ');
+                    assert.deepEqual(licenseArgs.addOnKeys, ['ABCDEFG-HIJKLMN', 'OPQRSTU-VWXYZAB']);
+                    assert.strictEqual(licenseArgs.overwrite, true);
+                    assert.ok(!revokeLicenseCalled, 'revokeLicense should not have been called');
                 });
         });
     });

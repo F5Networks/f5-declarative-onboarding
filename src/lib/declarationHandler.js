@@ -1124,14 +1124,13 @@ function applyLdapCertFixes(declaration) {
     const auth = declaration.Common.Authentication;
 
     const patchItem = (key, subKey, targetKey, ext) => {
-        let data = (auth.ldap[key][subKey] || {}).base64;
+        const data = auth.ldap[key][subKey];
 
         if (typeof data === 'undefined') { return; }
 
         const hash = crypto.createHash('sha1');
 
-        origData[targetKey] = { base64: data };
-        data = Buffer.from(data, 'base64').toString().trim();
+        origData[targetKey] = data;
         hash.update(data);
         // we strip off 'File' in the new name for backwards compatibility
         auth.ldap[targetKey] = {
@@ -1151,6 +1150,29 @@ function applyLdapCertFixes(declaration) {
         });
     }
     return origData;
+}
+
+/**
+ * Combine new LDAP SSL cert properties with original data from user declaration.
+ *
+ * @param {Object} declaration - Update declaration
+ * @param {Object} origData - LDAP SSL cert data
+ */
+function applyLdapCertOrigData(declaration, origData) {
+    const auth = declaration.Common.Authentication;
+
+    if (auth && auth.ldap) {
+        Object.keys(origData).forEach((key) => {
+            // This should result in an object like this in ldap.sslCaCertFile:
+            // {
+            //      name: 'theName',
+            //      partition: 'Common',
+            //      checksum: 'sha1:',
+            //      sslCaCertFile: 'data'
+            // }
+            auth.ldap[key][key] = origData[key];
+        });
+    }
 }
 
 /**
@@ -1182,22 +1204,6 @@ function applyManagementRouteFixes(declaration) {
             );
         }
     });
-}
-
-/**
- * Combine new LDAP SSL cert properties with original data from user declaration.
- *
- * @param {Object} declaration - Update declaration
- * @param {Object} origData - LDAP SSL cert data
- */
-function applyLdapCertOrigData(declaration, origData) {
-    const auth = declaration.Common.Authentication;
-
-    if (auth && auth.ldap) {
-        Object.keys(origData).forEach((key) => {
-            Object.assign(auth.ldap[key], origData[key]);
-        });
-    }
 }
 
 function processHandler(Handler, declaration, bigIp, eventEmitter, state) {

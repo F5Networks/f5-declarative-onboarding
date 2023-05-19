@@ -171,7 +171,7 @@ audit:
       - npm audit
 
 build_rpm:
-    image: $DOCKER_URL/node:12
+    image: $DOCKER_URL/node:14
     stage: build
     needs: []
     tags:
@@ -183,7 +183,7 @@ build_rpm:
         - apt-get update && apt-get install -y rpm --no-install-recommends
         - scripts/build/buildRpm.sh
         # ensure latest copyrights, requires dev dependencies
-        - npm ci
+        - npm ci --no-optional
         - node node_modules/@f5devcentral/atg-shared-utilities-dev/scripts/dev/write-copyright.js -c -p scripts/dev/copyright.txt
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
@@ -258,6 +258,7 @@ create_docs:
       -     export TF_VAR_bigip_count=1
       - else
       -     export TF_VAR_bigip_count=3
+      -     unset BIGIP_LICENSE # Licensing will be handled by integration testing
       - fi
       - cd "$TF_ROOT"
       - terraform init

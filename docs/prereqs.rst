@@ -6,6 +6,8 @@ Prerequisites and Requirements
 
 The following are prerequisites for using F5 BIG-IP Declarative Onboarding:
 
+- BIG-IP Declarative Onboarding does not function properly when the BIG-IP has |appliance| enabled.  We strongly recommend disabling Appliance mode when using BIG-IP DO.
+
 - Domain name resolution is used anywhere the declaration accepts a hostname. BIG-IP DO makes sure that any hostnames are resolvable and fails if they are not.  The exception is deviceGroup.members, which do not require hostname resolution as they have been added to the trust.
 
 - You must have an existing BIG-IP device with a management IP address.  
@@ -90,3 +92,7 @@ Notes and tips
 .. |release| raw:: html
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/releases" target="_blank">GitHub Release</a>
+
+.. |appliance| raw:: html
+
+   <a href="https://my.f5.com/manage/s/article/K12815" target="_blank">Appliance mode</a>

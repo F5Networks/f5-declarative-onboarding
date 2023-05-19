@@ -74,6 +74,23 @@ See |sysclass| in the Schema Reference for BIG-IP DO usage and options. For deta
 
 :ref:`Back to top<observe-examples>`
 
+|
+
+.. _secanalytics:
+
+Configuring Security Analytics in a declaration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In this example, we show how you can configure security analytics in a BIG-IP Declarative Onboarding declaration.  This allows you to gather analytics specific to security features, such as Denial of Service and Firewall ACL statistics.  
+
+For a complete list of properties as well as DO usage, see |secana| in the Schema Reference. 
+
+
+.. literalinclude:: ../../examples/securityAnalytics.json
+   :language: json
+
+:ref:`Back to top<observe-examples>`
+
+|
 
 .. |snmpdoc| raw:: html
 
@@ -98,3 +115,8 @@ See |sysclass| in the Schema Reference for BIG-IP DO usage and options. For deta
 .. |sldocs| raw:: html
 
     <a href="https://techdocs.f5.com/en-us/bigip-14-0-0/external-monitoring-of-big-ip-systems-implementations-14-0-0/about-logging.html" target="_blank">External Monitoring</a>
+
+.. |secana| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#securityanalytics" target="_blank">SecurityAnalytics Class</a>
+    

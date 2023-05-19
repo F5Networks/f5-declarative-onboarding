@@ -1,6 +1,18 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.38.0
+### Added
+- AUTOTOOL-118: ([Github Issue 9](https://github.com/F5Networks/f5-declarative-onboarding/issues/9)): Support for revoking license on a BIG-IP
+- AUTOTOOL-3705: ([GitHub Issue 278](https://github.com/F5Networks/f5-declarative-onboarding/issues/278)): url reference for Authentication ldap sslCaCert property
+- AUTOTOOL-3799: Missing protocol values for SnmpUser_authentication and SnmpUser_privacy
+
+### Fixed
+
+### Changed
+
+### Removed
+
 ## 1.37.0
 ### Added
 - AUTOTOOL-3495: ([Github Issue 304](https://github.com/F5Networks/f5-declarative-onboarding/issues/304)): Support Security Reporting Settings

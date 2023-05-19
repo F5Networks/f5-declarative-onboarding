@@ -156,6 +156,15 @@ describe('system.schema.json', () => {
                         'unitOfMeasure should not have default when licenseType regKey'
                     );
                 });
+
+                it('should validate revokeCurrent without regKey', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "regKey",
+                        "revokeCurrent": true
+                    };
+                    assert.ok(validate(data), getErrorString(validate));
+                });
             });
 
             describe('invalid', () => {
@@ -180,6 +189,14 @@ describe('system.schema.json', () => {
                     };
                     assert.strictEqual(validate(data), false, 'bad add on keys should not be valid');
                     assert(getErrorString().includes('should match pattern'));
+                });
+
+                it('should invalidate without regKey', () => {
+                    const data = {
+                        "class": "License",
+                        "licenseType": "regKey"
+                    };
+                    assert.strictEqual(validate(data), false, 'missing regKey should not be valid');
                 });
             });
         });

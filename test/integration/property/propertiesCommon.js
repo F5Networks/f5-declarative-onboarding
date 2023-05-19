@@ -216,7 +216,7 @@ function _waitForCompleteStatus(id, retryOptions) {
                 return promiseUtil.delay(30000).then(() => _waitForCompleteStatus(id, options));
             }
             if (!result || result.code === 202) {
-                return promiseUtil.delay(1000).then(() => _waitForCompleteStatus(id));
+                return promiseUtil.delay(1000).then(() => _waitForCompleteStatus(id, retryOptions));
             }
             return response;
         });
@@ -228,13 +228,20 @@ function _waitForCompleteStatus(id, retryOptions) {
  *   another function to post declarations.
  *
  * @param {object} declaration - JSON declaration to be submitted
- * @param {object} [logInfo] - Info on needed to log declarations and results. If present, logs are written.
- * @param {number} [logInfo.declarationIndex] - The declaration index we are processing
- * @param {string} [queryParams] - The query parameters to be added to the request path
- * @param {string} [path] - The path to post to
+ * @param {object} [options] - Optional parameters.
+ * @param {object} [options.logInfo] - Info on needed to log declarations and results. If present, logs are written.
+ * @param {number} [options.logInfo.declarationIndex] - The declaration index we are processing
+ * @param {string} [options.queryParams] - The query parameters to be added to the request path
+ * @param {string} [options.path] - The path to post to
+ * @param {string} [options.retryOptions] - Retry options while waiting for response
  */
-function postDeclaration(declaration, logInfo, queryParams, path) {
+function postDeclaration(declaration, options) {
+    const opts = options || {};
+    const logInfo = opts.logInfo;
+    const queryParams = opts.queryParams;
     const queryString = (typeof queryParams === 'undefined') ? '' : queryParams;
+    const path = opts.path;
+    const retryOptions = opts.retryOptions;
 
     let promise = Promise.resolve();
 
@@ -256,7 +263,7 @@ function postDeclaration(declaration, logInfo, queryParams, path) {
         .then(() => sendDeclaration(declaration, queryString, path))
         .then((response) => {
             if (declaration.async === true) {
-                return _waitForCompleteStatus(response.body.id);
+                return _waitForCompleteStatus(response.body.id, retryOptions);
             }
             return Promise.resolve(response.body);
         })
@@ -736,16 +743,16 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
                     delay: 10000,
                     retries: (2.5 * 60 * 1000) / 10000
                 };
-                return promiseUtil.retryPromise((decl, info) => postDeclaration(decl, info)
+                return promiseUtil.retryPromise((decl, info) => postDeclaration(decl, { logInfo: info })
                     .then((result) => {
                         if (result.result.code === 503) {
                             throw new Error('Target is busy');
                         }
                         return result;
-                    }), options, [declaration, logInfo]);
+                    }), options, [declaration, { logInfo }]);
             }
 
-            return postDeclaration(declaration, logInfo);
+            return postDeclaration(declaration, { logInfo });
         })
         .then((result) => {
             if (consoleOptions.postResult) {
@@ -1055,12 +1062,17 @@ function provisionModules(modules) {
             }
         }
     };
+    const retryOptions = {
+        trials: 60,
+        timeInterval: 10000,
+        acceptErrors: ['ECONNRESET', 'ECONNREFUSED', 'EHOSTUNREACH']
+    };
 
     modulesToProvision.forEach((module) => {
         provisioningDeclaration.Common.provisioning[module] = 'nominal';
     });
 
-    return postDeclaration(provisioningDeclaration)
+    return postDeclaration(provisioningDeclaration, { retryOptions })
         .then(() => {
             PROVISIONED_MODULES = modulesToProvision;
             return Promise.resolve();

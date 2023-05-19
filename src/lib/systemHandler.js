@@ -347,78 +347,64 @@ function handleDeviceCertificate() {
         if (certificateName) {
             const certificateDeclaration = this.declaration.Common.DeviceCertificate[certificateName];
             if (certificateDeclaration.certificate) {
-                if (certificateDeclaration.certificate.base64) {
-                    newCertificate = Buffer.from(
-                        certificateDeclaration.certificate.base64,
-                        'base64'
-                    ).toString().trim();
-                }
-                if (newCertificate) {
-                    let needsWrite = false;
-                    certificatePromise = certificatePromise
-                        .then(() => doUtil.executeBashCommandIControl(
-                            this.bigIp,
-                            `cat ${certificateFullPath}`
-                        ))
-                        .then((data) => {
-                            originalCertificate = data.trim();
-                            if (newCertificate !== originalCertificate) {
-                                needsWrite = true;
-                                // Make a copy of the current file in case we need to rollback
-                                return storeDeviceCertRollbackInfo.call(this, certificateFullPath);
-                            }
-                            return Promise.resolve();
-                        })
-                        .then(() => {
-                            if (needsWrite) {
-                                writePromises.push(doUtil.executeBashCommandIControl(
-                                    this.bigIp,
-                                    `echo '${newCertificate}' > ${certificateFullPath}`,
-                                    cloudUtil.NO_RETRY,
-                                    { silent: true } // keeping it out of the logs just because it's a lot of data
-                                ));
-                            }
-                        });
-                }
+                let needsWrite = false;
+                newCertificate = certificateDeclaration.certificate;
+                certificatePromise = certificatePromise
+                    .then(() => doUtil.executeBashCommandIControl(
+                        this.bigIp,
+                        `cat ${certificateFullPath}`
+                    ))
+                    .then((data) => {
+                        originalCertificate = data.trim();
+                        if (newCertificate !== originalCertificate) {
+                            needsWrite = true;
+                            // Make a copy of the current file in case we need to rollback
+                            return storeDeviceCertRollbackInfo.call(this, certificateFullPath);
+                        }
+                        return Promise.resolve();
+                    })
+                    .then(() => {
+                        if (needsWrite) {
+                            writePromises.push(doUtil.executeBashCommandIControl(
+                                this.bigIp,
+                                `echo '${newCertificate}' > ${certificateFullPath}`,
+                                cloudUtil.NO_RETRY,
+                                { silent: true } // keeping it out of the logs just because it's a lot of data
+                            ));
+                        }
+                    });
             }
 
             if (certificateDeclaration.privateKey) {
-                if (certificateDeclaration.privateKey.base64) {
-                    newKey = Buffer.from(
-                        certificateDeclaration.privateKey.base64,
-                        'base64'
-                    ).toString().trim();
-                }
-                if (newKey) {
-                    let needsWrite = false;
-                    keyPromise = keyPromise
-                        .then(() => doUtil.executeBashCommandIControl(
-                            this.bigIp,
-                            `cat ${keyFullPath}`,
-                            null,
-                            { silent: true } // keeping it out of the logs because this is the private key
-                        ))
-                        .then((data) => {
-                            originalKey = data.trim();
-                            if (newKey !== originalKey) {
-                                needsWrite = true;
-                                // Make a copy of the current file in case we need to rollback
-                                return storeDeviceCertRollbackInfo.call(this, `${keyFullPath}`);
-                            }
-                            return Promise.resolve();
-                        })
-                        .then(() => {
-                            if (needsWrite) {
-                                writePromises.push(
-                                    cryptoUtil.encryptValue(newKey, this.bigIp, this.state.id)
-                                        .then((results) => doUtil.executeBashCommandIControl(
-                                            this.bigIp,
-                                            `/usr/bin/php -r '${decryptScript}' '${results}' ${keyFullPath}`
-                                        ))
-                                );
-                            }
-                        });
-                }
+                let needsWrite = false;
+                newKey = certificateDeclaration.privateKey;
+                keyPromise = keyPromise
+                    .then(() => doUtil.executeBashCommandIControl(
+                        this.bigIp,
+                        `cat ${keyFullPath}`,
+                        null,
+                        { silent: true } // keeping it out of the logs because this is the private key
+                    ))
+                    .then((data) => {
+                        originalKey = data.trim();
+                        if (newKey !== originalKey) {
+                            needsWrite = true;
+                            // Make a copy of the current file in case we need to rollback
+                            return storeDeviceCertRollbackInfo.call(this, `${keyFullPath}`);
+                        }
+                        return Promise.resolve();
+                    })
+                    .then(() => {
+                        if (needsWrite) {
+                            writePromises.push(
+                                cryptoUtil.encryptValue(newKey, this.bigIp, this.state.id)
+                                    .then((results) => doUtil.executeBashCommandIControl(
+                                        this.bigIp,
+                                        `/usr/bin/php -r '${decryptScript}' '${results}' ${keyFullPath}`
+                                    ))
+                            );
+                        }
+                    });
             }
 
             return Promise.resolve()
@@ -593,7 +579,7 @@ function handleUser() {
 function handleLicense() {
     if (this.declaration.Common.License) {
         const license = this.declaration.Common.License;
-        if (license.regKey || license.addOnKeys) {
+        if (license.licenseType === 'regKey') {
             return handleRegKey.call(this, license);
         }
         return handleLicensePool.call(this, license);
@@ -602,13 +588,41 @@ function handleLicense() {
 }
 
 function handleRegKey(license) {
-    return this.bigIp.onboard.license(
-        {
-            registrationKey: license.regKey,
-            addOnKeys: license.addOnKeys,
-            overwrite: license.overwrite
+    let promise = Promise.resolve();
+    const getRevokePromise = () => {
+        let revokePromise = waitForRevokeReady.call(this);
+        process.nextTick(() => {
+            this.eventEmitter.emit(EVENTS.LICENSE_WILL_BE_REVOKED, this.state.id);
+        });
+        revokePromise = revokePromise.then(() => this.bigIp.onboard.revokeLicense());
+        return revokePromise;
+    };
+
+    if (license.revokeCurrent) {
+        if (license.regKey) {
+            promise = promise
+                .then(() => this.bigIp.list(PATHS.LicenseRegistration))
+                .then((response) => {
+                    if (response && response.registrationKey === license.regKey) {
+                        // Skip revoking if user is re-licensing with same license key.
+                        // We can't skip licensing here because the add-on keys may have changed.
+                        return Promise.resolve();
+                    }
+                    return getRevokePromise();
+                });
+        } else {
+            promise = promise.then(() => getRevokePromise());
         }
-    )
+    }
+
+    return promise
+        .then(() => this.bigIp.onboard.license(
+            {
+                registrationKey: license.regKey,
+                addOnKeys: license.addOnKeys,
+                overwrite: license.overwrite
+            }
+        ))
         .then(() => this.bigIp.active())
         .catch((err) => {
             const errorLicensing = `Error licensing: ${err.message}`;

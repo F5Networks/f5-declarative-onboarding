@@ -85,7 +85,7 @@ describe('Route Domain', function RouteDomain() {
             }
         };
         return Promise.resolve()
-            .then(() => postDeclaration(decl, logInfo))
+            .then(() => postDeclaration(decl, { logInfo }))
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);
             })
@@ -103,7 +103,7 @@ describe('Route Domain', function RouteDomain() {
                 logInfo.declarationIndex = 1;
                 delete decl.Common.myRouteDomain;
                 delete decl.Common.myVlan;
-                return postDeclaration(decl, logInfo);
+                return postDeclaration(decl, { logInfo });
             })
             .then((response) => {
                 assert.strictEqual(response.result.code, 200);

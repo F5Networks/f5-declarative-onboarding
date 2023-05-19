@@ -39,6 +39,7 @@ describe('restWorker', () => {
     let SshUtilMock;
     let httpUtilMock;
     let doUtilMock;
+    let fetchesMock;
 
     before(() => {
         cryptoUtilMock = require('../../../src/lib/cryptoUtil');
@@ -48,6 +49,7 @@ describe('restWorker', () => {
         RestWorker = require('../../../src/nodejs/restWorker');
         httpUtilMock = require('../../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
         doUtilMock = require('../../../src/lib/doUtil');
+        fetchesMock = require('../../../src/lib/fetchHandler');
     });
 
     beforeEach(() => {
@@ -379,7 +381,7 @@ describe('restWorker', () => {
                 };
             });
 
-            it('should remove the revokeFrom property from the license after revoking', () => new Promise((resolve, reject) => {
+            it('should remove the revoke properties from the license after revoking', () => new Promise((resolve, reject) => {
                 const success = () => {};
                 const error = () => {
                     reject(new Error('should have called success'));
@@ -397,7 +399,8 @@ describe('restWorker', () => {
                                     Common: {
                                         myLicense: {
                                             class: 'License',
-                                            revokeFrom: 'foo'
+                                            revokeFrom: 'foo',
+                                            revokeCurrent: true
                                         }
                                     }
                                 }
@@ -410,7 +413,13 @@ describe('restWorker', () => {
                     try {
                         assert.strictEqual(
                             restWorker.state.doState.tasks[1234].internalDeclaration.Common.myLicense.revokeFrom,
-                            undefined
+                            undefined,
+                            'revokeFrom should be undefined'
+                        );
+                        assert.strictEqual(
+                            restWorker.state.doState.tasks[1234].internalDeclaration.Common.myLicense.revokeCurrent,
+                            undefined,
+                            'revokeCurrent should be undefined'
                         );
                         resolve();
                     } catch (err) {
@@ -826,7 +835,13 @@ describe('restWorker', () => {
     });
 
     describe('onPost', () => {
-        const validatorMock = {};
+        const validatorMock = {
+            validators: [
+                {
+                    fetches: []
+                }
+            ]
+        };
         let updateResultSpy;
 
         let restWorker;
@@ -858,6 +873,7 @@ describe('restWorker', () => {
                 return Promise.resolve(bigIpMock);
             });
             sinon.stub(doUtilMock, 'getCurrentPlatform').resolves('BIG-IP');
+            sinon.stub(fetchesMock, 'handleFetches').resolves();
 
             validatorMock.validate = () => Promise.resolve({
                 isValid: true

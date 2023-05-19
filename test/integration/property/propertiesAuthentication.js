@@ -166,49 +166,7 @@ describe('Authentication', function testAuthentication() {
             return assertAuthClass(properties, options);
         });
 
-        it('ldap', () => {
-            const options = {
-                skipIdempotentCheck: true, // items with passwords are not idempotent
-                getMcpObject: {
-                    className: 'AuthLdap',
-                    itemKind: 'tm:auth:ldap:ldapstate',
-                    skipNameCheck: true
-                }
-            };
-
-            const ldapDefA = {
-                bindDn: undefined,
-                bindPassword: undefined,
-                bindTimeout: 40,
-                checkBindPassword: true,
-                checkRemoteRole: true,
-                filter: undefined,
-                groupDn: undefined,
-                groupMemberAttribute: undefined,
-                idleTimeout: 20,
-                ignoreAuthInfoUnavailable: true,
-                ignoreUnknownUser: true,
-                loginAttribute: undefined,
-                port: 654,
-                searchScope: 'base',
-                searchBaseDn: undefined,
-                searchTimeout: 687,
-                servers: [
-                    'a.host.com',
-                    '192.0.2.10',
-                    'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
-                ],
-                ssl: 'enabled',
-                sslCaCert: undefined,
-                sslCheckPeer: true,
-                sslCiphers: [
-                    'ECDHE-RSA-AES128-CBC-SHA',
-                    'ECDHE-RSA-AES128-SHA256'
-                ],
-                userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
-                version: 2
-            };
-
+        describe('ldap', () => {
             const ldapDefB = {
                 bindDn: 'bindDnNameB',
                 bindPassword: 'shhhhhh',
@@ -245,37 +203,6 @@ describe('Authentication', function testAuthentication() {
                 userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=gov',
                 version: 3
             };
-
-            const expectedResponseA = {
-                name: 'system-auth',
-                bindDn: undefined,
-                bindTimeout: 40,
-                checkHostAttr: 'enabled',
-                checkRolesGroup: 'enabled',
-                filter: undefined,
-                groupDn: undefined,
-                groupMemberAttribute: undefined,
-                idleTimeout: 20,
-                ignoreAuthInfoUnavail: 'yes',
-                ignoreUnknownUser: 'enabled',
-                loginAttribute: undefined,
-                port: 654,
-                scope: 'base',
-                searchBaseDn: undefined,
-                searchTimeout: 687,
-                servers: [
-                    'a.host.com',
-                    '192.0.2.10',
-                    'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
-                ],
-                ssl: 'enabled',
-                sslCaCertFile: undefined,
-                sslCheckPeer: 'enabled',
-                sslCiphers: 'ECDHE-RSA-AES128-CBC-SHA:ECDHE-RSA-AES128-SHA256',
-                userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
-                version: 2
-            };
-
             const expectedResponseB = {
                 name: 'system-auth',
                 bindDn: 'bindDnNameB',
@@ -305,34 +232,158 @@ describe('Authentication', function testAuthentication() {
                 userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=gov',
                 version: 3
             };
-
-            // grab major/minor
-            const currentBigIpVersion = process.env.BIGIP_IMAGE.split('-')[1].split('.').slice(0, 2).join('.');
-            if (cloudUtil.versionCompare(currentBigIpVersion, '15.1') >= 0) {
-                ldapDefA.referrals = true;
-                ldapDefB.referrals = false;
-                expectedResponseA.referrals = 'yes';
-                expectedResponseB.referrals = 'no';
-            }
-
-            const properties = [
-                {
-                    name: 'enabledSourceType',
-                    inputValue: ['ldap'],
-                    skipAssert: true
-                },
-                {
-                    name: 'ldap',
-                    inputValue: [ldapDefA, ldapDefB, ldapDefA],
-                    expectedValue: [expectedResponseA, expectedResponseB, expectedResponseA],
-                    extractFunction: (o) => {
-                        o.sslCaCertFile = o.sslCaCertFile ? o.sslCaCertFile.fullPath : o.sslCaCertFile;
-                        return o;
-                    }
+            const options = {
+                skipIdempotentCheck: true, // items with passwords are not idempotent
+                getMcpObject: {
+                    className: 'AuthLdap',
+                    itemKind: 'tm:auth:ldap:ldapstate',
+                    skipNameCheck: true
                 }
-            ];
+            };
 
-            return assertAuthClass(properties, options);
+            it('ldap', () => {
+                const ldapDefA = {
+                    bindDn: undefined,
+                    bindPassword: undefined,
+                    bindTimeout: 40,
+                    checkBindPassword: true,
+                    checkRemoteRole: true,
+                    filter: undefined,
+                    groupDn: undefined,
+                    groupMemberAttribute: undefined,
+                    idleTimeout: 20,
+                    ignoreAuthInfoUnavailable: true,
+                    ignoreUnknownUser: true,
+                    loginAttribute: undefined,
+                    port: 654,
+                    searchScope: 'base',
+                    searchBaseDn: undefined,
+                    searchTimeout: 687,
+                    servers: [
+                        'a.host.com',
+                        '192.0.2.10',
+                        'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                    ],
+                    ssl: 'enabled',
+                    sslCaCert: undefined,
+                    sslCheckPeer: true,
+                    sslCiphers: [
+                        'ECDHE-RSA-AES128-CBC-SHA',
+                        'ECDHE-RSA-AES128-SHA256'
+                    ],
+                    userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
+                    version: 2
+                };
+                const expectedResponseA = {
+                    name: 'system-auth',
+                    bindDn: undefined,
+                    bindTimeout: 40,
+                    checkHostAttr: 'enabled',
+                    checkRolesGroup: 'enabled',
+                    filter: undefined,
+                    groupDn: undefined,
+                    groupMemberAttribute: undefined,
+                    idleTimeout: 20,
+                    ignoreAuthInfoUnavail: 'yes',
+                    ignoreUnknownUser: 'enabled',
+                    loginAttribute: undefined,
+                    port: 654,
+                    scope: 'base',
+                    searchBaseDn: undefined,
+                    searchTimeout: 687,
+                    servers: [
+                        'a.host.com',
+                        '192.0.2.10',
+                        'FE80:0000:0000:0000:0202:B3FF:FE1E:8329'
+                    ],
+                    ssl: 'enabled',
+                    sslCaCertFile: undefined,
+                    sslCheckPeer: 'enabled',
+                    sslCiphers: 'ECDHE-RSA-AES128-CBC-SHA:ECDHE-RSA-AES128-SHA256',
+                    userTemplate: 'uid=%s,ou=people,dc=siterequest,dc=com',
+                    version: 2
+                };
+
+                // grab major/minor
+                const currentBigIpVersion = process.env.BIGIP_IMAGE.split('-')[1].split('.').slice(0, 2).join('.');
+                if (cloudUtil.versionCompare(currentBigIpVersion, '15.1') >= 0) {
+                    ldapDefA.referrals = true;
+                    ldapDefB.referrals = false;
+                    expectedResponseA.referrals = 'yes';
+                    expectedResponseB.referrals = 'no';
+                }
+
+                const properties = [
+                    {
+                        name: 'enabledSourceType',
+                        inputValue: ['ldap'],
+                        skipAssert: true
+                    },
+                    {
+                        name: 'ldap',
+                        inputValue: [ldapDefA, ldapDefB, ldapDefA],
+                        expectedValue: [expectedResponseA, expectedResponseB, expectedResponseA],
+                        extractFunction: (o) => {
+                            o.sslCaCertFile = o.sslCaCertFile ? o.sslCaCertFile.fullPath : o.sslCaCertFile;
+                            return o;
+                        }
+                    }
+                ];
+
+                return assertAuthClass(properties, options);
+            });
+
+            it('ldap - sslCaCertFile https url ref', () => {
+                ldapDefB.sslCaCert = {
+                    certificate: {
+                        url: `${process.env.ARTIFACTORY_BASE_URL}/orchestration-as3-test/resources/certs/cert`
+                    }
+                };
+                const properties = [
+                    {
+                        name: 'enabledSourceType',
+                        inputValue: ['ldap'],
+                        skipAssert: true
+                    },
+                    {
+                        name: 'ldap',
+                        inputValue: [ldapDefB],
+                        expectedValue: [expectedResponseB],
+                        extractFunction: (o) => {
+                            o.sslCaCertFile = o.sslCaCertFile ? o.sslCaCertFile.fullPath : o.sslCaCertFile;
+                            return o;
+                        }
+                    }
+                ];
+
+                return assertAuthClass(properties, options);
+            });
+
+            it('ldap - sslCaCertFile file url ref', () => {
+                ldapDefB.sslCaCert = {
+                    certificate: {
+                        url: 'file:/config/ssl/ssl.crt/default.crt'
+                    }
+                };
+                const properties = [
+                    {
+                        name: 'enabledSourceType',
+                        inputValue: ['ldap'],
+                        skipAssert: true
+                    },
+                    {
+                        name: 'ldap',
+                        inputValue: [ldapDefB],
+                        expectedValue: [expectedResponseB],
+                        extractFunction: (o) => {
+                            o.sslCaCertFile = o.sslCaCertFile ? o.sslCaCertFile.fullPath : o.sslCaCertFile;
+                            return o;
+                        }
+                    }
+                ];
+
+                return assertAuthClass(properties, options);
+            });
         });
 
         it('tacacs', () => {
