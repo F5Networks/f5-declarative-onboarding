@@ -83,17 +83,27 @@
     ```
   * git add, commit, and push.
   * Submit an MR for these changes and wait for approval.
+* Perform the "Actions on night before Go/No-Go meeting".
+* Perform the "Actions after go ahead from Go/No-Go meeting".
 
-### Perform actions after go ahead from Go/No-Go meeting:
-* Using the GUI, create 2 MRs.
-  * One MR to merge the release branch to `master`.
-  * One MR to merge the release branch to `develop`.
+### Actions on night before Go/No-Go meeting:
+* Using the GUI, create 2 MRs
+  * 1 MR to merge release branch to `master`.
+  * 1 MR to merge release branch to `develop`.
   * Do not squash commits.
+  * Do not delete branch.
   * You can self-approve and merge these MRs.
-  * Note: If the GUI suggests a rebase, do a merge locally instead. DO NOT TRUST the GUI rebase tool.
-    * Make sure that the version numbers in `package.json`, `package-lock.json`, `CHANGELOG.md`, etc... is correct. Rebase can sometimes rebase `develop` into the release branch.
-    * Even though the MR was created via the GUI, pushing a local should be reflected in the MR
+  * Note: If the GUI suggests a rebase, do a merge locally instead (see below). DO NOT TRUST the GUI rebase tool, it lies!
+    * `git checkout <master/develop>`
+    * `git pull`
+    * `git checkout -b merge-<version>-to-<master/develop>`
+    * `git merge <version>`
+    * `git push`
+    * Via GUI, create an MR to merge this into `<master/develop>`
 * Using the GUI, create a tag on the `master` branch in the format `v<version>` (e.g. `v1.34.0`).
+### Actions after go ahead from Go/No-Go meeting:
+* Confirm with Hannah things are good to go.
+* Close your Jira task when the release is complete.
 
 ## Documentation Release process
 * After the third sprint is finished and the release branch has been created, checkout out the dev release branch and then merge it into **doc-release-branch**.
