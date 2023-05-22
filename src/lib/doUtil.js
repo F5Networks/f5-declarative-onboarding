@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,16 @@
 const fs = require('fs');
 const net = require('net');
 const exec = require('child_process').exec;
-const dns = require('dns');
+
+const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
 const BigIp = require('@f5devcentral/f5-cloud-libs').bigIp;
 const httpUtil = require('@f5devcentral/f5-cloud-libs').httpUtil;
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
+
+const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 const Logger = require('./logger');
 const ipF5 = require('../schema/latest/formats').f5ip;
-
-const logger = new Logger(module);
 
 /**
  * @module
@@ -48,6 +49,7 @@ module.exports = {
      * @param {String}  [options.user] - User for iControl REST commands. Default admin.
      * @param {String}  [options.password] - Password for iControl REST user. Default admin.
      * @param {Boolean} [options.authToken] - Use this auth token instead of a password.
+     * @param {Object}  [options.retryOptions] - Options for retrying the command. See f5-cloud-libs bigIp commands.
      */
     getBigIp(callingLogger, options) {
         const optionalArgs = {};
@@ -60,12 +62,15 @@ module.exports = {
             optionalArgs.user || 'admin',
             optionalArgs.authToken || optionalArgs.password || 'admin',
             {
-                passwordIsToken: !!optionalArgs.authToken
+                passwordIsToken: !!optionalArgs.authToken,
+                retryOptions: optionalArgs.retryOptions,
+                taskId: (callingLogger || {}).taskId
             }
         );
     },
 
     initializeBigIp(bigIp, host, port, user, password, options) {
+        const logger = new Logger(module, options.taskId);
         let portPromise;
         if (port) {
             portPromise = Promise.resolve(port);
@@ -73,14 +78,15 @@ module.exports = {
             portPromise = this.getPort(host);
         }
         return portPromise
-            .then(managmentPort => bigIp.init(
+            .then((managementPort) => bigIp.init(
                 host,
                 user,
                 password,
                 {
-                    port: managmentPort,
+                    port: managementPort,
                     product: 'BIG-IP',
-                    passwordIsToken: options.passwordIsToken
+                    passwordIsToken: options.passwordIsToken,
+                    retry: options.retryOptions
                 }
             ))
             .then(() => Promise.resolve(bigIp))
@@ -121,15 +127,19 @@ module.exports = {
     /**
      * Determines the platform on which we are currently running
      *
+     * @param {String} [taskId] - The id of the task
+     *
      * @returns {Promise} A promise which is resolved with the platform.
      */
-    getCurrentPlatform() {
+    getCurrentPlatform(taskId) {
+        const logger = new Logger(module, taskId);
+
         function retryFunc() {
             return httpUtil.get('http://localhost:8100/shared/identified-devices/config/device-info')
                 .then((deviceInfo) => {
                     let platform = 'CONTAINER';
                     if (deviceInfo && deviceInfo.slots) {
-                        const activeSlot = deviceInfo.slots.find(slot => slot.isActive && slot.product);
+                        const activeSlot = deviceInfo.slots.find((slot) => slot.isActive && slot.product);
 
                         if (activeSlot) {
                             platform = activeSlot.product;
@@ -147,16 +157,19 @@ module.exports = {
         return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, retryFunc);
     },
 
-
     /**
      * Gets the current version of DO if available.
      *
      * In typical dev environments, there is no version file present. However, the
      * version file is created by the RPM spec file so will be there in production.
      *
+     * @param {String} [taskId] - The id of the task
+     *
      * @returns {Object} Object containing VERSION and RELEASE
      */
-    getDoVersion() {
+    getDoVersion(taskId) {
+        const logger = new Logger(module, taskId);
+
         let versionString = '0.0.0-0';
         try {
             versionString = fs.readFileSync(`${__dirname}/../version`, 'ascii');
@@ -178,16 +191,18 @@ module.exports = {
      * @param {Object} state - The [doState]{@link State} object
      * @param {String} taskId - The id of the task
      *
-     * @returns {Promise} - A promise which resolves true or false based on whehter or not
+     * @returns {Promise} - A promise which resolves true or false based on whether or not
      *                      the BigIp requires a reboot.
      */
     rebootRequired(bigIp, state, taskId) {
+        const logger = new Logger(module, taskId);
+
         if (state && state.getRebootRequired(taskId)) {
             logger.debug('DO state indicates reboot required');
             return Promise.resolve(true);
         }
 
-        return this.getCurrentPlatform()
+        return this.getCurrentPlatform(taskId)
             .then((platform) => {
                 let promise;
                 if (platform === PRODUCTS.BIGIP) {
@@ -211,11 +226,11 @@ module.exports = {
                 // reboot required, then reboot is required.
                 if (!promptSaysRebootRequired) {
                     return bigIp.list('/tm/sys/db/provision.action', null, cloudUtil.MEDIUM_RETRY)
-                        .then(response => Promise.resolve(response.value === 'reboot'));
+                        .then((response) => Promise.resolve(response.value === 'reboot'));
                 }
                 return Promise.resolve(true);
             })
-            .then(rebootRequired => Promise.resolve(rebootRequired));
+            .then((rebootRequired) => Promise.resolve(rebootRequired));
     },
 
     /**
@@ -260,7 +275,7 @@ module.exports = {
             retryOptions || cloudUtil.SHORT_RETRY,
             options
         )
-            .then(result => result.commandResult);
+            .then((result) => result.commandResult);
     },
 
     /**
@@ -274,7 +289,7 @@ module.exports = {
      */
     getClassObjects(declaration, className) {
         const common = declaration.Common || {};
-        const keys = Object.keys(common).filter(key => typeof common[key] === 'object'
+        const keys = Object.keys(common).filter((key) => typeof common[key] === 'object'
             && common[key].class
             && common[key].class === className);
 
@@ -334,6 +349,31 @@ module.exports = {
     },
 
     /**
+     * Masks sensitive data in a JSON object
+     *
+     * @param {Object} data - JSON object to mask
+     */
+    mask(data) {
+        const masked = JSON.parse(JSON.stringify(data));
+
+        Object.keys(masked).forEach((key) => {
+            if (MASK_REGEX.test(key)) {
+                delete masked[key];
+            } else if (!Array.isArray(masked[key]) && typeof masked[key] === 'object') {
+                masked[key] = this.mask(masked[key]);
+            } else if (Array.isArray(masked[key])) {
+                masked[key].forEach((item, index) => {
+                    if (!Array.isArray(item) && typeof item === 'object') {
+                        masked[key][index] = this.mask(item);
+                    }
+                });
+            }
+        });
+
+        return masked;
+    },
+
+    /**
      * Removes the CIDR from an IP address
      *
      * @param {String} address - IP address with CIDR.
@@ -351,33 +391,31 @@ module.exports = {
 
     /**
      * Checks if hostname exists
+     * @param {BigIp} bigIp - BigIp object
      * @param {String} address - URL address
      * @returns {boolean} found - Returns if the hostname was found
      */
-    checkDnsResolution(address) {
+    checkDnsResolution(bigIp, address) {
         function checkDns(addrToCheck) {
-            return new Promise((resolve, reject) => {
-                if (ipF5(addrToCheck)) {
-                    resolve(true);
-                    return;
-                }
-                try {
-                    dns.lookup(addrToCheck, (error) => {
-                        if (error) {
-                            error.message = `Unable to resolve host ${addrToCheck}: ${error.message}`;
-                            error.code = 424;
-                            reject(error);
-                            return;
-                        }
-                        resolve(true);
-                    });
-                } catch (error) {
-                    // if DNS.resolve errors it throws an exception instead of rejecting
-                    error.message = `Unable to resolve host ${addrToCheck}: ${error.message}`;
-                    error.code = 424;
-                    reject(error);
-                }
-            });
+            if (ipF5(addrToCheck)) {
+                return Promise.resolve();
+            }
+
+            return bigIp.create(
+                '/tm/util/dig',
+                {
+                    command: 'run',
+                    utilCmdArgs: `+nocookie ${address}`
+                },
+                null,
+                cloudUtil.NO_RETRY
+            )
+                .then((result) => {
+                    if (result.commandResult && result.commandResult.indexOf('status: NOERROR') >= 0) {
+                        return Promise.resolve();
+                    }
+                    return Promise.reject(new Error(`Unable to resolve host ${addrToCheck}`));
+                });
         }
 
         return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, checkDns, [address]);
@@ -414,5 +452,240 @@ module.exports = {
                 }
             });
         });
+    },
+
+    /**
+     * Checks to see if a provisioned service is running.
+     *
+     * @param {Object} bigIp - Big-IP object.
+     * @param {String} service - The name of the service to restart
+     * @returns A promise which resolves if the service is running or rejects if not
+     */
+    isServiceRunning(bigIp, service) {
+        return bigIp.list(`/tm/sys/service/${service}/stats`, undefined, cloudUtil.NO_RETRY)
+            .then((serviceStats) => {
+                const status = module.exports.getDeepValue(serviceStats, 'apiRawValues.apiAnonymous');
+                if (status && (status.indexOf('run') !== -1)) {
+                    // In case of dhclient we need to be sure child process spawned by dhclient daemon
+                    // finished before proceeding. This prevents us from unexpected hostname change.
+                    if (service === 'dhclient') {
+                        return this.executeBashCommandIControl(
+                            bigIp,
+                            'while [ "$(pgrep dhclient-script)" ] || [ "$(pgrep arping)" ]; do sleep 1; done; sleep 10'
+                        )
+                            .then(() => Promise.resolve());
+                    }
+                    return Promise.resolve();
+                }
+
+                let message;
+                if (status) {
+                    message = `${service} status is ${status}`;
+                } else {
+                    message = `Unable to read ${service} status`;
+                }
+                return Promise.reject(new Error(message));
+            });
+    },
+
+    /**
+     * A version of isServiceRunning that resolves with true or false instead of rejecting in the false case
+     * @param {Object} bigIp - Big-IP object.
+     * @param {String} service - The name of the service to restart
+     * @returns A promise which resolves true or false
+     */
+    isServiceRunningBool(bigIp, service) {
+        return this.isServiceRunning(bigIp, service)
+            .then(() => true)
+            .catch(() => false);
+    },
+
+    /**
+     * Restarts a specified service.
+     *
+     * @param {Object} bigIp - Big-IP object.
+     * @param {String} service - The name of the service to restart
+     * @param {Object} [options] - Optional parameters
+     * @param {String[]} [options.servicesToWaitFor] - List of other services to wait for after restarting
+     * @param {String} [options.taskId] - The id of the task
+     * @returns
+     */
+    restartService(bigIp, service, options) {
+        const opts = options || {};
+        const servicesToWaitFor = opts.servicesToWaitFor || [];
+        const logger = new Logger(module, opts.taskId);
+        let runningServices;
+
+        return Promise.all(servicesToWaitFor.map((aService) => this.isServiceRunningBool(bigIp, aService)))
+            .then((serviceStatuses) => {
+                runningServices = servicesToWaitFor.filter((aService, index) => serviceStatuses[index]);
+            })
+            .then(() => bigIp.create(
+                '/tm/sys/service',
+                {
+                    command: 'restart',
+                    name: service
+                },
+                null,
+                cloudUtil.NO_RETRY
+            ))
+            .catch((err) => {
+                logger.debug(`Ignoring expected socket hangup: ${err}`);
+            })
+            .then(() => cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, this.isServiceRunning, [bigIp, service]))
+            .then(() => {
+                const serviceRunningRetryArgs = {
+                    maxRetries: cloudUtil.LONG_RETRY.maxRetries,
+                    retryIntervalMs: cloudUtil.LONG_RETRY.retryIntervalMs,
+                    continueOnError: true
+                };
+
+                return promiseUtil.series(
+                    (runningServices || []).map((aService) => () => cloudUtil.tryUntil(
+                        this, serviceRunningRetryArgs, this.isServiceRunning, [bigIp, aService]
+                    ))
+                );
+            });
+    },
+
+    /**
+     * Wait for Big-IP to reboot.
+     *
+     * @param {Object} bigIp - Big-IP object.
+     * @param {String} [taskId] - The id of the task
+     */
+    waitForReboot(bigIp, taskId) {
+        return this.getCurrentPlatform(taskId)
+            .then((platform) => {
+                if (platform !== PRODUCTS.BIGIP) {
+                    // Wait for BIG-IP to be ready if not running on BIG-IP
+                    return promiseUtil.delay(10000).then(() => bigIp.ready());
+                }
+                // Block with Promise that never resolves and wait for BIG-IP to restart
+                return new Promise(() => {});
+            });
+    },
+
+    /**
+     * Deletes a deeply nested key denoted by a dot-separated path from an object
+     *
+     * This function does not work on a path that passes through an Array.
+     * For example, if path = 'here.is.my.key' and 'is' is
+     * an Array then this function will not work.
+     *
+     * @param {Object} obj - The object to delete a key from.
+     * @param {String} path - A dot-separated path to a key to delete.
+     */
+    deleteKey(obj, path) {
+        if (!obj || !path) {
+            return;
+        }
+        if (typeof path === 'string') {
+            path = path.split('.');
+
+            for (let i = 0; i < path.length - 1; i += 1) {
+                obj = obj[path[i]];
+                if (typeof obj === 'undefined') {
+                    return;
+                }
+            }
+            delete obj[path.pop()];
+        }
+    },
+
+    /**
+     * Deletes an array of deeply nested keys denoted by a dot-separated paths from an object
+     *
+     * @param {Object} obj - The object to delete a key from.
+     * @param {String} paths - An array dot-separated paths to keys to delete.
+     */
+    deleteKeys(obj, paths) {
+        paths.forEach((path) => {
+            this.deleteKey(obj, path);
+        });
+    },
+
+    /**
+     * Gets a property specified by a dotted string path from an object
+     *
+     * @param {Object} obj - The object to search
+     * @param {String} propertyPath - Dotted string path
+     * @param {String} [pathDelimeter] - Path delimiter. Default '.'
+     *
+     * @returns {Object} - The property found or null
+     */
+    getDeepValue(obj, propertyPath, pathDelimeter) {
+        pathDelimeter = pathDelimeter || '.';
+        const pathComponents = propertyPath.split(pathDelimeter);
+
+        if (!obj) {
+            return undefined;
+        }
+
+        const nextSource = pathComponents[0] === '' ? obj : obj[pathComponents[0]];
+
+        if (pathComponents.length === 1) {
+            return nextSource;
+        }
+
+        const nextPath = pathComponents.slice(1).join(pathDelimeter);
+        return this.getDeepValue(nextSource, nextPath, pathDelimeter);
+    },
+
+    setDeepValue(obj, propertyPath, val) {
+        const pathComponents = propertyPath.split('.');
+
+        if (pathComponents[0] === '' || pathComponents[pathComponents.length - 1] === '') {
+            throw new Error('propertyPath must not be empty, or start/end with a \'.\'');
+        }
+
+        pathComponents.reduce((subObj, prop, idx, array) => {
+            if (typeof subObj[prop] === 'undefined' && idx < pathComponents.length - 1) {
+                // create array instead of object if the next property is a positive whole number
+                subObj[prop] = /^\d+$/.test(array[idx + 1]) ? [] : {};
+            } else if (idx === pathComponents.length - 1) {
+                subObj[prop] = val;
+            }
+            return subObj[prop];
+        }, obj);
+
+        return obj;
+    },
+
+    /**
+     * Sorts an array of objects by a key value of type string
+     *
+     * @param {Array} array - An array of objects to be sorted.
+     * @param {String} key - The key name to sort by.
+     */
+    sortArrayByValueString(array, key) {
+        (array || []).sort((a, b) => {
+            const stringA = a[key].toUpperCase();
+            const stringB = b[key].toUpperCase();
+
+            if (stringA < stringB) {
+                return -1;
+            }
+
+            if (stringA > stringB) {
+                return 1;
+            }
+
+            return 0;
+        });
+    },
+
+    /**
+     * Removes elements from an array by index
+     *
+     * @param {Array} array - Array of objects from which to remove elements
+     * @param {Array} indicesToRemove - Array of indices to remove
+     */
+    removeElementsFromArray(array, indicesToRemove) {
+        for (let i = array.length; i >= 0; i -= 1) {
+            if (indicesToRemove.indexOf(i) !== -1) {
+                array.splice(i, 1);
+            }
+        }
     }
 };

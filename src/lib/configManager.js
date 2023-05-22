@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ const querystring = require('querystring');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 const RADIUS = require('./sharedConstants').RADIUS;
-
-const logger = new Logger(module);
+const PATHS = require('./sharedConstants').PATHS;
+const doUtil = require('./doUtil');
 
 /**
  * Manages config on a device.
@@ -32,17 +32,20 @@ const logger = new Logger(module);
  *                                        If a String, should be the path to a file containing
  *                                        the items.
  * @param {Object} bigIp - BigIp object.
+ * @param {Object} state - The state of the current task. See {@link State}.
  *
  * @class
  */
 class ConfigManager {
-    constructor(configItems, bigIp) {
+    constructor(configItems, bigIp, state) {
         if (typeof configItems === 'string') {
             this.configItems = JSON.parse(fs.readFileSync(configItems));
         } else {
             this.configItems = configItems.slice();
         }
         this.bigIp = bigIp;
+        this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -63,23 +66,32 @@ class ConfigManager {
      *                 id: <property_name>,
      *                 newId: <property_name_to_map_to_in_parsed_declaration>
      *                 truth: <mcp_truth_value_if_this_is_boolean>,
-     *                 falsehood: <mcp_false_value_if_this_is_boolean>
+     *                 falsehood: <mcp_false_value_if_this_is_boolean>,
+     *                 transform: [<id_newId_to_apply_to_arrays_and_subobjects>],
+     *                 capture: <regex_to_capture>,
+     *                 captureProperty: <property_to_capture_from>,
+     *                 stringToInt: <boolean_to_convert_int_to_string>,
+     *                 minVersion: <minimum_big-ip_version_for_property>
      *             }
-     *         ]
+     *         ],
      *         references: {
      *             <name_of_reference>: ['properties', 'that', 'we', 'are', 'interested', 'in']
      *         },
      *         singleValue: <true_if_we_want_single_key_value_vs_whole_object_(Provision, for example)>,
      *         nameless: <true_if_we_do_not_want_the_name_property_in_the_result>,
+     *         enforceArray: <true_if_we_require_this_object_to_always_be_an_array>,
      *         silent: <true_if_we_do_not_want_to_log_the_iControl_request_and_response>,
+     *         classOfTruth: <true_if_class_is_source_of_truth_(default is true)>,
      *         ignore: [
      *             { <key_to_possibly_ignore>: <regex_for_value_to_ignore> }
      *         ],
-     *        schemaMerge: {
+     *         schemaMerge: {
      *           path: <array_containing_property_path>,
      *           action: <override_if_not_direct_assign_of_value>
-     *           skipWhenOmitted: <do_not_add_to_parent_when_missing>
-     *        }
+     *           skipWhenOmitted: <do_not_add_to_parent_when_missing>,
+     *           specificTo: { property: 'only_add_when_prop_name_equals_prop_value', value: 'prop_value' }
+     *         },
+     *         partitions: ['partition(s)', 'to', 'check']
      *     }
      * ]
      *
@@ -90,17 +102,26 @@ class ConfigManager {
      * associated with the key, then that item will be ignored
      *
      * @param {Object} declaration - The delcaration we are processing
-     * @param {Object} state - The state of the current task. See {@link State}.
      * @param {State} doState - The doState object.
+     * @param {Object} [options] - Optional parameters
+     * @param {Boolean} [options.translateToNewId] - Set property names to the value in 'newId' if there is one.
+     *                                               Default false.
      *
      * @returns {Promise} A promise which is resolved when the operation is complete
      *                    or rejected if an error occurs.
      */
-    get(declaration, state, doState) {
-        const currentCurrentConfig = state.currentConfig || {};
-        const currentConfig = {};
+    get(declaration, doState, options) {
+        const currentCurrentConfig = this.state.currentConfig || {};
+        const currentConfig = {
+            InternalUse: {}
+        };
         const referencePromises = [];
         const referenceInfo = []; // info needed to tie reference result to config item
+
+        const optionDefaults = {
+            translateToNewId: false
+        };
+        const configOptions = Object.assign(optionDefaults, options);
 
         // Get the list of db variables that we really want. This includes
         // whatever is in the declaration plus what is in the current config.
@@ -114,7 +135,7 @@ class ConfigManager {
         // them into the correct object in the current config. Since the current structure
         // (using configItems.json) is more amenable to the first approach, that's
         // what we're doing.
-        const dbVarsOfInterest = [];
+        const dbVarsOfInterest = ['config.auditing']; // We use this for System.mcpAuditLog
         if (currentCurrentConfig && currentCurrentConfig.Common && currentCurrentConfig.Common.DbVariables) {
             Object.keys(currentCurrentConfig.Common.DbVariables).forEach((dbVar) => {
                 if (dbVar !== 'class') {
@@ -139,15 +160,19 @@ class ConfigManager {
             .then(() => this.bigIp.list('/tm/sys/provision'))
             .then((provisioning) => {
                 provisionedModules = provisioning
-                    .filter(module => module.level !== 'none')
-                    .map(module => module.name);
+                    .filter((module) => module.level !== 'none')
+                    .map((module) => module.name);
             })
             .then(() => this.bigIp.deviceInfo())
             .then((deviceInfo) => {
                 this.configId = deviceInfo.machineId;
-                return getTokenMap.call(this, deviceInfo);
+                this.bigIpVersion = deviceInfo.version;
+                return getDeviceAndHostNames.call(this, deviceInfo);
             })
-            .then((tokenMap) => {
+            .then((deviceNames) => {
+                // Save the name info to currentConfig - we'll need it to sort out hostname/device name
+                currentConfig.InternalUse.deviceNames = JSON.parse(JSON.stringify(deviceNames));
+
                 const hostNameRegex = /{{hostName}}/;
                 const deviceNameRegex = /{{deviceName}}/;
 
@@ -155,8 +180,15 @@ class ConfigManager {
                 // properties we want
                 return Promise.all(this.configItems
                     .map((configItem) => {
-                        if (configItem.requiredModule && provisionedModules.indexOf(configItem.requiredModule) === -1) {
+                        if (!configItem.path) {
                             return Promise.resolve(false);
+                        }
+
+                        if (configItem.requiredModules) {
+                            const targetInfo = { version: this.bigIpVersion };
+                            if (!checkRequiredModules(configItem.requiredModules, provisionedModules, targetInfo)) {
+                                return Promise.resolve(false);
+                            }
                         }
 
                         const query = { $filter: 'partition eq Common' };
@@ -164,30 +196,55 @@ class ConfigManager {
                         if (selectProperties.length > 0) {
                             query.$select = selectProperties.join(',');
                         }
+                        if (configItem.partitions) {
+                            // If partitions are expected we do the filtering manually
+                            delete query.$filter;
+                            query.$select = `${query.$select},partition`;
+                        }
                         const encodedQuery = querystring.stringify(query);
-                        const options = {};
+                        const listOptions = {};
                         let path = `${configItem.path}?${encodedQuery}`;
 
                         // do any replacements
-                        path = path.replace(hostNameRegex, tokenMap.hostName);
-                        path = path.replace(deviceNameRegex, tokenMap.deviceName);
+                        path = path.replace(hostNameRegex, deviceNames.hostName);
+                        path = path.replace(deviceNameRegex, deviceNames.deviceName);
 
                         if (configItem.silent) {
-                            options.silent = configItem.silent;
+                            listOptions.silent = configItem.silent;
                         }
 
-                        return this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, options);
+                        const requiredFields = configItem.properties
+                            .filter((property) => property.required)
+                            .reduce((accumulator, current) => {
+                                accumulator.push(current.id);
+                                return accumulator;
+                            }, []);
+                        if (requiredFields.length > 0) {
+                            listOptions.requiredFields = requiredFields;
+                        }
+
+                        return this.bigIp.list(path, null, cloudUtil.SHORT_RETRY, listOptions);
                     }));
             })
             .then((results) => {
                 let patchedItem;
                 results.forEach((currentItem, index) => {
+                    const schemaClass = this.configItems[index].schemaClass;
+                    if (this.configItems[index].enforceArray && !Array.isArray(currentItem)) {
+                        // Older versions of BIG-IP do not always return an empty array
+                        // We love you BIG-IP
+                        currentItem = [];
+                    }
+
                     // looks like configItem was skipped in previous step
                     if (currentItem === false) {
+                        if (!currentConfig[schemaClass] && classPresent(declaration, schemaClass)) {
+                            currentConfig[schemaClass] = {};
+                        }
+
                         return;
                     }
 
-                    const schemaClass = this.configItems[index].schemaClass;
                     if (!schemaClass) {
                         // Simple item that is just key:value - not a larger object
                         Object.keys(currentItem).forEach((key) => {
@@ -198,9 +255,44 @@ class ConfigManager {
                             currentConfig[schemaClass] = {};
                         } else {
                             currentItem.forEach((item) => {
-                                if (!shouldIgnore(item, this.configItems[index].ignore)) {
+                                if (!shouldIgnore(item, this.configItems[index].ignore)
+                                    && inPartitions(item, this.configItems[index].partitions)) {
+                                    const schemaMerge = this.configItems[index].schemaMerge;
+
+                                    if (schemaClass === 'Route'
+                                        && item.partition === 'LOCAL_ONLY') {
+                                        item.localOnly = true;
+                                    }
+                                    delete item.partition; // Must be removed for the diffs
+
+                                    if (schemaClass === 'FirewallPolicy'
+                                        || schemaClass === 'FirewallAddressList'
+                                        || schemaClass === 'FirewallPortList'
+                                        || schemaClass === 'NetAddressList'
+                                        || schemaClass === 'NetPortList') {
+                                        patchFirewall.call(this, item);
+                                    }
+
+                                    if (schemaClass === 'GSLBMonitor') {
+                                        // Must pull the kind before it is removed in removeUnusedKeys()
+                                        patchGSLBMonitor.call(this, item);
+                                    }
+
+                                    if (schemaClass === 'RoutingBGP') {
+                                        patchRoutingBGP.call(this, item);
+                                    }
+
+                                    if (schemaClass === 'ManagementRoute') {
+                                        patchManagementRoute.call(this, item);
+                                    }
+
                                     patchedItem = removeUnusedKeys.call(this, item, this.configItems[index].nameless);
-                                    patchedItem = mapProperties.call(this, patchedItem, index);
+                                    patchedItem = mapProperties(
+                                        patchedItem,
+                                        this.configItems[index],
+                                        this.bigIpVersion,
+                                        configOptions
+                                    );
 
                                     let name = item.name;
 
@@ -210,6 +302,20 @@ class ConfigManager {
 
                                     if (schemaClass === 'SnmpTrapDestination') {
                                         patchedItem.name = name;
+                                    }
+
+                                    if (schemaClass === 'SnmpUser') {
+                                        // Don't update name if configManager is called by inspectHandler
+                                        if (!configOptions.translateToNewId) {
+                                            patchedItem.name = name;
+                                        }
+                                    }
+
+                                    if (schemaClass === 'SnmpCommunity') {
+                                        // Don't update name if configManager is called by inspectHandler
+                                        if (!configOptions.translateToNewId) {
+                                            patchedItem.name = name;
+                                        }
                                     }
 
                                     if (schemaClass === 'RemoteAuthRole') {
@@ -229,7 +335,6 @@ class ConfigManager {
                                     }
 
                                     if (schemaClass === 'Authentication') {
-                                        const schemaMerge = this.configItems[index].schemaMerge;
                                         currentConfig[schemaClass] = patchAuth.call(
                                             this, schemaMerge, currentConfig[schemaClass], patchedItem
                                         );
@@ -238,6 +343,14 @@ class ConfigManager {
 
                                     if (schemaClass === 'MAC_Masquerade') {
                                         patchedItem.trafficGroup = name;
+                                    }
+
+                                    if (schemaClass === 'GSLBServer') {
+                                        patchGSLBServer.call(this, patchedItem, configOptions);
+                                    }
+
+                                    if (schemaClass === 'GSLBProberPool') {
+                                        patchGSLBProberPool.call(this, patchedItem);
                                     }
 
                                     if (patchedItem) {
@@ -252,28 +365,38 @@ class ConfigManager {
                                         item,
                                         index,
                                         referencePromises,
-                                        referenceInfo
+                                        referenceInfo,
+                                        configOptions
                                     );
+                                } else if (shouldIgnore(item, this.configItems[index].ignore)) {
+                                    if (!currentConfig[schemaClass]) {
+                                        currentConfig[schemaClass] = {};
+                                    }
                                 }
                             });
                         }
                     } else if (!shouldIgnore(currentItem, this.configItems[index].ignore)) {
+                        const schemaMerge = this.configItems[index].schemaMerge;
+
                         patchedItem = removeUnusedKeys.call(
                             this,
                             currentItem,
                             this.configItems[index].nameless
                         );
-                        patchedItem = mapProperties.call(this, patchedItem, index);
+                        patchedItem = mapProperties(
+                            patchedItem,
+                            this.configItems[index],
+                            this.bigIpVersion,
+                            configOptions
+                        );
                         if (schemaClass === 'Authentication') {
-                            const schemaMerge = this.configItems[index].schemaMerge;
                             patchedItem = patchAuth.call(
                                 this, schemaMerge, currentConfig[schemaClass], patchedItem
                             );
                         }
                         if (schemaClass === 'System') {
-                            const schemaMerge = this.configItems[index].schemaMerge;
                             patchedItem = patchSys.call(
-                                this, schemaMerge, currentConfig[schemaClass], patchedItem
+                                this, schemaMerge, currentConfig[schemaClass], patchedItem, configOptions
                             );
                         }
                         if (schemaClass === 'SyslogRemoteServer') {
@@ -296,16 +419,37 @@ class ConfigManager {
                                 delete patchedItem.include;
                             }
                         }
+
                         if (schemaClass === 'HTTPD') {
-                            if (patchedItem.sslCiphersuite) {
-                                patchHTTPD.call(
-                                    this,
-                                    patchedItem
-                                );
-                            }
+                            patchHTTPD.call(
+                                this,
+                                patchedItem
+                            );
                         }
+
+                        if (schemaClass === 'Disk' && patchedItem.apiRawValues) {
+                            patchedItem = patchedItem.apiRawValues;
+                            Object.keys(patchedItem).forEach((item) => {
+                                patchedItem[item] = parseInt(patchedItem[item], 10);
+                            });
+                        }
+
+                        if (schemaClass === 'GSLBGlobals') {
+                            patchedItem = patchGSLBGlobals.call(
+                                this,
+                                patchedItem
+                            );
+                        }
+
                         currentConfig[schemaClass] = patchedItem;
-                        getReferencedPaths.call(this, currentItem, index, referencePromises, referenceInfo);
+                        getReferencedPaths.call(
+                            this,
+                            currentItem,
+                            index,
+                            referencePromises,
+                            referenceInfo,
+                            configOptions
+                        );
                     }
                 });
 
@@ -317,40 +461,60 @@ class ConfigManager {
                     const property = referenceInfo[index].property;
                     const schemaClass = referenceInfo[index].schemaClass;
                     const name = referenceInfo[index].name;
-                    const configItem = currentConfig[schemaClass][name];
+                    const mergePath = referenceInfo[index].mergePath;
+                    const refConfigItem = { properties: referenceInfo[index].properties };
 
-                    configItem[property] = [];
-                    let patchedItem;
-                    // references refer to arrays, so each referenceResult should be an array
-                    referenceResult.forEach((reference) => {
-                        patchedItem = removeUnusedKeys.call(this, reference);
-                        referenceInfo[index].properties.forEach((refProperty) => {
-                            if (refProperty.truth !== undefined) {
-                                patchedItem[refProperty.id] = mapTruth(patchedItem, refProperty);
-                            }
+                    let configItem;
+                    if (mergePath) {
+                        configItem = mergePath.reduce(
+                            (item, key) => item[key],
+                            currentConfig[schemaClass]
+                        );
+                    } else if (name) {
+                        configItem = currentConfig[schemaClass][name];
+                    } else {
+                        configItem = currentConfig[schemaClass];
+                    }
+
+                    const patchReferences = (reference) => {
+                        let patchedItem = removeUnusedKeys.call(this, reference);
+                        patchedItem = mapProperties(patchedItem, refConfigItem, this.bigIpVersion, configOptions);
+                        return patchedItem;
+                    };
+
+                    if (Array.isArray(referenceResult)) {
+                        configItem[property] = [];
+                        referenceResult.forEach((reference) => {
+                            configItem[property].push(patchReferences(reference));
                         });
-                        configItem[property].push(patchedItem);
-                    });
+                    } else {
+                        configItem[property] = patchReferences(referenceResult);
+                    }
                 });
 
-                state.currentConfig = {
+                this.state.currentConfig = {
                     parsed: true,
                     Common: currentConfig
                 };
 
-                if (state.originalConfig && !doState.getOriginalConfigByConfigId(this.configId)) {
+                if (this.state.originalConfig && !doState.getOriginalConfigByConfigId(this.configId)) {
                     // This state was saved from a prior version of DO
-                    doState.setOriginalConfigByConfigId(this.configId, state.originalConfig);
+                    doState.setOriginalConfigByConfigId(this.configId, this.state.originalConfig);
                 }
 
                 const originalConfig = doState.getOriginalConfigByConfigId(this.configId)
-                    || state.currentConfig;
+                    || this.state.currentConfig;
+                if (!originalConfig.version) {
+                    const doVersion = doUtil.getDoVersion(this.state.id);
+                    const doVersionStr = `${doVersion.VERSION}-${doVersion.RELEASE}`;
+                    originalConfig.version = doVersionStr;
+                }
 
                 // Fill in any db vars that we don't currently have in the original config. If
                 // a user does not set a db var on the first POST but does on a subsequent POST
                 // we need an original value to set it back to if the user does yet another
                 // POST with out the variable
-                const currentDbVariables = state.currentConfig.Common.DbVariables;
+                const currentDbVariables = this.state.currentConfig.Common.DbVariables;
                 if (currentDbVariables) {
                     if (!originalConfig.Common.DbVariables) {
                         originalConfig.Common.DbVariables = {};
@@ -362,15 +526,183 @@ class ConfigManager {
                     });
                 }
 
+                const currentDisk = this.state.currentConfig.Common.Disk;
+                if (currentDisk && currentDisk.applicationData && originalConfig.Common) {
+                    // We need to update the originalConfig.applicationData in case of rollback.
+                    // applicationData cannot be reduced in size, so update if DISK information is
+                    // missing or smaller than the currentDisk.
+                    if (!originalConfig.Common.Disk
+                        || currentDisk.applicationData > originalConfig.Common.Disk.applicationData) {
+                        originalConfig.Common.Disk = {
+                            applicationData: currentDisk.applicationData
+                        };
+                    }
+                }
+
+                // update originalConfig class defaults with the current provisioned module state
+                const currentProvision = this.state.currentConfig.Common.Provision;
+                if (currentProvision && originalConfig.Common) {
+                    const provisionState = Object.keys(currentProvision).reduce((result, module) => {
+                        if (currentProvision[module] === 'none') {
+                            result.deprovisioned.push(module);
+                        } else {
+                            result.provisioned.push(module);
+                        }
+                        return result;
+                    }, { provisioned: [], deprovisioned: [] });
+
+                    this.configItems.forEach((item) => {
+                        const targetInfo = { version: this.bigIpVersion };
+                        if (!item.requiredModules
+                            || checkRequiredModules(item.requiredModules, provisionState.provisioned, targetInfo)) {
+                            // add default empty objects for classes that do not exist
+                            originalConfig.Common[item.schemaClass] = originalConfig.Common[item.schemaClass] || {};
+                        } else if (item.requiredModules
+                            && checkRequiredModules(item.requiredModules, provisionState.deprovisioned, targetInfo)
+                            && originalConfig.Common[item.schemaClass]
+                            && Object.keys(originalConfig.Common[item.schemaClass]).length === 0) {
+                            // remove default empty objects for classes that require de-provisioned module
+                            delete originalConfig.Common[item.schemaClass];
+                        }
+                    });
+                }
+
+                // Patch GSLB Prober Pool members after they've been dereferenced
+                const currentGSLBProberPool = this.state.currentConfig.Common.GSLBProberPool;
+                if (currentGSLBProberPool) {
+                    Object.keys(currentGSLBProberPool).forEach((key) => {
+                        (currentGSLBProberPool[key].members || []).forEach((member) => {
+                            member.enabled = isEnabledGtmObject(member);
+                            delete member.disabled;
+                        });
+                        (currentGSLBProberPool[key].members || []).sort((a, b) => a.order - b.order);
+                    });
+                }
+
+                // Patch RoutingBGP neighbor members after they've been dereferenced
+                const currentRoutingBgp = this.state.currentConfig.Common.RoutingBGP;
+                const nameId = getMappedId(PATHS.RoutingBGP, 'references.neighborReference', 'name', this.configItems, configOptions);
+                Object.keys(currentRoutingBgp || []).forEach((key) => {
+                    doUtil.sortArrayByValueString(currentRoutingBgp[key].neighbor, nameId);
+                    if (currentRoutingBgp[key].neighbor) {
+                        currentRoutingBgp[key].neighbors = JSON.parse(
+                            JSON.stringify(currentRoutingBgp[key].neighbor)
+                        );
+                        delete currentRoutingBgp[key].neighbor;
+                    }
+                    if (currentRoutingBgp[key].peerGroup) {
+                        currentRoutingBgp[key].peerGroups = JSON.parse(
+                            JSON.stringify(currentRoutingBgp[key].peerGroup)
+                        );
+                        delete currentRoutingBgp[key].peerGroup;
+                    }
+                });
+
+                // Patch GSLB Server virtual servers after they've been dereferenced
+                const currentGSLBServer = this.state.currentConfig.Common.GSLBServer;
+                if (currentGSLBServer) {
+                    const devicesOptions = Object.assign({}, configOptions, { transformId: 'addresses' });
+                    const devicesNameId = getMappedId(PATHS.GSLBServer, 'references.devicesReference', 'name', this.configItems, devicesOptions);
+                    const devicesTranslationId = getMappedId(PATHS.GSLBServer, 'references.devicesReference', 'translation', this.configItems, devicesOptions);
+                    const serverTranslationId = getMappedId(PATHS.GSLBServer, 'references.virtualServersReference', 'translationAddress', this.configItems, configOptions);
+                    const descriptionId = getMappedId(PATHS.GSLBServer, 'references.virtualServersReference', 'description', this.configItems, configOptions);
+                    const monitorId = getMappedId(PATHS.GSLBServer, 'references.virtualServersReference', 'monitor', this.configItems, configOptions);
+                    Object.keys(currentGSLBServer).forEach((key) => {
+                        currentGSLBServer[key].devices = (currentGSLBServer[key].devices || []).map((device) => {
+                            const patchedDevice = {};
+                            patchedDevice[devicesNameId] = device.addresses[0][devicesNameId];
+                            patchedDevice[devicesTranslationId] = device.addresses[0][devicesTranslationId];
+                            patchedDevice[descriptionId] = device[descriptionId];
+                            return patchedDevice;
+                        });
+                        (currentGSLBServer[key].virtualServers || []).forEach((virtualServer) => {
+                            const splitDestination = virtualServer.destination.split(/(\.|:)(?=[^.:]*$)/);
+
+                            virtualServer.address = splitDestination[0];
+                            virtualServer.port = parseInt(splitDestination[2], 10);
+                            virtualServer[monitorId] = getGtmMonitorArray(virtualServer[monitorId]);
+                            virtualServer.enabled = isEnabledGtmObject(virtualServer);
+
+                            delete virtualServer.disabled;
+                            delete virtualServer.destination;
+
+                            if (virtualServer[serverTranslationId] === 'none') {
+                                delete virtualServer[serverTranslationId];
+                            }
+                        });
+                    });
+                }
+
+                // Patch Firewall Policy rules after they've been dereferenced
+                const currentFirewallPolicy = this.state.currentConfig.Common.FirewallPolicy;
+                if (currentFirewallPolicy) {
+                    Object.keys(currentFirewallPolicy).forEach((key) => {
+                        (currentFirewallPolicy[key].rules || []).forEach(filterFirewallRuleProps);
+                    });
+                }
+
+                // Patch Management IP Firewall rules after they've been dereferenced
+                const currentManagementIpFirewall = this.state.currentConfig.Common.ManagementIpFirewall;
+                if (currentManagementIpFirewall) {
+                    (currentManagementIpFirewall.rules || []).forEach(filterFirewallRuleProps);
+                }
+
+                // Tunnels and VXLAN profiles are already combined in the Common.Tunnel object
+                // Note: To possibly improve this, initially we could keep Tunnels and VXLAN profiles
+                // separate, then just ignore VXLAN profiles in the diffing process
+                const currentTunnels = this.state.currentConfig.Common.Tunnel;
+                if (currentTunnels) {
+                    const tunnels = Object.keys(currentTunnels);
+                    const deleteAfter = [];
+                    tunnels.forEach((name) => {
+                        if (currentTunnels[`${name}_vxlan`]) {
+                            // This will add VXLAN properties to a Tunnel object for later diffing
+                            patchVxlanTunnels.call(
+                                this,
+                                currentTunnels[name],
+                                currentTunnels[`${name}_vxlan`],
+                                configOptions.translateToNewId
+                            );
+                        } else if (currentTunnels[name].encapsulationType) {
+                            // encapsulationType is unique to VXLAN profiles, so we can use it to
+                            // identify a VXLAN profile from a Tunnel. We need to remove the VXLAN
+                            // profiles from Tunnel object, so they do NOT show up in the diff
+                            deleteAfter.push(name);
+                        }
+                    });
+                    // Remove pointless VXLAN profiles from tunnel object to fix diff
+                    deleteAfter.forEach((name) => { delete currentTunnels[name]; });
+                }
+
+                if (currentConfig.System) {
+                    if (currentConfig.DbVariables) {
+                        // We also use the db var 'config.auditing' to represent System.mcpAuditLog
+                        currentConfig.System.mcpAuditLog = currentConfig.DbVariables['config.auditing'];
+                    }
+                }
+
                 doState.setOriginalConfigByConfigId(this.configId, originalConfig);
-                state.originalConfig = originalConfig;
+                this.state.originalConfig = originalConfig;
 
                 return Promise.resolve();
             })
             .catch((err) => {
-                logger.severe(`Error getting current config: ${err.message}`);
+                this.logger.severe(`Error getting current config: ${err.message}`);
                 return Promise.reject(err);
             });
+    }
+
+    static getNamelessClasses(configItems) {
+        return configItems
+            .filter((configItem) => configItem.nameless)
+            .map((configItem) => configItem.schemaClass);
+    }
+
+    // Return list of classes for which we are the source of truth.
+    static getClassesOfTruth(configItems) {
+        return configItems
+            .filter((configItem) => configItem.classOfTruth !== false)
+            .map((configItem) => configItem.schemaClass);
     }
 }
 
@@ -392,16 +724,21 @@ function removeUnusedKeys(item, nameless) {
     }
 
     Object.assign(filtered, item);
-    Object.keys(filtered).forEach((key) => {
-        if (key.endsWith('Reference')) {
-            delete filtered[key];
-        }
-
-        if (keysToRemove.indexOf(key) !== -1) {
-            delete filtered[key];
-        }
-    });
-    return filtered;
+    const removeReferencesAndKeysToRemove = function (obj) {
+        Object.keys(obj).forEach((key) => {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                if (key.endsWith('Reference')) {
+                    delete obj[key];
+                } else if (keysToRemove.indexOf(key) !== -1) {
+                    delete obj[key];
+                } else if (typeof obj[key] === 'object') {
+                    removeReferencesAndKeysToRemove(obj[key]);
+                }
+            }
+        });
+        return obj;
+    };
+    return removeReferencesAndKeysToRemove(filtered);
 }
 
 /**
@@ -431,25 +768,34 @@ function getPropertiesOfInterest(initialProperties) {
  *
  * For example, map 'enabled' to true
  *
- * @param {Object} item - The item whose properties to map
- * @param {Object} index - The index into configItems for this property
+ * @param {Object} item - The item (typically the item is coming from bigip) whose properties to map
+ * @param {Object} configItem - The configItem object that contains the properties to map
+ * @param {String} bigIpVersion - The current BIG-IP version
+ * @param {Object} [options] - Optional parameters
+ * @param {Boolean} [options.translateToNewId] - Set property names to the value in 'newId' if there is one.
+ *                                               Default false.
  */
-function mapProperties(item, index) {
+function mapProperties(item, configItem, bigIpVersion, options) {
     const mappedItem = {};
     Object.assign(mappedItem, item);
 
     // If we're just interested in one value, return that (Provision values, for example)
-    if (this.configItems[index].singleValue) {
-        return mappedItem[this.configItems[index].properties[0].id];
+    if (configItem.singleValue) {
+        return mappedItem[configItem.properties[0].id];
     }
 
-    this.configItems[index].properties.forEach((property) => {
+    configItem.properties.forEach((property) => {
         let hasVal = false;
+
+        if (property.minVersion && cloudUtil.versionCompare(property.minVersion, bigIpVersion) > 0) {
+            return;
+        }
+
         // map truth/falsehood (enabled/disabled, for example) to booleans
         if (property.truth !== undefined) {
             // for certain items we don't want to add prop with default falsehood value if prop doesn't exist
             if (typeof mappedItem[property.id] !== 'undefined' || !property.skipWhenOmitted) {
-                mappedItem[property.id] = mapTruth(mappedItem, property);
+                mappedItem[property.id] = mapTruth(mappedItem, property, options);
             }
         }
 
@@ -457,23 +803,77 @@ function mapProperties(item, index) {
             // If property is a reference, strip the /Common if it is there
             // Either the user specified it without /Commmon in their declaration
             // or we replaced the user value with just the last part because it looks
-            // like a json pointer
+            // like a json pointer.
+            // retainCommon is a configItems property that prevents the removal of Common from the
+            // id. This was used in GSLBServer.monitor so it would line up with the BIG-IP
             if (typeof mappedItem[property.id] === 'string'
-                && mappedItem[property.id].startsWith('/Common/')) {
+                && mappedItem[property.id].startsWith('/Common/')
+                && !property.retainCommon) {
                 mappedItem[property.id] = mappedItem[property.id].substring('/Common/'.length);
             }
 
             if (property.transform) {
-                const orig = Object.assign({}, mappedItem[property.id]);
-                delete mappedItem[property.id];
-                property.transform.forEach((trans) => {
-                    const propertyVal = orig[trans.id] || orig[0][trans.id];
-                    if (trans.newId) {
-                        mappedItem[trans.newId] = propertyVal;
-                    } else {
-                        mappedItem[trans.id] = propertyVal;
+                const transformProperty = function (currentProperty) {
+                    if (Array.isArray(currentProperty) && !property.transformAsArray) {
+                        // Iterate through currentProperty to convert subobjects
+                        const output = currentProperty.map((prop) => transformProperty(prop));
+                        return output;
                     }
-                });
+
+                    const newProperty = {};
+                    property.transform.forEach((trans) => {
+                        let value = currentProperty[trans.id];
+
+                        if (trans.capture) {
+                            // The capture property is a regex that is grouping in a way that puts
+                            // the desired value at the end of the match.
+                            const match = currentProperty[trans.captureProperty].match(trans.capture);
+
+                            if (match === null) {
+                                return;
+                            }
+
+                            value = match.pop();
+                        }
+
+                        if (trans.extract) {
+                            if (property.transformAsArray) {
+                                value = currentProperty.map((prop) => prop[trans.extract]);
+                            } else {
+                                value = currentProperty[trans.extract];
+                            }
+                        }
+
+                        if (trans.removeKeys) {
+                            doUtil.deleteKeys(value, trans.removeKeys);
+                        }
+
+                        if (trans.sort) {
+                            if (property.transformAsArray && Array.isArray(currentProperty)) {
+                                value = currentProperty.sort();
+                            }
+                        }
+
+                        if (trans.truth !== undefined) {
+                            value = mapTruth(currentProperty, trans, options);
+                        }
+
+                        if (options.translateToNewId && trans.newId) {
+                            newProperty[trans.newId] = value;
+                        } else {
+                            newProperty[trans.id] = value;
+                        }
+                    });
+                    return newProperty;
+                };
+
+                const transformed = transformProperty(mappedItem[property.id]);
+                if (!property.transformAsArray) {
+                    mappedItem[property.id] = transformed;
+                } else {
+                    // when transforming an array, we can only do one property for now
+                    mappedItem[property.id] = transformed[property.transform[0].id];
+                }
             }
             hasVal = true;
         } else if (property.defaultWhenOmitted !== undefined) {
@@ -481,10 +881,20 @@ function mapProperties(item, index) {
             hasVal = true;
         }
 
-        if (hasVal && property.newId !== undefined) {
+        if (hasVal && property.stringToInt) {
+            // Some items can be either plain strings or string representations of ints.
+            // Only map if they are string representations of ints.
+            const possibleInt = parseInt(mappedItem[property.id], 10);
+            if (Number.isInteger(possibleInt)) {
+                mappedItem[property.id] = possibleInt;
+            }
+        }
+
+        if (options.translateToNewId && hasVal && property.newId !== undefined) {
             mapNewId(mappedItem, property.id, property.newId);
         }
     });
+
     return mappedItem;
 }
 
@@ -529,14 +939,20 @@ function mapNewId(mappedItem, id, newId) {
  *
  * @param {Object} item - The config item
  * @param {Object} property - The property to map
+ * @param {Object} [options] - Optional parameters
+ * @param {Boolean} [options.translateToNewId] - Set property names to the value in 'newId' if there is one.
+ *                                               Default false.
  *
  * @returns {Boolean} Whether or not the property value represents truth
  */
-function mapTruth(item, property) {
-    if (!item[property.id]) {
-        return false;
+function mapTruth(item, property, options) {
+    if (options.translateToNewId) {
+        if (!item[property.id]) {
+            return false;
+        }
+        return item[property.id] === property.truth;
     }
-    return item[property.id] === property.truth;
+    return item[property.id] || property.falsehood;
 }
 
 /**
@@ -598,16 +1014,13 @@ function mapSchemaMerge(obj, value, opts) {
 
 // given an item and its index in configItems, construct a path based the properties we want
 // and on the link given to us in the reference in the iControl REST object
-function getReferencedPaths(item, index, referencePromises, referenceInfo) {
+function getReferencedPaths(item, index, referencePromises, referenceInfo, options) {
     Object.keys(item).forEach((property) => {
-        if (this.configItems[index].references
-            && this.configItems[index].references[property]
-            && item[property].link) {
+        const configItem = this.configItems[index];
+        if (configItem.references && configItem.references[property] && item[property].link) {
             const parsed = url.parse(item[property].link);
             const query = querystring.parse(parsed.query);
-            const selectProperties = getPropertiesOfInterest(
-                this.configItems[index].references[property]
-            );
+            const selectProperties = getPropertiesOfInterest(configItem.references[property]);
             if (selectProperties.length > 0) {
                 query.$select = selectProperties.join(',');
             }
@@ -620,13 +1033,18 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
             // trim off 'Reference' from the property name to get the name for the unreferenced property
             const regex = /^(.+)Reference$/;
             const trimmedPropertyName = regex.exec(property)[1];
+            let newId;
+            if (options.translateToNewId) {
+                newId = (configItem.properties.find((obj) => obj.id === trimmedPropertyName) || {}).newId;
+            }
             referencePromises.push(this.bigIp.list(path, null, cloudUtil.SHORT_RETRY));
             referenceInfo.push(
                 {
-                    property: trimmedPropertyName,
-                    schemaClass: this.configItems[index].schemaClass,
+                    property: newId || trimmedPropertyName,
+                    schemaClass: configItem.schemaClass,
                     name: item.name,
-                    properties: this.configItems[index].references[property]
+                    properties: configItem.references[property],
+                    mergePath: (configItem.schemaMerge || {}).path
                 }
             );
         }
@@ -634,22 +1052,21 @@ function getReferencedPaths(item, index, referencePromises, referenceInfo) {
 }
 
 /**
- * Gets values we use to replace tokens in configItems.json
+ * Gets the hostname and device name
  *
  * @param {Object} deviceInfo - The deviceInfo for the BIG-IP.
  *
- * @returns {Promise} A promise which is resolved with the replacement
- *                    map
+ * @returns {Promise} A promise which is resolved with the device and host names
  *     {
  *         hostName: hostname from global settings
  *         deviceName: device name for the host
  *     }
  */
-function getTokenMap(deviceInfo) {
+function getDeviceAndHostNames(deviceInfo) {
     const hostName = deviceInfo.hostname;
     return this.bigIp.list('/tm/cm/device')
         .then((cmDeviceInfo) => {
-            const devices = cmDeviceInfo.filter(device => device.hostname === hostName);
+            const devices = cmDeviceInfo.filter((device) => device.hostname === hostName);
 
             if (devices.length === 1) {
                 const deviceName = devices[0].name;
@@ -662,11 +1079,11 @@ function getTokenMap(deviceInfo) {
             }
 
             const message = 'Too many devices match our name';
-            logger.severe(message);
+            this.logger.severe(message);
             return Promise.reject(new Error(message));
         })
         .catch((err) => {
-            logger.severe(`Error getting device info for tokens: ${err.message}`);
+            this.logger.severe(`Error getting device and host names: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -746,8 +1163,13 @@ function patchAuth(schemaMerge, authClass, authItem) {
     return patchedClass;
 }
 
-function patchSys(schemaMerge, sysClass, sysItem) {
+function patchSys(schemaMerge, sysClass, sysItem, options) {
     let patchedClass = {};
+
+    // The schema has 'preserveOrigDhcpRoutes', so we need to add that here so we don't
+    // get a diff if they match.
+    const mgmtDhcpId = getMappedId(PATHS.SysGlobalSettings, 'properties', 'mgmtDhcp', this.configItems, options);
+    patchedClass.preserveOrigDhcpRoutes = sysItem[mgmtDhcpId] === 'enabled' || sysItem[mgmtDhcpId] === true;
 
     // mapping the first object in configItems.json which should not have schemaMerge defined
     if (!schemaMerge) {
@@ -759,11 +1181,14 @@ function patchSys(schemaMerge, sysClass, sysItem) {
     const sysClassCopy = !sysClass ? {} : JSON.parse(JSON.stringify(sysClass));
     const patchedItem = Object.assign({}, sysItem);
     patchedClass = mapSchemaMerge.call(this, sysClassCopy, patchedItem, schemaMerge);
-    if (sysItem.cliInactivityTimeout === 'disabled') {
-        patchedClass.cliInactivityTimeout = 0;
-    } else if (typeof sysItem.cliInactivityTimeout !== 'undefined') {
-        patchedClass.cliInactivityTimeout = parseInt(patchedClass.cliInactivityTimeout, 10) * 60;
+
+    const idleTimeoutId = getMappedId(PATHS.CLI, 'properties', 'idleTimeout', this.configItems, options);
+    if (sysItem[idleTimeoutId] === 'disabled') {
+        patchedClass[idleTimeoutId] = 0;
+    } else if (typeof sysItem[idleTimeoutId] !== 'undefined') {
+        patchedClass[idleTimeoutId] = parseInt(patchedClass[idleTimeoutId], 10) * 60;
     }
+
     return patchedClass;
 }
 
@@ -777,6 +1202,9 @@ function patchSSHD(patchedItem) {
         }
         if (currentInclude[0] === 'MACs') {
             patchedItem.MACS = currentInclude[1].split(',');
+        }
+        if (currentInclude[0] === 'KexAlgorithms') {
+            patchedItem.kexAlgorithms = currentInclude[1].split(',');
         }
         if (currentInclude[0] === 'LoginGraceTime') {
             patchedItem.loginGraceTime = parseInt(currentInclude[1], 10);
@@ -794,7 +1222,150 @@ function patchSSHD(patchedItem) {
 }
 
 function patchHTTPD(patchedItem) {
-    patchedItem.sslCiphersuite = patchedItem.sslCiphersuite.split(':');
+    if (patchedItem.sslCiphersuite) {
+        patchedItem.sslCiphersuite = patchedItem.sslCiphersuite.split(':');
+    }
+    if (patchedItem.allow) {
+        if (Array.isArray(patchedItem.allow)) {
+            // Allow can use 'all' or 'All'. Normalize to 'all'.
+            patchedItem.allow = patchedItem.allow.map((item) => (item === 'All' ? 'all' : item));
+        }
+    } else {
+        patchedItem.allow = 'none';
+    }
+}
+
+function patchGSLBGlobals(patchedItem) {
+    // Will eventually want schemaMerge for global-settings not in /general.
+    // Update: configItems has schemaMerge for this class but it's not used in configManager yet,
+    // only in parserUtil
+    const patchedClass = {};
+    patchedClass.general = {};
+    Object.assign(patchedClass.general, patchedItem);
+    return patchedClass;
+}
+
+function patchGSLBServer(patchedItem, options) {
+    const monitorId = getMappedId(PATHS.GSLBServer, 'references.virtualServersReference', 'monitor', this.configItems, options);
+    patchedItem[monitorId] = getGtmMonitorArray(patchedItem[monitorId]);
+    patchedItem.enabled = isEnabledGtmObject(patchedItem);
+    delete patchedItem.disabled;
+}
+
+function patchFirewall(item) {
+    // Must remove fullPath for the diffs
+    delete item.fullPath;
+}
+
+function patchGSLBMonitor(item) {
+    // Pull the monitorType from kind before kind is deleted
+    item.monitorType = item.kind.split(':')[3];
+}
+
+function patchGSLBProberPool(patchedItem) {
+    patchedItem.enabled = isEnabledGtmObject(patchedItem);
+    delete patchedItem.disabled;
+}
+
+/**
+ * Renames deeply nested 'name' property to 'routingProtocol'
+ *
+ * @param {Object} patchedItem - config item that needs patching
+ */
+function patchRoutingBGP(patchedItem) {
+    (patchedItem.addressFamily || []).forEach((family) => {
+        (family.redistribute || []).forEach((redist) => {
+            if (redist.name) {
+                redist.routingProtocol = redist.name;
+                delete redist.name;
+            }
+        });
+    });
+}
+
+/**
+ * Determines the name from the fullPath.
+ *
+ * For management routes that have a / in the name, iControl REST returns
+ * the name as just the part after the /. What we want is everything after /Common
+ *
+ * @param {Object} patchedItem - config item that needs patching
+ */
+function patchManagementRoute(patchedItem) {
+    patchedItem.name = patchedItem.fullPath.split('/Common/')[1];
+    delete patchedItem.fullPath;
+
+    // iControl REST can return a gateway of 'none' with a type, but posting that back
+    // to iControl rest is illegal. We love you BIG-IP.
+    if (patchedItem.gateway === 'none' && patchedItem.type) {
+        delete patchedItem.gateway;
+    }
+}
+
+/**
+ * Combines vxlan profiles into the tunnel object and set tunnelType to vxlan
+ *
+ * @param {Object} item - config for the tunnel
+ * @param {object} vxlan - config for the vxlan profile
+ */
+function patchVxlanTunnels(item, vxlan, translateToNewId) {
+    if (!vxlan) { return; }
+
+    // The name is determined by the tunnel name and so does NOT need retained
+    delete vxlan.name;
+
+    // The profile or tunnelType is always vxlan
+    if (translateToNewId) {
+        item.tunnelType = 'vxlan';
+    } else {
+        item.profile = 'vxlan';
+    }
+
+    mapSchemaMerge.call(this, item, vxlan, { action: 'add' });
+}
+
+/**
+ * GTM objects have both enabled and disabled properties
+ * instead of one prop with boolean value
+ * @public
+ * @param {object} obj - object that contains the enabled/disabled props
+ * @returns {boolean} - true if enabled, otherwise false
+ */
+function isEnabledGtmObject(obj) {
+    let isEnabled;
+
+    if (typeof obj.enabled === 'boolean') {
+        isEnabled = obj.enabled;
+    } else if (typeof obj.disabled === 'boolean') {
+        isEnabled = !obj.disabled;
+    } else if (typeof obj.enabled === 'string') {
+        isEnabled = obj.enabled.toLowerCase() === 'true';
+    } else if (typeof obj.disabled === 'string') {
+        isEnabled = obj.disabled.toLowerCase() === 'false';
+    } else {
+        isEnabled = true;
+    }
+    return isEnabled;
+}
+
+function getGtmMonitorArray(monitorString) {
+    // Convert monitors from BIG-IP string to declaration compatible array, for diffing
+    return monitorString ? monitorString.split(' and ') : [];
+}
+
+function filterFirewallRuleProps(rule) {
+    const allowedSourceKeys = ['vlans', 'addressLists', 'portLists'];
+    const allowedDestinationKeys = ['addressLists', 'portLists'];
+
+    const filter = (obj, allowedKeys) => Object.keys(obj)
+        .filter((objKey) => allowedKeys.indexOf(objKey) > -1)
+        .reduce((newObj, objKey) => {
+            newObj[objKey] = obj[objKey];
+            return newObj;
+        }, {});
+
+    rule.source = filter(rule.source, allowedSourceKeys);
+    rule.destination = filter(rule.destination, allowedDestinationKeys);
 }
 
 function shouldIgnore(item, ignoreList) {
@@ -812,6 +1383,98 @@ function shouldIgnore(item, ignoreList) {
     });
 
     return !!match;
+}
+
+function inPartitions(item, partitionList) {
+    // If the configItem has no partitionList, then it was filtered by the query so just continue
+    if (!partitionList || partitionList.indexOf(item.partition) > -1) {
+        return true;
+    }
+
+    return false;
+}
+
+function classPresent(declaration, className) {
+    return declaration.Common
+        && Object.keys(declaration.Common).find((key) => declaration.Common[key].class === className);
+}
+
+/**
+ * Returns 'newId' field for a config item property if present and asked for in options
+ *
+ * @param {String} configPath - The path of the config item
+ * @param {String} propertyPath - The path to the property in the config item
+ *                                (for example, 'properties' or 'references.someRef')
+ * @param {String} id - The id of the property
+ * @param {Object} configItems - The configItems data
+ * @param {Object} options - Options for getting the id
+ * @param {Boolean} [options.translateToNewId] - Whether or not to return the 'id' or 'newId'
+ * @param {String} [options.transformId] - Properties to find are inside a property with id === transformId
+ *                                         in a field called 'transform'
+ */
+function getMappedId(configPath, propertyPath, id, configItems, options) {
+    const configOptions = Object.assign({}, options);
+
+    if (!configOptions.translateToNewId) {
+        return id;
+    }
+
+    const configItem = configItems.find((ci) => ci.path === configPath);
+    if (!configItem) {
+        return id;
+    }
+
+    let properties = doUtil.getDeepValue(configItem, propertyPath);
+    if (!properties) {
+        return id;
+    }
+
+    if (configOptions.transformId) {
+        properties = properties.find((prop) => prop.id === configOptions.transformId).transform;
+    }
+
+    const property = properties.find((prop) => prop.id === id);
+    if (!property) {
+        return id;
+    }
+
+    if (!property.newId) {
+        return id;
+    }
+
+    return property.newId;
+}
+
+/**
+ * Filters required modules based on target BIG-IP info and checks if all filtered modules
+ * can be found in the list of current modules. Returns true if all modules are found.
+ *
+ * @param {Object[]} requiredModules - The required modules
+ * @param {string[]} currentModules - The list of modules to search through
+ * @param {Object} targetInfo - Info about the target machine to use for filtering
+ * @param {string} targetInfo.version - The version of the machine
+ *
+ * @returns {boolean} True if all required modules are found in the list of current modules
+ */
+function checkRequiredModules(requiredModules, currentModules, targetInfo) {
+    return requiredModules
+        .filter((requiredModule) => {
+            const maxVersion = requiredModule.maxVersion;
+
+            if (maxVersion) {
+                const maxVersionLength = maxVersion.split('.').length;
+                // Truncate targetInfo version when comparing against maxVersion
+                const version = targetInfo.version.split('.').slice(0, maxVersionLength).join('.');
+
+                if (cloudUtil.versionCompare(version, maxVersion) > 0) {
+                    return false;
+                }
+            }
+
+            return true;
+        })
+        .map((requiredModule) => requiredModule.module)
+        .every((module) => currentModules.indexOf(module) > -1);
 }
 
 module.exports = ConfigManager;

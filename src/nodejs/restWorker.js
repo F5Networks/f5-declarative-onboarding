@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +36,14 @@ const TaskResponse = require('../lib/taskResponse');
 const State = require('../lib/state');
 const SshUtil = require('../lib/sshUtil');
 const Validator = require('../lib/validator');
+const configItems = require('../lib/configItems.json');
+const fetches = require('../lib/fetchHandler');
 
 const STATUS = require('../lib/sharedConstants').STATUS;
 const EVENTS = require('../lib/sharedConstants').EVENTS;
 const ENDPOINTS = require('../lib/sharedConstants').ENDPOINTS;
 
-const logger = new Logger(module);
+const globalLogger = new Logger(module);
 
 const BIG_IP_ENCRYPTION_ID = 'doBigIp';
 const BIG_IQ_ENCRYPTION_ID = 'doBigIq';
@@ -68,17 +70,19 @@ class RestWorker {
      */
     onStart(success, error) {
         try {
+            globalLogger.info(`Running DO version: ${doUtil.getDoVersion().VERSION}`);
+
             const deviceInfo = this.restHelper.makeRestjavadUri(
                 '/shared/identified-devices/config/device-info'
             );
             this.dependencies.push(deviceInfo);
 
             this.validator = new Validator();
-            logger.info('Created Declarative onboarding worker');
+            globalLogger.info('Created Declarative onboarding worker');
             success();
         } catch (err) {
             const message = `Error creating declarative onboarding worker: ${err}`;
-            logger.severe(message);
+            globalLogger.severe(message);
             error(message);
         }
     }
@@ -101,11 +105,18 @@ class RestWorker {
         // If this device's license is going to be revoked, services will
         // restart and we need to know that's what happened when this worker is restarted.
         this.eventEmitter.on(EVENTS.LICENSE_WILL_BE_REVOKED, (taskId, bigIpPassword, bigIqPassword) => {
-            doUtil.getCurrentPlatform()
+            const logger = new Logger(module, taskId);
+            doUtil.getCurrentPlatform(taskId)
                 .then((platform) => {
                     if (platform === PRODUCTS.BIGIP) {
-                        logger.debug('Prepping for revoke');
-                        return prepForRevoke.call(this, taskId, bigIpPassword, bigIqPassword);
+                        logger.debug('Prepping for reboot and resume');
+                        return prepForRebootResumeOrRevoke.call(
+                            this,
+                            taskId,
+                            STATUS.STATUS_REVOKING,
+                            bigIpPassword,
+                            bigIqPassword
+                        );
                     }
                     return Promise.resolve();
                 })
@@ -120,12 +131,33 @@ class RestWorker {
                 });
         });
 
+        this.eventEmitter.on(EVENTS.REBOOT_NOW, (taskId) => {
+            const logger = new Logger(module, taskId);
+            logger.info(`handling REBOOT_NOW event for task: ${taskId}`);
+            this.state.doState.setRebootRequired(taskId, true);
+            return save.call(this, taskId)
+                .then(() => prepForRebootResumeOrRevoke.call(this, taskId, STATUS.STATUS_REBOOTING_AND_RESUMING))
+                .then(() => rebootIfRequired.call(this, this.bigIps[taskId], taskId))
+                .catch((err) => {
+                    logger.warning(`Error handling REBOOT_NOW: ${err.message}`);
+                });
+        });
+
+        this.eventEmitter.on(EVENTS.TRACE_CONFIG, (taskId, currentConfig, desiredConfig) => {
+            this.state.doState.setTraceCurrent(taskId, currentConfig);
+            this.state.doState.setTraceDesired(taskId, desiredConfig);
+        });
+
+        this.eventEmitter.on(EVENTS.TRACE_DIFF, (taskId, diff) => {
+            this.state.doState.setTraceDiff(taskId, diff);
+        });
+
         // The framework is supposed to pass in our state, but does not.
         load.call(this)
             .then(() => handleStartupState.call(this, success, error))
             .catch((err) => {
                 const message = `error creating state: ${err.message}`;
-                logger.severe(message);
+                globalLogger.severe(message);
                 error(message);
             });
     }
@@ -153,9 +185,10 @@ class RestWorker {
      * @param {Object} restOperation
      */
     onPost(restOperation) {
-        logger.finest('Got onboarding request.');
-
         const taskId = this.state.doState.addTask();
+        const logger = new Logger(module, taskId);
+
+        logger.finest('Got onboarding request.');
 
         const contentType = restOperation.getContentType() || '';
         let body = restOperation.getBody();
@@ -193,7 +226,7 @@ class RestWorker {
 
         this.state.doState.setErrors(taskId, null);
 
-        this.validator.validate(wrapper)
+        this.validator.validate(wrapper, taskId)
             .then((validation) => {
                 const reqOpts = {
                     method: restOperation.getMethod().toUpperCase(),
@@ -211,7 +244,7 @@ class RestWorker {
                         'bad declaration',
                         validation.errors
                     );
-                    save.call(this)
+                    save.call(this, taskId)
                         .then(() => {
                             sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                         });
@@ -226,8 +259,9 @@ class RestWorker {
                         insensitiveQuery[key.toLowerCase()] = query[key];
                     });
 
-                    save.call(this)
-                        .then(() => doUtil.getCurrentPlatform())
+                    save.call(this, taskId)
+                        .then(() => fetches.handleFetches(this.validator.validators[0].fetches, taskId))
+                        .then(() => doUtil.getCurrentPlatform(taskId))
                         .then((currentPlatform) => {
                             platform = currentPlatform;
 
@@ -256,7 +290,7 @@ class RestWorker {
                             wrapper.targetUsername = bigIpOptions.user;
                             wrapper.targetPassphrase = bigIpOptions.password;
 
-                            return initialAccountSetup.call(this, wrapper);
+                            return initialAccountSetup.call(this, wrapper, logger);
                         })
                         .then((updatedPassword) => {
                             if (updatedPassword) {
@@ -270,7 +304,7 @@ class RestWorker {
                             if (platform === PRODUCTS.BIGIQ && !isFromTcw) {
                                 logger.finest('Passing to TCW');
                                 passToTcw.call(this, wrapper, taskId, restOperation)
-                                    .then(tcwId => pollTcw.call(this, tcwId, taskId, restOperation))
+                                    .then((tcwId) => pollTcw.call(this, tcwId, taskId, restOperation))
                                     .then(() => {
                                         logger.finest('TCW is done');
                                         if (!declaration.async) {
@@ -286,6 +320,17 @@ class RestWorker {
                                     ))
                                     .catch((err) => {
                                         logger.info(`TCW task failed: ${err.message}`);
+                                        this.state.doState.updateResult(
+                                            taskId,
+                                            500,
+                                            STATUS.STATUS_ERROR,
+                                            'failed',
+                                            err.message
+                                        );
+                                        if (!declaration.async) {
+                                            logger.fine('Sending response.');
+                                            sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
+                                        }
                                         return getAndSaveCurrentConfig.call(
                                             this,
                                             this.bigIps[taskId],
@@ -304,8 +349,12 @@ class RestWorker {
 
                                 onboard.call(this, declaration, bigIpOptions, taskId, originalDoId)
                                     .then(() => {
-                                        logger.fine('Onboard configuration complete. Saving sys config.');
-                                        return this.bigIps[taskId].save();
+                                        if (this.bigIps[taskId]) {
+                                            logger.fine('Onboard configuration complete. Saving sys config.');
+                                            return saveConfig(this.bigIps[taskId], declaration);
+                                        }
+                                        logger.fine('No device.');
+                                        return undefined;
                                     })
                                     .then(() => setPostOnboardStatus.call(
                                         this,
@@ -332,8 +381,13 @@ class RestWorker {
                                     })
                                     .then(() => {
                                         logger.fine('Onboard complete.');
-                                        postWebhook.call(this, reqOpts, ENDPOINTS.TASK, taskId,
-                                            declaration.webhook);
+                                        postWebhook.call(
+                                            this,
+                                            reqOpts,
+                                            ENDPOINTS.TASK,
+                                            taskId,
+                                            declaration.webhook
+                                        );
                                     });
                             }
                         })
@@ -373,7 +427,7 @@ class RestWorker {
     /**
      * Returns an exmple of a valid declaration.
      *
-     * This is called by WOKER_URI/example.
+     * This is called by WORKER_URI/example.
      *
      * @returns {Object} An example of a valid declaration.
      */
@@ -385,7 +439,7 @@ class RestWorker {
             const example = `${__dirname}/../examples/onboard.json`;
             exampleResponse = JSON.parse(fs.readFileSync(example).toString());
         } catch (err) {
-            logger.warning(`Error reading example file: ${err}`);
+            globalLogger.warning(`Error reading example file: ${err}`);
             exampleResponse = {
                 message: 'no example available'
             };
@@ -396,10 +450,13 @@ class RestWorker {
 }
 
 function onboard(declaration, bigIpOptions, taskId, originalDoId) {
+    const logger = new Logger(module, taskId);
     let declarationHandler;
+    let bigIpInitialized = false;
 
     return doUtil.getBigIp(logger, bigIpOptions)
         .then((bigIp) => {
+            bigIpInitialized = true;
             this.bigIps[taskId] = bigIp;
 
             // We store the bigIp object under the original ID so the polling
@@ -408,18 +465,23 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
                 this.bigIps[originalDoId] = this.bigIps[taskId];
             }
 
-            logger.fine('Getting and saving current configuration');
+            logger.fine(`Getting and saving current configuration for task: ${taskId}`);
             return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId);
         })
         .then(() => {
-            declarationHandler = new DeclarationHandler(this.bigIps[taskId], this.eventEmitter);
-            return declarationHandler.process(declaration, this.state.doState.getTask(taskId));
+            declarationHandler = new DeclarationHandler(
+                this.bigIps[taskId],
+                this.eventEmitter,
+                this.state.doState.getTask(taskId)
+            );
+            return declarationHandler.process(declaration);
         })
         .then((status) => {
             this.state.doState.setRebootRequired(taskId, status.rebootRequired);
             this.state.doState.setRollbackInfo(taskId, status.rollbackInfo);
+            this.state.doState.setWarnings(taskId, status.warnings);
             logger.fine('Saving sys config.');
-            return this.bigIps[taskId].save();
+            return saveConfig(this.bigIps[taskId], declaration);
         })
         .then(() => {
             logger.fine('Onboard configuration complete. Checking for reboot.');
@@ -427,6 +489,22 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
         })
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
+
+            // If we failed to initialize the bigIp (sometimes it just never becomes available)
+            // then there's not much we can do. Perhaps a reboot would work but for now, just
+            // report the error
+            if (!bigIpInitialized) {
+                logger.info('Failed to initialize BIG-IP');
+                this.state.doState.updateResult(
+                    taskId,
+                    err && err.code ? err.code : 500,
+                    STATUS.STATUS_ERROR,
+                    'failed to initialize device',
+                    err.message
+                );
+                return undefined;
+            }
+
             logger.info('Rolling back configuration');
             this.state.doState.updateResult(
                 taskId,
@@ -435,7 +513,7 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
                 'invalid config - rolling back',
                 err.message
             );
-            return save.call(this)
+            return save.call(this, taskId)
                 .then(() => {
                     const rollbackTo = {};
                     Object.assign(rollbackTo, this.state.doState.getTask(taskId).currentConfig);
@@ -444,6 +522,7 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
                             rollbackTo,
                             this.state.doState.getTask(taskId)
                         ))
+                        .then(() => getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId))
                         .then(() => {
                             const deconCode = err.code === 400 ? 422 : (err.code || 500);
                             this.state.doState.updateResult(
@@ -453,7 +532,7 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
                                 'invalid config - rolled back',
                                 err.message
                             );
-                            return save.call(this);
+                            return save.call(this, taskId);
                         })
                         .catch((rollbackError) => {
                             logger.severe(`Error rolling back: ${rollbackError.message}`);
@@ -478,6 +557,11 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
+    if (!bigIp) {
+        return undefined;
+    }
+
+    const logger = new Logger(module, taskId);
     let promise = Promise.resolve();
 
     promise = promise.then(() => {
@@ -497,12 +581,12 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
                         STATUS.STATUS_REBOOTING,
                         'reboot required'
                     );
-                    return save.call(this);
+                } else {
+                    logger.fine('No reboot required');
+                    this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
                 }
 
-                logger.fine('No reboot required');
-                this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
-                return Promise.resolve();
+                return save.call(this, taskId);
             });
     }
 
@@ -510,6 +594,12 @@ function setPostOnboardStatus(bigIp, taskId, declaration) {
 }
 
 function rebootIfRequired(bigIp, taskId) {
+    if (!bigIp) {
+        return undefined;
+    }
+
+    const logger = new Logger(module, taskId);
+
     return new Promise((resolve, reject) => {
         doUtil.rebootRequired(bigIp, this.state.doState, taskId)
             .then((rebootRequired) => {
@@ -521,7 +611,7 @@ function rebootIfRequired(bigIp, taskId) {
                     // by the startup code (onStartCompleted). Otherwise, wait
                     // until the BIG-IP is ready again (after a slight delay to make sure
                     // the reboot has started).
-                    doUtil.getCurrentPlatform()
+                    doUtil.getCurrentPlatform(taskId)
                         .then((platform) => {
                             if (platform !== PRODUCTS.BIGIP) {
                                 setTimeout(waitForRebootComplete, 10000, this, taskId, resolve, reject);
@@ -552,7 +642,7 @@ function passToTcw(wrapper, taskId, incomingRestOp) {
 
     const restOperation = this.restOperationFactory.createRestOperationInstance()
         .setUri(this.restHelper.makeRestjavadUri('/cm/global/tasks/declarative-onboarding'))
-        .setIsSetBasicAuthHeader(true)
+        .setIsSetBasicAuthHeader(false)
         .setReferer(incomingRestOp.getUri().href)
         .setContentType('application/json')
         .setBody({
@@ -560,7 +650,7 @@ function passToTcw(wrapper, taskId, incomingRestOp) {
             declaration: wrapper
         });
     return this.restRequestSender.sendPost(restOperation)
-        .then(response => response.getBody().id);
+        .then((response) => response.getBody().id);
 }
 
 /**
@@ -577,6 +667,7 @@ function pollTcw(tcwId, taskId, incomingRestOp) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
+    const logger = new Logger(module, taskId);
     const restOperation = this.restOperationFactory.createRestOperationInstance()
         .setUri(this.restHelper.makeRestjavadUri(`/cm/global/tasks/declarative-onboarding/${tcwId}`))
         .setIsSetBasicAuthHeader(true)
@@ -634,15 +725,16 @@ function pollTcw(tcwId, taskId, incomingRestOp) {
 function getAndSaveCurrentConfig(bigIp, declaration, taskId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
-    const configManager = new ConfigManager(`${__dirname}/../lib/configItems.json`, bigIp);
-    return configManager.get(declaration, this.state.doState.getTask(taskId), this.state.doState)
+    const configManager = new ConfigManager(configItems, bigIp, this.state.doState.getTask(taskId));
+    return configManager.get(declaration, this.state.doState)
         .then(() => save.call(this));
 }
 
 /**
  * Saves current state.
  */
-function save() {
+function save(taskId) {
+    const logger = new Logger(module, taskId);
     function retryFunc() {
         return new Promise((resolve, reject) => {
             this.saveState(null, this.state, (err) => {
@@ -675,7 +767,7 @@ function load() {
         this.loadState(null, (err, state) => {
             if (err) {
                 const message = `error loading state: ${err.message}`;
-                logger.warning(message);
+                globalLogger.warning(message);
                 reject(err);
             }
 
@@ -692,26 +784,33 @@ function handleStartupState(success, error) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
-    doUtil.getCurrentPlatform()
+    const currentTaskId = this.state.doState.mostRecentTask;
+    const logger = new Logger(module, currentTaskId);
+
+    doUtil.getCurrentPlatform(currentTaskId)
         .then((platform) => {
             if (platform !== PRODUCTS.BIGIP) {
                 success();
                 return;
             }
 
-            const currentTaskId = this.state.doState.mostRecentTask;
             if (!currentTaskId) {
                 logger.info('Initial startup');
                 success();
                 return;
             }
 
-            switch (this.state.doState.getStatus(currentTaskId)) {
+            const currentTaskStatus = this.state.doState.getStatus(currentTaskId);
+            logger.info(`Handling startup state for task: ${currentTaskId}. Task status: ${currentTaskStatus}`);
+
+            switch (currentTaskStatus) {
             case STATUS.STATUS_REBOOTING:
                 updateStateAfterReboot.call(this, currentTaskId, success, error);
                 break;
+            case STATUS.STATUS_RUNNING:
             case STATUS.STATUS_REVOKING:
-                // If our status is REVOKING, restnoded was just restarted
+            case STATUS.STATUS_REBOOTING_AND_RESUMING:
+                // If our status is RUNNING or REVOKING, restnoded was just restarted
                 // and we need to finish processing the declaration.
                 // This should only be the case when we are running on a BIG-IP.
 
@@ -721,9 +820,9 @@ function handleStartupState(success, error) {
                     // In this case, we should be running locally on a BIG-IP since
                     // revoking the BIG-IP license will not restart our restnoded in
                     // other environments (ASG, for example)
-                    logger.fine('Onboard resuming.');
+                    logger.fine(`Onboard resuming for task: ${currentTaskId}`);
                     this.state.doState.updateResult(currentTaskId, 202, STATUS.STATUS_RUNNING, 'processing');
-                    save.call(this);
+                    save.call(this, currentTaskId);
 
                     // Make sure we don't try to revoke again and if we need to relicense,
                     // fill in the BIG-IQ and BIG-IP passwords
@@ -738,8 +837,10 @@ function handleStartupState(success, error) {
                         if (declaration.Common[key].class === 'License') {
                             licenseName = key;
                             delete declaration.Common[licenseName].revokeFrom;
-                            // Remove revokeFrom from the stored state as well
+                            delete declaration.Common[licenseName].revokeCurrent;
+                            // Remove revokeFrom and revokeCurrent from the stored state as well
                             delete stateDecRef.Common[licenseName].revokeFrom;
+                            delete stateDecRef.Common[licenseName].revokeCurrent;
 
                             if (declaration.Common[licenseName].bigIpUsername) {
                                 hasBigIpUser = true;
@@ -754,33 +855,37 @@ function handleStartupState(success, error) {
                         .then(() => {
                             if (hasBigIpUser) {
                                 logger.debug('Decrypting BIG-IP user data');
-                                return cryptoUtil.decryptStoredValueById(BIG_IP_ENCRYPTION_ID);
+                                return cryptoUtil.decryptStoredValueById(BIG_IP_ENCRYPTION_ID, currentTaskId);
                             }
                             return Promise.resolve();
                         })
                         .then((password) => {
                             if (password) {
                                 declaration.Common[licenseName].bigIpPassword = password;
-                                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID));
+                                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID, currentTaskId));
                             }
                             if (hasBigIqUser) {
                                 logger.debug('Decrypting BIG-IQ user data');
-                                return cryptoUtil.decryptStoredValueById(BIG_IQ_ENCRYPTION_ID);
+                                return cryptoUtil.decryptStoredValueById(BIG_IQ_ENCRYPTION_ID, currentTaskId);
                             }
                             return Promise.resolve();
                         })
                         .then((password) => {
                             if (password) {
                                 declaration.Common[licenseName].bigIqPassword = password;
-                                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID));
+                                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID, currentTaskId));
                             }
                             logger.debug('Deleting encrypted data');
                             return Promise.all(deletePromises);
                         })
                         .then(() => onboard.call(this, declaration, {}, currentTaskId))
                         .then(() => {
-                            logger.fine('Onboard configuration complete. Saving sys config.');
-                            return this.bigIps[currentTaskId].save();
+                            if (this.bigIps[currentTaskId]) {
+                                logger.fine('Onboard configuration complete. Saving sys config.');
+                                return this.bigIps[currentTaskId].save();
+                            }
+                            logger.fine('No device.');
+                            return undefined;
                         })
                         .then(() => setPostOnboardStatus.call(
                             this,
@@ -816,14 +921,14 @@ function handleStartupState(success, error) {
         });
 }
 
-function initialAccountSetup(wrapper) {
+function initialAccountSetup(wrapper, logger) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
     let promise = Promise.resolve();
     let adminPasswordUpdated = false;
     if (needsPasswordReset(wrapper)) {
-        promise = initialPasswordSet.call(this, wrapper);
+        promise = initialPasswordSet.call(this, wrapper, logger);
         adminPasswordUpdated = wrapper.targetUsername === 'admin';
     } else if (needsPasswordSetViaSsh(wrapper)) {
         promise = initialPasswordSetViaSsh.call(this, wrapper);
@@ -835,7 +940,7 @@ function initialAccountSetup(wrapper) {
             logger.finest('done w/ initial account setup');
             let p = Promise.resolve();
             if (adminPasswordUpdated) {
-                p = p.then(rootAccountSetup.call(this, wrapper, updatedPassword));
+                p = p.then(rootAccountSetup.call(this, wrapper, updatedPassword, logger));
             }
             return p.then(() => Promise.resolve(updatedPassword));
         })
@@ -854,8 +959,9 @@ function initialAccountSetup(wrapper) {
  *
  * @param {Object} wrapper - Remote declaration wrapper
  * @param {string} updatedPassword - New password for admin
+ * @param {Logger} logger - Task specific logger
  */
-function rootAccountSetup(wrapper, updatedPassword) {
+function rootAccountSetup(wrapper, updatedPassword, logger) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
@@ -945,7 +1051,7 @@ function needsPasswordSetViaSsh(wrapper) {
     return false;
 }
 
-function initialPasswordSet(wrapper) {
+function initialPasswordSet(wrapper, logger) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
@@ -1049,7 +1155,7 @@ function getPort(wrapper) {
 
 function getUserFromDeclaration(username, declaration) {
     const commonDeclaration = declaration.Common || {};
-    const users = Object.keys(commonDeclaration).filter(key => commonDeclaration[key].class === 'User');
+    const users = Object.keys(commonDeclaration).filter((key) => commonDeclaration[key].class === 'User');
     let user;
     if (users.indexOf(username) !== -1) {
         user = commonDeclaration[username];
@@ -1064,11 +1170,12 @@ function updateStateAfterReboot(taskId, success, error) {
     // If we were rebooting and are now in this function, all should be well
     this.state.doState.updateResult(taskId, 200, STATUS.STATUS_OK, 'success');
 
+    const logger = new Logger(module, taskId);
     const declaration = this.state.doState.getDeclaration(taskId);
     const reqOpts = this.state.doState.getRequestOptions(taskId);
     postWebhook.call(this, reqOpts, ENDPOINTS.TASK, taskId, declaration.webhook);
 
-    save.call(this)
+    save.call(this, taskId)
         .then(() => {
             logger.fine('Rebooting complete. Onboarding complete.');
             if (success) {
@@ -1085,6 +1192,7 @@ function updateStateAfterReboot(taskId, success, error) {
 }
 
 function waitForRebootComplete(context, taskId, resolve, reject) {
+    const logger = new Logger(module, taskId);
     logger.info('Waiting for BIG-IP to reboot to complete onboarding.');
     context.bigIps[taskId].ready()
         .then(() => updateStateAfterReboot.call(context, taskId))
@@ -1099,7 +1207,7 @@ function waitForRebootComplete(context, taskId, resolve, reject) {
                 'reboot failed',
                 err.message
             );
-            save.call(this)
+            save.call(this, taskId)
                 .then(() => {
                     logger.fine(`Error onboarding: reboot failed. ${err.message}`);
                     reject(err);
@@ -1124,6 +1232,7 @@ function sendResponse(restOperation, endpoint, itemId) {
         query: restOperation.getUri().query
     };
 
+    const logger = new Logger(module, itemId);
     const response = forgeResponse.call(this, reqOpts, endpoint, itemId);
     response.getResponse()
         .then((body) => {
@@ -1131,20 +1240,20 @@ function sendResponse(restOperation, endpoint, itemId) {
             // TODO for next major release (DO 2.0): Remove query && query.statusCodes from subsequent line
             if (body && body.httpStatus && reqOpts.query
                 && reqOpts.query.statusCodes === 'experimental') {
-                setStatusCode(body.httpStatus, restOperation);
+                setStatusCode(body.httpStatus, restOperation, logger);
             } else if (Array.isArray(response)) {
-                setStatusCode(200, restOperation);
+                setStatusCode(200, restOperation, logger);
             } else if (body && body.result && body.result.code) {
-                setStatusCode(body.result.code, restOperation);
+                setStatusCode(body.result.code, restOperation, logger);
             } else {
-                setStatusCode(200, restOperation);
+                setStatusCode(200, restOperation, logger);
             }
             delete body.httpStatus;
             restOperation.complete();
         })
         .catch((err) => {
             logger.error(`sendResponse failed: ${JSON.stringify(err)}`);
-            sendError(restOperation, 500, err.message);
+            sendError(restOperation, 500, err.message, logger);
         });
 }
 
@@ -1160,6 +1269,7 @@ function forgeResponse(reqOpts, endpoint, itemId) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
+    const logger = new Logger(module, itemId);
     const doState = new State(this.state.doState);
     let responder;
     switch (endpoint) {
@@ -1170,7 +1280,7 @@ function forgeResponse(reqOpts, endpoint, itemId) {
         responder = new InfoResponse(reqOpts.method);
         break;
     case ENDPOINTS.INSPECT:
-        responder = new InspectResponse(reqOpts.query, reqOpts.method);
+        responder = new InspectResponse(reqOpts.query, itemId);
         break;
     case ENDPOINTS.TASK: {
         responder = new TaskResponse(doState, reqOpts.method);
@@ -1198,6 +1308,7 @@ function postWebhook(reqOpts, endpoint, itemId, webhook) {
     if (webhook === undefined) {
         return;
     }
+    const logger = new Logger(module, itemId);
     const response = forgeResponse.call(this, reqOpts, endpoint, itemId);
     response.getResponse()
         .then((body) => {
@@ -1217,14 +1328,15 @@ function postWebhook(reqOpts, endpoint, itemId, webhook) {
         });
 }
 
-function sendError(restOperation, code, message) {
+function sendError(restOperation, code, message, logger) {
+    const log = logger || globalLogger;
     restOperation.setContentType('application/json');
-    setStatusCode(code, restOperation);
+    setStatusCode(code, restOperation, log);
     restOperation.setBody(message);
     restOperation.complete();
 }
 
-function setStatusCode(code, restOperation) {
+function setStatusCode(code, restOperation, logger) {
     // restOperation must have an integer code (or else the framework crashes)
     if (Number.isInteger(code)) {
         restOperation.setStatusCode(code);
@@ -1257,14 +1369,16 @@ function getPathInfo(uri) {
     return pathInfo;
 }
 
-function prepForRevoke(taskId, bigIpPassword, bigIqPassword) {
+function prepForRebootResumeOrRevoke(taskId, status, bigIpPassword, bigIqPassword) {
     // Rest framework complains about 'this' because of 'strict', but we use call(this)
     /* jshint validthis: true */
 
     const encryptPromises = [];
     // if we need to relicense after we restart, so store passwords
-    encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIpPassword, BIG_IP_ENCRYPTION_ID));
-    encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID));
+    if (bigIpPassword && bigIqPassword) {
+        encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIpPassword, BIG_IP_ENCRYPTION_ID, taskId));
+        encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID, taskId));
+    }
 
     return Promise.all(encryptPromises)
         // We have to save sys config here to save the enrypted data in case
@@ -1274,11 +1388,18 @@ function prepForRevoke(taskId, bigIpPassword, bigIqPassword) {
             this.state.doState.updateResult(
                 taskId,
                 202,
-                STATUS.STATUS_REVOKING,
-                'revoking license'
+                status,
+                status === STATUS.STATUS_REVOKING ? 'revoking license' : 'rebooting and resuming'
             );
-            return save.call(this);
+            return save.call(this, taskId);
         });
+}
+
+function saveConfig(bigIp, declaration) {
+    if (declaration.controls && declaration.controls.dryRun) {
+        return Promise.resolve();
+    }
+    return bigIp.save();
 }
 
 module.exports = RestWorker;

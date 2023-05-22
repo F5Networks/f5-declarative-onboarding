@@ -15,10 +15,12 @@
             "unitOfMeasure": "hourly",
             "reachable": true,
             "bigIpUsername": "<bigIpUsername>",
-            "bigIpPassword": "<bigIpPassword>"
+            "bigIpPassword": "<bigIpPassword>",
+            "chargebackTag": "foo-bar"
         },
         "mySystem": {
             "class": "System",
+            "hostname": "do-integration-test.local",
             "autoPhonehome": false
         }
     }

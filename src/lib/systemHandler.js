@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 
 'use strict';
 
+const fs = require('fs');
+
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
+const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
+
 const doUtil = require('./doUtil');
 const cryptoUtil = require('./cryptoUtil');
-const promiseUtil = require('./promiseUtil');
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
 const EVENTS = require('./sharedConstants').EVENTS;
-
-const logger = new Logger(module);
 
 const ORIGINAL_FILE_POSTFIX = 'DO.orig';
 
@@ -48,6 +49,7 @@ class SystemHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
         this.rebootRequired = false;
         this.rollbackInfo = {
             systemHandler: {}
@@ -63,13 +65,13 @@ class SystemHandler {
      *                    for details.
      */
     process() {
-        logger.fine('Processing system declaration.');
+        this.logger.fine('Processing system declaration.');
         if (!this.declaration.Common) {
             return Promise.resolve();
         }
         return Promise.resolve()
             .then(() => {
-                logger.fine('Getting Device-Info.');
+                this.logger.fine('Getting Device-Info.');
                 return this.bigIp.deviceInfo()
                     .then((info) => {
                         this.bigIpVersion = info.version;
@@ -77,70 +79,94 @@ class SystemHandler {
                     });
             })
             .then(() => {
-                logger.fine('Checking db variables.');
+                this.logger.fine('Checking db variables.');
                 return handleDbVars.call(this);
             })
             .then(() => {
-                logger.fine('Checking DHCP options.');
+                this.logger.fine('Checking DHCP options.');
                 return handleDhcpOptions.call(this);
             })
             .then(() => {
-                logger.fine('Checking DNS.');
-                return handleDNS.call(this);
+                this.logger.fine('Checking management DHCP setting.');
+                return handleManagementDhcp.call(this);
+            })
+            .then((updatedMgmtDhcpSetting) => {
+                this.logger.fine('Checking ManagementIp. Hold on to your hats.');
+                return handleManagementIp.call(this, updatedMgmtDhcpSetting);
             })
             .then(() => {
-                logger.fine('Checking NTP.');
-                return handleNTP.call(this);
-            })
-            .then(() => {
-                logger.fine('Checking ManagementRoute.');
+                this.logger.fine('Checking ManagementRoute.');
                 return handleManagementRoute.call(this);
             })
             .then(() => {
-                logger.fine('Checking DeviceCertificate.');
+                this.logger.fine('Checking DNS.');
+                return handleDNS.call(this);
+            })
+            .then(() => {
+                this.logger.fine('Checking NTP.');
+                return handleNTP.call(this);
+            })
+            .then(() => {
+                this.logger.fine('Checking DeviceCertificate.');
                 return handleDeviceCertificate.call(this);
             })
             .then(() => {
-                logger.fine('Checking System.');
+                this.logger.fine('Checking System.');
                 return handleSystem.call(this);
             })
             .then(() => {
-                logger.fine('Checking Users.');
+                this.logger.fine('Checking Users.');
                 return handleUser.call(this);
             })
             .then(() => {
-                logger.fine('Checking License.');
+                this.logger.fine('Checking License.');
                 return handleLicense.call(this);
             })
             .then(() => {
-                logger.fine('Checking SNMP.');
+                this.logger.fine('Checking SNMP.');
                 return handleSnmp.call(this);
             })
             .then(() => {
-                logger.fine('Checking Syslog.');
+                this.logger.fine('Checking SNMP Users.');
+                return handleSnmpUsers.call(this);
+            })
+            .then(() => {
+                this.logger.fine('Checking SNMP Communities.');
+                return handleSnmpCommunities.call(this);
+            })
+            .then(() => {
+                this.logger.fine('Checking SNMP Trap Destinations.');
+                return handleSnmpTrapDestinations.call(this);
+            })
+            .then(() => {
+                this.logger.fine('Checking Syslog.');
                 return handleSyslog.call(this);
             })
             .then(() => {
-                logger.fine('Checking Traffic Control');
+                this.logger.fine('Checking Traffic Control');
                 return handleTrafficControl.call(this);
             })
             .then(() => {
-                logger.fine('Checking HTTPD');
+                this.logger.fine('Checking HTTPD');
                 return handleHTTPD.call(this);
             })
             .then(() => {
-                logger.fine('Checking SSHD');
+                this.logger.fine('Checking SSHD');
                 return handleSSHD.call(this);
             })
             .then(() => {
-                logger.fine('Done processing system declaration.');
+                this.logger.fine('Checking Disk');
+                return handleDisk.call(this);
+            })
+            .then(() => {
+                this.logger.fine('Done processing system declaration.');
                 return Promise.resolve({
                     rebootRequired: this.rebootRequired,
                     rollbackInfo: this.rollbackInfo
                 });
             })
             .catch((err) => {
-                logger.severe(`Error processing system declaration: ${err.message}`);
+                this.logger.severe(`Error processing system declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -174,10 +200,104 @@ function handleDhcpOptions() {
     return disableDhcpOptions.call(this, dhcpOptionsToDisable);
 }
 
+function handleManagementDhcp() {
+    const currentMgmtDhcpSetting = this.state.currentConfig.Common.System.preserveOrigDhcpRoutes ? 'enabled' : 'disabled';
+
+    // DO currently only handles one management ip. If it is a dual-stack setting, leave it alone.
+    if (currentMgmtDhcpSetting === 'dhcpv4' || currentMgmtDhcpSetting === 'dhcpv6') {
+        return Promise.resolve(currentMgmtDhcpSetting);
+    }
+
+    let desiredMgmtIpDhcpSetting;
+    let deisredMgmtRouteDhcpSetting;
+    let desiredMgmtDhcpSetting;
+
+    if (this.declaration.Common.System && this.declaration.Common.System.mgmtDhcp) {
+        desiredMgmtDhcpSetting = this.declaration.Common.System.mgmtDhcp;
+        return this.bigIp.modify(
+            PATHS.SysGlobalSettings,
+            {
+                mgmtDhcp: desiredMgmtDhcpSetting
+            }
+        )
+            .then(() => Promise.resolve(desiredMgmtDhcpSetting));
+    }
+
+    return Promise.resolve()
+        .then(() => getDesiredMgmtIpDhcpSetting.call(this, currentMgmtDhcpSetting))
+        .then((desiredSetting) => {
+            desiredMgmtIpDhcpSetting = desiredSetting;
+        })
+        .then(() => getDesiredMgmtRouteDhcpSetting.call(this, currentMgmtDhcpSetting))
+        .then((desiredSetting) => {
+            deisredMgmtRouteDhcpSetting = desiredSetting;
+        })
+        .then(() => {
+            // If ManagementRoute and ManagementIp disagree, favor disabled as that is safer.
+            // Enabling can modify the ManagementIp.
+            desiredMgmtDhcpSetting = desiredMgmtIpDhcpSetting === deisredMgmtRouteDhcpSetting ? desiredMgmtIpDhcpSetting : 'disabled';
+
+            if (desiredMgmtDhcpSetting && desiredMgmtDhcpSetting !== currentMgmtDhcpSetting) {
+                return this.bigIp.modify(
+                    PATHS.SysGlobalSettings,
+                    {
+                        mgmtDhcp: desiredMgmtDhcpSetting
+                    }
+                );
+            }
+            return Promise.resolve();
+        })
+        .then(() => Promise.resolve(desiredMgmtDhcpSetting || currentMgmtDhcpSetting));
+}
+
+function getDesiredMgmtIpDhcpSetting(currentMgmtDhcpSetting) {
+    let desiredMgmtDhcp = currentMgmtDhcpSetting;
+
+    if (this.declaration.Common.ManagementIp) {
+        // If there are two entries, the one w/ a name property is the new one. The other entry
+        // is the old management-ip and should be empty because to ajv it looks like a delete
+        const names = Object.keys(this.declaration.Common.ManagementIp);
+        const newName = names.find((name) => this.declaration.Common.ManagementIp[name].name);
+        if (newName) {
+            const mgmtIpInfo = this.declaration.Common.ManagementIp[newName];
+            // Determining the mgmt-dhcp setting is tricky. Maybe this is a rollback.
+            // As there is no metadata on a management-ip, it is hard to know whether we are
+            // rolling back to a management-ip that was static or dynamic. We use the description field
+            // to make our best guess. DO defaults the description to something else,
+            // so as long as a user didn't put 'configured-by-dhcp' in their own description
+            // this should work.
+            if (mgmtIpInfo.description) {
+                desiredMgmtDhcp = mgmtIpInfo.description.indexOf('configured-by-dhcp') === -1 ? 'disabled' : 'enabled';
+            }
+        }
+    }
+    return Promise.resolve(desiredMgmtDhcp);
+}
+
+function getDesiredMgmtRouteDhcpSetting(currentMgmtDhcpSetting) {
+    let desiredMgmtDhcp = currentMgmtDhcpSetting;
+
+    if (this.declaration.Common.ManagementRoute) {
+        // Check to see if we have any entries with name properties
+        const names = Object.keys(this.declaration.Common.ManagementRoute);
+        const hasRoutes = names.some((name) => typeof this.declaration.Common.ManagementRoute[name].name !== 'undefined');
+
+        if (hasRoutes) {
+            const preserveOrigDhcpRoutes = doUtil.getDeepValue(this.declaration.Common, 'InternalUse.System');
+            if (typeof preserveOrigDhcpRoutes !== 'undefined') {
+                desiredMgmtDhcp = this.declaration.Common.InternalUse.System.preserveOrigDhcpRoutes ? 'enabled' : 'disabled';
+            } else {
+                desiredMgmtDhcp = 'disabled';
+            }
+        }
+    }
+    return Promise.resolve(desiredMgmtDhcp);
+}
+
 function handleNTP() {
     if (this.declaration.Common.NTP) {
         const ntp = this.declaration.Common.NTP;
-        const promises = (ntp.servers || []).map(server => doUtil.checkDnsResolution(server));
+        const promises = (ntp.servers || []).map((server) => doUtil.checkDnsResolution(this.bigIp, server));
 
         return Promise.all(promises)
             .then(() => this.bigIp.replace(
@@ -212,7 +332,7 @@ function handleDeviceCertificate() {
 
     if (this.declaration.Common.DeviceCertificate) {
         const certificateName = Object.keys(this.declaration.Common.DeviceCertificate)[0];
-        const decryptScript = `${__dirname}/../scripts/decryptConfValue`;
+        const decryptScript = fs.readFileSync(`${__dirname}/../scripts/decryptConfValue`, 'utf8').toString();
         const writePromises = [];
         let certificatePromise = Promise.resolve();
         let keyPromise = Promise.resolve();
@@ -227,76 +347,64 @@ function handleDeviceCertificate() {
         if (certificateName) {
             const certificateDeclaration = this.declaration.Common.DeviceCertificate[certificateName];
             if (certificateDeclaration.certificate) {
-                if (certificateDeclaration.certificate.base64) {
-                    newCertificate = Buffer.from(
-                        certificateDeclaration.certificate.base64,
-                        'base64'
-                    ).toString().trim();
-                }
-                if (newCertificate) {
-                    let needsWrite = false;
-                    certificatePromise = certificatePromise
-                        .then(() => doUtil.executeBashCommandIControl(
-                            this.bigIp,
-                            `cat ${certificateFullPath}`
-                        ))
-                        .then((data) => {
-                            originalCertificate = data.trim();
-                            if (newCertificate !== originalCertificate) {
-                                needsWrite = true;
-                                // Make a copy of the current file in case we need to rollback
-                                return storeDeviceCertRollbackInfo.call(this, certificateFullPath);
-                            }
-                            return Promise.resolve();
-                        })
-                        .then(() => {
-                            if (needsWrite) {
-                                writePromises.push(doUtil.executeBashCommandIControl(
-                                    this.bigIp,
-                                    `echo '${newCertificate}' > ${certificateFullPath}`,
-                                    cloudUtil.NO_RETRY,
-                                    { silent: true } // keeping it out of the logs just because it's a lot of data
-                                ));
-                            }
-                        });
-                }
+                let needsWrite = false;
+                newCertificate = certificateDeclaration.certificate;
+                certificatePromise = certificatePromise
+                    .then(() => doUtil.executeBashCommandIControl(
+                        this.bigIp,
+                        `cat ${certificateFullPath}`
+                    ))
+                    .then((data) => {
+                        originalCertificate = data.trim();
+                        if (newCertificate !== originalCertificate) {
+                            needsWrite = true;
+                            // Make a copy of the current file in case we need to rollback
+                            return storeDeviceCertRollbackInfo.call(this, certificateFullPath);
+                        }
+                        return Promise.resolve();
+                    })
+                    .then(() => {
+                        if (needsWrite) {
+                            writePromises.push(doUtil.executeBashCommandIControl(
+                                this.bigIp,
+                                `echo '${newCertificate}' > ${certificateFullPath}`,
+                                cloudUtil.NO_RETRY,
+                                { silent: true } // keeping it out of the logs just because it's a lot of data
+                            ));
+                        }
+                    });
             }
 
             if (certificateDeclaration.privateKey) {
-                if (certificateDeclaration.privateKey.base64) {
-                    newKey = Buffer.from(
-                        certificateDeclaration.privateKey.base64,
-                        'base64'
-                    ).toString().trim();
-                }
-                if (newKey) {
-                    let needsWrite = false;
-                    keyPromise = keyPromise
-                        .then(() => doUtil.executeBashCommandIControl(
-                            this.bigIp,
-                            `cat ${keyFullPath}`
-                        ))
-                        .then((data) => {
-                            originalKey = data.trim();
-                            if (newKey !== originalKey) {
-                                needsWrite = true;
-                                // Make a copy of the current file in case we need to rollback
-                                return storeDeviceCertRollbackInfo.call(this, `${keyFullPath}`);
-                            }
-                            return Promise.resolve();
-                        })
-                        .then(() => {
-                            if (needsWrite) {
-                                writePromises.push(
-                                    cryptoUtil.encryptValue(newKey)
-                                        .then(results => doUtil.executeBashCommandIControl(
-                                            this.bigIp,
-                                            `/usr/bin/php -f ${decryptScript} '${results}' ${keyFullPath}`
-                                        ))
-                                );
-                            }
-                        });
-                }
+                let needsWrite = false;
+                newKey = certificateDeclaration.privateKey;
+                keyPromise = keyPromise
+                    .then(() => doUtil.executeBashCommandIControl(
+                        this.bigIp,
+                        `cat ${keyFullPath}`,
+                        null,
+                        { silent: true } // keeping it out of the logs because this is the private key
+                    ))
+                    .then((data) => {
+                        originalKey = data.trim();
+                        if (newKey !== originalKey) {
+                            needsWrite = true;
+                            // Make a copy of the current file in case we need to rollback
+                            return storeDeviceCertRollbackInfo.call(this, `${keyFullPath}`);
+                        }
+                        return Promise.resolve();
+                    })
+                    .then(() => {
+                        if (needsWrite) {
+                            writePromises.push(
+                                cryptoUtil.encryptValue(newKey, this.bigIp, this.state.id)
+                                    .then((results) => doUtil.executeBashCommandIControl(
+                                        this.bigIp,
+                                        `/usr/bin/php -r '${decryptScript}' '${results}' ${keyFullPath}`
+                                    ))
+                            );
+                        }
+                    });
             }
 
             return Promise.resolve()
@@ -324,54 +432,63 @@ function handleSystem() {
         return Promise.resolve();
     }
 
-    // Handle both 'hostname' and 'System.hostname'
     const system = common.System;
-    let hostname;
-    if (system && system.hostname) {
-        hostname = system.hostname;
-        delete system.hostname;
-    } else if (common.hostname) {
-        hostname = common.hostname;
-    }
-    if (hostname) {
-        promises.push(this.bigIp.onboard.hostname(hostname));
-    } else {
-        promises.push(this.bigIp.list(PATHS.System)
-            .then((globalSettings) => {
-                if (globalSettings && globalSettings.hostname) {
-                    this.bigIp.onboard.hostname(globalSettings.hostname);
-                }
-            }));
+
+    const deviceNames = doUtil.getDeepValue(common.InternalUse, 'deviceNames');
+    if (deviceNames && Object.keys(deviceNames).length !== 0) {
+        // There is some diff in the hostname, so grab what the user put in, or, if that
+        // is missing, set both hostname and device name to the current global setting
+        if (system && system.hostname) {
+            promises.push(this.bigIp.onboard.hostname(system.hostname));
+        } else {
+            promises.push(this.bigIp.list(PATHS.SysGlobalSettings)
+                .then((globalSettings) => {
+                    if (globalSettings && globalSettings.hostname) {
+                        this.bigIp.onboard.hostname(globalSettings.hostname);
+                    }
+                }));
+        }
     }
 
     if (system) {
         if (typeof system.consoleInactivityTimeout !== 'undefined') {
-            promises.push(this.bigIp.modify(PATHS.System,
+            promises.push(this.bigIp.modify(PATHS.SysGlobalSettings,
                 { consoleInactivityTimeout: system.consoleInactivityTimeout }));
         }
-        if (typeof system.cliInactivityTimeout !== 'undefined') {
-            promises.push(this.bigIp.modify(PATHS.CLI, { idleTimeout: system.cliInactivityTimeout / 60 }));
+        if (typeof system.idleTimeout !== 'undefined') {
+            promises.push(this.bigIp.modify(PATHS.CLI, { idleTimeout: system.idleTimeout / 60 }));
         }
         if (typeof system.autoPhonehome !== 'undefined') {
-            const autoPhonehome = system.autoPhonehome ? 'enabled' : 'disabled';
+            const autoPhonehome = system.autoPhonehome;
             promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoPhonehome }));
         }
         if (typeof system.autoCheck !== 'undefined') {
-            const autoCheck = system.autoCheck ? 'enabled' : 'disabled';
+            const autoCheck = system.autoCheck;
             promises.push(this.bigIp.modify(PATHS.SoftwareUpdate, { autoCheck }));
         }
-        if (typeof system.tmshAuditLog !== 'undefined') {
-            const audit = system.tmshAuditLog ? 'enabled' : 'disabled';
+        if (typeof system.audit !== 'undefined') {
+            const audit = system.audit;
             promises.push(this.bigIp.modify(PATHS.CLI, { audit }));
         }
         if (typeof system.mcpAuditLog !== 'undefined') {
             const value = system.mcpAuditLog;
             promises.push(this.bigIp.modify('/tm/sys/db/config.auditing', { value }));
         }
-        if (typeof system.guiAuditLog !== 'undefined'
+        if (typeof system.guiAudit !== 'undefined'
             && cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
-            const guiAudit = system.guiAuditLog ? 'enabled' : 'disabled';
-            promises.push(this.bigIp.modify(PATHS.System, { guiAudit }));
+            const guiAudit = system.guiAudit;
+            promises.push(this.bigIp.modify(PATHS.SysGlobalSettings, { guiAudit }));
+        }
+
+        const guiSecuritySettings = {};
+        if (typeof system.guiSecurityBanner !== 'undefined') {
+            guiSecuritySettings.guiSecurityBanner = system.guiSecurityBanner;
+        }
+        if (typeof system.guiSecurityBannerText !== 'undefined') {
+            guiSecuritySettings.guiSecurityBannerText = system.guiSecurityBannerText;
+        }
+        if (Object.keys(guiSecuritySettings).length !== 0) {
+            promises.push(this.bigIp.modify(PATHS.SysGlobalSettings, guiSecuritySettings));
         }
     }
 
@@ -392,13 +509,18 @@ function handleUser() {
                         user.oldPassword
                     )
                         .then(() => {
+                            // If no keys are provided, skip setting the authorization keys
+                            if (!user.keys) {
+                                return Promise.resolve();
+                            }
+
                             const sshPath = '/root/.ssh';
                             const catCmd = `cat ${sshPath}/authorized_keys`;
                             return doUtil.executeBashCommandIControl(this.bigIp, catCmd)
                                 .then((origAuthKey) => {
                                     const masterKeys = origAuthKey
                                         .split('\n')
-                                        .filter(key => key.endsWith(' Host Processor Superuser'));
+                                        .filter((key) => key.endsWith(' Host Processor Superuser'));
                                     if (masterKeys !== '') {
                                         user.keys.unshift(masterKeys);
                                     }
@@ -416,6 +538,17 @@ function handleUser() {
                 promises.push(
                     createOrUpdateUser.call(this, username, user)
                         .then(() => {
+                            if (!user.forceInitialPasswordChange) {
+                                return createOrUpdateUser.call(this, username, user);
+                            }
+                            return Promise.resolve();
+                        })
+                        .then(() => {
+                            // If no keys are provided, skip setting the authorization keys
+                            if (!user.keys) {
+                                return Promise.resolve();
+                            }
+
                             const sshPath = `/home/${username}/.ssh`;
                             // The initial space is intentional, it is a bash shortcut
                             // It prevents the command from being saved in bash_history
@@ -430,11 +563,11 @@ function handleUser() {
                             const bashCmd = [
                                 makeSshDir, echoKeys, chownUser, chmodUser, chmodKeys
                             ].join('; ');
-                            doUtil.executeBashCommandIControl(this.bigIp, bashCmd);
+                            return doUtil.executeBashCommandIControl(this.bigIp, bashCmd);
                         })
                 );
             } else {
-                logger.warning(`${username} has userType root. Only the root user can have userType root.`);
+                this.logger.warning(`${username} has userType root. Only the root user can have userType root.`);
             }
         });
 
@@ -446,7 +579,7 @@ function handleUser() {
 function handleLicense() {
     if (this.declaration.Common.License) {
         const license = this.declaration.Common.License;
-        if (license.regKey || license.addOnKeys) {
+        if (license.licenseType === 'regKey') {
             return handleRegKey.call(this, license);
         }
         return handleLicensePool.call(this, license);
@@ -455,17 +588,45 @@ function handleLicense() {
 }
 
 function handleRegKey(license) {
-    return this.bigIp.onboard.license(
-        {
-            registrationKey: license.regKey,
-            addOnKeys: license.addOnKeys,
-            overwrite: license.overwrite
+    let promise = Promise.resolve();
+    const getRevokePromise = () => {
+        let revokePromise = waitForRevokeReady.call(this);
+        process.nextTick(() => {
+            this.eventEmitter.emit(EVENTS.LICENSE_WILL_BE_REVOKED, this.state.id);
+        });
+        revokePromise = revokePromise.then(() => this.bigIp.onboard.revokeLicense());
+        return revokePromise;
+    };
+
+    if (license.revokeCurrent) {
+        if (license.regKey) {
+            promise = promise
+                .then(() => this.bigIp.list(PATHS.LicenseRegistration))
+                .then((response) => {
+                    if (response && response.registrationKey === license.regKey) {
+                        // Skip revoking if user is re-licensing with same license key.
+                        // We can't skip licensing here because the add-on keys may have changed.
+                        return Promise.resolve();
+                    }
+                    return getRevokePromise();
+                });
+        } else {
+            promise = promise.then(() => getRevokePromise());
         }
-    )
+    }
+
+    return promise
+        .then(() => this.bigIp.onboard.license(
+            {
+                registrationKey: license.regKey,
+                addOnKeys: license.addOnKeys,
+                overwrite: license.overwrite
+            }
+        ))
         .then(() => this.bigIp.active())
         .catch((err) => {
             const errorLicensing = `Error licensing: ${err.message}`;
-            logger.severe(errorLicensing);
+            this.logger.severe(errorLicensing);
             err.message = errorLicensing;
             return Promise.reject(err);
         });
@@ -480,37 +641,39 @@ function handleLicensePool(license) {
 
     let promise = Promise.resolve();
     if (license.bigIqHost) {
-        promise = promise.then(() => doUtil.checkDnsResolution(license.bigIqHost));
+        promise = promise.then(() => doUtil.checkDnsResolution(this.bigIp, license.bigIqHost));
     }
 
     return promise
-        .then(() => doUtil.getCurrentPlatform())
+        .then(() => doUtil.getCurrentPlatform(this.state.id))
         .then((platform) => {
             currentPlatform = platform;
+
+            // We occasionally get an incorrect management IP from device info, so retry this whole thing
+            function getMyBigIp() {
+                return this.bigIp.deviceInfo()
+                    .then((deviceInfo) => doUtil.getBigIp(
+                        this.logger,
+                        {
+                            host: deviceInfo.managementAddress,
+                            port: this.bigIp.port,
+                            user: license.bigIpUsername,
+                            password: license.bigIpPassword,
+                            retryOptions: cloudUtil.MEDIUM_RETRY
+                        }
+                    ))
+                    .then((resolvedBigIp) => resolvedBigIp)
+                    .catch((err) => {
+                        this.logger.severe(`Error getting big ip for reachable API: ${err.message}`);
+                        throw err;
+                    });
+            }
 
             // If we're running on BIG-IP, get the real address info (since it might be 'localhost'
             // which won't work). Otherwise, assume we can already reach the BIG-IP through
             // it's current address and port (since that is what we've been using to get this far)
             if (currentPlatform === PRODUCTS.BIGIP && license.reachable) {
-                getBigIp = new Promise((resolve, reject) => {
-                    this.bigIp.deviceInfo()
-                        .then(deviceInfo => doUtil.getBigIp(
-                            logger,
-                            {
-                                host: deviceInfo.managementAddress,
-                                port: this.bigIp.port,
-                                user: license.bigIpUsername,
-                                password: license.bigIpPassword
-                            }
-                        ))
-                        .then((resolvedBigIp) => {
-                            resolve(resolvedBigIp);
-                        })
-                        .catch((err) => {
-                            logger.severe(`Error getting big ip for reachable API: ${err.message}`);
-                            reject(err);
-                        });
-                });
+                getBigIp = cloudUtil.tryUntil(this, cloudUtil.SHORT_RETRY, getMyBigIp);
             } else {
                 getBigIp = Promise.resolve(this.bigIp);
             }
@@ -543,8 +706,8 @@ function handleLicensePool(license) {
 
                 // If our license is about to be revoked, let everyone know
                 if (licenseInfo.reachable) {
-                    logger.debug('Waiting for revoke ready');
-                    possiblyRevoke = possiblyRevoke.then(() => waitForRevokeReady(this.eventEmitter));
+                    this.logger.debug('Waiting for revoke ready');
+                    possiblyRevoke = possiblyRevoke.then(() => waitForRevokeReady.call(this));
                     process.nextTick(() => {
                         this.eventEmitter.emit(
                             EVENTS.LICENSE_WILL_BE_REVOKED,
@@ -564,7 +727,9 @@ function handleLicensePool(license) {
                         {
                             bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, licenseInfo),
                             passwordIsUri: !!options.bigIqPasswordUri,
-                            noUnreachable: !!license.reachable
+                            authProvider: license.bigIqAuthProvider,
+                            noUnreachable: !!license.reachable,
+                            chargebackTag: license.chargebackTag
                         }
                     ))
                     .then(() => {
@@ -600,12 +765,15 @@ function handleLicensePool(license) {
                         bigIpMgmtAddress,
                         bigIqMgmtPort: getBigIqManagementPort.call(this, currentPlatform, license),
                         passwordIsUri: !!license.bigIqPasswordUri,
+                        authProvider: license.bigIqAuthProvider,
                         skuKeyword1: license.skuKeyword1,
                         skuKeyword2: license.skuKeyword2,
                         unitOfMeasure: license.unitOfMeasure,
                         noUnreachable: !!license.reachable,
+                        chargebackTag: license.chargebackTag,
                         overwrite: !!license.overwrite,
-                        autoApiType: true
+                        autoApiType: true,
+                        tenant: license.tenant
                     }
                 );
             }
@@ -620,80 +788,178 @@ function handleLicensePool(license) {
             }
             return this.bigIp.active();
         })
-        .catch(err => Promise.reject(err));
+        .catch((err) => Promise.reject(err));
+}
+
+function handleManagementIp(mgmtDhcp) {
+    if (this.declaration.Common.ManagementIp) {
+        // If there are two entries, the one w/ a name property is the new one. The other entry
+        // is the old management-ip and should be empty because to ajv it looks like a delete
+        const names = Object.keys(this.declaration.Common.ManagementIp);
+        const newName = names.find((name) => this.declaration.Common.ManagementIp[name].name);
+        if (newName) {
+            const mgmtIpInfo = this.declaration.Common.ManagementIp[newName];
+            const address = mgmtIpInfo.name;
+            return Promise.resolve()
+                .then(() => {
+                    // If we are only changing the mask and on localhost, delete the managementIp first.
+                    // This allows for just changing the mask - otherwise, MCP complains that the address
+                    // already exists. But if we're not on localhost, we can't pre-delete as we won't be
+                    // able to send the next request, so error on that.
+                    const currentAddress = getCurrentManagementAddress(
+                        this.state.currentConfig.Common.ManagementIp
+                    );
+                    if (mgmtDhcp === 'disabled' && isMaskChangeOnly(currentAddress, address)) {
+                        if (this.bigIp.host === 'localhost') {
+                            return this.bigIp.delete(`${PATHS.ManagementIp}/${currentAddress.replace('/', '~')}`);
+                        }
+                        return Promise.reject(new Error('Changing just the management IP mask is not supported unless running locally on a BIG-IP'));
+                    }
+                    return Promise.resolve();
+                })
+                .then(() => {
+                    const currentAddress = getCurrentManagementAddress(
+                        this.state.currentConfig.Common.ManagementIp
+                    );
+                    const currentDescription = getCurrentManagementDescription(
+                        this.state.currentConfig.Common.ManagementIp,
+                        currentAddress
+                    );
+                    // In case of ManagementIP in declaration is the same as one in current state,
+                    // don't create and proceed.
+                    if (mgmtDhcp === 'disabled' && currentAddress !== address) {
+                        return this.bigIp.create(
+                            PATHS.ManagementIp,
+                            {
+                                name: address,
+                                description: mgmtIpInfo.description
+                            }
+                        );
+                    }
+                    // If it is just a description change...
+                    if (mgmtDhcp === 'disabled'
+                        && mgmtIpInfo.description
+                        && currentDescription !== mgmtIpInfo.description) {
+                        return this.bigIp.modify(
+                            `${PATHS.ManagementIp}/${address.replace('/', '~')}`,
+                            {
+                                description: mgmtIpInfo.description
+                            }
+                        );
+                    }
+                    return Promise.resolve();
+                })
+                .then(() => {
+                    if (this.bigIp.host !== 'localhost') {
+                        return this.bigIp.setHost(address.split('/')[0]);
+                    }
+                    return Promise.resolve();
+                });
+        }
+    }
+    return Promise.resolve();
 }
 
 function handleManagementRoute() {
-    return doUtil.getCurrentPlatform()
-        .then((platform) => {
-            const promises = [];
-            doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
-                let promise = Promise.resolve();
-                if (managementRoute && managementRoute.name) {
-                    const mask = managementRoute.network.includes(':') ? 128 : 32;
-                    managementRoute.network = managementRoute.network !== 'default'
-                        && managementRoute.network !== 'default-inet6' && !managementRoute.network.includes('/')
-                        ? `${managementRoute.network}/${mask}` : managementRoute.network;
-                    // Need to do a delete if the network property is updated
-                    if (this.state.currentConfig.Common.ManagementRoute
-                        && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
-                        && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
-                            .network !== managementRoute.network) {
-                        if (platform !== 'BIG-IP') {
-                            throw new Error('Cannot update network property when running remotely');
-                        }
+    if (this.declaration.Common.ManagementRoute) {
+        let promises = [];
+        return Promise.resolve()
+            .then(() => {
+                Object.keys(this.state.currentConfig.Common.ManagementRoute || []).forEach((name) => {
+                    let promise = Promise.resolve();
+                    const declManagementRoute = this.declaration.Common.ManagementRoute[name]
+                        && this.declaration.Common.ManagementRoute[name].name;
+                    const isRename = Object.keys(this.declaration.Common.ManagementRoute)
+                        .find((key) => this.declaration.Common.ManagementRoute[key].name !== name
+                            && this.declaration.Common.ManagementRoute[key].network === this.state
+                                .currentConfig.Common.ManagementRoute[name].network);
+
+                    if (!declManagementRoute && isRename) {
                         promise = promise.then(() => this.bigIp.delete(
-                            `${PATHS.ManagementRoute}/~Common~${managementRoute.name}`,
+                            `${PATHS.ManagementRoute}/~Common~${name}`,
                             null,
                             null,
                             cloudUtil.NO_RETRY
                         ));
                     }
+                    promises.push(promise);
+                });
 
-                    const routeBody = {
-                        name: managementRoute.name,
-                        partition: tenant,
-                        gateway: managementRoute.gw,
-                        network: managementRoute.network,
-                        mtu: managementRoute.mtu
-                    };
+                return Promise.all(promises)
+                    .catch((err) => {
+                        this.logger.severe(`Error deleting existing ManagementRoute: ${err.message}`);
+                        throw err;
+                    });
+            })
+            .then(() => doUtil.getCurrentPlatform(this.state.id))
+            .then((platform) => {
+                promises = [];
+                doUtil.forEach(this.declaration, 'ManagementRoute', (tenant, managementRoute) => {
+                    let promise = Promise.resolve();
+                    if (managementRoute && managementRoute.name) {
+                        const mask = managementRoute.network.includes(':') ? 128 : 32;
+                        managementRoute.network = managementRoute.network !== 'default'
+                            && managementRoute.network !== 'default-inet6' && !managementRoute.network.includes('/')
+                            ? `${managementRoute.network}/${mask}` : managementRoute.network;
+                        // Need to do a delete if the network property is updated
+                        if (this.state.currentConfig.Common.ManagementRoute
+                            && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
+                            && this.state.currentConfig.Common.ManagementRoute[managementRoute.name]
+                                .network !== managementRoute.network) {
+                            if (platform !== 'BIG-IP') {
+                                throw new Error('Cannot update network property when running remotely');
+                            }
+                            promise = promise.then(() => this.bigIp.delete(
+                                `${PATHS.ManagementRoute}/~Common~${managementRoute.name.replace(/\//g, '~')}`,
+                                null,
+                                null,
+                                cloudUtil.NO_RETRY
+                            ));
+                        }
 
-                    if (managementRoute.type) {
-                        routeBody.type = managementRoute.type;
+                        const routeBody = {
+                            name: managementRoute.name,
+                            description: managementRoute.description,
+                            partition: tenant,
+                            gateway: managementRoute.gateway,
+                            network: managementRoute.network,
+                            mtu: managementRoute.mtu,
+                            type: managementRoute.type
+                        };
+
+                        promise = promise.then(() => this.bigIp.createOrModify(
+                            PATHS.ManagementRoute, routeBody, null, cloudUtil.MEDIUM_RETRY
+                        ));
                     }
 
-                    promise = promise.then(() => this.bigIp.createOrModify(
-                        PATHS.ManagementRoute, routeBody, null, cloudUtil.MEDIUM_RETRY
-                    ));
-                }
-
-                promises.push(promise);
-            });
-
-            return Promise.all(promises)
-                .catch((err) => {
-                    logger.severe(`Error creating management routes: ${err.message}`);
-                    throw err;
+                    promises.push(promise);
                 });
-        });
+
+                return Promise.all(promises)
+                    .catch((err) => {
+                        this.logger.severe(`Error creating management routes: ${err.message}`);
+                        throw err;
+                    });
+            });
+    }
+    return Promise.resolve();
 }
 
 function handleSnmp() {
     let promise = Promise.resolve();
 
     const agent = this.declaration.Common.SnmpAgent;
-    const users = this.declaration.Common.SnmpUser;
-    const communities = this.declaration.Common.SnmpCommunity;
     const trapEvents = this.declaration.Common.SnmpTrapEvents;
-    const trapDestinations = this.declaration.Common.SnmpTrapDestination;
 
     if (agent) {
         promise = promise.then(() => this.bigIp.modify(
             PATHS.SnmpAgent,
             {
-                sysContact: agent.contact || '',
-                sysLocation: agent.location || '',
-                allowedAddresses: agent.allowList || []
+                sysContact: agent.sysContact,
+                sysLocation: agent.sysLocation,
+                allowedAddresses: agent.allowedAddresses,
+                snmpv1: agent.snmpv1,
+                snmpv2c: agent.snmpv2c
             }
         ));
     }
@@ -702,88 +968,94 @@ function handleSnmp() {
         promise = promise.then(() => this.bigIp.modify(
             PATHS.SnmpTrapEvents,
             {
-                agentTrap: trapEvents.agentStartStop ? 'enabled' : 'disabled',
-                authTrap: trapEvents.authentication ? 'enabled' : 'disabled',
-                bigipTraps: trapEvents.device ? 'enabled' : 'disabled'
+                agentTrap: trapEvents.agentTrap,
+                authTrap: trapEvents.authTrap,
+                bigipTraps: trapEvents.bigipTraps
             }
         ));
     }
 
-    if (users) {
-        const transformedUsers = JSON.parse(JSON.stringify(users));
-        Object.keys(transformedUsers).forEach((username) => {
-            const user = transformedUsers[username];
-            user.username = user.name;
-            user.oidSubset = user.oid;
-            delete user.oid;
+    return promise;
+}
 
-            user.authProtocol = 'none';
-            if (user.authentication) {
-                user.authPassword = user.authentication.password;
-                user.authProtocol = user.authentication.protocol;
-                delete user.authentication;
+function handleSnmpUsers() {
+    let promise = Promise.resolve();
+
+    doUtil.forEach(this.declaration, 'SnmpUser', (tenant, snmpUser) => {
+        if (snmpUser && snmpUser.name) {
+            const user = JSON.parse(JSON.stringify(snmpUser));
+
+            if (user.authPassword) {
+                user.securityLevel = user.privacyPassword ? 'auth-privacy' : 'auth-no-privacy'; // #gitleaks:allow
+            } else {
+                user.securityLevel = 'no-auth-no-privacy';
             }
 
-            user.privacyProtocol = 'none';
-            if (user.privacy) {
-                user.privacyPassword = user.privacy.password;
-                user.privacyProtocol = user.privacy.protocol;
-                delete user.privacy;
+            // 'none' is only a valid option for 14.0+
+            if (cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
+                user.authPassword = user.authPassword || 'none';
+                user.privacyPassword = user.privacyPassword || 'none';
             }
-        });
 
-        promise = promise.then(() => this.bigIp.modify(
-            PATHS.SnmpUser,
-            { users: transformedUsers }
-        ));
-    }
+            promise = promise.then(() => this.bigIp.createOrModify(
+                PATHS.SnmpUser,
+                user
+            ));
+        }
+    });
 
-    if (communities) {
-        const transformedComms = JSON.parse(JSON.stringify(communities));
-        Object.keys(transformedComms).forEach((communityName) => {
-            const community = transformedComms[communityName];
-            community.communityName = community.name;
-            community.oidSubset = community.oid;
-            community.ipv6 = community.ipv6 ? 'enabled' : 'disabled';
-            delete community.oid;
-        });
+    return promise;
+}
 
-        promise = promise.then(() => this.bigIp.modify(
-            PATHS.SnmpCommunity,
-            { communities: transformedComms }
-        ));
-    }
+function handleSnmpCommunities() {
+    let promise = Promise.resolve();
 
-    if (trapDestinations) {
-        const transformedDestinations = JSON.parse(JSON.stringify(trapDestinations));
-        Object.keys(transformedDestinations).forEach((destinationName) => {
-            const destination = transformedDestinations[destinationName];
-            destination.host = destination.destination;
-            delete destination.destination;
+    doUtil.forEach(this.declaration, 'SnmpCommunity', (tenant, snmpCommunity) => {
+        if (snmpCommunity && snmpCommunity.name) {
+            const community = JSON.parse(JSON.stringify(snmpCommunity));
 
-            if (destination.authentication) {
-                destination.authPassword = destination.authentication.password;
-                destination.authProtocol = destination.authentication.protocol;
+            promise = promise.then(() => this.bigIp.createOrModify(
+                PATHS.SnmpCommunity,
+                community
+            ));
+        }
+    });
+
+    return promise;
+}
+
+function handleSnmpTrapDestinations() {
+    let promise = Promise.resolve();
+
+    doUtil.forEach(this.declaration, 'SnmpTrapDestination', (tenant, snmpTrapDestination) => {
+        if (snmpTrapDestination && snmpTrapDestination.name) {
+            const destination = JSON.parse(JSON.stringify(snmpTrapDestination));
+            destination.securityLevel = 'no-auth-no-privacy';
+
+            if (destination.authPassword) {
                 destination.securityLevel = 'auth-no-privacy';
-                delete destination.authentication;
             }
 
-            if (destination.privacy) {
-                destination.privacyPassword = destination.privacy.password;
-                destination.privacyProtocol = destination.privacy.protocol;
+            if (destination.privacyPassword) {
                 destination.securityLevel = 'auth-privacy';
-                delete destination.privacy;
             }
+
             if (destination.network !== 'mgmt') {
                 destination.network = (destination.network === 'management') ? 'mgmt' : 'other';
             }
-        });
 
-        promise = promise.then(() => this.bigIp.modify(
-            PATHS.SnmpCommunity,
-            { traps: transformedDestinations }
-        ));
-    }
+            // 'none' is only a valid option for 14.0+
+            if (cloudUtil.versionCompare(this.bigIpVersion, '14.0') >= 0) {
+                destination.authPassword = destination.authPassword || 'none';
+                destination.privacyPassword = destination.privacyPassword || 'none';
+            }
+
+            promise = promise.then(() => this.bigIp.createOrModify(
+                PATHS.SnmpTrapDestination,
+                destination
+            ));
+        }
+    });
 
     return promise;
 }
@@ -794,7 +1066,7 @@ function handleSyslog() {
     }
 
     const remoteServers = Object.keys(this.declaration.Common.SyslogRemoteServer).map(
-        logName => this.declaration.Common.SyslogRemoteServer[logName]
+        (logName) => this.declaration.Common.SyslogRemoteServer[logName]
     );
 
     if (remoteServers.length === 0) {
@@ -817,40 +1089,43 @@ function handleTrafficControl() {
     const trafficCtrl = this.declaration.Common.TrafficControl;
 
     const trafficControlObj = {
-        acceptIpOptions: trafficCtrl.acceptIpOptions ? 'enabled' : 'disabled',
-        acceptIpSourceRoute: trafficCtrl.acceptIpSourceRoute ? 'enabled' : 'disabled',
-        allowIpSourceRoute: trafficCtrl.allowIpSourceRoute ? 'enabled' : 'disabled',
-        continueMatching: trafficCtrl.continueMatching ? 'enabled' : 'disabled',
+        acceptIpOptions: trafficCtrl.acceptIpOptions,
+        acceptIpSourceRoute: trafficCtrl.acceptIpSourceRoute,
+        allowIpSourceRoute: trafficCtrl.allowIpSourceRoute,
+        continueMatching: trafficCtrl.continueMatching,
         maxIcmpRate: trafficCtrl.maxIcmpRate,
-        portFindLinear: trafficCtrl.maxPortFindLinear,
-        portFindRandom: trafficCtrl.maxPortFindRandom,
+        portFindLinear: trafficCtrl.portFindLinear,
+        portFindRandom: trafficCtrl.portFindRandom,
         maxRejectRate: trafficCtrl.maxRejectRate,
         maxRejectRateTimeout: trafficCtrl.maxRejectRateTimeout,
         minPathMtu: trafficCtrl.minPathMtu,
-        pathMtuDiscovery: trafficCtrl.pathMtuDiscovery ? 'enabled' : 'disabled',
-        portFindThresholdWarning: trafficCtrl.portFindThresholdWarning ? 'enabled' : 'disabled',
+        pathMtuDiscovery: trafficCtrl.pathMtuDiscovery,
+        portFindThresholdWarning: trafficCtrl.portFindThresholdWarning,
         portFindThresholdTrigger: trafficCtrl.portFindThresholdTrigger,
         portFindThresholdTimeout: trafficCtrl.portFindThresholdTimeout,
-        rejectUnmatched: trafficCtrl.rejectUnmatched ? 'enabled' : 'disabled'
+        rejectUnmatched: trafficCtrl.rejectUnmatched
     };
 
     return this.bigIp.modify(PATHS.TrafficControl, trafficControlObj)
         .catch((err) => {
             const errorTrafficControl = `Error modifying traffic control settings: ${err.message}`;
-            logger.severe(errorTrafficControl);
+            this.logger.severe(errorTrafficControl);
             err.message = errorTrafficControl;
             return Promise.reject(err);
         });
 }
 
 function handleHTTPD() {
-    if (this.declaration.Common && this.declaration.Common.HTTPD
-        && Object.keys(this.declaration.Common.HTTPD).length > 0) {
+    if (this.declaration.Common && this.declaration.Common.HTTPD) {
         const httpd = this.declaration.Common.HTTPD;
         // allow defaults to 'All' on BIGIP but can be either 'all' or 'All'.  For consistency with other schema enums
         // and BIGIP's default let's always use 'all' with the user and 'All' with BIGIP.
         if (Array.isArray(httpd.allow)) {
-            httpd.allow = httpd.allow.map(item => (item === 'all' ? 'All' : item));
+            httpd.allow = httpd.allow.map((item) => (item === 'all' ? 'All' : item));
+        } else if (httpd.allow === 'all') {
+            // This should already be an array by the time it gets here, but let's
+            // just make sure
+            httpd.allow = ['All'];
         }
 
         let cipherString = '';
@@ -869,7 +1144,7 @@ function handleHTTPD() {
             }
         ).catch((err) => {
             const errorHTTPD = `Error modifying HTTPD settings: ${err.message}`;
-            logger.severe(errorHTTPD);
+            this.logger.severe(errorHTTPD);
             err.message = errorHTTPD;
             return Promise.reject(err);
         });
@@ -887,6 +1162,9 @@ function handleSSHD() {
 
     if (sshd.ciphers) {
         includeString = includeString.concat(`Ciphers ${sshd.ciphers.join(',')}\n`);
+    }
+    if (sshd.kexAlgorithms) {
+        includeString = includeString.concat(`KexAlgorithms ${sshd.kexAlgorithms.join(',')}\n`);
     }
     if (sshd.loginGraceTime) {
         includeString = includeString.concat(`LoginGraceTime ${sshd.loginGraceTime}\n`);
@@ -909,8 +1187,8 @@ function handleSSHD() {
 
     const sshdObj = {
         allow: sshd.allow,
-        banner: sshd.banner ? 'enabled' : 'disabled',
-        bannerText: sshd.banner,
+        banner: sshd.bannerText ? 'enabled' : 'disabled',
+        bannerText: sshd.bannerText,
         include: includeString,
         inactivityTimeout: sshd.inactivityTimeout
     };
@@ -918,14 +1196,50 @@ function handleSSHD() {
     return this.bigIp.modify(PATHS.SSHD, sshdObj)
         .catch((err) => {
             const errorSSHD = `Error modifying SSHD settings: ${err.message}`;
-            logger.severe(errorSSHD);
+            this.logger.severe(errorSSHD);
             err.message = errorSSHD;
             return Promise.reject(err);
         });
 }
 
+function handleDisk() {
+    if (!this.declaration.Common || !this.declaration.Common.Disk) {
+        return Promise.resolve();
+    }
+
+    let promise = Promise.resolve();
+
+    Object.keys(this.declaration.Common.Disk).forEach((directory) => {
+        if (this.state.currentConfig.Common.Disk
+            && this.state.currentConfig.Common.Disk[directory]
+            && this.declaration.Common.Disk[directory] <= this.state.currentConfig.Common.Disk[directory]) {
+            throw new Error('Disk size must be larger than current size.');
+        }
+
+        if (directory === 'applicationData') {
+            promise = promise.then(doUtil.executeBashCommandIControl(this.bigIp,
+                `tmsh modify /sys disk directory /appdata new-size ${this.declaration.Common.Disk[directory]}`));
+        }
+    });
+
+    return promise.then(() => this.bigIp.save())
+        .then(() => {
+            this.eventEmitter.emit(
+                EVENTS.REBOOT_NOW,
+                this.state.id
+            );
+            return doUtil.waitForReboot(this.bigIp, this.state.id);
+        })
+        .catch((err) => {
+            const errorDisk = `Error modifying Disk: ${err.message}`;
+            this.logger.severe(errorDisk);
+            err.message = errorDisk;
+            return Promise.reject(err);
+        });
+}
+
 function createOrUpdateUser(username, data) {
-    let userEndpoint = '/tm/auth/user';
+    let userEndpoint = PATHS.User;
     if (this.bigIp.isBigIq()) {
         userEndpoint = '/shared/authz/users';
     }
@@ -969,16 +1283,16 @@ function createOrUpdateUser(username, data) {
             return Promise.resolve();
         })
         .catch((err) => {
-            logger.severe(`Error creating/updating user: ${err.message}`);
+            this.logger.severe(`Error creating/updating user: ${err.message}`);
             return Promise.reject(err);
         });
 }
 
 function disableDhcpOptions(optionsToDisable) {
-    let requiresDhcpRestart;
+    let requiresDhcpRestart = false;
 
     return this.bigIp.list(
-        '/tm/sys/management-dhcp/sys-mgmt-dhcp-config'
+        PATHS.ManagementDHCPConfig
     )
         .then((dhcpOptions) => {
             if (!dhcpOptions || !dhcpOptions.requestOptions) {
@@ -986,7 +1300,7 @@ function disableDhcpOptions(optionsToDisable) {
             }
 
             const currentOptions = dhcpOptions.requestOptions;
-            const newOptions = currentOptions.filter(option => optionsToDisable.indexOf(option) === -1);
+            const newOptions = currentOptions.filter((option) => optionsToDisable.indexOf(option) === -1);
 
             if (currentOptions.length === newOptions.length) {
                 return Promise.resolve();
@@ -994,24 +1308,17 @@ function disableDhcpOptions(optionsToDisable) {
 
             requiresDhcpRestart = true;
             return this.bigIp.modify(
-                '/tm/sys/management-dhcp/sys-mgmt-dhcp-config',
+                PATHS.ManagementDHCPConfig,
                 {
                     requestOptions: newOptions
                 }
             );
         })
-        .then(() => this.bigIp.list('/tm/sys/global-settings'))
-        .then((globalSettings) => {
-            // If DHCP is disabled on the device do NOT attempt to restart it
-            if (globalSettings && globalSettings.mgmtDhcp === 'disabled') {
-                requiresDhcpRestart = false;
-            }
-        })
         .then(() => {
-            if (!requiresDhcpRestart) {
-                return Promise.resolve();
+            if (requiresDhcpRestart) {
+                return restartDhcp.call(this);
             }
-            return restartService.call(this, 'dhclient');
+            return Promise.resolve();
         });
 }
 
@@ -1026,40 +1333,15 @@ function getBigIqManagementPort(currentPlatform, license) {
     return bigIqMgmtPort;
 }
 
-function restartService(service) {
-    return this.bigIp.create(
-        '/tm/sys/service',
-        {
-            command: 'restart',
-            name: service
-        },
-        null,
-        cloudUtil.NO_RETRY
-    )
-        .catch((err) => {
-            logger.debug(`Ingoring expected socket hangup: ${err}`);
-        })
-        .then(() => {
-            function isServiceRunning() {
-                return this.bigIp.list(`/tm/sys/service/${service}/stats`, undefined, cloudUtil.NO_RETRY)
-                    .then((serviceStats) => {
-                        if (serviceStats.apiRawValues
-                            && serviceStats.apiRawValues.apiAnonymous
-                            && serviceStats.apiRawValues.apiAnonymous.indexOf('running') !== -1) {
-                            return Promise.resolve();
-                        }
-
-                        let message;
-                        if (serviceStats.apiRawValues && serviceStats.apiRawValues.apiAnonymous) {
-                            message = `${service} status is ${serviceStats.apiRawValues.apiAnonymous}`;
-                        } else {
-                            message = `Unable to read ${service} status`;
-                        }
-                        return Promise.reject(new Error(message));
-                    });
+function restartDhcp() {
+    // If DHCP is disabled on the device do NOT attempt to restart it
+    return this.bigIp.list(PATHS.SysGlobalSettings)
+        .then((globalSettings) => globalSettings && globalSettings.mgmtDhcp === 'enabled')
+        .then((canRestartDhcp) => {
+            if (canRestartDhcp) {
+                return doUtil.restartService(this.bigIp, 'dhclient', { taskId: this.state.id });
             }
-
-            return cloudUtil.tryUntil(this, cloudUtil.MEDIUM_RETRY, isServiceRunning);
+            return Promise.resolve();
         });
 }
 
@@ -1206,15 +1488,15 @@ function storeDeviceCertRollbackInfo(originalFile) {
         });
 }
 
-function waitForRevokeReady(eventEmitter) {
+function waitForRevokeReady() {
     const REVOKE_READY_TIMEOUT = 30000; // 30 seconds
-    eventEmitter.removeAllListeners(EVENTS.READY_FOR_REVOKE);
+    this.eventEmitter.removeAllListeners(EVENTS.READY_FOR_REVOKE);
     return new Promise((resolve, reject) => {
         const readyTimer = setTimeout(() => {
             reject(new Error('Timed out waiting for revoke ready event'));
         }, REVOKE_READY_TIMEOUT);
-        eventEmitter.on(EVENTS.READY_FOR_REVOKE, () => {
-            logger.debug('Ready for revoke');
+        this.eventEmitter.on(EVENTS.READY_FOR_REVOKE, () => {
+            this.logger.debug('Ready for revoke');
             clearTimeout(readyTimer);
             resolve();
         });
@@ -1250,6 +1532,23 @@ function areFilesDifferent(fileA, fileB) {
             }
             return Promise.resolve(false);
         });
+}
+
+function getCurrentManagementAddress(managementIpInfo) {
+    return Object.keys(managementIpInfo)[0];
+}
+
+function getCurrentManagementDescription(managementIpInfo, address) {
+    return managementIpInfo[address].description;
+}
+
+function isMaskChangeOnly(oldAddress, newAddress) {
+    const oldIp = oldAddress.split('/')[0];
+    const oldMask = oldAddress.split('/')[1];
+    const newIp = newAddress.split('/')[0];
+    const newMask = newAddress.split('/')[1];
+
+    return (oldIp === newIp) && (oldMask !== newMask);
 }
 
 module.exports = SystemHandler;

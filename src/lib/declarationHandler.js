@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 
 'use strict';
 
+const crypto = require('crypto');
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
 const TeemRecord = require('@f5devcentral/f5-teem').Record;
+const ipUtil = require('@f5devcentral/atg-shared-utilities').ipUtils;
 const DeclarationParser = require('./declarationParser');
 const DiffHandler = require('./diffHandler');
 const Logger = require('./logger');
+const ConfigManager = require('./configManager');
 const SystemHandler = require('./systemHandler');
 const NetworkHandler = require('./networkHandler');
 const DscHandler = require('./dscHandler');
@@ -29,47 +32,19 @@ const DeleteHandler = require('./deleteHandler');
 const ProvisionHandler = require('./provisionHandler');
 const DeprovisionHandler = require('./deprovisionHandler');
 const AuthHandler = require('./authHandler');
+const GSLBHandler = require('./gslbHandler');
+const SecurityHandler = require('./securityHandler');
+const TraceManager = require('./traceManager');
+const RoutingAccessListValidator = require('./routingAccessListValidator');
+const configItems = require('./configItems.json');
 const doUtil = require('./doUtil');
 
-const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
+const ralv = new RoutingAccessListValidator();
 
-const logger = new Logger(module);
-
-// They are the classes for which we are the source of truth. We will
-// run a diff against these classes and also apply defaults for them if they
-// are missing from the declaration
-const CLASSES_OF_TRUTH = [
-    'hostname',
-    'DbVariables',
-    'DNS',
-    'NTP',
-    'Provision',
-    'VLAN',
-    'DNS_Resolver',
-    'Trunk',
-    'SelfIp',
-    'Route',
-    'ConfigSync',
-    'DeviceGroup',
-    'FailoverUnicast',
-    'Analytics',
-    'ManagementRoute',
-    'RouteDomain',
-    'Authentication',
-    'RemoteAuthRole',
-    'SnmpAgent',
-    'SnmpTrapEvents',
-    'SnmpUser',
-    'SnmpCommunity',
-    'SnmpTrapDestination',
-    'DagGlobals',
-    'System',
-    'TrafficControl',
-    'HTTPD',
-    'SSHD',
-    'Tunnel',
-    'TrafficGroup'
-];
+const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
+// We will run a diff against these classes and also apply
+// defaults for them if they are missing from the declaration
+const CLASSES_OF_TRUTH = ConfigManager.getClassesOfTruth(configItems);
 
 /**
  * Main processing for a parsed declaration.
@@ -78,38 +53,36 @@ const CLASSES_OF_TRUTH = [
  *
  * @param {Object} bigIp - BigIp object.
  * @param {EventEmitter} - Restnoded event channel.
+ * @param {Object} state - The [doState]{@link State} object
  */
 class DeclarationHandler {
-    constructor(bigIp, eventEmitter) {
+    constructor(bigIp, eventEmitter, state) {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
-        const assetInfo = {
-            name: 'Declarative Onboarding',
-            version: doUtil.getDoVersion().VERSION
-        };
-        this.teemDevice = new TeemDevice(assetInfo);
+        this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
      * Starts processing.
      *
      * @param {Object} declaration - The declaration to process
-     * @param {Object} state - The [doState]{@link State} object
      *
      * @returns {Promise} A promise which is resolved when processing is complete
      *                    or rejected if an error occurs.
      */
-    process(declaration, state) {
-        logger.fine('Processing declaration.');
+    process(declaration) {
+        this.logger.fine('Processing declaration.');
         let parsedNewDeclaration;
         let parsedOldDeclaration;
+        let origLdapCertData;
 
         const newDeclaration = JSON.parse(JSON.stringify(declaration));
         const oldDeclaration = {};
-        Object.assign(oldDeclaration, state.currentConfig);
-
+        Object.assign(oldDeclaration, this.state.currentConfig);
         let updateDeclaration;
         let deleteDeclaration;
+        let status;
 
         // modules available on the target BIG-IP
         const modules = [];
@@ -125,7 +98,7 @@ class DeclarationHandler {
                 if (oldDeclaration.parsed) {
                     return Object.assign({}, oldDeclaration);
                 }
-                const declarationParser = new DeclarationParser(oldDeclaration, modules);
+                const declarationParser = new DeclarationParser(oldDeclaration, modules, this.state);
                 return declarationParser.parse().parsedDeclaration;
             })
             .then((parsedDeclaration) => {
@@ -135,91 +108,75 @@ class DeclarationHandler {
                 if (newDeclaration.parsed) {
                     return Object.assign({}, newDeclaration);
                 }
-                const declarationParser = new DeclarationParser(newDeclaration, modules);
+                const declarationParser = new DeclarationParser(newDeclaration, modules, this.state);
                 return declarationParser.parse().parsedDeclaration;
             })
             .then((parsedDeclaration) => {
                 parsedNewDeclaration = parsedDeclaration;
+                parsedNewDeclaration.Common.InternalUse = {};
             })
+            .then(() => removeUnwantedProperties(parsedNewDeclaration, parsedOldDeclaration))
             .then(() => {
-                applyDefaults(parsedNewDeclaration, state);
-                applyRouteDomainFixes(parsedNewDeclaration, parsedOldDeclaration);
-
-                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES);
-                return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration);
+                applyDefaults.call(this, parsedNewDeclaration);
+                applyDnsResolverFixes.call(this, parsedNewDeclaration);
+                applyHostnameFixes.call(this, parsedNewDeclaration);
+                applyManagementIpFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyManagementIpFirewallFixes.call(this, parsedNewDeclaration);
+                applyRouteDomainFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyFailoverUnicastFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyHttpdFixes.call(this, parsedNewDeclaration);
+                applyGSLBGlobalsFixes.call(this, parsedNewDeclaration);
+                applyGSLBServerFixes.call(this, parsedNewDeclaration);
+                applyRemoteAuthRoleFixes.call(this, parsedNewDeclaration);
+                applyRoutingAccessListFixes.call(this, parsedNewDeclaration);
+                applyRoutingPrefixListFixes.call(this, parsedNewDeclaration);
+                applyRouteMapFixes.call(this, parsedNewDeclaration);
+                applyRoutingBgpFixes.call(this, parsedNewDeclaration);
+                applyGSLBProberPoolFixes.call(this, parsedNewDeclaration);
+                applyFirewallAddressListFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyFirewallPortListFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyNetAddressListFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyNetPortListFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
+                applyFirewallPolicyFixes.call(this, parsedNewDeclaration);
+                applySelfIpFixes.call(this, parsedNewDeclaration);
+                applyTunnelFixes.call(this, parsedNewDeclaration);
+                applyManagementRouteFixes.call(this, parsedNewDeclaration);
+                origLdapCertData = applyLdapCertFixes.call(this, parsedNewDeclaration);
+            })
+            .then(() => removeEmptyObjects(parsedNewDeclaration))
+            .then(() => removeEmptyObjects(parsedOldDeclaration))
+            .then(() => {
+                const diffHandler = new DiffHandler(CLASSES_OF_TRUTH, NAMELESS_CLASSES, this.eventEmitter, this.state);
+                return diffHandler.process(parsedNewDeclaration, parsedOldDeclaration, declaration);
             })
             .then((declarationDiffs) => {
                 updateDeclaration = declarationDiffs.toUpdate;
                 deleteDeclaration = declarationDiffs.toDelete;
-                return this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' });
+
+                applyLdapCertOrigData(updateDeclaration, origLdapCertData);
+
+                const traceManager = new TraceManager(declaration, this.eventEmitter, this.state);
+                return traceManager.traceConfigs(parsedOldDeclaration, parsedNewDeclaration);
             })
             .then(() => {
-                const handlers = [
-                    [SystemHandler, updateDeclaration],
-                    [AuthHandler, updateDeclaration],
-                    [ProvisionHandler, updateDeclaration],
-                    [NetworkHandler, updateDeclaration],
-                    [DscHandler, updateDeclaration],
-                    [AnalyticsHandler, updateDeclaration],
-                    [DeleteHandler, deleteDeclaration],
-                    [DeprovisionHandler, updateDeclaration]
-                ];
-
-                const handlerStatuses = [];
-                return processHandlers(
-                    handlers,
-                    handlerStatuses,
-                    this.bigIp,
-                    this.eventEmitter,
-                    state
+                if (declaration.controls && declaration.controls.dryRun) {
+                    this.logger.info('dryRun requested. Skipping updates.');
+                    return Promise.resolve();
+                }
+                return makeUpdates.call(
+                    this,
+                    declaration,
+                    updateDeclaration,
+                    deleteDeclaration
                 );
             })
-            .then((handlerStatuses) => {
-                const status = {
-                    rollbackInfo: {}
-                };
-                handlerStatuses.forEach((handlerStatus) => {
-                    if (handlerStatus.rebootRequired === true) {
-                        status.rebootRequired = true;
-                    }
-                    if (handlerStatus.rollbackInfo) {
-                        Object.keys(handlerStatus.rollbackInfo).forEach((key) => {
-                            status.rollbackInfo[key] = JSON.parse(JSON.stringify(handlerStatus.rollbackInfo[key]));
-                        });
-                    }
-                });
-                logger.info('Done processing declaration.');
-                if (!declaration.parsed) {
-                    // gather/calculate extra fields
-                    const extraFields = {};
-                    if (declaration.controls) {
-                        extraFields.userAgent = declaration.controls.userAgent;
-                    }
-                    if (declaration.Common) {
-                        extraFields.authenticationType = countAuthenticationTypes(
-                            declaration.Common,
-                            { ldap: 0, radius: 0, tacacs: 0 }
-                        );
-                    }
-
-                    const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
-                    return Promise.resolve()
-                        .then(() => record.calculateAssetId())
-                        .then(() => record.addRegKey())
-                        .then(() => record.addPlatformInfo())
-                        .then(() => record.addProvisionedModules())
-                        .then(() => record.addClassCount(declaration))
-                        .then(() => record.addJsonObject(extraFields))
-                        .then(() => this.teemDevice.reportRecord(record))
-                        .catch((err) => {
-                            logger.warning(`Unable to send device report: ${err.message}`);
-                        })
-                        .then(() => status);
-                }
-                return Promise.resolve(status);
+            .then((result) => {
+                status = result || {};
+                return handleTeemReport.call(this, declaration);
             })
+            .then(() => status)
             .catch((err) => {
-                logger.severe(`Error processing declaration: ${err.message}`);
+                this.logger.severe(`Error processing declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -232,12 +189,12 @@ class DeclarationHandler {
  * of truth for will be set back to its original state.
  *
  * @param {Object} declaration - The new declation to apply
- * @param {Object} state - The [doState]{@link State} object
  */
-function applyDefaults(declaration, state) {
+function applyDefaults(declaration) {
     const commonDeclaration = declaration.Common;
+
     // deep copy original item to avoid modifications of originalConfig.Common in handlers
-    const commonOriginal = JSON.parse(JSON.stringify(state.originalConfig.Common || {}));
+    const commonOriginal = JSON.parse(JSON.stringify(this.state.originalConfig.Common || {}));
 
     CLASSES_OF_TRUTH.forEach((key) => {
         if (!(key in commonOriginal)) {
@@ -245,12 +202,9 @@ function applyDefaults(declaration, state) {
         }
         const original = commonOriginal[key];
         const item = commonDeclaration[key];
-        // if the missing or empty, fill in the original
+        // if the class is missing or empty, fill in the original
         if (!(key in commonDeclaration) || (typeof item === 'object' && Object.keys(item).length === 0)) {
             commonDeclaration[key] = original;
-            if (key === 'System' && commonDeclaration.hostname) {
-                delete commonDeclaration[key].hostname;
-            }
         } else if (key === 'Authentication') {
             // some more auth oddities
             if (typeof item.remoteUsersDefaults === 'undefined') {
@@ -258,6 +212,99 @@ function applyDefaults(declaration, state) {
             }
         }
     });
+}
+
+/**
+ * DNS Resolver fixes
+ *
+ * We allow a user to put DNS Resolver nameservers in an array of strings, but
+ * iControl REST represents them as an array of objects with a name property
+ *
+ * @param {Object} declaration - declaration
+ */
+function applyDnsResolverFixes(declaration) {
+    doUtil.forEach(declaration, 'DNS_Resolver', (tenant, resolver) => {
+        if (resolver && resolver.name) {
+            let forwardZones = resolver.forwardZones;
+            if (forwardZones) {
+                forwardZones = forwardZones.map((zone) => {
+                    if (zone.nameservers) {
+                        zone.nameservers = zone.nameservers.map((nameserver) => (typeof nameserver === 'object' ? nameserver : ({ name: nameserver })));
+                    }
+                    return zone;
+                });
+            }
+        }
+    });
+}
+
+/**
+ * Hostname fixes
+ *
+ * hostname can be in 2 places for historical reasons. Consolidate into the System class
+ *
+ * @param {Object} declaration - declaration
+ */
+function applyHostnameFixes(declaration) {
+    // Put the desired hostname in just one place
+    if (declaration.Common.hostname) {
+        if (!declaration.Common.System) {
+            declaration.Common.System = {};
+        }
+        declaration.Common.System.hostname = declaration.Common.hostname;
+        delete declaration.Common.hostname;
+    }
+
+    // If a hostname is in the declaration, copy it to the same place that configManager
+    // uses for the 2 possible BIG-IP device names
+    if (declaration.Common.System && declaration.Common.System.hostname) {
+        declaration.Common.InternalUse.deviceNames = {
+            hostName: declaration.Common.System.hostname,
+            deviceName: declaration.Common.System.hostname
+        };
+    }
+}
+
+/**
+ * ManagementIp fixes
+ *
+ * Management IPs are listed in a property that matches their address like
+ * {
+ *     "ip_address/mask": {
+ *         "name": "ip_address/mask"
+ *     }
+ * }
+ * So we have to set the property name in the declaration to match the address
+ * field (which as the property name 'name')
+ *
+ * @param {Object} declaration    - declaration
+ */
+function applyManagementIpFixes(declaration) {
+    if (declaration.Common.ManagementIp) {
+        Object.keys(declaration.Common.ManagementIp).forEach((name) => {
+            const ipAddress = declaration.Common.ManagementIp[name].name;
+            if (name !== ipAddress) {
+                declaration.Common.ManagementIp[ipAddress] = {};
+                Object.assign(declaration.Common.ManagementIp[ipAddress], declaration.Common.ManagementIp[name]);
+                delete declaration.Common.ManagementIp[name];
+            }
+        });
+    }
+}
+
+/**
+ * Normalizes the Management IP Firewall section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyManagementIpFirewallFixes(declaration) {
+    const mgmtIpFirewall = declaration.Common.ManagementIpFirewall;
+    if (!mgmtIpFirewall) {
+        return;
+    }
+
+    mgmtIpFirewall.rules = applyFirewallRuleFixes(mgmtIpFirewall.rules, 'Common');
+    delete mgmtIpFirewall.label;
 }
 
 /**
@@ -269,6 +316,37 @@ function applyDefaults(declaration, state) {
 function applyRouteDomainFixes(declaration, currentConfig) {
     applyDefaultRouteDomainFix(declaration, currentConfig);
     applyRouteDomainVlansFix(declaration, currentConfig);
+    applyRouteDomainParentFix(declaration);
+}
+
+/**
+ * Convert FailoverUnicasts to use unicastAddress immediately
+ *
+ * @param {Object} declaration - User provided declaration
+ */
+function applyFailoverUnicastFixes(declaration) {
+    if (declaration.Common.FailoverUnicast
+        && declaration.Common.FailoverUnicast.address
+        && declaration.Common.FailoverUnicast.address !== 'none') {
+        if (declaration.Common.FailoverUnicast.unicastAddress
+            && declaration.Common.FailoverUnicast.unicastAddress !== 'none') {
+            // If there is both and address and unicastAddress at this point
+            // then the user supplied two different Failover Unicast objects.
+            // DO cannot guarantee which to use, thus we need to throw an error.
+            const message = 'Error: Cannot have Failover Unicasts with both address and addressPort properties provided. This can happen when multiple Failover Unicast objects are provided in the same declaration. To configure multiple Failover Unicasts, use only addressPort.';
+            this.logger.severe(message);
+            throw new Error(message);
+        }
+
+        declaration.Common.FailoverUnicast.unicastAddress = [
+            {
+                ip: declaration.Common.FailoverUnicast.address,
+                port: declaration.Common.FailoverUnicast.port
+            }
+        ];
+        delete declaration.Common.FailoverUnicast.address;
+        delete declaration.Common.FailoverUnicast.port;
+    }
 }
 
 /**
@@ -319,6 +397,26 @@ function applyDefaultRouteDomainFix(declaration, currentConfig) {
 }
 
 /**
+ *  Prepend the tenant to the parent property if it is missing.
+ *
+ * @param {*} declaration - declaration to fix
+ */
+function applyRouteDomainParentFix(declaration) {
+    const decalrationRDs = (declaration.Common && declaration.Common.RouteDomain) || {};
+    // nothing to fix if no Route Domains in declaration
+    if (Object.keys(decalrationRDs).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RouteDomain', (tenant, routeDomain) => {
+        // If the parent does not start with '/', assume it is in this tenant unless it is 'none'
+        if (routeDomain.parent && !routeDomain.parent.startsWith('/') && routeDomain.parent !== 'none') {
+            routeDomain.parent = `/${tenant}/${routeDomain.parent}`;
+        }
+    });
+}
+
+/**
  * Add all VLANs that don't belong to any Route Domain to Route Domain 0.
  * Remove all VLANs (only VLANs that belongs to /Common/ partition)
  * from Route Domains that are not listed in Declaration (e.g. configuration is out-dated) -
@@ -354,7 +452,7 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
         }
         return result;
     };
-    const getTmosName = parsedName => `/${parsedName.partition}/${parsedName.folder}${parsedName.folder ? '/' : ''}${parsedName.name}`;
+    const getTmosName = (parsedName) => `/${parsedName.partition}/${parsedName.folder}${parsedName.folder ? '/' : ''}${parsedName.name}`;
 
     // create list of VLAN names from declaration
     // NOTE: this line should be slightly updated when DO will support VLAN groups and tunnels.
@@ -440,6 +538,672 @@ function applyRouteDomainVlansFix(declaration, currentConfig) {
             rd.vlans.push(vlanName);
         }
     });
+
+    // Sort the vlans so we don't get a diff just due to ordering
+    // Also, iControl REST returns route domain vlans w/ a full name, so make sure that is
+    // there.
+    Object.keys(decalrationRDs).forEach((rdName) => {
+        const rd = decalrationRDs[rdName];
+        if (rd.vlans) {
+            rd.vlans = rd.vlans.map((vlanName) => (vlanName.startsWith('/') ? vlanName : `/${commonPartition}/${vlanName}`));
+            rd.vlans.sort();
+        }
+    });
+}
+
+/**
+ * Normalizes the HTTPD section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyHttpdFixes(declaration) {
+    const httpdDeclaration = declaration.Common.HTTPD;
+    if (httpdDeclaration && httpdDeclaration.allow) {
+        // Older versions of DO did not normalize allow to lower-case so normalize
+        // here in case the user has upgraded.
+        if (Array.isArray(httpdDeclaration.allow)) {
+            httpdDeclaration.allow = httpdDeclaration.allow.map((item) => (item === 'All' ? 'all' : item));
+        }
+
+        // Schema can handle 'all' as either a single word or in an array. Normalize
+        // to an array since that's what BIG-IP uses
+        if (httpdDeclaration.allow === 'all') {
+            httpdDeclaration.allow = [httpdDeclaration.allow];
+        }
+    }
+}
+
+/**
+ * Handles the nested classes in GSLB globals (like 'general')
+ */
+function applyGSLBGlobalsFixes(newDeclaration) {
+    const originalGslbGlobals = JSON.parse(JSON.stringify(this.state.originalConfig.Common.GSLBGlobals || {}));
+    const newGslbGlobals = newDeclaration.Common.GSLBGlobals || {};
+
+    Object.keys(originalGslbGlobals).forEach((gslbGlobalSection) => {
+        // Copy all the globals sections into the declaration if they are missing
+        if (typeof newGslbGlobals[gslbGlobalSection] === 'undefined') {
+            newGslbGlobals[gslbGlobalSection] = originalGslbGlobals[gslbGlobalSection];
+        }
+
+        // If any keys in the globals sections are missing, copy those too
+        const originalGlobal = originalGslbGlobals[gslbGlobalSection];
+        Object.keys(originalGlobal).forEach((setting) => {
+            const newSetting = newGslbGlobals[gslbGlobalSection][setting];
+            if (typeof newSetting === 'undefined') {
+                newGslbGlobals[gslbGlobalSection][setting] = originalGlobal[setting];
+            }
+        });
+    });
+}
+
+/**
+ * Normalizes the GSLB Server section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyGSLBServerFixes(declaration) {
+    const gslbServers = declaration.Common.GSLBServer || {};
+
+    Object.keys(gslbServers).forEach((name) => {
+        const server = gslbServers[name];
+        if (server.datacenter.startsWith('/Common/')) {
+            server.datacenter = server.datacenter.split('/Common/')[1];
+        }
+        if (server.proberPool && server.proberPool.startsWith('/Common/')) {
+            server.proberPool = server.proberPool.split('/Common/')[1];
+        }
+        if (!server.monitor && server.product === 'bigip') {
+            server.monitor = ['/Common/bigip'];
+        }
+        server.virtualServers = server.virtualServers || [];
+        server.virtualServers.forEach((virtualServer, i) => {
+            virtualServer.name = virtualServer.name || `${i}`;
+            virtualServer.address = ipUtil.minimizeIP(virtualServer.address);
+            virtualServer.monitor = virtualServer.monitor || [];
+            if (virtualServer.translationAddress && virtualServer.translationAddress !== 'none') {
+                virtualServer.translationAddress = ipUtil.minimizeIP(virtualServer.translationAddress);
+            }
+            delete virtualServer.label;
+        });
+        server.monitor = server.monitor || [];
+        delete server.label;
+    });
+}
+
+function applyRemoteAuthRoleFixes(declaration) {
+    const remoteAuthRoles = (declaration.Common && declaration.Common.RemoteAuthRole) || {};
+    if (Object.keys(remoteAuthRoles).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RemoteAuthRole', (tenant, role) => {
+        role.console = (role.console === 'disabled') ? 'disable' : role.console;
+    });
+}
+
+function applyRouteMapFixes(declaration) {
+    const routeMaps = (declaration.Common && declaration.Common.RouteMap) || {};
+    if (Object.keys(routeMaps).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RouteMap', (tenant, routeMap) => {
+        if (routeMap.entries) {
+            routeMap.entries.forEach((entry) => {
+                applyTenantPrefix(entry, 'match.asPath', tenant);
+                applyTenantPrefix(entry, 'match.ipv4.address.prefixList', tenant);
+                applyTenantPrefix(entry, 'match.ipv4.nextHop.prefixList', tenant);
+                applyTenantPrefix(entry, 'match.ipv6.address.prefixList', tenant);
+                applyTenantPrefix(entry, 'match.ipv6.nextHop.prefixList', tenant);
+            });
+        }
+    });
+}
+
+/**
+ * Apply fixes to RoutingAccessList entries destination and source to align the current config to the desired config
+ *
+ * All destination and source values must be from the same address family or one of the any-address values.
+ * any-address values include ::, any, any6, 0.0.0.0 including all variations with a CIDR.  Fortunately we do not need
+ * to worry about any or any6 variations because our schema format does not accept them and these are redundant anyway.
+ *
+ * Strangely it does not matter to TMSH which any-address value is used.
+ * Any variation is accepted even if it seems wrong. TMSH will change these values as it sees fit.
+ * All any-address values get set to 0.0.0.0/0 if ipv4 is set on the opposite value.
+ * All any-address values get set to ::/0 if ipv6 is set on the opposite value.
+ *
+ * If the address family of the opposite value cannot be determined then replace any values that begin with ::/
+ * with ::/0 and then replace any values that begin with 0.0.0.0 with 0.0.0.0/0
+ *
+ * Standalone ipv4 addresses get /32 appended and standalone ipv6 addresses get /128 appended
+ *
+ * Examples
+ *
+ * source (0.0.0.0 or ::) with destination 192.0.2.1 sets source 0.0.0.0/0 and destination 192.0.2.10/32
+ * source 192.0.2.1 with destination (0.0.0.0 or ::) sets source 192.0.2.10/32 and destination 0.0.0.0/0
+ *
+ * source 2001:0db8:: with destination (0.0.0.0 or ::) sets source 2001:0db8::/128 and destination ::/0
+ * source (0.0.0.0 or ::) with destination 2001:0db8:: sets source ::/0 and destination 2001:0db8::/128
+ *
+ * @param {Object} declaration
+ */
+function applyRoutingAccessListFixes(declaration) {
+    doUtil.forEach(declaration, 'RoutingAccessList', (tenant, list) => {
+        (list.entries || []).forEach((entry) => {
+            // change any-address values according to the address family of the opposite property value
+            if (ralv.isAnyAddress(entry.destination)) {
+                if (entry.source.includes('.')) {
+                    entry.destination = '0.0.0.0/0';
+                } else if (entry.source.includes(':') && (entry.source !== '::')) {
+                    entry.destination = '::/0';
+                }
+            }
+            if (ralv.isAnyAddress(entry.source)) {
+                if (entry.destination.includes('.')) {
+                    entry.source = '0.0.0.0/0';
+                } else if (entry.destination.includes(':') && (entry.destination !== '::')) {
+                    entry.source = '::/0';
+                }
+            }
+
+            ['destination', 'source'].forEach((ip) => {
+                // replace remaining any-address values with what TMSH will change them to
+                if (entry[ip].startsWith('0.0.0.0')) {
+                    entry[ip] = '0.0.0.0/0';
+                } else if (!entry[ip].includes('/')) {
+                    // append CIDR according to address family
+                    if (entry[ip].includes('.')) {
+                        entry[ip] = `${entry[ip]}/32`;
+                    } else if (entry[ip].includes(':') && entry[ip] !== '::') {
+                        entry[ip] = `${entry[ip]}/128`;
+                    }
+                }
+            });
+        });
+    });
+}
+
+/**
+ * Apply fixes to RoutingPrefixList prefixLenRange to align the current config to the desired config.
+ * @param {Object} declaration
+ */
+function applyRoutingPrefixListFixes(declaration) {
+    doUtil.forEach(declaration, 'RoutingPrefixList', (tenant, list) => {
+        if (list.entries) {
+            list.entries.forEach((entry) => {
+                entry.prefixLenRange = entry.prefixLenRange.startsWith(':') ? `0${entry.prefixLenRange}` : entry.prefixLenRange;
+                entry.prefixLenRange = entry.prefixLenRange.endsWith(':') ? `${entry.prefixLenRange}0` : entry.prefixLenRange;
+            });
+        }
+    });
+}
+
+/**
+ * Apply fixes to RoutingBGP to align the current config to the desired config.
+ * @param {Object} declaration
+ */
+function applyRoutingBgpFixes(declaration) {
+    /**
+     * Fill in default addressFamily entries for internet protocols ipv4 and ipv6 with the purpose of aligning current
+     * and desired configs.
+     * @param {Object} containingObj - object that contains the addressFamily
+     * @param {Object} addressFamiliesDefaults - default values to add in after the entry is created
+     */
+
+    function processAddressFamiliesDefaults(containingObj, addressFamiliesDefaults) {
+        let hasIpv4 = false;
+        let hasIpv6 = false;
+
+        // Fill in addressFamily defaults that are hard to do within schema
+        containingObj.addressFamily = containingObj.addressFamily || [];
+        containingObj.addressFamily.forEach((family) => {
+            hasIpv4 = family.name === 'ipv4' ? true : hasIpv4;
+            hasIpv6 = family.name === 'ipv6' ? true : hasIpv6;
+        });
+
+        if (!hasIpv4) {
+            let unshiftObj = {
+                name: 'ipv4'
+            };
+            unshiftObj = addressFamiliesDefaults ? Object.assign(unshiftObj, addressFamiliesDefaults) : unshiftObj;
+            containingObj.addressFamily.unshift(unshiftObj);
+        }
+
+        if (!hasIpv6) {
+            let pushObj = {
+                name: 'ipv6'
+            };
+            pushObj = addressFamiliesDefaults ? Object.assign(pushObj, addressFamiliesDefaults) : pushObj;
+            containingObj.addressFamily.push(pushObj);
+        }
+    }
+
+    const routingBGPs = (declaration.Common && declaration.Common.RoutingBGP) || {};
+    if (Object.keys(routingBGPs).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'RoutingBGP', (tenant, bgp) => {
+        if (bgp.addressFamily) {
+            // add tenant prefix to addressFamilies routeMap property if needed to match current config
+            bgp.addressFamily.forEach((family) => {
+                (family.redistribute || []).forEach((redist) => {
+                    applyTenantPrefix(redist, 'routeMap', tenant);
+                });
+                if (family.redistribute && family.redistribute.length === 0) {
+                    delete family.redistribute;
+                }
+            });
+
+            // If the internetProtocol 'all' is specified.  Split it up into 'ipv4' and 'ipv6'.
+            // BIGIP does this and then iControl responds with the split result in the config manager.
+            // Split it now so the current config and desired config will match.
+            if (bgp.addressFamily.length === 1 && bgp.addressFamily[0].name === 'all') {
+                const ipv4 = JSON.parse(JSON.stringify(bgp.addressFamily[0]));
+                ipv4.name = 'ipv4';
+                const ipv6 = JSON.parse(JSON.stringify(bgp.addressFamily[0]));
+                ipv6.name = 'ipv6';
+                bgp.addressFamily = [ipv4, ipv6];
+            }
+        }
+
+        // fill in missing addressFamily defaults that are difficult to specify in schema
+        processAddressFamiliesDefaults(bgp);
+
+        // sort addressFamilies by name order ipv4 first
+        doUtil.sortArrayByValueString(bgp.addressFamily, 'name');
+
+        // sort redistributionList array in routingProtocol alphabetical order
+        bgp.addressFamily.forEach((family) => {
+            doUtil.sortArrayByValueString(family.redistribute, 'routingProtocol');
+        });
+
+        // sort neighbors array in address alphabetical order
+        doUtil.sortArrayByValueString(bgp.neighbors, 'name');
+
+        // sort peerGroups array in name alphabetical order
+        doUtil.sortArrayByValueString(bgp.peerGroups, 'name');
+
+        // fill in missing peerGroups addressFamily defaults that are difficult to specify in schema
+        (bgp.peerGroups || []).forEach((peer) => {
+            processAddressFamiliesDefaults(peer, {
+                routeMap: {},
+                softReconfigurationInbound: 'disabled'
+            });
+        });
+
+        (bgp.peerGroups || []).forEach((peer) => {
+            if (peer.addressFamily.length === 0) {
+                delete peer.addressFamily;
+            } else {
+                // add tenant prefix to peerGroups addressFamily routeMap if needed to match current config
+                peer.addressFamily.forEach((family) => {
+                    if (family.routeMap) {
+                        applyTenantPrefix(family.routeMap, 'in', tenant);
+                        applyTenantPrefix(family.routeMap, 'out', tenant);
+                    }
+                });
+            }
+        });
+    });
+}
+
+function applyTenantPrefix(obj, path, tenant) {
+    if (!obj || !path) {
+        return;
+    }
+
+    if (typeof path === 'string') {
+        path = path.split('.');
+    }
+
+    for (let i = 0; i < path.length - 1; i += 1) {
+        obj = obj[path[i]];
+        if (typeof obj === 'undefined') {
+            return;
+        }
+    }
+
+    const target = path.pop();
+    if (obj[target] && !obj[target].startsWith('/')) {
+        obj[target] = `/${tenant}/${obj[target]}`;
+    }
+}
+
+/**
+ * Normalizes the GSLB Prober Pool section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyGSLBProberPoolFixes(declaration) {
+    const gslbProberPool = declaration.Common.GSLBProberPool || {};
+
+    Object.keys(gslbProberPool).forEach((name) => {
+        const proberPool = gslbProberPool[name];
+        proberPool.members = (proberPool.members || []).map((member, index) => ({
+            name: member.name.startsWith('/Common/') ? member.name.split('/Common/')[1] : member.name,
+            description: member.description,
+            enabled: member.enabled,
+            order: index
+        }));
+        delete proberPool.label;
+    });
+}
+
+/**
+ * Normalizes the Firewall Address List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyFirewallAddressListFixes(declaration, originalConfig) {
+    const firewallAddressLists = (declaration.Common && declaration.Common.FirewallAddressList) || {};
+    if (Object.keys(firewallAddressLists).length === 0) {
+        return;
+    }
+
+    // MCP returns these arrays sorted
+    doUtil.forEach(declaration, 'FirewallAddressList', (tenant, firewallAddressList) => {
+        if (firewallAddressList.addresses) {
+            firewallAddressList.addresses = firewallAddressList.addresses.sort();
+        }
+        if (firewallAddressList.fqdns) {
+            firewallAddressList.fqdns = firewallAddressList.fqdns.sort();
+        }
+        if (firewallAddressList.geo) {
+            firewallAddressList.geo = firewallAddressList.geo.sort();
+        }
+        // In case we've a AFM provisioned NetAddressList will be created automatically,
+        // we need to remove it from originalConfig to process.
+        if (originalConfig.Common && originalConfig.Common.NetAddressList) {
+            const originalConfigList = originalConfig.Common.NetAddressList;
+            Object.keys(originalConfigList).forEach((netAddressList) => {
+                if (netAddressList in firewallAddressLists) {
+                    delete originalConfigList[netAddressList];
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Normalizes the Firewall Port List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ * @param {Object} originalConfig - current configuration
+ */
+function applyFirewallPortListFixes(declaration, originalConfig) {
+    const firewallPortLists = (declaration.Common && declaration.Common.FirewallPortList) || {};
+    if (Object.keys(firewallPortLists).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'FirewallPortList', (tenant, firewallPortList) => {
+        if (firewallPortList.ports) {
+            // The schema allows for integer or string, so coerce to string since that's
+            // what iControl REST will return for these
+            firewallPortList.ports = firewallPortList.ports.map((port) => port.toString());
+        }
+        // In case we've a AFM provisioned NetPortList will be created automatically,
+        // we need to remove it from originalConfig to process.
+        if (originalConfig.Common && originalConfig.Common.NetPortList) {
+            const originalConfigList = originalConfig.Common.NetPortList;
+            Object.keys(originalConfigList).forEach((netPortList) => {
+                if (netPortList in firewallPortLists) {
+                    delete originalConfigList[netPortList];
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Normalizes the Net Address List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ * @param {Object} originalConfig - current configuration
+ */
+function applyNetAddressListFixes(declaration, originalConfig) {
+    const netAddressLists = (declaration.Common && declaration.Common.NetAddressList) || {};
+    if (Object.keys(netAddressLists).length === 0) {
+        return;
+    }
+
+    // MCP returns these arrays sorted
+    doUtil.forEach(declaration, 'NetAddressList', (tenant, netAddressList) => {
+        if (netAddressList.addresses) {
+            netAddressList.addresses = netAddressList.addresses.sort();
+        }
+        // In case we've a AFM provisioned FirewallAddressList will be created automatically,
+        // we need to remove it from originalConfig to process.
+        if (originalConfig.Common && originalConfig.Common.FirewallAddressList) {
+            const originalConfigList = originalConfig.Common.FirewallAddressList;
+            Object.keys(originalConfigList).forEach((firewallAddressList) => {
+                if (firewallAddressList in netAddressLists) {
+                    delete originalConfigList[firewallAddressList];
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Normalizes the Net Port List section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ * @param {Object} originalConfig - current configuration
+ */
+function applyNetPortListFixes(declaration, originalConfig) {
+    const netPortLists = (declaration.Common && declaration.Common.NetPortList) || {};
+    if (Object.keys(netPortLists).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'NetPortList', (tenant, netPortList) => {
+        if (netPortList.ports) {
+            // The schema allows for integer or string, so coerce to string since that's
+            // what iControl REST will return for these
+            netPortList.ports = netPortList.ports.map((port) => port.toString());
+        }
+        // In case we've a AFM provisioned FirewallPortList will be created automatically,
+        // we need to remove it from originalConfig to process.
+        if (originalConfig.Common && originalConfig.Common.FirewallPortList) {
+            const originalConfigList = originalConfig.Common.FirewallPortList;
+            Object.keys(originalConfigList).forEach((firewallPortList) => {
+                if (firewallPortList in netPortLists) {
+                    delete originalConfigList[firewallPortList];
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Normalize the firewall rules section of a class in a declaration
+ *
+ * @param {Object[]} rules - rules to fix
+ * @param {string} tenant - tenant that rules belong to
+ *
+ * @returns {Object[]} - normalized firewall rules
+ */
+function applyFirewallRuleFixes(rules, tenant) {
+    return (rules || []).map((rule) => {
+        const newRule = {
+            name: rule.name,
+            description: rule.description,
+            action: rule.action,
+            ipProtocol: rule.ipProtocol,
+            log: rule.log,
+            source: rule.source || {},
+            destination: rule.destination || {}
+        };
+
+        Object.keys(newRule.source).forEach((sourceType) => {
+            (newRule.source[sourceType] || []).forEach((source, i) => {
+                applyTenantPrefix(newRule, `source.${sourceType}.${i}`, tenant);
+            });
+        });
+
+        Object.keys(newRule.destination).forEach((destinationType) => {
+            (newRule.source[destinationType] || []).forEach((dest, i) => {
+                applyTenantPrefix(newRule, `destination.${destinationType}.${i}`, tenant);
+            });
+        });
+
+        return newRule;
+    });
+}
+
+/**
+ * Normalizes the Firewall Policy section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyFirewallPolicyFixes(declaration) {
+    const firewallPolicies = (declaration.Common && declaration.Common.FirewallPolicy) || {};
+    if (Object.keys(firewallPolicies).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'FirewallPolicy', (tenant, firewallPolicy) => {
+        // This check can be removed when AT-3590 is resolved.
+        if (typeof firewallPolicy === 'object') {
+            firewallPolicy.rules = applyFirewallRuleFixes(firewallPolicy.rules, tenant);
+            delete firewallPolicy.label;
+        }
+    });
+}
+
+/**
+ * Normalizes the Self IP section of a declaration
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applySelfIpFixes(declaration) {
+    const selfIps = (declaration.Common && declaration.Common.SelfIp) || {};
+    if (Object.keys(selfIps).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'SelfIp', (tenant, selfIp) => {
+        ['fwEnforcedPolicy', 'fwStagedPolicy'].forEach((policyKey) => {
+            if (selfIp[policyKey] && selfIp[policyKey].startsWith('/')) {
+                selfIp[policyKey] = selfIp[policyKey].split('/').pop();
+            }
+        });
+    });
+}
+
+/**
+ * Normalizes tunnel properties to what the configManager returns
+ *
+ * @param {Object} declaration - declaration to fix
+ */
+function applyTunnelFixes(declaration) {
+    const tunnels = (declaration.Common && declaration.Common.Tunnel) || {};
+    if (Object.keys(tunnels).length === 0) {
+        return;
+    }
+
+    doUtil.forEach(declaration, 'Tunnel', (tenant, tunnel) => {
+        if (tunnel.trafficGroup && tunnel.trafficGroup.startsWith('/Common')) {
+            tunnel.trafficGroup = tunnel.trafficGroup.split('/Common/')[1];
+        }
+    });
+}
+
+/**
+ * Convert LDAP SSL cert data to SHA1 checksum, name, and partition.
+ *
+ * @param {Object} declaration - User provided declaration
+ *
+ * @returns {Object} - Original LDAP SSL cert data
+ */
+function applyLdapCertFixes(declaration) {
+    const origData = {};
+    const auth = declaration.Common.Authentication;
+
+    const patchItem = (key, subKey, targetKey, ext) => {
+        const data = auth.ldap[key][subKey];
+
+        if (typeof data === 'undefined') { return; }
+
+        const hash = crypto.createHash('sha1');
+
+        origData[targetKey] = data;
+        hash.update(data);
+        // we strip off 'File' in the new name for backwards compatibility
+        auth.ldap[targetKey] = {
+            name: `${key.replace(/^ssl/, 'do_ldap').replace('File', '')}.${ext}`,
+            partition: 'Common',
+            checksum: `SHA1:${data.length}:${hash.digest('hex')}`
+        };
+    };
+
+    if (auth && auth.ldap) {
+        ['sslCaCertFile', 'sslClientCert'].forEach((key) => {
+            if (!auth.ldap[key]) { return; }
+
+            // privateKey needs to be patched before certificate to avoid overwriting orig data
+            patchItem(key, 'privateKey', key.replace(/Cert(File)?$/, 'Key'), 'key');
+            patchItem(key, 'certificate', key, 'crt');
+        });
+    }
+    return origData;
+}
+
+/**
+ * Combine new LDAP SSL cert properties with original data from user declaration.
+ *
+ * @param {Object} declaration - Update declaration
+ * @param {Object} origData - LDAP SSL cert data
+ */
+function applyLdapCertOrigData(declaration, origData) {
+    const auth = declaration.Common.Authentication;
+
+    if (auth && auth.ldap) {
+        Object.keys(origData).forEach((key) => {
+            // This should result in an object like this in ldap.sslCaCertFile:
+            // {
+            //      name: 'theName',
+            //      partition: 'Common',
+            //      checksum: 'sha1:',
+            //      sslCaCertFile: 'data'
+            // }
+            auth.ldap[key][key] = origData[key];
+        });
+    }
+}
+
+/**
+ * Add original DHCP ManagementRoute objects to the declaration if we are preserving them.
+ *
+ * @param {Object} declaration - user provided declaration
+ */
+function applyManagementRouteFixes(declaration) {
+    const ManagementRoutes = declaration.Common.ManagementRoute;
+    const origManagementRoutes = this.state.originalConfig.Common.ManagementRoute;
+
+    if (!origManagementRoutes || !ManagementRoutes || !declaration.Common.System
+        || !declaration.Common.System.preserveOrigDhcpRoutes) {
+        return;
+    }
+
+    // We need to separately save the preserveOrigDhcpRoutes settings to determine the proper
+    // mgmt-dhcp setting later. Otherwise, if it matches current config, we will lose the info in the diff.
+    if (!declaration.Common.InternalUse.System) {
+        declaration.Common.InternalUse.System = {};
+    }
+    declaration.Common.InternalUse.System.preserveOrigDhcpRoutes = declaration.Common.System.preserveOrigDhcpRoutes;
+
+    Object.keys(origManagementRoutes).forEach((managementRoute) => {
+        if (origManagementRoutes[managementRoute].description === 'configured-by-dhcp'
+            && Object.keys(ManagementRoutes).indexOf(managementRoute) === -1) {
+            declaration.Common.ManagementRoute[managementRoute] = JSON.parse(
+                JSON.stringify(origManagementRoutes[managementRoute])
+            );
+        }
+    });
 }
 
 function processHandler(Handler, declaration, bigIp, eventEmitter, state) {
@@ -488,7 +1252,7 @@ function processHandlers(handlers, handlerStatuses, bigIp, eventEmitter, state, 
  *
  * @param {Object} declaration - declaration to count
  *
- * @returns {Object} - An object with integers: ldap, radius, and tacas
+ * @returns {Object} - An object with integers: ldap, radius, and tacacs
  */
 function countAuthenticationTypes(declaration, count) {
     // iterate through the declaration
@@ -505,6 +1269,114 @@ function countAuthenticationTypes(declaration, count) {
     });
 
     return count;
+}
+
+function removeEmptyObjects(declaration) {
+    const common = declaration.Common;
+    Object.keys(common).forEach((key) => {
+        const configItem = common[key];
+        if (typeof configItem === 'object' && Object.keys(configItem).length === 0) {
+            delete common[key];
+        }
+    });
+}
+
+function makeUpdates(declaration, updateDeclaration, deleteDeclaration) {
+    return Promise.resolve()
+        .then(() => this.bigIp.modify('/tm/sys/global-settings', { guiSetup: 'disabled' }))
+        .then(() => {
+            const handlers = [
+                [SystemHandler, updateDeclaration],
+                [AuthHandler, updateDeclaration],
+                [ProvisionHandler, updateDeclaration],
+                [NetworkHandler, updateDeclaration],
+                [DscHandler, updateDeclaration],
+                [AnalyticsHandler, updateDeclaration],
+                [GSLBHandler, updateDeclaration],
+                [SecurityHandler, updateDeclaration],
+                [DeleteHandler, deleteDeclaration],
+                [DeprovisionHandler, updateDeclaration]
+            ];
+
+            const handlerStatuses = [];
+            return processHandlers(
+                handlers,
+                handlerStatuses,
+                this.bigIp,
+                this.eventEmitter,
+                this.state
+            );
+        })
+        .then((handlerStatuses) => {
+            const status = {
+                rollbackInfo: {},
+                warnings: []
+            };
+            handlerStatuses.forEach((handlerStatus) => {
+                if (handlerStatus.rebootRequired === true) {
+                    status.rebootRequired = true;
+                }
+                if (handlerStatus.rollbackInfo) {
+                    Object.keys(handlerStatus.rollbackInfo).forEach((key) => {
+                        status.rollbackInfo[key] = JSON.parse(JSON.stringify(handlerStatus.rollbackInfo[key]));
+                    });
+                }
+                if (handlerStatus.warnings) {
+                    status.warnings = status.warnings.concat(handlerStatus.warnings);
+                }
+            });
+            this.logger.info('Done processing declaration.');
+            return Promise.resolve(status);
+        });
+}
+
+function handleTeemReport(declaration) {
+    if (!declaration.parsed) {
+        const assetInfo = {
+            name: 'Declarative Onboarding',
+            version: doUtil.getDoVersion(this.state.id).VERSION
+        };
+        const teemDevice = new TeemDevice(assetInfo);
+
+        // gather/calculate extra fields
+        const extraFields = {};
+        if (declaration.controls) {
+            extraFields.userAgent = declaration.controls.userAgent;
+        }
+        if (declaration.Common) {
+            extraFields.authenticationType = countAuthenticationTypes(
+                declaration.Common,
+                { ldap: 0, radius: 0, tacacs: 0 }
+            );
+        }
+
+        const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
+        return Promise.resolve()
+            .then(() => record.calculateAssetId())
+            .then(() => record.addRegKey())
+            .then(() => record.addPlatformInfo())
+            .then(() => record.addProvisionedModules())
+            .then(() => record.addClassCount(declaration))
+            .then(() => record.addJsonObject(extraFields))
+            .then(() => teemDevice.reportRecord(record))
+            .catch((err) => {
+                this.logger.warning(`Unable to send device report: ${err.message}`);
+            });
+    }
+    return Promise.resolve();
+}
+
+/**
+ * Remove properties from the currentConfig that aren't in the declaration
+ * and that we don't want diffs for.
+ *
+ * @param {Object} declaration - declaration
+ * @param {Object} currentConfig - current configuration
+ */
+function removeUnwantedProperties(declaration, currentConfig) {
+    if (declaration && declaration.Common.System && !declaration.Common.System.mgmtDhcp) {
+        delete currentConfig.Common.System.mgmtDhcp;
+    }
 }
 
 module.exports = DeclarationHandler;

@@ -7,21 +7,21 @@
         "class": "Tenant",
         "myglobals": {
             "class": "TrafficControl",
-                "acceptIpOptions": true,
-                "acceptIpSourceRoute": true,
-                "allowIpSourceRoute": true,
-                "continueMatching": true,
-                "maxIcmpRate": 867,
-                "maxPortFindLinear": 867,
-                "maxPortFindRandom": 867,
-                "maxRejectRate": 867,
-                "maxRejectRateTimeout": 200,
-                "minPathMtu": 867,
-                "pathMtuDiscovery": false,
-                "portFindThresholdWarning": false,
-                "portFindThresholdTrigger": 10,
-                "portFindThresholdTimeout": 200,
-                "rejectUnmatched": false
+            "acceptIpOptions": true,
+            "acceptIpSourceRoute": true,
+            "allowIpSourceRoute": true,
+            "continueMatching": true,
+            "maxIcmpRate": 867,
+            "maxPortFindLinear": 867,
+            "maxPortFindRandom": 867,
+            "maxRejectRate": 867,
+            "maxRejectRateTimeout": 200,
+            "minPathMtu": 867,
+            "pathMtuDiscovery": false,
+            "portFindThresholdWarning": false,
+            "portFindThresholdTrigger": 10,
+            "portFindThresholdTimeout": 200,
+            "rejectUnmatched": false
         }
     }
 }

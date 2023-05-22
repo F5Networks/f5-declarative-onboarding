@@ -1,22 +1,24 @@
 .. _clustering:  
 
 
-Composing a Declarative Onboarding declaration for a cluster of BIG-IPs
-=======================================================================
+Composing a BIG-IP Declarative Onboarding declaration for a cluster of BIG-IPs
+==============================================================================
 
-Declarative Onboarding can also create a clustered configuration (Device Service Cluster) between two or more BIG-IP systems. You must install Declarative Onboarding and submit a declaration on each device in the cluster, and all BIG-IP devices must be on the same BIG-IP version.  You specify one BIG-IP system as the 'owner' and the other BIG-IPs as 'members' (see :ref:`devicegroup`).  
+BIG-IP Declarative Onboarding can also create a clustered configuration (Device Service Cluster) between two or more BIG-IP systems. You must install BIG-IP Declarative Onboarding and submit a declaration on each device in the cluster, and all BIG-IP devices must be on the same BIG-IP version.  You specify one BIG-IP system as the 'owner' and the other BIG-IPs as 'members' (see :ref:`devicegroup`).  
 
 BIG-IP clustering is well-documented in the product documentation; for detailed information about clustering on the BIG-IP system, see |cluster|.
 
 .. TIP:: You can use GET to the URI ``https://<BIG-IP>/mgmt/shared/declarative-onboarding`` to track whether a declaration is successful or get information on why it failed.
 
-Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
+Additionally, see :doc:`json-pointers` for information on using JSON/BIG-IP Declarative Onboarding pointers in your declaration.
 
 
 Declaration classes for a cluster of BIG-IPs
 --------------------------------------------
 
 In this example, we include the classes that are specific to clustering.  For a complete declaration, you could add the classes shown in :doc:`composing-a-declaration` to configure DNS, NTP, VLANs, Routes and more.  For the full clustering example declaration, see :ref:`example2`.
+
+.. NOTE:: Some classes are only available in certain versions of BIG-IP Declarative Onboarding.  See the individual class sections for any version notices.
 
 For some of the clustering components, like ConfigSync and failoverAddress, you can use JSON pointers to reference objects/properties in declarations.
 
@@ -63,6 +65,11 @@ The following declaration snippet could continue after the :ref:`route-class` in
         "remoteHost": "/Common/failoverGroup/members/0",
         "remoteUsername": "admin",
         "remotePassword": "pass2word"
+    },
+    "myMirror": {
+        "class": "MirrorIp",
+        "primaryIp": "10.1.0.20",
+        "secondaryIp": "any6"
     }
 
 
@@ -74,13 +81,16 @@ If there is a default value, it is shown in bold in the Options column.
 
 Use the index in the left pane if you want to go directly to a particular section.
 
+.. TIP:: There may be additional properties available in some of the classes.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for detailed information on each class and their associated properties. 
+
+
 .. _sync-class:
 
 Configsync class
 ````````````````
 The first class specific to clustering is the configsync class. This class contains the properties responsible for propagating BIG-IP configuration changes, including device trust information, to all devices in a device group. For more information on configsync on the BIG-IP, see |cs|.  Because this example assumes we are using this class together with the  standalone declaration, we can use a JSON pointer to the self IP address we defined. 
 
-.. NOTE::  As of DO 1.7.0, **none** is a valid value for configsyncIP.
+.. NOTE::  As of BIG-IP DO 1.7.0, **none** is a valid value for configsyncIP.
 
 .. code-block:: javascript
    :linenos:
@@ -150,7 +160,7 @@ For more information on Device Groups on the BIG-IP, see |group|.  In this examp
 
 **Important**: You cannot use *autoSync* and *fullLoadOnSync* together. 
 
-.. NOTE::  In Declarative Onboarding v1.11.0 and later, the member and owner parameters can be IP addresses.  See :ref:`Example 17<example17>` for an example declaration.
+.. NOTE::  In BIG-IP Declarative Onboarding v1.11.0 and later, the member and owner parameters can be IP addresses.  See :ref:`Example 17<example17>` for an example declaration.
 
 
 
@@ -206,7 +216,7 @@ The next class specific to clustering is the traffic group class. A traffic grou
 
 For detailed information about Traffic Groups and clustering on the BIG-IP, see |tgdoc|.  See :ref:`Traffic Groups<example25>` for an example declaration.
 
-.. IMPORTANT:: The HA Score failover method is not currently supported. DO uses the HA Order failover method. |br| |br| Because DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the example, the declaration defines a Device Group with a host name.  
+.. IMPORTANT:: The HA Score failover method is not currently supported. BIG-IP DO uses the HA Order failover method. |br| |br| Because BIG-IP DO uses HA Order for failover, the declaration must include a hostname, located inside of a deviceGroup. In the example, the declaration defines a Device Group with a host name.  
 
 
 .. code-block:: javascript
@@ -226,21 +236,21 @@ For detailed information about Traffic Groups and clustering on the BIG-IP, see 
 
 |
 
-+---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Parameter           | Options           | Required*?  |  Description/Notes                                                                                                                                                                                                                                                                                                             |
-+=====================+===================+=============+================================================================================================================================================================================================================================================================================================================================+
-| class               | TrafficGroup      |   Yes       |  Indicates that this property contains Traffic Group configuration.                                                                                                                                                                                                                                                            |
-+---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| autoFailbackEnabled | true, **false**   |   No        |  Specifies whether the traffic group fails back to the default device.                                                                                                                                                                                                                                                         |
-+---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| autoFailbackTime    | integer           |   No        |  Specifies the time required to fail back.                                                                                                                                                                                                                                                                                     |
-+---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| failoverMethod      | ha-order          |   No        |  Specifies the method to failover the traffic-group to another device. Currently only ha-order is supported, where a list of devices and their respective HA load is used to decide the next one to take over if the current devices fails.                                                                                    |
-+---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| haLoadFactor        | integer           |   No        |  Specifies a number for this traffic group that represents the load this traffic group presents to the system relative to other traffic groups. This allows the failover daemon to load balance the active traffic groups amongst the devices.                                                                                 |
-+---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| haOrder             | array             |   No        |  List of devices that specifies the order in which the devices will become active for the traffic group when a failure occurs. May contain from zero up to the number of devices in the failover device group. If autoFailbackEnabled is true, this list **must** contain at least one entry for the auto failback device.     |
-+---------------------+-------------------+-------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++---------------------+-------------------+-------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Parameter           | Options           | Required*?  |  Description/Notes                                                                                                                                                                                                                                 |
++=====================+===================+=============+====================================================================================================================================================================================================================================================+
+| class               | TrafficGroup      |   Yes       |  Indicates that this property contains Traffic Group configuration.                                                                                                                                                                                |
++---------------------+-------------------+-------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| autoFailbackEnabled | true, **false**   |   No        |  Specifies whether the traffic group fails back to the default device.                                                                                                                                                                             |
++---------------------+-------------------+-------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| autoFailbackTime    | integer           |   No        |  Specifies the time required to fail back.                                                                                                                                                                                                         |
++---------------------+-------------------+-------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| failoverMethod      | ha-order          |   No        |  Specifies the method to failover the traffic-group to another device. Currently only ha-order is supported, where a list of devices and their respective HA load is used to decide the next one to take over if the current devices fails.        |
++---------------------+-------------------+-------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| haLoadFactor        | integer           |   No        |  Specifies a number for this traffic group that represents the load this traffic group presents to the system relative to other traffic groups. This allows the failover daemon to load balance the active traffic groups amongst the devices.     |
++---------------------+-------------------+-------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| haOrder             | array             |   No        |  List of devices that specifies the order in which the devices will become active for the traffic group when a failure occurs. May contain from zero up to the number of devices in the failover device group.                                     |
++---------------------+-------------------+-------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 \* The required column applies only if you are using this class.
 
@@ -250,7 +260,7 @@ For detailed information about Traffic Groups and clustering on the BIG-IP, see 
 
 Device Trust class
 ``````````````````
-The final class specific to clustering is the device trust class. Device trust establishes trust relationships between BIG-IP devices on the network, through mutual certificate-based authentication. For more information on Device Trust on the BIG-IP, see |trust|. 
+The next class specific to clustering is the device trust class. Device trust establishes trust relationships between BIG-IP devices on the network, through mutual certificate-based authentication. For more information on Device Trust on the BIG-IP, see |trust|. 
 
 .. code-block:: javascript
    :linenos:
@@ -285,6 +295,40 @@ The final class specific to clustering is the device trust class. Device trust e
 \* The required column applies only if you are using this class.
 
 
+.. _mirrorip:
+
+MirrorIp class
+``````````````
+The next class specific to clustering is the MirrorIP class, introduced in BIG-IP DO v1.16. The MirrorIP class allows you to configure connection and persistence mirroring information in a BIG-IP Declarative Onboarding declaration.  This allows you to configure clustered BIG-IPs to duplicate connection and persistence information to peer members of the BIG-IP device group, providing higher reliability but may affect system performance.  
+
+For more information and BIG-IP DO usage, see |mirrorref|.  See :ref:`example29` for an example declaration.
+
+
+.. code-block:: javascript
+   :linenos:
+  
+    "myMirror": {
+        "class": "MirrorIp",
+        "primaryIp": "10.1.0.20",
+        "secondaryIp": "any6"
+    }
+
+
+|
+
++---------------------+-------------------+-------------+------------------------------------------------------------------------------------------------+
+| Parameter           | Options           | Required*?  |  Description/Notes                                                                             |
++=====================+===================+=============+================================================================================================+
+| class               | MirrorIp          |   Yes       |  Indicates that this property contains connection and persistence mirroring information.       |
++---------------------+-------------------+-------------+------------------------------------------------------------------------------------------------+
+| primaryIp           | string            |   No        |  IP address of the primary mirror. Specify **any6** to disable (the default is **any6**).      |
++---------------------+-------------------+-------------+------------------------------------------------------------------------------------------------+
+| secondaryIp         | string            |   No        |  IP address of the secondary mirror. Specify **any6** to disable (the default is **any6**).    |
++---------------------+-------------------+-------------+------------------------------------------------------------------------------------------------+
+
+\* The required column applies only if you are using this class.
+
+
 .. |cs| raw:: html
 
    <a href="https://support.f5.com/kb/en-us/products/big-ip_ltm/manuals/product/bigip-system-device-service-clustering-administration-13-1-0/5.html" target="_blank">Configsync documentation</a>
@@ -313,3 +357,7 @@ The final class specific to clustering is the device trust class. Device trust e
 .. |br| raw:: html
 
    <br />
+
+.. |mirrorref| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#mirrorip" target="_blank">MirrorIp</a>

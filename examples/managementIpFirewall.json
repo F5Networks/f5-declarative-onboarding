@@ -1,0 +1,53 @@
+{
+    "schemaVersion": "1.30.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "netAddressList1": {
+            "class": "NetAddressList",
+            "addresses": ["192.0.2.10", "233.252.0.0/24"]
+        },
+        "netPortList1": {
+            "class": "NetPortList",
+            "ports": [8080, 8888]
+        },
+        "netPortList2": {
+            "class": "NetPortList",
+            "ports": ["8123", "8234", "8300-8350"]
+        },
+        "managementIpFirewall": {
+            "class": "ManagementIpFirewall",
+            "label": "Example of all management IP firewall properties",
+            "remark": "management IP firewall description",
+            "rules": [
+                {
+                    "name": "firewallRule",
+                    "label": "Example of all firewall rule properties",
+                    "remark": "firewall rule description",
+                    "action": "reject",
+                    "protocol": "tcp",
+                    "loggingEnabled": true,
+                    "source": {
+                        "addressLists": [
+                            "/Common/netAddressList1"
+                        ],
+                        "portLists": [
+                            "/Common/netPortList1",
+                            "/Common/netPortList2"
+                        ]
+                    },
+                    "destination": {
+                        "addressLists": [
+                            "/Common/netAddressList1"
+                        ],
+                        "portLists": [
+                            "/Common/netPortList1",
+                            "/Common/netPortList2"
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

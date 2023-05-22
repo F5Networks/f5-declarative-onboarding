@@ -1,7 +1,7 @@
 {
     "class": "DO",
-    "targetHost": "1.2.3.4",
-    "targetUsername": "/declaration/Credentials/1/username",
+    "targetHost": "192.0.2.4",
+    "targetUsername": "/declaration/Credentials/1/bigiqUsername",
     "targetPassphrase": "/declaration/Credentials/1/password",
     "declaration": {
         "schemaVersion": "1.0.0",
@@ -14,7 +14,7 @@
             },
             {
                 "username": "admin",
-                "password": "barbar"
+                "password": "asdfjkl"
             }
         ],
         "Common": {
@@ -23,15 +23,15 @@
             "myLicense": {
                 "class": "License",
                 "licenseType": "licensePool",
-                "bigIqHost": "10.0.1.200",
-                "bigIqUsername": "/Credentials/0/username",
+                "bigIqHost": "192.0.2.200",
+                "bigIqUsername": "/Credentials/0/bigiqUsername",
                 "bigIqPassword": "/Credentials/0/password",
                 "licensePool": "myUtilityLicense",
                 "skuKeyword1": "key1",
                 "skuKeyword2": "key2",
                 "unitOfMeasure": "hourly",
                 "reachable": true,
-                "bigIpUsername": "/Credentials/1/username",
+                "bigIpUsername": "/Credentials/1/bigipUsername",
                 "bigIpPassword": "/Credentials/1/password"
             },
             "myDns": {

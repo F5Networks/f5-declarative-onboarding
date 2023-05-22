@@ -18,7 +18,7 @@
             "myNtp": {
                 "class": "NTP",
                 "servers": [
-                        "time.nist.gov"
+                    "time.nist.gov"
                 ],
                 "timezone": "UTC"
             },
@@ -27,7 +27,7 @@
                 "userType": "regular",
                 "partitionAccess": {
                     "all-partitions": {
-                            "role": "admin"
+                        "role": "admin"
                     }
                 },
                 "shell": "tmsh",
@@ -41,7 +41,7 @@
             }
         }
     },
-    "targetHost": "54.10.10.10",
+    "targetHost": "192.0.2.10",
     "targetUsername": "admin",
     "targetSshKey": {
         "path": "/var/ssh/restnoded/privatessh.key"

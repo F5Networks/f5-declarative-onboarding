@@ -1,0 +1,58 @@
+{
+    "schemaVersion": "1.30.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal",
+            "afm": "nominal"
+        },
+        "firewallAddressList1": {
+            "class": "FirewallAddressList",
+            "addresses": ["192.0.2.10", "233.252.0.0/24"]
+        },
+        "firewallPortList1": {
+            "class": "FirewallPortList",
+            "ports": [8080, 8888]
+        },
+        "firewallPortList2": {
+            "class": "FirewallPortList",
+            "ports": ["8123", "8234", "8300-8350"]
+        },
+        "managementIpFirewall": {
+            "class": "ManagementIpFirewall",
+            "label": "Example of all management IP firewall properties",
+            "remark": "management IP firewall description",
+            "rules": [
+                {
+                    "name": "firewallRule",
+                    "label": "Example of all firewall rule properties",
+                    "remark": "firewall rule description",
+                    "action": "reject",
+                    "protocol": "tcp",
+                    "loggingEnabled": true,
+                    "source": {
+                        "addressLists": [
+                            "/Common/firewallAddressList1"
+                        ],
+                        "portLists": [
+                            "/Common/firewallPortList1",
+                            "/Common/firewallPortList2"
+                        ]
+                    },
+                    "destination": {
+                        "addressLists": [
+                            "/Common/firewallAddressList1"
+                        ],
+                        "portLists": [
+                            "/Common/firewallPortList1",
+                            "/Common/firewallPortList2"
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,11 @@ const Logger = require('./logger');
 const State = require('./state');
 
 const LOCALHOST_ADDRS = ['localhost', '127.0.0.1'];
-const NAMELESS_CLASSES = require('./sharedConstants').NAMELESS_CLASSES;
 const PROCESS_MAX_TIMEOUT = require('./sharedConstants').ENDPOINT_MAX_TIMEOUT;
 const SCHEMA_VERSION = require('../schema/latest/base.schema.json').properties.schemaVersion.enum[0];
 const STATUS = require('./sharedConstants').STATUS;
 
-const logger = new Logger(module);
+const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
 
 /**
  * Handles inspecting device's configuration
@@ -45,11 +44,14 @@ class InspectHandler {
      * Constructor
      *
      * @param {Object} queryParams - query params
+     * @param {String} [taskId] - The id of the task
      */
-    constructor(queryParams) {
+    constructor(queryParams, taskId) {
         this.processTimeout = PROCESS_MAX_TIMEOUT;
         this.queryParams = queryParams || {};
         this.errors = [];
+        this.taskId = taskId;
+        this.logger = new Logger(module, taskId);
     }
 
     /**
@@ -102,13 +104,13 @@ class InspectHandler {
      * @returns {Promise} A promise which is resolved when processing is complete
      */
     process() {
-        logger.fine('Processing Inspect request.');
+        this.logger.fine('Processing Inspect request.');
         return new Promise((resolve) => {
             // set timeout in case if request exceeded timeout (e.g. device not available)
             // if timeout exceeded then response will be empty object
             const timeoutID = setTimeout(() => {
                 const errMsg = `Unable to complete request within specified timeout (${this.processTimeout / 1000}s.)`;
-                logger.severe(`Error processing Inspect request: ${errMsg}`);
+                this.logger.severe(`Error processing Inspect request: ${errMsg}`);
 
                 this.code = 408;
                 this.message = 'Request Timeout';
@@ -124,7 +126,7 @@ class InspectHandler {
                 .catch((err) => {
                     // Unexpected error, response will be empty object
                     clearTimeout(timeoutID);
-                    logger.severe(`Error processing Inspect request: ${err.message}`);
+                    this.logger.severe(`Error processing Inspect request: ${err.message}`);
                     this.errors.push(err.message);
                     resolve({});
                 });
@@ -167,8 +169,8 @@ function processRequest() {
                 return Promise.reject(err);
             }
         })
-        .then(declaration => validateDeclaration.call(this, declaration))
-        .then(declaration => Promise.resolve({ declaration }));
+        .then((declaration) => validateDeclaration.call(this, declaration))
+        .then((declaration) => Promise.resolve({ declaration }));
 }
 
 /**
@@ -192,7 +194,6 @@ function validateDeclaration(declaration) {
             return Promise.resolve(declaration);
         });
 }
-
 
 /**
  * Validate request. Result can be empty object when no target* params specified in query
@@ -250,7 +251,7 @@ function validateRequest() {
  * @returns {Promise} resolved when platform is BIG-IP
  */
 function validatePlatform() {
-    return doUtil.getCurrentPlatform()
+    return doUtil.getCurrentPlatform(this.taskId)
         .then((platform) => {
             if (platform !== PRODUCTS.BIGIP) {
                 this.code = 403;
@@ -274,13 +275,16 @@ function validatePlatform() {
  */
 function fetchCurrentConfiguration(targetDevice) {
     // use empty State objects to avoid modifications to existing state
-    const state = {};
+    const state = { id: this.taskId };
     const doState = new State();
 
-    return doUtil.getBigIp(logger, targetDevice)
+    return doUtil.getBigIp(this.logger, targetDevice)
         .then((bigIp) => {
-            const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp);
-            return configManager.get({}, state, doState);
+            const configManager = new ConfigManager(`${__dirname}/configItems.json`, bigIp, state);
+            const configOptions = {
+                translateToNewId: true
+            };
+            return configManager.get({}, doState, configOptions);
         })
         .then(() => {
             const originalConfig = state.originalConfig || {};
@@ -334,7 +338,7 @@ function processItemProperty(property, configObject) {
     if ('replaceIfValue' in property) {
         if (Array.isArray(configObject[property.id])) {
             configObject[property.id] = configObject[property.id]
-                .map(item => (item === property.replaceIfValue ? property.newValue : item));
+                .map((item) => (item === property.replaceIfValue ? property.newValue : item));
         } else if (configObject[property.id] === property.replaceIfValue) {
             configObject[property.id] = property.newValue;
         }
@@ -356,29 +360,52 @@ function processItemProperty(property, configObject) {
  *                               should be removed from declaration.
  */
 const customFunctions = {
+    // ManagementIp
+    remapManagementIp: (configKey, configObject) => {
+        configKey = 'currentManagementIp';
+        return [configKey, configObject];
+    },
     // DNS_Resolver item
-    remapNamservers: (configKey, configObject) => {
+    remapNameservers: (configKey, configObject) => {
         if (configObject.forwardZones) {
             configObject.forwardZones.forEach((zone) => {
-                zone.nameservers = zone.nameservers.map(nameserver => nameserver.name);
+                zone.nameservers = zone.nameservers.map((nameserver) => nameserver.name);
             });
         }
         return [configKey, configObject];
     },
     // FailoverUnicast item
-    removeIfUnicastAddrNone: (configKey, configObject) => [configKey, (configObject.unicastAddress === 'none' ? undefined : configObject)],
+    formatFailoverUnicast: (configKey, configObject) => {
+        if (configObject.addressPorts === 'none') {
+            return [configKey, undefined];
+        }
+
+        return [configKey, configObject];
+    },
     // Authentication item
     removeIncompleteAuthMethods: (configKey, configObject) => {
         const radius = configObject.radius;
         const ldap = configObject.ldap;
+        const tacacs = configObject.tacacs;
 
-        // if no servers defined then remove 'radius' config
+        // if no servers defined then remove auth configs
         if (radius && !(radius.servers && radius.servers.primary)) {
             delete configObject.radius;
         }
-        // if no servers defined then remove 'ldap' config
         if (ldap && !ldap.servers) {
             delete configObject.ldap;
+        }
+        if (tacacs && !tacacs.servers) {
+            delete configObject.tacacs;
+        }
+        return [configKey, configObject];
+    },
+    // LDAP item
+    removeLdapCertAndKey: (configKey, configObject) => {
+        if (configObject.ldap) {
+            delete configObject.ldap.sslCaCert;
+            delete configObject.ldap.sslClientCert;
+            delete configObject.ldap.sslClientKey;
         }
         return [configKey, configObject];
     },
@@ -388,7 +415,23 @@ const customFunctions = {
             configKey = 'rd0';
         }
         return [configKey, configObject];
-    }
+    },
+    // GSLB Prober Pool item
+    formatGSLBProberPool: (configKey, configObject) => {
+        // Order is determined automatically by array order in the schema and the property is not needed
+        configObject.members.forEach((member) => {
+            delete member.order;
+        });
+        return [configKey, configObject];
+    },
+    // SecurityAnalytics
+    remapStaleRules: (configKey, configObject) => {
+        configObject.collectStaleRulesEnabled = configObject.collectStaleRulesEnabled.collect;
+        return [configKey, configObject];
+    },
+    // Some items with schemaMerge are skipped in the general handling but
+    // should be processed by processItem anyway
+    remapItemWithSchemaMerge: (configKey, configObject) => [configKey, configObject]
 };
 
 /**
@@ -412,7 +455,7 @@ function processItem(configItem, declItem, configKey, configObject) {
 
         // most declaration objects has no 'name' property, but some may have
         // an override
-        const hasNameOverride = configItem.properties.find(property => property.newId === 'name');
+        const hasNameOverride = configItem.properties.find((property) => property.newId === 'name');
         if (hasNameOverride === undefined) {
             delete configObject.name;
         }
@@ -451,9 +494,10 @@ function processItem(configItem, declItem, configKey, configObject) {
  * @param {Function(String, Object)} callback          - callback to call when config object processed
  */
 function processConfigItem(configItem, tenantConfig, callback) {
-    let declItem = configItem.declaration;
+    let declItem = typeof configItem.declaration !== 'undefined' ? configItem.declaration : {};
     // item excluded from declaration or is part of another item (ignore items with schemaMerge for now)
-    if (declItem === false || typeof configItem.schemaMerge !== 'undefined') {
+    if (declItem === false
+        || (!declItem.customFunctions && typeof configItem.schemaMerge !== 'undefined')) {
         return;
     }
     // deep copy if object or create new
@@ -487,6 +531,7 @@ function makeDeclarationFromConfig(config) {
         class: 'Device',
         schemaVersion: SCHEMA_VERSION
     };
+    delete config.version;
     // expect "tenant" name on the top of the object
     Object.keys(config).forEach((tenant) => {
         const tenantDeclaration = {
@@ -496,6 +541,9 @@ function makeDeclarationFromConfig(config) {
         const duplicates = {};
 
         configItems.forEach((configItem) => {
+            if (!configItem.path) {
+                return;
+            }
             processConfigItem(configItem, tenantConfig, (declKey, declObj) => {
                 // undefined means that item should be removed from declaration
                 if (typeof declObj === 'undefined') {

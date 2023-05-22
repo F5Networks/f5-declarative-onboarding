@@ -17,7 +17,10 @@ help:
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
-
+	npm ci
+	node scripts/build/schema-build.js
+	node scripts/build/schema-check.js
+	node scripts/build/schema-to-rst.js
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Custom commands for building and testing project documentation

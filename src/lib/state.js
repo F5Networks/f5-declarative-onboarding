@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,14 @@
 
 'use strict';
 
+const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const uuidv4 = require('uuid/v4');
+const doUtil = require('./doUtil');
+const parserUtil = require('./parserUtil');
+const configItems = require('./configItems.json');
+const ConfigManager = require('./configManager');
 
-const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
+const NAMELESS_CLASSES = ConfigManager.getNamelessClasses(configItems);
 
 const TASK_RETENTION_DAYS = 7;
 
@@ -274,13 +279,43 @@ class State {
     }
 
     /**
-     * Gets the current result message for a task
+     * Gets the current errors for a task
      *
      * @param {String} taskId - The id of the task.
      */
     getErrors(taskId) {
         if (this.tasks[taskId]) {
             return this.tasks[taskId].result.errors;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets the current warnings for a task
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {String[]} warnings - The error array to set.
+     */
+    setWarnings(taskId, warnings) {
+        if (this.tasks[taskId]) {
+            if (warnings) {
+                this.tasks[taskId].result.warnings = warnings.slice();
+            } else if (this.tasks[taskId].result.warnings) {
+                this.tasks[taskId].result.warnings.length = 0;
+            }
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets the current warnings for a task
+     *
+     * @param {String} taskId - The id of the task.
+     */
+    getWarnings(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].result.warnings;
         }
         throw new Error('taskId does not exist');
     }
@@ -293,7 +328,7 @@ class State {
      */
     setDeclaration(taskId, declaration) {
         if (this.tasks[taskId]) {
-            this.tasks[taskId].internalDeclaration = mask(declaration);
+            this.tasks[taskId].internalDeclaration = doUtil.mask(declaration);
         } else {
             throw new Error('taskId does not exist');
         }
@@ -380,6 +415,85 @@ class State {
     }
 
     /**
+     * Sets trace for the current config
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} currentConfig - Trace info for current config.
+     */
+    setTraceCurrent(taskId, currentConfig) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].traceCurrent = JSON.parse(JSON.stringify(currentConfig));
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets trace info for current config
+     * @param {string} taskId - The id of the task.
+     */
+    getTraceCurrent(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].traceCurrent;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets trace for the desired config
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} currentConfig - Trace info for desired config.
+     */
+    setTraceDesired(taskId, desiredConfig) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].traceDesired = JSON.parse(JSON.stringify(desiredConfig));
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets trace info for desired config
+     * @param {string} taskId - The id of the task.
+     */
+    getTraceDesired(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].traceDesired;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    /**
+     * Sets trace for the diff of config
+     *
+     * @param {String} taskId - The id of the task.
+     * @param {Object} diff - Trace info for diff of config.
+     */
+    setTraceDiff(taskId, diff) {
+        if (this.tasks[taskId]) {
+            this.tasks[taskId].traceDiff = JSON.parse(JSON.stringify(diff));
+        } else {
+            throw new Error('taskId does not exist');
+        }
+    }
+
+    /**
+     * Gets trace info for diff of config
+     * @param {string} taskId - The id of the task.
+     */
+    getTraceDiff(taskId) {
+        if (this.tasks[taskId]) {
+            return this.tasks[taskId].traceDiff;
+        }
+        throw new Error('taskId does not exist');
+    }
+
+    hasTrace(taskId) {
+        return this.getTraceCurrent(taskId) || this.getTraceDesired(taskId) || this.getTraceDiff(taskId);
+    }
+
+    /**
      * Gets the declaration for a task
      *
      * @param {String} taskId - The id of the task.
@@ -454,42 +568,24 @@ class State {
  */
 function copyAndUpgradeState(existingState) {
     if (!existingState.tasks) {
-        const state = {
-            tasks: {}
-        };
+        const existingStateCopy = JSON.parse(JSON.stringify(existingState));
+        existingState.tasks = {};
         const taskId = uuidv4();
-        state.tasks[taskId] = JSON.parse(JSON.stringify(existingState));
-        state.tasks[taskId].lastUpdate = new Date();
-        state.tasks[taskId].id = taskId;
-        state.mostRecentTask = taskId;
-        return state;
+        existingState.tasks[taskId] = existingStateCopy;
+        existingState.tasks[taskId].lastUpdate = new Date();
+        existingState.tasks[taskId].id = taskId;
+        existingState.mostRecentTask = taskId;
     }
+
     if (!existingState.originalConfig) {
         existingState.originalConfig = {};
     }
+
+    // Upgrade from versions prior to 1.22 when we switched to using property.id rather than property.newId
+    // in all processing for configManager and handlers
+    updateNewIdToId(existingState);
+
     return JSON.parse(JSON.stringify(existingState));
-}
-
-function mask(declaration) {
-    const masked = JSON.parse(JSON.stringify(declaration));
-
-    Object.keys(masked).forEach((key) => {
-        if (MASK_REGEX.test(key)) {
-            delete masked[key];
-        } else if (!Array.isArray(masked[key]) && typeof masked[key] === 'object') {
-            masked[key] = mask(masked[key]);
-        } else if (Array.isArray(masked[key])) {
-            masked[key].forEach((item, index) => {
-                if (!Array.isArray(item) && typeof item === 'object') {
-                    masked[key][index] = mask(item);
-                }
-            });
-        } else if (MASK_REGEX.test(key)) {
-            delete masked[key];
-        }
-    });
-
-    return masked;
 }
 
 function cleanupOldTasks(tasks) {
@@ -498,6 +594,39 @@ function cleanupOldTasks(tasks) {
     Object.keys(tasks).forEach((taskId) => {
         if (now - tasks[taskId].lastUpdate > maxAge) {
             delete tasks[taskId];
+        }
+    });
+}
+
+function updateNewIdToId(existingState) {
+    const doVersion = doUtil.getDoVersion(existingState.mostRecentTask);
+    const doVersionStr = `${doVersion.VERSION}-${doVersion.RELEASE}`;
+    Object.keys(existingState.originalConfig).forEach((configId) => {
+        const configById = existingState.originalConfig[configId];
+        const configVersion = configById.version || '0.0.0-0';
+        if (cloudUtil.versionCompare(configVersion, doVersionStr) < 0) {
+            const originalConfig = configById.Common;
+            if (originalConfig) {
+                configById.version = doVersionStr;
+                Object.keys(originalConfig).forEach((schemaClass) => {
+                    const config = originalConfig[schemaClass];
+
+                    if (NAMELESS_CLASSES.indexOf(schemaClass) !== -1) {
+                        // If it's a nameless class, the config to update is the whole 'config' object
+                        originalConfig[schemaClass] = parserUtil.updateIds(configItems, schemaClass, config);
+                    } else {
+                        // If it's a named class, iterate through each named object in the 'config' container
+                        Object.keys(config).forEach((itemName) => {
+                            originalConfig[schemaClass][itemName] = parserUtil.updateIds(
+                                configItems,
+                                schemaClass,
+                                config[itemName],
+                                itemName
+                            );
+                        });
+                    }
+                });
+            }
         }
     });
 }

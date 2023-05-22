@@ -1,4 +1,4 @@
-{
+    {
     "schemaVersion": "1.8.0",
     "class": "Device",
     "async": false,
@@ -24,6 +24,11 @@
                 "hmac-sha1",
                 "hmac-ripemd160",
                 "hmac-md5"
+            ],
+            "kexAlgorithms": [
+                "ecdh-sha2-nistp256",
+                "ecdh-sha2-nistp384",
+                "ecdh-sha2-nistp521"
             ],
             "maxAuthTries": 10,
             "maxStartups": "5",

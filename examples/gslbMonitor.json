@@ -1,0 +1,111 @@
+{
+    "schemaVersion": "1.19.0",
+    "class": "Device",
+    "async": true,
+    "controls": {
+        "traceResponse": true
+    },
+    "Common": {
+        "class": "Tenant",
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal",
+            "gtm": "nominal"
+        },
+        "gslbDataCenter": {
+            "class": "GSLBDataCenter"
+        },
+        "gslbServer": {
+            "class": "GSLBServer",
+            "devices": [
+                {
+                    "address": "192.0.2.10",
+                    "addressTranslation": "192.0.2.12",
+                    "remark": "GSLB server device description"
+                }
+            ],
+            "dataCenter": "/Common/gslbDataCenter",
+            "monitors": [
+                "/Common/gslbMonitorHTTP",
+                "/Common/gslbMonitorHTTPS",
+                "/Common/gslbMonitorICMP",
+                "/Common/gslbMonitorTCP",
+                "/Common/gslbMonitorUDP"
+            ]
+        },
+        "gslbMonitorHTTP": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "http",
+            "target": "192.0.2.1:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "reverseEnabled": true,
+            "send": "HEAD / HTTP/1.0\\r\\n",
+            "receive": "HTTP"
+        },
+        "gslbMonitorHTTPS": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "https",
+            "target": "192.0.2.2:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "reverseEnabled": true,
+            "send": "HEAD / HTTP/1.0\\r\\n",
+            "receive": "HTTP",
+            "ciphers": "DEFAULT",
+            "clientCertificate": "/Common/default.crt"
+        },
+        "gslbMonitorICMP": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "gateway-icmp",
+            "target": "192.0.2.3:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "probeInterval": 1,
+            "probeAttempts": 3
+        },
+        "gslbMonitorTCP": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "tcp",
+            "target": "192.0.2.4:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "reverseEnabled": true,
+            "send": "example send",
+            "receive": "example receive"
+        },
+        "gslbMonitorUDP": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "udp",
+            "target": "192.0.2.55:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "reverseEnabled": true,
+            "send": "default send string",
+            "receive": "udp receive",
+            "debug": true,
+            "probeInterval": 1,
+            "probeAttempts": 3
+        }
+    }
+}

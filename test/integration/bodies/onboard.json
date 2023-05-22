@@ -26,7 +26,7 @@
         "myProvisioning": {
             "class": "Provision",
             "ltm": "nominal",
-            "gtm": "minimum"
+            "gtm": "nominal"
         },
         "myVlan": {
             "class": "VLAN",
@@ -37,7 +37,8 @@
                     "name": "1.1",
                     "tagged": true
                 }
-            ]
+            ],
+            "autoLastHop": "enabled"
         },
         "internal": {
             "class": "VLAN",
@@ -48,7 +49,8 @@
                     "name": "1.1",
                     "tagged": false
                 }
-            ]
+            ],
+            "autoLastHop": "disabled"
         },
         "mySelfIp": {
             "class": "SelfIp",
@@ -71,7 +73,21 @@
         },
         "myFailoverUnicast": {
             "class": "FailoverUnicast",
-            "address": "/Common/mySelfIp/address"
+            "addressPorts": [
+                {
+                    "address": "/Common/mySelfIp/address"
+                },
+                {
+                    "address": "/Common/mySelfIp/address",
+                    "port": 126
+                }
+            ]
+        },
+        "myFailoverMulticast": {
+            "class": "FailoverMulticast",
+            "interface": "eth0",
+            "address": "233.252.0.10",
+            "port": 123
         },
         "mySystem": {
             "class": "System",
@@ -79,7 +95,8 @@
             "autoPhonehome": false,
             "tmshAuditLog": false,
             "guiAuditLog": true,
-            "mcpAuditLog": "verbose"
+            "mcpAuditLog": "verbose",
+            "preserveOrigDhcpRoutes": true
         },
         "myFailoverGroup": {
             "class": "DeviceGroup",
@@ -103,6 +120,28 @@
             "haOrder": [
                 "f5.example.com"
             ]
+        },
+        "mySnmpCommunityWithSpecialCharacter": {
+            "class": "SnmpCommunity",
+            "name": "special!community",
+            "ipv6": false,
+            "source": "all",
+            "oid": ".1",
+            "access": "ro"
+        },
+        "mySnmpCommunityWithoutSpecialCharacter": {
+            "class": "SnmpCommunity",
+            "ipv6": false,
+            "source": "all",
+            "oid": ".1",
+            "access": "ro"
+        },
+        "myManagementRoute": {
+            "class": "ManagementRoute",
+            "remark": "not-configured-by-dhcp",
+            "network": "192.0.2.13",
+            "gw": "192.0.2.14",
+            "mtu": 0
         }
     }
 }

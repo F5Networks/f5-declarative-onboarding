@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,18 @@ class BusinessLogicValidator {
             return Promise.resolve({ isValid });
         }
 
-        // no hostname in Common
-        const common = data.declaration.Common;
-        if (!common.hostname) {
-            return Promise.resolve({ isValid });
+        const sysClassKey = Object.keys(sysWrapper).find((key) => sysWrapper[key].class === 'System');
+        if (sysClassKey && typeof sysWrapper[sysClassKey].mgmtDhcpEnabled !== 'undefined'
+            && typeof sysWrapper[sysClassKey].preserveOrigDhcpRoutes !== 'undefined'
+            && sysWrapper[sysClassKey].mgmtDhcpEnabled !== sysWrapper[sysClassKey].preserveOrigDhcpRoutes) {
+            isValid = false;
+            errors.push('the values of mgmtDhcpEnabled and preserveOrigDhcpRoutes must match');
         }
 
-        // hostname is in Common and System is present
-        if (Object.keys(sysWrapper).find(key => typeof sysWrapper[key].hostname !== 'undefined')) {
+        // hostname is in Common and System is present but not default value ('bigip1')
+        const common = data.declaration.Common;
+        if (common.hostname && sysClassKey && sysWrapper[sysClassKey].hostname
+            && sysWrapper[sysClassKey].hostname !== 'bigip1') {
             isValid = false;
             errors.push('multiple hostnames in declaration');
         }

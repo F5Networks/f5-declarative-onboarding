@@ -1,0 +1,22 @@
+{
+    "schemaVersion": "1.22.0",
+    "class": "Device",
+    "async": true,
+    "label": "License BIG-IP via BIG-IQ purchased pool license when BIG-IP is not reachable from BIG-IQ",
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "myLicense": {
+            "class": "License",
+            "licenseType": "licensePool",
+            "bigIqHost": "10.0.1.200",
+            "bigIqUsername": "admin",
+            "bigIqPassword": "myPassword1",
+            "licensePool": "myPurchasedPool",
+            "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ",
+            "reachable": false,
+            "hypervisor": "0x01000013",
+            "tenant": "Optional custom descriptor"
+        }
+    }
+}

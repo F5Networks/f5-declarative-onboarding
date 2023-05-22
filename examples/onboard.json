@@ -121,8 +121,8 @@
         },
         "managementRoute": {
             "class": "ManagementRoute",
-            "gw": "1.2.3.4",
-            "network": "default",
+            "gw": "192.0.2.4",
+            "network": "192.0.2.1",
             "mtu": 1500
         },
         "myRouteDomain": {
@@ -145,10 +145,10 @@
             ]
         },
         "dbvars": {
-        	"class": "DbVariables",
-        	"ui.advisory.enabled": true,
-        	"ui.advisory.color": "green",
-        	"ui.advisory.text": "/Common/hostname"
+            "class": "DbVariables",
+            "ui.advisory.enabled": true,
+            "ui.advisory.color": "green",
+            "ui.advisory.text": "/Common/hostname"
         }
     }
 }

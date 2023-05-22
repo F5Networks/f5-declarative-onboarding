@@ -1,19 +1,18 @@
-/* Copyright 2016-2018 F5 Networks, Inc.
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-   Util Library for Declarative Onboarding Testing
-   Author: @fonsecayarochewsky
-*/
+/**
+ * Copyright 2023 F5 Networks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 'use strict';
 
@@ -21,7 +20,7 @@ const fs = require('fs');
 const qs = require('querystring');
 const request = require('request');
 const util = require('util');
-const constants = require('./constants.js');
+const constants = require('./constants');
 const logger = require('./logger').getInstance();
 
 module.exports = {
@@ -47,7 +46,6 @@ module.exports = {
         return util.promisify(request)(options);
     },
 
-
     /**
      * delayPromise- promise based timeout function
      * @time {Integer} - Time in milliseconds to wait
@@ -70,27 +68,26 @@ module.exports = {
      * @timeInterval {Integer} - number of ms until new trial is triggered
      * @acceptErrors {Array} - if we get a reject on the targetFunction with the error message equal to any of
      *                         the errors in acceptErrors, we don't reject, and retry
-     * @checkError {Boolean} - determines whether to check for acceptError
-     *                         (i.e. is checkError is false, never rejects on error)
      * Returns a Promise which resolves with the targetFunction's result, or rejects with 'out of trials' or
      * targetFunction's error
      * (Inspired by the cloud-libs.util's tryUntil, except without some of the machinery we won't need here
     */
-    tryOften(targetFunction, trials, timeInterval, acceptErrors, checkError) {
+    tryOften(targetFunction, trials, timeInterval, acceptErrors) {
         return targetFunction.apply(this)
             .catch((error) => {
-                if (checkError) {
-                    if (!acceptErrors.some(err => (err === parseInt(error.message, 10) || err === error.message))) {
+                if (acceptErrors) {
+                    if (!acceptErrors.some((err) => (err === parseInt(error.message, 10)
+                        || err === error.message || err === error.code))) {
                         // non-trivial error, we reject
                         throw new Error(`error is unrecoverable : ${error.message}`);
                     }
                 }
                 if (trials === 0) {
-                    throw new Error(`number of trials exhasted: ${error.message}`);
+                    throw new Error(`number of trials exhausted: ${error.message}`);
                 }
                 return module.exports.delayPromise(timeInterval)
                     .then(() => module.exports.tryOften(
-                        targetFunction, trials - 1, timeInterval, acceptErrors, checkError
+                        targetFunction, trials - 1, timeInterval, acceptErrors
                     ));
             });
     },
@@ -106,7 +103,7 @@ module.exports = {
      * @interval {Number} : Seconds to wait between requests (default 60)
      * Returns Promise which resolves with response body on success or rejects with error
     */
-    testRequest(body, url, auth, expectedCode, method, interval) {
+    testRequest(body, url, auth, expectedCode, method, interval, acceptErrors) {
         logger.debug(`${method} ${JSON.stringify(body)} ${url}`);
         const func = function () {
             return new Promise((resolve, reject) => {
@@ -125,8 +122,8 @@ module.exports = {
                     });
             });
         };
-        return module.exports.tryOften(func, 10, (interval || 60) * 1000,
-            [constants.HTTP_UNAVAILABLE, constants.HTTP_BAD_REQUEST], true);
+        const acceptableErrors = [constants.HTTP_UNAVAILABLE, constants.HTTP_BAD_REQUEST].concat(acceptErrors || []);
+        return module.exports.tryOften(func, 10, (interval || 60) * 1000, acceptableErrors);
     },
 
     /**
@@ -148,15 +145,20 @@ module.exports = {
                 module.exports.sendRequest(options)
                     .then((response) => {
                         const statusCode = response.response.statusCode;
-                        logger.debug(`current status: ${statusCode}, waiting for ${expectedCode}`);
-                        if (statusCode === expectedCode) {
-                            let parsedResponse;
-                            try {
-                                parsedResponse = JSON.parse(response.body);
-                            } catch (err) {
-                                parsedResponse = response.body;
-                            }
 
+                        let parsedResponse;
+                        try {
+                            parsedResponse = JSON.parse(response.body);
+                        } catch (err) {
+                            parsedResponse = response.body;
+                        }
+
+                        logger.debug(`current status: ${statusCode}, waiting for ${expectedCode}`);
+                        if ([constants.HTTP_SUCCESS, constants.HTTP_ACCEPTED].indexOf(statusCode) < 0) {
+                            logger.debug(JSON.stringify(parsedResponse.result, null, 2));
+                        }
+
+                        if (statusCode === expectedCode) {
                             // 'experimental' statusCode will always return 200, response.code may differ.
                             if (queryObj.statusCodes === 'experimental' && !parsedResponse.code) {
                                 reject(new Error(parsedResponse.result.code));
@@ -171,7 +173,67 @@ module.exports = {
                     });
             });
         };
-        return module.exports.tryOften(func, trials, timeInterval, null, false);
+        return module.exports.tryOften(func, trials, timeInterval, null);
+    },
+
+    /**
+     * deleteOriginalConfig - Deletes DO's original config so that it can be regenerated from
+     *                        the current machine state
+     * @doUrl {String} - URL to call DO from
+     * @auth {Object} - authorization dictionary with (username, password) or F5 token
+     * Returns a Promise with response/error
+    */
+    deleteOriginalConfig(doUrl, auth) {
+        const retryErrors = [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED];
+
+        return this.testRequest(null, `${doUrl}/config`, auth, constants.HTTP_SUCCESS, 'GET', null, retryErrors)
+            .then((body) => {
+                const promises = JSON.parse(body).map((config) => {
+                    logger.debug(`Deleting original config ${config.id}`);
+                    return this.sendRequest(
+                        this.buildBody(`${doUrl}/config/${config.id}`, null, auth, 'DELETE'),
+                        {
+                            trials: 5,
+                            timeInterval: 1000
+                        }
+                    );
+                });
+                return Promise.all(promises);
+            });
+    },
+
+    /**
+     * testOriginalConfig - Tests if original config can be successfully applied by DO. This is
+     *                      done by resetting the original config to match the current machine state
+     *                      and then sending an empty declaration.
+     * @ipAddress {String} - BIG-IP address for DO call
+     * @auth {Object} : authorization dictionary with (username, password) or F5 token
+     * Returns a Promise with response/error
+    */
+    testOriginalConfig(ipAddress, auth) {
+        const url = `${this.hostname(ipAddress, constants.PORT)}${constants.DO_API}`;
+        const retryErrors = [constants.HTTP_NOTFOUND, constants.HTTP_UNAUTHORIZED];
+
+        logger.debug('Testing original config');
+
+        return this.deleteOriginalConfig(url, auth)
+            .then(() => {
+                const body = {
+                    schemaVersion: '1.0.0',
+                    class: 'Device',
+                    async: true,
+                    controls: {
+                        trace: true,
+                        traceResponse: true
+                    },
+                    Common: {
+                        class: 'Tenant'
+                    }
+                };
+                logger.debug('Generating and applying new original config');
+                return this.testRequest(body, url, auth, constants.HTTP_ACCEPTED, 'POST', null, retryErrors);
+            })
+            .then(() => this.testGetStatus(60, 30 * 1000, ipAddress, auth, constants.HTTP_SUCCESS));
     },
 
     /**
@@ -184,7 +246,7 @@ module.exports = {
             const options = module.exports.buildBody(`${module.exports.hostname(ipAddress,
                 constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
             module.exports.sendRequest(options)
-                .then(response => response.body)
+                .then((response) => response.body)
                 .then(JSON.parse)
                 .then((parsedResponse) => {
                     resolve(parsedResponse);
@@ -227,8 +289,7 @@ module.exports = {
                 func,
                 retryOptions.trials,
                 retryOptions.timeInterval,
-                null,
-                false
+                retryOptions.acceptErrors || null
             );
         }
         return func();

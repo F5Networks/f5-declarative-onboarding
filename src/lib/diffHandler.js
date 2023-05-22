@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,33 +19,32 @@
 const observableDiff = require('deep-diff').observableDiff;
 const applyChange = require('deep-diff').applyChange;
 
+const TraceManager = require('./traceManager');
+const doUtil = require('./doUtil');
+
 class DiffHandler {
     /**
      * Constructor
-     * @param {String[]} classesOfTruth - Array of classes that we are the source of truth for. All
-     *                                    other classes will be left alone.
-     * @param {String[]} namelessClasses - Array of classes which do not have a name property
-     *                                     (DNS, for example)
+     * @param {String[]} classesOfTruth   - Array of classes that we are the source of truth for. All
+     *                                      other classes will be left alone.
+     * @param {String[]} namelessClasses  - Array of classes which do not have a name property
+     *                                      (DNS, for example)
+     * @param {EventEmitter} eventEmitter - DO event emitter.
+     * @param {State}        state        - The doState.
      */
-    constructor(classesOfTruth, namelessClasses) {
+    constructor(classesOfTruth, namelessClasses, eventEmitter, state) {
         this.classesOfTruth = classesOfTruth.slice();
         this.namelessClasses = namelessClasses.slice();
-
-        // Although we may be the source of truth for 'hostname', we do not want
-        // to diff it because hostname is set in 2 different places. Better
-        // to let f5-cloud-libs handle checking it.
-        for (let i = 0; i < this.classesOfTruth.length; i += 1) {
-            if (this.classesOfTruth[i] === 'hostname') {
-                this.classesOfTruth.splice(i, 1);
-            }
-        }
+        this.eventEmitter = eventEmitter;
+        this.state = state;
     }
 
     /**
      * Calculates updates and deletions in declarations
      *
-     * @param {Object} toDeclaration - The declaration we are updating to
-     * @param {Object} fromDeclaration - The declaration we are updating from
+     * @param {Object} toDeclaration - The parsed declaration we are updating to
+     * @param {Object} fromDeclaration - The parsed declaration we are updating from
+     * @param {Object} originalDeclaration - The original declaration
      *
      * @param {Promise} A promise which is resolved with the declarations to delete
      *                  and update.
@@ -54,7 +53,7 @@ class DiffHandler {
      *         toUpdate: <update_declaration>
      *     }
      */
-    process(toDeclaration, fromDeclaration) {
+    process(toDeclaration, fromDeclaration, originalDeclaration) {
         // Clone these to make sure we do not modify them via observableDiff
         const to = JSON.parse(JSON.stringify(toDeclaration));
         const from = JSON.parse(JSON.stringify(fromDeclaration));
@@ -71,35 +70,39 @@ class DiffHandler {
             Common: {}
         };
 
+        const accumulatedDiffs = [];
+
         // let deep-diff update the from declaration so we don't have to figure out how
         // to apply the changes. Collect updated paths on the way so we can copy just
         // the changed data
         observableDiff(from, to, (diff) => {
             // diff.path looks like ['Common', 'VLAN', 'myVlan'], for example
             if (this.classesOfTruth.indexOf(diff.path[1]) !== -1) {
+                accumulatedDiffs.push(diff);
+
                 applyChange(from, to, diff);
 
                 // the item at index 1 is the name of the class in the schema
                 // if these are named objects (vlans, for example) the name is at
                 // index 2
                 const schemaClass = diff.path[1];
-                let objectName;
+                let objectNames;
                 if (this.namelessClasses.indexOf(schemaClass) === -1) {
-                    objectName = diff.path[2];
+                    objectNames = diff.path[2];
                 }
                 // For additions of named classes, the object name will be in the rhs object
-                if (!objectName && diff.rhs) {
-                    objectName = Object.keys(diff.rhs)[0];
+                if (!objectNames && diff.rhs) {
+                    objectNames = Object.keys(diff.rhs);
                 }
 
                 if (updatedClasses.indexOf(schemaClass) === -1) {
                     updatedClasses.push(schemaClass);
                 }
-                if (objectName) {
+                if (objectNames) {
                     if (!updatedNames[schemaClass]) {
                         updatedNames[schemaClass] = [];
                     }
-                    updatedNames[schemaClass].push(objectName);
+                    updatedNames[schemaClass] = updatedNames[schemaClass].concat(objectNames);
                 } else {
                     updatedNames[schemaClass] = [];
                 }
@@ -108,7 +111,7 @@ class DiffHandler {
                 // diff.path looks like ['Common', 'SelfIp', 'external', 'trafficGroup']
                 // so if diff.path is longer than 3, it's just a property being deleted
                 // and this will be handled by the applyChange
-                if (diff.kind === 'D' && diff.path.length === 3) {
+                if (diff.kind === 'D' && diff.path.length <= 3) {
                     if (!toDelete.Common[schemaClass]) {
                         toDelete.Common[schemaClass] = {};
                     }
@@ -122,7 +125,11 @@ class DiffHandler {
                     //             }
                     //         }
                     // }
-                    toDelete.Common[schemaClass][diff.path[2]] = {};
+                    if (diff.path.length === 3) {
+                        // It's a specific item - otherwise, we're deleting all of the items
+                        // of this class and leave an empty object here.
+                        toDelete.Common[schemaClass][diff.path[2]] = {};
+                    }
                 }
             }
         });
@@ -150,13 +157,34 @@ class DiffHandler {
             }
         });
 
-        return Promise.resolve(
-            {
-                toDelete,
-                toUpdate: final
-            }
-        );
+        cleanDiff(accumulatedDiffs);
+
+        const traceManager = new TraceManager(originalDeclaration, this.eventEmitter, this.state);
+        return traceManager.traceDiff(accumulatedDiffs)
+            .then(() => Promise.resolve(
+                {
+                    toDelete,
+                    toUpdate: final
+                }
+            ));
     }
+}
+
+/**
+ * Removes certain things from the diffs that we don't want to pass along
+ *
+ * @param {Object} diffs - the diffs
+ */
+function cleanDiff(diffs) {
+    const indicesToRemove = [];
+    const pathsToRemove = ['Common.InternalUse'];
+    diffs.forEach((diff, index) => {
+        const path = diff.path.join('.');
+        if (pathsToRemove.find((pathToRemove) => path.startsWith(pathToRemove))) {
+            indicesToRemove.push(index);
+        }
+    });
+    doUtil.removeElementsFromArray(diffs, indicesToRemove);
 }
 
 /**

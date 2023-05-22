@@ -11,7 +11,9 @@
             "cliInactivityTimeout": 1200,
             "consoleInactivityTimeout": 1200,
             "autoCheck": false,
-            "autoPhonehome": true
+            "autoPhonehome": true,
+            "guiSecurityBanner": true,
+            "guiSecurityBannerText": "Authorized access only\n\nLogin on the left"
         }
     }
 }

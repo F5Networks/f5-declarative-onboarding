@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ const PATHS = require('./sharedConstants').PATHS;
 const RADIUS = require('./sharedConstants').RADIUS;
 const AUTH = require('./sharedConstants').AUTH;
 
-const logger = new Logger(module);
-
 /**
  * Handles system parts of a declaration.
  *
@@ -43,6 +41,7 @@ class AuthHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -52,20 +51,28 @@ class AuthHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Processing authentication declaration.');
-        const auth = (this.declaration.Common || {}).Authentication;
+        this.logger.fine('Processing authentication declaration.');
 
-        if (!auth) {
-            return handleRemoteAuthRoles.call(this);
-        }
-
-        return handleRemoteAuthRoles.call(this)
-            .then(() => handleRadius.call(this))
-            .then(() => handleTacacs.call(this))
-            .then(() => handleLdap.call(this))
-            .then(() => handleSource.call(this))
-            .then(() => handleRemoteUsersDefaults.call(this));
+        return Promise.resolve()
+            .then(() => handleRemoteAuthRoles.call(this))
+            .then(() => handleAuthentication.call(this))
+            .then(() => handlePasswordPolicy.call(this));
     }
+}
+
+function handleAuthentication() {
+    const auth = (this.declaration.Common || {}).Authentication;
+
+    if (!auth) {
+        return Promise.resolve();
+    }
+
+    return Promise.resolve()
+        .then(() => handleRadius.call(this))
+        .then(() => handleTacacs.call(this))
+        .then(() => handleLdap.call(this))
+        .then(() => handleSource.call(this))
+        .then(() => handleRemoteUsersDefaults.call(this));
 }
 
 function handleRemoteAuthRoles() {
@@ -77,7 +84,9 @@ function handleRemoteAuthRoles() {
         const rr = {};
         rr.attribute = decl.attribute;
         rr.console = decl.console;
-        rr.deny = (decl.remoteAccess) ? 'enabled' : 'disabled';
+        // With resolving of AUTOTOOL-531 deny logic was changed.
+        // Right now remoteAccess === 'true' equals deny === true.
+        rr.deny = (decl.deny === 'enabled') ? 'enabled' : 'disabled';
         rr.lineOrder = decl.lineOrder;
         rr.role = decl.role;
         rr.userPartition = decl.userPartition;
@@ -87,7 +96,6 @@ function handleRemoteAuthRoles() {
 
     return Promise.all(promiseChain);
 }
-
 
 function handleRadius() {
     const radius = this.declaration.Common.Authentication.radius;
@@ -121,14 +129,26 @@ function handleRadius() {
                 servers: authServers,
                 partition: 'Common'
             },
-            undefined, undefined, opts
+            undefined,
+            undefined,
+            opts
         ))
-        .then(() => (radius.servers.secondary ? Promise.resolve() : this.bigIp.delete(
-            `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`,
-            null, null, CLOUD_UTIL_NO_RETRY
-        )))
+        .then(() => this.bigIp.list(`${PATHS.AuthRadiusServer}`))
+        .then((radiusServers) => {
+            if (!radius.servers.secondary && radiusServers
+                .find((server) => server.name === RADIUS.SECONDARY_SERVER)) {
+                return this.bigIp.delete(
+                    `${PATHS.AuthRadiusServer}/~Common~${RADIUS.SECONDARY_SERVER}`,
+                    null,
+                    null,
+                    CLOUD_UTIL_NO_RETRY
+                );
+            }
+
+            return Promise.resolve();
+        })
         .catch((err) => {
-            logger.severe(`Error configuring remote RADIUS auth: ${err.message}`);
+            this.logger.severe(`Error configuring remote RADIUS auth: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -136,17 +156,17 @@ function handleRadius() {
 function handleTacacs() {
     const tacacs = this.declaration.Common.Authentication.tacacs;
 
-    if (!tacacs) {
+    if (!tacacs || !tacacs.servers) {
         return Promise.resolve();
     }
 
     const tacacsObj = {
         name: AUTH.SUBCLASSES_NAME,
         partition: 'Common',
-        accounting: tacacs.accounting || 'send-to-first-server',
-        authentication: tacacs.authentication || 'use-first-server',
-        debug: tacacs.debug ? 'enabled' : 'disabled',
-        encryption: tacacs.encryption === false ? 'disabled' : 'enabled',
+        accounting: tacacs.accounting,
+        authentication: tacacs.authentication,
+        debug: tacacs.debug,
+        encryption: tacacs.encryption,
         secret: tacacs.secret,
         servers: tacacs.servers,
         service: tacacs.service
@@ -155,49 +175,74 @@ function handleTacacs() {
 
     return this.bigIp.createOrModify(PATHS.AuthTacacs, tacacsObj)
         .catch((err) => {
-            logger.severe(`Error configuring remote TACACS auth: ${err.message}`);
+            this.logger.severe(`Error configuring remote TACACS auth: ${err.message}`);
+            return Promise.reject(err);
         });
 }
 
 function handleLdap() {
     const ldap = this.declaration.Common.Authentication.ldap;
 
-    if (!ldap) {
+    if (!ldap || !ldap.servers) {
         return Promise.resolve();
     }
+
+    const getCertPath = (certObj) => (certObj === 'none' ? 'none' : `/${certObj.partition}/${certObj.name}`);
+    const certPromises = [];
 
     const ldapObj = {
         name: AUTH.SUBCLASSES_NAME,
         partition: 'Common',
-        bindDn: ldap.bindDn || 'none',
-        bindPw: ldap.bindPassword || 'none',
+        bindDn: ldap.bindDn,
+        bindPw: ldap.bindPw,
         bindTimeout: ldap.bindTimeout,
-        checkHostAttr: ldap.checkBindPassword ? 'enabled' : 'disabled',
-        checkRolesGroup: ldap.checkRemoteRole ? 'enabled' : 'disabled',
-        filter: ldap.filter || 'none',
-        groupDn: ldap.groupDn || 'none',
-        groupMemberAttribute: ldap.groupMemberAttribute || 'none',
+        checkHostAttr: ldap.checkHostAttr,
+        checkRolesGroup: ldap.checkRolesGroup,
+        filter: ldap.filter,
+        groupDn: ldap.groupDn,
+        groupMemberAttribute: ldap.groupMemberAttribute,
         idleTimeout: ldap.idleTimeout,
-        ignoreAuthInfoUnavail: ldap.ignoreAuthInfoUnavailable ? 'yes' : 'no',
-        ignoreUnknownUser: ldap.ignoreUnknownUser ? 'enabled' : 'disabled',
-        loginAttribute: ldap.loginAttribute || 'none',
+        ignoreAuthInfoUnavail: ldap.ignoreAuthInfoUnavail,
+        ignoreUnknownUser: ldap.ignoreUnknownUser,
+        loginAttribute: ldap.loginAttribute,
         port: ldap.port,
-        scope: ldap.searchScope,
-        searchBaseDn: ldap.searchBaseDn || 'none',
+        referrals: ldap.referrals,
+        scope: ldap.scope,
+        searchBaseDn: ldap.searchBaseDn,
         searchTimeout: ldap.searchTimeout,
         servers: ldap.servers,
         ssl: ldap.ssl,
-        sslCheckPeer: ldap.sslCheckPeer ? 'enabled' : 'disabled',
+        sslCaCertFile: getCertPath(ldap.sslCaCertFile),
+        sslCheckPeer: ldap.sslCheckPeer,
         sslCiphers: ldap.sslCiphers ? ldap.sslCiphers.join(':') : '',
-        userTemplate: ldap.userTemplate || 'none',
+        sslClientCert: getCertPath(ldap.sslClientCert),
+        sslClientKey: getCertPath(ldap.sslClientKey),
+        userTemplate: ldap.userTemplate,
         version: ldap.version
     };
 
     const options = ldapObj.bindPw ? { silent: true } : {};
 
-    return this.bigIp.createOrModify(PATHS.AuthLdap, ldapObj, undefined, undefined, options)
+    if (ldap.sslCaCertFile && ldap.sslCaCertFile.sslCaCertFile) {
+        certPromises.push(
+            handleCert.call(this, 'do_ldapCaCert.crt', ldap.sslCaCertFile.sslCaCertFile, PATHS.SSLCert)
+        );
+    }
+    if (ldap.sslClientCert && ldap.sslClientCert.sslClientCert) {
+        certPromises.push(
+            handleCert.call(this, 'do_ldapClientCert.crt', ldap.sslClientCert.sslClientCert, PATHS.SSLCert)
+        );
+    }
+    if (ldap.sslClientKey && ldap.sslClientKey.sslClientKey) {
+        certPromises.push(
+            handleCert.call(this, 'do_ldapClientCert.key', ldap.sslClientKey.sslClientKey, PATHS.SSLKey)
+        );
+    }
+
+    return Promise.all(certPromises)
+        .then(() => this.bigIp.createOrModify(PATHS.AuthLdap, ldapObj, undefined, undefined, options))
         .catch((err) => {
-            logger.severe(`Error configuring remote LDAP auth: ${err.message}`);
+            this.logger.severe(`Error configuring remote LDAP auth: ${err.message}`);
             return Promise.reject(err);
         });
 }
@@ -219,6 +264,14 @@ function handleSource() {
     );
 }
 
+function handlePasswordPolicy() {
+    if (!this.declaration.Common.PasswordPolicy) {
+        return Promise.resolve();
+    }
+
+    return this.bigIp.modify(PATHS.PasswordPolicy, this.declaration.Common.PasswordPolicy);
+}
+
 function handleRemoteUsersDefaults() {
     // shows up as "Other External Users" in Users tab
     const auth = this.declaration.Common.Authentication;
@@ -231,11 +284,50 @@ function handleRemoteUsersDefaults() {
     return this.bigIp.modify(
         PATHS.AuthRemoteUser,
         {
-            defaultPartition: authDefaults.partitionAccess,
-            defaultRole: authDefaults.role,
-            remoteConsoleAccess: authDefaults.terminalAccess
+            defaultPartition: authDefaults.defaultPartition,
+            defaultRole: authDefaults.defaultRole,
+            remoteConsoleAccess: authDefaults.remoteConsoleAccess
         }
     );
+}
+
+function handleCert(certName, certData, certPath) {
+    const uploadCert = (name, data) => {
+        const path = `${PATHS.Uploads}/${name}`;
+        const dataSize = Buffer.byteLength(data);
+        const reqOpts = {
+            headers: {
+                'Content-Type': 'application/octet-stream',
+                'Content-Length': dataSize.toString(),
+                'Content-Range': `0-${dataSize - 1}/${dataSize}`
+            }
+        };
+        const opts = {
+            silent: path.endsWith('.key')
+        };
+
+        return this.bigIp.create(path, data, reqOpts, undefined, opts);
+    };
+
+    const createCert = (name, path) => {
+        const data = {
+            name,
+            sourcePath: `file:/var/config/rest/downloads/${name}`
+        };
+        return this.bigIp.createOrModify(path, data);
+    };
+
+    const deleteCert = (name) => {
+        const data = {
+            command: 'run',
+            utilCmdArgs: `/var/config/rest/downloads/${name}`
+        };
+        return this.bigIp.create(PATHS.UnixRm, data);
+    };
+
+    return uploadCert(certName, certData)
+        .then(() => createCert(certName, certPath))
+        .then(() => deleteCert(certName));
 }
 
 module.exports = AuthHandler;

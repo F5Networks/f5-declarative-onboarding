@@ -1,0 +1,44 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "webhook": "https://example.com/myHook",
+    "label": "user class",
+    "Common": {
+        "class": "Tenant",
+        "root": {
+            "class": "User",
+            "userType": "root",
+            "oldPassword": "foo",
+            "newPassword": "bar"
+        },
+        "admin": {
+            "class": "User",
+            "userType": "regular",
+            "password": "asdfjkl",
+            "shell": "bash"
+        },
+        "guestUser": {
+            "class": "User",
+            "userType": "regular",
+            "password": "foobar",
+            "partitionAccess": {
+                "Common": {
+                    "role": "guest"
+                }
+            }
+        },
+        "anotherUser": {
+            "class": "User",
+            "userType": "regular",
+            "password": "foobar",
+            "shell": "none",
+            "partitionAccess": {
+                "all-partitions": {
+                    "role": "guest"
+                }
+            },
+            "forceInitialPasswordChange": false
+        }
+    }
+}

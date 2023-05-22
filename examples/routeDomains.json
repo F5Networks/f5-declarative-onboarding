@@ -17,32 +17,33 @@
         },
         "Route": {
             "class": "Route",
-            "gw": "10.1.0.1",
+            "gw": "10.1.0.1%100",
             "network": "192.168.0.0%100/16"
         },
-            "newSelfIp": {
+        "newSelfIp": {
             "class": "SelfIp",
             "address": "10.1.0.20%100/0",
             "vlan": "newVlan"
         },
         "theRouteDomain": {
-          "class": "RouteDomain",
-          "id": 100,
-          "bandWidthControllerPolicy": "bwcPol",
-          "connectionLimit": 5432991,
-          "flowEvictionPolicy": "default-eviction-policy",
-          "ipIntelligencePolicy": "ip-intelligence",
-          "enforcedFirewallPolicy": "enforcedPolicy",
-          "stagedFirewallPolicy": "stagedPolicy",
-          "securityNatPolicy": "securityPolicy",
-          "servicePolicy": "servicePolicy",
-          "strict": false,
-          "routingProtocols": [
-            "BGP"
-          ],
-          "vlans": [
-            "newVlan"
-          ]
+            "class": "RouteDomain",
+            "id": 100,
+            "connectionLimit": 5432991,
+            "flowEvictionPolicy": "default-eviction-policy",
+            "ipIntelligencePolicy": "ip-intelligence",
+            "strict": false,
+            "routingProtocols": [
+                "BGP"
+            ],
+            "vlans": [
+                "newVlan"
+            ]
+        },
+        "AnotherRouteDomain": {
+            "class": "RouteDomain",
+            "id": 101,
+            "parent": "theRouteDomain",
+            "strict": false
         }
     }
 }

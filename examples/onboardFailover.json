@@ -116,7 +116,10 @@
         "failoverGroup": {
             "class": "DeviceGroup",
             "type": "sync-failover",
-            "members": ["bigip1.example.com", "bigip2.example.com"],
+            "members": [
+                "bigip1.example.com",
+                "bigip2.example.com"
+            ],
             "owner": "/Common/failoverGroup/members/0",
             "autoSync": true,
             "saveOnAutoSync": false,

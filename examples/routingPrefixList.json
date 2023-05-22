@@ -1,0 +1,43 @@
+{
+    "schemaVersion": "1.23.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "exampleRoutingPrefixList1": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 10,
+                    "action": "permit",
+                    "prefix": "2001:db8::/127",
+                    "prefixLengthRange": "128"
+                },
+                {
+                    "name": 15,
+                    "action": "deny",
+                    "prefix": "2001:db8::/64",
+                    "prefixLengthRange": "80:"
+                }
+            ]
+        },
+        "exampleRoutingPrefixList2": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 20,
+                    "action": "permit",
+                    "prefix": "192.0.2.0/24",
+                    "prefixLengthRange": ":30"
+                },
+                {
+                    "name": 30,
+                    "action": "deny",
+                    "prefix": "192.0.2.1/24",
+                    "prefixLengthRange": "25:27"
+                }
+            ]
+        }
+    }
+}

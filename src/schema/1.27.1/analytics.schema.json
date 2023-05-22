@@ -1,0 +1,139 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/analytics.schema.json",
+    "title": "F5 Declarative Onboarding Global Analytics declaration",
+    "description": "Global analytics properties for onboarding a BIG-IP.",
+    "if": {
+        "required": ["class"],
+        "properties": { "class": { "const": "Analytics" } }
+    },
+    "then": {
+        "required": ["class"],
+        "properties": {
+            "class": {
+                "description": "Indicates that this property contains global analytics configuration",
+                "type": "string",
+                "const": "Analytics"
+            },
+            "debugEnabled": {
+                "description": "Enable debug mode.  If debug mode is disabled, internal statistics are collected only if interval is set to the default value (300 seconds)",
+                "type": "boolean",
+                "default": false
+            },
+            "interval": {
+                "description": "Analytics data collection interval in seconds.  If this interval is different from the default value (300 seconds), internal statistics are not collected unless debugEnabled is set to true.  Minimum interval is 20 seconds, maximum interval is 300 seconds.",
+                "type": "integer",
+                "minimum": 20,
+                "maximum": 300,
+                "default": 300
+            },
+            "sourceId": {
+                "description": "Unique value to signify the source of data",
+                "type": "string"
+            },
+            "tenantId": {
+                "description": "Unique id for the tenant using the analytics backend system",
+                "type": "string"
+            },
+            "offboxProtocol": {
+                "description": "Protocol for communication with offbox analytics application",
+                "type": "string",
+                "enum": ["https", "tcp"]
+            },
+            "offboxTcpAddresses": {
+                "description": "Server IP addresses used only if the 'tcp/https' protocol is chosen",
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                    "type": "string",
+                    "anyOf": [
+                        { "format": "ipv4" },
+                        { "format": "ipv6"},
+                        { "format": "json-pointer" }
+                    ]
+                }
+            },
+            "offboxTcpPort": {
+                "description": "Server TCP port for the server IP addresses used only if the 'tcp' protocol is chosen",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 65535
+            },
+            "offboxEnabled": {
+                "description": "Enables all communication with the offbox application on the global level",
+                "type": "boolean",
+                "default": false
+            }
+        },
+        "allOf": [
+            {
+                "if": {
+                    "properties": {
+                        "offboxEnabled" : { "const": true }
+                    },
+                    "required": ["offboxEnabled"]
+                },
+                "then": {
+                    "required": ["offboxProtocol"]
+                }
+            },
+            {
+                "if": {
+                    "properties": {
+                        "offboxTcpPort": {
+                            "minimum": 1
+                        }
+                    },
+                    "required": ["offboxTcpPort"]
+                },
+                "then": {
+                    "required": ["offboxTcpAddresses", "offboxProtocol"]
+                }
+            },
+            {
+                "if": {
+                    "properties": {
+                        "offboxTcpAddresses": {
+                            "minItems": 1
+                        }
+                    },
+                    "required": ["offboxTcpAddresses"]
+                },
+                "then": {
+                    "required": ["offboxTcpPort", "offboxProtocol"]
+                }
+            },
+            {
+                "if": {
+                    "properties": {
+                        "offboxProtocol": { "enum": ["tcp", "https"] }
+                    },
+                    "required": ["offboxProtocol"]
+                },
+                "then": {
+                    "properties": {
+                        "offboxTcpPort": {
+                            "minimum": 1
+                        },
+                        "offboxTcpAddresses": {
+                            "minItems": 1
+                        }
+                    },
+                    "required": ["offboxTcpAddresses", "offboxTcpPort"]
+                }
+            },
+            {
+                "if": {
+                    "properties": {
+                        "offboxProtocol": { "enum": ["https"] }
+                    },
+                    "required": ["offboxProtocol"]
+                },
+                "then": {
+                    "required": ["sourceId"]
+                }
+            }
+        ],
+        "additionalProperties": false
+    }
+}

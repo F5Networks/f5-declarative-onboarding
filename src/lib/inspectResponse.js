@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,12 @@ const ENDPOINTS = require('./sharedConstants').ENDPOINTS;
  * @class
  *
  * @param {Object} queryParams - query params
+ * @param {String} [taskId] - The id of the task
  */
 class InspectResponse {
-    constructor(queryParams) {
+    constructor(queryParams, taskId) {
         this.queryParams = queryParams || {};
-        this.inspectHandler = new InspectHandler(this.queryParams);
+        this.inspectHandler = new InspectHandler(this.queryParams, taskId);
     }
 
     getSelfLink() {

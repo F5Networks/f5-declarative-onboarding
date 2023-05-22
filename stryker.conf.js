@@ -1,16 +1,26 @@
 'use strict';
 
-module.exports = (config) => {
-    config.set({
-        mutator: 'javascript',
-        packageManager: 'npm',
-        reporters: ['html', 'clear-text', 'progress'],
-        testRunner: 'mocha',
-        transpilers: [],
-        testFramework: 'mocha',
-        coverageAnalysis: 'perTest',
-        mochaOptions: {
-            spec: ['test/unit/**/*.js']
-        }
-    });
+const config = {
+    packageManager: 'npm',
+    reporters: ['html', 'progress'],
+    testRunner: 'mocha',
+    coverageAnalysis: 'perTest',
+    mutate: ['src/**/*.js', '!src/schema/!(latest)/*.js'],
+    mochaOptions: {
+        spec: ['test/unit/**/*.js']
+    },
+    ignoreStatic: true
 };
+
+try {
+    const badgeReporterPath = require.resolve('stryker-mutator-badge-reporter');
+    config.plugins = ['@stryker-mutator/*', badgeReporterPath];
+    config.reporters.push('badge');
+    config.badgeReporter = {
+        label: 'mutation'
+    };
+} catch (e) {
+    // ignore failure
+}
+
+module.exports = config;

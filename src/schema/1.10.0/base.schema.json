@@ -15,7 +15,7 @@
         "schemaVersion": {
             "description": "Version of Declarative Onboarding schema this declaration uses.",
             "type": "string",
-            "enum": ["1.9.0", "1.8.0", "1.7.0", "1.6.1", "1.6.0", "1.5.1", "1.5.0", "1.4.1", "1.4.0", "1.3.0", "1.2.0", "1.1.0", "1.0.0"]
+            "enum": ["1.17.0", "1.16.0", "1.15.0", "1.14.0", "1.13.0", "1.12.0", "1.11.0", "1.10.0", "1.9.0", "1.8.0", "1.7.0", "1.6.1", "1.6.0", "1.5.1", "1.5.0", "1.4.1", "1.4.0", "1.3.0", "1.2.0", "1.1.0", "1.0.0"]
         },
         "class": {
             "description": "Indicates this JSON document is a Device declaration",
@@ -58,7 +58,7 @@
                         "pattern": "^.{0,254}$"
                     },
                     "tokens": {
-                        "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'MF6APSRUYKTMSDBEOOEWLCNSO2') you want to send with queries to the device management service as authentication/authorization tokens",
+                        "description": "One or more HTTP headers (each a property, like 'X-F5-Auth-Token': 'ABCABC') you want to send with queries to the device management service as authentication/authorization tokens",
                         "type": "object",
                         "patternProperties": {
                             "^[^\\x00-\\x20:\\x7f-\\xff]{1,254}$": {

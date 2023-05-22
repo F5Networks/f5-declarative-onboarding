@@ -1,0 +1,14 @@
+{
+    "schemaVersion": "1.14.0",
+    "class": "Device",
+	"async": true,
+    "Common": {
+    	"class": "Tenant",
+        "hostname": "bigip.example.com",
+        "myRoute": {
+            "class": "Route",
+            "network": "default",
+            "target": "external"
+        }
+    }
+}

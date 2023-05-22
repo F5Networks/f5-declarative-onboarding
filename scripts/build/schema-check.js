@@ -1,9 +1,17 @@
-/*
- * Copyright 2018. F5 Networks, Inc. See End User License Agreement ("EULA") for
- * license terms. Notwithstanding anything to the contrary in the EULA, Licensee
- * may copy and modify this software product for its internal business purposes.
- * Further, Licensee may upload, publish and distribute the modified version of
- * the software product on devcentral.f5.com.
+/**
+ * Copyright 2023 F5 Networks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 'use strict';
@@ -24,7 +32,7 @@ function checkDefinitions(schema) {
 
 function checkProperties(schema, prefix) {
     Object.keys(schema.properties || {})
-        .filter(key => key !== 'class')
+        .filter((key) => key !== 'class')
         .forEach((propertyKey) => {
             const propSchema = schema.properties[propertyKey];
             checkSchema(propSchema, `${prefix}.${propertyKey}`, true);
@@ -47,7 +55,7 @@ function checkItems(schema, prefix) {
 }
 
 function collapseAllOf(schema) {
-    (schema.allOf || []).forEach(subSchema => Object.assign(schema, subSchema));
+    (schema.allOf || []).forEach((subSchema) => Object.assign(schema, subSchema));
     delete schema.allOf;
 }
 
@@ -69,7 +77,7 @@ function checkSchema(schema, prefix, isProperty) {
     if (schema.$ref) {
         if (!hasAllOf) {
             const keywords = Object.keys(schema)
-                .filter(key => ['$ref', 'description', 'title', '$comment'].indexOf(key) < 0);
+                .filter((key) => ['$ref', 'description', 'title', '$comment'].indexOf(key) < 0);
             if (keywords.length) {
                 warnings.push(`${pref} mixes keywords with $ref: ${JSON.stringify(keywords)}`);
             }
@@ -102,11 +110,11 @@ function runChecks(fileName, callback) {
     checkDefinitions(JSON.parse(fs.readFileSync(fileName)));
     if (errors.length) {
         console.log(`Found ${errors.length} errors:`);
-        errors.forEach(error => console.log(error));
+        errors.forEach((error) => console.log(error));
     }
     if (warnings.length) {
         console.log(`Found ${warnings.length} warnings:`);
-        warnings.forEach(error => console.log(error));
+        warnings.forEach((error) => console.log(error));
     }
 
     const error = (errors.length) ? new Error('Schema checking failed') : null;

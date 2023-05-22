@@ -1,0 +1,44 @@
+{
+    "schemaVersion": "1.24.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "exampleRoutingAccessList1": {
+            "class": "RoutingAccessList",
+            "entries": [
+                {
+                    "name": "11",
+                    "action": "permit",
+                    "destination": "192.0.2.0/25",
+                    "exactMatchEnabled": false,
+                    "source": "192.0.2.80/25"
+                },
+                {
+                    "name": "22",
+                    "action": "deny",
+                    "destination": "192.0.2.10",
+                    "exactMatchEnabled": false,
+                    "source": "192.0.2.11"
+                }
+            ]
+        },
+        "exampleRoutingAccessList2": {
+            "class": "RoutingAccessList",
+            "entries": [
+                {
+                    "name": "33",
+                    "action": "permit",
+                    "exactMatchEnabled": true,
+                    "source": "2001:db8::/65"
+                },
+                {
+                    "name": 44,
+                    "action": "permit",
+                    "source": "2001:db9::/65"
+                }
+            ]
+        }
+    }
+}

@@ -1,9 +1,17 @@
-/*
- * Copyright 2018. F5 Networks, Inc. See End User License Agreement ("EULA") for
- * license terms. Notwithstanding anything to the contrary in the EULA, Licensee
- * may copy and modify this software product for its internal business purposes.
- * Further, Licensee may upload, publish and distribute the modified version of
- * the software product on devcentral.f5.com.
+/**
+ * Copyright 2023 F5 Networks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 'use strict';
@@ -35,10 +43,10 @@ function getTypes(property) {
         });
     }
     if (property.oneOf && property.type === undefined) {
-        property.oneOf.forEach(p => types.push(getTypes(p)));
+        property.oneOf.forEach((p) => types.push(getTypes(p)));
     }
     if (property.anyOf && property.type === undefined) {
-        property.anyOf.forEach(p => types.push(getTypes(p)));
+        property.anyOf.forEach((p) => types.push(getTypes(p)));
     }
     if (property.if && property.if.type !== undefined) {
         types.push(property.if.type);
@@ -98,8 +106,8 @@ function getValues(property, type) {
 
     if (Array.isArray(type)) {
         return type
-            .map(subType => getValues(property, subType))
-            .filter(v => v !== defaultValue)
+            .map((subType) => getValues(property, subType))
+            .filter((v) => v !== defaultValue)
             .join(', ');
     }
     if (property.if && property.then) {
@@ -110,9 +118,15 @@ function getValues(property, type) {
         }
         return value;
     }
+    if (property.oneOf) {
+        return property.oneOf
+            .map((item) => getValues(item, item.type))
+            .filter((value) => value !== '-')
+            .join(', ');
+    }
     if (type === 'string') {
         if (property.const) return `"${property.const}"`;
-        if (property.enum) return property.enum.map(s => `"${s}"`).join(', ');
+        if (property.enum) return property.enum.map((s) => `"${s}"`).join(', ');
         if (property.pattern) return `regex: ${property.pattern}`;
         if (property.format) return `format: ${property.format}`;
     }
@@ -175,14 +189,14 @@ function objectTable(props, rstArray, defName, propName, type) {
         getProperties(props.items, itemProps, defName);
         if (Object.keys(itemProps).length > 0) {
             table += `${defName} ${propName} possible properties when object type\n\n`;
-            table = addTable(itemProps, table);
+            table = addTable(itemProps, table, `${defName}_${propName}`);
             rstArray.push(table);
         }
     } else if (type === 'object') {
         getProperties(props, itemProps, defName);
         if (Object.keys(itemProps).length > 0) {
             table += `${defName} ${propName} possible properties\n\n`;
-            table = addTable(itemProps, table);
+            table = addTable(itemProps, table, `${defName}_${propName}`);
             rstArray.push(table);
         }
     }
@@ -303,7 +317,7 @@ Object.keys(defs).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
                 }
             } else if (defs[defName].enum) {
                 rstBody += 'Type string with possible values:\n';
-                rstBody += `${defs[defName].enum.map(s => `"${s}"`).join(', ')}\n`;
+                rstBody += `${defs[defName].enum.map((s) => `"${s}"`).join(', ')}\n`;
             } else if (defs[defName].type === 'array' && defs[defName].items.$ref) {
                 const defRefs = defs[defName].items.$ref.split('/');
                 rstBody += `For item definition, see type (*${defRefs[defRefs.length - 1]}*)\n\n`;

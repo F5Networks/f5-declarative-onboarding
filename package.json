@@ -1,6 +1,6 @@
 {
   "name": "f5-declarative-onboarding",
-  "version": "1.14.0-1",
+  "version": "1.38.0-7",
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
   "repository": {
@@ -19,44 +19,44 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
-    "@f5devcentral/f5-cloud-libs": "^4.20.0",
-    "@f5devcentral/f5-teem": "^1.4.6",
-    "ajv": "^6.12.2",
+    "@f5devcentral/atg-shared-utilities": "^0.5.7",
+    "@f5devcentral/f5-cloud-libs": "^4.29.0",
+    "@f5devcentral/f5-teem": "^1.5.0",
+    "ajv": "6.12.6",
     "deep-diff": "^1.0.2",
-    "is-in-subnet": "^3.1.0",
+    "is-in-subnet": "^4.0.1",
     "uuid": "3.4.0"
   },
   "devDependencies": {
-    "@f5devcentral/eslint-config-f5-atg": "latest",
-    "@stryker-mutator/core": "^3.3.0",
-    "@stryker-mutator/html-reporter": "^3.1.0",
-    "@stryker-mutator/javascript-mutator": "^3.3.0",
-    "@stryker-mutator/mocha-framework": "^3.3.0",
-    "@stryker-mutator/mocha-runner": "^3.3.0",
-    "chai": "^4.2.0",
+    "@f5devcentral/atg-shared-utilities-dev": "^0.2.13",
+    "@f5devcentral/eslint-config-f5-atg": "^0.1.8",
+    "@stryker-mutator/core": "^6.4.2",
+    "@stryker-mutator/mocha-runner": "^6.4.2",
+    "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "colors": "^1.4.0",
-    "coveralls": "^3.1.0",
-    "eslint": "^7.3.1",
-    "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-plugin-import": "^2.21.2",
-    "mkdirp": "^1.0.4",
-    "mocha": "^8.0.1",
-    "node-ssh": "^10.0.2",
+    "coveralls": "^3.1.1",
+    "eslint": "7.32.0",
+    "json-schema-ref-parser": "^9.0.9",
+    "mkdirp": "^2.1.6",
+    "mocha": "^10.2.0",
+    "mocha-multi-reporters": "^1.5.1",
+    "nock": "10.0.0",
     "nyc": "^15.1.0",
     "request": "^2.88.2",
     "sinon": "7.5.0",
-    "stryker-cli": "^1.0.0",
-    "winston": "2.4.4"
+    "winston": "^2.4.7"
   },
   "scripts": {
-    "build": "scripts/build/buildRpm.sh",
-    "test": "mocha --recursive test/unit test/schema",
+    "build": "scripts/build/build.sh",
+    "test": "mocha --recursive test/unit",
     "integration": "mocha test/integration/test.js",
+    "property": "mocha test/integration/property test/integration/misc",
+    "make-api-docs": "redoc-cli bundle src/schema/latest/openapi.yaml",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "coverage": "nyc npm test",
     "lint": "eslint src test",
-    "test-mutation": "stryker run"
+    "test-mutation": "npx stryker run"
   },
   "nyc": {
     "reporter": [
@@ -67,5 +67,9 @@
   },
   "eslintConfig": {
     "extends": "@f5devcentral/eslint-config-f5-atg"
+  },
+  "optionalDependencies": {
+    "node-ssh": "^13.0.1",
+    "redoc-cli": "^0.13.21"
   }
 }

@@ -1,0 +1,57 @@
+{
+    "schemaVersion": "1.19.0",
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "gslbDataCenter": {
+            "class": "GSLBDataCenter"
+        },
+        "gslbServer": {
+            "class": "GSLBServer",
+            "label": "Example of all GSLB server properties",
+            "remark": "GSLB server description",
+            "devices": [
+                {
+                    "address": "10.10.10.10",
+                    "addressTranslation": "192.0.2.12",
+                    "remark": "GSLB server device description"
+                }
+            ],
+            "dataCenter": "/Common/gslbDataCenter",
+            "serverType": "bigip",
+            "enabled": false,
+            "proberPreferred": "inside-datacenter",
+            "proberFallback": "any-available",
+            "bpsLimit": 10,
+            "bpsLimitEnabled": true,
+            "ppsLimit": 10,
+            "ppsLimitEnabled": true,
+            "connectionsLimit": 10,
+            "connectionsLimitEnabled": true,
+            "serviceCheckProbeEnabled": false,
+            "pathProbeEnabled": false,
+            "snmpProbeEnabled": false,
+            "virtualServerDiscoveryMode": "enabled",
+            "exposeRouteDomainsEnabled": true,
+            "cpuUsageLimit": 10,
+            "cpuUsageLimitEnabled": true,
+            "memoryLimit": 10,
+            "memoryLimitEnabled": true
+        },
+        "gslbProberPool": {
+            "class": "GSLBProberPool",
+            "label": "Example of all GSLB prober pool properties",
+            "remark": "GSLB prober pool description",
+            "enabled": false,
+            "lbMode": "round-robin",
+            "members": [
+                {
+                    "server": "/Common/gslbServer",
+                    "label": "Example of all GSLB prober pool member properties",
+                    "remark": "GSLB prober pool member description",
+                    "enabled": false
+                }
+            ]
+        }
+    }
+}

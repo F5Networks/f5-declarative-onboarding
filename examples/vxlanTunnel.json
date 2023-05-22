@@ -1,0 +1,29 @@
+{
+    "schemaVersion": "1.25.0",
+    "class": "Device",
+    "async": true,
+    "label": "Configuring System",
+    "Common": {
+        "class": "Tenant",
+        "testTunnel": {
+            "class": "Tunnel",
+            "description": "none",
+            "autoLasthop": "default",
+            "mtu": 0,
+            "tunnelType": "vxlan",
+            "tos": "preserve",
+            "usePmtu": true,
+            "localAddress": "192.0.2.1",
+            "remoteAddress": "233.252.0.2",
+            "secondaryAddress": "any6",
+            "key": 0,
+            "mode": "bidirectional",
+            "transparent": false,
+            "trafficGroup": "none",
+            "defaultsFrom": "vxlan",
+            "port": 4789,
+            "floodingType": "multicast",
+            "encapsulationType": "vxlan"
+        }
+    }
+}

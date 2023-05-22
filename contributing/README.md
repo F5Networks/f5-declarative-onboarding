@@ -21,7 +21,7 @@ on a BIG-IP, as well as from BIG-IQ and the Application Services Gateway contain
 
 How does the project handle a typical `POST` request?
 
-`POST /mgmt/shared/telemetry/declare`
+`POST /mgmt/shared/declarative-onboarding`
 
 ```json
 {
@@ -302,6 +302,23 @@ What happens in the system internals between request and response?
 - Heavy lifting provided by f5-cloud-libs.
 
 ---
+#### Anatomy of a Request on BIG-IQ
+When running on BIG-IQ, the processing happens mostly on BIG-IQ. DO uses iControl REST requests to get configuration and put configuration on the target BIG-IP device. Unlike AS3, DO does not have to be installed on the BIG-IP.
+
+BIG-IQ has a UI to show the user the status of requests. Also, we want the API on BIG-IQ to look just like on BIG-IP from a user perspective. Because of this, DO on BIG-IQ receives requests directly from the user but has to do extra processing to allow BIG-IQ to update it's UI. Here is the basic flow
+* User posts declaration to DO on BIG-IQ
+* DO returns taskId to user
+* User starts polling DO for status of task
+* DO forwards declaration to the task collection worker (TCW) which is a BIG-IQ process
+* TCW does what it needs to do to keep the BIG-IQ UI up to date
+* TCW posts the same declaration back to DO
+* DO returns a separate taskId to TCW
+* TCW polls DO for task status
+* DO processes declararation
+* DO polls TCW for its status (which is updated when TCW polling hears from DO that it is done)
+* When DO polling learns that TCW is done, DO updates original user taskId with status
+
+---
 ## Contributing
 
 Ok, overview done!  Now let's dive into the major areas to be aware of as a developer.
@@ -349,7 +366,21 @@ Build/publish makes heavy use of GitLab and [.gitlab-ci.yml](../.gitlab-ci.yml).
     - .json and.js files in /schema should be copied into latest.
     - A new directory should be added for the new release version.
 - RPMs are generated for every push to GitLab.
-- RPMs are pushed to Artifactory at f5-declarative-onboarding-rpm for every tag pushed to GitLab.
+- RPMs are pushed to Artifactory at f5-automation-toolchain-generic/f5-declarative-onboarding for every tag pushed to GitLab.
 - When ready for release:
     - RPM should be manually copied into dist and pushed back up to GitLab. Please let's stop doing this.
     - RPM should be manually added to the F5 CDN. Please let's automate this.
+
+---
+### GitLab Push Rules
+
+To prevent the releasing of private or sensative information we automatically prevent certain strings from being included in commit messages.
+
+If modifications are necessary open the GitLab GUI, then Settings -> Repository -> Push Rules -> "Commit message negative match".
+
+When you attempt to push a commit message that contains sensitive information, you will see the following error: `Commit message contains the forbidden pattern`
+
+We check for the following:
+- Email addresses
+- IP addresses
+- Generic credential keywords

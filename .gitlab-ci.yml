@@ -1,256 +1,235 @@
-image: node:12
+image: $DOCKER_URL/node:12-buster
 
 stages:
+    - update
+    - atg-shared-checks
     - lint
     - test
+    - apidocs
     - build
     - docs
     - deploy
     - integration-test
     - teardown
-    - post build
-    - publish
 
 variables:
-    PROJECT_NAME: ${BIGIP_VERSION}
-    PROJECT_DIR: /root/deploy-projects/${CI_PROJECT_NAME}
-    NUMBER_OF_BIGIP: 3
-    DO_LICENSING: 'false'
-    DO_PROVISIONING: 'false'
-    DO_PHONING_HOME: 'false'
-    TEST_HARNESS_FILE: ${CI_PROJECT_DIR}/harness_facts_flat_${BIGIP_VERSION}.json
-    BIGIP_VERSION: ${DEFAULT_BIGIP_VERSION}
-    BIGIP_BUILD: ${DEFAULT_BIGIP_BUILD}
+    TEST_HARNESS_FILE: ${CI_PROJECT_DIR}/harness_facts.json
+    ESR_PRODUCT: DO
+    ESR_TEST_RUN_ID: ${CI_JOB_ID}
+    ESR_TEST_RUN_WEB_URL: ${CI_JOB_URL}
+    TEST_REPORTER_OPTIONS: "--reporter mocha-multi-reporters --reporter-options configFile=test/mochaReporterConfig.json"
+    TF_DIRECTORY: test/env/terraform
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_HTTP_USERNAME: ${CI_REGISTRY_USER}
+    TF_HTTP_PASSWORD: ${CI_JOB_TOKEN}
+    TF_CLI_ARGS_apply: "-auto-approve"
+    TF_CLI_ARGS_destroy: "-auto-approve"
+    TF_STATE_URL: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state"
+    # terraform will try to update state 5(4+1) times every 3 minutes.
+    TF_HTTP_RETRY_MAX: 4
+    TF_HTTP_RETRY_WAIT_MIN: 3
+    DOCS_BUILD_DIR: "docs/_build/html"
+
+# This inherits all the jobs defined in the parent template
+# Override variables in this project as needed
+include:
+# adds atg-shared-checks stage and jobs
+# adds atg_shared_checks_result job to test stage
+  - project: automation-toolchain/atg-shared-templates
+    file: security/base.gitlab-ci.yml
+
+update_autotool_deps:
+  stage: update
+  rules:
+    - if: '$UPDATE_DEPS =~ /true/i'
+  needs: []
+  image: $DOCKER_URL/node:14
+  variables:
+    UPDATE_BRANCH_NAME: update_autotool_deps
+  script:
+    - . ./scripts/dev/update-do-deps.sh
+    - >
+      if [ "$AUTOTOOL_DIFF" = "true" ]; then
+        git push -f origin ${UPDATE_BRANCH_NAME}
+        node ./scripts/dev/createMR.js
+      fi
+  tags: [cm-official-docker-executor]
 
 lint:
     stage: lint
+    needs: []
     tags:
         - cm-official-docker-executor
     script:
-        - npm ci
+        - npm ci --no-optional
         - npm run lint
 
 test_node:4:
-    image: node:4
+    image: $DOCKER_URL/node:4
     stage: test
+    needs: []
     tags:
-        - do-test-docker-executor
+        - cm-official-docker-executor
     script:
         - npm install --global npm@5.10.0
-        - npm install
+        - npm install --no-optional
         - npm install mocha@5.2.0
         - npm test
 
 test_node:6:
-    image: node:6
+    image: $DOCKER_URL/node:6
     stage: test
+    needs: []
     tags:
-        - do-test-docker-executor
+        - cm-official-docker-executor
     script:
-        - npm install
+        - npm install --no-optional
         - npm install mocha@6.2.2
-        - npm test
+        - npm test -- $TEST_REPORTER_OPTIONS
+    artifacts:
+        when: always
+        reports:
+            junit: test_report.xml
 
 test_node:8:
-    image: node:8
+    image: $DOCKER_URL/node:8
     stage: test
+    needs: []
     tags:
-        - do-test-docker-executor
+        - cm-official-docker-executor
     script:
         - npm ci
         - npm install mocha@7
-        - npm test
+        - npm test -- $TEST_REPORTER_OPTIONS
+    artifacts:
+        when: always
+        reports:
+            junit: test_report.xml
 
 test_node:latest:
     stage: test
+    needs: []
     tags:
-        - do-test-docker-executor
+        - cm-official-docker-executor
     script:
         - npm ci
-        - npm test
-
-# the following variables should be defined for deploy, integration-tests and teardown:
-# CICD_AUTH_OS_USERNAME - VIO user
-# CICD_AUTH_OS_PASSWORD - VIO password
-# CICD_AUTH_OS_PROJECT  - VIO project
-# BIGIP_VERSION         - BIG-IP Version (ex: 13.1.1.4)
-# BIGIP_BUILD           - BIG-IP Build (ex: 0.0.4)
-deploy:
-    image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
-    tags:
-        - cm-official-docker-executor
-    only:
-        - schedules
-        - tags
-        - triggers
-    stage: deploy
-    variables:
-        DEFAULT_RETRY_DELAY: 20
-        DEFAULT_RETRIES: 60
-        DEVICE_ANSIBLE_CONNECTION_DELAY: 10
-        DEVICE_ANSIBLE_CONNECTION_RETRIES: 100
-        DEVICE_FAILOVER_LINKSUP_DELAY: 10
-        DEVICE_HTTPS_PORT_DELAY: 10
-        SSH_AVAILABILITY_DELAY: 10
-        SSH_AVAILABILITY_RETRIES: 100
-        VIO_DEPLOYMENT_DELAY: 20
-        VIO_DEPLOYMENT_RETRIES: 100
-    script:
-        - export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
-        - cd /root/cicd-bigip-deploy && make configure && make printvars
-        - ls -als "${PROJECT_DIR}"
-        - cat "${PROJECT_DIR}/project-declaration-parsed"
-        - make setup
-        - cp ${PROJECT_DIR}/harness_facts_flat.json ${TEST_HARNESS_FILE}
-        - cd ${CI_PROJECT_DIR}
-        - if [[ $? != 0 ]]; then echo setup failed && exit 1; fi
-        - curl -sL https://rpm.nodesource.com/setup_12.x | bash -
-        - yum install -y nodejs
-        - npm install
-        - node test/integration/setup.js
+        - npm test -- $TEST_REPORTER_OPTIONS
     artifacts:
-        name: ${CI_COMMIT_REF_NAME}_bigip_${BIGIP_BRANCH}.${BIGIP_VERSION}.${BIGIP_BUILD}_harness_info
-        paths:
-            - ${TEST_HARNESS_FILE}
-        expire_in: 1 day
-
-integration-test:
-    tags:
-        - cm-official-docker-executor
-    only:
-        - schedules
-        - tags
-        - triggers
-    stage: integration-test
-    script:
-        - npm install
-        - echo BIGIP_VERSION $BIGIP_VERSION
-        - npm run integration
-    after_script:
-        - apt-get update
-        - apt-get install -y jq
-        - apt-get install -y expect
-        - scripts/dev/collectRemoteIntegrationTestLogs.sh ${TEST_HARNESS_FILE}
-    artifacts:
-        name: f5-declarative-onboarding-$CI_BUILD_REF
         when: always
-        paths:
-            - test/logs
+        reports:
+            junit: test_report.xml
 
-teardown:
-    image: ${CICD_CONTAINER_DEPLOY_ARTIFACTORY}
-    tags:
-        - cm-official-docker-executor
-    script:
-        - cd /root/cicd-bigip-deploy && make configure && make teardown
-    when: always
-    only:
-        - schedules
-        - tags
-        - triggers
-    stage: teardown
+test-bigiq-ui:
+  stage: test
+  needs: []
+  parallel:
+    matrix:
+      - BIGIQ_BRANCH: [master/palisade, master/quartz, master/rainier]
+  allow_failure: true
+  script:
+    - git clone --branch $BIGIQ_BRANCH --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@$CI_SERVER_HOST:$CI_SERVER_PORT/bigiq-mgmt/bigiq-mgmt-test
+    - cd bigiq-mgmt-test/tools/declarativeOnboardSchemaValidator
+    - npm ci
+    - cp -r ../../../src/schema/latest/ schema
+    - node validateDO_UiSchemaTest.js > output
+    - cat output
+    - 'grep -q "Total Failures :  0" output'
 
-build rpm:
-    image: f5devcentral/containthedocs:rpmbuild
+coverage:
+  image: $DOCKER_URL/node:16
+  stage: test
+  needs: []
+  tags:
+      - cm-official-docker-executor
+  script:
+        - PUBLIC_DIR='./public'
+        - mkdir -p ${PUBLIC_DIR}
+        - COVERAGE_DOCS=${PUBLIC_DIR}/coverage-docs
+        - mkdir -p ${COVERAGE_DOCS}
+        ## place code coverage docs under: /coverage-docs ##
+        - npm ci
+        - npm run coverage
+        - cp -R coverage/* ${COVERAGE_DOCS}
+  except:
+      # For develop, coverage is run in the pages job
+      - develop
+      - pipelines
+  artifacts:
+      paths:
+        - public
+  coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
+
+audit:
+  image: $DOCKER_URL/node:16
+  needs: []
+  stage: test
+  allow_failure: true
+  tags:
+      - cm-official-docker-executor
+  script:
+      - npm audit
+
+build_rpm:
+    image: $DOCKER_URL/node:14
     stage: build
+    needs: []
     tags:
         - cm-official-docker-executor
+    except:
+        - pipelines
     script:
         # setup node environment
-        - npm install --global npm@5.10.0
+        - apt-get update && apt-get install -y rpm --no-install-recommends
         - scripts/build/buildRpm.sh
+        # ensure latest copyrights, requires dev dependencies
+        - npm ci --no-optional
+        - node node_modules/@f5devcentral/atg-shared-utilities-dev/scripts/dev/write-copyright.js -c -p scripts/dev/copyright.txt
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
             - dist/
         expire_in: 1 week
 
-build asg:
-    image: docker:latest
-    stage: post build
-    except:
-        - schedules
-    tags:
-        - cm-official-docker-executor
-    dependencies:
-        - build rpm
+reactivate_big_iq_license:
+    stage: build
+    needs: []
+    rules:
+        - if: '$REACTIVATE_BIG_IQ_LICENSE =~ /true/i'
     script:
-        - IMAGE_NAME=f5-do-container
-        - ORGANIZATION_NAME=f5devcentral
-        - TARGET=$(ls dist/*.rpm)
-        # TAG is VERSION-RELEASE. Use awk to remove everything else
-        - IMAGE_TAG=$(echo $(basename $TARGET) | awk -F- -v PROJECT_NAME=${CI_PROJECT_NAME}- '{sub(PROJECT_NAME, ""); sub(".noarch.rpm", ""); print}')
-        - if [[ ${CI_COMMIT_REF_NAME} == 'master' ]]; then
-        -     IMAGE_TAG=$(echo $IMAGE_TAG | grep -o "^[^-]\+")
-        - elif [[ ${CI_COMMIT_REF_NAME} != 'develop' ]]; then
-        -     IMAGE_TAG=$CI_COMMIT_REF_NAME
-        - fi
-        - echo ${TARGET} ${IMAGE_TAG}
-        - docker build -f scripts/build/Dockerfile.asg -t ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} --build-arg TARGET=$TARGET .
-        - docker save ${ORGANIZATION_NAME}/${IMAGE_NAME}:${IMAGE_TAG} | gzip -c > dist/${ORGANIZATION_NAME}-${IMAGE_NAME}-${IMAGE_TAG}.tar.gz
-    artifacts:
-        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
-        paths:
-            - dist/
-        expire_in: 1 week
+      - npm ci
+      - node scripts/dev/reactivateBigIq.js
 
-create postman collection:
-    stage: post build
-    except:
-        - schedules
-    tags:
-        - cm-official-docker-executor
-    script:
-        - node scripts/build/generatePostmanCollection.js
-    artifacts:
-        name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
-        paths:
-            - dist/
-        expire_in: 1 week
+build_api_docs:
+  image: $DOCKER_URL/node:12
+  stage: apidocs
+  needs: []
+  script:
+    # install packages
+    - npm install
+    # generate docs
+    - npm run make-api-docs
+    - mkdir apidocs && mv redoc-static.html apidocs/index.html
+  tags:
+    - cm-official-docker-executor
+  artifacts:
+    name: docs
+    paths:
+      - apidocs
 
-publish to artifactory:
-    stage: publish
-    only:
-        - tags
-    tags:
-        - cm-official-docker-executor
-    script:
-        - RPM_FILE=$(ls dist/*.rpm)
-        - RPM_NAME=$(basename $RPM_FILE)
-        - HASH_FILE=${RPM_FILE}.sha256
-        - HASH_NAME=$(basename $HASH_FILE).txt
-        - POSTMAN_FILE=$(ls dist/*.collection.json)
-        - POSTMAN_NAME=$(basename $POSTMAN_FILE)
-        - >-
-            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${RPM_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${RPM_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during RPM upload; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${HASH_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${HASH_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during hash upload; exit 1; fi
-        - >-
-            UPLOAD_RESULT=$(curl -H "Authorization: Bearer ${ARTIFACTORY_BEARER_TOKEN}" -X PUT --data-binary @${POSTMAN_FILE}
-            ${ARTIFACTORY_BASE_URL}/f5-declarative-onboarding-rpm/${POSTMAN_NAME})
-        - echo $UPLOAD_RESULT
-        - if [[ "$UPLOAD_RESULT" == *errors* ]]; then echo error during collection upload; exit 1; fi
-
-create docs:
+create_docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build
-    except:
-        - tags
-        - schedules
+    allow_failure: true
+    needs: 
+        - build_api_docs
     script:
-        - node scripts/build/schema-build.js
-        - node scripts/build/schema-check.js
-        - node scripts/build/schema-to-rst.js
         - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
         -   rm -rf docs/_templates
         - fi
         - make html
+        - API_DOCS_INDEX=${DOCS_BUILD_DIR}/apidocs.html
+        - cp apidocs/index.html ${API_DOCS_INDEX}
         - echo "Checking grammar and style"
         # Runs the grammar check on everything except the /docs/drafts directory
         - vale --glob='*.rst' .
@@ -264,21 +243,190 @@ create docs:
         paths:
             - docs/_build/html
 
+.deploy_common: &deploy_common
+    image: $INTEGRATION_DEPLOY_IMAGE
+    tags:
+      - do-test-docker-executor
+    stage: deploy
+    timeout: 1 hour
+    script:
+      - apk update
+      # Need to add bash, because included sh doen't support arrays
+      # used in build_harness_file.sh script to get IP addresses.
+      - apk add bash npm build-base python3 cmake
+      - if [[ $PROPERTY_TEST == true ]]; then
+      -     export TF_VAR_bigip_count=1
+      - else
+      -     export TF_VAR_bigip_count=3
+      -     unset BIGIP_LICENSE # Licensing will be handled by integration testing
+      - fi
+      - cd "$TF_ROOT"
+      - terraform init
+      # In case of testing failure, BIGIP will not be destroyed,
+      # so before run we need to clean leftovers from last night.
+      - terraform destroy
+      - terraform apply
+      - export BIGIPS_ADDRESSES=$(terraform output --json admin_ip | jq -rc .[])
+      - export ADMIN_USERNAME=$(terraform output --json admin_username | jq -rc .)
+      - export ADMIN_PASSWORD=$(terraform output --json admin_password | jq -rc .)
+      - cd -
+      - scripts/dev/build_harness_file.sh > $TEST_HARNESS_FILE
+      - npm ci
+      - node test/integration/setup.js
+    artifacts:
+      when: always
+      paths:
+        - ${TEST_HARNESS_FILE}
+      expire_in: 1 day
+    retry:
+      max: 1
+      when: script_failure
+
+deploy_for_this_project:
+    rules:
+      - if: '$RUN_INTEGRATION_TEST =~ /true/i'
+    variables:
+      TF_ROOT: '$TF_DIRECTORY/plans/openstack'
+      TF_VAR_bigip_image: "$BIGIP_IMAGE"
+      TF_VAR_nic_count: "$NIC_COUNT"
+    before_script:
+      - export TRIM_VERSION="$(echo $BIGIP_IMAGE | cut -d '-' -f 2 | tr '.' -)"
+      - if [[ $PROPERTY_TEST == true ]]; then
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION-property"
+      - else
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - fi
+      - export TF_HTTP_LOCK_ADDRESS="$TF_HTTP_ADDRESS/lock"
+      - export TF_HTTP_UNLOCK_ADDRESS=$TF_HTTP_LOCK_ADDRESS
+      - echo using RPM from our pipeline
+      - export RPM_PACKAGE=$(ls ${CI_PROJECT_DIR}/dist/*.rpm)
+    <<: *deploy_common
+    needs:
+      - job: build_rpm
+        artifacts: true
+
+deploy_for_other_project:
+    rules:
+      - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
+    variables:
+      TF_ROOT: "$TF_DIRECTORY/plans/openstack"
+      TF_VAR_bigip_image: "$BIGIP_IMAGE"
+      TF_VAR_nic_count: "$NIC_COUNT"
+    before_script:
+      - export TRIM_VERSION="$(echo $BIGIP_IMAGE | cut -d '-' -f 2 | tr '.' -)"
+      - if [[ $PROPERTY_TEST == true ]]; then
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION-property"
+      - else
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - fi
+      - export TF_HTTP_LOCK_ADDRESS="$TF_HTTP_ADDRESS/lock"
+      - export TF_HTTP_UNLOCK_ADDRESS=$TF_HTTP_LOCK_ADDRESS
+      - echo using RPM from cross-project pipeline
+      - export RPM_PACKAGE=$(ls ${UPSTREAM_RPM_PATH}/*.rpm)
+    <<: *deploy_common
+    needs:
+        - project: "$UPSTREAM_PROJECT_PATH"
+          job: "$UPSTREAM_JOB"
+          ref: "$UPSTREAM_REF"
+          artifacts: true
+
+integration-test:
+    tags:
+        - do-test-docker-executor
+    rules:
+      - if: '$RUN_INTEGRATION_TEST =~ /true/i'
+      - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
+    stage: integration-test
+    timeout: 3 hours
+    before_script:
+        - apt-get update
+        - apt-get install -y jq
+        - export ESR_TEST_TYPE=integration
+        - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
+        - export ESR_BIG_IP_VERSION=$(echo $BIGIP_IMAGE | cut -d '-' -f 2)
+        - export GIT_SSL_NO_VERIFY=1
+        - echo BIGIP_VERSION $ESR_BIG_IP_VERSION
+        - npm install --no-optional
+    script:
+        - if [[ $PROPERTY_TEST == true ]]; then
+        -     export DO_HOST=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].admin_ip')
+        -     export DO_USERNAME=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].f5_rest_user.username')
+        -     export DO_PASSWORD=$(cat ${TEST_HARNESS_FILE} | jq -r '.[0].f5_rest_user.password')
+        -     npm run property -- $TEST_REPORTER_OPTIONS
+        - else
+        -     npm run integration -- $TEST_REPORTER_OPTIONS
+        - fi
+    after_script:
+        - apt-get install -y expect
+        - scripts/dev/collectRemoteIntegrationTestLogs.sh ${TEST_HARNESS_FILE}
+    artifacts:
+        name: f5-declarative-onboarding-$CI_BUILD_REF
+        when: always
+        paths:
+            - test/logs
+        reports:
+            junit: test_report.xml
+        expire_in: 1 week
+
+.teardown_common: &teardown_common
+    image: $INTEGRATION_DEPLOY_IMAGE
+    tags:
+      - do-test-docker-executor
+    stage: teardown
+    before_script:
+      # terraform doesn't support '.' in backend address.
+      - export TRIM_VERSION="$(echo $BIGIP_IMAGE | cut -d '-' -f 2 | tr '.' -)"
+      - if [[ $PROPERTY_TEST == true ]]; then
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION-property"
+      - else
+      -     export TF_HTTP_ADDRESS="$TF_STATE_URL/openstack-$TRIM_VERSION"
+      - fi
+    script:
+      - cd $TF_DIRECTORY/plans/openstack
+      - terraform init
+      - terraform destroy
+    retry:
+      max: 1
+      when: script_failure
+
+teardown_for_this_project:
+    rules:
+      - if: '$SKIP_TEARDOWN =~ /true/i'
+        when: never
+      - if: '$RUN_INTEGRATION_TEST =~ /true/i'
+        when: always
+      - when: never
+    needs:
+        - job: deploy_for_this_project
+        - job: integration-test
+    <<: *teardown_common
+
+teardown_for_other_project:
+    rules:
+      - if: '$SKIP_TEARDOWN =~ /true/i'
+        when: never
+      - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
+        when: always
+      - when: never
+    needs:
+        - job: deploy_for_other_project
+        - job: integration-test
+    <<: *teardown_common
+
 # Deploy docs to Pages for review
 # Docs are staged on this projects pages site
 pages:
     stage: docs
-    except:
-        - tags
-        - schedules
+    allow_failure: true
     environment:
         name: review
         url: https://${CI_PROJECT_NAMESPACE}.${PAGES_DOMAIN}/${CI_PROJECT_NAME}/
     tags:
         - cm-official-docker-executor
-    dependencies:
-        - create docs
+    needs:
+        - create_docs
     script:
+        # create public directory
         - PUBLIC_DIR='./public'
         - mkdir -p ${PUBLIC_DIR}
         # place index.html in public dir
@@ -310,23 +458,8 @@ pages:
     only:
         - develop
         - doc-release-branch
-
-Publish docs to staging:
-  image: ${CONTAINTHEDOCS_IMAGE}
-  stage: docs
-  environment:
-    name: staging
-    url: https://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-  tags:
-    - cm-official-docker-executor
-  only:
-    - docs-staging@automation-toolchain/f5-declarative-onboarding
-  dependencies:
-    - create docs
-  script:
-    - aws s3 sync docs/_build/html s3://clouddocs.f5networks.net/products/extensions/f5-declarative-onboarding/latest
-    # create invalidation to clear cloudfront cache
-    - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding/latest
+        - joes-do-wip
+    coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
 
 publish docs to production:
     image: ${CONTAINTHEDOCS_IMAGE}
@@ -340,10 +473,11 @@ publish docs to production:
         - docs-latest@automation-toolchain/f5-declarative-onboarding
     tags:
         - cm-official-docker-executor
-    dependencies:
-        - create docs
+    needs:
+        - create_docs
     script:
         # Publish docs to clouddocs.f5.com (live site).
         - publish-product-docs-to-prod extensions/f5-declarative-onboarding/latest
+        - aws s3 cp versions.json s3://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/versions.json
         # create invalidation to clear cloudfront cache
-        - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding
+        # - aws cloudfront create-invalidation --distribution-id $AWS_DIST --paths /products/extensions/f5-declarative-onboarding

@@ -1,0 +1,65 @@
+{
+    "schemaVersion": "1.19.0",
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "gslbDataCenter": {
+            "class": "GSLBDataCenter"
+        },
+        "gslbProberPool": {
+            "class": "GSLBProberPool"
+        },
+        "gslbServer": {
+            "class": "GSLBServer",
+            "label": "Example of all GSLB server properties",
+            "remark": "GSLB server description",
+            "devices": [
+                {
+                    "address": "10.10.10.10",
+                    "addressTranslation": "192.0.2.12",
+                    "remark": "GSLB server device description"
+                }
+            ],
+            "dataCenter": "/Common/gslbDataCenter",
+            "serverType": "generic-host",
+            "enabled": false,
+            "proberPreferred": "pool",
+            "proberFallback": "any-available",
+            "proberPool": "/Common/gslbProberPool",
+            "bpsLimit": 10,
+            "bpsLimitEnabled": true,
+            "ppsLimit": 10,
+            "ppsLimitEnabled": true,
+            "connectionsLimit": 10,
+            "connectionsLimitEnabled": true,
+            "serviceCheckProbeEnabled": false,
+            "pathProbeEnabled": false,
+            "snmpProbeEnabled": false,
+            "virtualServerDiscoveryMode": "enabled",
+            "exposeRouteDomainsEnabled": true,
+            "cpuUsageLimit": 10,
+            "cpuUsageLimitEnabled": true,
+            "memoryLimit": 10,
+            "memoryLimitEnabled": true,
+            "virtualServers": [
+                {
+                    "address": "10.0.20.1"
+                },
+                {
+                    "name": "virtualServer",
+                    "label": "Example of all GSLB server virtual server properties",
+                    "remark": "GSLB server virtual server description",
+                    "enabled": false,
+                    "address": "a989:1c34:009c:0000:0000:b099:c1c7:8bfe",
+                    "port": 8080,
+                    "addressTranslation": "1:0:1:0:0:0:0:0",
+                    "addressTranslationPort": 80,
+                    "monitors": [
+                        "/Common/tcp",
+                        "/Common/http"
+                    ]
+                }
+            ]
+        }
+    }
+}

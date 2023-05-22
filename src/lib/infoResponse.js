@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,9 +54,9 @@ class InfoResponse {
         return [];
     }
 
-    getData() {
+    getData(id) {
         const schemaVersions = schema.properties.schemaVersion.enum;
-        const versionInfo = doUtil.getDoVersion();
+        const versionInfo = doUtil.getDoVersion(id);
         return {
             version: versionInfo.VERSION,
             release: versionInfo.RELEASE,

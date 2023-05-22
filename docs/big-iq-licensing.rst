@@ -3,7 +3,7 @@
 
 Composing a declaration for licensing BIG-IP with a BIG-IQ
 ==========================================================
-If you have an existing BIG-IQ device with a pool of F5 licenses (BIG-IQ License Manager), you can reference it from your Declarative Onboarding declaration in order to license your BIG-IP device. 
+If you have an existing BIG-IQ device with a pool of F5 licenses (BIG-IQ License Manager), you can reference it from your BIG-IP Declarative Onboarding declaration in order to license your BIG-IP device. 
 
 To use this feature:
 
@@ -11,11 +11,11 @@ To use this feature:
 - The license pool can only be a Registration Key pool, Purchased Pool, or a Utility (subscription/ELA) pool. See the |bigiq| documentation for more detailed information on License pool types.
 - In the BIG-IQ UI, you must include a targetUsername and targetPassphrase.  BIG-IQ is able to pass a target token through the API, but the BIG-IQ **must** also have the target username and passphrase in the body so the BIG-IQ can discover and import the BIG-IP device after the onboarding process.
 
-Additionally, see :doc:`json-pointers` for information on using JSON/Declarative Onboarding pointers in your declaration.
+Additionally, see :doc:`json-pointers` for information on using JSON/BIG-IP Declarative Onboarding pointers in your declaration.
 
-See :doc:`bigiq-examples` for additional example declarations.
+See :ref:`BIG-IQ examples<iqexamples>` for additional example declarations.  
 
-.. NOTE:: See |compat| for information on BIG-IQ and Declarative Onboarding compatibility.
+.. NOTE:: See |compat| for information on BIG-IQ and BIG-IP Declarative Onboarding compatibility.
 
 
 Declaration class licensing with BIG-IQ
@@ -24,7 +24,10 @@ Declaration class licensing with BIG-IQ
 In this declaration snippet, we only include the License class, which is specific to using the BIG-IQ to license your BIG-IP system.  For a complete declaration, you could add the License class to the example in :doc:`composing-a-declaration` to configure DNS, NTP, VLANs, Routes and more.  
 For the full BIG-IQ Licensing example declaration, see :ref:`bigiq1` and :ref:`bigiq2`.
 
-In the following snippet, we set *reachable* to **true** (reachable means the BIG-IQ has a route to the BIG-IP), therefore we include a BIG-IP username and password. We are also using a utility pool behind the scenes on BIG-IQ, so use SKU keywords and unit of measure.  If reachable is false, you only specify the hypervisor (see the :doc:`bigiq-examples` for example declarations). And for a RegKey pool, you do not need the SKU keywords or the unit of measure (see the table and :ref:`bigiq2` for usage). 
+In the following snippet, we set *reachable* to **true** (reachable means the BIG-IQ has a route to the BIG-IP), therefore we include a BIG-IP username and password. We are also using a utility pool behind the scenes on BIG-IQ, so use SKU keywords and unit of measure.  If reachable is false, you only specify the hypervisor (see the :ref:`BIG-IQ examples<iqexamples>` for example declarations). And for a RegKey pool, you do not need the SKU keywords or the unit of measure (see the table and :ref:`bigiq2` for usage). 
+
+.. TIP:: There may be additional properties available.  Be sure to see the :doc:`schema-reference` and :doc:`examples` for detailed information on each class and their associated properties. 
+
 
 .. code-block:: javascript
    :linenos:
@@ -41,7 +44,7 @@ In the following snippet, we set *reachable* to **true** (reachable means the BI
         "unitOfMeasure": "hourly",
         "reachable": true,
         "bigIpUsername": "admin",
-        "bigIpPassword": "barbar"
+        "bigIpPassword": "asdfjkl"
     },
 
 
@@ -93,7 +96,7 @@ The License class contains information about your BIG-IQ device.  For BIG-IQ, th
 
 Again, for the full BIG-IQ Licensing example declaration, see :ref:`bigiq1` and :ref:`bigiq2`.
 
-See :doc:`bigiq-examples` for additional example declarations.
+See :ref:`BIG-IQ examples<iqexamples>` for additional example declarations.
 
 |
 
@@ -101,12 +104,12 @@ See :doc:`bigiq-examples` for additional example declarations.
 
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   The ability to revoke a license using Declarative Onboarding is available in version 1.3.0 and later.
+   The ability to revoke a license using BIG-IP Declarative Onboarding is available in version 1.3.0 and later.
 
 Revoking a license from a BIG-IP with BIG-IQ
 ============================================
 
-If you are using Declarative Onboarding 1.3.0 or later, you can use a declaration to revoke a license from a BIG-IP VE that was issued from a BIG-IQ license pool, and optionally relicense the BIG-IP VE with a new license.
+If you are using BIG-IP Declarative Onboarding 1.3.0 or later, you can use a declaration to revoke a license from a BIG-IP VE that was issued from a BIG-IQ license pool, and optionally relicense the BIG-IP VE with a new license.
 
 .. IMPORTANT:: If the BIG-IP is not reachable from the BIG-IQ ("reachable": false), you must use **overwrite** if you want to relicense a BIG-IP VE (as the BIG-IP will not know the license was revoked). 
 
@@ -117,7 +120,7 @@ Revoking a license without relicensing
 --------------------------------------
 If you want to revoke a license from a BIG-IP and not supply a new license, you simply add the **revokeFrom** property with name of the license pool to the license class.  For example ``"revokeFrom": "myPool"``.
 
-So the entire license class might look like the following:
+So the entire license class might look like the following, which revokes the license from the BIG-IP VE, and leaves it in an unlicensed state.
 
 .. code-block:: javascript
    :emphasize-lines: 7
@@ -132,7 +135,6 @@ So the entire license class might look like the following:
             "reachable": false
         },
 
-This revokes the license from the BIG-IP VE, and leaves it in an unlicensed state.
 
 Revoking a license and relicensing a BIG-IP from a different license pool
 -------------------------------------------------------------------------
@@ -143,7 +145,7 @@ Relicensing a BIG-IP (with route)
 If you want to relicense a BIG-IP VE that is reachable from the BIG-IQ device, in your *reachable* declaration you simply add the **revokeFrom** property with name of the license pool you want to revoke the license from (for example ``"revokeFrom": "myPool"``). In the licensePool property, use the new license pool from which you want to give the BIG-IP a license.
 
 
-So the entire license class might look like the following:
+So the entire license class might look like the following, which revokes the license from the BIG-IP VE from the **myPool** license pool and relicenses it using the **myOtherPool** license pool:
 
 .. code-block:: javascript
    :emphasize-lines: 7-8
@@ -161,18 +163,23 @@ So the entire license class might look like the following:
         "unitOfMeasure": "hourly",
         "reachable": true,
         "bigIpUsername": "admin",
-        "bigIpPassword": "barbar"
+        "bigIpPassword": "asdfjkl"
     },
 
-This revokes the license from the BIG-IP VE from the **myPool** license pool and relicenses it using the **myOtherPool** license pool.
+
 
 
 Relicensing a BIG-IP (no route)
 ```````````````````````````````
 If you want to relicense a BIG-IP VE that is **unreachable** from the BIG-IQ device, in your *unreachable* declaration you must also use the **overwrite** property (``"overwrite": true``) in addition to the **revokeFrom** property with name of the license pool you want to revoke the license from (for example ``"revokeFrom": "myPool"``). In the licensePool property, use the new license pool from which you want to give the BIG-IP a license.
 
+**New in BIG-IP DO 1.15** |br| 
+BIG-IP DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The BIG-IP DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the BIG-IP DO property, it becomes *BIG-IP DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
 
-So the entire license class might look like the following:
+.. IMPORTANT:: The following declaration snippet has been updated to include the new Tenant property introduced in BIG-IP DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom.
+
+
+So the entire license class might look like the following, which revokes the license from the BIG-IP VE from the **myPool** license pool and relicenses it using the **myOtherPool** license pool (while telling the BIG-IP VE to overwrite the existing license).
 
 .. code-block:: javascript
    :emphasize-lines: 6-7, 14
@@ -190,15 +197,20 @@ So the entire license class might look like the following:
             "unitOfMeasure": "hourly",
             "reachable": false,
             "hypervisor": "vmware",
-            "overwrite": true
+            "overwrite": true,
+            "tenant": "Optional custom descriptor"
         },
 
-This revokes the license from the BIG-IP VE from the **myPool** license pool and relicenses it using the **myOtherPool** license pool (while telling the BIG-IP VE to overwrite the existing license).
 
 
 Relicensing a BIG-IP (no route) using a different BIG-IQ device
 ```````````````````````````````````````````````````````````````
 This section shows how to relicense a BIG-IP VE that is **unreachable**, AND you are using a different BIG-IQ device than the one you used to initially license the BIG-IP device. In this case, you also use the **revokeFrom** property, but you supply information about the BIG-IQ device you used to license the BIG-IP.  You must also use the **overwrite** property (``"overwrite": true``) in addition to the **revokeFrom** property. 
+
+**New in BIG-IP DO 1.15** |br| 
+BIG-IP DO 1.15 adds the **tenant** property to the License class. This property allows you to specify an optional description for the license. This feature is useful in autoscale solutions managed by a BIG-IQ. The BIG-IP DO tenant property is prepended to the BIG-IQ tenant property. The BIG-IQ tenant property is *management address,hostname* by default, so when using the BIG-IP DO property, it becomes *BIG-IP DO-tenant-property,management-address,hostname*.  This feature is only supported when **reachable** is **false**.
+
+.. IMPORTANT:: The following declaration snippet has been updated to include the new Tenant property introduced in BIG-IP DO 1.15.  If you attempt to use it on a version prior to 1.15, it will fail. To use the example on a previous version, delete the **tenant** property at the bottom.
 
 For example, to revoke a license issued from the BIG-IQ at 10.0.2.200 and re-license with a license from the BIG-IQ at 10.0.1.200, the entire license class might look like the following:
 
@@ -215,7 +227,7 @@ For example, to revoke a license issued from the BIG-IQ at 10.0.2.200 and re-lic
             "revokeFrom": {
                 "bigIqHost": "10.0.2.200",
                 "bigIqUsername": "admin",
-                "bigIqPassword": "barbar",
+                "bigIqPassword": "asdfjkl",
                 "licensePool": "myPool",
                 "reachable": false
             },
@@ -224,7 +236,8 @@ For example, to revoke a license issued from the BIG-IQ at 10.0.2.200 and re-lic
             "unitOfMeasure": "hourly",
             "reachable": false,
             "hypervisor": "vmware",
-            "overwrite": true
+            "overwrite": true,
+            "tenant": "Optional custom descriptor"
         },
 
 This revokes the license from the BIG-IP VE from the **myPool** license pool from the initial BIG-IQ device, and relicenses it using the **myPool** license pool on the new BIG-IQ device on which you are composing this declaration (while telling the BIG-IP VE to overwrite the existing license).

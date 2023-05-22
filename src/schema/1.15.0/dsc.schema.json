@@ -1,0 +1,330 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/dsc.schema.json",
+    "title": "F5 Declarative Onboarding DSC declaration",
+    "description": "Clustering properties for onboarding a BIG-IP.",
+    "allOf": [
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "ConfigSync" } }
+            },
+            "then": {
+                "required": ["class", "configsyncIp"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains config sync IP configuration.",
+                        "type": "string",
+                        "const": "ConfigSync"
+                    },
+                    "configsyncIp": {
+                        "description": "ConfigSync IP",
+                        "type": "string",
+                        "anyOf": [
+                            { "const": "none" },
+                            { "format": "ipv4" },
+                            { "format": "ipv6" },
+                            { "format": "json-pointer" }
+                        ]
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "FailoverUnicast" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains failover unicast address configuration.",
+                        "type": "string",
+                        "const": "FailoverUnicast"
+                    },
+                    "address": {
+                        "description": "IP address to listen on for failover heartbeats",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" },
+                            { "format": "json-pointer" }
+                        ]
+                    },
+                    "port": {
+                        "description": "Port to listen on for failover heartbeats. The default is 1026.",
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "addressPorts": {
+                        "description": "An array of address and port objects, that will create multiple failover unicast objects in the BIG-IP device. This array is mutually exclusive from using the other address and port features. Available in DO 1.15 and later.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["address"],
+                            "properties": {
+                                "address": {
+                                    "description": "IP address to listen on for failover heartbeats",
+                                    "type": "string",
+                                    "anyOf": [
+                                        { "format": "ipv4" },
+                                        { "format": "ipv6" },
+                                        { "format": "json-pointer" }
+                                    ]
+                                },
+                                "port": {
+                                    "description": "Port to listen on for failover heartbeats",
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 65535,
+                                    "default": 1026
+                                }
+                            }
+                        }
+                    }
+                },
+                "additionalProperties": false,
+                "dependencies": {
+                    "address": {
+                        "properties": {
+                            "port": {
+                                "default": 1026
+                            }
+                        }
+                    }
+                },
+                "oneOf": [
+                    {
+                        "required": ["address"],
+                        "not": { "required": ["addressPorts"] }
+                    },
+                    {
+                        "required": ["addressPorts"],
+                        "allOf": [
+                            { "not": { "required": ["address"] } },
+                            { "not": { "required": ["port"] } }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DeviceGroup" } }
+            },
+            "then": {
+                "required": ["class", "type", "owner"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains device group configuration.",
+                        "type": "string",
+                        "const": "DeviceGroup"
+                    },
+                    "type": {
+                        "description": "Type of the device group",
+                        "type": "string",
+                        "enum": ["sync-failover", "sync-only"]
+                    },
+                    "owner": {
+                        "description": "Owning device. Config will be pushed from this device. If this is present, device group will only be created if the current device is the owner. If not present, device group will be created if it does not exist",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "hostname" },
+                            { "format": "json-pointer" }
+                        ]
+                    },
+                    "members": {
+                        "description": "Members to add to the device group if they are already in the trust domain",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "anyOf": [
+                                { "format": "ipv4" },
+                                { "format": "ipv6" },
+                                { "format": "hostname" }
+                            ]
+                        }
+                    },
+                    "autoSync": {
+                        "description": "Whether or not the device group should auto sync",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "saveOnAutoSync": {
+                        "description": "Whether or not the device group should save on auto sync",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "networkFailover": {
+                        "description": "Whether or not the device group supports network failover",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "asmSync": {
+                        "description": "Whether or not the device group should sync ASM properties",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "fullLoadOnSync": {
+                        "description": "Whether or not the device group should do a full load on sync",
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                "if": {
+                    "required": ["class"],
+                    "properties": { "type": { "const": "sync-failover" } }
+                },
+                "then": {
+                    "if": {
+                        "required": ["autoSync"],
+                        "properties": { "autoSync": { "const": true } } },
+                    "then": {
+                        "properties": {
+                            "fullLoadOnSync": {
+                                "const": false
+                            }
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DeviceTrust" } }
+            },
+            "then": {
+                "required": ["class", "localUsername", "localPassword", "remoteHost", "remoteUsername", "remotePassword"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains device trust configuration.",
+                        "type": "string",
+                        "const": "DeviceTrust"
+                    },
+                    "localUsername": {
+                        "description": "The username for the local device",
+                        "type": "string"
+                    },
+                    "localPassword": {
+                        "description": "The password for the localUsername",
+                        "type": "string"
+                    },
+                    "remoteHost": {
+                        "description": "The remote hostname or IP address",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "ipv4" },
+                            { "format": "ipv6" },
+                            { "format": "hostname" },
+                            { "format": "json-pointer" }
+                        ]
+                    },
+                    "remoteUsername": {
+                        "description": "An admin user on the remote host",
+                        "type": "string"
+                    },
+                    "remotePassword": {
+                        "description": "Password for the remote user in remoteUsername",
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "TrafficGroup" } }
+            },
+            "then" : {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Traffic Group configuration.",
+                        "type": "string",
+                        "const": "TrafficGroup"
+                    },
+                    "autoFailbackEnabled": {
+                        "type": "boolean",
+                        "description": "Specifies whether the traffic group fails back to the default device.",
+                        "default": false
+                    },
+                    "autoFailbackTime": {
+                        "type": "integer",
+                        "description": "Specifies the time required to fail back.",
+                        "default": 60,
+                        "minimum": 0,
+                        "maximum": 300
+                    },
+                    "failoverMethod": {
+                        "type": "string",
+                        "description": "Specifies the method used to decide if the current device needs to failover the traffic-group to another device. If the failover-method is set to ha-order, a list of devices and their respective HA load is used to decide the next one to take over if the current devices fails.",
+                        "enum": [
+                            "ha-order"
+                        ],
+                        "default": "ha-order"
+                    },
+                    "haLoadFactor": {
+                        "type": "integer",
+                        "description": "Specifies a number for this traffic group that represents the load this traffic group presents to the system relative to other traffic groups. This allows the failover daemon to load balance the active traffic groups amongst the devices.",
+                        "default": 1,
+                        "minimum": 1,
+                        "maximum": 1000
+                    },
+                    "haOrder": {
+                        "type": "array",
+                        "description": "This list of devices specifies the order in which the devices will become active for the traffic group when a failure occurs. This list may contain zero, one, or more entries up to the number of devices in the failover device group.",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "MAC_Masquerade" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains MAC masquerade configuration.",
+                        "type": "string",
+                        "const": "MAC_Masquerade"
+                    },
+                    "source": {
+                        "description": "MAC address source to use for masquerading.",
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "interface": {
+                                        "description": "Generate a MAC address from an interface",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": ["interface"],
+                                "additionalProperties": false
+                            }
+                        ]
+                    },
+                    "trafficGroup": {
+                        "description": "Traffic group to apply the MAC masquerade to.",
+                        "type": "string",
+                        "enum": ["traffic-group-local-only", "traffic-group-1"],
+                        "default": "traffic-group-1"
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    ]
+}

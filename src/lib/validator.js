@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,11 @@
 const AjvValidator = require('./ajvValidator');
 const BigIqSettingsValidator = require('./bigIqSettingsValidator');
 const BusinessLogicValidator = require('./businessLogicValidator');
+const DeviceCertificateValidator = require('./deviceCertificateValidator');
 const LicensePoolValidator = require('./licensePoolValidator');
+const RoutingAccessListValidator = require('./routingAccessListValidator');
+const RoutingPrefixListValidator = require('./routingPrefixListValidator');
+const RoutingBgpValidator = require('./routingBgpValidator');
 const UserValidator = require('./userValidator');
 
 class Validator {
@@ -29,15 +33,19 @@ class Validator {
             new BusinessLogicValidator(),
             new BigIqSettingsValidator(),
             new LicensePoolValidator(),
-            new UserValidator()
+            new UserValidator(),
+            new DeviceCertificateValidator(),
+            new RoutingAccessListValidator(),
+            new RoutingPrefixListValidator(),
+            new RoutingBgpValidator()
         ];
     }
 
-    validate(data) {
+    validate(data, taskId) {
         // We want to run the validators serially so that we can control which errors
         // show up first. Namely, we want JSON validation errors first.
         const runInSerial = this.validators.reduce((promiseChain, currentValidator) => promiseChain
-            .then(results => currentValidator.validate(data)
+            .then((results) => currentValidator.validate(data, taskId)
                 .then((currentResult) => {
                     results.push(currentResult);
                     return results;
@@ -45,7 +53,7 @@ class Validator {
 
         return runInSerial
             .then((results) => {
-                const firstError = results.find(currentResult => !currentResult.isValid);
+                const firstError = results.find((currentResult) => !currentResult.isValid);
 
                 return firstError || {
                     isValid: true,

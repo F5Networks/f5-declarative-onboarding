@@ -13,7 +13,8 @@
                     "name": "1.1",
                     "tagged": true
                 }
-            ]
+            ],
+            "autoLastHop": "enabled"
         },
         "internal": {
             "class": "VLAN",
@@ -23,21 +24,76 @@
                     "name": "1.1",
                     "tagged": false
                 }
-            ]
+            ],
+            "autoLastHop": "default"
+        },
+        "myGreTunnel": {
+            "class": "Tunnel",
+            "tunnelType": "gre",
+            "localAddress": "10.10.10.10",
+            "mode": "bidirectional"
         },
         "mySelfIp": {
             "class": "SelfIp",
             "address": "10.148.75.46/24",
             "vlan": "myVlan",
             "allowService": [
-                "tcp:80"
+                "tcp:80",
+                "default"
             ]
+        },
+        "myIpv6SelfIp": {
+            "class": "SelfIp",
+            "address": "::ffff:0a94:552e/ffff:ffff:0:0:0:0:0:0",
+            "vlan": "myVlan",
+            "allowService": [
+                "tcp:80",
+                "default"
+            ],
+            "trafficGroup": "traffic-group-local-only"
+        },
+        "myGreTunnelSelf": {
+            "class": "SelfIp",
+            "address": "10.10.10.0/24",
+            "vlan": "myGreTunnel",
+            "allowService": "default"
         },
         "myRoute": {
             "class": "Route",
             "gw": "10.148.75.1",
             "network": "10.20.30.0/24",
             "mtu": 1500
+        },
+        "myLocalOnlyRoute": {
+            "class": "Route",
+            "target": "myVlan",
+            "network": "default",
+            "localOnly": true
+        },
+        "myGreTunnelRoute": {
+            "class": "Route",
+            "target": "myGreTunnel",
+            "network": "10.10.20.0/24",
+            "mtu": 1500
+        },
+        "internal-self": {
+            "class": "SelfIp",
+            "address": "10.1.20.31/32",
+            "vlan": "internal",
+            "allowService": "default",
+            "trafficGroup": "traffic-group-local-only"
+        },
+        "int_rt": {
+            "class": "Route",
+            "gw": "10.1.20.1",
+            "network": "10.1.20.0/24",
+            "mtu": 1460
+        },
+        "int_gw_interface": {
+            "class": "Route",
+            "target": "internal",
+            "network": "10.1.20.1/32",
+            "mtu": 1460
         },
         "mySystem": {
             "class": "System",
@@ -50,10 +106,163 @@
                 {
                     "name": "forward.net",
                     "nameservers": [
-                        "10.10.10.10:53"
+                        "10.10.10.10:53",
+                        "::ffff:c000:20b.53"
                     ]
                 }
             ]
+        },
+        "myIpv6Mirror": {
+            "class": "MirrorIp",
+            "primaryIp": "::ffff:0a94:552e",
+            "secondaryIp": "any6"
+        },
+        "testRoutingAccessList1": {
+            "class": "RoutingAccessList",
+            "entries": [
+                {
+                    "name": "11",
+                    "action": "permit",
+                    "destination": "10.10.0.0/16",
+                    "exactMatchEnabled": false,
+                    "source": "10.11.0.0/16"
+                },
+                {
+                    "name": "22",
+                    "action": "deny",
+                    "destination": "10.12.13.14",
+                    "exactMatchEnabled": false,
+                    "source": "10.13.14.15"
+                }
+            ]
+        },
+        "testRoutingAccessList2": {
+            "class": "RoutingAccessList",
+            "entries": [
+                {
+                    "name": "33",
+                    "action": "permit",
+                    "exactMatchEnabled": true,
+                    "source": "1111:2222::/64"
+                },
+                {
+                    "name": 44,
+                    "action": "permit",
+                    "source": "1111:3333::/64"
+                }
+            ]
+        },
+        "testRoutingAsPath1": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^65001 *"
+                }
+            ]
+        },
+        "testRoutingAsPath2": {
+            "class": "RoutingAsPath",
+            "entries": [
+                {
+                    "name": 10,
+                    "regex": "^$"
+                },
+                {
+                    "name": 20,
+                    "regex": "^65005$"
+                }
+            ]
+        },
+        "testRoutingPrefixList1": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 10,
+                    "action": "permit",
+                    "prefix": "1111:2222::/127",
+                    "prefixLengthRange": "128"
+                }
+            ]
+        },
+        "testRoutingPrefixList2": {
+            "class": "RoutingPrefixList",
+            "entries": [
+                {
+                    "name": 20,
+                    "action": "permit",
+                    "prefix": "10.3.3.0/24",
+                    "prefixLengthRange": "30:32"
+                }
+            ]
+        },
+        "testRouteMap": {
+            "class": "RouteMap",
+            "entries": [
+                {
+                    "name": "33",
+                    "action": "permit",
+                    "match": {
+                        "asPath": "testRoutingAsPath1",
+                        "ipv4": {
+                            "address": {
+                                "prefixList": "testRoutingPrefixList2"
+                            }
+                        },
+                        "ipv6": {
+                            "address": {
+                                "prefixList": "testRoutingPrefixList1"
+                            }
+                        }
+                    }
+                }
+            ],
+            "routeDomain": "0"
+        },
+        "testRoutingBGP": {
+            "class": "RoutingBGP",
+            "addressFamilies": [
+                {
+                    "internetProtocol": "ipv4",
+                    "redistributionList": [
+                        {
+                            "routingProtocol": "kernel",
+                            "routeMap": "testRouteMap"
+                        }
+                    ]
+                }
+            ],
+            "gracefulRestart": {
+                "gracefulResetEnabled": true,
+                "restartTime": 120
+            },
+            "holdTime": 35,
+            "keepAlive": 10,
+            "localAS": 50208,
+            "neighbors": [
+                {
+                    "address": "10.1.1.2",
+                    "ebgpMultihop": 2,
+                    "peerGroup": "Neighbor"
+                }
+            ],
+            "peerGroups": [
+                {
+                    "name": "Neighbor",
+                    "addressFamilies": [
+                        {
+                            "internetProtocol": "ipv4",
+                            "routeMap": {
+                                "out": "testRouteMap"
+                            },
+                            "softReconfigurationInboundEnabled": true
+                        }
+                    ],
+                    "remoteAS": 65020
+                }
+            ],
+            "routeDomain": "0",
+            "routerId": "10.1.1.1"
         }
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,10 @@ class TaskResponse {
         return this.state.getErrors(id);
     }
 
+    getWarnings(id) {
+        return this.state.getWarnings(id);
+    }
+
     getData(id, options) {
         if (!this.exists(id)) {
             return { httpStatus: 404 };
@@ -64,6 +68,14 @@ class TaskResponse {
         const data = {
             declaration: this.state.getDeclaration(id)
         };
+
+        if (this.state.hasTrace(id)) {
+            data.traces = {
+                desired: this.state.getTraceDesired(id),
+                current: this.state.getTraceCurrent(id),
+                diff: this.state.getTraceDiff(id)
+            };
+        }
 
         if (HTTP.METHODS[HTTP.METHODS.indexOf('GET')] === this.method) {
             data.httpStatus = 200;
@@ -75,6 +87,11 @@ class TaskResponse {
             data.lastUpdate = this.state.getLastUpdate(id);
         }
         return data;
+    }
+
+    getDryRun(id) {
+        const declaration = this.state.getDeclaration(id);
+        return declaration && declaration.controls && declaration.controls.dryRun;
     }
 }
 

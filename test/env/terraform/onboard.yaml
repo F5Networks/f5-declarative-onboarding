@@ -1,0 +1,26 @@
+#cloud-config
+
+write_files:
+  - path: /config/initialConfig.sh
+    permissions: 0755
+    owner: root:root
+    content: |
+      #!/bin/bash
+
+      # Wait for MCPD to be up before running tmsh commands
+      source /usr/lib/bigstart/bigip-ready-functions
+      bigstart_wait mcpd ready
+
+      # Begin BIG-IP configuration
+      /usr/bin/passwd root ${admin_password} >/dev/null 2>&1
+      /usr/bin/passwd admin ${admin_password} >/dev/null 2>&1
+      /usr/bin/chage -M -1 admin
+      tmsh modify auth user admin shell bash
+      tmsh modify sys software update auto-phonehome disabled
+      tmsh modify sys disk directory /appdata new-size 130985984
+      tmsh save /sys config
+
+runcmd:
+  # NOTE: Commands must be non-blocking
+  # so send long running commands (polling/waiting for mcpd) to the background
+  - /config/initialConfig.sh > /tmp/do_onboard.log &

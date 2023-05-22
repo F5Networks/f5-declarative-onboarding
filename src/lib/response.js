@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ class Response {
             response = getResponse(this.itemId, this.responder, this.options);
         } else {
             const ids = this.responder.getIds() || [];
-            response = Promise.all(ids.map(id => getResponse(id, this.responder, this.options)));
+            response = Promise.all(ids.map((id) => getResponse(id, this.responder, this.options)));
         }
         return response;
     }
@@ -67,25 +67,31 @@ function getResponse(id, responder, options) {
                 id,
                 selfLink: responder.getSelfLink(id)
             };
+
+            // mandatory methods
             const code = responder.getCode(id);
             const status = responder.getStatus(id);
             const message = responder.getMessage(id);
             const errors = responder.getErrors(id);
 
+            // optional methods
+            const dryRun = responder.getDryRun && responder.getDryRun(id);
+            const warnings = responder.getWarnings && responder.getWarnings(id);
+
             // For error statuses, restnoded requires message at the top level
             // Other items at the top level for backwards compatibility
             if (code >= 300) {
                 Object.assign(response, {
-                    code, status, message, errors
+                    code, status, message, errors, warnings
                 });
             }
             response.result = {
-                class: 'Result', code, status, message, errors
+                class: 'Result', code, status, dryRun, message, errors, warnings
             };
             Object.assign(response, data);
             return Promise.resolve(response);
         })
-        .catch(err => Promise.resolve({
+        .catch((err) => Promise.resolve({
             id,
             result: {
                 code: 500,

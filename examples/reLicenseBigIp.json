@@ -1,0 +1,16 @@
+{
+    "schemaVersion": "1.38.0",
+    "class": "Device",
+    "async": true,
+    "label": "Re-license BIG-IP while revoking the current license",
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "myLicense": {
+            "class": "License",
+            "licenseType": "regKey",
+            "regKey": "ABCDE-FGHIJ-KLMNO-PQRST-UVWXYZZ",
+            "revokeCurrent": true
+        }
+    }
+}

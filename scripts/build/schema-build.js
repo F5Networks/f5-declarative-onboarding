@@ -1,14 +1,24 @@
-/*
- * Copyright 2018. F5 Networks, Inc. See End User License Agreement ("EULA") for
- * license terms. Notwithstanding anything to the contrary in the EULA, Licensee
- * may copy and modify this software product for its internal business purposes.
- * Further, Licensee may upload, publish and distribute the modified version of
- * the software product on devcentral.f5.com.
+/**
+ * Copyright 2023 F5 Networks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 'use strict';
 
 const fs = require('fs');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const refParser = require('json-schema-ref-parser');
 
 const base = require('../../src/schema/latest/base.schema.json');
 
@@ -26,52 +36,49 @@ function writeSchema(name, data) {
     });
 }
 
+function derefPromise(schemaPath) {
+    return new Promise((resolve, reject) => {
+        refParser.dereference(schemaPath, (error, schema) => {
+            if (error) reject(error);
+            else resolve(schema);
+        });
+    });
+}
+
 function combineSchemas() {
     const definitions = fs.readdirSync(`${SCHEMA_DIR}/`)
-        .filter(name => !(name.includes('draft')) && name.endsWith('schema.json'))
-        .map(fileName => `${SCHEMA_DIR}/${fileName}`);
+        .filter((name) => !(name.includes('draft')) && name.endsWith('schema.json'))
+        .map((fileName) => `${SCHEMA_DIR}/${fileName}`);
 
-    definitions.forEach((definition) => {
-        const content = JSON.parse(fs.readFileSync(definition, 'utf8'));
-        if (!base.definitions) base.definitions = {};
+    return Promise.all(definitions.map((definition) => derefPromise(definition)))
+        .then((schemas) => {
+            schemas.forEach((content) => {
+                if (!base.definitions) base.definitions = {};
 
-        const classType = safeTraverse(['if', 'properties', 'class', 'const'], content);
-        if (classType) {
-            const tmp = {};
-            tmp[classType] = content.then;
-            tmp[classType].description = content.description;
+                const classType = safeTraverse(['if', 'properties', 'class', 'const'], content);
+                if (classType) {
+                    const tmp = {};
+                    tmp[classType] = content.then;
+                    tmp[classType].description = content.description;
 
-            if (content.definitions) {
-                tmp[classType].properties = Object.assign(tmp[classType].properties || {}, content.definitions);
-            }
+                    if (content.definitions) {
+                        tmp[classType].properties = Object.assign(tmp[classType].properties || {}, content.definitions);
+                    }
 
-            base.definitions = Object.assign(base.definitions, tmp);
-        } else if (content.allOf) {
-            content.allOf.forEach((subContent) => {
-                // Authentication class specific override
-                if (definition.includes('auth')) {
-                    const ref = subContent.then.oneOf[0].$ref.split('#/definitions/').join('');
-                    const defs = content.definitions;
-                    const def = defs[ref];
-                    Object.keys(def.properties).forEach((defKey) => {
-                        if (safeTraverse(['properties', defKey, '$ref'], def)) {
-                            const addntlRef = def.properties[defKey].$ref.split('#/definitions/').join('');
-                            const addntlDef = defs[addntlRef];
-                            def.properties[defKey] = addntlDef;
-                        }
+                    base.definitions = Object.assign(base.definitions, tmp);
+                } else if (content.allOf) {
+                    content.allOf.forEach((subContent) => {
+                        const tmp = {};
+                        const subClass = safeTraverse(['if', 'properties', 'class', 'const'], subContent);
+                        tmp[subClass] = subContent.then;
+                        tmp[subClass].description = content.description;
+
+                        base.definitions = Object.assign(base.definitions, tmp);
                     });
-                    subContent.then = def;
                 }
-                const tmp = {};
-                const subClass = safeTraverse(['if', 'properties', 'class', 'const'], subContent);
-                tmp[subClass] = subContent.then;
-                tmp[subClass].description = content.description;
-
-                base.definitions = Object.assign(base.definitions, tmp);
             });
-        }
-    });
-    return writeSchema(outputFile, base);
+        })
+        .then(() => writeSchema(outputFile, base));
 }
 
 module.exports = {

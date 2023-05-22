@@ -1,0 +1,120 @@
+{
+    "schemaVersion": "1.0.0",
+    "async": true,
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal",
+            "afm": "nominal"
+        },
+        "myVlan": {
+            "class": "VLAN",
+            "tag": 1234,
+            "mtu": 1500,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ],
+            "autoLastHop": "default"
+        },
+        "myFirewallAddressList": {
+            "class": "FirewallAddressList",
+            "label": "Example firewall address list",
+            "remark": "firewall address list description",
+            "addresses": ["10.1.0.1", "10.2.0.0/24"]
+        },
+        "myFirewallPortList": {
+            "class": "FirewallPortList",
+            "label": "Example firewall port list",
+            "remark": "firewall port list description",
+            "ports": [8080, 8888]
+        },
+        "myFirewallPolicy": {
+            "class": "FirewallPolicy",
+            "label": "Example of all firewall policy properties",
+            "remark": "firewall policy description",
+            "rules": [
+                {
+                    "name": "firewallPolicyRuleOne",
+                    "label": "Example of all firewall policy rule properties",
+                    "remark": "firewall policy rule description",
+                    "action": "reject",
+                    "protocol": "tcp",
+                    "loggingEnabled": true,
+                    "source": {
+                        "addressLists": [
+                            "myFirewallAddressList"
+                        ],
+                        "portLists": [
+                            "myFirewallPortList"
+                        ],
+                        "vlans": [
+                            "myVlan"
+                        ]
+                    },
+                    "destination": {
+                        "addressLists": [
+                            "myFirewallAddressList"
+                        ],
+                        "portLists": [
+                            "myFirewallPortList"
+                        ]
+                    }
+                },
+                {
+                    "name": "firewallPolicyRuleTwo",
+                    "action": "accept"
+                }
+            ]
+        },
+        "mySelfIp": {
+            "class": "SelfIp",
+            "address": "10.148.75.46/24",
+            "vlan": "myVlan",
+            "allowService": [
+                "tcp:80"
+            ],
+            "enforcedFirewallPolicy": "/Common/myFirewallPolicy",
+            "stagedFirewallPolicy": "myFirewallPolicy"
+        },
+        "myManagementIpFirewall": {
+            "class": "ManagementIpFirewall",
+            "label": "Example of all management IP firewall properties",
+            "remark": "management IP firewall description",
+            "rules": [
+                {
+                    "name": "firewallRuleOne",
+                    "label": "Example of all firewall rule properties",
+                    "remark": "firewall rule description",
+                    "action": "reject",
+                    "protocol": "tcp",
+                    "loggingEnabled": true,
+                    "source": {
+                        "addressLists": [
+                            "myFirewallAddressList"
+                        ],
+                        "portLists": [
+                            "myFirewallPortList"
+                        ]
+                    },
+                    "destination": {
+                        "addressLists": [
+                            "myFirewallAddressList"
+                        ],
+                        "portLists": [
+                            "myFirewallPortList"
+                        ]
+                    }
+                },
+                {
+                    "name": "firewallRuleTwo",
+                    "action": "accept"
+                }
+            ]
+        }
+    }
+}

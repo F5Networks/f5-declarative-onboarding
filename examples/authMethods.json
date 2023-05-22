@@ -1,10 +1,10 @@
 {
     "schemaVersion": "1.7.0",
-    "async" : true,
+    "async": true,
     "class": "Device",
     "label": "LDAP, RADIUS, and TACACS auth",
     "Common": {
-      "class": "Tenant",
+        "class": "Tenant",
         "myAuth": {
             "class": "Authentication",
             "enabledSourceType": "radius",
@@ -18,7 +18,7 @@
                 "serviceType": "call-check",
                 "servers": {
                     "primary": {
-                        "server": "1.2.3.4",
+                        "server": "192.0.2.60",
                         "port": 1811,
                         "secret": "mySecret"
                     },
@@ -33,7 +33,7 @@
                 "bindDn": "searchingName",
                 "bindPassword": "pass1w0rd",
                 "bindTimeout": 40,
-                "checkBindPassword": true,
+                "checkBindPassword": false,
                 "checkRemoteRole": true,
                 "filter": "filter",
                 "groupDn": "groupName",
@@ -43,15 +43,21 @@
                 "ignoreUnknownUser": true,
                 "loginAttribute": "attributeToLogin",
                 "port": 654,
+                "referrals": true,
                 "searchScope": "base",
                 "searchBaseDn": "searchName",
                 "searchTimeout": 687,
                 "servers": [
                     "my.host.com",
-                    "1.2.3.4",
+                    "192.0.2.60",
                     "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
                 ],
                 "ssl": "enabled",
+                "sslCaCert": {
+                    "certificate": {
+                        "base64": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCkY1IEZBS0UgQ0VSVElGSUNBVEUKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ=="
+                    }
+                },
                 "sslCheckPeer": true,
                 "sslCiphers": [
                     "ECDHE-RSA-AES128-GCM-SHA256",
@@ -70,7 +76,7 @@
                 "secret": "aSecret1",
                 "servers": [
                     "my.host.com",
-                    "1.2.3.4",
+                    "192.0.2.60",
                     "FE80:0000:0000:0000:0202:B3FF:FE1E:8329"
                 ],
                 "service": "ppp"

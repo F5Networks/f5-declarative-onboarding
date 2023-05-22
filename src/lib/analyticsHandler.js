@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@
 
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
-
-const logger = new Logger(module);
 
 /**
  * Handles system parts of a declaration.
@@ -40,6 +38,7 @@ class AnalyticsHandler {
         this.bigIp = bigIp;
         this.eventEmitter = eventEmitter;
         this.state = state;
+        this.logger = new Logger(module, (state || {}).id);
     }
 
     /**
@@ -49,13 +48,13 @@ class AnalyticsHandler {
      *                    or rejected if an error occurs.
      */
     process() {
-        logger.fine('Processing analytics declaration.');
+        this.logger.fine('Processing analytics declaration.');
         if (!this.declaration.Common) {
             return Promise.resolve();
         }
         return handleAnalytics.call(this)
             .catch((err) => {
-                logger.severe(`Error processing analytics declaration: ${err.message}`);
+                this.logger.severe(`Error processing analytics declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
@@ -67,14 +66,14 @@ function handleAnalytics() {
         return this.bigIp.replace(
             PATHS.Analytics,
             {
-                'avrd-debug-mode': (analytics.debugEnabled ? 'enabled' : 'disabled'),
-                'avrd-interval': analytics.interval,
-                'offbox-protocol': analytics.offboxProtocol || 'none',
-                'offbox-tcp-addresses': analytics.offboxTcpAddresses || [],
-                'offbox-tcp-port': analytics.offboxTcpPort || 0,
-                'use-offbox': (analytics.offboxEnabled ? 'enabled' : 'disabled'),
-                'source-id': analytics.sourceId || 'none',
-                'tenant-id': analytics.tenantId || 'default'
+                'avrd-debug-mode': analytics.avrdDebugMode,
+                'avrd-interval': analytics.avrdInterval,
+                'offbox-protocol': analytics.offboxProtocol,
+                'offbox-tcp-addresses': analytics.offboxTcpAddresses,
+                'offbox-tcp-port': analytics.offboxTcpPort,
+                'use-offbox': analytics.useOffbox,
+                'source-id': analytics.sourceId,
+                'tenant-id': analytics.tenantId
             }
         );
     }

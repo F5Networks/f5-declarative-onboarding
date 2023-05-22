@@ -1,0 +1,13 @@
+{
+    "async": true,
+    "schemaVersion": "1.28.0",
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "system": {
+            "class": "System",
+            "mgmtDhcpEnabled": true,
+            "preserveOrigDhcpRoutes": true
+        }
+    }
+}

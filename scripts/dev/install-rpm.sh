@@ -2,13 +2,17 @@
 
 set -e
 
+# Colors
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 if [ -z "$1" ]; then
-    echo "Target machine is required for installation."
+    echo -e "${RED}Target machine is required for installation.${NC}"
     exit 0
 fi
 
 if [ -z "$2" ]; then
-    echo "Credentials [username:password] for target machine are required for installation."
+    echo -e "${RED}Credentials [username:password] for target machine are required for installation.${NC}"
     exit 0
 fi
 
@@ -21,8 +25,8 @@ if [ -z "$TARGET_RPM" ]; then
 fi
 
 if [ -z "$TARGET_RPM" ]; then
-    echo "Could not find RPM in ./dist folder. Verify that ./dist folder contains" \
-        "f5-declarative-onboarding-*.rpm or provide specific file path to RPM."
+    echo -e "${RED}Could not find RPM in ./dist folder. Verify that ./dist folder contains" \
+        "f5-declarative-onboarding-*.rpm or provide specific file path to RPM.${NC}"
     exit 0
 fi
 
@@ -37,12 +41,12 @@ poll_task () {
         STATUS=$(echo $RESULT | jq -r .status)
 
         if [[ $RESULT = *"Authentication failed: Password expired."* ]]; then
-            echo "Password expired! You will need to update the supplied user's password!"
-            echo "Response: $RESULT"
+            echo -e "${RED}Password expired! You will need to update the supplied user's password!"
+            echo -e "Response: $RESULT${NC}"
             exit 1
         elif [ $STATUS = "FAILED" ]; then
-            echo "Failed to" $(echo $RESULT | jq -r .operation) "package:" \
-                $(echo $RESULT | jq -r .errorMessage)
+            echo -e "${RED}Failed to" $(echo $RESULT | jq -r .operation) "package:" \
+                $(echo $RESULT | jq -r .errorMessage) "${NC}"
             exit 1
         fi
     done
@@ -65,7 +69,15 @@ done
 
 #Upload new f5-declarative-onboarding RPM to target
 echo "Uploading RPM to https://$TARGET/mgmt/shared/file-transfer/uploads/$RPM_NAME"
-LEN=$(wc -c $TARGET_RPM | cut -f 1 -d " ")
+
+# Mac output is a little different. Figure out correct field
+FIELD=1
+OS=$(uname)
+if [[ $OS == Darwin ]]; then
+    FIELD=2
+fi
+
+LEN=$(wc -c $TARGET_RPM | cut -f $FIELD -d " ")
 RANGE_SIZE=5000000
 CHUNKS=$(( $LEN / $RANGE_SIZE))
 for i in $(seq 0 $CHUNKS); do

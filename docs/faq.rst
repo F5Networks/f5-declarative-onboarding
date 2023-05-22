@@ -1,11 +1,11 @@
-Declarative Onboarding FAQ
---------------------------
+Frequently Asked Questions (FAQ)
+--------------------------------
 The following are frequently asked questions for Declarative Onboarding.
 
 
 **What is Declarative Onboarding?**
 
-F5 Declarative Onboarding (DO) is an F5 offering that provides a simple and consistent way to automate BIG-IP onboarding via Declarative REST APIs. A brother to |AS3|, DO provides a sustainable foundation to enable F5’s Infrastructure as Code (IaC) strategy. DO automates L1-L3 on-boarding for BIG-IP, making BIG-IP available on the network and ready to accept L4-L7 Application Services configurations. 
+F5 Declarative Onboarding (DO) is an F5 offering that provides a simple and consistent way to automate BIG-IP onboarding via Declarative REST APIs. A brother to |AS3|, DO provides a sustainable foundation to enable F5’s Infrastructure as Code (IaC) strategy. DO automates L1-L3 on-boarding for BIG-IP, making BIG-IP available on the network and ready to accept L4-L7 Application Services configurations. 
 
 For more information, return to :doc:`index`
 
@@ -15,7 +15,6 @@ For more information, return to :doc:`index`
 
 The DO Extension is available |dl|.  See :doc:`installation` for instructions.
 
-The DO Container is available on |docker|. 
 
 |
 
@@ -27,20 +26,11 @@ Yes.  See the |support| to see the versions of DO that are currently supported.
 
 **What is the "DO Container"? Is it Supported?** 
 
-- This is a Docker container form-factor for DO 1.2+ for off-box deployments. 
-- Provides flexibility to deploy DO via any container management platform 
-- Ongoing container optimization for DO; separate from F5 API Services Gateway:
-
-  - The DO Container is specifically for DO use cases, 
-  - F5 API Services Gateway is specifically for custom iControl LX extension use cases (and is community-supported) 
-
-The DO container is currently Community Supported and in the F5Devcentral organization on Docker Hub. Once it is fully supported by F5, it will move to **f5networks** on Docker Hub.
-
-See :doc:`do-container` for more information.
+The DO Container was a community-supported solution, and was deprecated in DO 1.16. F5 will no longer provide new versions of DO running in a container.
 
 |
 
-**How is DO different from onboarding with Ansible?**
+**How is DO different from onboarding with Ansible?**
 
 - Ansible is part of a large vendor ecosystem to manage and automate configuration of multiple platform types within the data center 
 - Ansible automates via imperative YAML playbooks which require knowledge of which BIG-IP modules need to be run and in which order 
@@ -52,16 +42,16 @@ See the |ansible| for more information.
 
 |
 
-**When is DO a good fit and when it is not?**
+**When is DO a good fit and when it is not?**
 
 DO is a good fit where: 
 
-  - Declarative interface is required to abstract away the complexity of BIG-IP onboarding 
+  - Declarative interface is required to abstract away the complexity of BIG-IP onboarding 
   - You need to onboard BIG-IP as Infrastructure as Code (IaC) via integration with DevOps pipelines 
 
-DO may not be a good fit where: 
+DO may not be a good fit where: 
 
-  - You do not want to use a Declarative interface
+  - You do not want to use a Declarative interface
   - You are unwilling or unable to deploy iControl Extension RPM on BIG-IP 
   - You require the BIG-IP to be the configuration source-of-truth 
   - You want to continue using imperative interfaces to configure (not just monitor or troubleshoot) BIG-IP: 
@@ -72,9 +62,16 @@ DO may not be a good fit where:
 
 |
 
- **Which TMOS versions does DO require?** 
+ **Which TMOS versions does DO require?** 
 
 DO requires TMOS 13.1+ 
+
+|
+
+**Does Declarative Onboarding support hardware platforms?**
+
+Declarative Onboarding is intended for use with Cloud and Virtual Edition images, but it will also run on and configure hardware platforms.
+Features specific to hardware platforms, such as creating vCMP guests and setting TurboFlex profiles are not on the Declarative Onboarding roadmap.
 
 |
 
@@ -89,22 +86,21 @@ DO requires TMOS 13.1+
 
 **What is the VSCode DO Declaration Validator?** 
 
-This capability enables you to validate an DO declaration against the DO schema using Microsoft Visual Studio Code (VSCode) editor, and is useful when composing a declaration manually or to check the accuracy of a declaration prior to deployment 
+This capability enables you to validate an DO declaration against the DO schema using Microsoft Visual Studio Code (VSCode) editor, and is useful when composing a declaration manually or to check the accuracy of a declaration prior to deployment 
 
 See :doc:`validate` for information.
 
 |
 
-**Where can I find DO declaration examples? for licensing BIG-IP via BIG-IQ?**
+**Where can I find DO declaration examples?**
 
-- BIG-IP and general example declarations can be found :doc:`here<bigip-examples>`.
-- BIG-IQ example declarations for licensing BIG-IP devices can be found :doc:`here<bigiq-examples>`.
+- You can find all DO example declarations, including those for BIG-IQ, here: :doc:`examples`.
 
 |
 
 **Does DO collect any usage data?** 
 
-The Declarative Onboarding (DO) Extension gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system’s phone home feature as described in |phone|. 
+The Declarative Onboarding (DO) Extension gathers non-identifiable usage data for the purposes of improving the product as outlined in the end user license agreement for BIG-IP. To opt out of data collection, disable BIG-IP system's phone home feature as described in |phone|. 
 
 |
 
@@ -116,6 +112,28 @@ The API Contract for the F5 Automation Toolchain (Declarative Onboarding, AS3 an
  
 As of January 2020, no breaking changes have been made to AS3, Declarative Onboarding, or Telemetry Streaming since inception.  None are anticipated at this time.  A breaking change, if any, will be noted by a change to the major release number ("xx").  For example, the AS3 schema version would become "4.0.0."
 
+| 
+
+.. _cipher:
+
+**What are the values I can use for the HTTPD ciphersuite?**
+
+Prior to Declarative Onboarding 1.26, HTTPD ciphersuite values were contained in a static list with a limited number from which to choose.  In DO 1.26 and later, we removed the enumerated list, and allow you to include any valid ciphersuite value.  
+
+For a list of valid ciphersuite values, see https://httpd.apache.org/docs/2.4/mod/mod_ssl.html#sslciphersuite.  You can also see https://support.f5.com/csp/article/K86554600 for a list of SSL ciphers supported on BIG-IP platforms.
+
+| 
+
+.. _apidoc:
+
+**Where can I find the API documentation?**
+
+You can find the API documentation here: |api|
+
+
+.. |api| raw:: html
+
+   <a href="apidocs.html" target="_blank">API documentation</a>
 
 
 .. |AS3| raw:: html
@@ -131,9 +149,6 @@ As of January 2020, no breaking changes have been made to AS3, Declarative Onboa
 
    <a href="https://github.com/F5Networks/f5-declarative-onboarding/releases" target="_blank">Release Asset on GitHub</a>
 
-.. |docker| raw:: html
-
-   <a href="https://hub.docker.com/r/f5devcentral/f5-do-container" target="_blank">Docker Hub</a>
 
 .. |support| raw:: html
 

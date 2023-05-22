@@ -1,14 +1,14 @@
-Using Declarative Onboarding
-============================
+Using BIG-IP Declarative Onboarding
+===================================
 
-As mentioned in the prerequisites, to transmit Declarative Onboarding declarations you can use a
-RESTful API client like Postman or a universal client such as cURL.  You can use the HTTP request methods POST and GET with Declarative Onboarding.
+As mentioned in the prerequisites, to transmit BIG-IP Declarative Onboarding declarations you can use a
+RESTful API client like Postman or a universal client such as cURL.  You can use the HTTP request methods POST and GET with BIG-IP Declarative Onboarding.
 
 A client may supply a declaration with a POST request, and other request methods (currently only GET) work with the declaration previously
-supplied via POST and retained by Declarative Onboarding.
+supplied via POST and retained by BIG-IP Declarative Onboarding.
 
-Using Declarative Onboarding Index 
-----------------------------------
+Using BIG-IP Declarative Onboarding Index
+-----------------------------------------
 
 .. toctree::
    :maxdepth: 2
@@ -16,6 +16,7 @@ Using Declarative Onboarding Index
    :glob:
 
    http-methods
+   components
    authentication
    installation
    composing-a-declaration
@@ -24,6 +25,5 @@ Using Declarative Onboarding Index
    clustering-managing-devices
    big-iq-licensing
    do-on-bigiq
-   do-container
    json-pointers
    troubleshooting

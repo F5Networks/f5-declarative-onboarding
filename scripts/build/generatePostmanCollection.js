@@ -1,8 +1,8 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this example except in compliance with the License.
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
@@ -22,23 +22,22 @@ const packageVersion = require('../../package.json').version;
 const examplesDir = 'examples';
 const outputFile = `dist/do.examples-${packageVersion}.collection.json`;
 
-const makeDirP = path => {
+const makeDirP = (path) => {
     try {
         fs.mkdirSync(path);
-    }
-    catch (err) {
+    } catch (err) {
         if (err.code !== 'EEXIST') {
             throw err;
         }
     }
 };
 
-const readdir = path => fs.readdirSync(path)
-    .map(example => ({
+const readdir = (path) => fs.readdirSync(path)
+    .filter((name) => name.endsWith('.json'))
+    .map((example) => ({
         json: JSON.parse(fs.readFileSync(`${path}/${example}`)),
         name: example.split('.')[0]
     }));
-
 
 const buildCollection = () => {
     const examples = readdir(examplesDir);

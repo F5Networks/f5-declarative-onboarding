@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
+/*
+    This is a module to be tested, each function being responsible for a set of tests
+    such as Onboarding, Networking, licensing, etc.Functions act on a target BIG - IP in which
+    the Declarative Onboarding rpm package has already been installed.Each function takes
+    the same 3 parameters.Those are the target BIG - IP's ip address, admin username and admin
+    password(last two are the username / password used to call the DO API)
+ */
+
 'use strict';
 
 const path = require('path');
 const MASK_REGEX = require('./sharedConstants').MASK_REGEX;
 
-const MASK_REGEX_REGKEY = new RegExp('[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{7}', 'i');
+const MASK_REGEX_REGKEY = /[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{5}-[0-9a-f]{7}/i;
 
 let f5Logger;
 try {
@@ -36,9 +44,11 @@ try {
  * @class
  */
 class Logger {
-    constructor(module) {
+    constructor(module, taskId) {
         this.tag = 'f5-declarative-onboarding';
         this.filename = path.basename(module.filename);
+        this.taskId = taskId;
+        this.metadata = getMetadataString.call(this);
 
         // If we weren't able to get the f5-logger, create a mock (so our unit tests run)
         this.logger = f5Logger
@@ -142,7 +152,7 @@ function log(level, message, extraArgs) {
         fullMessage = `${fullMessage} ${expandedArg}`;
     });
 
-    this.logger[level](`[${this.tag}: ${this.filename}] ${fullMessage}`);
+    this.logger[level](`[${this.tag}: ${this.metadata}] ${fullMessage}`);
 }
 
 function mask(message) {
@@ -186,6 +196,16 @@ function searchAndReplace(searched, matchRegex, replacementString) {
         masked = searched;
     }
     return masked;
+}
+
+function getMetadataString() {
+    const metadata = [this.filename];
+
+    if (this.taskId) {
+        metadata.push(this.taskId);
+    }
+
+    return metadata.join(' | ');
 }
 
 module.exports = Logger;

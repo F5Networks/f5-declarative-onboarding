@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 const Ajv = require('ajv');
 
-const definitionsSchema = require('../schema/latest/definitions.schema.json');
+const doSchema = require('../schema/latest/do.schema.json');
 const remoteSchema = require('../schema/latest/remote.schema.json');
 const baseSchema = require('../schema/latest/base.schema.json');
 const systemSchema = require('../schema/latest/system.schema.json');
@@ -26,8 +26,12 @@ const networkSchema = require('../schema/latest/network.schema.json');
 const dscSchema = require('../schema/latest/dsc.schema.json');
 const analyticsSchema = require('../schema/latest/analytics.schema.json');
 const authSchema = require('../schema/latest/auth.schema.json');
+const definitionsSchema = require('../schema/latest/definitions.schema.json');
+const gslbSchema = require('../schema/latest/gslb.schema.json');
+const securitySchema = require('../schema/latest/security.schema.json');
 
-const customFormats = require('../schema/latest/formats.js');
+const customFormats = require('../schema/latest/formats');
+const customKeywords = require('./customKeywords');
 
 class AjvValidator {
     constructor() {
@@ -44,6 +48,9 @@ class AjvValidator {
             ajv.addFormat(customFormat, customFormats[customFormat]);
         });
 
+        customKeywords.keywords.forEach((keyword) => ajv.addKeyword(keyword.name,
+            keyword.definition(this)));
+
         this.validator = ajv
             .addSchema(definitionsSchema)
             .addSchema(systemSchema)
@@ -51,11 +58,15 @@ class AjvValidator {
             .addSchema(dscSchema)
             .addSchema(analyticsSchema)
             .addSchema(authSchema)
+            .addSchema(gslbSchema)
+            .addSchema(securitySchema)
             .addSchema(baseSchema)
-            .compile(remoteSchema);
+            .addSchema(remoteSchema)
+            .compile(doSchema);
     }
 
     validate(data) {
+        this.fetches = [];
         const isValid = this.validator(data);
         return Promise.resolve({
             isValid,

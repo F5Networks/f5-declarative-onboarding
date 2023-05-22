@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 F5 Networks, Inc.
+ * Copyright 2023 F5 Networks, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@
 const childProcess = require('child_process');
 const crypto = require('crypto');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
+const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
 const doUtil = require('./doUtil');
 const Logger = require('./logger');
-
-const logger = new Logger(module);
 
 const ENCRYPT_PATH = '/tm/auth/radius-server';
 
@@ -74,10 +73,12 @@ module.exports = {
      * encrypted with encryptAndStoreValue.
      *
      * @param {String} id - The id used when calling encryptAndStoreValue
+     * @param {String} [taskId] - The id of the current task
      *
      * @returns {Promise} A promise which is resolved with the decrypted value.
      */
-    decryptStoredValueById(id) {
+    decryptStoredValueById(id, taskId) {
+        const logger = new Logger(module, taskId);
         return cloudUtil.runTmshCommand(`list auth radius-server ${id}`)
             .then((response) => {
                 const parsed = cloudUtil.parseTmshResponse(response);
@@ -93,12 +94,14 @@ module.exports = {
      * Deletes the encrypted value identified by an id.
      *
      * @param {String} id - The id to delete.
+     * @param {String} [taskId] - The id of the current task
      *
      * @returns {Promise} A promise which is resolved when complete.
      */
-    deleteEncryptedId(id) {
+    deleteEncryptedId(id, taskId) {
+        const logger = new Logger(module, taskId);
         return doUtil.getBigIp(logger)
-            .then(bigIp => bigIp.delete(`${ENCRYPT_PATH}/${id}`)).catch((err) => {
+            .then((bigIp) => bigIp.delete(`${ENCRYPT_PATH}/${id}`)).catch((err) => {
                 logger.warning('Failed to delete encrypted data with id', id, err);
                 return Promise.reject(err);
             });
@@ -109,12 +112,14 @@ module.exports = {
      *
      * @param {String} value - The value to encrypt.
      * @param {String} id - Unique id with which to later retrieve this value.
+     * @param {String} [taskId] - The id of the current task
      *
      * @returns {Promise} A promise which is resolved when complete.
      */
-    encryptAndStoreValue(value, id) {
+    encryptAndStoreValue(value, id, taskId) {
+        const logger = new Logger(module, taskId);
         return doUtil.getBigIp(logger)
-            .then(bigIp => encryptValueOnBigIp(value, id, bigIp))
+            .then((bigIp) => encryptValueOnBigIp(value, id, bigIp))
             .catch((err) => {
                 logger.warning('Failed to encrypt data', err);
                 return Promise.reject(err);
@@ -125,6 +130,8 @@ module.exports = {
      * Encrypts data on a BIG-IP. Value is returned, not stored.
      *
      * @param {String} value - The value to encrypt.
+     * @param {Object} bigIp - The target BIG-IP.
+     * @param {String} [taskId] - The id of the current task
      *
      * @returns {Promise} A promise which is resolved with the encrypted value.
      *                    The returned data is in an array. If
@@ -132,9 +139,10 @@ module.exports = {
      *                    split into chunks and there will be more than one element
      *                    in the array.
      */
-    encryptValue(value) {
+    encryptValue(value, bigIp, taskId) {
         const splitData = value.match(/[^]{1,500}/g);
-        return encryptValuesInArray(splitData, []);
+        const logger = new Logger(module, taskId);
+        return encryptValuesInArray(splitData, [], undefined, bigIp, logger);
     }
 };
 
@@ -154,11 +162,20 @@ function encryptValueOnBigIp(value, id, bigIp) {
         .then(() => encryptedData);
 }
 
-function encryptValuesInArray(valueArray, encryptedData, index) {
+function encryptValuesInArray(valueArray, encryptedData, index, currentBigIp, logger) {
     index = index || 0;
     const id = `declarative_onboarding_delete_me_${index}_${crypto.randomBytes(6).toString('hex')}`;
     let bigIp;
-    return doUtil.getBigIp(logger)
+
+    return Promise.resolve()
+        .then(() => doUtil.getCurrentPlatform(logger.taskId))
+        .then((platform) => {
+            if (platform !== PRODUCTS.BIGIP && currentBigIp) {
+                return Promise.resolve(currentBigIp);
+            }
+
+            return doUtil.getBigIp(logger);
+        })
         .then((theBigIp) => {
             bigIp = theBigIp;
             return encryptValueOnBigIp(valueArray[index], id, bigIp);
@@ -169,7 +186,7 @@ function encryptValuesInArray(valueArray, encryptedData, index) {
         .then(() => {
             index += 1;
             if (index < valueArray.length) {
-                return encryptValuesInArray(valueArray, encryptedData, index);
+                return encryptValuesInArray(valueArray, encryptedData, index, currentBigIp, logger);
             }
             return encryptedData;
         });

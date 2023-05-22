@@ -1,0 +1,1406 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/schema/network.schema.json",
+    "title": "F5 Declarative Onboarding network declaration",
+    "description": "Network properties for onboarding a BIG-IP.",
+    "allOf": [
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Trunk" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Trunk configuration.",
+                        "type": "string",
+                        "const": "Trunk"
+                    },
+                    "distributionHash": {
+                        "description": "Specifies the basis for the hash that the system uses as the frame distribution algorithm.  Choices are 'dst-mac' (use the destination MAC addresses), 'src-dist-mac' (use the source, destination, and MAC addresses), or 'src-dst-ipport' (use the source and destination IP addresses and ports).",
+                        "type": "string",
+                        "enum": ["dst-mac", "src-dst-ipport", "src-dst-mac"],
+                        "default": "dst-mac"
+                    },
+                    "interfaces": {
+                        "description": "Interfaces for the Trunk.  The number of interfaces used is recommended to be a power of 2 (for example 2, 4, or 8).  Interfaces must be untagged.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    },
+                    "lacpEnabled": {
+                        "description": "Specifies, when true, that the system supports the link aggregation control protocol (LACP), which monitors the trunk by exchanging control packets over the member links to determine the health of the links.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "lacpMode": {
+                        "description": "Specifies the operation mode for LACP if the lacp option is enabled for the trunk.  The values are 'active' (specifies the system periodically transmits LACP packets, regardless of the control value of the peer system) and 'passive' (specifies the system periodically transmits LACP packets, unless the control value of the peer system is active).",
+                        "type": "string",
+                        "enum": ["active", "passive"],
+                        "default": "active"
+                    },
+                    "lacpTimeout": {
+                        "description": "Specifies the rate at which the system sends the LACP control packets.",
+                        "type": "string",
+                        "enum": ["long", "short"],
+                        "default": "long"
+                    },
+                    "linkSelectPolicy": {
+                        "description": "Sets the LACP policy that the trunk uses to determine which member link (interface) can handle new traffic.",
+                        "type": "string",
+                        "enum": ["auto", "maximum-bandwidth"],
+                        "default": "auto"
+                    },
+                    "qinqEthertype": {
+                        "description": "Specifies the ether-type value used for the packets handled on this trunk when it is a member in a QinQ vlan.",
+                        "type": "string",
+                        "pattern": "^0x[a-fA-F0-9]{4}$",
+                        "default": "0x8100"
+                    },
+                    "spanningTreeEnabled": {
+                        "description": "Enables the spanning tree protocols (STP).",
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "VLAN" } }
+            },
+            "then": {
+                "required": ["class", "interfaces"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains VLAN configuration.",
+                        "type": "string",
+                        "const": "VLAN"
+                    },
+                    "mtu": {
+                        "description": "MTU for the VLAN.",
+                        "type": "integer",
+                        "minimum": 576,
+                        "maximum": 9198,
+                        "default": 1500
+                    },
+                    "tag": {
+                        "description": "Tag for the VLAN.",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 4094
+                    },
+                    "interfaces": {
+                        "description": "Interfaces for the VLAN.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                                "name": {
+                                    "description": "Name of the interface.",
+                                    "type": "string"
+                                },
+                                "tagged": {
+                                    "description": "Whether or not the interface is tagged. Default is true if a VLAN tag is provided, otherwise false.",
+                                    "type": "boolean"
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "autoLastHop": {
+                        "description": "When enabled, allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route.  Settings are default (inherited global setting), enabled, and disabled.",
+                        "type": "string",
+                        "enum": ["default", "enabled", "disabled"],
+                        "default": "default"
+                    },
+                    "cmpHash": {
+                        "description": "Specifies how the traffic on the VLAN will be disaggregated.",
+                        "type": "string",
+                        "enum": ["default", "dst-ip", "src-ip"],
+                        "default": "default"
+                    },
+                    "failsafeEnabled": {
+                        "description": "Enables a fail-safe mechanism that causes the active cluster to fail over to a redundant cluster when loss of traiffic is detected on a VLAN",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "failsafeAction": {
+                        "description": "Specifies the action for the system to take when the fail-safe mechanism is triggered",
+                        "type": "string",
+                        "enum": ["failover", "failover-restart-tm", "reboot", "restart-all"],
+                        "default": "failover-restart-tm"
+                    },
+                    "failsafeTimeout": {
+                        "description": "Specifies the number of seconds that an active unit can run without detecting network traffic on this VLAN before starting a failover",
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 3600,
+                        "default": 90
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "FirewallPolicy" } }
+            },
+            "then": { "$ref": "#/definitions/firewallPolicy" }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "FirewallAddressList" } }
+            },
+            "then": { "$ref": "#/definitions/firewallAddressList" }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "type": "object",
+                "properties": { "class": { "const": "FirewallPortList" } }
+            },
+            "then": { "$ref": "#/definitions/firewallPortList" }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SelfIp" } }
+            },
+            "then": {
+                "required": ["class", "address", "vlan"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Self IP configuration.",
+                        "type": "string",
+                        "const": "SelfIp"
+                    },
+                    "address": {
+                        "description": "IP address.",
+                        "type": "string",
+                        "format": "f5ip"
+                    },
+                    "trafficGroup": {
+                        "description": "Traffic group for the Self IP.",
+                        "type": "string",
+                        "enum": ["traffic-group-local-only", "traffic-group-1"],
+                        "default": "traffic-group-local-only"
+                    },
+                    "vlan": {
+                        "description": "VLAN or Tunnel for the self IP.",
+                        "type": "string"
+                    },
+                    "allowService": {
+                        "description": "Which services (ports) to allow on the self IP. Value should be 'all', 'none', 'default', or array of '<service:port>",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": ["all", "none", "default"]
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "(\\w+:\\d+)"
+                                }
+                            }
+                        ],
+                        "default": "default"
+                    },
+                    "enforcedFirewallPolicy": {
+                        "description": "Specifies an enforced firewall policy on the self IP.",
+                        "type": "string"
+                    },
+                    "stagedFirewallPolicy": {
+                        "description": "Specifies a staged firewall policy on the self IP.",
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DNS_Resolver" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains DNS Resolver configuration.",
+                        "type": "string",
+                        "const": "DNS_Resolver"
+                    },
+                    "answerDefaultZones": {
+                        "description": "Specifies whether the resolver answers queries for default zones: localhost, reverse 127.0.0.1, ::1, and AS112 zones.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "cacheSize": {
+                        "description": "Specifies the maximum cach size in bytes of the DNS Resolver object",
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 9437184,
+                        "default": 5767168
+                    },
+                    "forwardZones": {
+                        "description": "Forward zones on a DNS Resolver.  A given zone name should only use the symbols allowed for a fully qualified domain name (FQDN), namely ASCII letters a through z, digits 0 through 9, hyphen, nad period.  For example site.example.com would be a valid zone name.  A DNS Resolver configured with a forward zone will forward any queries that resulted in a cache-miss and which also match a configured zone name, to the nameserver specified on the zone.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                                "name": {
+                                    "description": "Name of a forward zone.",
+                                    "type": "string",
+                                    "format": "hostname"
+                                },
+                                "nameservers": {
+                                    "description": "Specifies the IP address and service port of a recursive nameserver that answers DNS queries when the response cannot be found in the internal DNS resolver cache.  Enter each address in the format address:port (IPv4) or addrss.port (IPv6).  The port is usually 53.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "randomizeQueryNameCase": {
+                        "description": "Specifies whether the resolver randomizes the case of query names.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "routeDomain": {
+                        "description": "Specifies the name of the route domain the resolver uses for outbound traffic.",
+                        "type": "string",
+                        "default": "0"
+                    },
+                    "useIpv4": {
+                        "description": "Specifies whether the resolver sends DNS queries to IPv4",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "useIpv6": {
+                        "description": "Specifies whether the resolver sends DNS queries to IPv6",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "useTcp": {
+                        "description": "Specifies whether the resolver sends DNS queries over TCP",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "useUdp": {
+                        "description": "Specifies whether the resolver sends DNS queries over UDP",
+                        "type": "boolean",
+                        "default": true
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Route" } }
+            },
+            "then": {
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Route configuration.",
+                        "type": "string",
+                        "const": "Route"
+                    },
+                    "gw": {
+                        "description": "Gateway for the route.",
+                        "type": "string",
+                        "format": "f5ip"
+                    },
+                    "network": {
+                        "description": "IP address/netmask for route",
+                        "type": "string",
+                        "anyOf": [
+                            { "format": "f5ip" },
+                            { "enum": ["default", "default-inet6"]}
+                        ],
+                        "default": "default"
+                    },
+                    "mtu": {
+                        "description": "MTU for the route.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9198
+                    },
+                    "target": {
+                        "description": "The VLAN or Tunnel for the Route.",
+                        "type": "string",
+                        "minLength": 0
+                    },
+                    "localOnly": {
+                        "description": "A boolean to indicate if the Route should be added to the LOCAL_ONLY partition. 'Across Network' clusters in AWS require this partition to be configured.",
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": ["class", "gw"]
+                    },
+                    {
+                        "required": ["class", "target"]
+                    }
+                ]
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RouteDomain" } }
+            },
+            "then": {
+                "required": ["class", "id"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Route Domain configuration.",
+                        "type": "string",
+                        "const": "RouteDomain"
+                    },
+                    "id": {
+                        "description": "Specifies a unique numeric identifier for the route domain.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65534
+                    },
+                    "parent": {
+                        "description": "Specifies the route domain the system searches when it cannot find a route in the configured domain.",
+                        "type": "string"
+                    },
+                    "bandWidthControllerPolicy": {
+                        "description": "Specifies the bandwidth controller policy for the route domain.",
+                        "type": "string"
+                    },
+                    "connectionLimit": {
+                        "description": "The connection limit for the route domain.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4294967295,
+                        "default": 0
+                    },
+                    "flowEvictionPolicy": {
+                        "description": "Specifies a flow eviction policy for the route domain to use.",
+                        "type": "string"
+                    },
+                    "ipIntelligencePolicy": {
+                        "description": "Specifies an IP intelligence policy for the route domain to use.",
+                        "type": "string"
+                    },
+                    "enforcedFirewallPolicy": {
+                        "description": "Specifies an enforced firewall policy on the route domain.",
+                        "type": "string"
+                    },
+                    "stagedFirewallPolicy": {
+                        "description": "Specifies a staged firewall policy on the route domain.",
+                        "type": "string"
+                    },
+                    "securityNatPolicy": {
+                        "description": "Specifies the security NAT policy for the route domain.",
+                        "type": "string"
+                    },
+                    "servicePolicy": {
+                        "description": "Specifies the service policy for the route domain.",
+                        "type": "string"
+                    },
+                    "strict": {
+                        "description": "Determines whether a connection can span route domains.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "routingProtocols": {
+                        "description": "Specifies routing protocols for the system to use in the route domain.",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": ["BFD", "BGP", "IS-IS", "OSPFv2", "OSPFv3", "PIM", "RIP", "RIPng"]
+                        }
+                    },
+                    "vlans": {
+                        "description": "Specifies VLANS for the system to use in the route domain.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "DagGlobals" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains DAG Globals configuration.",
+                        "type": "string",
+                        "const": "DagGlobals"
+                    },
+                    "icmpHash": {
+                        "description": "Specifies ICMP hash for ICMP echo request and ICMP echo reply in SW DAG.",
+                        "type": "string",
+                        "enum": ["icmp", "ipicmp"],
+                        "default": "icmp"
+                    },
+                    "ipv6PrefixLength": {
+                        "description": "Specifies whether SPDAG or IPv6 prefix DAG should be used to disaggregate IPv6 traffic when vlan cmp hash is set to src-ip or dst-ip.",
+                        "type": "integer",
+                        "default": 128,
+                        "minimum": 0,
+                        "maximum": 128
+                    },
+                    "roundRobinMode": {
+                        "description": "Specifies whether the round robin disaggregator (DAG) on a blade can disaggregate packets to all the TMMs in the system or only to the TMMs local to the blade.",
+                        "type": "string",
+                        "enum": ["global", "local"],
+                        "default": "global"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "Tunnel" } }
+            },
+            "then": {
+                "required": ["class", "tunnelType"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Tunnel configuration.",
+                        "type": "string",
+                        "const": "Tunnel"
+                    },
+                    "remark": {
+                        "$ref": "definitions.schema.json#/definitions/Remark"
+                    },
+                    "tunnelType": {
+                        "description": "Specifies the profile that you want to associate with the Tunnel.",
+                        "type": "string",
+                        "enum": ["geneve", "gre", "tcp-forward", "vxlan"]
+                    },
+                    "mtu": {
+                        "description": "Specifies the maximum transmission unit of the Tunnel.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535,
+                        "default": 0
+                    },
+                    "usePmtu": {
+                        "description": "Enable or disable the Tunnel to use Path MTU information provided by ICMP NeedFrag error messages.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "typeOfService": {
+                        "description": "Specifies a value for insertion into the Type of Service octet within the IP header of the encapsulating header of transmitted packets.",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": ["preserve"]
+                            },
+                            {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 255
+                            }
+                        ],
+                        "default": "preserve"
+                    },
+                    "autoLastHop": {
+                        "description": "Specifies that packets are returned to the MAC address from which they were sent when enabled. The default setting specifies that the system uses the default route to send back the request.",
+                        "type": "string",
+                        "enum": [
+                            "default",
+                            "enabled",
+                            "disabled"
+                        ],
+                        "default": "default"
+                    },
+                    "key": {
+                        "description": "When applied to a GRE tunnel, this value specifies an optional field in the GRE header, used to authenticate the source of the packet. When applied to a VXLAN or Geneve tunnel, this value specifies the Virtual Network Identifier (VNI). When applied to an NVGRE tunnel, this value specifies the Virtual Subnet Identifier (VSID).",
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0
+                    },
+                    "localAddress": {
+                        "description": "Specifies the IP address of the local endpoint of the tunnel.",
+                        "type": "string",
+                        "anyOf": [
+                            { "enum": ["any", "any6"] },
+                            { "format": "f5ip" }
+                        ],
+                        "default": "any6"
+                    },
+                    "remoteAddress": {
+                        "description": "Specifies the IP address of the remote endpoint of the tunnel.",
+                        "type": "string",
+                        "anyOf": [
+                            { "enum": ["any", "any6"] },
+                            { "format": "f5ip" }
+                        ],
+                        "default": "any6"
+                    },
+                    "secondaryAddress": {
+                        "description": "Specifies a non-floating IP address for the tunnel, to be used with host-initiated traffic.",
+                        "type": "string",
+                        "anyOf": [
+                            { "enum": ["any", "any6"] },
+                            { "format": "f5ip" }
+                        ],
+                        "default": "any6"
+                    },
+                    "mode": {
+                        "description": "Specifies how the tunnel carries traffic.",
+                        "type": "string",
+                        "enum": ["bidirectional", "inbound", "outbound"],
+                        "default": "bidirectional"
+                    },
+                    "transparent": {
+                        "description": "Specifies that the tunnel operates in transparent mode. When enabled, you can inspect and manipulate the encapsulated traffic flowing through the BIG-IP system.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "trafficGroup": {
+                        "description": "Specifies the traffic group to associate with the tunnel.",
+                        "type": "string",
+                        "default": "none"
+                    },
+                    "defaultsFrom": {
+                        "description": "Specifies the existing profile from which the system imports settings for the new profile. Default value is vxlan. Can NOT default from itself.",
+                        "type": "string",
+                        "default": "vxlan"
+                    },
+                    "port": {
+                        "description": "Specifies the local port for receiving VXLAN packets. The default is 4789.",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 65535,
+                        "default": 4789
+                    },
+                    "floodingType": {
+                        "description": "Specifies the flooding type to use to transmit multicast, broadcast, and unknown destination frames. The default is multicast.",
+                        "type": "string",
+                        "enum": ["none", "multicast", "multipoint", "replicator"],
+                        "default": "multicast"
+                    },
+                    "encapsulationType": {
+                        "description": "Specifies whether the VXLAN header is formatted according to RFC 7348 (vxlan) or with the Generic Protocol Extension (vxlan-gpe). The default is vxlan.",
+                        "type": "string",
+                        "enum": ["vxlan", "vxlan-gpe"],
+                        "default": "vxlan"
+                    }
+                },
+                "allOf": [
+                    {
+                        "if": {
+                            "required": ["transparent", "trafficGroup"],
+                            "properties": { "transparent": { "const": true } }
+                        },
+                        "then": {
+                            "properties": {
+                                "trafficGroup": { "const": "none" }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "required": ["tunnelType"],
+                            "properties": { "tunnelType": { "const": "geneve" } }
+                        },
+                        "then": {
+                            "properties": {
+                                "mode": { "const": "bidirectional" },
+                                "remoteAddress": { "enum": ["any", "any6"] }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RoutingAsPath" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains routing AS path configuration.",
+                        "type": "string",
+                        "const": "RoutingAsPath"
+                    },
+                    "entries": {
+                        "description": "An array that holds action and regex objects",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "integer",
+                                    "description": "Name of the entity"
+                                },
+                                "regex": {
+                                    "type": "string",
+                                    "description": "A regex string"
+                                }
+                            },
+                            "required": ["name", "regex"],
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RoutingAccessList" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains routing access list configuration.",
+                        "type": "string",
+                        "const": "RoutingAccessList"
+                    },
+                    "label": {
+                        "$ref": "definitions.schema.json#/definitions/Label"
+                    },
+                    "remark": {
+                        "$ref": "definitions.schema.json#/definitions/Remark"
+                    },
+                    "entries": {
+                        "description": "An array that holds sources and destinations.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "integer",
+                                    "description": "Name of the entity identified as an integer"
+                                },
+                                "action": {
+                                    "type": "string",
+                                    "description": "Permit or deny access",
+                                    "enum": [
+                                        "permit",
+                                        "deny"
+                                    ]
+                                },
+                                "destination": {
+                                    "description": "IPv4 or IPv6 address or address range. Specify either [address] or [address/prefixlength].",
+                                    "type": "string",
+                                    "format": "ipWithOptionalPrefix",
+                                    "default": "::"
+                                },
+                                "exactMatchEnabled": {
+                                    "description": "Perform exact matching. A single entry with exactMatchEnabled true disallows any entry to have a non-default destination.",
+                                    "type": "boolean",
+                                    "default": false
+                                },
+                                "source": {
+                                    "description": "IPv4 or IPv6 address or address range. Specify either [address] or [address/prefixlength].",
+                                    "type": "string",
+                                    "format": "ipWithOptionalPrefix",
+                                    "default": "::"
+                                }
+                            },
+                            "required": ["name", "action"],
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RoutingPrefixList" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains routing prefix list configuration.",
+                        "type": "string",
+                        "const": "RoutingPrefixList"
+                    },
+                    "entries": {
+                        "description": "An array that holds action, prefix, and prefixLengthRange.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "integer",
+                                    "description": "Name of the entity"
+                                },
+                                "action": {
+                                    "type": "string",
+                                    "description": "An action to take",
+                                    "enum": [
+                                        "permit",
+                                        "deny"
+                                    ]
+                                },
+                                "prefix": {
+                                    "type": "string",
+                                    "description": "Address with prefix length [address/prefix length]",
+                                    "format": "ipWithRequiredPrefix",
+                                    "default": "::/0"
+                                },
+                                "prefixLengthRange": {
+                                    "type": "string",
+                                    "description": "Prefix length range. Examples: Specify '1:32' for greater than or equal to 1 and less than or equal to 32. Specify '1:' for greater than or equal to 1. Specify ':32' for less than or equal to 32. Specify '32' for equal to 32.  Must be 0 or greater than the length on the prefix property.",
+                                    "pattern": "^\\d*:?\\d*$",
+                                    "default": "0"
+                                }
+                            },
+                            "required": ["name", "action"],
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RouteMap" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains route map configuration.",
+                        "type": "string",
+                        "const": "RouteMap"
+                    },
+                    "entries": {
+                        "description": "An array that holds action to take when corresponding entries are matched.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "description": "Name of the entity",
+                                    "type": "integer"
+                                },
+                                "action": {
+                                    "description": "An action to take",
+                                    "type": "string",
+                                    "enum": [
+                                        "permit",
+                                        "deny"
+                                    ]
+                                },
+                                "match": {
+                                    "description": "AS path and addresses to match",
+                                    "type": "object",
+                                    "properties": {
+                                        "asPath": {
+                                            "description": "RoutingAsPath to match.  Defines a BGP AS path access list.",
+                                            "type": "string"
+                                        },
+                                        "ipv4": {
+                                            "description": "IPv4 to match",
+                                            "type": "object",
+                                            "properties": {
+                                                "address": {
+                                                    "description": "IPv4 addresses to match",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "prefixList": {
+                                                            "description": "RoutingPrefixList to match",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "default": {}
+                                                },
+                                                "nextHop": {
+                                                    "description": "IPv4 next hops to match",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "prefixList": {
+                                                            "description": "RoutingPrefixList to match",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "default": {}
+                                                }
+                                            },
+                                            "default": {
+                                                    "address": {},
+                                                    "nextHop": {}
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        "ipv6": {
+                                            "description": "IPv6 to match",
+                                            "type": "object",
+                                            "properties": {
+                                                "address": {
+                                                    "description": "IPv6 addresses to match",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "prefixList": {
+                                                            "description": "RoutingPrefixList to match",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "default": {}
+                                                },
+                                                "nextHop": {
+                                                    "description": "IPv6 next hops to match",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "prefixList": {
+                                                            "description": "RoutingPrefixList to match",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "default": {}
+                                                }
+                                            },
+                                            "default": {
+                                                "address": {},
+                                                "nextHop": {}
+                                            },
+                                            "additionalProperties": false
+                                        }
+                                    },
+                                    "default": {
+                                        "ipv4": {
+                                            "address": {},
+                                            "nextHop": {}
+                                        },
+                                        "ipv6": {
+                                            "address": {},
+                                            "nextHop": {}
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            },
+                            "required": ["name", "action"],
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "RoutingBGP" } }
+            },
+            "then": {
+                "required": ["class", "localAS"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains Border Gateway Protocol configuration.",
+                        "type": "string",
+                        "const": "RoutingBGP"
+                    },
+                    "localAS": {
+                        "description": "Local Autonomous System.  After the RoutingBGP has been created this value cannot be modified.",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 4294967295
+                    },
+                    "addressFamilies": {
+                        "description": "Address family",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["internetProtocol"],
+                            "properties": {
+                                "internetProtocol": {
+                                    "description": "Address family.  The value 'all' sets both 'ipv4' and 'ipv6' to the 'all' values.",
+                                    "type": "string",
+                                    "enum": ["ipv4", "ipv6", "all"]
+                                },
+                                "redistributionList": {
+                                    "description": "Redistribution list",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["routingProtocol"],
+                                        "properties": {
+                                            "routingProtocol": {
+                                                "description":"Routing protocol",
+                                                "type": "string",
+                                                "enum": ["connected", "isis", "kernel", "ospf", "rip", "static"]
+                                            },
+                                            "routeMap": {
+                                                "description": "Route map",
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "gracefulRestart": {
+                        "description": "Graceful restart",
+                        "type": "object",
+                        "properties": {
+                            "gracefulResetEnabled": {
+                                "description": "Graceful reset capability",
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "restartTime": {
+                                "description": "Maximum time needed for neighbor(s) to restart (seconds)",
+                                "type": "integer",
+                                "default": 0,
+                                "minimum": 0,
+                                "maximum": 3600
+                            },
+                            "stalePathTime": {
+                                "description": "Maximum time to retain stale paths from restarting neighbor(s) (seconds)",
+                                "type": "integer",
+                                "default": 0,
+                                "minimum": 0,
+                                "maximum": 3600
+                            }
+                        },
+                        "default": {
+                            "gracefulResetEnabled": false,
+                            "restartTime": 0,
+                            "stalePathTime": 0
+                        },
+                        "additionalProperties": false
+                    },
+                    "holdTime": {
+                        "description": "Globally set or reset the hold time for all of the neighbors.  The holdTime must be either 0 or at least 3 times keepAlive",
+                        "type": "integer",
+                        "default": 90,
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "keepAlive": {
+                        "description": "Globally set or reset the keep alive for all of the neighbors",
+                        "type": "integer",
+                        "default": 30,
+                        "minimum": 0,
+                        "maximum": 65535
+                    },
+                    "neighbors": {
+                        "description": "Neighbors",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["address", "peerGroup"],
+                            "properties": {
+                                "address": {
+                                    "description": "Name",
+                                    "type": "string",
+                                    "format": "f5ip"
+                                },
+                                "ebgpMultihop": {
+                                    "description": "Allow external BGP members not on directly connected networks",
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 255,
+                                    "default": 1
+                                },
+                                "peerGroup": {
+                                    "description": "Peer group",
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    },
+                    "peerGroups": {
+                        "description": "Peer group",
+                        "type": "array",
+                        "items": {
+                            "description": "Peer groups member",
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                                "name": {
+                                    "description": "Name",
+                                    "type": "string"
+                                },
+                                "addressFamilies": {
+                                    "description": "Address family",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["internetProtocol"],
+                                        "properties": {
+                                            "internetProtocol": {
+                                                "description": "Address family",
+                                                "type": "string",
+                                                "enum": ["ipv4", "ipv6"]
+                                            },
+                                            "softReconfigurationInboundEnabled": {
+                                                "description": "Soft reconfiguration inbound enabled",
+                                                "type": "boolean",
+                                                "default": false
+                                            },
+                                            "routeMap": {
+                                                "description": "Route maps",
+                                                "type": "object",
+                                                "properties": {
+                                                    "in": {
+                                                        "description": "Incoming route map",
+                                                        "type": "string"
+                                                    },
+                                                    "out": {
+                                                        "description": "Outgoing route map",
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "default": {},
+                                                "additionalProperties": false
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                },
+                                "remoteAS": {
+                                    "description": "Remote Autonomous System",
+                                    "type": "integer",
+                                    "default": 0
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "default": []
+                    },
+                    "routerId": {
+                        "description": "Manually override current router identifier (peers will reset)",
+                        "type": "string",
+                        "default": "any6"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "ManagementIpFirewall" } }
+            },
+            "then": { "$ref": "#/definitions/managementIpFirewall" }
+        }
+    ],
+    "definitions": {
+        "firewallPolicy": {
+            "description": "Configures firewall policy",
+            "type": "object",
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains firewall policy configuration",
+                    "type": "string",
+                    "const": "FirewallPolicy"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "rules": {
+                    "description": "Specifies the list of firewall policy rules",
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/firewallRulePolicy" }
+                }
+            },
+            "additionalProperties": false
+        },
+        "firewallAddressList": {
+            "title": "Firewall Address List",
+            "description": "Declares an address-list for use by firewall rules. An address list is a list of IP-address prefixes to compare against the source-IP address and/or destination-IP address in an IP packet",
+            "type": "object",
+            "properties": {
+                "class": {
+                    "title": "Class",
+                    "type": "string",
+                    "const": "FirewallAddressList"
+                },
+                "label": {
+                    "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                    "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "addresses": {
+                    "type": "array",
+                    "description": "A list of IPv4 and IPv6 addresses and address ranges. You can specify a network with CIDR slash notation.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                },
+                "fqdns": {
+                    "type": "array",
+                    "description": "A list of fully qualified domain names.",
+                    "items": {
+                        "type": "string",
+                        "format": "hostname"
+                    },
+                    "minItems": 1
+                },
+                "geo": {
+                    "type": "array",
+                    "description": "A list of geographic locations (for example, US:Washington).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "class"
+            ],
+            "anyOf": [
+                {
+                    "required": [
+                        "addresses"
+                    ]
+                },
+                {
+                    "required": [
+                        "fqdns"
+                    ]
+                },
+                {
+                    "required": [
+                        "geo"
+                    ]
+                }
+            ]
+        },
+        "firewallPortList": {
+            "title": "Firewall Port List",
+            "description": "Declares a port-list for use by firewall rules. A firewall rule can match a packet's source port or destination port against one of the ports in a port list, and can take some action (such as ACCEPT or DROP) for a matching packet.",
+            "type": "object",
+            "f5modules": [
+                "afm"
+            ],
+            "properties": {
+                "class": {
+                    "title": "Class",
+                    "type": "string",
+                    "const": "FirewallPortList"
+                },
+                "label": {
+                    "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                    "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "ports": {
+                    "type": "array",
+                    "description": "A list of ports and port ranges (for example, 80, \"8080-8090\").",
+                    "items": {
+                        "type": [
+                            "integer",
+                            "string"
+                        ]
+                    },
+                    "minItems": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "class",
+                "ports"
+            ]
+        },
+        "firewallRuleCore": {
+            "description": "Configures a firewall rule.",
+            "type": "object",
+            "required": ["name", "action"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Specifies the name of the firewall rule"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "action": {
+                    "description": "Specifies the action that the firewall rule will take on matching packets",
+                    "type": "string",
+                    "enum": [
+                        "accept",
+                        "drop",
+                        "accept-decisively",
+                        "reject"
+                    ]
+                },
+                "protocol": {
+                    "description": "Specifies the protocol to which the firewall rule applies",
+                    "type": "string",
+                    "enum": [
+                        "any",
+                        "tcp",
+                        "udp"
+                    ],
+                    "default": "any"
+                },
+                "source": {
+                    "$ref": "#/definitions/firewallRuleSourceCore"
+                },
+                "destination": {
+                    "$ref": "#/definitions/firewallRuleDestinationCore"
+                },
+                "loggingEnabled": {
+                    "description": "Specifies whether the system enables or disables logging for the firewall rule",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "firewallRulePolicy": {
+            "type": "object",
+            "allOf": [
+                { "$ref": "#/definitions/firewallRuleCore" },
+                {
+                    "properties": {
+                        "source": { "$ref": "#/definitions/firewallRuleSourcePolicy" }
+                    }
+                }
+            ]
+        },
+        "firewallRuleSourceCore": {
+            "description": "Configures the packet sources to which the network firewall rule applies",
+            "type": "object",
+            "properties": {
+                "addressLists": {
+                    "type": "array",
+                    "description": "Specifies a list of address lists against which the packet will be compared.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                },
+                "portLists": {
+                    "type": "array",
+                    "description": "Specifies a list of port lists against which the packet will be compared.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        "firewallRuleSourcePolicy": {
+            "type": "object",
+            "allOf": [
+                { "$ref": "#/definitions/firewallRuleSourceCore" },
+                {
+                    "type": "object",
+                    "properties": {
+                        "vlans": {
+                            "type": "array",
+                            "description": "Specifies a list of VLANs against which the packets will be compared",
+                            "items": {
+                                "type": "string"
+                            },
+                            "additionalProperties": false
+                        }
+                    }
+                }
+            ]
+        },
+        "firewallRuleDestinationCore": {
+            "description": "Configures the packet destination to which the network firewall rule applies",
+            "type": "object",
+            "properties": {
+                "addressLists": {
+                    "type": "array",
+                    "description": "Specifies a list of address lists against which the packet will be compared.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                },
+                "portLists": {
+                    "type": "array",
+                    "description": "Specifies a list of port lists against which the packet will be compared.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "managementIpFirewall": {
+            "description": "Configures the management IP firewall",
+            "type": "object",
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates this property contains management IP firewall configuration.",
+                    "type": "string",
+                    "const": "ManagementIpFirewall"
+                },
+                "label": {
+                  "$ref": "definitions.schema.json#/definitions/Label"
+                },
+                "remark": {
+                  "$ref": "definitions.schema.json#/definitions/Remark"
+                },
+                "rules": {
+                    "description": "Specifies the list of firewall rules",
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/firewallRuleCore" }
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}
