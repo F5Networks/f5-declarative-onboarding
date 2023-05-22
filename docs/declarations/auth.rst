@@ -37,7 +37,7 @@ This example declaration contains all three authentication methods with the **en
 
 For more information on options and BIG-IP DO usage, see |auth| and the subsequent entries in the Schema Reference.
 
-.. NOTE:: We updated this example for the following: |br| - BIG-IP DO 1.17 includes a CA certificate for LDAP using the new **sslCaCert** property. |br| - BIG-IP DO 1.21 includes the ability to enable or disable LDAP referral chasing using the new **referrals** Boolean (BIG-IP 15.1 and later only). |br| See |authldap| in the Schema Reference for BIG-IP DO information and BIG-IP DO usage. |br| **IMPORTANT**: If you attempt to use the example declaration on a previous version that does not include one of these features, it will fail.  You can remove the lines highlighted in yellow for previous versions of BIG-IP DO.
+.. NOTE:: We updated this example for the following: |br| - BIG-IP DO 1.17 includes a CA certificate for LDAP using the new **sslCaCert** property. |br| - BIG-IP DO 1.21 includes the ability to enable or disable LDAP referral chasing using the new **referrals** Boolean (BIG-IP 15.1 and later only). |br| See |authldap| in the Schema Reference for BIG-IP DO information and BIG-IP DO usage. Also see the LDAP example :ref:`Reference CA cert via URL<ldap-ssl>`. |br| **IMPORTANT**: If you attempt to use the example declaration on a previous version that does not include one of these features, it will fail.  You can remove the lines highlighted in yellow for previous versions of BIG-IP DO.
 
 In the following declaration snippet we show only the classes related to authentication.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.
 
@@ -145,6 +145,26 @@ This example shows how you can use the **PasswordPolicy** class introduced in BI
 See |pp| in the schema reference for specific details on each of the parameters in the PasswordPolicy class, as well as DO usage.
 
 .. literalinclude:: ../../examples/passwordPolicy.json
+   :language: json
+
+:ref:`Back to top<auth-examples>`
+
+|
+
+.. _ldap-ssl:
+
+Referencing a URL in the sslCaCert property of Authentication_ldap
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for the **sslCaCert** property in the Authentication_ldap class is available in BIG-IP DO v1.38 and later.
+
+
+This example shows how you can reference an SSL CA certificate by URL in the **sslCaCert** property of the **Authentication_ldap** class in BIG-IP DO 1.38 and later. This class allows you reference a certificate rather than have the entire base64 value in the declaration.
+
+See |authldap| in the schema reference for more information and DO usage.
+
+.. literalinclude:: ../../examples/ldapSslCaCertUrlRef.json
    :language: json
 
 :ref:`Back to top<auth-examples>`
