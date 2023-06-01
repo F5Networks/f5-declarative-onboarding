@@ -72,9 +72,16 @@ test_node:4:
     tags:
         - cm-official-docker-executor
     script:
-        - npm install --global npm@5.10.0
+        # npm install fails for some packages on older versions of node, so use a newer
+        # version just for the install
+        - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+        - export NVM_DIR="$HOME/.nvm"
+        - source "$NVM_DIR/nvm.sh"
+        - nvm install --latest-npm 12
+        - nvm use 12
         - npm install --no-optional
         - npm install mocha@5.2.0
+        - nvm use 4
         - npm test
 
 test_node:6:
@@ -84,8 +91,16 @@ test_node:6:
     tags:
         - cm-official-docker-executor
     script:
+        # npm install fails for some packages on older versions of node, so use a newer
+        # version just for the install
+        - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+        - export NVM_DIR="$HOME/.nvm"
+        - source "$NVM_DIR/nvm.sh"
+        - nvm install --latest-npm 12
+        - nvm use 12
         - npm install --no-optional
         - npm install mocha@6.2.2
+        - nvm use 6
         - npm test -- $TEST_REPORTER_OPTIONS
     artifacts:
         when: always
@@ -221,7 +236,7 @@ create_docs:
     image: ${CONTAINTHEDOCS_IMAGE}
     stage: build
     allow_failure: true
-    needs: 
+    needs:
         - build_api_docs
     script:
         - if [ "$CI_COMMIT_REF_NAME" = "docs-staging" ] || [ "$CI_COMMIT_REF_NAME" = "docs-latest" ]; then
