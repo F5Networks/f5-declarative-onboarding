@@ -274,6 +274,15 @@ class RestWorker {
                                 sendResponse.call(this, restOperation, ENDPOINTS.TASK, taskId);
                             }
 
+                            if (platform === PRODUCTS.BIGIP && !wrapper.targetUsername) {
+                                return doUtil.getPrimaryAdminUser();
+                            }
+                            return Promise.resolve();
+                        })
+                        .then((adminUser) => {
+                            if (adminUser) {
+                                wrapper.targetUsername = adminUser;
+                            }
                             // Fill in anything in the wrapper that is a json-pointer
                             bigIpOptions = doUtil.dereference(
                                 wrapper,
@@ -347,7 +356,13 @@ class RestWorker {
                                 });
 
                                 fetches.handleFetches(this.validator.validators[0].fetches, taskId)
-                                    .then(() => onboard.call(this, declaration, bigIpOptions, taskId, originalDoId))
+                                    .then(() => initBigIp.call(this, logger, bigIpOptions, taskId))
+                                    .then((bigIp) => {
+                                        if (!bigIp) {
+                                            return Promise.resolve();
+                                        }
+                                        return onboard.call(this, declaration, bigIp, taskId, originalDoId);
+                                    })
                                     .then(() => {
                                         if (this.bigIps[taskId]) {
                                             logger.fine('Onboard configuration complete. Saving sys config.');
@@ -458,25 +473,20 @@ class RestWorker {
     /* eslint-enable class-methods-use-this */
 }
 
-function onboard(declaration, bigIpOptions, taskId, originalDoId) {
+function onboard(declaration, bigIp, taskId, originalDoId) {
     const logger = new Logger(module, taskId);
     let declarationHandler;
-    let bigIpInitialized = false;
 
-    return doUtil.getBigIp(logger, bigIpOptions)
-        .then((bigIp) => {
-            bigIpInitialized = true;
-            this.bigIps[taskId] = bigIp;
+    this.bigIps[taskId] = bigIp;
 
-            // We store the bigIp object under the original ID so the polling
-            // task knows which state to update. This is only sent by the TCW.
-            if (originalDoId) {
-                this.bigIps[originalDoId] = this.bigIps[taskId];
-            }
+    // We store the bigIp object under the original ID so the polling
+    // task knows which state to update. This is only sent by the TCW.
+    if (originalDoId) {
+        this.bigIps[originalDoId] = this.bigIps[taskId];
+    }
 
-            logger.fine(`Getting and saving current configuration for task: ${taskId}`);
-            return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId);
-        })
+    logger.fine(`Getting and saving current configuration for task: ${taskId}`);
+    return getAndSaveCurrentConfig.call(this, this.bigIps[taskId], declaration, taskId)
         .then(() => {
             declarationHandler = new DeclarationHandler(
                 this.bigIps[taskId],
@@ -498,22 +508,6 @@ function onboard(declaration, bigIpOptions, taskId, originalDoId) {
         })
         .catch((err) => {
             logger.severe(`Error onboarding: ${err.message}`);
-
-            // If we failed to initialize the bigIp (sometimes it just never becomes available)
-            // then there's not much we can do. Perhaps a reboot would work but for now, just
-            // report the error
-            if (!bigIpInitialized) {
-                logger.info('Failed to initialize BIG-IP');
-                this.state.doState.updateResult(
-                    taskId,
-                    err && err.code ? err.code : 500,
-                    STATUS.STATUS_ERROR,
-                    'failed to initialize device',
-                    err.message
-                );
-                return undefined;
-            }
-
             logger.info('Rolling back configuration');
             this.state.doState.updateResult(
                 taskId,
@@ -837,57 +831,32 @@ function handleStartupState(success, error) {
                     // fill in the BIG-IQ and BIG-IP passwords
                     const stateDecRef = this.state.doState.getDeclaration(currentTaskId);
                     const declaration = JSON.parse(JSON.stringify(stateDecRef));
-                    const deletePromises = [];
-                    let licenseName;
-                    let hasBigIpUser = false;
-                    let hasBigIqUser = false;
+                    const licenseName = Object.keys(declaration.Common).find((key) => declaration.Common[key].class === 'License');
+                    const license = declaration.Common[licenseName] || {};
 
-                    Object.keys(declaration.Common).forEach((key) => {
-                        if (declaration.Common[key].class === 'License') {
-                            licenseName = key;
-                            delete declaration.Common[licenseName].revokeFrom;
-                            delete declaration.Common[licenseName].revokeCurrent;
-                            // Remove revokeFrom and revokeCurrent from the stored state as well
-                            delete stateDecRef.Common[licenseName].revokeFrom;
-                            delete stateDecRef.Common[licenseName].revokeCurrent;
-
-                            if (declaration.Common[licenseName].bigIpUsername) {
-                                hasBigIpUser = true;
-                            }
-                            if (declaration.Common[licenseName].bigIqUsername) {
-                                hasBigIqUser = true;
-                            }
-                        }
-                    });
+                    // Remove revokeFrom and revokeCurrent from the declaration and stored state
+                    if (licenseName) {
+                        delete license.revokeFrom;
+                        delete license.revokeCurrent;
+                        delete stateDecRef.Common[licenseName].revokeFrom;
+                        delete stateDecRef.Common[licenseName].revokeCurrent;
+                    }
 
                     Promise.resolve()
                         .then(() => {
-                            if (hasBigIpUser) {
-                                logger.debug('Decrypting BIG-IP user data');
-                                return cryptoUtil.decryptStoredValueById(BIG_IP_ENCRYPTION_ID, currentTaskId);
+                            if (license.bigIpUsername) {
+                                return Promise.resolve(license.bigIpUsername);
                             }
-                            return Promise.resolve();
+                            return doUtil.getPrimaryAdminUser();
                         })
-                        .then((password) => {
-                            if (password) {
-                                declaration.Common[licenseName].bigIpPassword = password;
-                                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID, currentTaskId));
+                        .then((user) => initBigIp.call(this, logger, { user }, currentTaskId))
+                        .then((bigIp) => {
+                            if (!bigIp) {
+                                return Promise.resolve();
                             }
-                            if (hasBigIqUser) {
-                                logger.debug('Decrypting BIG-IQ user data');
-                                return cryptoUtil.decryptStoredValueById(BIG_IQ_ENCRYPTION_ID, currentTaskId);
-                            }
-                            return Promise.resolve();
+                            return decryptAndDeleteUserData(logger, license, bigIp, currentTaskId)
+                                .then(() => onboard.call(this, declaration, bigIp, currentTaskId));
                         })
-                        .then((password) => {
-                            if (password) {
-                                declaration.Common[licenseName].bigIqPassword = password;
-                                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID, currentTaskId));
-                            }
-                            logger.debug('Deleting encrypted data');
-                            return Promise.all(deletePromises);
-                        })
-                        .then(() => onboard.call(this, declaration, {}, currentTaskId))
                         .then(() => {
                             if (this.bigIps[currentTaskId]) {
                                 logger.fine('Onboard configuration complete. Saving sys config.');
@@ -1087,7 +1056,7 @@ function initialPasswordSet(wrapper, logger) {
                     const auth = `Basic ${credentials}`;
                     const restOperation = this.restOperationFactory.createRestOperationInstance()
                         .setUri(
-                            `https://${wrapper.targetHost}:${port}/mgmt/shared/authz/users/admin`
+                            `https://${wrapper.targetHost}:${port}/mgmt/shared/authz/users/${wrapper.targetUsername}`
                         )
                         .setIsSetBasicAuthHeader(true)
                         .setBasicAuthorization(auth)
@@ -1385,8 +1354,12 @@ function prepForRebootResumeOrRevoke(taskId, status, bigIpPassword, bigIqPasswor
     const encryptPromises = [];
     // if we need to relicense after we restart, so store passwords
     if (bigIpPassword && bigIqPassword) {
-        encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIpPassword, BIG_IP_ENCRYPTION_ID, taskId));
-        encryptPromises.push(cryptoUtil.encryptAndStoreValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID, taskId));
+        encryptPromises.push(
+            cryptoUtil.encryptAndStoreValue(bigIpPassword, BIG_IP_ENCRYPTION_ID, this.bigIps[taskId], taskId)
+        );
+        encryptPromises.push(
+            cryptoUtil.encryptAndStoreValue(bigIqPassword, BIG_IQ_ENCRYPTION_ID, this.bigIps[taskId], taskId)
+        );
     }
 
     return Promise.all(encryptPromises)
@@ -1409,6 +1382,58 @@ function saveConfig(bigIp, declaration) {
         return Promise.resolve();
     }
     return bigIp.save();
+}
+
+function initBigIp(logger, bigIpOptions, taskId) {
+    return doUtil.getBigIp(logger, bigIpOptions)
+        .catch((err) => {
+            // If we failed to initialize the bigIp (sometimes it just never becomes available)
+            // then there's not much we can do. Perhaps a reboot would work but for now, just
+            // report the error
+            logger.info('Failed to initialize BIG-IP');
+            this.state.doState.updateResult(
+                taskId,
+                err && err.code ? err.code : 500,
+                STATUS.STATUS_ERROR,
+                'failed to initialize device',
+                err.message
+            );
+            return undefined;
+        });
+}
+
+function decryptAndDeleteUserData(logger, license, bigIp, currentTaskId) {
+    const deletePromises = [];
+    const hasBigIpUser = typeof license.bigIpUsername !== 'undefined';
+    const hasBigIqUser = typeof license.bigIqUsername !== 'undefined';
+
+    return Promise.resolve()
+        .then(() => {
+            if (hasBigIpUser) {
+                logger.debug('Decrypting BIG-IP user data');
+                return cryptoUtil.decryptStoredValueById(BIG_IP_ENCRYPTION_ID, currentTaskId);
+            }
+            return Promise.resolve();
+        })
+        .then((password) => {
+            if (password) {
+                license.bigIpPassword = password;
+                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IP_ENCRYPTION_ID, bigIp, currentTaskId));
+            }
+            if (hasBigIqUser) {
+                logger.debug('Decrypting BIG-IQ user data');
+                return cryptoUtil.decryptStoredValueById(BIG_IQ_ENCRYPTION_ID, currentTaskId);
+            }
+            return Promise.resolve();
+        })
+        .then((password) => {
+            if (password) {
+                license.bigIqPassword = password;
+                deletePromises.push(cryptoUtil.deleteEncryptedId(BIG_IQ_ENCRYPTION_ID, bigIp, currentTaskId));
+            }
+            logger.debug('Deleting encrypted data');
+            return Promise.all(deletePromises);
+        });
 }
 
 module.exports = RestWorker;

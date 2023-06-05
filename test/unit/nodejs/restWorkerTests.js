@@ -71,6 +71,7 @@ describe('restWorker', () => {
             getMethod() { return 'Get'; }
         };
         sinon.stub(doUtilMock, 'rebootRequired').resolves(false);
+        sinon.stub(doUtilMock, 'getPrimaryAdminUser').resolves('admin');
     });
 
     afterEach(() => {

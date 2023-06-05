@@ -157,11 +157,20 @@ function processRequest() {
             targetDevice = targetDeviceFromRequest;
             // check platform if no targetHost specified or targetHost is localhost
             if (isTargetLoopback(targetDevice.host)) {
-                return validatePlatform.call(this, targetDevice);
+                return validatePlatform.call(this);
             }
             return Promise.resolve();
         })
-        .then(() => fetchCurrentConfiguration.call(this, targetDevice))
+        .then(() => {
+            if (targetDevice.user) {
+                return Promise.resolve(targetDevice.user);
+            }
+            return doUtil.getPrimaryAdminUser();
+        })
+        .then((user) => {
+            targetDevice.user = user;
+            return fetchCurrentConfiguration.call(this, targetDevice);
+        })
         .then((currentConfig) => {
             try {
                 return Promise.resolve(makeDeclarationFromConfig.call(this, currentConfig));
@@ -205,7 +214,7 @@ function validateRequest() {
     const target = {
         host: 'targetHost',
         port: 'targetPort',
-        username: 'targetUsername',
+        user: 'targetUsername',
         password: 'targetPassword'
     };
     const errors = [];
@@ -268,7 +277,7 @@ function validatePlatform() {
  * @param {Object} [targetDevice] - target device information
  * @param {String} [targetDevice.host] - target host address
  * @param {String} [targetDevice.port] - target host port
- * @param {String} [targetDevice.username] - target host username
+ * @param {String} [targetDevice.user] - target host username
  * @param {String} [targetDevice.password] - target host password
  *
  * @returns {Promise} resolved with current configuration object

@@ -687,5 +687,22 @@ module.exports = {
                 array.splice(i, 1);
             }
         }
+    },
+
+    /**
+     * Uses TMSH to fetch the local primary admin user
+     *
+     * @returns Promise - Admin username
+     */
+    getPrimaryAdminUser() {
+        return cloudUtil.runTmshCommand('list sys db systemauth.primaryadminuser')
+            .then((response) => {
+                const result = cloudUtil.parseTmshResponse(response);
+                if (!result || !result.value) {
+                    return Promise.reject(new Error('Unable to get primary admin user'));
+                }
+                const adminUser = result.value.replace(/"/g, '');
+                return Promise.resolve(adminUser);
+            });
     }
 };

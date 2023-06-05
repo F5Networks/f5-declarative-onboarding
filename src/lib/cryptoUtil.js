@@ -19,8 +19,6 @@
 const childProcess = require('child_process');
 const crypto = require('crypto');
 const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
-const PRODUCTS = require('@f5devcentral/f5-cloud-libs').sharedConstants.PRODUCTS;
-const doUtil = require('./doUtil');
 const Logger = require('./logger');
 
 const ENCRYPT_PATH = '/tm/auth/radius-server';
@@ -94,14 +92,15 @@ module.exports = {
      * Deletes the encrypted value identified by an id.
      *
      * @param {String} id - The id to delete.
+     * @param {Object} bigIp - The target BIG-IP.
      * @param {String} [taskId] - The id of the current task
      *
      * @returns {Promise} A promise which is resolved when complete.
      */
-    deleteEncryptedId(id, taskId) {
+    deleteEncryptedId(id, bigIp, taskId) {
         const logger = new Logger(module, taskId);
-        return doUtil.getBigIp(logger)
-            .then((bigIp) => bigIp.delete(`${ENCRYPT_PATH}/${id}`)).catch((err) => {
+        return bigIp.delete(`${ENCRYPT_PATH}/${id}`)
+            .catch((err) => {
                 logger.warning('Failed to delete encrypted data with id', id, err);
                 return Promise.reject(err);
             });
@@ -112,14 +111,14 @@ module.exports = {
      *
      * @param {String} value - The value to encrypt.
      * @param {String} id - Unique id with which to later retrieve this value.
+     * @param {Object} bigIp - The target BIG-IP.
      * @param {String} [taskId] - The id of the current task
      *
      * @returns {Promise} A promise which is resolved when complete.
      */
-    encryptAndStoreValue(value, id, taskId) {
+    encryptAndStoreValue(value, id, bigIp, taskId) {
         const logger = new Logger(module, taskId);
-        return doUtil.getBigIp(logger)
-            .then((bigIp) => encryptValueOnBigIp(value, id, bigIp))
+        return encryptValueOnBigIp(value, id, bigIp)
             .catch((err) => {
                 logger.warning('Failed to encrypt data', err);
                 return Promise.reject(err);
@@ -162,31 +161,19 @@ function encryptValueOnBigIp(value, id, bigIp) {
         .then(() => encryptedData);
 }
 
-function encryptValuesInArray(valueArray, encryptedData, index, currentBigIp, logger) {
+function encryptValuesInArray(valueArray, encryptedData, index, bigIp, logger) {
     index = index || 0;
     const id = `declarative_onboarding_delete_me_${index}_${crypto.randomBytes(6).toString('hex')}`;
-    let bigIp;
 
     return Promise.resolve()
-        .then(() => doUtil.getCurrentPlatform(logger.taskId))
-        .then((platform) => {
-            if (platform !== PRODUCTS.BIGIP && currentBigIp) {
-                return Promise.resolve(currentBigIp);
-            }
-
-            return doUtil.getBigIp(logger);
-        })
-        .then((theBigIp) => {
-            bigIp = theBigIp;
-            return encryptValueOnBigIp(valueArray[index], id, bigIp);
-        })
+        .then(() => encryptValueOnBigIp(valueArray[index], id, bigIp))
         .then((secret) => {
             encryptedData.push(secret);
         })
         .then(() => {
             index += 1;
             if (index < valueArray.length) {
-                return encryptValuesInArray(valueArray, encryptedData, index, currentBigIp, logger);
+                return encryptValuesInArray(valueArray, encryptedData, index, bigIp, logger);
             }
             return encryptedData;
         });
