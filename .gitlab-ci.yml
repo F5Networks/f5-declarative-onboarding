@@ -263,7 +263,7 @@ create_docs:
     tags:
       - do-test-docker-executor
     stage: deploy
-    timeout: 1 hour
+    timeout: 2 hours
     script:
       - apk update
       # Need to add bash, because included sh doen't support arrays
@@ -294,7 +294,7 @@ create_docs:
         - ${TEST_HARNESS_FILE}
       expire_in: 1 day
     retry:
-      max: 1
+      max: 2
       when: script_failure
 
 deploy_for_this_project:
