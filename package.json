@@ -52,7 +52,7 @@
     "test": "mocha --recursive test/unit",
     "integration": "mocha test/integration/test.js",
     "property": "mocha test/integration/property test/integration/misc",
-    "make-api-docs": "redoc-cli bundle src/schema/latest/openapi.yaml",
+    "make-api-docs": "redocly build-docs src/schema/latest/openapi.yaml",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "coverage": "nyc npm test",
     "lint": "eslint src test",
@@ -69,7 +69,7 @@
     "extends": "@f5devcentral/eslint-config-f5-atg"
   },
   "optionalDependencies": {
-    "node-ssh": "^13.0.1",
-    "redoc-cli": "^0.13.21"
+    "@redocly/cli": "^1.0.0-beta.128",
+    "node-ssh": "^13.0.1"
   }
 }

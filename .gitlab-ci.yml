@@ -98,8 +98,8 @@ test_node:6:
         - source "$NVM_DIR/nvm.sh"
         - nvm install --latest-npm 12
         - nvm use 12
-        - npm install --no-optional
-        - npm install mocha@6.2.2
+        - npm ci --no-optional
+        - npm install mocha@5.2.0
         - nvm use 6
         - npm test -- $TEST_REPORTER_OPTIONS
     artifacts:
@@ -216,11 +216,14 @@ reactivate_big_iq_license:
       - node scripts/dev/reactivateBigIq.js
 
 build_api_docs:
-  image: $DOCKER_URL/node:12
+  image: $DOCKER_URL/node:16
   stage: apidocs
   needs: []
   script:
     # install packages
+    # package-lock ends up with OS specific info during npm install, so
+    # make sure it is right for the platform we're on
+    - rm package-lock.json
     - npm install
     # generate docs
     - npm run make-api-docs
