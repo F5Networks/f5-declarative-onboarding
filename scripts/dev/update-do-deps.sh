@@ -2,7 +2,7 @@
 # exlude version-pinned deps
 # ---------------------------------------------
 # Go to the link in '${CONFLUENCE_URL}/display/PDESETEAM/Package+Dependencies+-+Pinned' to see a list
-npx npm-check-updates -u -x ajv,uuid,sinon,winston,eslint
+npx npm-check-updates -u -x ajv,uuid,sinon,winston,eslint,nock
 npm i
 npm upgrade
 

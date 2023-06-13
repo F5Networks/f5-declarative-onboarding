@@ -19,9 +19,9 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
-    "@f5devcentral/atg-shared-utilities": "^0.5.7",
+    "@f5devcentral/atg-shared-utilities": "^0.7.0",
     "@f5devcentral/f5-cloud-libs": "^4.29.0",
-    "@f5devcentral/f5-teem": "^1.5.0",
+    "@f5devcentral/f5-teem": "^1.6.1",
     "ajv": "6.12.6",
     "deep-diff": "^1.0.2",
     "is-in-subnet": "^4.0.1",
@@ -30,15 +30,15 @@
   "devDependencies": {
     "@f5devcentral/atg-shared-utilities-dev": "^0.2.13",
     "@f5devcentral/eslint-config-f5-atg": "^0.1.8",
-    "@stryker-mutator/core": "^6.4.2",
-    "@stryker-mutator/mocha-runner": "^6.4.2",
+    "@stryker-mutator/core": "^7.0.2",
+    "@stryker-mutator/mocha-runner": "^7.0.2",
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "colors": "^1.4.0",
     "coveralls": "^3.1.1",
     "eslint": "7.32.0",
     "json-schema-ref-parser": "^9.0.9",
-    "mkdirp": "^2.1.6",
+    "mkdirp": "^3.0.1",
     "mocha": "^10.2.0",
     "mocha-multi-reporters": "^1.5.1",
     "nock": "10.0.0",
@@ -70,6 +70,6 @@
   },
   "optionalDependencies": {
     "@redocly/cli": "^1.0.0-beta.128",
-    "node-ssh": "^13.0.1"
+    "node-ssh": "^13.1.0"
   }
 }
