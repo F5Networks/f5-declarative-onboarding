@@ -68,6 +68,28 @@ function sendRequestToBigIq(reqOpts, body) {
         .then(() => requestUtil.send(reqOpts, body));
 }
 
+function waitForStatus(expectedStatus) {
+    console.log(`Waiting for ${expectedStatus}`);
+    const checkStatus = () => {
+        const reqOpts = {
+            method: 'GET',
+            path: '/mgmt/tm/shared/licensing/activation'
+        };
+        return sendRequestToBigIq(reqOpts)
+            .then((response) => {
+                if (response.status !== expectedStatus) {
+                    return Promise.reject(new Error(`current status: ${response.status}, expecting ${expectedStatus}`));
+                }
+                return Promise.resolve(response);
+            });
+    };
+    const retryOpts = {
+        retries: 120,
+        delay: 1000
+    };
+    return promiseUtil.retryPromise(checkStatus, retryOpts);
+}
+
 function reactivateSystemLicense() {
     console.log('Re-activating system license');
     return Promise.resolve()
@@ -92,27 +114,24 @@ function reactivateSystemLicense() {
             }
             return Promise.resolve();
         })
-        .then(() => {
-            const checkStatus = () => {
-                const reqOpts = {
-                    method: 'GET',
-                    path: '/mgmt/tm/shared/licensing/activation'
-                };
-                return sendRequestToBigIq(reqOpts)
-                    .then((response) => {
-                        if (response.status !== 'LICENSING_COMPLETE') {
-                            return Promise.reject(new Error(`current status: ${response.status}, expecting LICENSING_COMPLETE`));
-                        }
-                        const licenseText = response.licenseText;
-                        return Promise.resolve(licenseText);
-                    });
+        .then(() => waitForStatus('NEED_EULA_ACCEPT'))
+        .then((response) => {
+            const reqOpts = {
+                method: 'POST',
+                path: '/mgmt/tm/shared/licensing/activation'
             };
-            const retryOpts = {
-                retries: 120,
-                delay: 1000
+            const body = {
+                baseRegKey: process.env.BIG_IQ_BASE_REG_KEY,
+                addOnKeys: [
+                    process.env.BIG_IQ_ADD_ON_KEY
+                ],
+                activationMethod: 'AUTOMATIC',
+                licenseType: 'New',
+                eulaText: response.eulaText
             };
-            return promiseUtil.retryPromise(checkStatus, retryOpts);
+            return sendRequestToBigIq(reqOpts, body);
         })
+        .then(() => waitForStatus('LICENSING_COMPLETE'))
         .catch((err) => {
             console.log(`Error re-activating system license: ${err.message}`);
             throw err;
@@ -193,7 +212,7 @@ function reactivatePoolLicenses() {
 function main() {
     return Promise.resolve()
         .then(() => reactivateSystemLicense())
-        .then((licenseText) => registerSystemLicense(licenseText))
+        .then((response) => registerSystemLicense(response.licenseText))
         .then(() => reactivatePoolLicenses())
         .then(() => console.log('done'))
         .catch(() => {
