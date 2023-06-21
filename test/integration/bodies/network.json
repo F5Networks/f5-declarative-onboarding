@@ -44,7 +44,7 @@
         },
         "myIpv6SelfIp": {
             "class": "SelfIp",
-            "address": "::ffff:0a94:552e/ffff:ffff:0:0:0:0:0:0",
+            "address": "2002:a94:552e::/ffff:ffff:0:0:0:0:0:0",
             "vlan": "myVlan",
             "allowService": [
                 "tcp:80",
@@ -114,7 +114,7 @@
         },
         "myIpv6Mirror": {
             "class": "MirrorIp",
-            "primaryIp": "::ffff:0a94:552e",
+            "primaryIp": "2002:a94:552e::",
             "secondaryIp": "any6"
         },
         "testRoutingAccessList1": {
