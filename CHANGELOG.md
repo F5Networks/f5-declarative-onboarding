@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 - AUTOTOOL-3849: DeviceCertificate hangs on BIG-IQ with no error response to user
 - AUTOTOOL-3741: Failure to configure BIG-IP when built-in admin account is disabled
+- AUTOTOOL-3867: Empty object defaults can cause upgrade failures
 
 ### Changed
 
