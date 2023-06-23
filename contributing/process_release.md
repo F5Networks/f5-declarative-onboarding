@@ -32,14 +32,14 @@
 * Go to the atg-build project in GitLab
   * Edit the DO schedule to set the `gitBranch` variable to the LTS branch.
   * Run the DO schedule.
-  * After the build completes, edit the DO schedule to set the `gitBranch` variable back to develop.
+  * After the build completes, edit the DO schedule to set the `gitBranch` variable back to `develop`.
 * Using the GUI create a tag off the LTS branch (e.g. 1.36.1)
   * In the GUI go to `Repository -> Tags -> New tag`.
   * The name of the tag should be the LTS version with a 'v' at the front (e.g. v1.36.1).
   * Update the `createFrom` to point at the LTS branch.
   * Set the message to: `LTS release v<LTS version>` (e.g. "LTS release v1.36.1")
-* Merge the LTS branch (without updating the package version) into develop and create an MR for this.
-* Merge the LTS branch (only update package version if LTS is latest) into master and create an MR for this.
+* Merge the LTS branch (without updating the package version) into `develop` and create an MR for this.
+* Merge the LTS branch (only update package version if LTS is latest) into `main` and create an MR for this.
 
 ## Process for release
 ### Begin process release at the very beginning of the first sprint of a new release, by performing the following actions
@@ -74,11 +74,11 @@
     ```
     ## <new-version-number>
     ### Added
- 
+
     ### Fixed
- 
+
     ### Changed
- 
+
     ### Removed
     ```
   * git add, commit, and push.
@@ -88,19 +88,19 @@
 
 ### Actions on night before Go/No-Go meeting:
 * Using the GUI, create 2 MRs
-  * 1 MR to merge release branch to `master`.
+  * 1 MR to merge release branch to `main`.
   * 1 MR to merge release branch to `develop`.
   * Do not squash commits.
   * Do not delete branch.
   * You can self-approve and merge these MRs.
   * Note: If the GUI suggests a rebase, do a merge locally instead (see below). DO NOT TRUST the GUI rebase tool, it lies!
-    * `git checkout <master/develop>`
+    * `git checkout <main/develop>`
     * `git pull`
-    * `git checkout -b merge-<version>-to-<master/develop>`
+    * `git checkout -b merge-<version>-to-<main/develop>`
     * `git merge <version>`
     * `git push`
-    * Via GUI, create an MR to merge this into `<master/develop>`
-* Using the GUI, create a tag on the `master` branch in the format `v<version>` (e.g. `v1.34.0`).
+    * Via GUI, create an MR to merge this into `<main/develop>`
+* Using the GUI, create a tag on the `main` branch in the format `v<version>` (e.g. `v1.34.0`).
 ### Actions after go ahead from Go/No-Go meeting:
 * Confirm with Hannah things are good to go.
 * Close your Jira task when the release is complete.

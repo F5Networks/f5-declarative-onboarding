@@ -3,7 +3,7 @@ F5 BIG-IP Declarative Onboarding Documentation
 
 Welcome to the F5 BIG-IP Declarative Onboarding documentation.
 
-This is the documentation for the **latest** version of BIG-IP Declarative Onboarding, if you want to see the documentation for a long term support (LTS) version, use the version selector on the top left (for details, see |supportmd|). 
+This is the documentation for the **latest** version of BIG-IP Declarative Onboarding, if you want to see the documentation for a long term support (LTS) version, use the version selector on the top left (for details, see |supportmd|).
 
 BIG-IP Declarative onboarding (BIG-IP DO) uses a |declare| model to initially configure a BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.  If you want to use a declarative model to configure applications and services on a BIG-IP device that already has these initial settings, see the |as3| documentation.
 
@@ -11,7 +11,7 @@ A declarative model means you provide a JSON declaration rather than a set of im
 
 .. IMPORTANT:: Beginning with DO 1.36.0, the default value for **allowService** on a self IP address will be changing from **default** to **none** Until then, DO will present a warning in the response whenever DO receives a declaration that creates or modifies a self IP.
 
-The DO RPM, Postman collection, and checksum files can be found on the |release|, as **Assets**. 
+The DO RPM, Postman collection, and checksum files can be found on the |release|, as **Assets**.
 
 You can use Microsoft Visual Studio Code to validate your declarations, see :doc:`validate` for information.
 
@@ -67,4 +67,4 @@ To provide feedback on this documentation, you can file a GitHub Issue or email 
 
 .. |supportmd| raw:: html
 
-   <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/master/SUPPORT.md" target="_blank">Support information on GitHub</a>
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/blob/main/SUPPORT.md" target="_blank">Support information on GitHub</a>

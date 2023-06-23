@@ -33,7 +33,7 @@ Use the following procedure to validate a declaration.
    .. code-block:: json
 
         {
-            "$schema": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/master/src/schema/latest/do.schema.json",
+            "$schema": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/main/src/schema/latest/do.schema.json",
 
 
 
@@ -86,4 +86,4 @@ Use the following procedure to validate a declaration.
 
 .. |schema| raw:: html
 
-   <a href="https://github.com/F5Networks/f5-declarative-onboarding/tree/master/src/schema" target="_blank">schema</a>
+   <a href="https://github.com/F5Networks/f5-declarative-onboarding/tree/main/src/schema" target="_blank">schema</a>
