@@ -459,17 +459,6 @@ pages:
         - COVERAGE_DOCS=${PUBLIC_DIR}/coverage-docs
         - mkdir -p ${COVERAGE_DOCS}
         - cp -R coverage/* ${COVERAGE_DOCS}
-        ## place code contribution docs (includes presentation) under: /contribute-docs ##
-        - CONTRIBUTE_DOCS=${PUBLIC_DIR}/contribute-docs
-        - CONTRIBUTE_DIR=contributing
-        # install presentation site dependencies
-        - cd ${CONTRIBUTE_DIR} && npm install && cd ..
-        - mkdir -p ${CONTRIBUTE_DOCS}
-        - cp -R ${CONTRIBUTE_DIR}/* ${CONTRIBUTE_DOCS}
-        - BASE_URL_FOR_LINKS=${CI_PROJECT_URL}/tree/${CI_COMMIT_REF_NAME}/${CONTRIBUTE_DIR}/
-        - README=${CONTRIBUTE_DOCS}/README.md
-        # make absolute URL(s) for relative URL(s) outside current directory '../'
-        - sed -i -E 's/\[.*\]\(\.\./&SED_TEMP/' ${README} && sed -i "s|..SED_TEMP|${BASE_URL_FOR_LINKS}..|" ${README}
     artifacts:
         paths:
             - public
