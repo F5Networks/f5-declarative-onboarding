@@ -378,7 +378,7 @@ integration-test:
         - apt-get install -y expect
         - scripts/dev/collectRemoteIntegrationTestLogs.sh ${TEST_HARNESS_FILE}
     artifacts:
-        name: f5-declarative-onboarding-$CI_BUILD_REF
+        name: f5-declarative-onboarding-$CI_COMMIT_SHA
         when: always
         paths:
             - test/logs
