@@ -35,7 +35,6 @@
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "colors": "^1.4.0",
-    "coveralls": "^3.1.1",
     "eslint": "7.32.0",
     "json-schema-ref-parser": "^9.0.9",
     "mkdirp": "^3.0.1",
@@ -53,7 +52,6 @@
     "integration": "mocha test/integration/test.js",
     "property": "mocha test/integration/property test/integration/misc",
     "make-api-docs": "redocly build-docs src/schema/latest/openapi.yaml",
-    "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "coverage": "nyc npm test",
     "lint": "eslint src test",
     "test-mutation": "npx stryker run"
