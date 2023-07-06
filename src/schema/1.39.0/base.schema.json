@@ -10,7 +10,6 @@
             "description": "Version of BIG-IP Declarative Onboarding schema this declaration uses.",
             "type": "string",
             "enum": [
-                "1.40.0",
                 "1.39.0",
                 "1.38.0",
                 "1.37.0",

@@ -1,0 +1,162 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/main/src/schema/latest/security.schema.json",
+    "title": "F5 BIG-IP Declarative Onboarding security declaration",
+    "description": "Security properties for onboarding a BIG-IP.",
+    "allOf": [
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SecurityAnalytics" } }
+            },
+            "then": {
+                "required": ["class"],
+                "properties": {
+                    "class": {
+                        "description": "Indicates that this property contains SecurityAnalytics configuration.",
+                        "type": "string",
+                        "const": "SecurityAnalytics"
+                    },
+                    "aclRules": {
+                        "description": "Firewall (ACL) security statistics collection options.",
+                        "type": "object",
+                        "properties": {
+                            "collectClientIpEnabled": {
+                                "description": " Specifies whether source/client IP address should be collected for ACL rule matching.",
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "collectClientPortEnabled": {
+                                "description": "Specifies whether source/client port should be collected for ACL rule matching.",
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "collectDestinationIpEnabled": {
+                                "description": "Specifies whether the destination IP address should be collected for ACL rule matching.",
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "collectDestinationPortEnabled": {
+                                "description": "Specifies whether the destination port should be collected for ACL rule matching.",
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "collectServerSideStatsEnabled": {
+                                "description": "Specifies whether server side statistics (source address translation information, self IP address and pool member address) should be collected for ACL rule matching.",
+                                "type": "boolean",
+                                "default": false
+                            }
+                        }
+                    },
+                    "collectAllDosStatsEnabled": {
+                        "description": "Specifies whether to enable or disable the collection of all DoS statistics.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "collectedStatsExternalLoggingEnabled": {
+                        "description": "Specifies whether to enable or disable external logging of collected statistics.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "collectedStatsInternalLoggingEnabled": {
+                        "description": "Specifies whether to enable or disable internal logging of collected statistics.",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "dns": {
+                        "description": "DNS security statistics collection options.",
+                        "type": "object",
+                        "properties": {
+                            "collectClientIpEnabled": {
+                                "description": "Specifies whether source/client IP address should be collected for DNS security.",
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "collectDestinationIpEnabled": {
+                                "description": "Specifies whether the destination IP address should be collected for DNS security.",
+                                "type": "boolean",
+                                "default": true
+                            }
+                        }
+                    },
+                    "collectDnsStatsEnabled": {
+                        "description": "Specifies whether to enable or disable DNS statistics collection.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "dosL2L4": {
+                        "description": "Network DoS statistics collection options.",
+                        "type": "object",
+                        "properties": {
+                            "collectClientIpEnabled": {
+                                "description": "Specifies whether source/client IP address should be collected for network layer's DoS security.",
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "collectDestinationGeoEnabled": {
+                                "description": "Specifies whether the destination geo should be collected for network layer's DoS security.",
+                                "type": "boolean",
+                                "default": true
+                            }
+                        }
+                    },
+                    "collectDosL3StatsEnabled": {
+                        "description": "Specifies whether to enable or disable the collection of DoS L3 statistics.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "collectFirewallAclStatsEnabled": {
+                        "description": "Specifies whther to enable or disable the collection of firewall ACL statistics.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "collectFirewallDropsStatsEnabled": {
+                        "description": "Specifies whether to enable or disable the collection of firewall drops statistics.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "collectIpReputationStatsEnabled": {
+                        "description": "Specifies whether to enable or disable the collection of IP reputation statistics.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "l3L4Errors": {
+                        "description": "Firewall errors statistics collection options.",
+                        "type": "object",
+                        "properties": {
+                            "collectClientIpEnabled": {
+                                "description": "Specifies whether source/client IP address should be collected for firewall errors.",
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "collectDestinationIpEnabled": {
+                                "description": "Specifies whether the destination IP address should be collected for firewall errors.",
+                                "type": "boolean",
+                                "default": true
+                            }
+                        }
+                    },
+                    "publisher": {
+                        "description": "Specifies the external logging publisher used to send statistical data to one or more destinations.",
+                        "type": "string"
+                    },
+                    "collectSipStatsEnabled": {
+                        "description": "Specifies whether to enable or disable the collection of SIP statistics.",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "smtpConfig": {
+                        "description": "Specifies the default SMTP configuration used for exporting CSV or PDF security analytics reports.",
+                        "type": "string"
+                    },
+                    "collectStaleRulesEnabled": {
+                        "description": "Specifies whether statistics about all firewall rules should be collected in order to present information regarding rule staleness.",
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    ]
+}
