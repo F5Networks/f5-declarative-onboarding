@@ -18,7 +18,8 @@
 
 const fs = require('fs');
 const qs = require('querystring');
-const request = require('request');
+const parseUrl = require('url').parse;
+const requestUtil = require('@f5devcentral/atg-shared-utilities').requestUtils;
 const util = require('util');
 const constants = require('./constants');
 const logger = require('./logger').getInstance();
@@ -35,15 +36,6 @@ module.exports = {
 
     appendFile(filename, data) {
         return util.promisify(fs.appendFile)(filename, data);
-    },
-
-    /**
-     * requestPromise - async/await wrapper for request
-     * @options {Object} - options for request
-     * Returns a Promise with response/error
-    */
-    requestPromise(options) {
-        return util.promisify(request)(options);
     },
 
     /**
@@ -110,11 +102,11 @@ module.exports = {
                 const options = module.exports.buildBody(url, body, auth, method);
                 module.exports.sendRequest(options)
                     .then((response) => {
-                        logger.debug(`current status: ${response.response.statusCode}, waiting for ${expectedCode}`);
-                        if (response.response.statusCode === expectedCode) {
+                        logger.debug(`current status: ${response.statusCode}, waiting for ${expectedCode}`);
+                        if (response.statusCode === expectedCode) {
                             resolve(response.body);
                         } else {
-                            reject(new Error(response.response.statusCode));
+                            reject(new Error(response.statusCode));
                         }
                     })
                     .catch((error) => {
@@ -144,14 +136,8 @@ module.exports = {
                     constants.PORT)}${constants.DO_API}?${query}`, null, auth, 'GET');
                 module.exports.sendRequest(options)
                     .then((response) => {
-                        const statusCode = response.response.statusCode;
-
-                        let parsedResponse;
-                        try {
-                            parsedResponse = JSON.parse(response.body);
-                        } catch (err) {
-                            parsedResponse = response.body;
-                        }
+                        const statusCode = response.statusCode;
+                        const parsedResponse = response.body;
 
                         logger.debug(`current status: ${statusCode}, waiting for ${expectedCode}`);
                         if ([constants.HTTP_SUCCESS, constants.HTTP_ACCEPTED].indexOf(statusCode) < 0) {
@@ -188,7 +174,7 @@ module.exports = {
 
         return this.testRequest(null, `${doUrl}/config`, auth, constants.HTTP_SUCCESS, 'GET', null, retryErrors)
             .then((body) => {
-                const promises = JSON.parse(body).map((config) => {
+                const promises = body.map((config) => {
                     logger.debug(`Deleting original config ${config.id}`);
                     return this.sendRequest(
                         this.buildBody(`${doUrl}/config/${config.id}`, null, auth, 'DELETE'),
@@ -247,7 +233,6 @@ module.exports = {
                 constants.PORT)}${constants.DO_API}?show=full`, null, auth, 'GET');
             module.exports.sendRequest(options)
                 .then((response) => response.body)
-                .then(JSON.parse)
                 .then((parsedResponse) => {
                     resolve(parsedResponse);
                 })
@@ -275,13 +260,14 @@ module.exports = {
     */
     sendRequest(options, retryOptions) {
         const func = function () {
-            return new Promise((resolve, reject) => {
-                request(options, (error, response, body) => {
-                    if (error) { reject(error); }
-                    const responseObj = { response, body };
-                    resolve(responseObj);
-                });
-            });
+            return requestUtil.send(
+                options,
+                options.body,
+                {
+                    returnResponseObj: true,
+                    rejectErrStatusCodes: false
+                }
+            );
         };
 
         if (retryOptions) {
@@ -316,13 +302,16 @@ module.exports = {
      * (either username/password or a token)
     */
     buildBody(url, data, auth, method) {
-        const options = {
-            method,
-            url,
-            headers: {
-                'Content-Type': 'application/json'
+        const options = Object.assign(
+            {},
+            parseUrl(url),
+            {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             }
-        };
+        );
 
         if (auth && 'token' in auth) {
             options.headers['X-F5-Auth-Token'] = auth.token;
@@ -330,7 +319,7 @@ module.exports = {
             options.headers.Authorization = module.exports.buildAuthenticationString(auth);
         }
         if (data) {
-            options.body = JSON.stringify(data);
+            options.body = data;
         }
         return options;
     }

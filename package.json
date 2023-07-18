@@ -19,7 +19,7 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
-    "@f5devcentral/atg-shared-utilities": "^0.7.0",
+    "@f5devcentral/atg-shared-utilities": "^0.10.0",
     "@f5devcentral/f5-cloud-libs": "^4.29.0",
     "@f5devcentral/f5-teem": "^1.6.1",
     "ajv": "6.12.6",
@@ -42,7 +42,6 @@
     "mocha-multi-reporters": "^1.5.1",
     "nock": "10.0.0",
     "nyc": "^15.1.0",
-    "request": "^2.88.2",
     "sinon": "7.5.0",
     "winston": "^2.4.7"
   },

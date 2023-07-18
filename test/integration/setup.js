@@ -85,7 +85,6 @@ function setupMachines(harnessInfo) {
         const ipAddress = machine.admin_ip;
         return scpRpm(ipAddress, username, password)
             .then(() => installRpm(ipAddress, adminUsername, adminPassword))
-            .then(JSON.parse)
             .then((response) => {
                 if (response.status === 'CREATED') {
                     return waitForDo(ipAddress, adminUsername, adminPassword);
