@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.39
+        - Updated the documentation for Declarative Onboarding v1.38.0.  This release contains the following changes: |br| * |br| |br| Issues Resolved: |br| * Failure to configure BIG-IP when built-in admin account is disabled |br| * DeviceCertificate hangs on BIG-IQ with no error response to user
+        - 7-24-23
+
       * - 1.38
         - Updated the documentation for Declarative Onboarding v1.38.0.  This release contains the following changes: |br| * Added support for revoking a license on a BIG-IP, allowing revoking and relicensing in a declaration (see :ref:`Revoke and relicense <relic>`) |br| * Added support for referencing a URL in the **sslCaCert** property of LDAP authentication (see :ref:`Referencing a URL in the sslCaCert property<ldap-ssl>`) |br| |br| Issues Resolved: |br| * Added missing protocol values for **SnmpUser_authentication** and **SnmpUser_privacy**
         - 5-22-23
