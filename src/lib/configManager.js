@@ -556,12 +556,17 @@ class ConfigManager {
                         if (!item.requiredModules
                             || checkRequiredModules(item.requiredModules, provisionState.provisioned, targetInfo)) {
                             // add default empty objects for classes that do not exist
-                            originalConfig.Common[item.schemaClass] = originalConfig.Common[item.schemaClass] || {};
+                            if (!originalConfig.Common[item.schemaClass]
+                                && !this.state.currentConfig.Common[item.schemaClass]) {
+                                originalConfig.Common[item.schemaClass] = {};
+                            } else {
+                                originalConfig.Common[item.schemaClass] = originalConfig.Common[item.schemaClass]
+                                    || this.state.currentConfig.Common[item.schemaClass];
+                            }
                         } else if (item.requiredModules
                             && checkRequiredModules(item.requiredModules, provisionState.deprovisioned, targetInfo)
-                            && originalConfig.Common[item.schemaClass]
-                            && Object.keys(originalConfig.Common[item.schemaClass]).length === 0) {
-                            // remove default empty objects for classes that require de-provisioned module
+                            && originalConfig.Common[item.schemaClass]) {
+                            // remove classes that require de-provisioned module
                             delete originalConfig.Common[item.schemaClass];
                         }
                     });

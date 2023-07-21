@@ -22,7 +22,7 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
-const childProcessMock = require('child_process');
+const childProcess = require('child_process');
 const sinon = require('sinon');
 
 const ENCRYPT_PATH = '/tm/auth/radius-server';
@@ -40,9 +40,7 @@ describe('cryptoUtil', () => {
     describe('decryptValue', () => {
         it('should decrypt values', () => {
             const decrypted = 'decrypted value';
-            childProcessMock.exec = (command, callback) => {
-                callback(null, decrypted);
-            };
+            sinon.stub(childProcess, 'exec').callsArgWith(1, null, decrypted);
             return cryptoUtil.decryptValue('foo')
                 .then((result) => {
                     assert.strictEqual(result, 'decrypted value');
@@ -51,9 +49,7 @@ describe('cryptoUtil', () => {
 
         it('should handle errors', () => {
             const error = 'decrypted error';
-            childProcessMock.exec = (command, callback) => {
-                callback(new Error(error));
-            };
+            sinon.stub(childProcess, 'exec').callsArgWith(1, new Error(error));
             return assert.isRejected(
                 cryptoUtil.decryptValue('foo'),
                 'decrypted error',
@@ -102,14 +98,14 @@ describe('cryptoUtil', () => {
         it('should delete the associated radius server', () => {
             const id = 'foo';
             let pathSent;
-            sinon.stub(doUtil, 'getBigIp').resolves({
+            const bigIp = {
                 delete(path) {
                     pathSent = path;
                     return Promise.resolve();
                 }
-            });
+            };
 
-            return cryptoUtil.deleteEncryptedId(id)
+            return cryptoUtil.deleteEncryptedId(id, bigIp)
                 .then(() => {
                     assert.strictEqual(pathSent, `${ENCRYPT_PATH}/${id}`);
                 });
@@ -118,14 +114,14 @@ describe('cryptoUtil', () => {
         it('should handle errors', () => {
             const error = 'delete error';
             const logWarningSpy = sinon.spy(Logger.prototype, 'warning');
-            sinon.stub(doUtil, 'getBigIp').resolves({
+            const bigIp = {
                 delete() {
                     return Promise.reject(new Error(error));
                 }
-            });
+            };
 
             return assert.isRejected(
-                cryptoUtil.deleteEncryptedId('foo', '123-abc'),
+                cryptoUtil.deleteEncryptedId('foo', bigIp, '123-abc'),
                 'delete error',
                 'should have caught error'
             ).then(() => {
@@ -143,7 +139,7 @@ describe('cryptoUtil', () => {
             let deleteCalled = false;
             let bodySent;
 
-            sinon.stub(doUtil, 'getBigIp').resolves({
+            const bigIp = {
                 create(path, body) {
                     bodySent = body;
                     return Promise.resolve({
@@ -154,9 +150,9 @@ describe('cryptoUtil', () => {
                     deleteCalled = true;
                     return Promise.resolve();
                 }
-            });
+            };
 
-            return cryptoUtil.encryptAndStoreValue(value, id)
+            return cryptoUtil.encryptAndStoreValue(value, id, bigIp)
                 .then(() => {
                     assert.strictEqual(bodySent.secret, 'myValue');
                     assert.strictEqual(bodySent.name, 'myId');
@@ -167,14 +163,14 @@ describe('cryptoUtil', () => {
         it('should handle errors', () => {
             const error = 'create error';
             const logWarningSpy = sinon.spy(Logger.prototype, 'warning');
-            sinon.stub(doUtil, 'getBigIp').resolves({
+            const bigIp = {
                 create() {
                     return Promise.reject(new Error(error));
                 }
-            });
+            };
 
             return assert.isRejected(
-                cryptoUtil.encryptAndStoreValue(undefined, undefined, '123-abc'),
+                cryptoUtil.encryptAndStoreValue(undefined, undefined, bigIp, '123-abc'),
                 'create error',
                 'should have caught error'
             ).then(() => {
@@ -189,19 +185,18 @@ describe('cryptoUtil', () => {
 
         it('should encrypt value on BIG-IP', () => {
             let bodySent;
-
-            sinon.stub(doUtil, 'getBigIp').resolves({
+            const bigIp = {
                 create(path, body) {
                     bodySent = body;
                     return Promise.resolve({
                         secret: 'encryptedValue'
                     });
                 }
-            });
+            };
 
             sinon.stub(doUtil, 'getCurrentPlatform').resolves('BIG-IP');
 
-            return cryptoUtil.encryptValue(value, undefined)
+            return cryptoUtil.encryptValue(value, bigIp)
                 .then(() => {
                     assert.strictEqual(bodySent.secret, 'myValue');
                 });
@@ -209,7 +204,6 @@ describe('cryptoUtil', () => {
 
         it('should encrypt value on BIG-IQ', () => {
             let bodySent;
-
             const bigIp = {
                 create(path, body) {
                     bodySent = body;
@@ -224,6 +218,28 @@ describe('cryptoUtil', () => {
             return cryptoUtil.encryptValue(value, bigIp)
                 .then(() => {
                     assert.strictEqual(bodySent.secret, 'myValue');
+                });
+        });
+
+        it('should encrypt large value on BIG-IP', () => {
+            const largeValue = 'a'.repeat(510);
+            const bodySent = [];
+            const bigIp = {
+                create(path, body) {
+                    bodySent.push(body);
+                    return Promise.resolve({
+                        secret: 'encryptedValue'
+                    });
+                }
+            };
+
+            sinon.stub(doUtil, 'getCurrentPlatform').resolves('BIG-IP');
+
+            return cryptoUtil.encryptValue(largeValue, bigIp)
+                .then(() => {
+                    assert.strictEqual(bodySent.length, 2);
+                    assert.strictEqual(bodySent[0].secret, 'a'.repeat(500));
+                    assert.strictEqual(bodySent[1].secret, 'a'.repeat(10));
                 });
         });
     });

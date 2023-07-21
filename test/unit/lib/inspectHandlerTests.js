@@ -124,6 +124,7 @@ describe('inspectHandler', () => {
                 }
                 return Promise.resolve({});
             });
+            sinon.stub(doUtilMock, 'getPrimaryAdminUser').resolves('admin');
             sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve(customPlatform || PRODUCTS.BIGIP));
             sinon.stub(doUtilMock, 'getBigIp').callsFake((callingLogger, options) => new Promise((resolve, reject) => {
                 if (raiseUnhandledException) {
@@ -141,7 +142,7 @@ describe('inspectHandler', () => {
                         assert.strictEqual(targetPort, options.port.toString(), 'targetPort should match options.port');
                     }
                     if (typeof targetUsername !== 'undefined') {
-                        assert.strictEqual(targetUsername, options.username, 'targetUsername should match options.username');
+                        assert.strictEqual(targetUsername, options.user, 'targetUsername should match options.username');
                     }
                     if (typeof targetPassword !== 'undefined') {
                         assert.strictEqual(targetPassword, options.password, 'targetPassword should match options.password');
@@ -2719,6 +2720,7 @@ describe('inspectHandler', () => {
         };
 
         beforeEach(() => {
+            sinon.stub(doUtilMock, 'getPrimaryAdminUser').resolves('admin');
             sinon.stub(doUtilMock, 'getBigIp').callsFake(() => Promise.resolve(bigIpMock));
             sinon.stub(doUtilMock, 'getCurrentPlatform').callsFake(() => Promise.resolve(PRODUCTS.BIGIP));
             // skip data asserts

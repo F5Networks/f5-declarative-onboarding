@@ -335,7 +335,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
 
         it('should match ipv6 self ip', () => {
             const expected = Object.assign({}, body.Common.myIpv6SelfIp);
-            expected.address = '::ffff:10.148.85.46/32';
+            expected.address = '2002:a94:552e::/32';
             assert.ok(testSelfIp(expected, currentState, 'myIpv6SelfIp'));
         });
 
@@ -381,7 +381,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
 
         it('should match ip mirroring', () => {
-            assert.strictEqual(currentState.MirrorIp.mirrorIp, '::ffff:10.148.85.46');
+            assert.strictEqual(currentState.MirrorIp.mirrorIp, '2002:a94:552e::');
             assert.strictEqual(currentState.MirrorIp.mirrorSecondaryIp, 'any6');
         });
 

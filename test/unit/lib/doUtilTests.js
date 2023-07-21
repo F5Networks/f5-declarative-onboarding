@@ -1048,4 +1048,23 @@ describe('doUtil', () => {
             });
         });
     });
+
+    describe('getPrimaryAdminUser', () => {
+        it('should resolve with the primary admin user', () => {
+            const tmshResponse = 'sys db systemauth.primaryadminuser {\n\tvalue "testAdmin"\n}';
+            sinon.stub(cloudUtilMock, 'runTmshCommand').resolves(tmshResponse);
+
+            return doUtil.getPrimaryAdminUser()
+                .then((adminUser) => {
+                    assert.strictEqual(adminUser, 'testAdmin');
+                });
+        });
+
+        it('should reject with a descriptive error message', () => {
+            const tmshResponse = 'malformed data...';
+            sinon.stub(cloudUtilMock, 'runTmshCommand').resolves(tmshResponse);
+
+            return assert.isRejected(doUtil.getPrimaryAdminUser(), 'Unable to get primary admin user');
+        });
+    });
 });

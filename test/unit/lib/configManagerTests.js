@@ -1897,17 +1897,8 @@ describe('configManager', () => {
                 });
         });
 
-        it('should update originalConfig with default empty classes based on provisioned modules', () => {
+        it('should update originalConfig with currentConfig classes based on provisioned modules', () => {
             let configItems = [];
-            const expectedConfig = {
-                Analytics: {},
-                FirewallPolicy: {},
-                Provision: {},
-                GSLBServer: {
-                    myGSLBServer: {}
-                }
-            };
-
             state.originalConfig = {
                 Common: {
                     GSLBGlobals: {},
@@ -1936,13 +1927,48 @@ describe('configManager', () => {
                 getConfigItems('GSLBServer'),
                 getConfigItems('FirewallPolicy'),
                 getConfigItems('Analytics'),
-                getConfigItems('Provision')
+                getConfigItems('Provision'),
+                getConfigItems('SecurityAnalytics')
             );
 
             const configManager = new ConfigManager(configItems, bigIpMock, state);
             return configManager.get({}, doState)
                 .then(() => {
-                    assert.deepStrictEqual(state.originalConfig.Common, expectedConfig);
+                    assert.deepStrictEqual(
+                        state.originalConfig.Common,
+                        {
+                            Analytics: {
+                                avrdDebugMode: 'disabled',
+                                offboxProtocol: 'none',
+                                offboxTcpAddresses: [],
+                                offboxTcpPort: 0,
+                                sourceId: 'none',
+                                tenantId: 'default',
+                                useOffbox: 'disabled'
+                            },
+                            FirewallPolicy: {
+                                description: 'none'
+                            },
+                            Provision: {
+                                afm: 'nominal',
+                                avr: 'nominal',
+                                gtm: 'none'
+                            },
+                            SecurityAnalytics: {
+                                collectAllDosStatistic: 'disabled',
+                                collectedStatsExternalLogging: 'disabled',
+                                collectedStatsInternalLogging: 'disabled',
+                                dnsCollectStats: 'disabled',
+                                dosl3CollectStats: 'disabled',
+                                fwAclCollectStats: 'disabled',
+                                fwDropsCollectStats: 'disabled',
+                                ipReputationCollectStats: 'disabled',
+                                publisher: 'none',
+                                sipCollectStats: 'disabled',
+                                smtpConfig: 'none'
+                            }
+                        }
+                    );
                 });
         });
 

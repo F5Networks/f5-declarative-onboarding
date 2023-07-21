@@ -1,6 +1,18 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.39.0
+### Added
+
+### Fixed
+- AUTOTOOL-3849: DeviceCertificate hangs on BIG-IQ with no error response to user
+- AUTOTOOL-3741: Failure to configure BIG-IP when built-in admin account is disabled
+- AUTOTOOL-3867: Empty object defaults can cause upgrade failures
+
+### Changed
+
+### Removed
+
 ## 1.38.0
 ### Added
 - AUTOTOOL-118: ([Github Issue 9](https://github.com/F5Networks/f5-declarative-onboarding/issues/9)): Support for revoking license on a BIG-IP
