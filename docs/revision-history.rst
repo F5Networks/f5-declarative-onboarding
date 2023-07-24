@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.39
-        - Updated the documentation for Declarative Onboarding v1.38.0.  This release contains the following changes: |br| * |br| |br| Issues Resolved: |br| * Failure to configure BIG-IP when built-in admin account is disabled |br| * DeviceCertificate hangs on BIG-IQ with no error response to user
+        - Updated the documentation for Declarative Onboarding v1.39.0.  This release contains the following issues resolved: |br| * Failure to configure BIG-IP when built-in admin account is disabled |br| * DeviceCertificate hangs on BIG-IQ with no error response to user |br| * Empty object defaults can cause upgrade failures |br| * Renamed the primary branch in the GitHub repository for DO **main**
         - 7-24-23
 
       * - 1.38
