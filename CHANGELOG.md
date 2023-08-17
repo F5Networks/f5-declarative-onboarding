@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.40.0
 ### Added
+- AUTOTOOL-3931: ([GitHub Issue 656](https://github.com/F5Networks/f5-appsvcs-extension/issues/656)): Add WAF Settings configuration support on DO
 
 ### Fixed
 

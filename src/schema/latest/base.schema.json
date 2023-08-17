@@ -212,7 +212,8 @@
                             "FirewallPolicy",
                             "FirewallAddressList",
                             "FirewallPortList",
-                            "SecurityAnalytics"
+                            "SecurityAnalytics",
+                            "SecurityWaf"
                         ]
                     }
                 },

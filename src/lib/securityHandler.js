@@ -18,6 +18,8 @@
 
 const Logger = require('./logger');
 const PATHS = require('./sharedConstants').PATHS;
+const ADVANCED_SETTINGS_IDS = require('./sharedConstants').WAF_ADVANCED_SETTINGS;
+const doUtil = require('./doUtil');
 
 /**
  * Handles security parts of a declaration.
@@ -55,6 +57,10 @@ class SecurityHandler {
                 this.logger.fine('Checking SecurityAnalytics');
                 return handleSecurityAnalytics.call(this);
             })
+            .then(() => {
+                this.logger.fine('Checking SecurityWaf');
+                return handleSecurityWaf.call(this);
+            })
             .catch((err) => {
                 this.logger.severe(`Error processing security declaration: ${err.message}`);
                 return Promise.reject(err);
@@ -68,6 +74,29 @@ function handleSecurityAnalytics() {
             PATHS.SecurityAnalytics,
             this.declaration.Common.SecurityAnalytics
         );
+    }
+    return Promise.resolve();
+}
+
+function handleSecurityWaf() {
+    if (this.declaration.Common.SecurityWaf) {
+        const promises = [];
+        const virusProtection = this.declaration.Common.SecurityWaf.antiVirusProtection;
+        const advancedSettings = this.declaration.Common.SecurityWaf.advancedSettings;
+
+        if (virusProtection) {
+            promises.push(this.bigIp.modify(PATHS.AntiVirusProtection, virusProtection));
+        }
+
+        if (advancedSettings) {
+            Object.keys(advancedSettings).forEach((setting) => {
+                const id = ADVANCED_SETTINGS_IDS[setting];
+                promises.push(this.bigIp.modify(`${PATHS.WafAdvancedSettings}/${id}`, advancedSettings[setting]));
+            });
+        }
+
+        return Promise.all(promises)
+            .then(() => doUtil.restartService(this.bigIp, 'asm', { taskId: this.state.id }));
     }
     return Promise.resolve();
 }

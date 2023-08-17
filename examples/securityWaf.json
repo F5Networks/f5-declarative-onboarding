@@ -1,0 +1,30 @@
+{
+    "async": true,
+    "schemaVersion": "1.40.0",
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "securityWaf": {
+            "class": "SecurityWaf",
+            "antiVirusProtection": {
+                "guaranteeEnforcementEnabled": true,
+                "hostname": "test.hostname",
+                "port": 123
+            },
+            "advancedSettings": [
+                {
+                    "name": "max_json_policy_size",
+                    "value": 5000
+                },
+                {
+                    "name": "send_content_events",
+                    "value": 1
+                },
+                {
+                    "name": "WhiteHatIP1",
+                    "value": "192.0.2.10/8"
+                }
+            ]
+        }
+    }
+}

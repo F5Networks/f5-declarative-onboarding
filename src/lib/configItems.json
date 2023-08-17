@@ -1271,6 +1271,36 @@
         }
     },
     {
+        "path": "/tm/asm/virus-detection-server",
+        "schemaClass": "SecurityWaf",
+        "schemaMerge": {
+            "action": "add",
+            "path": ["antiVirusProtection"]
+        },
+        "requiredModules": [{ "module": "asm" }],
+        "properties": [
+            { "id": "guaranteeEnforcement", "newId": "guaranteeEnforcementEnabled" },
+            { "id": "hostname" },
+            { "id": "port" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/asm/advanced-settings",
+        "schemaClass": "SecurityWaf",
+        "requiredModules": [{ "module": "asm" }],
+        "properties": [
+            { "id": "id" },
+            { "id": "name" },
+            { "id": "value" }
+        ],
+        "declaration": {
+            "customFunctions": [
+                { "id": "convertAdvancedSettings" }
+            ]
+        }
+    },
+    {
         "schemaClass": "License",
         "nameless": true,
         "properties": [],

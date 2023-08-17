@@ -438,6 +438,15 @@ const customFunctions = {
         configObject.collectStaleRulesEnabled = configObject.collectStaleRulesEnabled.collect;
         return [configKey, configObject];
     },
+    // SecurityWaf
+    convertAdvancedSettings: (configKey, configObject) => {
+        if (configObject.advancedSettings) {
+            configObject.advancedSettings = Object.keys(configObject.advancedSettings).map((setting) => (
+                { name: setting, value: configObject.advancedSettings[setting].value }
+            ));
+        }
+        return [configKey, configObject];
+    },
     // Some items with schemaMerge are skipped in the general handling but
     // should be processed by processItem anyway
     remapItemWithSchemaMerge: (configKey, configObject) => [configKey, configObject]

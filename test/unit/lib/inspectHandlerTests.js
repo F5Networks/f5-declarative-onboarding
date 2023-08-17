@@ -1723,7 +1723,24 @@ describe('inspectHandler', () => {
                 },
                 publisher: 'none',
                 smtpConfig: 'none'
-            }
+            },
+            '/tm/asm/virus-detection-server': {
+                guaranteeEnforcement: false,
+                hostname: 'do.test',
+                port: 123
+            },
+            '/tm/asm/advanced-settings': [
+                {
+                    id: 'id0',
+                    name: 'policy_history_max_total_size',
+                    value: 1000
+                },
+                {
+                    id: 'id1',
+                    name: 'max_json_policy_size',
+                    value: 1000
+                }
+            ]
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -2713,6 +2730,24 @@ describe('inspectHandler', () => {
                             collectStaleRulesEnabled: false,
                             publisher: 'none',
                             smtpConfig: 'none'
+                        },
+                        currentSecurityWaf: {
+                            class: 'SecurityWaf',
+                            antiVirusProtection: {
+                                guaranteeEnforcementEnabled: false,
+                                hostname: 'do.test',
+                                port: 123
+                            },
+                            advancedSettings: [
+                                {
+                                    name: 'policy_history_max_total_size',
+                                    value: 1000
+                                },
+                                {
+                                    name: 'max_json_policy_size',
+                                    value: 1000
+                                }
+                            ]
                         }
                     }
                 }

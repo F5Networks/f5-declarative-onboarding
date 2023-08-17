@@ -3644,6 +3644,87 @@ describe('declarationHandler', () => {
                     assert.deepStrictEqual(state.currentConfig.Common.FirewallPortList, undefined);
                 });
         });
+
+        it('should apply SecurityWaf fixes', () => {
+            const newDeclaration = {
+                parsed: true,
+                Common: {
+                    SecurityWaf: {
+                        antiVirusProtection: {
+                            guaranteeEnforcement: true,
+                            hostname: 'do.test',
+                            port: 123
+                        },
+                        advancedSettings: [
+                            {
+                                name: 'max_raw_request_len',
+                                value: '1000'
+                            }
+                        ]
+                    }
+                }
+            };
+            const state = {
+                originalConfig: {
+                    Common: {
+                        SecurityWaf: {
+                            antiVirusProtection: {
+                                guaranteeEnforcement: true,
+                                hostname: '',
+                                port: 1344
+                            },
+                            advancedSettings: {
+                                cookie_max_age: {
+                                    id: '1XJcDTbBxqP0GtOcdQzF0g',
+                                    value: '0'
+                                },
+                                max_raw_request_len: {
+                                    id: 'AG4WUXljvu9lM6AH8dAKXg',
+                                    value: '10000'
+                                },
+                                single_page_application: {
+                                    id: 'GqhjvcKleDusK8-xl1lC4w',
+                                    value: '0'
+                                }
+                            }
+                        }
+                    }
+                },
+                currentConfig: {
+                    parsed: true,
+                    Common: {}
+                }
+            };
+
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            return declarationHandler.process(newDeclaration)
+                .then(() => {
+                    assert.deepStrictEqual(
+                        declarationWithDefaults.Common.SecurityWaf,
+                        {
+                            antiVirusProtection: {
+                                guaranteeEnforcement: true,
+                                hostname: 'do.test',
+                                port: 123
+                            },
+                            advancedSettings: {
+                                cookie_max_age: {
+                                    id: '1XJcDTbBxqP0GtOcdQzF0g',
+                                    value: '0'
+                                },
+                                max_raw_request_len: {
+                                    id: 'AG4WUXljvu9lM6AH8dAKXg',
+                                    value: '1000'
+                                },
+                                single_page_application: {
+                                    id: 'GqhjvcKleDusK8-xl1lC4w',
+                                    value: '0'
+                                }
+                            }
+                        }
+                    );
+                });
+        });
     });
 
     describe('AVR dependencies', () => {

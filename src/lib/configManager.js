@@ -353,6 +353,16 @@ class ConfigManager {
                                         patchGSLBProberPool.call(this, patchedItem);
                                     }
 
+                                    if (schemaClass === 'SecurityWaf') {
+                                        currentConfig[schemaClass] = patchSecurityWaf.call(
+                                            this,
+                                            schemaMerge,
+                                            currentConfig[schemaClass],
+                                            patchedItem
+                                        );
+                                        patchedItem = null;
+                                    }
+
                                     if (patchedItem) {
                                         if (!currentConfig[schemaClass]) {
                                             currentConfig[schemaClass] = {};
@@ -437,6 +447,15 @@ class ConfigManager {
                         if (schemaClass === 'GSLBGlobals') {
                             patchedItem = patchGSLBGlobals.call(
                                 this,
+                                patchedItem
+                            );
+                        }
+
+                        if (schemaClass === 'SecurityWaf') {
+                            patchedItem = patchSecurityWaf.call(
+                                this,
+                                schemaMerge,
+                                currentConfig[schemaClass],
                                 patchedItem
                             );
                         }
@@ -1327,6 +1346,21 @@ function patchVxlanTunnels(item, vxlan, translateToNewId) {
     }
 
     mapSchemaMerge.call(this, item, vxlan, { action: 'add' });
+}
+
+function patchSecurityWaf(schemaMerge, wafClass, wafItem) {
+    if (!schemaMerge) {
+        if (!wafClass.advancedSettings) {
+            wafClass.advancedSettings = {};
+        }
+        wafClass.advancedSettings[wafItem.name] = JSON.parse(JSON.stringify(wafItem));
+        delete wafClass.advancedSettings[wafItem.name].name;
+        return wafClass;
+    }
+
+    const wafClassCopy = !wafClass ? {} : JSON.parse(JSON.stringify(wafClass));
+    const patchedItem = Object.assign({}, wafItem);
+    return mapSchemaMerge.call(this, wafClassCopy, patchedItem, schemaMerge);
 }
 
 /**
