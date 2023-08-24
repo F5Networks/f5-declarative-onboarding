@@ -202,9 +202,34 @@ See |license| in the Schema Reference and the :ref:`Composing a Declaration <lic
 
 |
 
+.. _asmdo:
+
+Configuring BIG-IP ASM options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring BIG-IP ASM options is available in BIG-IP DO v1.40 and later.
+
+In this example, we show how you can use DO configure BIG-IP Application Security Manager (ASM) options in a declaration using DO 1.40 and later.  This includes settings like anti-virus protection and advanced configuration such as setting system variables.  For general information on F5 application security, see https://www.f5.com/solutions/web-app-and-api-protection.
+
+See |secwaf| in the Schema Reference for more information and DO usage.
+
+
+.. literalinclude:: ../../examples/securityWaf.json
+   :language: json
+
+:ref:`Back to top<misc-examples>`
+
+
+|
+
 .. |br| raw:: html
 
    <br />
+
+.. |secwaf| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#securitywaf" target="_blank">SecurityWaf</a>
 
 .. |rddoc| raw:: html
 
