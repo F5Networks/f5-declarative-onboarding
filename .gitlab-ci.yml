@@ -76,8 +76,12 @@ test_node:4:
         - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
         - export NVM_DIR="$HOME/.nvm"
         - source "$NVM_DIR/nvm.sh"
-        - nvm install 4
-        - nvm install --latest-npm 12
+        - n=0
+        - until [ "$n" -ge 3 ]; do
+        -    nvm install 4 && nvm install --latest-npm 12 && break
+        -    n=$((n+1))
+        -    sleep 15
+        - done
         - nvm use 12
         - npm install --no-optional
         - npm install mocha@5.2.0
@@ -95,8 +99,12 @@ test_node:6:
         - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
         - export NVM_DIR="$HOME/.nvm"
         - source "$NVM_DIR/nvm.sh"
-        - nvm install 6
-        - nvm install --latest-npm 12
+        - n=0
+        - until [ "$n" -ge 3 ]; do
+        -    nvm install 6 && nvm install --latest-npm 12 && break
+        -    n=$((n+1))
+        -    sleep 15
+        - done
         - nvm use 12
         - npm ci --no-optional
         - npm install mocha@5.2.0
