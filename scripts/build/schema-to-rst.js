@@ -88,7 +88,8 @@ function getDefault(property) {
         } else if (typeof property.default === 'object') {
             pDefault = JSON.stringify(property.default);
         } else if (typeof property.default === 'string') {
-            pDefault = `"${property.default}"`;
+            // This replaces newline characters in a way that does NOT break our documentation
+            pDefault = `"${property.default.replace(/\n/gm, '\\\\n')}"`;
         } else {
             pDefault = property.default;
         }
