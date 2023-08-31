@@ -239,14 +239,13 @@ You set these values as a part of the System class using the new properties **us
 
 See |sysclass| in the Schema Reference for more information and DO usage.
 
-.. IMPORTANT:: If you attempt to use the following declaration on a version prior to 1.40, it will fail.  You can either upgrade BIG-IP DO, or remove lines 17 and 18 (and the comma at the end of 16). 
+.. IMPORTANT:: If you attempt to use the following declaration on a version prior to 1.40, it will fail.  You can either upgrade BIG-IP DO, or remove lines 17 and 18 (and the comma at the end of line 16). 
 
 
 .. literalinclude:: ../../examples/system.json
    :language: json
 
 :ref:`Back to top<misc-examples>`
-
 
 |
 
