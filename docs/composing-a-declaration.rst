@@ -164,7 +164,7 @@ System class
 ````````````
 The next lines of the declaration set the system-level options. This includes inactivity timeouts for CLI and Console sessions, and the ability to disable the phonehome property (see the table for details) in BIG-IP DO 1.10.0 and later. 
 
-For more information, see |systemclass| in the Schema Reference. Also see :ref:`The System Class example<systemex>` for an example declaration.
+For more information and new properties, see |systemclass| in the Schema Reference. Also see :ref:`The System Class example<systemex>` for an example declaration.
 
 .. IMPORTANT:: If you set a hostname in the Common class, you cannot use the hostname property in the System class. We recommend using the System class for hostname
 
