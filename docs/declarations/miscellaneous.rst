@@ -38,14 +38,16 @@ BIG-IP DO 1.13 introduced the ability to disable the automatic update check feat
 
 BIG-IP DO 1.32 introduced the ability to modify the default security banner on the logon screen of the user interface using the **guiSecurityBanner** and **guiSecurityBannerText** properties. When **guiSecurityBanner** is set to **true**, you specify the text you want to display in the **guiSecurityBannerText** property.  If you set **guiSecurityBanner** to **false**, the system presents an empty frame in the right portion of the login screen.
 
+BIG-IP DO 1.40 introduced the ability to configure the username and password prompts (see the  :ref:`specific example<unpw>`) on this page.
+
 In the following declaration, we show only the System class (including autoCheck introduced in 1.13, and the GUI security banner options in 1.32).  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration. 
 
-**Important**: If you try to use this declaration with a BIG-IP DO version prior to 1.32, it will fail.  Either upgrade BIG-IP DO to 1.32, or remove the guiSecurityBanner lines (highlighted in yellow).
+**Important**: If you try to use this declaration with a BIG-IP DO version prior to 1.40, it will fail.  Either upgrade BIG-IP DO to 1.40, or remove the lines (highlighted in yellow) and the comma at the end of the previous line.
 
 
 .. literalinclude:: ../../examples/system.json
    :language: json
-   :emphasize-lines: 15, 16
+   :emphasize-lines: 17, 18
 
 :ref:`Back to top<misc-examples>`
 
