@@ -56,6 +56,16 @@ describe('System', function testSystem() {
                     'Sunday\nMonday\nTuesday',
                     'Welcome to the BIG-IP Configuration Utility.\n\nLog in with your username and password using the fields on the left.'
                 ]
+            },
+            {
+                name: 'usernamePrompt',
+                inputValue: [undefined, 'Your username:', undefined],
+                expectedValue: ['Username', 'Your username:', 'Username']
+            },
+            {
+                name: 'passwordPrompt',
+                inputValue: [undefined, 'Your password:', undefined],
+                expectedValue: ['Password', 'Your password:', 'Password']
             }
         ];
 

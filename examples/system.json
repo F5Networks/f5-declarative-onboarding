@@ -13,7 +13,9 @@
             "autoCheck": false,
             "autoPhonehome": true,
             "guiSecurityBanner": true,
-            "guiSecurityBannerText": "Authorized access only\n\nLogin on the left"
+            "guiSecurityBannerText": "Authorized access only\n\nLogin on the left",
+            "usernamePrompt": "Your username:",
+            "passwordPrompt": "Your password:"
         }
     }
 }
