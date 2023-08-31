@@ -8,7 +8,9 @@
             { "id": "guiAudit", "newId": "guiAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "mgmtDhcp", "newId": "mgmtDhcpEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "guiSecurityBanner", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": "true" },
-            { "id": "guiSecurityBannerText" }
+            { "id": "guiSecurityBannerText" },
+            { "id": "usernamePrompt" },
+            { "id": "passwordPrompt" }
         ],
         "nameless": true
     },

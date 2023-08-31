@@ -512,7 +512,9 @@ describe('inspectHandler', () => {
                 guiAudit: 'disabled',
                 mgmtDhcp: 'enabled',
                 guiSecurityBanner: 'enabled',
-                guiSecurityBannerText: 'This is the gui security banner text.'
+                guiSecurityBannerText: 'This is the gui security banner text.',
+                usernamePrompt: 'Username',
+                passwordPrompt: 'Password'
             },
             '/tm/cli/global-settings': {
                 idleTimeout: 'disabled',
@@ -2290,7 +2292,9 @@ describe('inspectHandler', () => {
                             preserveOrigDhcpRoutes: true,
                             mgmtDhcpEnabled: true,
                             guiSecurityBanner: true,
-                            guiSecurityBannerText: 'This is the gui security banner text.'
+                            guiSecurityBannerText: 'This is the gui security banner text.',
+                            usernamePrompt: 'Username',
+                            passwordPrompt: 'Password'
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',

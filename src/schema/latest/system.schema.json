@@ -910,6 +910,16 @@
                         "description": "Specifies the text to present on the login screen when the guiSecurityBanner is enabled.",
                         "type": "string",
                         "default": "Welcome to the BIG-IP Configuration Utility.\n\nLog in with your username and password using the fields on the left."
+                    },
+                    "usernamePrompt": {
+                        "description": "Specifies the text to present above the user name field on the system's login screen.",
+                        "type": "string",
+                        "default": "Username"
+                    },
+                    "passwordPrompt": {
+                        "description": "Specifies the text to present above the password field on the system's login screen.",
+                        "type": "string",
+                        "default": "Password"
                     }
                 },
                 "additionalProperties": false
