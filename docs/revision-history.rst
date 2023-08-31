@@ -11,6 +11,10 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.40
+        - Updated the documentation for Declarative Onboarding v1.40.0.  This release contains the following changes: |br| * Added support for configuring BIG-IP ASM options in a declaration (see :ref:`AS3 options <asmdo>`), `GitHub Issue 656 <https://github.com/F5Networks/f5-appsvcs-extension/issues/656>`_ |br| * Support for configuring username and password prompts (see :ref:`Configuring username and password prompts<unpw>`) |br| |br| Issues Resolved: |br| * Fix documentation output in the Schema Reference for the |system|.
+        - 9-12-23
+
       * - 1.39
         - Updated the documentation for Declarative Onboarding v1.39.0.  This release contains the following issues resolved: |br| * Failure to configure BIG-IP when built-in admin account is disabled |br| * DeviceCertificate hangs on BIG-IQ with no error response to user |br| * Empty object defaults can cause upgrade failures |br| * Renamed the primary branch in the GitHub repository for DO **main**
         - 7-24-23
