@@ -210,12 +210,37 @@ Configuring BIG-IP ASM options
 
    Support for configuring BIG-IP ASM options is available in BIG-IP DO v1.40 and later.
 
-In this example, we show how you can use DO configure BIG-IP Application Security Manager (ASM) options in a declaration using DO 1.40 and later.  This includes settings like anti-virus protection and advanced configuration such as setting system variables.  For general information on F5 application security, see https://www.f5.com/solutions/web-app-and-api-protection.
+In this example, we show how you can use BIG-IP DO to configure BIG-IP Application Security Manager (ASM) options in a declaration using DO 1.40 and later.  This includes settings like anti-virus protection and advanced configuration such as setting system variables.  For general information on F5 application security, see https://www.f5.com/solutions/web-app-and-api-protection.
 
 See |secwaf| in the Schema Reference for more information and DO usage.
 
 
 .. literalinclude:: ../../examples/securityWaf.json
+   :language: json
+
+:ref:`Back to top<misc-examples>`
+
+
+|
+
+.. _unpw:
+
+Configuring username and password prompts
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
+
+   Support for configuring username and password prompts is available in BIG-IP DO v1.40 and later.
+
+In this example, we show how BIG-IP DO can configure unique values for the BIG-IP username and password prompts. This means you can specify the text to present above the user name and password fields on the BIG-IP system login screen.
+
+You set these values as a part of the System class using the new properties **usernamePrompt** and **passwordPrompt**.
+
+See |sysclass| in the Schema Reference for more information and DO usage.
+
+.. IMPORTANT:: If you attempt to use the following declaration on a version prior to 1.40, it will fail.  You can either upgrade BIG-IP DO, or remove lines 17 and 18 (and the comma at the end of 16). 
+
+
+.. literalinclude:: ../../examples/system.json
    :language: json
 
 :ref:`Back to top<misc-examples>`
@@ -242,6 +267,10 @@ See |secwaf| in the Schema Reference for more information and DO usage.
 .. |snmpdoc| raw:: html
 
    <a href="https://techdocs.f5.com/en-us/bigip-14-0-0/external-monitoring-of-big-ip-systems-implementations-14-0-0/monitoring-big-ip-system-traffic-with-snmp.html" target="_blank">Monitoring BIG-IP System Traffic with SNMP</a>
+
+.. |sysclass| raw:: html
+
+   <a href="https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/schema-reference.html#system" target="_blank">System Class</a>
 
 .. |license| raw:: html
 
