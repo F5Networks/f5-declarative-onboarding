@@ -183,7 +183,8 @@
                     "prefix": "1111:2222::/127",
                     "prefixLengthRange": "128"
                 }
-            ]
+            ],
+            "routeDomain": "0"
         },
         "testRoutingPrefixList2": {
             "class": "RoutingPrefixList",
@@ -194,7 +195,8 @@
                     "prefix": "10.3.3.0/24",
                     "prefixLengthRange": "30:32"
                 }
-            ]
+            ],
+            "routeDomain": "0"
         },
         "testRouteMap": {
             "class": "RouteMap",

@@ -1925,7 +1925,8 @@ describe('network.schema.json', () => {
                             prefix: '1111:2222:3333:4444::/64',
                             prefixLengthRange: '1:128'
                         }
-                    ]
+                    ],
+                    routeDomain: 'testRouteDomain'
                 };
 
                 assert.ok(validate(data), getErrorString(validate));

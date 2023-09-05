@@ -471,7 +471,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             prefix: '1111:2222::/127',
                             prefixLenRange: '128'
                         }
-                    ]
+                    ],
+                    routeDomain: '0'
                 },
                 testRoutingPrefixList2: {
                     name: 'testRoutingPrefixList2',
@@ -482,7 +483,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             prefix: '10.3.3.0/24',
                             prefixLenRange: '30:32'
                         }
-                    ]
+                    ],
+                    routeDomain: '0'
                 }
             }
         ));

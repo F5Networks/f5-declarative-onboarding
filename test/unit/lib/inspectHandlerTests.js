@@ -727,7 +727,8 @@ describe('inspectHandler', () => {
                     name: 'examplePrefixList',
                     entriesReference: {
                         link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2'
-                    }
+                    },
+                    routeDomain: 'testRouteDomain'
                 }
             ],
             '/tm/net/routing/prefix-list/~Common~examplePrefixList/entries': [
@@ -1938,7 +1939,8 @@ describe('inspectHandler', () => {
                                     prefix: '1111:2222:3333:4444::/64',
                                     prefixLengthRange: '24:28'
                                 }
-                            ]
+                            ],
+                            routeDomain: 'testRouteDomain'
                         },
                         exampleRouteMap: {
                             class: 'RouteMap',

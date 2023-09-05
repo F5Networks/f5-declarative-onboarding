@@ -1,5 +1,5 @@
 {
-    "schemaVersion": "1.20.0",
+    "schemaVersion": "1.40.0",
     "class": "Device",
     "async": true,
     "Common": {
@@ -20,7 +20,6 @@
             "id": 102,
             "connectionLimit": 5432991,
             "flowEvictionPolicy": "default-eviction-policy",
-            "ipIntelligencePolicy": "ip-intelligence",
             "strict": false,
             "vlans": [
                 "exampleVlan"
@@ -53,7 +52,8 @@
                     "prefix": "192.0.2.0/24",
                     "prefixLengthRange": 30
                 }
-            ]
+            ],
+            "routeDomain": "exampleRouteDomain"
         },
         "exampleRoutingPrefixList2": {
             "class": "RoutingPrefixList",
@@ -64,7 +64,8 @@
                     "prefix": "192.0.2.0/24",
                     "prefixLengthRange": 25
                 }
-            ]
+            ],
+            "routeDomain": "exampleRouteDomain"
         },
         "exampleRouteMap1": {
             "class": "RouteMap",

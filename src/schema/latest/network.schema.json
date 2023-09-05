@@ -824,6 +824,11 @@
                             "additionalProperties": false
                         },
                         "default": []
+                    },
+                    "routeDomain": {
+                        "description": "Specifies the name of the route domain used",
+                        "type": "string",
+                        "default": "0"
                     }
                 },
                 "additionalProperties": false

@@ -1,10 +1,30 @@
 {
-    "schemaVersion": "1.23.0",
+    "schemaVersion": "1.40.0",
     "class": "Device",
     "async": true,
     "Common": {
         "class": "Tenant",
         "hostname": "bigip.example.com",
+        "exampleVlan": {
+            "class": "VLAN",
+            "tag": 100,
+            "interfaces": [
+                {
+                    "name": "1.1",
+                    "tagged": true
+                }
+            ]
+        },
+        "exampleRouteDomain": {
+            "class": "RouteDomain",
+            "id": 102,
+            "connectionLimit": 5432991,
+            "flowEvictionPolicy": "default-eviction-policy",
+            "strict": false,
+            "vlans": [
+                "exampleVlan"
+            ]
+        },
         "exampleRoutingPrefixList1": {
             "class": "RoutingPrefixList",
             "entries": [
@@ -20,7 +40,8 @@
                     "prefix": "2001:db8::/64",
                     "prefixLengthRange": "80:"
                 }
-            ]
+            ],
+            "routeDomain": "0"
         },
         "exampleRoutingPrefixList2": {
             "class": "RoutingPrefixList",
@@ -37,7 +58,8 @@
                     "prefix": "192.0.2.1/24",
                     "prefixLengthRange": "25:27"
                 }
-            ]
+            ],
+            "routeDomain": "exampleRouteDomain"
         }
     }
 }

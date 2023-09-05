@@ -2674,7 +2674,8 @@ describe('configManager', () => {
                         name: 'examplePrefixList',
                         entriesReference: {
                             link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2'
-                        }
+                        },
+                        routeDomain: '/Common/testRouteDomain'
                     }
                 ];
                 listResponses['/tm/net/routing/prefix-list/~Common~examplePrefixList/entries'] = [
@@ -2711,7 +2712,8 @@ describe('configManager', () => {
                                         prefix: '1111:2222:3333:4444::/64',
                                         prefixLenRange: '24:28'
                                     }
-                                ]
+                                ],
+                                routeDomain: 'testRouteDomain'
                             }
                         });
                     });

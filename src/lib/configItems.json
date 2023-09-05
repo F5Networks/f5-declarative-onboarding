@@ -216,7 +216,8 @@
         "schemaClass": "RoutingPrefixList",
         "properties": [
             { "id": "name" },
-            { "id": "entriesReference", "dereferenceId": "entries" }
+            { "id": "entriesReference", "dereferenceId": "entries" },
+            { "id": "routeDomain" }
         ],
         "references": {
             "entriesReference": [

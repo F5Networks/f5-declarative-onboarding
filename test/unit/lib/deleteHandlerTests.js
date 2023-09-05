@@ -814,7 +814,7 @@ describe(('deleteHandler'), function testDeleteHandler() {
             });
     });
 
-    it('should delete RouteMap, RoutingAccessList, RoutingAsPath, and RoutePrefixList in that order', () => {
+    it('should delete RouteMap, RoutePrefixList, RouteDomain, RoutingAccessList, and RoutingAsPath in that order', () => {
         const state = {
             currentConfig: {
                 Common: {
@@ -822,6 +822,9 @@ describe(('deleteHandler'), function testDeleteHandler() {
                         routinBgpTest: {
                             asLocal: 1
                         }
+                    },
+                    RouteDomain: {
+                        routeDomainTest: {}
                     },
                     RouteMap: {
                         routeMapTest: {
@@ -875,7 +878,8 @@ describe(('deleteHandler'), function testDeleteHandler() {
                                     prefix: '10.3.3.0/24',
                                     prefixLenRange: 32
                                 }
-                            ]
+                            ],
+                            routeDomain: 'routeDomainTest'
                         }
                     }
                 }
@@ -884,17 +888,20 @@ describe(('deleteHandler'), function testDeleteHandler() {
 
         const declaration = {
             Common: {
+                RouteDomain: {
+                    routeDomainTest: {}
+                },
+                RouteMap: {
+                    routeMapTest: {}
+                },
                 RoutingAccessList: {
                     routingAccessListTest: {}
-                },
-                RoutingBGP: {
-                    routingBgpTest: {}
                 },
                 RoutingAsPath: {
                     routingAsPathTest: {}
                 },
-                RouteMap: {
-                    routeMapTest: {}
+                RoutingBGP: {
+                    routingBgpTest: {}
                 },
                 RoutingPrefixList: {
                     routingPrefixListTest: {}
@@ -905,11 +912,12 @@ describe(('deleteHandler'), function testDeleteHandler() {
         const deleteHandler = new DeleteHandler(declaration, bigIpMock, undefined, state);
         return deleteHandler.process()
             .then(() => {
-                assert.strictEqual(deletedPaths.length, 4);
+                assert.strictEqual(deletedPaths.length, 5);
                 assert.strictEqual(deletedPaths[0], '/tm/net/routing/route-map/~Common~routeMapTest');
-                assert.strictEqual(deletedPaths[1], '/tm/net/routing/access-list/~Common~routingAccessListTest');
-                assert.strictEqual(deletedPaths[2], '/tm/net/routing/as-path/~Common~routingAsPathTest');
-                assert.strictEqual(deletedPaths[3], '/tm/net/routing/prefix-list/~Common~routingPrefixListTest');
+                assert.strictEqual(deletedPaths[1], '/tm/net/routing/prefix-list/~Common~routingPrefixListTest');
+                assert.strictEqual(deletedPaths[2], '/tm/net/route-domain/~Common~routeDomainTest');
+                assert.strictEqual(deletedPaths[3], '/tm/net/routing/access-list/~Common~routingAccessListTest');
+                assert.strictEqual(deletedPaths[4], '/tm/net/routing/as-path/~Common~routingAsPathTest');
             });
     });
 
