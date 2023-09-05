@@ -1,6 +1,15 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.41.0
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
 ## 1.40.0
 ### Added
 - AUTOTOOL-3931: ([GitHub Issue 656](https://github.com/F5Networks/f5-appsvcs-extension/issues/656)): Add WAF Settings configuration support on DO
