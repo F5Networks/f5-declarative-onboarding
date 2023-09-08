@@ -23,6 +23,16 @@ Changes to this project are documented in this file. More detail and links can b
 
 ### Removed
 
+## 1.39.1
+### Added
+
+### Fixed
+
+### Changed
+- Promoted to LTS
+
+### Removed
+
 ## 1.39.0
 ### Added
 
