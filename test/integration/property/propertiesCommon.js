@@ -65,16 +65,7 @@ function getAuth() {
 }
 
 function sendRequest(options, retryOptions) {
-    return common.sendRequest(options, retryOptions || { trials: 3, timeInterval: 500 })
-        .then((response) => {
-            let body;
-            try {
-                body = JSON.parse(response.body);
-            } catch (err) {
-                body = response.body;
-            }
-            return Object.assign(response.response, { body });
-        });
+    return common.sendRequest(options, retryOptions || { trials: 3, timeInterval: 500 });
 }
 
 function getTestInfo(currentTest) {

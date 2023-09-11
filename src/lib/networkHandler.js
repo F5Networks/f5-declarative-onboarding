@@ -148,7 +148,12 @@ class NetworkHandler {
             })
             .then((result) => {
                 updateStatus(status, result);
-                this.logger.info('Checking RoutingBGP and RouteMap');
+                this.logger.info('Checking RouteMap');
+                return handleRouteMap.call(this);
+            })
+            .then((result) => {
+                updateStatus(status, result);
+                this.logger.info('Checking RoutingBGP');
                 return handleRoutingBGP.call(this);
             })
             .then((result) => {
@@ -743,7 +748,7 @@ function handleRouteDomain() {
             }
             return this.bigIp.createOrModify(PATHS.RouteDomain, rd0Body);
         })
-        .then(() => this.bigIp.transaction(commands))
+        .then(() => (commands.length === 0 ? Promise.resolve() : this.bigIp.transaction(commands)))
         .catch((err) => {
             this.logger.severe(`Error creating RouteDomains: ${err.message}`);
             throw err;
@@ -957,8 +962,13 @@ function handleRoutingAccessList() {
 }
 
 function handleRoutingPrefixList() {
+    if (!this.declaration.Common.RoutingPrefixList) {
+        return Promise.resolve();
+    }
+
     const promises = [];
-    doUtil.forEach(this.declaration, 'RoutingPrefixList', (tenant, list) => {
+    doUtil.forEach(this.declaration, 'RoutingPrefixList', (partition, list) => {
+        const transaction = [];
         if (list && Object.keys(list).length !== 0) {
             const entries = {};
 
@@ -974,13 +984,43 @@ function handleRoutingPrefixList() {
 
             const body = {
                 name: list.name,
-                partition: tenant,
+                partition,
+                routeDomain: list.routeDomain,
                 entries
             };
 
-            promises.push(
-                this.bigIp.createOrModify(PATHS.RoutingPrefixList, body, null, cloudUtil.MEDIUM_RETRY)
-            );
+            const bodyNoEntries = JSON.parse(JSON.stringify(body));
+            delete bodyNoEntries.entries;
+
+            const bodyNoRouteDomain = JSON.parse(JSON.stringify(body));
+            delete bodyNoRouteDomain.routeDomain;
+
+            // routeDomain is read-only and in some cases if another object refers to the RoutingPrefixList they
+            // both must have the same routeDomain. Modifying routeDomain in a delete-create transaction somehow gets
+            // around this but for some reason the entries property is buggy in this transaction. Leaving entries out of
+            // the delete-create transaction followed up by a modify that leaves out the routeDomain seems to work.
+            const currentRouteDomain = doUtil.getDeepValue(this.state.currentConfig.Common, `RoutingPrefixList.${body.name}.routeDomain`);
+            if (currentRouteDomain && currentRouteDomain !== body.routeDomain) {
+                transaction.push({
+                    method: 'delete',
+                    path: `${PATHS.RoutingPrefixList}/~${partition}~${list.name}`
+                });
+                transaction.push({
+                    method: 'create',
+                    path: PATHS.RoutingPrefixList,
+                    body: bodyNoEntries
+                });
+                promises.push(promiseUtil.series([
+                    () => this.bigIp.transaction(transaction),
+                    () => this.bigIp.createOrModify(
+                        PATHS.RoutingPrefixList, bodyNoRouteDomain, null, cloudUtil.MEDIUM_RETRY
+                    )
+                ]));
+            } else {
+                promises.push(
+                    this.bigIp.createOrModify(PATHS.RoutingPrefixList, body, null, cloudUtil.MEDIUM_RETRY)
+                );
+            }
         }
     });
 
@@ -996,21 +1036,9 @@ function handleRouteMap() {
         return Promise.resolve();
     }
 
-    const routeMapsToDelete = [];
-    const routeMapsToCreateOrModify = [];
-
-    doUtil.forEach(this.declaration, 'RouteMap', (tenant, map) => {
-        // If RouteMap already exists with a different route domain then
-        // must delete it first and recreate later because routeDomain cannot be changed.
-        if (this.state.currentConfig.Common.RouteMap
-            && this.state.currentConfig.Common.RouteMap[map.name]
-            && this.state.currentConfig.Common.RouteMap[map.name].routeDomain !== map.routeDomain) {
-            routeMapsToDelete.push({
-                tenant,
-                name: map.name
-            });
-        }
-
+    const promises = [];
+    doUtil.forEach(this.declaration, 'RouteMap', (partition, map) => {
+        const transaction = [];
         if (map && Object.keys(map).length !== 0) {
             const entries = {};
             if (map.entries) {
@@ -1022,46 +1050,55 @@ function handleRouteMap() {
                 });
             }
 
-            const routeMapBody = {
+            const body = {
                 name: map.name,
-                partition: tenant,
+                partition,
                 entries,
                 routeDomain: map.routeDomain
             };
 
-            routeMapsToCreateOrModify.push(routeMapBody);
+            const bodyNoEntries = JSON.parse(JSON.stringify(body));
+            delete bodyNoEntries.entries;
+
+            const bodyNoRouteDomain = JSON.parse(JSON.stringify(body));
+            delete bodyNoRouteDomain.routeDomain;
+
+            // routeDomain is read-only. Modifying routeDomain in a delete-create transaction somehow gets around this
+            // but for some reason the entries property is buggy in this transaction. Leaving entries out of the
+            // delete-create transaction followed up by a modify that leaves out the routeDomain seems to work.
+            const currentRouteDomain = doUtil.getDeepValue(this.state.currentConfig.Common, `RouteMap.${body.name}.routeDomain`);
+            if (currentRouteDomain && currentRouteDomain !== body.routeDomain) {
+                transaction.push({
+                    method: 'delete',
+                    path: `${PATHS.RouteMap}/~${partition}~${map.name}`
+                });
+                transaction.push({
+                    method: 'create',
+                    path: PATHS.RouteMap,
+                    body: bodyNoEntries
+                });
+                promises.push(promiseUtil.series([
+                    () => this.bigIp.transaction(transaction),
+                    () => this.bigIp.createOrModify(PATHS.RouteMap, bodyNoRouteDomain, null, cloudUtil.MEDIUM_RETRY)
+                ]));
+            } else {
+                promises.push(
+                    this.bigIp.createOrModify(PATHS.RouteMap, body, null, cloudUtil.NO_RETRY)
+                );
+            }
         }
     });
 
-    return Promise.resolve()
-        .then(() => {
-            const promises = [];
-            routeMapsToDelete.forEach((map) => {
-                promises.push(
-                    this.bigIp.delete(`${PATHS.RouteMap}/~${map.tenant}~${map.name}`, null, null, cloudUtil.NO_RETRY)
-                );
-            });
-            return Promise.all(promises);
-        })
-        .then(() => {
-            const promises = [];
-            routeMapsToCreateOrModify.forEach((map) => {
-                promises.push(
-                    this.bigIp.createOrModify(PATHS.RouteMap, map, null, cloudUtil.NO_RETRY)
-                );
-            });
-            return Promise.all(promises);
-        })
+    return Promise.all(promises)
         .catch((err) => {
-            this.logger.severe(`Error creating route maps: ${err.message}`);
+            this.logger.severe(`Error creating RouteMap: ${err.message}`);
             throw err;
         });
 }
 
 function handleRoutingBGP() {
     if (!this.declaration.Common.RoutingBGP) {
-        this.logger.info('Checking RouteMap');
-        return handleRouteMap.call(this);
+        return Promise.resolve();
     }
 
     let promises = [];
@@ -1097,12 +1134,6 @@ function handleRoutingBGP() {
                     this.logger.severe(`Error deleting existing RoutingBGP: ${err.message}`);
                     throw err;
                 });
-        })
-        .then(() => {
-            // This is the best time to do this if a RouteMap referenced by a peer group in the singleton RoutingBGP has
-            // a route domain change.
-            this.logger.info('Checking RouteMap before creating RoutingBGP');
-            return handleRouteMap.call(this);
         })
         .then(() => {
             promises = [];

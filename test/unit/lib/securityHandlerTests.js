@@ -25,6 +25,7 @@ const sinon = require('sinon');
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 const Logger = require('../../../src/lib/logger');
 
+const doUtil = require('../../../src/lib/doUtil');
 const SecurityHandler = require('../../../src/lib/securityHandler');
 
 describe('SecurityHandler', () => {
@@ -143,6 +144,81 @@ describe('SecurityHandler', () => {
                                 },
                                 publisher: 'none',
                                 smtpConfig: 'none'
+                            }
+                        ]
+                    );
+                });
+        });
+    });
+
+    describe('SecurityWaf', () => {
+        it('should handle SecurityWaf', () => {
+            sinon.stub(doUtil, 'restartService').resolves();
+            const declaration = {
+                Common: {
+                    SecurityWaf: {
+                        antiVirusProtection: {
+                            guarenteeEnforcement: true,
+                            hostname: 'do.test',
+                            port: 123
+                        },
+                        advancedSettings: {
+                            cookie_expiration_time_out: {
+                                value: '1000'
+                            },
+                            max_json_policy_size: {
+                                value: '10000'
+                            },
+                            single_page_application: {
+                                value: '1'
+                            }
+                        }
+                    }
+                }
+            };
+            const state = {
+                id: 'stateId'
+            };
+
+            const securityHandler = new SecurityHandler(declaration, bigIpMock, undefined, state);
+            return securityHandler.process()
+                .then(() => {
+                    console.log(dataSent);
+                    const antivirusProtection = dataSent[PATHS.AntiVirusProtection];
+                    const setting0 = dataSent[`${PATHS.WafAdvancedSettings}/Bo68NqP9roUE8Vv2NO-29Q`];
+                    const setting1 = dataSent[`${PATHS.WafAdvancedSettings}/4NRiSGFR-qvXsN8VM7oKiw`];
+                    const setting2 = dataSent[`${PATHS.WafAdvancedSettings}/GqhjvcKleDusK8-xl1lC4w`];
+                    assert.deepStrictEqual(
+                        antivirusProtection,
+                        [
+                            {
+                                guarenteeEnforcement: true,
+                                hostname: 'do.test',
+                                port: 123
+                            }
+                        ]
+                    );
+                    assert.deepStrictEqual(
+                        setting0,
+                        [
+                            {
+                                value: '1000'
+                            }
+                        ]
+                    );
+                    assert.deepStrictEqual(
+                        setting1,
+                        [
+                            {
+                                value: '10000'
+                            }
+                        ]
+                    );
+                    assert.deepStrictEqual(
+                        setting2,
+                        [
+                            {
+                                value: '1'
                             }
                         ]
                     );

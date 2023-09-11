@@ -23,7 +23,7 @@
  */
 module.exports = {
     BASE_URL: 'https://localhost/mgmt/shared/declarative-onboarding',
-    MASK_REGEX: /pass(word|phrase)|secret|privateKey/i,
+    MASK_REGEX: /pass(word|phrase)\b|secret|privateKey/i,
     ENDPOINT_MAX_TIMEOUT: 60000,
     ENDPOINTS: {
         CONFIG: 'config',
@@ -33,6 +33,7 @@ module.exports = {
     },
     PATHS: {
         Analytics: '/tm/analytics/global-settings',
+        AntiVirusProtection: '/tm/asm/virus-detection-server',
         AuthLdap: '/tm/auth/ldap',
         AuthPartition: '/tm/auth/partition',
         AuthRadius: '/tm/auth/radius',
@@ -92,7 +93,8 @@ module.exports = {
         Uploads: '/shared/file-transfer/uploads',
         User: '/tm/auth/user',
         VLAN: '/tm/net/vlan',
-        VXLAN: '/tm/net/tunnels/vxlan'
+        VXLAN: '/tm/net/tunnels/vxlan',
+        WafAdvancedSettings: '/tm/asm/advanced-settings'
     },
     STATUS: {
         STATUS_OK: 'OK',
@@ -122,5 +124,52 @@ module.exports = {
         CA_CERT: 'do_ldapCaCert.crt',
         CLIENT_CERT: 'do_ldapClientCert.crt',
         CLIENT_KEY: 'do_ldapClientCert.key'
+    },
+    WAF_ADVANCED_SETTINGS: {
+        allow_all_cookies_at_entry_point: 'OSEAbgBE9OsgvUSxORliXw',
+        bypass_upon_asm_down: 'hKQW-1omECNHugcHQIcgAQ',
+        bypass_upon_load: 'S7hzR_qTwol9Kkz9Lhjygg',
+        cookie_expiration_time_out: 'Bo68NqP9roUE8Vv2NO-29Q',
+        cookie_httponly_attr: 'yWZ5eGK1ntnYaTxblMNyww',
+        cookie_max_age: '1XJcDTbBxqP0GtOcdQzF0g',
+        cookie_renewal_time_stamp: 'Y2xm8sicyUqvtYW7XdazLQ',
+        ecard_max_http_req_uri_len: '3Rteo2zkBA9z8nzwsCgrvQ',
+        ecard_regexp_email: 'Xd48JLria9Xn13bh9hs5bA',
+        ecard_regexp_decimal: 'pKEKBwZiy7KE4hcSP218sQ',
+        ecard_regexp_phone: 'B6n-QlJdEAmu35GYHCjcaQ',
+        icap_uri: 'G0OtDDhrirtc3DAvVIL3qA',
+        LogSignatures: 'DL-dTgOI8EkErPNb89CqHQ',
+        long_request_buffer_size: 'UGv8BV7NbLZZP4hgvBkk7g',
+        long_request_mem_percentage: 'EmVXcGrEQcyx4D85aPY0tw',
+        max_filtered_html_length: 'egIwkT5XGat_3phe_TYVxw',
+        max_json_policy_size: '4NRiSGFR-qvXsN8VM7oKiw',
+        max_login_request_body_buffer_size: 'KHYdzmoL_l6luO6k9Sy3Vg',
+        max_raw_request_len: 'AG4WUXljvu9lM6AH8dAKXg',
+        max_slow_transactions: 'E6ZRTf9B4t2VBqr7VyTx5w',
+        MaxFtpSessions: 'y-ZbMLuoa2aN7qp2lBYq4Q',
+        MaximumCryptographicOperations: 'xwVHrYB2wHTWW16ap_I4uA',
+        MaxSmtpSessions: '-UfFoGnprUbAdfuYE3l44w',
+        MaxViolationEntries: 'pF09Tjd_uNrk215bSVrdbg',
+        policy_history_max_total_size: 'vO3CxwQgcbycM7iTqbnl9w',
+        policy_history_min_retained_versions: 'eF-vzrQl2fwoXWA1U1o0IQ',
+        ProtocolIndication: 'qUrdG89jw8HflvMKJfOkQA',
+        PRXRateLimit: '4ZznWiwDgH79_TZoIjkRxw',
+        request_buffer_size: 'QOvKhWpQAb2i4vlockHsYw',
+        reporting_search_timeout: 'bBCPejaHht0_tgcJYQl7Qg',
+        ResponseBufferSize: 'mxmQIHLzWRzL5DzQaae3Lw',
+        restart_upon_config_update_error: 'h4cPIefSai5czHbH8649MA',
+        RWLightThreads: '5kx5oMhJWU1JXr6jagAlkg',
+        RWThreads: '9ZPR5pHmVfc5t-FfruOC-w',
+        sa_login_expiration_timeout: 'NLl9aGiOQKNfx1ZWWQvdOg',
+        send_content_events: 'JCJCtCv20xiFU8Xf7D5Epg',
+        single_page_application: 'GqhjvcKleDusK8-xl1lC4w',
+        slow_transaction_timeout: '1j5NC6SxNqHgHd4KCkFERQ',
+        total_umu_max_size: '_nYculxq-fBhRqH2GVBfXw',
+        total_xml_memory: 'O6z_jDkjBalpmAiwURU9HQ',
+        virus_header_name: 'BBDs36E0u0ZR0GtxrD0yEA',
+        WhiteHatIP1: 'Wa3cDp35bC9aXWWoXLr9bg',
+        WhiteHatIP2: 'JGsWl_Fa6RT2KFZUFEHENA',
+        WhiteHatIP3: 'oHZc1VsaSuoWTQGFtnr6Sg',
+        WhiteHatIP4: 'e17lg9g7L_1aXWM_RJvwUg'
     }
 };

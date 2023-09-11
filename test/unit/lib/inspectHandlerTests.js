@@ -512,7 +512,9 @@ describe('inspectHandler', () => {
                 guiAudit: 'disabled',
                 mgmtDhcp: 'enabled',
                 guiSecurityBanner: 'enabled',
-                guiSecurityBannerText: 'This is the gui security banner text.'
+                guiSecurityBannerText: 'This is the gui security banner text.',
+                usernamePrompt: 'Username',
+                passwordPrompt: 'Password'
             },
             '/tm/cli/global-settings': {
                 idleTimeout: 'disabled',
@@ -725,7 +727,8 @@ describe('inspectHandler', () => {
                     name: 'examplePrefixList',
                     entriesReference: {
                         link: 'https://localhost/mgmt/tm/net/routing/prefix-list/~Common~examplePrefixList/entries?ver=14.1.2'
-                    }
+                    },
+                    routeDomain: 'testRouteDomain'
                 }
             ],
             '/tm/net/routing/prefix-list/~Common~examplePrefixList/entries': [
@@ -1723,7 +1726,24 @@ describe('inspectHandler', () => {
                 },
                 publisher: 'none',
                 smtpConfig: 'none'
-            }
+            },
+            '/tm/asm/virus-detection-server': {
+                guaranteeEnforcement: false,
+                hostname: 'do.test',
+                port: 123
+            },
+            '/tm/asm/advanced-settings': [
+                {
+                    id: 'id0',
+                    name: 'policy_history_max_total_size',
+                    value: 1000
+                },
+                {
+                    id: 'id1',
+                    name: 'max_json_policy_size',
+                    value: 1000
+                }
+            ]
         });
 
         // PURPOSE: to be sure that all properties (we are expecting) are here
@@ -1919,7 +1939,8 @@ describe('inspectHandler', () => {
                                     prefix: '1111:2222:3333:4444::/64',
                                     prefixLengthRange: '24:28'
                                 }
-                            ]
+                            ],
+                            routeDomain: 'testRouteDomain'
                         },
                         exampleRouteMap: {
                             class: 'RouteMap',
@@ -2273,7 +2294,9 @@ describe('inspectHandler', () => {
                             preserveOrigDhcpRoutes: true,
                             mgmtDhcpEnabled: true,
                             guiSecurityBanner: true,
-                            guiSecurityBannerText: 'This is the gui security banner text.'
+                            guiSecurityBannerText: 'This is the gui security banner text.',
+                            usernamePrompt: 'Username',
+                            passwordPrompt: 'Password'
                         },
                         currentTrafficControl: {
                             class: 'TrafficControl',
@@ -2713,6 +2736,24 @@ describe('inspectHandler', () => {
                             collectStaleRulesEnabled: false,
                             publisher: 'none',
                             smtpConfig: 'none'
+                        },
+                        currentSecurityWaf: {
+                            class: 'SecurityWaf',
+                            antiVirusProtection: {
+                                guaranteeEnforcementEnabled: false,
+                                hostname: 'do.test',
+                                port: 123
+                            },
+                            advancedSettings: [
+                                {
+                                    name: 'policy_history_max_total_size',
+                                    value: 1000
+                                },
+                                {
+                                    name: 'max_json_policy_size',
+                                    value: 1000
+                                }
+                            ]
                         }
                     }
                 }

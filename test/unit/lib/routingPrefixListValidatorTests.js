@@ -43,7 +43,8 @@ describe('routingPrefixListValidator', () => {
                                     prefix: '1111:2222:3333:4444:5555:6666:7777:8888/127',
                                     prefixLengthRange: '128'
                                 }
-                            ]
+                            ],
+                            routeDomain: 'testRouteDomain'
                         },
                         exampleRoutingPrefixList2: {
                             class: 'RoutingPrefixList',
@@ -60,7 +61,8 @@ describe('routingPrefixListValidator', () => {
                                     prefix: '10.4.4.0/23',
                                     prefixLengthRange: '24'
                                 }
-                            ]
+                            ],
+                            routeDomain: 'testRouteDomain'
                         }
                     }
                 }

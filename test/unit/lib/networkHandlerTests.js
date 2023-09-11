@@ -1825,6 +1825,12 @@ describe('networkHandler', () => {
         });
 
         it('should send out 1 enable value to the sys/db/...routing endpoint if a declaration includes RoutingPrefixList', () => {
+            const state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+
             const declaration = {
                 Common: {
                     RoutingPrefixList: {
@@ -1860,7 +1866,7 @@ describe('networkHandler', () => {
                 }
             };
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const data = dataSent['/tm/sys/db/tmrouted.tmos.routing'];
@@ -2343,12 +2349,25 @@ describe('networkHandler', () => {
     });
 
     describe('RoutingPrefixList', () => {
+        let state;
+        let bigIpMockSpy;
+
+        beforeEach(() => {
+            bigIpMockSpy = sinon.spy(bigIpMock);
+            state = {
+                currentConfig: {
+                    Common: {}
+                }
+            };
+        });
+
         it('should handle a fully specified Routing Prefix List', () => {
             const declaration = {
                 Common: {
                     RoutingPrefixList: {
                         RoutingPrefixList1: {
                             name: 'RoutingPrefixList1',
+                            routeDomain: 'testRouteDomain',
                             entries: [
                                 {
                                     name: 10,
@@ -2360,6 +2379,7 @@ describe('networkHandler', () => {
                         },
                         RoutingPrefixList2: {
                             name: 'RoutingPrefixList2',
+                            routeDomain: 'testRouteDomain2',
                             entries: [
                                 {
                                     name: 20,
@@ -2379,13 +2399,14 @@ describe('networkHandler', () => {
                 }
             };
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const data = dataSent[PATHS.RoutingPrefixList];
                     assert.deepStrictEqual(data[0], {
                         name: 'RoutingPrefixList1',
                         partition: 'Common',
+                        routeDomain: 'testRouteDomain',
                         entries: {
                             10: {
                                 action: 'permit',
@@ -2397,6 +2418,7 @@ describe('networkHandler', () => {
                     assert.deepStrictEqual(data[1], {
                         name: 'RoutingPrefixList2',
                         partition: 'Common',
+                        routeDomain: 'testRouteDomain2',
                         entries: {
                             20: {
                                 action: 'permit',
@@ -2419,21 +2441,118 @@ describe('networkHandler', () => {
                     RoutingPrefixList: {
                         RoutingPrefixList1: {
                             name: 'RoutingPrefixList1',
+                            routeDomain: '0',
                             entries: []
                         }
                     }
                 }
             };
 
-            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
             return networkHandler.process()
                 .then(() => {
                     const data = dataSent[PATHS.RoutingPrefixList];
                     assert.deepStrictEqual(data[0], {
                         name: 'RoutingPrefixList1',
                         partition: 'Common',
+                        routeDomain: '0',
                         entries: {}
                     });
+                });
+        });
+
+        it('should delete first if routeDomain changes', () => {
+            state = {
+                currentConfig: {
+                    Common: {
+                        RoutingPrefixList: {
+                            RoutingPrefixList1: {
+                                name: 'RoutingPrefixList1',
+                                entries: [],
+                                routeDomain: '0'
+                            }
+                        }
+                    }
+                }
+            };
+
+            const declaration = {
+                Common: {
+                    RoutingPrefixList: {
+                        RoutingPrefixList1: {
+                            name: 'RoutingPrefixList1',
+                            entries: [],
+                            routeDomain: '1'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RoutingPrefixList];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RoutingPrefixList1',
+                        partition: 'Common',
+                        routeDomain: '1'
+                    });
+                    assert.deepStrictEqual(data[1], {
+                        name: 'RoutingPrefixList1',
+                        partition: 'Common',
+                        entries: {}
+                    });
+                    // modify enables /tm/sys/db/tmrouted.tmos.routing
+                    assert.strictEqual(bigIpMockSpy.modify.callCount, 1);
+                    assert.strictEqual(bigIpMock.transaction.callCount, 1);
+                    // delete comes from the first command in the transaction
+                    assert.strictEqual(bigIpMock.delete.callCount, 1);
+                    // create comes from the second command in the transaction
+                    assert.strictEqual(bigIpMockSpy.create.callCount, 1);
+                    // createOrModify comes immediately after the transaction
+                    assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
+                });
+        });
+
+        it('should not delete if routeDomain unchanged', () => {
+            state = {
+                currentConfig: {
+                    Common: {
+                        RoutingPrefixList: {
+                            RoutingPrefixList1: {
+                                name: 'RoutingPrefixList1',
+                                entries: [],
+                                routeDomain: '1'
+                            }
+                        }
+                    }
+                }
+            };
+
+            const declaration = {
+                Common: {
+                    RoutingPrefixList: {
+                        RoutingPrefixList1: {
+                            name: 'RoutingPrefixList1',
+                            entries: [],
+                            routeDomain: '1'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
+            return networkHandler.process()
+                .then(() => {
+                    const data = dataSent[PATHS.RoutingPrefixList];
+                    assert.deepStrictEqual(data[0], {
+                        name: 'RoutingPrefixList1',
+                        partition: 'Common',
+                        entries: {},
+                        routeDomain: '1'
+                    });
+                    assert.strictEqual(bigIpMockSpy.delete.callCount, 0);
+                    assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
                 });
         });
     });
@@ -2665,10 +2784,21 @@ describe('networkHandler', () => {
                     assert.deepStrictEqual(data[0], {
                         name: 'RouteMap1',
                         partition: 'Common',
-                        entries: {},
                         routeDomain: '1'
                     });
-                    assert.strictEqual(bigIpMockSpy.delete.callCount, 1);
+                    assert.deepStrictEqual(data[1], {
+                        name: 'RouteMap1',
+                        partition: 'Common',
+                        entries: {}
+                    });
+                    // modify enables /tm/sys/db/tmrouted.tmos.routing
+                    assert.strictEqual(bigIpMockSpy.modify.callCount, 1);
+                    assert.strictEqual(bigIpMock.transaction.callCount, 1);
+                    // delete comes from the first command in the transaction
+                    assert.strictEqual(bigIpMock.delete.callCount, 1);
+                    // create comes from the second command in the transaction
+                    assert.strictEqual(bigIpMockSpy.create.callCount, 1);
+                    // createOrModify comes immediately after the transaction
                     assert.strictEqual(bigIpMockSpy.createOrModify.callCount, 1);
                 });
         });
@@ -2721,116 +2851,6 @@ describe('networkHandler', () => {
 
         beforeEach(() => {
             bigIpMockSpy = sinon.spy(bigIpMock);
-        });
-
-        it('should handle combined RouteMap and RoutingBGP with changing route domain', () => {
-            const state = {
-                currentConfig: {
-                    Common: {
-                        RouteMap: {
-                            routeMapIn: {
-                                name: 'routeMapIn',
-                                entries: [],
-                                routeDomain: 'zero'
-                            },
-                            routeMapOut: {
-                                name: 'routeMapOut',
-                                entries: [],
-                                routeDomain: 'zero'
-                            }
-                        },
-                        RoutingBGP: {
-                            routingBgp: {
-                                name: 'routingBgp',
-                                peerGroups: [
-                                    {
-                                        name: 'Neighbor_IN',
-                                        addressFamily: [
-                                            {
-                                                name: 'ipv4',
-                                                routeMap: {
-                                                    in: 'routeMapIn',
-                                                    out: 'routeMapOut'
-                                                },
-                                                softReconfigurationInbound: 'enabled'
-                                            }
-                                        ],
-                                        remoteAs: 65020
-                                    }
-                                ],
-                                routeDomain: 'zero'
-                            }
-                        }
-                    }
-                }
-            };
-
-            const declaration = {
-                Common: {
-                    RouteMap: {
-                        routeMapIn: {
-                            name: 'routeMapIn',
-                            entries: [],
-                            routeDomain: 'one'
-                        },
-                        routeMapOut: {
-                            name: 'routeMapOut',
-                            entries: [],
-                            routeDomain: 'one'
-                        }
-                    },
-                    RoutingBGP: {
-                        routingBgp: {
-                            name: 'routingBgp',
-                            peerGroups: [
-                                {
-                                    name: 'Neighbor_IN',
-                                    addressFamily: [
-                                        {
-                                            name: 'ipv4',
-                                            routeMap: {
-                                                in: 'routeMapIn',
-                                                out: 'routeMapOut'
-                                            },
-                                            softReconfigurationInbound: 'enabled'
-                                        }
-                                    ],
-                                    remoteAs: 65020
-                                }
-                            ],
-                            routeDomain: 'one'
-                        }
-                    }
-                }
-            };
-
-            const networkHandler = new NetworkHandler(declaration, bigIpMock, null, state);
-            return networkHandler.process()
-                .then(() => {
-                    assert.strictEqual(all[0].action, 'delete');
-                    assert.strictEqual(all[0].path, '/tm/net/routing/bgp/~Common~routingBgp');
-
-                    assert.strictEqual(all[1].action, 'delete');
-                    assert.strictEqual(all[1].path, '/tm/net/routing/route-map/~Common~routeMapIn');
-
-                    assert.strictEqual(all[2].action, 'delete');
-                    assert.strictEqual(all[2].path, '/tm/net/routing/route-map/~Common~routeMapOut');
-
-                    assert.strictEqual(all[3].action, 'createOrModify');
-                    assert.strictEqual(all[3].path, '/tm/net/routing/route-map');
-                    assert.strictEqual(all[3].data.name, 'routeMapIn');
-                    assert.strictEqual(all[3].data.routeDomain, 'one');
-
-                    assert.strictEqual(all[4].action, 'createOrModify');
-                    assert.strictEqual(all[4].path, '/tm/net/routing/route-map');
-                    assert.strictEqual(all[4].data.name, 'routeMapOut');
-                    assert.strictEqual(all[4].data.routeDomain, 'one');
-
-                    assert.strictEqual(all[5].action, 'createOrModify');
-                    assert.strictEqual(all[5].path, '/tm/net/routing/bgp');
-                    assert.strictEqual(all[5].data.name, 'routingBgp');
-                    assert.strictEqual(all[5].data.routeDomain, 'one');
-                });
         });
 
         it('should handle a fully specified RoutingBGP', () => {

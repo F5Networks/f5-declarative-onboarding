@@ -1062,7 +1062,9 @@ describe('system.schema.json', () => {
                     "consoleInactivityTimeout": 50,
                     "cliInactivityTimeout": 60,
                     "preserveOrigDhcpRoutes": true,
-                    "mgmtDhcpEnabled": true
+                    "mgmtDhcpEnabled": true,
+                    "usernamePrompt": "Your username:",
+                    "passwordPrompt": "Your password:"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });

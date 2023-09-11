@@ -38,6 +38,7 @@ const TraceManager = require('./traceManager');
 const RoutingAccessListValidator = require('./routingAccessListValidator');
 const configItems = require('./configItems.json');
 const doUtil = require('./doUtil');
+const ADVANCED_SETTINGS_IDS = require('./sharedConstants').WAF_ADVANCED_SETTINGS;
 
 const ralv = new RoutingAccessListValidator();
 
@@ -142,6 +143,7 @@ class DeclarationHandler {
                 applyTunnelFixes.call(this, parsedNewDeclaration);
                 applyManagementRouteFixes.call(this, parsedNewDeclaration);
                 origLdapCertData = applyLdapCertFixes.call(this, parsedNewDeclaration);
+                applySecurityWafFixes.call(this, parsedNewDeclaration);
             })
             .then(() => removeEmptyObjects(parsedNewDeclaration))
             .then(() => removeEmptyObjects(parsedOldDeclaration))
@@ -1204,6 +1206,30 @@ function applyManagementRouteFixes(declaration) {
             );
         }
     });
+}
+
+/**
+ * Convert the advancedSettings array to an object.
+ *
+ * @param {Object} declaration - user provided declaration
+ */
+function applySecurityWafFixes(declaration) {
+    const securityWaf = declaration.Common.SecurityWaf;
+
+    if (securityWaf && Array.isArray(securityWaf.advancedSettings)) {
+        const advancedSettings = {};
+        const originalAdvancedSettings = this.state.originalConfig.Common.SecurityWaf
+            ? this.state.originalConfig.Common.SecurityWaf.advancedSettings : {};
+
+        securityWaf.advancedSettings.forEach((setting) => {
+            advancedSettings[setting.name] = {
+                value: setting.value,
+                id: ADVANCED_SETTINGS_IDS[setting.name]
+            };
+        });
+
+        securityWaf.advancedSettings = Object.assign(originalAdvancedSettings, advancedSettings);
+    }
 }
 
 function processHandler(Handler, declaration, bigIp, eventEmitter, state) {

@@ -490,6 +490,17 @@ function handleSystem() {
         if (Object.keys(guiSecuritySettings).length !== 0) {
             promises.push(this.bigIp.modify(PATHS.SysGlobalSettings, guiSecuritySettings));
         }
+
+        const promptSettings = {};
+        if (system.usernamePrompt) {
+            promptSettings.usernamePrompt = system.usernamePrompt;
+        }
+        if (system.passwordPrompt) {
+            promptSettings.passwordPrompt = system.passwordPrompt;
+        }
+        if (Object.keys(promptSettings).length !== 0) {
+            promises.push(this.bigIp.modify(PATHS.SysGlobalSettings, promptSettings));
+        }
     }
 
     return Promise.all(promises);

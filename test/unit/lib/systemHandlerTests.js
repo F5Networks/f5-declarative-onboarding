@@ -861,6 +861,26 @@ describe('systemHandler', () => {
             });
     });
 
+    it('should handle usernamePrompt and passwordPrompt', () => {
+        const declaration = {
+            Common: {
+                System: {
+                    usernamePrompt: 'Your username:',
+                    passwordPrompt: 'Your password:'
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+        return systemHandler.process()
+            .then(() => {
+                assert.deepStrictEqual(
+                    dataSent[PATHS.SysGlobalSettings][0],
+                    { usernamePrompt: 'Your username:', passwordPrompt: 'Your password:' }
+                );
+            });
+    });
+
     it('should handle root users without keys', () => {
         // Stubs out the remote call to confirm the key is not added to the user
         doUtilExecuteBashCommandStub.restore();

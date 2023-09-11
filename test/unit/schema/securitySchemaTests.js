@@ -99,6 +99,71 @@ describe('security.schema.json', () => {
             });
         });
     });
+
+    it('SecurityWaf', () => {
+        describe('valid', () => {
+            it('should validate minimal data', () => {
+                const data = {
+                    class: 'SecurityWaf'
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate all properties and mutliple advanced settings', () => {
+                const data = {
+                    antiVirusProtection: {
+                        guaranteeenforcementEnabled: true,
+                        hostname: 'do.test',
+                        port: 123
+                    },
+                    advancedSettings: [
+                        {
+                            name: 'long_request_buffer_size',
+                            value: 1000
+                        },
+                        {
+                            name: 'send_content_events',
+                            value: 1
+                        },
+                        {
+                            name: 'ecard_regexp_decimal',
+                            value: 'string'
+                        }
+                    ]
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate additional properties', () => {
+                const data = {
+                    class: 'SecurityWaf',
+                    invalidProperty: ''
+                };
+                assert.strictEqual(validate(data), false, 'additional properties should not be valid');
+                assert(getErrorString().includes('"additionalProperty": "invalidProperty"'));
+            });
+
+            it('should invalidate a string used for an integer setting', () => {
+                const data = {
+                    class: 'SecurityWaf',
+                    advancedSettings: [
+                        {
+                            name: 'long_request_buffer_size',
+                            value: 'invalid'
+                        },
+                        {
+                            name: 'send_content_events',
+                            value: 1
+                        }
+                    ]
+                };
+                assert.strictEqual(validate(data), false, 'should be integer');
+                assert(getErrorString().includes('should be integer'));
+            });
+        });
+    });
 });
 
 function getErrorString() {

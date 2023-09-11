@@ -8,7 +8,9 @@
             { "id": "guiAudit", "newId": "guiAuditLog", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "mgmtDhcp", "newId": "mgmtDhcpEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true },
             { "id": "guiSecurityBanner", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": "true" },
-            { "id": "guiSecurityBannerText" }
+            { "id": "guiSecurityBannerText" },
+            { "id": "usernamePrompt" },
+            { "id": "passwordPrompt" }
         ],
         "nameless": true
     },
@@ -214,7 +216,8 @@
         "schemaClass": "RoutingPrefixList",
         "properties": [
             { "id": "name" },
-            { "id": "entriesReference", "dereferenceId": "entries" }
+            { "id": "entriesReference", "dereferenceId": "entries" },
+            { "id": "routeDomain" }
         ],
         "references": {
             "entriesReference": [
@@ -1267,6 +1270,36 @@
         "declaration": {
             "customFunctions": [
                 { "id": "remapStaleRules" }
+            ]
+        }
+    },
+    {
+        "path": "/tm/asm/virus-detection-server",
+        "schemaClass": "SecurityWaf",
+        "schemaMerge": {
+            "action": "add",
+            "path": ["antiVirusProtection"]
+        },
+        "requiredModules": [{ "module": "asm" }],
+        "properties": [
+            { "id": "guaranteeEnforcement", "newId": "guaranteeEnforcementEnabled" },
+            { "id": "hostname" },
+            { "id": "port" }
+        ],
+        "nameless": true
+    },
+    {
+        "path": "/tm/asm/advanced-settings",
+        "schemaClass": "SecurityWaf",
+        "requiredModules": [{ "module": "asm" }],
+        "properties": [
+            { "id": "id" },
+            { "id": "name" },
+            { "id": "value" }
+        ],
+        "declaration": {
+            "customFunctions": [
+                { "id": "convertAdvancedSettings" }
             ]
         }
     },

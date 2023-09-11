@@ -260,7 +260,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     return common.sendRequest(options, retryOptions);
                 })
                 .then((response) => {
-                    const dns = JSON.parse(response.body);
+                    const dns = response.body;
                     originalDns = {
                         nameServers: dns.nameServers,
                         search: dns.search
@@ -471,7 +471,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             prefix: '1111:2222::/127',
                             prefixLenRange: '128'
                         }
-                    ]
+                    ],
+                    routeDomain: '0'
                 },
                 testRoutingPrefixList2: {
                     name: 'testRoutingPrefixList2',
@@ -482,7 +483,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                             prefix: '10.3.3.0/24',
                             prefixLenRange: '30:32'
                         }
-                    ]
+                    ],
+                    routeDomain: '0'
                 }
             }
         ));
@@ -1118,12 +1120,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         return common.sendRequest(options, retryOptions);
                     })
                     .then((response) => {
-                        if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+                        if (response.statusCode !== constants.HTTP_SUCCESS) {
                             throw new Error('could not check revoking');
                         }
                         return response.body;
                     })
-                    .then(JSON.parse)
                     .then((assignment) => {
                         assert.strictEqual(assignment.status, 'REVOKED');
                     })
@@ -1158,12 +1159,11 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         return common.sendRequest(options, retryOptions);
                     })
                     .then((response) => {
-                        if (response.response.statusCode !== constants.HTTP_ACCEPTED) {
+                        if (response.statusCode !== constants.HTTP_ACCEPTED) {
                             throw new Error('could not request to revoke license');
                         }
                         return response.body;
                     })
-                    .then(JSON.parse)
                     .then((response) => {
                         logger.info(`Expecting STARTED. Got ${response.status}`);
                         assert.strictEqual(response.status, 'STARTED');
@@ -1178,19 +1178,19 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                                     return common.sendRequest(options, retryOptions);
                                 })
                                 .then((response) => {
-                                    logger.debug(`Audit status code ${response.response.statusCode}`);
-                                    if (response.response.statusCode === constants.HTTP_SUCCESS) {
+                                    logger.debug(`Audit status code ${response.statusCode}`);
+                                    if (response.statusCode === constants.HTTP_SUCCESS) {
                                         logger.debug('Got success status for GET request');
-                                        logger.debug(`Looking for REVOKED. Got ${JSON.parse(response.body).status}`);
-                                        if (JSON.parse(response.body).status === 'REVOKED') {
+                                        logger.debug(`Looking for REVOKED. Got ${response.body.status}`);
+                                        if (response.body.status === 'REVOKED') {
                                             logger.debug('resolving retry func');
                                             return Promise.resolve();
                                         }
                                         logger.debug('rejecting retry func for status');
-                                        throw new Error(JSON.parse(response.body).status);
+                                        throw new Error(response.body.status);
                                     } else {
                                         logger.debug('rejecting retry func for status code');
-                                        throw new Error(response.response.statusCode);
+                                        throw new Error(response.statusCode);
                                     }
                                 })
                                 .catch((err) => {
@@ -1246,7 +1246,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             return common.testRequest(
                 null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`, authData, constants.HTTP_SUCCESS, 'GET'
             )
-                .then(JSON.parse)
                 .then((body) => {
                     assert.notStrictEqual(body[0].declaration, undefined, 'Should have "declaration" property');
                 });
@@ -1260,7 +1259,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             return common.testRequest(
                 null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`, authData, constants.HTTP_SUCCESS, 'GET'
             )
-                .then(JSON.parse)
                 .then((body) => {
                     originDeclaration = body[0].declaration;
                     originDeclaration.declaration.async = true; // Timing issue without async
@@ -1275,7 +1273,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 .then(() => common.testRequest(
                     null, `${common.hostname(thisMachine.ip, constants.PORT)}${inspectEndpoint}`, authData, constants.HTTP_SUCCESS, 'GET'
                 ))
-                .then(JSON.parse)
                 .then((body) => {
                     // declaration should be the same
                     const declaration = body[0].declaration;
@@ -1311,7 +1308,6 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                 'GET',
                 1
             )
-                .then(JSON.parse)
                 .then((body) => {
                     logger.debug(`Got example ${JSON.stringify(body)}`);
                     assert.notStrictEqual(body.Common, undefined);
@@ -1349,12 +1345,11 @@ function getF5Token(deviceIp, auth) {
             return common.sendRequest(options, retryOptions);
         })
         .then((response) => {
-            if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+            if (response.statusCode !== constants.HTTP_SUCCESS) {
                 throw new Error('could not get token');
             }
             return response.body;
         })
-        .then(JSON.parse)
         .then((response) => Promise.resolve(response.token.token));
 }
 
@@ -1384,12 +1379,11 @@ function getAuditLink(bigIqAddress, bigIpAddress, bigIqAuth) {
                 return common.sendRequest(options, retryOptions)
                     .then((response) => {
                         logger.info(`get assignments response ${JSON.stringify(response)}`);
-                        if (response.response.statusCode !== constants.HTTP_SUCCESS) {
+                        if (response.statusCode !== constants.HTTP_SUCCESS) {
                             return Promise.reject(new Error('could not license'));
                         }
                         return response.body;
                     })
-                    .then((response) => JSON.parse(response))
                     .then((response) => response.items)
                     .then((assignments) => {
                         logger.debug(`current assignments: ${JSON.stringify(
