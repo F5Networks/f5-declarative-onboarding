@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.40
-        - Updated the documentation for Declarative Onboarding v1.40.0.  This release contains the following changes: |br| * Added support for configuring BIG-IP ASM options in a declaration (see :ref:`AS3 options <asmdo>`), `GitHub Issue 656 <https://github.com/F5Networks/f5-appsvcs-extension/issues/656>`_ |br| * Support for configuring username and password prompts (see :ref:`Configuring username and password prompts<unpw>`) |br| * Added support for the route-domain attribute for prefix-lists |br| |br| Issues Resolved: |br| * Fix documentation output in the Schema Reference for the |system|.
+        - Updated the documentation for Declarative Onboarding v1.40.0.  This release contains the following changes: |br| * Added support for configuring BIG-IP ASM options in a declaration (see :ref:`AS3 options <asmdo>`), `GitHub Issue 656 <https://github.com/F5Networks/f5-appsvcs-extension/issues/656>`_ |br| * Support for configuring username and password prompts (see :ref:`Configuring username and password prompts<unpw>`) |br| * Added support for the route-domain attribute for prefix-lists (see the updated :ref:`Routing Prefix list<example26> example`) |br| |br| Issues Resolved: |br| * Fix documentation output in the Schema Reference for the |system|.
         - 9-12-23
 
       * - 1.39.1
