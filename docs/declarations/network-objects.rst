@@ -217,18 +217,19 @@ The BGP routing configuration uses the following BIG-IP Declarative Onboarding c
 
 The **RoutingBGP** class contains a number of properties used in the following example, so be sure to see |routingbgp| for descriptions and options.
 
-**New in BIG-IP DO 1.24** |br|
 BIG-IP Declarative Onboarding 1.24 introduced the **ebgpMultihop** property for BGP neighbors. This property allows you to specify between 1 and 255 external BGP members that are not on directly connected networks (the default is **1**). See |ebgp| in the Schema Reference for more information.
 
-**New in BIG-IP DO 1.28** |br|
 BIG-IP Declarative Onboarding 1.28 adds support for specifying route domains in |routingbgp| and |routemap|.
 
-.. IMPORTANT:: If you try to use the following example with a version prior to 1.28, it will fail.  For previous versions, remove the lines in yellow.  You can leave the **ebgpMultihop** lines if using a BIG-IP DO version between 1.24 and 1.27.
+**New in BIG-IP DO 1.40** |br|
+As noted in the previous example, BIG-IP DO 1.40 introduced the ability to define a route domain and assign it to a routing prefix list using the new **routeDomain** property in the |rpl| class.  
+
+.. IMPORTANT:: If you try to use the following example with a version prior to 1.40, it will fail.  For previous versions, remove the lines in yellow, and the commas from lines 56 and 68.
 
 
 .. literalinclude:: ../../examples/bgp.json
    :language: json
-   :emphasize-lines: 85, 103, 133, 138, 158
+   :emphasize-lines: 57, 69
 
 |
 
