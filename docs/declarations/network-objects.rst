@@ -177,7 +177,7 @@ See |prefix| and |prefixentry| in the Schema Reference for BIG-IP DO usage and o
 BIG-IP DO 1.23 introduced the ability to use strings for the **prefixLengthRange** range property. Previous versions would only accept integers. |br|
 
 **New in BIG-IP DO 1.40** |br|
-BIG-IP DO 1.40 introduced the ability to define a route domain and assign it to a routing prefix list using the new **routeDomain** property in the |rpl| class.  
+BIG-IP DO 1.40 introduced the ability to define a route domain and assign it to a routing prefix list using the new **routeDomain** property in the |prefix| class.  
 
 
 The following example contains multiple prefix lists, but no other BIG-IP DO configuration.  You can use this class as a part of a larger BIG-IP Declarative Onboarding declaration.  
@@ -222,7 +222,7 @@ BIG-IP Declarative Onboarding 1.24 introduced the **ebgpMultihop** property for 
 BIG-IP Declarative Onboarding 1.28 added support for specifying route domains in |routingbgp| and |routemap|.
 
 **New in BIG-IP DO 1.40** |br|
-As noted in the previous example, BIG-IP DO 1.40 introduced the ability to define a route domain and assign it to a routing prefix list using the new **routeDomain** property in the |rpl| class.  
+As noted in the previous example, BIG-IP DO 1.40 introduced the ability to define a route domain and assign it to a routing prefix list using the new **routeDomain** property in the |prefix| class.  
 
 .. IMPORTANT:: If you try to use the following example with a version prior to 1.40, it will fail.  For previous versions, remove the lines in yellow, and the commas from lines 56 and 68.
 
