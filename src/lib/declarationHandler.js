@@ -1377,7 +1377,8 @@ function handleTeemReport(declaration) {
         }
 
         const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
-        return Promise.resolve()
+        // Run report concurrently so declaration handling is not delayed
+        Promise.resolve()
             .then(() => record.calculateAssetId())
             .then(() => record.addRegKey())
             .then(() => record.addPlatformInfo())

@@ -83,7 +83,11 @@ module.exports = {
                 return this.decryptValue(parsed.secret);
             })
             .catch((err) => {
-                logger.warning('Failed to decrypt data with id', id, err);
+                if (err.message.includes('was not found')) {
+                    logger.warning('There was no value to decrypt. This can happen if there is an unexpected restart.', id, err);
+                } else {
+                    logger.warning('Failed to decrypt data with id', id, err);
+                }
                 return Promise.reject(err);
             });
     },

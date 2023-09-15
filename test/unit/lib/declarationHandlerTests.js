@@ -26,6 +26,7 @@ const sinon = require('sinon');
 
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
 const TeemRecord = require('@f5devcentral/f5-teem').Record;
+const promiseUtil = require('@f5devcentral/atg-shared-utilities').promiseUtils;
 const DeclarationParser = require('../../../src/lib/declarationParser');
 const DiffHandler = require('../../../src/lib/diffHandler');
 const AnalyticsHandler = require('../../../src/lib/analyticsHandler');
@@ -475,6 +476,7 @@ describe('declarationHandler', () => {
 
             const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
             return declarationHandler.process(newDeclaration)
+                .then(() => promiseUtil.delay(100))
                 .then(() => {
                     // Check that each class was called
                     assert.strictEqual(
@@ -576,6 +578,7 @@ describe('declarationHandler', () => {
 
             const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
             return declarationHandler.process(newDeclaration)
+                .then(() => promiseUtil.delay(100))
                 .then(() => {
                     // Check that the record body object was filled with input
                     assert.deepStrictEqual(

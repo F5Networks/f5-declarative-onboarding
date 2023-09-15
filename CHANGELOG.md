@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 
 ### Fixed
+- AUTOTOOL-3907: Reports error with Radius server
 
 ### Changed
 

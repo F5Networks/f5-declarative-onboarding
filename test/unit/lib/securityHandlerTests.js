@@ -183,7 +183,6 @@ describe('SecurityHandler', () => {
             const securityHandler = new SecurityHandler(declaration, bigIpMock, undefined, state);
             return securityHandler.process()
                 .then(() => {
-                    console.log(dataSent);
                     const antivirusProtection = dataSent[PATHS.AntiVirusProtection];
                     const setting0 = dataSent[`${PATHS.WafAdvancedSettings}/Bo68NqP9roUE8Vv2NO-29Q`];
                     const setting1 = dataSent[`${PATHS.WafAdvancedSettings}/4NRiSGFR-qvXsN8VM7oKiw`];
