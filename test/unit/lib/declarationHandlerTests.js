@@ -23,6 +23,7 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 const sinon = require('sinon');
+const sandbox = require('sinon').createSandbox();
 
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
 const TeemRecord = require('@f5devcentral/f5-teem').Record;
@@ -86,10 +87,18 @@ describe('declarationHandler', () => {
             handlerCalled('ProvisionHandler');
             return Promise.resolve();
         });
+        sandbox.stub(TeemRecord.prototype, 'calculateAssetId').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addRegKey').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addPlatformInfo').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addProvisionedModules').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addClassCount').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addJsonObject').resolves();
+        sandbox.stub(TeemDevice.prototype, 'reportRecord').resolves();
     });
 
     afterEach(() => {
         sinon.restore();
+        sandbox.restore();
     });
 
     describe('General testing', () => {
@@ -165,10 +174,10 @@ describe('declarationHandler', () => {
                     return Promise.resolve();
                 }
             };
+        });
 
-            afterEach(() => {
-                diffHandlerStub.restore();
-            });
+        afterEach(() => {
+            diffHandlerStub.restore();
         });
 
         it('should parse declarations if not parsed', () => {
@@ -426,6 +435,7 @@ describe('declarationHandler', () => {
         });
 
         it('should send TEEM report', (done) => {
+            sandbox.restore();
             const newDeclaration = {
                 name: 'new',
                 foo: {
@@ -469,66 +479,70 @@ describe('declarationHandler', () => {
 
             // check the record sent to reportRecord
             sinon.stub(TeemDevice.prototype, 'reportRecord').callsFake((recordIn) => {
-                // Check that each class was called
-                assert.strictEqual(
-                    isAddClassCountCalled.calledOnce,
-                    true,
-                    'should call addClassCount() once'
-                );
-                assert.strictEqual(
-                    isAddPlatformInfoCalled.calledOnce,
-                    true,
-                    'should call addPlatformInfo() once'
-                );
-                assert.strictEqual(
-                    isAddRegKeyCalled.calledOnce,
-                    true,
-                    'should call addRegKey() once'
-                );
-                assert.strictEqual(
-                    isAddProvisionedModulesCalled.calledOnce,
-                    true,
-                    'should call addProvisionedModules() once'
-                );
-                assert.strictEqual(
-                    isCalculateAssetIdCalled.calledOnce,
-                    true,
-                    'should call calculateAssetId() once'
-                );
-                assert.strictEqual(
-                    isAddJsonObjectCalled.calledOnce,
-                    true,
-                    'should call addJsonObject() once'
-                );
-                assert.strictEqual(
-                    isReportCalled.called,
-                    false,
-                    'report() should not have been called'
-                );
+                try {
+                    // Check that each class was called
+                    assert.strictEqual(
+                        isAddClassCountCalled.calledOnce,
+                        true,
+                        'should call addClassCount() once'
+                    );
+                    assert.strictEqual(
+                        isAddPlatformInfoCalled.calledOnce,
+                        true,
+                        'should call addPlatformInfo() once'
+                    );
+                    assert.strictEqual(
+                        isAddRegKeyCalled.calledOnce,
+                        true,
+                        'should call addRegKey() once'
+                    );
+                    assert.strictEqual(
+                        isAddProvisionedModulesCalled.calledOnce,
+                        true,
+                        'should call addProvisionedModules() once'
+                    );
+                    assert.strictEqual(
+                        isCalculateAssetIdCalled.calledOnce,
+                        true,
+                        'should call calculateAssetId() once'
+                    );
+                    assert.strictEqual(
+                        isAddJsonObjectCalled.calledOnce,
+                        true,
+                        'should call addJsonObject() once'
+                    );
+                    assert.strictEqual(
+                        isReportCalled.called,
+                        false,
+                        'report() should not have been called'
+                    );
 
-                // Check that the record body object was filled with input
-                assert.deepStrictEqual(
-                    recordIn.recordBody,
-                    {
-                        authenticationType: {
-                            radius: 1,
-                            tacacs: 0,
-                            ldap: 1
-                        },
-                        Authentication: 1,
-                        bar: 1,
-                        Controls: 1,
-                        Tenant: 1,
-                        modules: {},
-                        nicConfiguration: 'unknown',
-                        platform: 'unknown',
-                        platformID: 'unknown',
-                        platformVersion: 'unknown',
-                        regkey: 'unknown',
-                        userAgent: 'test userAgent'
-                    }
-                );
-                done();
+                    // Check that the record body object was filled with input
+                    assert.deepStrictEqual(
+                        recordIn.recordBody,
+                        {
+                            authenticationType: {
+                                radius: 1,
+                                tacacs: 0,
+                                ldap: 1
+                            },
+                            Authentication: 1,
+                            bar: 1,
+                            Controls: 1,
+                            Tenant: 1,
+                            modules: {},
+                            nicConfiguration: 'unknown',
+                            platform: 'unknown',
+                            platformID: 'unknown',
+                            platformVersion: 'unknown',
+                            regkey: 'unknown',
+                            userAgent: 'test userAgent'
+                        }
+                    );
+                    done();
+                } catch (err) {
+                    done(err);
+                }
             });
 
             const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
@@ -536,6 +550,7 @@ describe('declarationHandler', () => {
         });
 
         it('should count complicated authentication declaration', (done) => {
+            sandbox.restore();
             const newDeclaration = {
                 name: 'new',
                 Common: {
@@ -567,26 +582,30 @@ describe('declarationHandler', () => {
 
             // check the record sent to reportRecord
             sinon.stub(TeemDevice.prototype, 'reportRecord').callsFake((recordIn) => {
-                // Check that the record body object was filled with input
-                assert.deepStrictEqual(
-                    recordIn.recordBody,
-                    {
-                        authenticationType: {
-                            ldap: 1,
-                            radius: 2,
-                            tacacs: 0
-                        },
-                        Authentication: 2,
-                        Tenant: 1,
-                        modules: {},
-                        nicConfiguration: 'unknown',
-                        platform: 'unknown',
-                        platformID: 'unknown',
-                        platformVersion: 'unknown',
-                        regkey: 'unknown'
-                    }
-                );
-                done();
+                try {
+                    // Check that the record body object was filled with input
+                    assert.deepStrictEqual(
+                        recordIn.recordBody,
+                        {
+                            authenticationType: {
+                                ldap: 1,
+                                radius: 2,
+                                tacacs: 0
+                            },
+                            Authentication: 2,
+                            Tenant: 1,
+                            modules: {},
+                            nicConfiguration: 'unknown',
+                            platform: 'unknown',
+                            platformID: 'unknown',
+                            platformVersion: 'unknown',
+                            regkey: 'unknown'
+                        }
+                    );
+                    done();
+                } catch (err) {
+                    done(err);
+                }
             });
 
             const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
@@ -594,6 +613,7 @@ describe('declarationHandler', () => {
         });
 
         it('should succeed even if TEEM report fails', () => {
+            sandbox.restore();
             const newDeclaration = {
                 name: 'new'
             };
