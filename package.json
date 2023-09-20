@@ -19,7 +19,7 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
-    "@f5devcentral/atg-shared-utilities": "^0.10.1",
+    "@f5devcentral/atg-shared-utilities": "^0.10.2",
     "@f5devcentral/f5-cloud-libs": "^4.29.0",
     "@f5devcentral/f5-teem": "^1.6.1",
     "ajv": "6.12.6",
@@ -32,7 +32,7 @@
     "@f5devcentral/eslint-config-f5-atg": "^0.1.8",
     "@stryker-mutator/core": "^7.1.1",
     "@stryker-mutator/mocha-runner": "^7.1.1",
-    "chai": "^4.3.7",
+    "chai": "^4.3.8",
     "chai-as-promised": "^7.1.1",
     "colors": "^1.4.0",
     "eslint": "7.32.0",
@@ -66,7 +66,7 @@
     "extends": "@f5devcentral/eslint-config-f5-atg"
   },
   "optionalDependencies": {
-    "@redocly/cli": "^1.0.2",
+    "@redocly/cli": "^1.2.0",
     "node-ssh": "^13.1.0"
   }
 }
