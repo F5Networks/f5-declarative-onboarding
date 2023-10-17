@@ -27,6 +27,7 @@ const schema = require('../../../src/schema/latest/base.schema.json');
 const common = require('../common');
 const constants = require('../constants');
 const propertyMap = require('../../../src/lib/configItems.json');
+const logger = require('../logger').getInstance();
 const PATHS = require('../../../src/lib/sharedConstants').PATHS;
 
 const consoleOptions = {
@@ -998,6 +999,7 @@ function removeToken(token) {
 beforeEach(function setupBeforeEach() {
     this.timeout(300000);
     testInfo = getTestInfo(this.currentTest);
+    logger.debug(`Starting ${testInfo.testName}`);
     return mkdirPromise(testInfo.testDir)
         .then(() => {
             if (!DEFAULT_OPTIONS.dryRun) {
@@ -1018,6 +1020,7 @@ afterEach(function teardownAfterEach() {
     this.timeout(300000);
     const token = DEFAULT_OPTIONS.token;
     let promise = Promise.resolve();
+    logger.debug(`Finishing ${testInfo.testName}`);
     if (token) {
         promise = promise.then(() => removeToken(token));
     }
@@ -1054,7 +1057,7 @@ function provisionModules(modules) {
         }
     };
     const retryOptions = {
-        trials: 60,
+        trials: 240,
         timeInterval: 10000,
         acceptErrors: ['ECONNRESET', 'ECONNREFUSED', 'EHOSTUNREACH']
     };
