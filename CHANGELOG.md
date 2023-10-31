@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.41.0
 ### Added
+- AUTOTOOL-4020: ([GitHub 86](https://github.com/F5Networks/f5-declarative-onboarding/issues/86)): Update trust certificates when updating device certificate
 
 ### Fixed
 - AUTOTOOL-3907: Reports error with Radius server

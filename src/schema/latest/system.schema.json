@@ -19,6 +19,11 @@
                                 "description": "Indicates that this property contains device certificate information",
                                 "type": "string",
                                 "const": "DeviceCertificate"
+                            },
+                            "updateTrustCerts": {
+                                "description": "Specifies whether or not to update the device trust certificates with the new device certificate.",
+                                "type": "boolean",
+                                "default": false
                             }
                         }
                     },

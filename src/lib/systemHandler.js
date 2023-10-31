@@ -328,7 +328,9 @@ function handleDNS() {
 function handleDeviceCertificate() {
     const certificateFullPath = '/config/httpd/conf/ssl.crt/server.crt';
     const keyFullPath = '/config/httpd/conf/ssl.key/server.key';
-    const storeOriginalPromise = storeOriginalCertAndKey.call(this, certificateFullPath, keyFullPath);
+    const trustCerts = ['/config/big3d/client.crt', '/config/gtm/server.crt'];
+    const storeOriginalPromise = storeOriginalCertAndKey
+        .call(this, [certificateFullPath, keyFullPath].concat(trustCerts));
 
     if (this.declaration.Common.DeviceCertificate) {
         const certificateName = Object.keys(this.declaration.Common.DeviceCertificate)[0];
@@ -371,7 +373,37 @@ function handleDeviceCertificate() {
                                 cloudUtil.NO_RETRY,
                                 { silent: true } // keeping it out of the logs just because it's a lot of data
                             ));
+
+                            if (certificateDeclaration.updateTrustCerts) {
+                                const trust = trustCerts.map((cert) => () => doUtil
+                                    .executeBashCommandIControl(
+                                        this.bigIp,
+                                        `cat ${cert}`
+                                    )
+                                    .then((data) => {
+                                        originalCertificate = data.trim();
+                                        needsWrite = false;
+                                        if (!data.includes(newCertificate)) {
+                                            needsWrite = true;
+                                            return storeDeviceCertRollbackInfo.call(this, cert);
+                                        }
+                                        return Promise.resolve();
+                                    })
+                                    .then(() => {
+                                        if (needsWrite) {
+                                            writePromises.push(doUtil.executeBashCommandIControl(
+                                                this.bigIp,
+                                                `echo '${newCertificate}' >> ${cert}`,
+                                                cloudUtil.NO_RETRY,
+                                                { silent: true }
+                                            ));
+                                        }
+                                    }));
+
+                                return promiseUtil.series(trust);
+                            }
                         }
+                        return Promise.resolve();
                     });
             }
 
@@ -400,7 +432,9 @@ function handleDeviceCertificate() {
                                 cryptoUtil.encryptValue(newKey, this.bigIp, this.state.id)
                                     .then((results) => doUtil.executeBashCommandIControl(
                                         this.bigIp,
-                                        `/usr/bin/php -r '${decryptScript}' '${results}' ${keyFullPath}`
+                                        `/usr/bin/php -r '${decryptScript}' '${results}' ${keyFullPath}`,
+                                        cloudUtil.NO_RETRY,
+                                        { silent: true }
                                     ))
                             );
                         }
@@ -422,7 +456,7 @@ function handleDeviceCertificate() {
         }
     }
     return storeOriginalPromise
-        .then(() => restoreCertAndKey.call(this, certificateFullPath, keyFullPath));
+        .then(() => restoreCertAndKey.call(this, [certificateFullPath, keyFullPath].concat(trustCerts)));
 }
 
 function handleSystem() {
@@ -1364,45 +1398,32 @@ function restartDhcp() {
  * @param {String} certFullPath - Full path to device certificate
  * @param {String} keyFullPath - Full path to device key
  */
-function storeOriginalCertAndKey(certFullPath, keyFullPath) {
-    const originalCertPath = `${certFullPath}.${ORIGINAL_FILE_POSTFIX}`;
-    const originalKeyPath = `${keyFullPath}.${ORIGINAL_FILE_POSTFIX}`;
-    return doUtil.executeBashCommandIControl(
+function storeOriginalCertAndKey(certsAndKey) {
+    const storePromises = certsAndKey.map((path) => doUtil.executeBashCommandIControl(
         this.bigIp,
-        `ls ${originalCertPath}`
+        `ls ${path}.${ORIGINAL_FILE_POSTFIX}`
     )
         .then((result) => {
             if (result.indexOf('No such file or directory') > -1) {
                 return doUtil.executeBashCommandIControl(
                     this.bigIp,
-                    `cp ${certFullPath} ${certFullPath}.${ORIGINAL_FILE_POSTFIX}`
+                    `cp ${path} ${path}.${ORIGINAL_FILE_POSTFIX}`
                 );
             }
             return Promise.resolve();
-        })
-        .then(() => doUtil.executeBashCommandIControl(
-            this.bigIp,
-            `ls ${originalKeyPath}`
-        ))
-        .then((result) => {
-            if (result.indexOf('No such file or directory') > -1) {
-                return doUtil.executeBashCommandIControl(
-                    this.bigIp,
-                    `cp ${keyFullPath} ${keyFullPath}.${ORIGINAL_FILE_POSTFIX}`
-                );
-            }
-            return Promise.resolve();
-        });
+        }));
+
+    return Promise.all(storePromises);
 }
 
-function restoreCertAndKey(certFullPath, keyFullPath) {
+function restoreCertAndKey(certsAndKey) {
     if (this.state
         && this.state.rollbackInfo
         && this.state.rollbackInfo.systemHandler
         && this.state.rollbackInfo.systemHandler.deviceCertificate) {
         return rollbackCertAndKey.call(this);
     }
-    return restoreOriginalCertAndKey.call(this, certFullPath, keyFullPath);
+    return restoreOriginalCertAndKey.call(this, certsAndKey);
 }
 
 function rollbackCertAndKey() {
@@ -1426,42 +1447,30 @@ function rollbackCertAndKey() {
  * @param {String} certFullPath - Full path to device certificate
  * @param {String} keyFullPath - Full path to device key
  */
-function restoreOriginalCertAndKey(certFullPath, keyFullPath) {
-    const originalCertPath = `${certFullPath}.${ORIGINAL_FILE_POSTFIX}`;
-    const originalKeyPath = `${keyFullPath}.${ORIGINAL_FILE_POSTFIX}`;
-    let certWritten = false;
-    let keyWritten = false;
-    return Promise.resolve()
-        .then(() => areFilesDifferent.call(this, originalCertPath, certFullPath))
+function restoreOriginalCertAndKey(certsAndKey) {
+    let fileWritten;
+    let rebootRequired = false;
+    const restorePromises = certsAndKey.map((path) => () => areFilesDifferent
+        .call(this, `${path}.${ORIGINAL_FILE_POSTFIX}`, path)
         .then((different) => {
+            fileWritten = false;
             if (different) {
-                certWritten = true;
-                return storeDeviceCertRollbackInfo.call(this, certFullPath);
+                fileWritten = true;
+                rebootRequired = true;
+                return storeDeviceCertRollbackInfo.call(this, path);
             }
             return Promise.resolve();
         })
         .then(() => {
-            if (certWritten) {
-                return copyFiles.call(this, originalCertPath, certFullPath);
+            if (fileWritten) {
+                return copyFiles.call(this, `${path}.${ORIGINAL_FILE_POSTFIX}`, path);
             }
             return Promise.resolve(true);
-        })
-        .then(() => areFilesDifferent.call(this, originalKeyPath, keyFullPath))
-        .then((different) => {
-            if (different) {
-                keyWritten = true;
-                return storeDeviceCertRollbackInfo.call(this, keyFullPath);
-            }
-            return Promise.resolve();
-        })
+        }));
+
+    return promiseUtil.series(restorePromises)
         .then(() => {
-            if (keyWritten) {
-                return copyFiles.call(this, originalKeyPath, keyFullPath);
-            }
-            return Promise.resolve();
-        })
-        .then(() => {
-            if (certWritten || keyWritten) {
+            if (rebootRequired) {
                 // Really all we need to do is restart httpd but I can't find a way to do that
                 // succesfully. Anything through iControl REST fails on the second restart.
                 this.rebootRequired = true;
