@@ -5,6 +5,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 
 ### Fixed
+- AUTOTOOL-4058: ([GitHub 363](https://github.com/F5Networks/f5-declarative-onboarding/issues/363)) and ([GitHub 329](https://github.com/F5Networks/f5-declarative-onboarding/issues/329)): Creating a RoutingBGP fails if a RouteMap is not in the declaration
 
 ### Changed
 

@@ -81,7 +81,7 @@ class RoutingBgpValidator {
                     }
                 });
                 const routeMapWrapper = doUtil.getClassObjects(data.declaration, 'RouteMap');
-                Object.keys(routeMapWrapper).forEach((mapName) => {
+                Object.keys(routeMapWrapper || []).forEach((mapName) => {
                     const routeMap = routeMapWrapper[mapName];
                     if (peerGroupRouteMaps.indexOf(mapName) !== -1) {
                         if (routeMap.routeDomain !== routingBgp.routeDomain) {

@@ -285,5 +285,28 @@ describe('routingBgpValidator', () => {
                     });
                 });
         });
+
+        it('should validate if RoutingBGP and no RouteMap in declaration', () => {
+            wrapper.declaration.Common = {
+                exampleRoutingBgp: {
+                    class: 'RoutingBGP',
+                    localAS: 1,
+                    peerGroups: [
+                        {
+                            name: 'Neighbor1',
+                            addressFamilies: []
+                        },
+                        {
+                            name: 'Neighbor2',
+                            addressFamilies: []
+                        }
+                    ]
+                }
+            };
+            return validator.validate(wrapper)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
+                });
+        });
     });
 });
